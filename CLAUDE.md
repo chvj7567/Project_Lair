@@ -15,6 +15,8 @@
 @.claude/rules/05-mvvm-pattern.md
 @.claude/rules/06-interface-for-parent.md
 @.claude/rules/07-base-on-chvj-package.md
+@.claude/rules/08-enum-key-naming.md
+@.claude/rules/09-common-enum-single-file.md
 
 ## 요약 (Quick Reference)
 
@@ -25,3 +27,5 @@
 5. **MVVM 적용** — View ↔ ViewModel ↔ Model 단방향, View에 로직 금지
 6. **상위 스크립트는 인터페이스로** — `GetComponentInParent<IXxx>()` 사용
 7. **ChvjPackage 기준** — 신규 작업 전 패키지 내 기능 우선 확인, 공통 기능은 패키지에 추가
+8. **Enum 키 = 에셋명** — `CHMResource`/`CHMUI`는 `Enum.ToString()` 으로 로드. 프리팹/씬/SO 파일명은 Enum 값명과 정확히 일치(대소문자 포함). 카테고리별 Enum 분리(`EUI`, `EMonster`, `EStats` …)
+9. **공용 Enum 단일 파일** — 여러 시스템에서 참조되는 Enum은 `Assets/_Lair/Scripts/Data/CommonEnum.cs` 한 파일에 통합. 카테고리별 Enum 자체는 분리 유지(Rule 08), *파일*만 하나
