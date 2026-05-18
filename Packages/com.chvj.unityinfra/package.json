@@ -1,0 +1,29 @@
+{
+  "name": "com.chvj.unityinfra",
+  "version": "0.1.0",
+  "displayName": "UnityInfra",
+  "description": "Core infrastructure: singletons, utility extensions, Addressables resource loader, GameObject pooling, JsonUtility array helper. Foundation for game projects.",
+  "unity": "2022.3",
+  "author": {
+    "name": "chvj"
+  },
+  "dependencies": {
+    "com.unity.addressables": "2.8.1"
+  },
+  "keywords": [
+    "infra",
+    "singleton",
+    "resource",
+    "pool"
+  ],
+  "testables": [
+    "com.chvj.unityinfra"
+  ],
+  "samples": [
+    {
+      "displayName": "Demos",
+      "description": "각 매니저별 사용 예시 스크립트 (Core/Resource/Pool/Audio/UI/Ads/IAP/Social)",
+      "path": "Samples~/Demos"
+    }
+  ]
+}

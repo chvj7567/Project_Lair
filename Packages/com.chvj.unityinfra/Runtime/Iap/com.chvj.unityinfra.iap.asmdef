@@ -1,0 +1,22 @@
+{
+  "name": "com.chvj.unityinfra.iap",
+  "rootNamespace": "ChvjUnityInfra",
+  "references": [
+    "com.chvj.unityinfra",
+    "UnityEngine.Purchasing",
+    "UnityEngine.Purchasing.Stores",
+    "UnityEngine.Purchasing.Apple",
+    "Purchasing.Common"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+    "UNITY_INFRA_IAP"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
