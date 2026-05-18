@@ -91,5 +91,36 @@ namespace Lair.EditorTools
             EnsureAddressablesSetup();
             Debug.Log("[LairSetup] M1 셋업 완료");
         }
+
+        [MenuItem("Lair/Setup/Fix - Input Handling = Both")]
+        public static void SetInputHandlingBoth()
+        {
+            //# Legacy Input + Input System 동시 지원 — ChvjPackage CHMUI 의 Input.GetKeyDown(ESC)
+            //# 이 Input System 활성 환경에서 예외 던지지 않도록.
+            //# 값: 0=Old, 1=New, 2=Both
+            var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
+            foreach (var asset in assets)
+            {
+                if (asset == null) continue;
+                if (asset.GetType().Name != "PlayerSettings") continue;
+                var so = new SerializedObject(asset);
+                var prop = so.FindProperty("activeInputHandler");
+                if (prop == null)
+                {
+                    Debug.LogWarning("[LairSetup] activeInputHandler 필드 미발견");
+                    continue;
+                }
+                if (prop.intValue == 2)
+                {
+                    Debug.Log("[LairSetup] Active Input Handling 이미 Both");
+                    return;
+                }
+                prop.intValue = 2;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                AssetDatabase.SaveAssets();
+                Debug.Log("[LairSetup] Active Input Handling → Both (Unity 재컴파일 필요)");
+                return;
+            }
+        }
     }
 }
