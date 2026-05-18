@@ -33,19 +33,9 @@ namespace Lair.EditorTools
                 canvasGo.layer = LayerMask.NameToLayer("UI");
 
                 var canvas = canvasGo.AddComponent<Canvas>();
-                //# ScreenSpaceCamera — 카메라 렌더 파이프라인 안에 캡처 가능. Camera.main 이
-                //# 늦게 생성될 수 있으므로 호환 fallback: Camera.main 없으면 Overlay 로.
-                var mainCam = Camera.main;
-                if (mainCam != null)
-                {
-                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                    canvas.worldCamera = mainCam;
-                    canvas.planeDistance = 10f;
-                }
-                else
-                {
-                    canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                }
+                //# ScreenSpaceOverlay — 카메라 무관하게 항상 위에 그려짐 + GraphicRaycaster
+                //# 클릭 안정성. screenshot_game 으로는 캡처 안 잡히지만 사용자 직접 Play 우선.
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 canvas.sortingOrder = 100;
 
                 var scaler = canvasGo.AddComponent<CanvasScaler>();
@@ -60,16 +50,14 @@ namespace Lair.EditorTools
             }
             else
             {
-                //# 기존 UICanvas — renderMode 를 ScreenSpaceCamera 로 갱신 (screenshot 캡처용)
+                //# 기존 UICanvas — ScreenSpaceOverlay 로 정규화 (이전에 Camera 모드였을 수 있음)
                 var canvas = canvasGo.GetComponent<Canvas>();
-                var mainCam = Camera.main;
-                if (canvas != null && mainCam != null && canvas.renderMode != RenderMode.ScreenSpaceCamera)
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
                 {
-                    canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                    canvas.worldCamera = mainCam;
-                    canvas.planeDistance = 10f;
+                    canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    canvas.worldCamera = null;
                     canvas.sortingOrder = 100;
-                    Debug.Log("[LairUIPrefabBuilder] UICanvas → ScreenSpaceCamera 로 변경");
+                    Debug.Log("[LairUIPrefabBuilder] UICanvas → ScreenSpaceOverlay 로 변경");
                 }
                 else
                 {
@@ -77,22 +65,57 @@ namespace Lair.EditorTools
                 }
             }
 
-            //# 3) EventSystem 보장
+            //# 3) EventSystem 보장 + Input System 호환 모듈 사용
             var existingEventSystem = Object.FindFirstObjectByType<EventSystem>();
             if (existingEventSystem == null)
             {
                 var es = new GameObject("EventSystem");
                 es.AddComponent<EventSystem>();
-                es.AddComponent<StandaloneInputModule>();
-                Debug.Log("[LairUIPrefabBuilder] EventSystem 생성 완료");
+                AddInputModule(es);
+                Debug.Log("[LairUIPrefabBuilder] EventSystem 생성 완료 (InputSystemUIInputModule)");
             }
             else
             {
+                //# 기존 EventSystem 의 InputModule 검사 — StandaloneInputModule 이면 교체
+                var legacy = existingEventSystem.GetComponent<StandaloneInputModule>();
+                if (legacy != null && existingEventSystem.GetComponent("UnityEngine.InputSystem.UI.InputSystemUIInputModule") == null)
+                {
+                    Object.DestroyImmediate(legacy);
+                    AddInputModule(existingEventSystem.gameObject);
+                    Debug.Log("[LairUIPrefabBuilder] EventSystem InputModule → InputSystemUIInputModule");
+                }
                 Debug.Log("[LairUIPrefabBuilder] EventSystem 이미 존재");
             }
 
             //# 4) 씬 dirty 마킹 (저장 가능 상태로)
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        }
+
+        //# Unity built-in 흰색 UI Sprite. Image.type=Filled 는 sprite 가 있어야 fillAmount 가 시각 적용됨.
+        private static Sprite _uiSpriteCache;
+        private static Sprite GetUISprite()
+        {
+            if (_uiSpriteCache != null) return _uiSpriteCache;
+            //# 2022.3 표준 경로 — "UI/Skin/Background.psd" 가 9-slice white sprite
+            _uiSpriteCache = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd")
+                          ?? AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            return _uiSpriteCache;
+        }
+
+        //# InputSystemUIInputModule 이 com.unity.inputsystem 패키지 어셈블리에 있음.
+        //# 직접 type reference 대신 reflection 으로 attach — 패키지 의존성 부담 X.
+        //# 실패 시 StandaloneInputModule 로 fallback.
+        private static void AddInputModule(GameObject go)
+        {
+            //# 1순위: Input System Package 의 UI 모듈
+            var type = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
+            if (type != null && typeof(BaseInputModule).IsAssignableFrom(type))
+            {
+                go.AddComponent(type);
+                return;
+            }
+            //# 2순위: Legacy 모듈
+            go.AddComponent<StandaloneInputModule>();
         }
 
         [MenuItem("Lair/Setup/M4 - Build UI Prefabs")]
@@ -170,6 +193,8 @@ namespace Lair.EditorTools
             hpBgRt.anchoredPosition = new Vector2(0f, -90f);
             hpBgRt.sizeDelta = new Vector2(300f, 20f);
             var hpBgImg = hpBgGo.AddComponent<Image>();
+            hpBgImg.sprite = GetUISprite();
+            hpBgImg.type = Image.Type.Sliced;
             hpBgImg.color = ParseColor("#374151");
 
             //# HpFill (HpBg 자식, full stretch)
@@ -178,6 +203,7 @@ namespace Lair.EditorTools
             var hpFillRt = (RectTransform)hpFillGo.transform;
             SetFullStretch(hpFillRt);
             var hpFillImg = hpFillGo.AddComponent<Image>();
+            hpFillImg.sprite = GetUISprite();
             hpFillImg.color = ParseColor("#DC2626");
             hpFillImg.type = Image.Type.Filled;
             hpFillImg.fillMethod = Image.FillMethod.Horizontal;
@@ -209,6 +235,8 @@ namespace Lair.EditorTools
             dimGo.transform.SetParent(root.transform, false);
             SetFullStretch((RectTransform)dimGo.transform);
             var dimImg = dimGo.AddComponent<Image>();
+            dimImg.sprite = GetUISprite();
+            dimImg.type = Image.Type.Sliced;
             dimImg.color = new Color(0f, 0f, 0f, 0.5f);
 
             //# ResultText (center)
@@ -237,6 +265,8 @@ namespace Lair.EditorTools
             btnRt.anchoredPosition = new Vector2(0f, -120f);
             btnRt.sizeDelta = new Vector2(240f, 80f);
             var btnImg = btnGo.AddComponent<Image>();
+            btnImg.sprite = GetUISprite();
+            btnImg.type = Image.Type.Sliced;
             btnImg.color = Color.white;
             var btn = btnGo.AddComponent<Button>();
             btn.targetGraphic = btnImg;
@@ -289,7 +319,7 @@ namespace Lair.EditorTools
             rt.localScale = Vector3.one;
         }
 
-        private static void SetObjectField(SerializedObject so, string fieldName, Object value)
+        private static void SetObjectField(SerializedObject so, string fieldName, UnityEngine.Object value)
         {
             var prop = so.FindProperty(fieldName);
             if (prop == null)
