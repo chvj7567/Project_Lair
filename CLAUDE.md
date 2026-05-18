@@ -18,6 +18,7 @@
 @.claude/rules/08-enum-key-naming.md
 @.claude/rules/09-common-enum-single-file.md
 @.claude/rules/10-common-interface-single-file.md
+@.claude/rules/11-use-chvj-ui-components.md
 
 ## 요약 (Quick Reference)
 
@@ -31,3 +32,4 @@
 8. **Enum 키 = 에셋명** — `CHMResource`/`CHMUI`는 `Enum.ToString()` 으로 로드. 프리팹/씬/SO 파일명은 Enum 값명과 정확히 일치(대소문자 포함). 카테고리별 Enum 분리(`EUI`, `EMonster`, `EStats` …)
 9. **공용 Enum 단일 파일** — 여러 시스템에서 참조되는 Enum은 `Assets/_Lair/Scripts/Data/CommonEnum.cs` 한 파일에 통합. 카테고리별 Enum 자체는 분리 유지(Rule 08), *파일*만 하나
 10. **공용 Interface 단일 파일** — 여러 시스템에서 참조되는 Interface는 도메인별 `CommonInterface.cs` 한 파일에 통합 (예: `Scripts/Character/CommonInterface.cs` — IMover/IHealth/IAttacker/ITargetProvider). Interface 자체는 카테고리별 분리 유지, *파일*만 하나
+11. **ChvjPackage UI 래퍼 우선** — `CHText`(+TMP_Text), `CHButton`(+Button), `CHToggle`(+Toggle), `CHPoolingScrollView` 사용. Legacy UI Text / 단일 Button 직접 사용 지양. TMP 의존 (com.unity.ugui 2.0+)

@@ -1,4 +1,6 @@
 using System.IO;
+using ChvjUnityInfra;
+using TMPro;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -176,12 +178,14 @@ namespace Lair.EditorTools
             timerRt.pivot     = new Vector2(0.5f, 1f);
             timerRt.anchoredPosition = new Vector2(0f, -40f);
             timerRt.sizeDelta = new Vector2(400f, 80f);
-            var timerText = timerGo.AddComponent<Text>();
-            timerText.text = "5:00";
-            timerText.font = GetDefaultFont();
-            timerText.fontSize = 48;
-            timerText.alignment = TextAnchor.MiddleCenter;
-            timerText.color = Color.white;
+            //# Rule 11 — TMP_Text + CHText 래퍼 사용
+            var timerTmp = timerGo.AddComponent<TextMeshProUGUI>();
+            timerTmp.text = "5:00";
+            timerTmp.font = TMP_Settings.defaultFontAsset;
+            timerTmp.fontSize = 48f;
+            timerTmp.alignment = TextAlignmentOptions.Center;
+            timerTmp.color = Color.white;
+            var timerText = timerGo.AddComponent<CHText>();
 
             //# HpBg
             var hpBgGo = new GameObject("HpBg", typeof(RectTransform));
@@ -210,9 +214,9 @@ namespace Lair.EditorTools
             hpFillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
             hpFillImg.fillAmount = 1f;
 
-            //# SerializeField 주입 — _timerText, _heroHpFill
+            //# SerializeField 주입 — _timerText (CHText), _heroHpFill
             var so = new SerializedObject(hud);
-            SetObjectField(so, "_timerText",  timerText);
+            SetObjectField(so, "_timerText",  timerText);    //# CHText 컴포넌트
             SetObjectField(so, "_heroHpFill", hpFillImg);
             so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -248,12 +252,14 @@ namespace Lair.EditorTools
             resultRt.pivot     = new Vector2(0.5f, 0.5f);
             resultRt.anchoredPosition = new Vector2(0f, 50f);
             resultRt.sizeDelta = new Vector2(600f, 200f);
-            var resultText = resultGo.AddComponent<Text>();
-            resultText.text = "결과";
-            resultText.font = GetDefaultFont();
-            resultText.fontSize = 96;
-            resultText.alignment = TextAnchor.MiddleCenter;
-            resultText.color = Color.white;
+            //# Rule 11 — TMP_Text + CHText 래퍼 사용
+            var resultTmp = resultGo.AddComponent<TextMeshProUGUI>();
+            resultTmp.text = "결과";
+            resultTmp.font = TMP_Settings.defaultFontAsset;
+            resultTmp.fontSize = 96f;
+            resultTmp.alignment = TextAlignmentOptions.Center;
+            resultTmp.color = Color.white;
+            var resultText = resultGo.AddComponent<CHText>();
 
             //# RestartButton (center, below ResultText)
             var btnGo = new GameObject("RestartButton", typeof(RectTransform));
@@ -270,22 +276,24 @@ namespace Lair.EditorTools
             btnImg.color = Color.white;
             var btn = btnGo.AddComponent<Button>();
             btn.targetGraphic = btnImg;
+            //# Rule 11 — CHButton 래퍼 추가 (사운드 hook + closeDisposable 친화 OnClick)
+            var chBtn = btnGo.AddComponent<CHButton>();
 
-            //# Button label
+            //# Button label — TMP_Text (CHButton.SetText 가 자식 TMP 자동 인식)
             var btnTextGo = new GameObject("ButtonText", typeof(RectTransform));
             btnTextGo.transform.SetParent(btnGo.transform, false);
             SetFullStretch((RectTransform)btnTextGo.transform);
-            var btnText = btnTextGo.AddComponent<Text>();
-            btnText.text = "다시 시작";
-            btnText.font = GetDefaultFont();
-            btnText.fontSize = 36;
-            btnText.alignment = TextAnchor.MiddleCenter;
-            btnText.color = Color.black;
+            var btnTmp = btnTextGo.AddComponent<TextMeshProUGUI>();
+            btnTmp.text = "다시 시작";
+            btnTmp.font = TMP_Settings.defaultFontAsset;
+            btnTmp.fontSize = 36f;
+            btnTmp.alignment = TextAlignmentOptions.Center;
+            btnTmp.color = Color.black;
 
-            //# SerializeField 주입 — _resultText, _restartButton
+            //# SerializeField 주입 — _resultText (CHText), _restartButton (CHButton)
             var so = new SerializedObject(popup);
             SetObjectField(so, "_resultText",   resultText);
-            SetObjectField(so, "_restartButton", btn);
+            SetObjectField(so, "_restartButton", chBtn);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);

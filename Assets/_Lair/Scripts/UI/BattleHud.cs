@@ -9,7 +9,7 @@ namespace Lair.UI
     //# 구독 해제는 UIBase.closeDisposable 활용 (Close 시 자동 정리).
     public class BattleHud : UIBase
     {
-        [SerializeField] private Text _timerText;
+        [SerializeField] private CHText _timerText;
         [SerializeField] private Image _heroHpFill;
 
         private BattleViewModel _vm;
@@ -41,7 +41,7 @@ namespace Lair.UI
         {
             if (_timerText == null) return;
             float remain = Mathf.Max(0f, total - elapsed);
-            _timerText.text = $"{(int)(remain / 60)}:{(int)(remain % 60):00}";
+            _timerText.SetText($"{(int)(remain / 60)}:{(int)(remain % 60):00}");
         }
 
         private void HandleHp(float ratio)

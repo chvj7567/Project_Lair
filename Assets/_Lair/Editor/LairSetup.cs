@@ -92,6 +92,28 @@ namespace Lair.EditorTools
             Debug.Log("[LairSetup] M1 셋업 완료");
         }
 
+        [MenuItem("Lair/Setup/Fix - Import TMP Essentials")]
+        public static void ImportTMPEssentials()
+        {
+            //# com.unity.ugui 2.0+ 가 제공하는 TMP Essentials.unitypackage 자동 import.
+            //# 폰트 SDF, default font asset, shader 등 — CHText/TMP_Text 사용 전 1회 필요.
+            string[] candidates = new[]
+            {
+                "Packages/com.unity.ugui/Package Resources/TMP Essential Resources.unitypackage",
+                "Packages/com.unity.textmeshpro/Package Resources/TMP Essential Resources.unitypackage",
+            };
+            foreach (var path in candidates)
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    AssetDatabase.ImportPackage(path, interactive: false);
+                    Debug.Log($"[LairSetup] TMP Essentials import: {path}");
+                    return;
+                }
+            }
+            Debug.LogWarning("[LairSetup] TMP Essentials .unitypackage 경로 미발견. Window → TextMeshPro → Import TMP Essential Resources 메뉴로 수동 import 필요");
+        }
+
         [MenuItem("Lair/Setup/Fix - Input Handling = Both")]
         public static void SetInputHandlingBoth()
         {
