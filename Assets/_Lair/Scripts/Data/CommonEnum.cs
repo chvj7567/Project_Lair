@@ -24,12 +24,46 @@ namespace Lair.Data
     {
         BattleHud,
         ResultPopup,
+        CardSelectionPopup,    //# B1 신규
+    }
+
+    //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
+    public enum EData
+    {
+        CardPool_Passive,
+    }
+
+    //# B1 신규 — 카드 카테고리
+    public enum ECardCategory
+    {
+        Enhance,        //# 강화
+        Spawn,          //# 추가 소환
+        Replace,        //# 교체
+        Environment,    //# 환경 (영웅 디버프)
+    }
+
+    //# B1 신규 — 7장 카드 식별자
+    public enum ECardId
+    {
+        SlimeHpBoost,
+        GolemDamageBoost,
+        OrcAtkSpeed,
+        SpawnSlimes,
+        SpawnGolem,
+        ReplaceSlimesToGolem,
+        HeroPoisonAura,
     }
 
     //# SceneManager.LoadScene(EScene.X.ToString()).
     public enum EScene
     {
         Battle,
+    }
+
+    //# B1 신규 — 시각 이펙트 프리팹 키 (Rule 12 — CHMPool 사용).
+    public enum EVisual
+    {
+        PoisonAura,
     }
 
     //# === Cross-System Communication ===

@@ -16,6 +16,12 @@ namespace Lair.Character
 
         private float _lastAttackTime = float.NegativeInfinity;
 
+        //# CHMPool 재사용 시 쿨다운 기록 리셋 — 풀에서 막 꺼낸 인스턴스가 곧바로 공격 가능.
+        private void OnEnable()
+        {
+            _lastAttackTime = float.NegativeInfinity;
+        }
+
         //# 테스트 또는 런타임 동적 설정.
         public void Configure(float range, float cooldown, int power)
         {

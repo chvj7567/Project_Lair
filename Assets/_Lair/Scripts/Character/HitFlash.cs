@@ -35,12 +35,22 @@ namespace Lair.Character
 
         private void OnEnable()
         {
-            if (_health != null) _health.OnChanged += HandleChanged;
+            if (_health != null)
+            {
+                _health.OnChanged += HandleChanged;
+                //# Rule 12 — 풀 재사용 시 _lastHp 재캐시 (Health.OnEnable 가 Current 복원 후)
+                _lastHp = _health.Current;
+            }
+            //# 진행 중이던 flash 정리 + 색상 원복
+            if (_co != null) { StopCoroutine(_co); _co = null; }
+            if (_matInstance != null) WriteColor(_matInstance, _originalColor);
         }
 
         private void OnDisable()
         {
             if (_health != null) _health.OnChanged -= HandleChanged;
+            //# 코루틴은 GameObject 비활성화 시 자동 중단되지만 _co 참조 정리
+            _co = null;
         }
 
         private void HandleChanged(int current, int max)

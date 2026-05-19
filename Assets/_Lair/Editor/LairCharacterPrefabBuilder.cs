@@ -103,8 +103,18 @@ namespace Lair.EditorTools
             var mover = go.AddComponent<SimpleMover>();
             var health = go.AddComponent<Health>();
             var attacker = go.AddComponent<MeleeAttacker>();
-            if (spec.IsHero) go.AddComponent<HeroTargetProvider>();
-            else             go.AddComponent<MonsterTargetProvider>();
+            if (spec.IsHero)
+            {
+                go.AddComponent<HeroTargetProvider>();
+            }
+            else
+            {
+                go.AddComponent<MonsterTargetProvider>();
+                //# B1 — MonsterTag 부착 + EMonster Key 주입
+                var tag = go.AddComponent<MonsterTag>();
+                if (System.Enum.TryParse<EMonster>(spec.Name, out var key))
+                    tag.Configure(key);
+            }
             go.AddComponent<AutoCombatAI>();
             //# 시각 피드백 + 사망 처리
             go.AddComponent<HitFlash>();

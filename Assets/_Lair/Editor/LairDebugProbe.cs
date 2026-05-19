@@ -60,5 +60,51 @@ namespace Lair.EditorTools
                 Debug.Log($"[Probe] Monster '{e.Transform.name}' — Current={e.Health.Current}/{e.Health.Max}, IsAlive={e.Health.IsAlive}, Pos={e.Transform.position}");
             }
         }
+
+        //# B1-M4 — 패시브 트리거 강제 발동용. 영웅에 100 데미지 주입.
+        [MenuItem("Lair/Debug/Damage Hero 100")]
+        public static void DamageHero100()
+        {
+            var snapshot = CharacterRegistry.Heroes.ToArray();
+            foreach (var e in snapshot)
+                if (e?.Health != null) e.Health.TakeDamage(100);
+            Debug.Log("[Probe] Hero 에 100 데미지");
+        }
+
+        //# B1 fix 검증 — ReplaceSlimesToGolemEffect 를 직접 호출 (랜덤 드로우 우회).
+        [MenuItem("Lair/Debug/Apply Replace Effect")]
+        public static void ApplyReplaceEffect()
+        {
+            var bc = Object.FindFirstObjectByType<Lair.Battle.BattleController>();
+            if (bc == null) { Debug.LogWarning("[Probe] BattleController 없음"); return; }
+            var ctx = new Lair.Battle.BattleContext(bc);
+            new Lair.Card.ReplaceSlimesToGolemEffect().Apply(ctx);
+            Debug.Log("[Probe] ReplaceSlimesToGolemEffect 직접 호출");
+        }
+
+        //# 시각 검증 — PoisonAura 직접 영웅에 부착.
+        [MenuItem("Lair/Debug/Apply Poison Aura")]
+        public static void ApplyPoisonAura()
+        {
+            var bc = Object.FindFirstObjectByType<Lair.Battle.BattleController>();
+            if (bc == null) { Debug.LogWarning("[Probe] BattleController 없음"); return; }
+            var ctx = new Lair.Battle.BattleContext(bc);
+            new Lair.Card.HeroPoisonAuraEffect().Apply(ctx);
+            Debug.Log("[Probe] HeroPoisonAuraEffect 직접 호출");
+        }
+
+        //# B1-M4 — CardSelectionPopup 자동 클릭. 첫 슬롯의 CHButton onClick 호출.
+        [MenuItem("Lair/Debug/Auto Pick First Card")]
+        public static void AutoPickFirstCard()
+        {
+            var popup = Object.FindFirstObjectByType<Lair.UI.CardSelectionPopup>();
+            if (popup == null) { Debug.LogWarning("[Probe] CardSelectionPopup 없음"); return; }
+            var slots = popup.GetComponentsInChildren<Lair.UI.CardView>(includeInactive: false);
+            if (slots == null || slots.Length == 0) { Debug.LogWarning("[Probe] CardView 슬롯 없음"); return; }
+            var btn = slots[0].GetComponentInChildren<UnityEngine.UI.Button>();
+            if (btn == null) { Debug.LogWarning("[Probe] Button 없음"); return; }
+            btn.onClick.Invoke();
+            Debug.Log("[Probe] 첫 카드 자동 클릭");
+        }
     }
 }

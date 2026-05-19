@@ -24,6 +24,13 @@ namespace Lair.Character
             Current = _max;
         }
 
+        //# CHMPool 재사용 시 사망 상태로 풀에서 빠져나온 인스턴스를 복원.
+        //# Pop → SetActive(true) → OnEnable. Current > 0 이면 그대로 유지.
+        private void OnEnable()
+        {
+            if (Current <= 0) Current = _max;
+        }
+
         public void TakeDamage(int amount)
         {
             if (IsAlive == false) return;

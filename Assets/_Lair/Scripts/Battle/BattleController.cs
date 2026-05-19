@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
+using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 using Lair.UI;
@@ -22,6 +23,14 @@ namespace Lair.Battle
         private Health _heroHealth;
         private readonly List<CHPoolable> _monsters = new();
 
+        //# B1 신규
+        private PauseService _pause;
+        private PassiveTriggerService _passiveTriggers;
+        private TriggerQueue _queue;
+        private CardDeck _passiveDeck;
+        private IBattleContext _ctx;
+        private bool _processingQueue;
+
         async void Start()
         {
             //# 1. ChvjPackage 초기화
@@ -32,6 +41,9 @@ namespace Lair.Battle
             }
             CHMUI.Instance.Init();
             CHMPool.Instance.Init();
+
+            //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
+            await PrewarmPools();
 
             //# 2. MVVM
             _model = new BattleStateModel();
@@ -44,6 +56,23 @@ namespace Lair.Battle
             //# 4. 스폰
             await SpawnHero();
             await SpawnMonsters();
+
+            //# B1 — 일시정지 / 트리거 / 카드 풀
+            _pause = new PauseService();
+            _queue = new TriggerQueue();
+            if (_heroHealth != null)
+            {
+                _passiveTriggers = new PassiveTriggerService(_heroHealth);
+                _passiveTriggers.OnTriggered += idx =>
+                {
+                    _queue.Enqueue(TriggerQueue.Source.Passive, idx);
+                    TryProcessNext();
+                };
+            }
+            _ctx = new BattleContext(this);
+
+            var pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
+            if (pool != null) _passiveDeck = new CardDeck(pool.Cards);
 
             //# 5. 시계
             _clock = new BattleClock(_model.TotalSeconds);
@@ -108,6 +137,74 @@ namespace Lair.Battle
 
             await CHMUI.Instance.ShowUIAsync(EUI.ResultPopup,
                 new ResultPopupArg { Result = result });
+        }
+
+        //# B1 — 큐 비울 때까지 카드 선택 팝업 순차 처리
+        private async void TryProcessNext()
+        {
+            if (_processingQueue) return;
+            if (_queue.Count == 0) return;
+            if (_model.Result != BattleResult.None) return;
+            if (_passiveDeck == null) return;
+
+            _processingQueue = true;
+
+            while (_queue.TryDequeue(out var entry))
+            {
+                if (_model.Result != BattleResult.None) break;
+
+                _pause.Pause();
+                var choices = _passiveDeck.Draw(3);
+                var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+
+                var arg = new CardSelectionArg
+                {
+                    Choices = choices,
+                    OnPicked = card =>
+                    {
+                        if (card?.Effect != null && _ctx != null) card.Effect.Apply(_ctx);
+                        tcs.TrySetResult(true);
+                    }
+                };
+                await CHMUI.Instance.ShowUIAsync(EUI.CardSelectionPopup, arg);
+                await tcs.Task;
+                _pause.Resume();
+            }
+
+            _processingQueue = false;
+        }
+
+        //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.
+        private async Task PrewarmPools()
+        {
+            //# 영웅 1마리
+            var heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
+
+            //# 자연 스폰 1 + 카드 SpawnSlimes 가 3마리 + 여유 → 슬라임/골렘/오크 각 5
+            foreach (var key in new[] { EMonster.Slime, EMonster.Golem, EMonster.Orc })
+            {
+                var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 5);
+            }
+
+            //# 시각 이펙트 — 동시 표시 1개라 워밍 2 로 여유
+            var fx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.PoisonAura);
+            if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
+        }
+
+        //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰
+        //# 주의: 여기서 생성된 몬스터는 _monsters 리스트에 추가되지 않음 (현재 코드에서 _monsters 는 사용 안 됨)
+        public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
+        {
+            var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
+            if (prefab == null) return;
+            var p = CHMPool.Instance.Pop(prefab, transform);
+            if (p == null) return;
+
+            var offset = UnityEngine.Random.insideUnitSphere * 2.5f;
+            offset.y = 0f;
+            p.transform.position = nearHero + offset;
         }
     }
 }

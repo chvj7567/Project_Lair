@@ -141,6 +141,7 @@ namespace Lair.EditorTools
 
             BuildBattleHud(settings, group);
             BuildResultPopup(settings, group);
+            BuildCardSelectionPopup(settings, group);   //# B1 추가
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
@@ -187,15 +188,15 @@ namespace Lair.EditorTools
             timerTmp.color = Color.white;
             var timerText = timerGo.AddComponent<CHText>();
 
-            //# HpBg
+            //# HpBg — TimerText 박스(top -40 ~ -120) 아래로 충분히 떨어뜨림 (간격 20)
             var hpBgGo = new GameObject("HpBg", typeof(RectTransform));
             hpBgGo.transform.SetParent(root.transform, false);
             var hpBgRt = (RectTransform)hpBgGo.transform;
             hpBgRt.anchorMin = new Vector2(0.5f, 1f);
             hpBgRt.anchorMax = new Vector2(0.5f, 1f);
             hpBgRt.pivot     = new Vector2(0.5f, 1f);
-            hpBgRt.anchoredPosition = new Vector2(0f, -90f);
-            hpBgRt.sizeDelta = new Vector2(300f, 20f);
+            hpBgRt.anchoredPosition = new Vector2(0f, -140f);
+            hpBgRt.sizeDelta = new Vector2(400f, 24f);
             var hpBgImg = hpBgGo.AddComponent<Image>();
             hpBgImg.sprite = GetUISprite();
             hpBgImg.type = Image.Type.Sliced;
@@ -297,6 +298,163 @@ namespace Lair.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);
+        }
+
+        //# ---------- CardSelectionPopup 프리팹 ----------
+        private static void BuildCardSelectionPopup(AddressableAssetSettings settings, AddressableAssetGroup group)
+        {
+            const string PrefabName = "CardSelectionPopup";
+
+            //# 루트
+            var root = new GameObject(PrefabName, typeof(RectTransform));
+            SetFullStretch((RectTransform)root.transform);
+            var popup = root.AddComponent<Lair.UI.CardSelectionPopup>();
+
+            //# Dim
+            var dimGo = new GameObject("Dim", typeof(RectTransform));
+            dimGo.transform.SetParent(root.transform, false);
+            SetFullStretch((RectTransform)dimGo.transform);
+            var dimImg = dimGo.AddComponent<Image>();
+            dimImg.sprite = GetUISprite();
+            dimImg.type = Image.Type.Sliced;
+            dimImg.color = new Color(0f, 0f, 0f, 0.65f);
+
+            //# Title
+            var titleGo = new GameObject("Title", typeof(RectTransform));
+            titleGo.transform.SetParent(root.transform, false);
+            var titleRt = (RectTransform)titleGo.transform;
+            titleRt.anchorMin = new Vector2(0.5f, 1f);
+            titleRt.anchorMax = new Vector2(0.5f, 1f);
+            titleRt.pivot     = new Vector2(0.5f, 1f);
+            titleRt.anchoredPosition = new Vector2(0f, -60f);
+            titleRt.sizeDelta = new Vector2(600f, 80f);
+            var titleTmp = titleGo.AddComponent<TextMeshProUGUI>();
+            titleTmp.text = "카드 선택";
+            titleTmp.font = TMP_Settings.defaultFontAsset;
+            titleTmp.fontSize = 48f;
+            titleTmp.alignment = TextAlignmentOptions.Center;
+            titleTmp.color = Color.white;
+            titleGo.AddComponent<CHText>();
+
+            //# CardsLayout — 3 slot 가로 배치
+            var layoutGo = new GameObject("CardsLayout", typeof(RectTransform));
+            layoutGo.transform.SetParent(root.transform, false);
+            var layoutRt = (RectTransform)layoutGo.transform;
+            layoutRt.anchorMin = new Vector2(0.5f, 0.5f);
+            layoutRt.anchorMax = new Vector2(0.5f, 0.5f);
+            layoutRt.pivot     = new Vector2(0.5f, 0.5f);
+            layoutRt.anchoredPosition = Vector2.zero;
+            layoutRt.sizeDelta = new Vector2(1080f, 460f);
+            var hlg = layoutGo.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 40;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+
+            //# 3개 CardView slot
+            var slots = new Lair.UI.CardView[3];
+            for (int i = 0; i < 3; ++i)
+            {
+                slots[i] = BuildCardViewSlot(layoutGo.transform, i);
+            }
+
+            //# SerializedObject 주입 — _slots 배열
+            var so = new SerializedObject(popup);
+            var slotsProp = so.FindProperty("_slots");
+            slotsProp.arraySize = 3;
+            for (int i = 0; i < 3; ++i)
+                slotsProp.GetArrayElementAtIndex(i).objectReferenceValue = slots[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            SaveAndRegisterPrefab(root, PrefabName, settings, group);
+        }
+
+        private static Lair.UI.CardView BuildCardViewSlot(Transform parent, int index)
+        {
+            var slot = new GameObject($"CardView_{index}", typeof(RectTransform));
+            slot.transform.SetParent(parent, false);
+            var slotRt = (RectTransform)slot.transform;
+            slotRt.sizeDelta = new Vector2(320f, 420f);
+
+            //# Border (full stretch, 카테고리 색 — 런타임에 CardView 가 변경)
+            var borderGo = new GameObject("Border", typeof(RectTransform));
+            borderGo.transform.SetParent(slot.transform, false);
+            SetFullStretch((RectTransform)borderGo.transform);
+            var borderImg = borderGo.AddComponent<Image>();
+            borderImg.sprite = GetUISprite();
+            borderImg.type = Image.Type.Sliced;
+            borderImg.color = Color.gray;
+
+            //# 카드 내부 흰 배경 (border 안쪽 약간 작게)
+            var bgGo = new GameObject("Bg", typeof(RectTransform));
+            bgGo.transform.SetParent(slot.transform, false);
+            var bgRt = (RectTransform)bgGo.transform;
+            bgRt.anchorMin = Vector2.zero;
+            bgRt.anchorMax = Vector2.one;
+            bgRt.offsetMin = new Vector2(8f, 8f);
+            bgRt.offsetMax = new Vector2(-8f, -8f);
+            var bgImg = bgGo.AddComponent<Image>();
+            bgImg.sprite = GetUISprite();
+            bgImg.type = Image.Type.Sliced;
+            bgImg.color = Color.white;
+
+            //# NameText
+            var nameGo = new GameObject("NameText", typeof(RectTransform));
+            nameGo.transform.SetParent(slot.transform, false);
+            var nameRt = (RectTransform)nameGo.transform;
+            nameRt.anchorMin = new Vector2(0f, 1f);
+            nameRt.anchorMax = new Vector2(1f, 1f);
+            nameRt.pivot     = new Vector2(0.5f, 1f);
+            nameRt.anchoredPosition = new Vector2(0f, -30f);
+            nameRt.sizeDelta = new Vector2(0f, 60f);
+            var nameTmp = nameGo.AddComponent<TextMeshProUGUI>();
+            nameTmp.text = "Name";
+            nameTmp.font = TMP_Settings.defaultFontAsset;
+            nameTmp.fontSize = 32f;
+            nameTmp.alignment = TextAlignmentOptions.Center;
+            nameTmp.color = Color.black;
+            var nameText = nameGo.AddComponent<CHText>();
+
+            //# DescText
+            var descGo = new GameObject("DescText", typeof(RectTransform));
+            descGo.transform.SetParent(slot.transform, false);
+            var descRt = (RectTransform)descGo.transform;
+            descRt.anchorMin = new Vector2(0f, 0f);
+            descRt.anchorMax = new Vector2(1f, 0.7f);
+            descRt.offsetMin = new Vector2(20f, 20f);
+            descRt.offsetMax = new Vector2(-20f, -20f);
+            var descTmp = descGo.AddComponent<TextMeshProUGUI>();
+            descTmp.text = "Description";
+            descTmp.font = TMP_Settings.defaultFontAsset;
+            descTmp.fontSize = 22f;
+            descTmp.alignment = TextAlignmentOptions.TopLeft;
+            descTmp.color = Color.black;
+            var descText = descGo.AddComponent<CHText>();
+
+            //# PickButton (full stretch over the whole card)
+            var btnGo = new GameObject("PickButton", typeof(RectTransform));
+            btnGo.transform.SetParent(slot.transform, false);
+            SetFullStretch((RectTransform)btnGo.transform);
+            var btnImg = btnGo.AddComponent<Image>();
+            btnImg.sprite = GetUISprite();
+            btnImg.type = Image.Type.Sliced;
+            btnImg.color = new Color(1, 1, 1, 0.001f);   //# 거의 투명, raycast 만 받음
+            var btn = btnGo.AddComponent<Button>();
+            btn.targetGraphic = btnImg;
+            var chBtn = btnGo.AddComponent<CHButton>();
+
+            //# CardView 컴포넌트
+            var cv = slot.AddComponent<Lair.UI.CardView>();
+            var cvSo = new SerializedObject(cv);
+            SetObjectField(cvSo, "_nameText", nameText);
+            SetObjectField(cvSo, "_descText", descText);
+            SetObjectField(cvSo, "_border", borderImg);
+            SetObjectField(cvSo, "_pickButton", chBtn);
+            cvSo.ApplyModifiedPropertiesWithoutUndo();
+
+            return cv;
         }
 
         //# ---------- 공통 헬퍼 ----------
