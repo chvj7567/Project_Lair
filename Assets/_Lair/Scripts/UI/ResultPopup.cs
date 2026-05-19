@@ -5,6 +5,12 @@ using UnityEngine.SceneManagement;
 
 namespace Lair.UI
 {
+    //# Rule 13 — UIArg 는 페어 UIBase 와 같은 파일.
+    public class ResultPopupArg : UIArg
+    {
+        public BattleResult Result;
+    }
+
     //# 결과 표시 + 재시작 버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
     public class ResultPopup : UIBase
     {

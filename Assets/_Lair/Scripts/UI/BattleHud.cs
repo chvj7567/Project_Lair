@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 namespace Lair.UI
 {
+    //# Rule 13 — UIArg 는 페어 UIBase 와 같은 파일.
+    public class BattleHudArg : UIArg
+    {
+        public BattleViewModel ViewModel;
+    }
+
     //# CHMUI 로 띄워지는 HUD. UIArg 통해 ViewModel 주입받아 구독.
     //# 구독 해제는 UIBase.closeDisposable 활용 (Close 시 자동 정리).
     public class BattleHud : UIBase

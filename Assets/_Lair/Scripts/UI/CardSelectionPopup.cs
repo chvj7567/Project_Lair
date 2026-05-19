@@ -1,9 +1,18 @@
+using System;
+using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Card;
 using UnityEngine;
 
 namespace Lair.UI
 {
+    //# Rule 13 — UIArg 는 페어 UIBase 와 같은 파일.
+    public class CardSelectionArg : UIArg
+    {
+        public IReadOnlyList<CardData> Choices;
+        public Action<CardData> OnPicked;
+    }
+
     //# CHMUI 로 띄워지는 카드 선택 팝업. 3장 표시 → 1장 선택 → OnPicked → Close.
     public class CardSelectionPopup : UIBase
     {

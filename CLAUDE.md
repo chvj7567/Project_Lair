@@ -20,6 +20,7 @@
 @.claude/rules/10-common-interface-single-file.md
 @.claude/rules/11-use-chvj-ui-components.md
 @.claude/rules/12-use-chvj-pool-for-all-spawns.md
+@.claude/rules/13-uiarg-with-uibase.md
 
 ## 요약 (Quick Reference)
 
@@ -35,3 +36,4 @@
 10. **공용 Interface 단일 파일** — 여러 시스템에서 참조되는 Interface는 도메인별 `CommonInterface.cs` 한 파일에 통합 (예: `Scripts/Character/CommonInterface.cs` — IMover/IHealth/IAttacker/ITargetProvider). Interface 자체는 카테고리별 분리 유지, *파일*만 하나
 11. **ChvjPackage UI 래퍼 우선** — `CHText`(+TMP_Text), `CHButton`(+Button), `CHToggle`(+Toggle), `CHPoolingScrollView` 사용. Legacy UI Text / 단일 Button 직접 사용 지양. TMP 의존 (com.unity.ugui 2.0+)
 12. **모든 스폰은 CHMPool** — 런타임 GameObject 생성은 `CHMPool.Pop` / `Push` 페어. `Instantiate` / `CreatePrimitive` 직접 호출 금지. 사망/만료 시 `Push`, 사전 워밍은 `CreatePool`. OnEnable/OnDisable 로 state reset 필수
+13. **UIArg 는 같은 파일에** — `UIArg` 파생(예: `BattleHudArg`)은 페어인 `UIBase` 파생(`BattleHud.cs`)의 상단에 정의. 별도 `XxxArg.cs` 파일 금지
