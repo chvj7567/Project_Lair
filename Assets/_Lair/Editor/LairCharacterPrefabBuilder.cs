@@ -40,6 +40,10 @@ namespace Lair.EditorTools
             new Spec { Name = nameof(EMonster.Slime),  Mesh = PrimitiveType.Sphere,  ColorHex = "#22C55E", Scale = 0.6f, Hp = 200,  Power = 10, Range = 1.0f, Cooldown = 1.0f, MoveSpeed = 1.5f, IsHero = false },
             new Spec { Name = nameof(EMonster.Golem),  Mesh = PrimitiveType.Cube,    ColorHex = "#6B7280", Scale = 1.2f, Hp = 500,  Power = 20, Range = 1.3f, Cooldown = 1.0f, MoveSpeed = 0.8f, IsHero = false },
             new Spec { Name = nameof(EMonster.Orc),    Mesh = PrimitiveType.Capsule, ColorHex = "#EF4444", Scale = 0.9f, Hp = 100,  Power = 20, Range = 1.0f, Cooldown = 0.5f, MoveSpeed = 2.5f, IsHero = false },
+            //# B3 신규 몬스터 3종 — 기획서 §11.3 / §11.4
+            new Spec { Name = nameof(EMonster.Archer), Mesh = PrimitiveType.Capsule, ColorHex = "#EAB308", Scale = 0.8f, Hp = 60,   Power = 30, Range = 5.0f, Cooldown = 1.0f, MoveSpeed = 2.0f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Spider), Mesh = PrimitiveType.Cube,    ColorHex = "#A855F7", Scale = 0.5f, Hp = 50,   Power = 5,  Range = 1.0f, Cooldown = 1.0f, MoveSpeed = 2.0f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Bat),    Mesh = PrimitiveType.Sphere,  ColorHex = "#1F2937", Scale = 0.3f, Hp = 30,   Power = 5,  Range = 1.0f, Cooldown = 0.8f, MoveSpeed = 3.5f, IsHero = false },
         };
 
         [MenuItem("Lair/Setup/M3 - Build Character Prefabs")]
@@ -79,6 +83,9 @@ namespace Lair.EditorTools
             go.name = spec.Name;
             go.transform.position = Vector3.zero;
             go.transform.localScale = Vector3.one * spec.Scale;
+            //# 거미 — 납작하게 (기획서 §11.4 Y 스케일 0.3 배)
+            if (spec.Name == nameof(EMonster.Spider))
+                go.transform.localScale = new Vector3(spec.Scale, spec.Scale * 0.3f, spec.Scale);
 
             //# 2) Collider 제거 (Slice A 는 충돌 사용 안 함)
             var col = go.GetComponent<Collider>();
@@ -114,6 +121,9 @@ namespace Lair.EditorTools
                 var tag = go.AddComponent<MonsterTag>();
                 if (System.Enum.TryParse<EMonster>(spec.Name, out var key))
                     tag.Configure(key);
+                //# B3 — 거미 특수능력: 공격 시 영웅 둔화
+                if (spec.Name == nameof(EMonster.Spider))
+                    go.AddComponent<SpiderSlowOnHit>();
             }
             go.AddComponent<AutoCombatAI>();
             //# 시각 피드백 + 사망 처리

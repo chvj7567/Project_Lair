@@ -27,6 +27,14 @@ namespace Lair.Tests.Helpers
             if (Current == 0) OnDied?.Invoke();
         }
 
+        //# B3 — 피의 갈증 카드. Max 초과 불가.
+        public void Heal(int amount)
+        {
+            if (IsAlive == false) return;
+            Current = Math.Min(Max, Current + amount);
+            OnChanged?.Invoke(Current, Max);
+        }
+
         public void SetMax(int max, bool resetCurrent = true)
         {
             Max = max;

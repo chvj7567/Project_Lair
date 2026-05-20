@@ -43,19 +43,28 @@ namespace Lair.Card
         {
             if (hero == null || _heroTransform == null || _visualPoolable == null) return;
 
-            //# 영웅이 독장판 영역(XZ 평면 반경 _radius) 안에 있는지 체크.
-            var heroPos = _heroTransform.position;
-            var diskPos = _visualPoolable.transform.position;
+            int ticks = AccumulateDamageTicks(
+                _heroTransform.position, _visualPoolable.transform.position, dt);
+            for (int i = 0; i < ticks; ++i)
+                hero.TakeDamage((int)_dps);
+        }
+
+        //# 영역판정 + 1초 누적 코어 (순수 로직 — Transform/CHPoolable 비의존, 테스트 가능).
+        //# heroPos 가 diskPos 의 XZ 반경 _radius 내일 때만 dt 누적, 이번 호출의 1초 틱 수 반환.
+        public int AccumulateDamageTicks(Vector3 heroPos, Vector3 diskPos, float dt)
+        {
             float dx = heroPos.x - diskPos.x;
             float dz = heroPos.z - diskPos.z;
-            if (dx * dx + dz * dz > _radiusSq) return;   //# 밖 — 데미지 X, accumulator 유지
+            if (dx * dx + dz * dz > _radiusSq) return 0;   //# 밖 — accumulator 유지
 
             _tickAccumulator += dt;
+            int ticks = 0;
             while (_tickAccumulator >= 1f)
             {
                 _tickAccumulator -= 1f;
-                hero.TakeDamage((int)_dps);
+                ++ticks;
             }
+            return ticks;
         }
 
         public void OnDetached(IHealth hero)

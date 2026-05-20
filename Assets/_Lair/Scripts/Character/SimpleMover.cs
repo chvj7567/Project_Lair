@@ -15,6 +15,9 @@ namespace Lair.Character
             set => _speed = value;
         }
 
+        //# B3 — MoveTo 후 Stop 전까지 true. 출혈 카드가 영웅 이동 판정에 사용.
+        public bool IsMoving => _moving;
+
         public void MoveTo(Vector3 target)
         {
             _target = target;

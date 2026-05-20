@@ -17,6 +17,9 @@ namespace Lair.Data
         Slime,
         Golem,
         Orc,
+        Archer,    //# B3 신규 — 원거리
+        Spider,    //# B3 신규 — 공격 시 영웅 둔화
+        Bat,       //# B3 신규 — 저비용 다수
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.

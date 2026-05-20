@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Lair.Character
@@ -22,12 +23,21 @@ namespace Lair.Character
             set => enabled = value;
         }
 
+        //# B3 — 오버레이 배율. 글로벌 버프(광폭화)/디버프(무력화·약화)가 곱셈 합성. 기본 1.0.
+        public float CooldownScale { get; set; } = 1f;
+        public float PowerScale { get; set; } = 1f;
+
+        //# B3 — 공격 적중 시 발행. 거미 SpiderSlowOnHit 가 구독.
+        public event Action<IHealth> OnHit;
+
         private float _lastAttackTime = float.NegativeInfinity;
 
-        //# CHMPool 재사용 시 쿨다운 기록 리셋 — 풀에서 막 꺼낸 인스턴스가 곧바로 공격 가능.
+        //# CHMPool 재사용 시 쿨다운 기록 + 오버레이 배율 리셋.
         private void OnEnable()
         {
             _lastAttackTime = float.NegativeInfinity;
+            CooldownScale = 1f;
+            PowerScale = 1f;
         }
 
         //# 테스트 또는 런타임 동적 설정.
@@ -43,10 +53,11 @@ namespace Lair.Character
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(selfPos, targetPos);
             if (dist > _range) return false;
-            if (now - _lastAttackTime < _cooldown) return false;
+            if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
 
-            target.TakeDamage(_power);
+            target.TakeDamage(Mathf.RoundToInt(_power * PowerScale));
             _lastAttackTime = now;
+            OnHit?.Invoke(target);
             return true;
         }
     }

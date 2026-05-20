@@ -15,6 +15,9 @@ namespace Lair.Character
         public float Ratio => _max > 0 ? (float)Current / _max : 0f;
         public bool IsAlive => Current > 0;
 
+        //# B3 — 받는 데미지 배율 오버레이. MonsterBuffService 가 매 tick 설정. 기본 1.0.
+        public float DamageTakenScale { get; set; } = 1f;
+
         public event Action<int, int> OnChanged;
         public event Action OnDied;
 
@@ -26,19 +29,33 @@ namespace Lair.Character
 
         //# CHMPool 재사용 시 사망 상태로 풀에서 빠져나온 인스턴스를 복원.
         //# Pop → SetActive(true) → OnEnable. Current > 0 이면 그대로 유지.
+        //# B3 — 오버레이 배율도 풀 재사용 시 잔존 방지 위해 1.0 리셋.
         private void OnEnable()
         {
             if (Current <= 0) Current = _max;
+            DamageTakenScale = 1f;
         }
 
         public void TakeDamage(int amount)
         {
             if (IsAlive == false) return;
+            //# B3 — 받는 데미지 배율 적용
+            amount = Mathf.RoundToInt(amount * DamageTakenScale);
             int next = Mathf.Max(0, Current - amount);
             if (next == Current) return;
             Current = next;
             OnChanged?.Invoke(Current, _max);
             if (Current == 0) OnDied?.Invoke();
+        }
+
+        //# B3 — 피의 갈증 카드. Max 초과 불가.
+        public void Heal(int amount)
+        {
+            if (IsAlive == false) return;
+            int next = Mathf.Min(_max, Current + amount);
+            if (next == Current) return;
+            Current = next;
+            OnChanged?.Invoke(Current, _max);
         }
 
         public void SetMax(int max, bool resetCurrent = true)
