@@ -46,8 +46,11 @@ namespace Lair.UI
         private void HandleTimer(float elapsed, float total)
         {
             if (_timerText == null) return;
+            //# ceil 표시 — elapsed=30.001 처럼 직후 시점에도 잔량 270 으로 올림 → "4:30" 유지.
+            //# 액티브 트리거 (elapsed=30, 60, ...) 가 발동하는 순간 HUD 가 정확히 4:30, 4:00 표시.
             float remain = Mathf.Max(0f, total - elapsed);
-            _timerText.SetText($"{(int)(remain / 60)}:{(int)(remain % 60):00}");
+            int totalSec = Mathf.CeilToInt(remain);
+            _timerText.SetText($"{totalSec / 60}:{totalSec % 60:00}");
         }
 
         private void HandleHp(float ratio)

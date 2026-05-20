@@ -84,10 +84,8 @@ namespace Lair.Battle
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
             _clock.Start();
 
-            //# B2 — 액티브 트리거 (BattleClock.OnTick 구독)
-            //# TODO: 디버그 — 5초 단위 9회. 정상 출시 시 null 로 되돌려 30초 단위 기본값 사용.
-            var debugThresholds = new[] { 5f, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f };
-            _activeTriggers = new ActiveTriggerService(_clock, debugThresholds);
+            //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
+            _activeTriggers = new ActiveTriggerService(_clock);
             _activeTriggers.OnTriggered += idx =>
             {
                 _queue.Enqueue(TriggerQueue.Source.Active, idx);
