@@ -238,9 +238,14 @@ namespace Lair.Battle
                 if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 5);
             }
 
-            //# 시각 이펙트 — 동시 표시 1개라 워밍 2 로 여유
-            var fx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.PoisonAura);
-            if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
+            //# 시각 이펙트 — PoisonAura + 영웅 디버프 상태 표시 6종. 동시 표시 적어 count 2.
+            foreach (var key in new[] { EVisual.PoisonAura,
+                                        EVisual.SlowStatus, EVisual.FearStatus, EVisual.WeakenStatus,
+                                        EVisual.AttackDownStatus, EVisual.TimeStopStatus, EVisual.BleedStatus })
+            {
+                var fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
+            }
         }
 
         //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰

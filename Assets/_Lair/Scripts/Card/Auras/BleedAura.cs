@@ -1,13 +1,17 @@
 using System;
 using Lair.Character;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Card
 {
     //# 영웅이 이동 중일 때만 1초당 Max×_ratio 데미지.
     [Serializable]
-    public class BleedAura : IHeroAura
+    public class BleedAura : IHeroAura, IStatusVisual
     {
+        public EVisual VisualKey => EVisual.BleedStatus;
+        public Vector3 Offset => new Vector3(0.4f, 0.05f, 0f);
+
         private readonly IMover _mover;
         private readonly float _ratio;   //# 0.02 = 2%
         private float _acc;

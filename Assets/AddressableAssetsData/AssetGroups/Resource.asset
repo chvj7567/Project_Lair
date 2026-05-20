@@ -15,8 +15,20 @@ MonoBehaviour:
   m_GroupName: Resource
   m_GUID: 65c06b5a6f852194ca207c2fb1c88bea
   m_SerializeEntries:
+  - m_GUID: 00139bc8971cb9a40b86fc6fed65e311
+    m_Address: TimeStopStatus
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 14d5859bd4529ab42b55bfbf17fc8316
     m_Address: BloodThirst
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1953f8a3f0dcbfc4e8b9b45a93f9a2b1
+    m_Address: WeakenStatus
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -111,6 +123,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 690a53d08f83948479d6d2dd3bf0a228
+    m_Address: AttackDownStatus
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70a0ee3a5efc06a40b5f0fef27161eb7
     m_Address: Spider
     m_ReadOnly: 0
@@ -135,6 +153,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 79f0be8ce7cb8004189f73df766d1fc3
+    m_Address: SlowStatus
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 82607f7522a1e7a4c8092691f475b042
     m_Address: Multiply
     m_ReadOnly: 0
@@ -149,6 +173,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8dd6b49fb2a1c00488aa5d8fbb2a5019
     m_Address: ResultPopup
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a59eb32cb21dc8a4dbcdc17fd453caa0
+    m_Address: BleedStatus
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -197,6 +227,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d2466f1684f5a7c439b7087992a51787
     m_Address: Bat
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5559cb3a80087e4d9c005be394b25ef
+    m_Address: FearStatus
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource

@@ -89,6 +89,13 @@ namespace Lair.Data
     public enum EVisual
     {
         PoisonAura,
+        //# 영웅 디버프 상태 표시 (영웅 추적 부착물)
+        SlowStatus,
+        FearStatus,
+        WeakenStatus,
+        AttackDownStatus,
+        TimeStopStatus,
+        BleedStatus,
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).

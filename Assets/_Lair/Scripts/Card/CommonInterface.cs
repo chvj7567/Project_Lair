@@ -49,4 +49,12 @@ namespace Lair.Card
         void Tick(IHealth hero, float dt);
         void OnDetached(IHealth hero);
     }
+
+    //# 영웅 추적 상태 visual 을 노출하는 sibling 인터페이스 (IHeroAura 와 별개).
+    //# HeroAuraRunner 가 이 값으로 visual 을 Pop/추적/Push.
+    public interface IStatusVisual
+    {
+        EVisual VisualKey { get; }   //# CHMResource 로 로드할 프리팹 키
+        Vector3 Offset { get; }      //# 영웅 위치 기준 상대 오프셋
+    }
 }
