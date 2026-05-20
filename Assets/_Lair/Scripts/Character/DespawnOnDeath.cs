@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using ChvjUnityInfra;
 using UnityEngine;
@@ -11,6 +12,9 @@ namespace Lair.Character
     [RequireComponent(typeof(Health))]
     public class DespawnOnDeath : MonoBehaviour
     {
+        //# B3 — 몬스터(MonsterTag 보유) 사망 시 위치 발행. 피의 갈증 카드가 BattleController 경유 구독.
+        public static event Action<Vector3> MonsterDied;
+
         [SerializeField] private float _delay = 0f;
 
         private Health _health;
@@ -41,6 +45,10 @@ namespace Lair.Character
 
         private void DespawnNow()
         {
+            //# B3 — 몬스터면 사망 위치 발행 (Push 전 — 위치가 유효할 때).
+            if (GetComponent<MonsterTag>() != null)
+                MonsterDied?.Invoke(transform.position);
+
             //# 재사용 대비 — EndBattle 등에서 ai.enabled=false 됐던 상태 복원
             var ai = GetComponent<AutoCombatAI>();
             if (ai != null) ai.enabled = true;

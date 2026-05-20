@@ -82,6 +82,7 @@ namespace Lair.Battle
             //# B3 — 몬스터 글로벌 버프 / 피의 갈증 서비스
             _monsterBuffs = new MonsterBuffService();
             _bloodThirst = new BloodThirstService();
+            DespawnOnDeath.MonsterDied += HandleMonsterDied;
 
             var pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
             if (pool != null) _passiveDeck = new CardDeck(pool.Cards);
@@ -118,6 +119,14 @@ namespace Lair.Battle
 
         public void ActivateBloodThirst(float duration)
             => _bloodThirst?.Activate(duration);
+
+        //# B3 — 몬스터 사망 시 피의 갈증 회복 트리거 (DespawnOnDeath.MonsterDied 구독).
+        private void HandleMonsterDied(Vector3 pos)
+            => _bloodThirst?.NotifyMonsterDied(pos);
+
+        //# 정적 이벤트 구독 해제 — 씬 재시작 시 누수 방지.
+        private void OnDestroy()
+            => DespawnOnDeath.MonsterDied -= HandleMonsterDied;
 
         private async Task SpawnHero()
         {
@@ -221,8 +230,9 @@ namespace Lair.Battle
             var heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
             if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
 
-            //# 자연 스폰 1 + 카드 SpawnSlimes 가 3마리 + 여유 → 슬라임/골렘/오크 각 5
-            foreach (var key in new[] { EMonster.Slime, EMonster.Golem, EMonster.Orc })
+            //# 자연 스폰 + 카드 소환/증식/교체 대비 → 6종 각 5마리 비축
+            foreach (var key in new[] { EMonster.Slime, EMonster.Golem, EMonster.Orc,
+                                        EMonster.Archer, EMonster.Spider, EMonster.Bat })
             {
                 var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 5);
