@@ -94,8 +94,9 @@ namespace Lair.EditorTools
         }
 
         //# Unity built-in 흰색 UI Sprite. Image.type=Filled 는 sprite 가 있어야 fillAmount 가 시각 적용됨.
+        //# 다른 빌더(LairCharacterPrefabBuilder 의 몬스터 HP 바)도 재사용하므로 public.
         private static Sprite _uiSpriteCache;
-        private static Sprite GetUISprite()
+        public static Sprite GetUISprite()
         {
             if (_uiSpriteCache != null) return _uiSpriteCache;
             //# 2022.3 표준 경로 — "UI/Skin/Background.psd" 가 9-slice white sprite

@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.EditorTools
 {
@@ -137,6 +138,10 @@ namespace Lair.EditorTools
             SetPrivateField(attacker, "_cooldown", spec.Cooldown);
             SetPrivateField(attacker, "_power", spec.Power);
 
+            //# 5.5) 몬스터 발 밑 HP 바 (영웅 제외 — 영웅 HP 는 HUD 에 있음)
+            if (!spec.IsHero)
+                BuildMonsterHpBar(go, health, spec.Scale);
+
             //# 6) 프리팹 저장 (덮어쓰기)
             var prefabPath = $"{PrefabDir}/{spec.Name}.prefab";
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
@@ -149,6 +154,74 @@ namespace Lair.EditorTools
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
             Debug.Log($"[CharacterPrefabBuilder] {spec.Name} 빌드 완료 (address={entry.address}, label={ResourceLabel})");
+        }
+
+        //# 몬스터 머리 위 WorldSpace HP 바 (회색 배경 + 빨강 fill, 카메라 빌보드).
+        //# 몬스터 자식이라 풀 Pop/Push 에 자동 동행. monsterScale 로 월드 크기 보정.
+        private static void BuildMonsterHpBar(GameObject monster, Health health, float monsterScale)
+        {
+            const float BarPixelW = 120f;
+            const float BarPixelH = 20f;
+            const float TargetWorldW = 1.2f;   //# 모든 몬스터 동일한 월드 가로
+            const float HeadLocalY  = 1.2f;    //# 머리 위 — 자식 localY (월드 = ×monsterScale)
+
+            //# HpBar 루트 — WorldSpace Canvas. 회전은 MonsterHpBar 가 매 프레임 빌보드.
+            var barGo = new GameObject("HpBar", typeof(RectTransform), typeof(Canvas));
+            barGo.transform.SetParent(monster.transform, worldPositionStays: false);
+            var canvas = barGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            var barRt = (RectTransform)barGo.transform;
+            barRt.sizeDelta = new Vector2(BarPixelW, BarPixelH);
+            //# canvasScale = 목표월드폭 / 픽셀폭 / 몬스터scale → 몬스터 크기 무관 동일 월드 크기.
+            float canvasScale = TargetWorldW / BarPixelW / monsterScale;
+            barRt.localScale = Vector3.one * canvasScale;
+            barRt.localRotation = Quaternion.identity;   //# 빌보드가 런타임에 회전
+            //# 머리 위 — 자식이라 localY 가 monsterScale 로 곱해져 큰 몬스터일수록 더 위.
+            barRt.localPosition = new Vector3(0f, HeadLocalY, 0f);
+
+            //# 배경 (회색)
+            var bgGo = new GameObject("Background", typeof(RectTransform));
+            bgGo.transform.SetParent(barGo.transform, false);
+            var bgRt = (RectTransform)bgGo.transform;
+            SetStretch(bgRt);
+            var bgImg = bgGo.AddComponent<Image>();
+            bgImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            bgImg.type = Image.Type.Sliced;
+            bgImg.color = HexColor("#374151");
+
+            //# fill (빨강, 가로 Filled)
+            var fillGo = new GameObject("Fill", typeof(RectTransform));
+            fillGo.transform.SetParent(bgGo.transform, false);
+            var fillRt = (RectTransform)fillGo.transform;
+            SetStretch(fillRt);
+            var fillImg = fillGo.AddComponent<Image>();
+            fillImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            fillImg.type = Image.Type.Filled;
+            fillImg.fillMethod = Image.FillMethod.Horizontal;
+            fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fillImg.color = HexColor("#DC2626");
+            fillImg.fillAmount = 1f;
+
+            //# MonsterHpBar 컴포넌트 — 몬스터 루트에 부착, 참조 주입.
+            var bar = monster.AddComponent<MonsterHpBar>();
+            SetPrivateField(bar, "_health", health);
+            SetPrivateField(bar, "_fill", fillImg);
+            SetPrivateField(bar, "_barRoot", barGo.transform);
+        }
+
+        private static void SetStretch(RectTransform rt)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        private static Color HexColor(string hex)
+        {
+            ColorUtility.TryParseHtmlString(hex, out var c);
+            return c;
         }
 
         private static void SetPrivateField(Component target, string fieldName, object value)
