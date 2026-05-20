@@ -31,6 +31,10 @@ namespace Lair.Battle
         private IBattleContext _ctx;
         private bool _processingQueue;
 
+        //# B2 신규
+        private ActiveTriggerService _activeTriggers;
+        private CardDeck _activeDeck;
+
         async void Start()
         {
             //# 1. ChvjPackage 초기화
@@ -79,6 +83,19 @@ namespace Lair.Battle
             _clock.OnTick   += _vm.UpdateTimer;
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
             _clock.Start();
+
+            //# B2 — 액티브 트리거 (BattleClock.OnTick 구독)
+            //# TODO: 디버그 — 5초 단위 9회. 정상 출시 시 null 로 되돌려 30초 단위 기본값 사용.
+            var debugThresholds = new[] { 5f, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f };
+            _activeTriggers = new ActiveTriggerService(_clock, debugThresholds);
+            _activeTriggers.OnTriggered += idx =>
+            {
+                _queue.Enqueue(TriggerQueue.Source.Active, idx);
+                TryProcessNext();
+            };
+
+            var activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
+            if (activePool != null) _activeDeck = new CardDeck(activePool.Cards);
         }
 
         private void Update()
@@ -129,6 +146,10 @@ namespace Lair.Battle
             if (_model.Result != BattleResult.None) return;   //# 중복 방지
             _clock.Stop();
 
+            //# B2 — 트리거 서비스 구독 해제 (BattleClock.OnTick / Health.OnChanged 누수 방지)
+            _activeTriggers?.Dispose();
+            _passiveTriggers?.Dispose();
+
             //# 모든 AI 정지
             foreach (var ai in GetComponentsInChildren<AutoCombatAI>())
                 ai.enabled = false;
@@ -139,13 +160,12 @@ namespace Lair.Battle
                 new ResultPopupArg { Result = result });
         }
 
-        //# B1 — 큐 비울 때까지 카드 선택 팝업 순차 처리
+        //# B1+B2 — 큐 비울 때까지 카드 선택 팝업 순차 처리
         private async void TryProcessNext()
         {
             if (_processingQueue) return;
             if (_queue.Count == 0) return;
             if (_model.Result != BattleResult.None) return;
-            if (_passiveDeck == null) return;
 
             _processingQueue = true;
 
@@ -153,8 +173,12 @@ namespace Lair.Battle
             {
                 if (_model.Result != BattleResult.None) break;
 
+                //# B2 — Source 에 따라 적절한 덱 선택. 덱 미로드면 해당 트리거 스킵.
+                var deck = entry.SourceType == TriggerQueue.Source.Passive ? _passiveDeck : _activeDeck;
+                if (deck == null) continue;
+
                 _pause.Pause();
-                var choices = _passiveDeck.Draw(3);
+                var choices = deck.Draw(3);
                 var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
                 var arg = new CardSelectionArg

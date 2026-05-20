@@ -48,6 +48,13 @@ namespace Lair.Battle
             return null;
         }
 
+        public IMover GetHeroMover()
+        {
+            foreach (var e in CharacterRegistry.Heroes)
+                if (e?.Transform != null) return e.Transform.GetComponent<IMover>();
+            return null;
+        }
+
         public void SpawnMonster(EMonster key, Vector3 nearHero)
         {
             _owner.SpawnMonsterRuntime(key, nearHero);

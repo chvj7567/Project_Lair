@@ -21,6 +21,9 @@ namespace Lair.Card
         IHealth GetHero();
         Transform GetHeroTransform();
 
+        //# 액티브 카드 — 영웅 슬로우 효과용. 영웅 Transform 의 IMover 컴포넌트 반환.
+        IMover GetHeroMover();
+
         //# 동적 스폰 — "슬라임 3마리 소환" 같은 카드용
         void SpawnMonster(EMonster key, Vector3 nearHero);
 

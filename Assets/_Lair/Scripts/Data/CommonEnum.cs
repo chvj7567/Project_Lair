@@ -31,6 +31,7 @@ namespace Lair.Data
     public enum EData
     {
         CardPool_Passive,
+        CardPool_Active,    //# B2 신규
     }
 
     //# B1 신규 — 카드 카테고리
@@ -42,9 +43,10 @@ namespace Lair.Data
         Environment,    //# 환경 (영웅 디버프)
     }
 
-    //# B1 신규 — 7장 카드 식별자
+    //# B1 신규 — 7장 카드 식별자 + B2 신규 5장
     public enum ECardId
     {
+        //# B1 패시브 7장
         SlimeHpBoost,
         GolemDamageBoost,
         OrcAtkSpeed,
@@ -52,6 +54,13 @@ namespace Lair.Data
         SpawnGolem,
         ReplaceSlimesToGolem,
         HeroPoisonAura,
+
+        //# B2 액티브 5장
+        MonsterAoeDamage,
+        HeroSlow,
+        HeroSilence,
+        InstantSpawnGolem,
+        InstantSpawnSlimes,
     }
 
     //# SceneManager.LoadScene(EScene.X.ToString()).

@@ -14,6 +14,14 @@ namespace Lair.Character
         public float Cooldown => _cooldown;
         public int Power => _power;
 
+        //# IAttacker.Enabled — MonoBehaviour 의 enabled 와 매핑.
+        //# false 면 AutoCombatAI 의 Update 가 정지하므로 공격 시도 자체가 일어나지 않음.
+        public bool Enabled
+        {
+            get => enabled;
+            set => enabled = value;
+        }
+
         private float _lastAttackTime = float.NegativeInfinity;
 
         //# CHMPool 재사용 시 쿨다운 기록 리셋 — 풀에서 막 꺼낸 인스턴스가 곧바로 공격 가능.

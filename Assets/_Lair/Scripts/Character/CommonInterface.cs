@@ -42,6 +42,10 @@ namespace Lair.Character
         float Cooldown { get; }
         int Power { get; }
 
+        //# 침묵/일시정지 효과용 토글. false 면 TryAttack 호출 자체가 정지하지 않더라도
+        //# MonoBehaviour 의 Update 가 호출 안 되어 공격 시도 자체가 일어나지 않음.
+        bool Enabled { get; set; }
+
         //# 거리·쿨다운 만족 시 target.TakeDamage 호출 후 true.
         bool TryAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now);
     }

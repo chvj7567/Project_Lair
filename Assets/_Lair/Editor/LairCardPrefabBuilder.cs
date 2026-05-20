@@ -52,8 +52,40 @@ namespace Lair.EditorTools
                        EffectFactory = () => new HeroPoisonAuraEffect() },
         };
 
+        //# B2 — 액티브 5장
+        public static readonly Spec[] ActiveSpecs = new[]
+        {
+            new Spec { Id = ECardId.MonsterAoeDamage, Category = ECardCategory.Environment,
+                       DisplayName = "전체 데미지", Description = "모든 몬스터에 50 데미지",
+                       EffectFactory = () => new MonsterAoeDamageEffect() },
+            new Spec { Id = ECardId.HeroSlow, Category = ECardCategory.Environment,
+                       DisplayName = "영웅 둔화", Description = "영웅 이동속도 40% 감소 5초",
+                       EffectFactory = () => new HeroSlowEffect() },
+            new Spec { Id = ECardId.HeroSilence, Category = ECardCategory.Environment,
+                       DisplayName = "영웅 침묵", Description = "영웅 공격 5초 정지",
+                       EffectFactory = () => new HeroSilenceEffect() },
+            new Spec { Id = ECardId.InstantSpawnGolem, Category = ECardCategory.Spawn,
+                       DisplayName = "골렘 즉시 소환", Description = "골렘 1마리 즉시 소환",
+                       EffectFactory = () => new InstantSpawnGolemEffect() },
+            new Spec { Id = ECardId.InstantSpawnSlimes, Category = ECardCategory.Spawn,
+                       DisplayName = "슬라임 떼", Description = "슬라임 3마리 즉시 소환",
+                       EffectFactory = () => new InstantSpawnSlimesEffect() },
+        };
+
         [MenuItem("Lair/Setup/B1 - Build Card Assets")]
         public static void BuildAllCards()
+        {
+            BuildCardsAndPool(AllSpecs, EData.CardPool_Passive);
+        }
+
+        [MenuItem("Lair/Setup/B2 - Build Active Cards")]
+        public static void BuildActiveCards()
+        {
+            BuildCardsAndPool(ActiveSpecs, EData.CardPool_Active);
+        }
+
+        //# Spec 묶음 → CardData N장 + CardPool 1개 생성 + Addressables 등록.
+        private static void BuildCardsAndPool(Spec[] specs, EData poolKey)
         {
             EnsureDir(CardDir);
             EnsureDir(PoolDir);
@@ -68,8 +100,7 @@ namespace Lair.EditorTools
 
             var createdCards = new List<CardData>();
 
-            //# 1) 카드 7장
-            foreach (var spec in AllSpecs)
+            foreach (var spec in specs)
             {
                 var card = ScriptableObject.CreateInstance<CardData>();
                 var so = new SerializedObject(card);
@@ -88,7 +119,6 @@ namespace Lair.EditorTools
                 Debug.Log($"[LairCardPrefabBuilder] CardData 생성: {spec.Id}");
             }
 
-            //# 2) CardPool_Passive 생성 + 7장 List 채우기
             var pool = ScriptableObject.CreateInstance<CardPool>();
             var poolSo = new SerializedObject(pool);
             var listProp = poolSo.FindProperty("_cards");
@@ -99,10 +129,10 @@ namespace Lair.EditorTools
             }
             poolSo.ApplyModifiedPropertiesWithoutUndo();
 
-            string poolPath = $"{PoolDir}/{EData.CardPool_Passive}.asset";
+            string poolPath = $"{PoolDir}/{poolKey}.asset";
             AssetDatabase.CreateAsset(pool, poolPath);
-            RegisterAddressable(settings, group, poolPath, EData.CardPool_Passive.ToString());
-            Debug.Log("[LairCardPrefabBuilder] CardPool_Passive 생성 + 7장 등록");
+            RegisterAddressable(settings, group, poolPath, poolKey.ToString());
+            Debug.Log($"[LairCardPrefabBuilder] {poolKey} 생성 + {createdCards.Count}장 등록");
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();

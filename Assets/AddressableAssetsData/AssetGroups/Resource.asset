@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Resource
   m_GUID: 65c06b5a6f852194ca207c2fb1c88bea
   m_SerializeEntries:
+  - m_GUID: 0be53cd80b02cc34ba299c64d205d399
+    m_Address: InstantSpawnSlimes
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1964e33424a977a4fab659bd0ffeaa58
     m_Address: Golem
     m_ReadOnly: 0
@@ -39,6 +45,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a48abb8c03696c41ab3aa5c7d2a7401
+    m_Address: InstantSpawnGolem
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4292e44906ad20c4dafaccfd984f616a
     m_Address: Orc
     m_ReadOnly: 0
@@ -53,6 +65,24 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 60db323582d887e4cb0f5eb9e73e153b
     m_Address: BattleHud
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62b4eda6d49c20740ace5bb0dbdc8196
+    m_Address: HeroSlow
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ea7c93ee5e3468418000284a0ef30e9
+    m_Address: MonsterAoeDamage
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 77fff6d6c44cd5547b5cd9734a2c68eb
+    m_Address: HeroSilence
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -83,6 +113,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b703500b2fe0bc34eada6237e8348ee8
     m_Address: OrcAtkSpeed
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c6e202a19c776fc45b2824d5c2cfd479
+    m_Address: CardPool_Active
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
