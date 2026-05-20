@@ -35,6 +35,10 @@ namespace Lair.Battle
         private ActiveTriggerService _activeTriggers;
         private CardDeck _activeDeck;
 
+        //# B3 신규 — 몬스터 글로벌 버프 / 피의 갈증
+        private MonsterBuffService _monsterBuffs;
+        private BloodThirstService _bloodThirst;
+
         async void Start()
         {
             //# 1. ChvjPackage 초기화
@@ -75,6 +79,10 @@ namespace Lair.Battle
             }
             _ctx = new BattleContext(this);
 
+            //# B3 — 몬스터 글로벌 버프 / 피의 갈증 서비스
+            _monsterBuffs = new MonsterBuffService();
+            _bloodThirst = new BloodThirstService();
+
             var pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
             if (pool != null) _passiveDeck = new CardDeck(pool.Cards);
 
@@ -99,7 +107,17 @@ namespace Lair.Battle
         private void Update()
         {
             _clock?.Tick(Time.deltaTime);
+            //# B3 — 글로벌 버프/피의 갈증 시간 진행. Pause 중엔 deltaTime=0 이라 자연 정지.
+            _monsterBuffs?.Tick(Time.deltaTime);
+            _bloodThirst?.Tick(Time.deltaTime);
         }
+
+        //# B3 — BattleContext 가 위임하는 글로벌 버프/피의 갈증 진입점.
+        public void AddMonsterBuff(EMonsterBuff type, float duration)
+            => _monsterBuffs?.AddBuff(type, duration);
+
+        public void ActivateBloodThirst(float duration)
+            => _bloodThirst?.Activate(duration);
 
         private async Task SpawnHero()
         {

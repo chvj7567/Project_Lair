@@ -78,6 +78,14 @@ namespace Lair.Data
         PoisonAura,
     }
 
+    //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
+    public enum EMonsterBuff
+    {
+        Frenzy,        //# 공격속도 ↑
+        IronWill,      //# 받는 데미지 ↓
+        BerserkPower,  //# 데미지 ↑
+    }
+
     //# === Cross-System Communication ===
 
     //# 전투 결과 — BattleStateModel / BattleViewModel / BattleController / ResultPopup 공용.

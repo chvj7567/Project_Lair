@@ -30,6 +30,15 @@ namespace Lair.Card
         //# 환경 카드 (예: 독 장판) — duration < 0 이면 무제한
         void ApplyHeroAura(IHeroAura aura, float durationSeconds = -1f);
 
+        //# B3 — 몬스터 글로벌 버프 (광폭화/강철 의지/폭주)
+        void AddMonsterBuff(EMonsterBuff type, float duration);
+
+        //# B3 — 피의 갈증 활성화
+        void ActivateBloodThirst(float duration);
+
+        //# B3 — 폭주 즉발: 모든 몬스터 현재 HP 절반
+        void HalveAllMonsterHp();
+
         float DeltaTime { get; }
     }
 

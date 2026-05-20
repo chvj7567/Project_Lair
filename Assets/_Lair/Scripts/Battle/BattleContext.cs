@@ -68,5 +68,20 @@ namespace Lair.Battle
                       ?? heroT.gameObject.AddComponent<HeroAuraRunner>();
             runner.Attach(aura, durationSeconds);
         }
+
+        //# B3 — 몬스터 글로벌 버프/피의 갈증은 BattleController 소유 서비스로 위임.
+        public void AddMonsterBuff(EMonsterBuff type, float duration)
+            => _owner.AddMonsterBuff(type, duration);
+
+        public void ActivateBloodThirst(float duration)
+            => _owner.ActivateBloodThirst(duration);
+
+        //# B3 — 폭주 즉발. GetMonsters 스냅샷 순회 (Collection-modified 회피).
+        //# Current/2 데미지는 사망을 일으키지 않아 안전하지만 일관성 위해 스냅샷 사용.
+        public void HalveAllMonsterHp()
+        {
+            foreach (var m in GetMonsters())
+                m.TakeDamage(m.Current / 2);
+        }
     }
 }
