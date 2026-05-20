@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
-  m_Name: HeroPoisonAura
+  m_Name: IronWill
   m_EditorClassIdentifier: 
-  _id: 13
-  _category: 3
-  _displayName: "\uB3C5 \uC548\uAC1C"
-  _description: "\uC601\uC6C5 \uBC1C \uBC11\uC5D0 \uB3C5 \uC7A5\uD310 (DPS 5)"
+  _id: 22
+  _category: 0
+  _displayName: "\uAC15\uCCA0 \uC758\uC9C0"
+  _description: "\uBAAC\uC2A4\uD130 \uBC1B\uB294 \uB370\uBBF8\uC9C0 -30% (15\uCD08)"
   _effect:
-    rid: 2530925571701473377
+    rid: 2530925571701473386
   references:
     version: 2
     RefIds:
-    - rid: 2530925571701473377
-      type: {class: HeroPoisonAuraEffect, ns: Lair.Card, asm: Lair}
+    - rid: 2530925571701473386
+      type: {class: IronWillEffect, ns: Lair.Card, asm: Lair}
       data:
-        _dps: 5
-        _duration: 5
-        _radius: 1.25
+        _duration: 15

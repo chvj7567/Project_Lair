@@ -14,12 +14,21 @@ namespace Lair.Character
         private IAttacker _attacker;
         private ITargetProvider _targetProvider;
 
+        //# B3 — 공포 카드. true 면 가장 가까운 적의 반대 방향으로 도주, 공격 안 함.
+        public bool FleeMode { get; set; }
+
         private void Awake()
         {
             _mover = GetComponent<IMover>();
             _health = GetComponent<IHealth>();
             _attacker = GetComponent<IAttacker>();
             _targetProvider = GetComponent<ITargetProvider>();
+        }
+
+        //# 풀 재사용 시 도주 상태 잔존 방지.
+        private void OnEnable()
+        {
+            FleeMode = false;
         }
 
         private void Update()
@@ -34,6 +43,15 @@ namespace Lair.Character
             if (_targetProvider.TryFindNearest(transform.position, out var t, out var th) == false)
             {
                 _mover.Stop();
+                return;
+            }
+
+            //# B3 공포 — 가장 가까운 적의 반대 방향으로 이동, 공격 X.
+            if (FleeMode)
+            {
+                Vector3 away = transform.position
+                    + (transform.position - t.position).normalized * 5f;
+                _mover.MoveTo(away);
                 return;
             }
 

@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
-  m_Name: HeroPoisonAura
+  m_Name: SpawnSpiders
   m_EditorClassIdentifier: 
-  _id: 13
-  _category: 3
-  _displayName: "\uB3C5 \uC548\uAC1C"
-  _description: "\uC601\uC6C5 \uBC1C \uBC11\uC5D0 \uB3C5 \uC7A5\uD310 (DPS 5)"
+  _id: 9
+  _category: 1
+  _displayName: "\uAC70\uBBF8 \uB465\uC9C0"
+  _description: "\uC601\uC6C5 \uADFC\uCC98\uC5D0 \uAC70\uBBF8 2\uB9C8\uB9AC"
   _effect:
-    rid: 2530925571701473377
+    rid: 2530925571701473373
   references:
     version: 2
     RefIds:
-    - rid: 2530925571701473377
-      type: {class: HeroPoisonAuraEffect, ns: Lair.Card, asm: Lair}
+    - rid: 2530925571701473373
+      type: {class: SpawnSpidersEffect, ns: Lair.Card, asm: Lair}
       data:
-        _dps: 5
-        _duration: 5
-        _radius: 1.25
+        _count: 2

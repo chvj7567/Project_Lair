@@ -46,24 +46,37 @@ namespace Lair.Data
         Environment,    //# 환경 (영웅 디버프)
     }
 
-    //# B1 신규 — 7장 카드 식별자 + B2 신규 5장
+    //# 카드 식별자 — 패시브 15장 + 액티브 10장 (B3 에서 최종 재정의).
     public enum ECardId
     {
-        //# B1 패시브 7장
+        //# 패시브 15장
         SlimeHpBoost,
         GolemDamageBoost,
         OrcAtkSpeed,
+        ArcherRangeBoost,
+        SpiderSlowBoost,
+        BatMoveSpeedBoost,
         SpawnSlimes,
         SpawnGolem,
+        SpawnOrcs,
+        SpawnSpiders,
+        SpawnBats,
         ReplaceSlimesToGolem,
+        ReplaceOrcsToArchers,
         HeroPoisonAura,
+        HeroAttackDown,
 
-        //# B2 액티브 5장
-        MonsterAoeDamage,
-        HeroSlow,
-        HeroSilence,
-        InstantSpawnGolem,
-        InstantSpawnSlimes,
+        //# 액티브 10장
+        Fear,
+        Bleed,
+        Weaken,
+        Slow,
+        Frenzy,
+        Multiply,
+        BloodThirst,
+        IronWill,
+        TimeStop,
+        Berserk,
     }
 
     //# SceneManager.LoadScene(EScene.X.ToString()).

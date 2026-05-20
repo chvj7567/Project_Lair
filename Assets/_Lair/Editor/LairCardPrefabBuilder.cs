@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Lair.EditorTools
 {
-    //# B1 — 카드 SO 7장 + CardPool_Passive SO 자동 생성 + Addressables 등록.
+    //# 카드 SO 25장 (패시브 15 + 액티브 10) + CardPool 2개 자동 생성 + Addressables 등록.
     //# SerializeReference 의 ICardEffect 슬롯 주입은 managedReferenceValue 사용.
     public static class LairCardPrefabBuilder
     {
@@ -27,7 +27,8 @@ namespace Lair.EditorTools
             public System.Func<ICardEffect> EffectFactory;
         }
 
-        public static readonly Spec[] AllSpecs = new[]
+        //# 패시브 15장 (HP 10% 트리거)
+        public static readonly Spec[] PassiveSpecs = new[]
         {
             new Spec { Id = ECardId.SlimeHpBoost, Category = ECardCategory.Enhance,
                        DisplayName = "끈질긴 슬라임", Description = "모든 슬라임 HP +50%",
@@ -38,58 +39,101 @@ namespace Lair.EditorTools
             new Spec { Id = ECardId.OrcAtkSpeed, Category = ECardCategory.Enhance,
                        DisplayName = "광폭 오크", Description = "모든 오크 공격속도 +30%",
                        EffectFactory = () => new OrcAtkSpeedEffect() },
+            new Spec { Id = ECardId.ArcherRangeBoost, Category = ECardCategory.Enhance,
+                       DisplayName = "궁수 정밀", Description = "모든 궁수 사거리 +40%",
+                       EffectFactory = () => new ArcherRangeBoostEffect() },
+            new Spec { Id = ECardId.SpiderSlowBoost, Category = ECardCategory.Enhance,
+                       DisplayName = "독거미", Description = "거미 둔화 효과 강화",
+                       EffectFactory = () => new SpiderSlowBoostEffect() },
+            new Spec { Id = ECardId.BatMoveSpeedBoost, Category = ECardCategory.Enhance,
+                       DisplayName = "흡혈박쥐 떼", Description = "모든 박쥐 이동속도 +50%",
+                       EffectFactory = () => new BatMoveSpeedBoostEffect() },
             new Spec { Id = ECardId.SpawnSlimes, Category = ECardCategory.Spawn,
                        DisplayName = "슬라임 소환", Description = "영웅 근처에 슬라임 3마리",
                        EffectFactory = () => new SpawnSlimesEffect() },
             new Spec { Id = ECardId.SpawnGolem, Category = ECardCategory.Spawn,
                        DisplayName = "골렘 소환", Description = "영웅 근처에 골렘 1마리",
                        EffectFactory = () => new SpawnGolemEffect() },
+            new Spec { Id = ECardId.SpawnOrcs, Category = ECardCategory.Spawn,
+                       DisplayName = "오크 증원", Description = "영웅 근처에 오크 2마리",
+                       EffectFactory = () => new SpawnOrcsEffect() },
+            new Spec { Id = ECardId.SpawnSpiders, Category = ECardCategory.Spawn,
+                       DisplayName = "거미 둥지", Description = "영웅 근처에 거미 2마리",
+                       EffectFactory = () => new SpawnSpidersEffect() },
+            new Spec { Id = ECardId.SpawnBats, Category = ECardCategory.Spawn,
+                       DisplayName = "박쥐 무리", Description = "영웅 근처에 박쥐 5마리",
+                       EffectFactory = () => new SpawnBatsEffect() },
             new Spec { Id = ECardId.ReplaceSlimesToGolem, Category = ECardCategory.Replace,
                        DisplayName = "융합", Description = "모든 슬라임 → 골렘 1마리",
                        EffectFactory = () => new ReplaceSlimesToGolemEffect() },
+            new Spec { Id = ECardId.ReplaceOrcsToArchers, Category = ECardCategory.Replace,
+                       DisplayName = "사격 훈련", Description = "모든 오크 → 궁수 (1:1)",
+                       EffectFactory = () => new ReplaceOrcsToArchersEffect() },
             new Spec { Id = ECardId.HeroPoisonAura, Category = ECardCategory.Environment,
                        DisplayName = "독 안개", Description = "영웅 발 밑에 독 장판 (DPS 5)",
                        EffectFactory = () => new HeroPoisonAuraEffect() },
+            new Spec { Id = ECardId.HeroAttackDown, Category = ECardCategory.Environment,
+                       DisplayName = "약화의 저주", Description = "영웅 공격력 영구 -25%",
+                       EffectFactory = () => new HeroAttackDownEffect() },
         };
 
-        //# B2 — 액티브 5장
+        //# 액티브 10장 (30초 트리거)
         public static readonly Spec[] ActiveSpecs = new[]
         {
-            new Spec { Id = ECardId.MonsterAoeDamage, Category = ECardCategory.Environment,
-                       DisplayName = "전체 데미지", Description = "모든 몬스터에 50 데미지",
-                       EffectFactory = () => new MonsterAoeDamageEffect() },
-            new Spec { Id = ECardId.HeroSlow, Category = ECardCategory.Environment,
-                       DisplayName = "영웅 둔화", Description = "영웅 이동속도 40% 감소 5초",
-                       EffectFactory = () => new HeroSlowEffect() },
-            new Spec { Id = ECardId.HeroSilence, Category = ECardCategory.Environment,
-                       DisplayName = "영웅 침묵", Description = "영웅 공격 5초 정지",
-                       EffectFactory = () => new HeroSilenceEffect() },
-            new Spec { Id = ECardId.InstantSpawnGolem, Category = ECardCategory.Spawn,
-                       DisplayName = "골렘 즉시 소환", Description = "골렘 1마리 즉시 소환",
-                       EffectFactory = () => new InstantSpawnGolemEffect() },
-            new Spec { Id = ECardId.InstantSpawnSlimes, Category = ECardCategory.Spawn,
-                       DisplayName = "슬라임 떼", Description = "슬라임 3마리 즉시 소환",
-                       EffectFactory = () => new InstantSpawnSlimesEffect() },
+            new Spec { Id = ECardId.Fear, Category = ECardCategory.Environment,
+                       DisplayName = "공포", Description = "영웅 3초간 도망",
+                       EffectFactory = () => new FearEffect() },
+            new Spec { Id = ECardId.Bleed, Category = ECardCategory.Environment,
+                       DisplayName = "출혈", Description = "영웅 이동 시 HP 감소 (10초)",
+                       EffectFactory = () => new BleedEffect() },
+            new Spec { Id = ECardId.Weaken, Category = ECardCategory.Environment,
+                       DisplayName = "무력화", Description = "영웅 데미지 -50% (10초)",
+                       EffectFactory = () => new WeakenEffect() },
+            new Spec { Id = ECardId.Slow, Category = ECardCategory.Environment,
+                       DisplayName = "둔화", Description = "영웅 이동속도 -50% (10초)",
+                       EffectFactory = () => new SlowEffect() },
+            new Spec { Id = ECardId.Frenzy, Category = ECardCategory.Enhance,
+                       DisplayName = "광폭화", Description = "모든 몬스터 공속 +50% (10초)",
+                       EffectFactory = () => new FrenzyEffect() },
+            new Spec { Id = ECardId.Multiply, Category = ECardCategory.Spawn,
+                       DisplayName = "증식", Description = "최다 몬스터 종 즉시 2배",
+                       EffectFactory = () => new MultiplyEffect() },
+            new Spec { Id = ECardId.BloodThirst, Category = ECardCategory.Enhance,
+                       DisplayName = "피의 갈증", Description = "처치 시 주변 몬스터 회복 (30초)",
+                       EffectFactory = () => new BloodThirstEffect() },
+            new Spec { Id = ECardId.IronWill, Category = ECardCategory.Enhance,
+                       DisplayName = "강철 의지", Description = "몬스터 받는 데미지 -30% (15초)",
+                       EffectFactory = () => new IronWillEffect() },
+            new Spec { Id = ECardId.TimeStop, Category = ECardCategory.Environment,
+                       DisplayName = "시간 정지", Description = "영웅 5초 멈춤",
+                       EffectFactory = () => new TimeStopEffect() },
+            new Spec { Id = ECardId.Berserk, Category = ECardCategory.Enhance,
+                       DisplayName = "폭주", Description = "몬스터 HP -50%, 데미지 +200% (15초)",
+                       EffectFactory = () => new BerserkEffect() },
         };
 
-        [MenuItem("Lair/Setup/B1 - Build Card Assets")]
-        public static void BuildAllCards()
+        //# B3 — 패시브 15 + 액티브 10 전량 재생성. ECardId 재정의 후 1회 실행.
+        [MenuItem("Lair/Setup/B3 - Rebuild All Cards")]
+        public static void RebuildAllCards()
         {
-            BuildCardsAndPool(AllSpecs, EData.CardPool_Passive);
+            EnsureDir(CardDir);
+            EnsureDir(PoolDir);
+            ClearCardDir();
+            BuildCardsAndPool(PassiveSpecs, EData.CardPool_Passive);
+            BuildCardsAndPool(ActiveSpecs, EData.CardPool_Active);
+            Debug.Log("[LairCardPrefabBuilder] 카드 25장 + 풀 2개 재빌드 완료");
         }
 
-        [MenuItem("Lair/Setup/B2 - Build Active Cards")]
-        public static void BuildActiveCards()
+        //# 기존 CardData SO 전량 제거 — stale 카드(폐기된 B2 액티브 등) 잔존 방지.
+        private static void ClearCardDir()
         {
-            BuildCardsAndPool(ActiveSpecs, EData.CardPool_Active);
+            foreach (var path in Directory.GetFiles(CardDir, "*.asset"))
+                AssetDatabase.DeleteAsset(path.Replace('\\', '/'));
         }
 
         //# Spec 묶음 → CardData N장 + CardPool 1개 생성 + Addressables 등록.
         private static void BuildCardsAndPool(Spec[] specs, EData poolKey)
         {
-            EnsureDir(CardDir);
-            EnsureDir(PoolDir);
-
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {

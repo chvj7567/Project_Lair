@@ -15,14 +15,26 @@ MonoBehaviour:
   m_GroupName: Resource
   m_GUID: 65c06b5a6f852194ca207c2fb1c88bea
   m_SerializeEntries:
-  - m_GUID: 0be53cd80b02cc34ba299c64d205d399
-    m_Address: InstantSpawnSlimes
+  - m_GUID: 14d5859bd4529ab42b55bfbf17fc8316
+    m_Address: BloodThirst
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1964e33424a977a4fab659bd0ffeaa58
     m_Address: Golem
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1c3783f244bdb514e95678c0d78d7290
+    m_Address: Slow
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20717514c3db9fe40a305c983f8d422c
+    m_Address: SpawnSpiders
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -51,14 +63,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3a48abb8c03696c41ab3aa5c7d2a7401
-    m_Address: InstantSpawnGolem
+  - m_GUID: 4292e44906ad20c4dafaccfd984f616a
+    m_Address: Orc
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4292e44906ad20c4dafaccfd984f616a
-    m_Address: Orc
+  - m_GUID: 46401b2f817b2f4448aa1fd3da2d4fcf
+    m_Address: Bleed
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -69,20 +81,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 59c26869e664a394ba4afa3f39592551
+    m_Address: ReplaceOrcsToArchers
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5bf9f450a8c9a4f4eb4e5ab243eed8b4
+    m_Address: Frenzy
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 60db323582d887e4cb0f5eb9e73e153b
     m_Address: BattleHud
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 62b4eda6d49c20740ace5bb0dbdc8196
-    m_Address: HeroSlow
+  - m_GUID: 628c040e71e0e404385604ec8884702a
+    m_Address: BatMoveSpeedBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6ea7c93ee5e3468418000284a0ef30e9
-    m_Address: MonsterAoeDamage
+  - m_GUID: 65c2d78896c798f408032e1010eda535
+    m_Address: Weaken
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -93,8 +117,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 77fff6d6c44cd5547b5cd9734a2c68eb
-    m_Address: HeroSilence
+  - m_GUID: 779d152d0cca52949adca330a02dbc21
+    m_Address: SpawnBats
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -111,6 +135,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 82607f7522a1e7a4c8092691f475b042
+    m_Address: Multiply
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8752a01701fb7a149b2e29596f447224
     m_Address: ReplaceSlimesToGolem
     m_ReadOnly: 0
@@ -123,8 +153,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8a2d4767e2f53746abeb9f44e0c1103
+    m_Address: ArcherRangeBoost
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b703500b2fe0bc34eada6237e8348ee8
     m_Address: OrcAtkSpeed
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b70a2c70a7a0395429abe314966096db
+    m_Address: SpawnOrcs
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c42b15b416afa96459d9e7d6d1beebe4
+    m_Address: TimeStop
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -141,8 +189,20 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd39744aeaa7a5245a7d7a1ecfd12d44
+    m_Address: SpiderSlowBoost
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d2466f1684f5a7c439b7087992a51787
     m_Address: Bat
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d7f4d3b92f6238844b71592b8820a0b1
+    m_Address: IronWill
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -159,8 +219,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9b768c2fb4c9024e8fda71bb8a5bed9
+    m_Address: Fear
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: edc950f54b9528e4fb96aa9cfcfc9abd
     m_Address: GolemDamageBoost
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: efe77d0ff7a9692449037efc8c1669a2
+    m_Address: Berserk
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe996242003a0ec499cf1dcec90d6196
+    m_Address: HeroAttackDown
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource

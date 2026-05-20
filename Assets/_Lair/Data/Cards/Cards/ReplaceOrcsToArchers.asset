@@ -10,20 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
-  m_Name: HeroPoisonAura
+  m_Name: ReplaceOrcsToArchers
   m_EditorClassIdentifier: 
-  _id: 13
-  _category: 3
-  _displayName: "\uB3C5 \uC548\uAC1C"
-  _description: "\uC601\uC6C5 \uBC1C \uBC11\uC5D0 \uB3C5 \uC7A5\uD310 (DPS 5)"
+  _id: 12
+  _category: 2
+  _displayName: "\uC0AC\uACA9 \uD6C8\uB828"
+  _description: "\uBAA8\uB4E0 \uC624\uD06C \u2192 \uAD81\uC218 (1:1)"
   _effect:
-    rid: 2530925571701473377
+    rid: 2530925571701473376
   references:
     version: 2
     RefIds:
-    - rid: 2530925571701473377
-      type: {class: HeroPoisonAuraEffect, ns: Lair.Card, asm: Lair}
-      data:
-        _dps: 5
-        _duration: 5
-        _radius: 1.25
+    - rid: 2530925571701473376
+      type: {class: ReplaceOrcsToArchersEffect, ns: Lair.Card, asm: Lair}
+      data: 

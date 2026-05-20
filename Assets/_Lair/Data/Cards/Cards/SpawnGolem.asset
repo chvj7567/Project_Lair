@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
   m_Name: SpawnGolem
   m_EditorClassIdentifier: 
-  _id: 4
+  _id: 7
   _category: 1
   _displayName: "\uACE8\uB818 \uC18C\uD658"
   _description: "\uC601\uC6C5 \uADFC\uCC98\uC5D0 \uACE8\uB818 1\uB9C8\uB9AC"
   _effect:
-    rid: 2530925571701473356
+    rid: 2530925571701473371
   references:
     version: 2
     RefIds:
-    - rid: 2530925571701473356
+    - rid: 2530925571701473371
       type: {class: SpawnGolemEffect, ns: Lair.Card, asm: Lair}
       data:
         _count: 1
