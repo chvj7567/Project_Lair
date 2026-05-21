@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ef9e3489fd0ae24e8e856b6d67c4cb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 1.5
+  _speed: 3
 --- !u!114 &6622655881669400139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e4e215a0f5427e43a5d825e90c0744c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _max: 200
+  _max: 100
 --- !u!114 &6272970442183615847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,9 +133,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e750e979105eae4d805550dd24b7c10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _range: 1
+  _range: 1.5
   _cooldown: 1
-  _power: 10
+  _power: 50
 --- !u!114 &3756835013959405899
 MonoBehaviour:
   m_ObjectHideFlags: 0

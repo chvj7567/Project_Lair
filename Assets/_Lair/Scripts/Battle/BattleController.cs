@@ -14,6 +14,8 @@ namespace Lair.Battle
     {
         [SerializeField] private Transform _heroSpawn;
         [SerializeField] private MonsterSpawnEntry[] _monsterSpawns;
+        //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
+        [SerializeField] private BalanceConfig _balance;
 
         private BattleClock _clock;
         private BattleStateModel _model;
@@ -39,6 +41,12 @@ namespace Lair.Battle
         private MonsterBuffService _monsterBuffs;
         private BloodThirstService _bloodThirst;
 
+        //# Slice C — 한 판 결과 측정
+        private readonly RunRecorder _recorder = new RunRecorder();
+
+        //# Slice C-M4 — 디버그 카드픽용 전체 카드 (패시브 15 + 액티브 10)
+        private readonly List<CardData> _allCards = new();
+
         async void Start()
         {
             //# 1. ChvjPackage 초기화
@@ -55,6 +63,11 @@ namespace Lair.Battle
 
             //# 2. MVVM
             _model = new BattleStateModel();
+            //# Slice C — BalanceConfig 의 런 길이 적용
+            if (_balance == null)
+                Debug.LogError("[BattleController] BalanceConfig(_balance) 미할당 — 프리팹 기본 스탯으로 진행");
+            else
+                _model.TotalSeconds = _balance.RunDuration;
             _vm = new BattleViewModel(_model);
 
             //# 3. HUD 표시
@@ -70,7 +83,7 @@ namespace Lair.Battle
             _queue = new TriggerQueue();
             if (_heroHealth != null)
             {
-                _passiveTriggers = new PassiveTriggerService(_heroHealth);
+                _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance?.PassiveThresholds);
                 _passiveTriggers.OnTriggered += idx =>
                 {
                     _queue.Enqueue(TriggerQueue.Source.Passive, idx);
@@ -85,7 +98,11 @@ namespace Lair.Battle
             DespawnOnDeath.MonsterDied += HandleMonsterDied;
 
             var pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
-            if (pool != null) _passiveDeck = new CardDeck(pool.Cards);
+            if (pool != null)
+            {
+                _passiveDeck = new CardDeck(pool.Cards);
+                _allCards.AddRange(pool.Cards);
+            }
 
             //# 5. 시계
             _clock = new BattleClock(_model.TotalSeconds);
@@ -94,7 +111,7 @@ namespace Lair.Battle
             _clock.Start();
 
             //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
-            _activeTriggers = new ActiveTriggerService(_clock);
+            _activeTriggers = new ActiveTriggerService(_clock, _balance?.ActiveThresholds);
             _activeTriggers.OnTriggered += idx =>
             {
                 _queue.Enqueue(TriggerQueue.Source.Active, idx);
@@ -102,7 +119,11 @@ namespace Lair.Battle
             };
 
             var activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
-            if (activePool != null) _activeDeck = new CardDeck(activePool.Cards);
+            if (activePool != null)
+            {
+                _activeDeck = new CardDeck(activePool.Cards);
+                _allCards.AddRange(activePool.Cards);
+            }
         }
 
         private void Update()
@@ -128,6 +149,18 @@ namespace Lair.Battle
         private void OnDestroy()
             => DespawnOnDeath.MonsterDied -= HandleMonsterDied;
 
+        //# Slice C — BalanceConfig 스탯을 스폰된 캐릭터에 적용. Pop 직후 호출.
+        private void ApplyStats(GameObject character, BalanceConfig.CharacterStat stat)
+        {
+            if (character == null || stat == null) return;
+            var health = character.GetComponent<Health>();
+            if (health != null) health.SetMax(stat.Hp, resetCurrent: true);
+            var attacker = character.GetComponent<MeleeAttacker>();
+            if (attacker != null) attacker.Configure(stat.Range, stat.Cooldown, stat.Power);
+            var mover = character.GetComponent<SimpleMover>();
+            if (mover != null) mover.Speed = stat.MoveSpeed;
+        }
+
         private async Task SpawnHero()
         {
             var prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
@@ -143,6 +176,8 @@ namespace Lair.Battle
 
             _hero = p;
             _heroHealth = p.GetComponent<Health>();
+            //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
+            if (_balance != null) ApplyStats(p.gameObject, _balance.Hero);
             if (_heroHealth != null)
             {
                 _heroHealth.OnChanged += _vm.UpdateHeroHp;
@@ -163,6 +198,8 @@ namespace Lair.Battle
                 if (p == null) continue;
                 p.transform.position = sp.Point.position;
                 _monsters.Add(p);
+                //# Slice C — 몬스터 스탯 적용
+                if (_balance != null) ApplyStats(p.gameObject, _balance.GetMonster(sp.Key));
             }
         }
 
@@ -170,6 +207,12 @@ namespace Lair.Battle
         {
             if (_model.Result != BattleResult.None) return;   //# 중복 방지
             _clock.Stop();
+
+            //# Slice C — 한 판 결과 기록 (생존 몬스터 수 집계)
+            int aliveMonsters = 0;
+            foreach (var e in CharacterRegistry.Monsters)
+                if (e?.Health != null && e.Health.IsAlive) aliveMonsters++;
+            _recorder.FinishRun(result, _clock.Elapsed, aliveMonsters);
 
             //# B2 — 트리거 서비스 구독 해제 (BattleClock.OnTick / Health.OnChanged 누수 방지)
             _activeTriggers?.Dispose();
@@ -211,6 +254,8 @@ namespace Lair.Battle
                     Choices = choices,
                     OnPicked = card =>
                     {
+                        //# Slice C — 픽 기록
+                        if (card != null) _recorder.RecordPick(card.Id);
                         if (card?.Effect != null && _ctx != null) card.Effect.Apply(_ctx);
                         tcs.TrySetResult(true);
                     }
@@ -260,6 +305,64 @@ namespace Lair.Battle
             var offset = UnityEngine.Random.insideUnitSphere * 2.5f;
             offset.y = 0f;
             p.transform.position = nearHero + offset;
+            //# Slice C — 카드 소환 몬스터도 스탯 적용
+            if (_balance != null) ApplyStats(p.gameObject, _balance.GetMonster(key));
         }
+
+#if UNITY_EDITOR
+        //# ===== Slice C-M4 디버그 API — LairBalanceWindow 전용 =====
+
+        //# 패시브 카드 선택을 즉시 큐에 넣음.
+        public void DebugForcePassiveTrigger()
+        {
+            if (_queue == null) return;
+            _queue.Enqueue(TriggerQueue.Source.Passive, 0);
+            TryProcessNext();
+        }
+
+        //# 액티브 카드 선택을 즉시 큐에 넣음.
+        public void DebugForceActiveTrigger()
+        {
+            if (_queue == null) return;
+            _queue.Enqueue(TriggerQueue.Source.Active, 0);
+            TryProcessNext();
+        }
+
+        //# 지정 카드의 효과를 팝업 없이 즉시 적용.
+        public void DebugApplyCard(ECardId id)
+        {
+            foreach (var c in _allCards)
+            {
+                if (c != null && c.Id == id)
+                {
+                    if (c.Effect != null && _ctx != null) c.Effect.Apply(_ctx);
+                    return;
+                }
+            }
+            Debug.LogWarning($"[BattleController] 디버그 카드 미발견: {id}");
+        }
+
+        //# 영웅 HP 를 목표값으로 설정 (delta 만큼 데미지/회복).
+        public void DebugSetHeroHp(int hp)
+        {
+            if (_heroHealth == null) return;
+            int delta = hp - _heroHealth.Current;
+            if (delta < 0)      _heroHealth.TakeDamage(-delta);
+            else if (delta > 0) _heroHealth.Heal(delta);
+        }
+
+        //# 영웅 즉사.
+        public void DebugKillHero()
+        {
+            if (_heroHealth != null) _heroHealth.TakeDamage(_heroHealth.Current);
+        }
+
+        //# 전투 즉시 종료.
+        public void DebugEndBattle(BattleResult result)
+        {
+            if (_model == null || _clock == null) return;
+            EndBattle(result);
+        }
+#endif
     }
 }

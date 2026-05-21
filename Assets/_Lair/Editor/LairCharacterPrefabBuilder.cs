@@ -22,31 +22,25 @@ namespace Lair.EditorTools
         public const string ResourceLabel = "Resource";
         public const string UrpLitShaderName = "Universal Render Pipeline/Lit";
 
-        //# 캐릭터 빌드 스펙 — 기획서 §11.4 / 설계서 §3.4 표 기준
+        //# 캐릭터 빌드 스펙 — 메시/색/스케일만. 스탯은 BalanceConfig 가 단일 진실 (Slice C).
         public class Spec
         {
             public string Name;
             public PrimitiveType Mesh;
             public string ColorHex;
             public float Scale;
-            public int Hp;
-            public int Power;
-            public float Range;
-            public float Cooldown;
-            public float MoveSpeed;
             public bool IsHero;
         }
 
         public static readonly Spec[] AllSpecs = new[]
         {
-            new Spec { Name = nameof(EHero.Knight),    Mesh = PrimitiveType.Capsule, ColorHex = "#3B82F6", Scale = 1.0f, Hp = 1000, Power = 50, Range = 1.5f, Cooldown = 1.0f, MoveSpeed = 3.0f, IsHero = true  },
-            new Spec { Name = nameof(EMonster.Slime),  Mesh = PrimitiveType.Sphere,  ColorHex = "#22C55E", Scale = 0.6f, Hp = 200,  Power = 10, Range = 1.0f, Cooldown = 1.0f, MoveSpeed = 1.5f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Golem),  Mesh = PrimitiveType.Cube,    ColorHex = "#6B7280", Scale = 1.2f, Hp = 500,  Power = 20, Range = 1.3f, Cooldown = 1.0f, MoveSpeed = 0.8f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Orc),    Mesh = PrimitiveType.Capsule, ColorHex = "#EF4444", Scale = 0.9f, Hp = 100,  Power = 20, Range = 1.0f, Cooldown = 0.5f, MoveSpeed = 2.5f, IsHero = false },
-            //# B3 신규 몬스터 3종 — 기획서 §11.3 / §11.4
-            new Spec { Name = nameof(EMonster.Archer), Mesh = PrimitiveType.Capsule, ColorHex = "#EAB308", Scale = 0.8f, Hp = 60,   Power = 30, Range = 5.0f, Cooldown = 1.0f, MoveSpeed = 2.0f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Spider), Mesh = PrimitiveType.Cube,    ColorHex = "#A855F7", Scale = 0.5f, Hp = 50,   Power = 5,  Range = 1.0f, Cooldown = 1.0f, MoveSpeed = 2.0f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Bat),    Mesh = PrimitiveType.Sphere,  ColorHex = "#1F2937", Scale = 0.3f, Hp = 30,   Power = 5,  Range = 1.0f, Cooldown = 0.8f, MoveSpeed = 3.5f, IsHero = false },
+            new Spec { Name = nameof(EHero.Knight),    Mesh = PrimitiveType.Capsule, ColorHex = "#3B82F6", Scale = 1.0f, IsHero = true  },
+            new Spec { Name = nameof(EMonster.Slime),  Mesh = PrimitiveType.Sphere,  ColorHex = "#22C55E", Scale = 0.6f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Golem),  Mesh = PrimitiveType.Cube,    ColorHex = "#6B7280", Scale = 1.2f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Orc),    Mesh = PrimitiveType.Capsule, ColorHex = "#EF4444", Scale = 0.9f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Archer), Mesh = PrimitiveType.Capsule, ColorHex = "#EAB308", Scale = 0.8f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Spider), Mesh = PrimitiveType.Cube,    ColorHex = "#A855F7", Scale = 0.5f, IsHero = false },
+            new Spec { Name = nameof(EMonster.Bat),    Mesh = PrimitiveType.Sphere,  ColorHex = "#1F2937", Scale = 0.3f, IsHero = false },
         };
 
         [MenuItem("Lair/Setup/M3 - Build Character Prefabs")]
@@ -113,9 +107,9 @@ namespace Lair.EditorTools
             go.GetComponent<Renderer>().sharedMaterial = mat;
 
             //# 4) 컴포넌트 부착 — 추가 순서가 Awake 호출 순서이므로 Health 를 의존 컴포넌트보다 먼저
-            var mover = go.AddComponent<SimpleMover>();
-            var health = go.AddComponent<Health>();
-            var attacker = go.AddComponent<MeleeAttacker>();
+            go.AddComponent<SimpleMover>();
+            go.AddComponent<Health>();
+            go.AddComponent<MeleeAttacker>();
             if (spec.IsHero)
             {
                 go.AddComponent<HeroTargetProvider>();
@@ -135,13 +129,6 @@ namespace Lair.EditorTools
             //# 시각 피드백 + 사망 처리
             go.AddComponent<HitFlash>();
             go.AddComponent<DespawnOnDeath>();
-
-            //# 5) [SerializeField] private 필드 주입 — SerializedObject 사용
-            SetPrivateField(mover, "_speed", spec.MoveSpeed);
-            SetPrivateField(health, "_max", spec.Hp);
-            SetPrivateField(attacker, "_range", spec.Range);
-            SetPrivateField(attacker, "_cooldown", spec.Cooldown);
-            SetPrivateField(attacker, "_power", spec.Power);
 
             //# 5.5) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)
             if (!spec.IsHero)

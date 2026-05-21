@@ -53,5 +53,23 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(1, fired.Count);
             Assert.AreEqual(0, fired[0]);
         }
+
+        [Test]
+        public void 커스텀_임계점_주입_시_그_임계점으로만_발동()
+        {
+            var hp = new FakeHealth();
+            hp.SetMax(1000);
+            //# 50% 단일 임계점만 주입
+            var svc = new PassiveTriggerService(hp, new[] { 0.5f });
+            var fired = new List<int>();
+            svc.OnTriggered += i => fired.Add(i);
+
+            hp.TakeDamage(100);   //# 900 (90%) — 50% 미통과 → 발동 X
+            Assert.AreEqual(0, fired.Count);
+
+            hp.TakeDamage(450);   //# 450 (45%) — 50% 통과 → 발동
+            Assert.AreEqual(1, fired.Count);
+            Assert.AreEqual(0, fired[0]);
+        }
     }
 }

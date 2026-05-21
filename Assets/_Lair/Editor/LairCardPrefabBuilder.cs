@@ -112,23 +112,34 @@ namespace Lair.EditorTools
                        EffectFactory = () => new BerserkEffect() },
         };
 
-        //# B3 — 패시브 15 + 액티브 10 전량 재생성. ECardId 재정의 후 1회 실행.
+        //# 패시브 15 + 액티브 10 비파괴 재빌드. 기존 카드의 효과 튜닝값은 보존.
         [MenuItem("Lair/Setup/B3 - Rebuild All Cards")]
         public static void RebuildAllCards()
         {
             EnsureDir(CardDir);
             EnsureDir(PoolDir);
-            ClearCardDir();
+            RemoveStaleCards();
             BuildCardsAndPool(PassiveSpecs, EData.CardPool_Passive);
             BuildCardsAndPool(ActiveSpecs, EData.CardPool_Active);
-            Debug.Log("[LairCardPrefabBuilder] 카드 25장 + 풀 2개 재빌드 완료");
+            Debug.Log("[LairCardPrefabBuilder] 카드 25장 + 풀 2개 재빌드 완료 (비파괴)");
         }
 
-        //# 기존 CardData SO 전량 제거 — stale 카드(폐기된 B2 액티브 등) 잔존 방지.
-        private static void ClearCardDir()
+        //# spec 목록에 없는 .asset 만 삭제 (폐기 ECardId). 유효 카드는 보존.
+        private static void RemoveStaleCards()
         {
+            var valid = new HashSet<string>();
+            foreach (var s in PassiveSpecs) valid.Add(s.Id.ToString());
+            foreach (var s in ActiveSpecs)  valid.Add(s.Id.ToString());
+
             foreach (var path in Directory.GetFiles(CardDir, "*.asset"))
-                AssetDatabase.DeleteAsset(path.Replace('\\', '/'));
+            {
+                string name = Path.GetFileNameWithoutExtension(path);
+                if (valid.Contains(name) == false)
+                {
+                    AssetDatabase.DeleteAsset(path.Replace('\\', '/'));
+                    Debug.Log($"[LairCardPrefabBuilder] stale 카드 삭제: {name}");
+                }
+            }
         }
 
         //# Spec 묶음 → CardData N장 + CardPool 1개 생성 + Addressables 등록.
@@ -146,21 +157,32 @@ namespace Lair.EditorTools
 
             foreach (var spec in specs)
             {
-                var card = ScriptableObject.CreateInstance<CardData>();
+                string path = $"{CardDir}/{spec.Id}.asset";
+                var card = AssetDatabase.LoadAssetAtPath<CardData>(path);
+                bool isNew = card == null;
+                if (isNew) card = ScriptableObject.CreateInstance<CardData>();
+
                 var so = new SerializedObject(card);
                 so.FindProperty("_id").enumValueIndex       = (int)spec.Id;
                 so.FindProperty("_category").enumValueIndex = (int)spec.Category;
                 so.FindProperty("_displayName").stringValue = spec.DisplayName;
                 so.FindProperty("_description").stringValue = spec.Description;
-                so.FindProperty("_effect").managedReferenceValue = spec.EffectFactory();
+
+                //# 비파괴 — 기존 카드의 _effect(튜닝값) 보존. 신규/타입불일치 시에만 새 효과.
+                var effectProp = so.FindProperty("_effect");
+                var wanted = spec.EffectFactory();
+                var existing = effectProp.managedReferenceValue;
+                if (existing == null || existing.GetType() != wanted.GetType())
+                    effectProp.managedReferenceValue = wanted;
+
                 so.ApplyModifiedPropertiesWithoutUndo();
 
-                string path = $"{CardDir}/{spec.Id}.asset";
-                AssetDatabase.CreateAsset(card, path);
+                if (isNew) AssetDatabase.CreateAsset(card, path);
+                else       EditorUtility.SetDirty(card);
                 RegisterAddressable(settings, group, path, spec.Id.ToString());
 
                 createdCards.Add(card);
-                Debug.Log($"[LairCardPrefabBuilder] CardData 생성: {spec.Id}");
+                Debug.Log($"[LairCardPrefabBuilder] CardData {(isNew ? "생성" : "갱신")}: {spec.Id}");
             }
 
             var pool = ScriptableObject.CreateInstance<CardPool>();
