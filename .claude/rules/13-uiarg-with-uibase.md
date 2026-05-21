@@ -11,15 +11,15 @@
 
 ## 파일 구조 예시
 ```csharp
-//# Assets/_Lair/Scripts/UI/CardSelectionPopup.cs
+//# Assets/_Project/Scripts/UI/CardSelectionPopup.cs
 
 using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
-using Lair.Card;
+using Project.Card;
 using UnityEngine;
 
-namespace Lair.UI
+namespace Project.UI
 {
     //# UIArg 는 같은 파일 안에서 UIBase 클래스 위에 정의 (Rule 13).
     public class CardSelectionArg : UIArg
@@ -51,14 +51,14 @@ namespace Lair.UI
 ## 금지 예시
 ```
 //# (X) 별도 파일
-Assets/_Lair/Scripts/UI/CardSelectionPopup.cs
-Assets/_Lair/Scripts/UI/CardSelectionArg.cs    ← 별도 파일 금지
+Assets/_Project/Scripts/UI/CardSelectionPopup.cs
+Assets/_Project/Scripts/UI/CardSelectionArg.cs    ← 별도 파일 금지
 ```
 
 ## 권장 예시
 ```
 //# (O) 한 파일에 통합
-Assets/_Lair/Scripts/UI/CardSelectionPopup.cs    ← CardSelectionArg + CardSelectionPopup 함께
+Assets/_Project/Scripts/UI/CardSelectionPopup.cs    ← CardSelectionArg + CardSelectionPopup 함께
 ```
 
 ## Rule 09/10 과의 관계

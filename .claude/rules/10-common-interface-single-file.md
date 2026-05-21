@@ -5,7 +5,7 @@
 
 ## 위치
 시스템 namespace 별로 한 파일:
-- `Assets/_Lair/Scripts/Character/CommonInterface.cs` — `Lair.Character` 공용 인터페이스 (IMover, IHealth, IAttacker, ITargetProvider 등)
+- `Assets/_Project/Scripts/Character/CommonInterface.cs` — `Project.Character` 공용 인터페이스 (IMover, IHealth, IAttacker, ITargetProvider 등)
 - 향후 다른 도메인이 생기면 그 namespace 하위에 동일 패턴 (`Battle/CommonInterface.cs` 등)
 
 ## "공용 Interface" 정의
@@ -24,11 +24,11 @@
 
 ## 파일 구조 예시
 ```csharp
-//# Assets/_Lair/Scripts/Character/CommonInterface.cs
+//# Assets/_Project/Scripts/Character/CommonInterface.cs
 using System;
 using UnityEngine;
 
-namespace Lair.Character
+namespace Project.Character
 {
     //# 위치 이동 추상 — SimpleMover, (향후) NavMover 가 구현
     public interface IMover
@@ -74,10 +74,10 @@ namespace Lair.Character
 ## 금지 예시
 ```
 //# (X) 인터페이스마다 한 파일씩
-Assets/_Lair/Scripts/Character/IMover.cs
-Assets/_Lair/Scripts/Character/IHealth.cs
-Assets/_Lair/Scripts/Character/IAttacker.cs
-Assets/_Lair/Scripts/Character/ITargetProvider.cs
+Assets/_Project/Scripts/Character/IMover.cs
+Assets/_Project/Scripts/Character/IHealth.cs
+Assets/_Project/Scripts/Character/IAttacker.cs
+Assets/_Project/Scripts/Character/ITargetProvider.cs
 ```
 
 ```csharp
@@ -91,7 +91,7 @@ public class Health : MonoBehaviour
 ## 권장 예시
 ```csharp
 //# (O) CommonInterface.cs 단일 파일에 모두 정의
-namespace Lair.Character
+namespace Project.Character
 {
     public interface IMover { ... }
     public interface IHealth { ... }

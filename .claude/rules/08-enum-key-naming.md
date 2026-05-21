@@ -25,7 +25,7 @@ ChvjPackage(`CHMResource` / `CHMUI`)는 **Enum.ToString()** 을 키로 사용해
 
 ## Enum 정의 예시
 ```csharp
-namespace Lair.Data
+namespace Project.Data
 {
     //# CHMUI / CHMResource 에서 UI 프리팹 로드 키
     public enum EUI

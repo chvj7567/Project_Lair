@@ -4,7 +4,7 @@
 **여러 시스템에서 참조되는 공용 Enum** 은 게임 코드의 단일 파일 `CommonEnum.cs` 에 모아 정의한다.
 
 ## 위치
-`Assets/_Lair/Scripts/Data/CommonEnum.cs`
+`Assets/_Project/Scripts/Data/CommonEnum.cs`
 
 ## "공용 Enum" 정의
 다음 중 하나에 해당하면 `CommonEnum.cs` 로 이동:
@@ -22,8 +22,8 @@
 
 ## 파일 구조 예시
 ```csharp
-//# Assets/_Lair/Scripts/Data/CommonEnum.cs
-namespace Lair.Data
+//# Assets/_Project/Scripts/Data/CommonEnum.cs
+namespace Project.Data
 {
     //# Rule 08 — CHMResource 로 영웅 프리팹 로드 키
     public enum EHero { Knight }
@@ -57,15 +57,15 @@ namespace Lair.Data
 ## 금지 예시
 ```
 //# (X) 카테고리별 한 파일씩
-Assets/_Lair/Scripts/Data/Enums/EHero.cs
-Assets/_Lair/Scripts/Data/Enums/EMonster.cs
-Assets/_Lair/Scripts/Data/Enums/EUI.cs
-Assets/_Lair/Scripts/Data/Enums/EScene.cs
+Assets/_Project/Scripts/Data/Enums/EHero.cs
+Assets/_Project/Scripts/Data/Enums/EMonster.cs
+Assets/_Project/Scripts/Data/Enums/EUI.cs
+Assets/_Project/Scripts/Data/Enums/EScene.cs
 ```
 
 ```csharp
 //# (X) 시스템 코드 안에 공용 Enum 정의
-namespace Lair.Battle
+namespace Project.Battle
 {
     public class BattleStateModel
     {
@@ -77,7 +77,7 @@ namespace Lair.Battle
 ## 권장 예시
 ```csharp
 //# (O) CommonEnum.cs 단일 파일에 모두 정의
-namespace Lair.Data
+namespace Project.Data
 {
     public enum EHero { Knight }
     public enum EMonster { Slime, Golem, Orc }
