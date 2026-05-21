@@ -15,7 +15,7 @@ namespace Lair.EditorTools
     //# Rule 04 (프리팹화), Rule 08 (파일명 = Enum 값명) 자동 충족.
     public static class LairUIPrefabBuilder
     {
-        public const string PrefabDir = "Assets/_Lair/Prefabs/UI";
+        public const string PrefabDir = "Assets/_Lair/Art/UI";
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
         public const string UICanvasTag = "UICanvas";

@@ -14,8 +14,10 @@ namespace Lair.EditorTools
     //# Rule 04 (프리팹화), Rule 08 (파일명 = Enum 값명) 자동 충족.
     public static class LairCharacterPrefabBuilder
     {
-        public const string PrefabDir = "Assets/_Lair/Prefabs/Characters";
-        public const string MaterialDir = "Assets/_Lair/Prefabs/Characters";
+        public const string PrefabDir = "Assets/_Lair/Art/Characters";
+        public const string MaterialDir = "Assets/_Lair/Art/Materials";
+        public const string HpBarPrefabPath  = "Assets/_Lair/Art/UI/HpBar.prefab";
+        public const string HpBarBgSpritePath = "Assets/_Lair/Art/Sprites/HpBarBackground.png";
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
         public const string UrpLitShaderName = "Universal Render Pipeline/Lit";
@@ -65,6 +67,9 @@ namespace Lair.EditorTools
                 LairSetup.EnsureAddressablesSetup();
                 group = settings.FindGroup(ResourceGroup);
             }
+
+            //# HP 바 프리팹 1회 생성 (Rule 04 — 6 몬스터 공용). 각 몬스터가 nested 로 참조.
+            EnsureHpBarPrefab();
 
             foreach (var spec in AllSpecs)
             {
@@ -138,9 +143,9 @@ namespace Lair.EditorTools
             SetPrivateField(attacker, "_cooldown", spec.Cooldown);
             SetPrivateField(attacker, "_power", spec.Power);
 
-            //# 5.5) 몬스터 발 밑 HP 바 (영웅 제외 — 영웅 HP 는 HUD 에 있음)
+            //# 5.5) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)
             if (!spec.IsHero)
-                BuildMonsterHpBar(go, health, spec.Scale);
+                AttachMonsterHpBar(go, spec.Scale);
 
             //# 6) 프리팹 저장 (덮어쓰기)
             var prefabPath = $"{PrefabDir}/{spec.Name}.prefab";
@@ -156,58 +161,89 @@ namespace Lair.EditorTools
             Debug.Log($"[CharacterPrefabBuilder] {spec.Name} 빌드 완료 (address={entry.address}, label={ResourceLabel})");
         }
 
-        //# 몬스터 머리 위 WorldSpace HP 바 (회색 배경 + 빨강 fill, 카메라 빌보드).
-        //# 몬스터 자식이라 풀 Pop/Push 에 자동 동행. monsterScale 로 월드 크기 보정.
-        private static void BuildMonsterHpBar(GameObject monster, Health health, float monsterScale)
+        //# HP 바 프리팹(HpBar.prefab) 1회 생성 — WorldSpace Canvas + MonsterHpBar + 배경/fill.
+        //# 배경은 HpBarBackground.png, fill 은 빨강 단색 Filled.
+        private static void EnsureHpBarPrefab()
         {
+            //# 이미 있으면 보존 — 직접 편집한 HpBar.prefab 을 덮어쓰지 않음.
+            //# 처음 1회만 빌더가 기본형 생성, 이후 스프라이트/디자인은 수동 관리.
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath) != null)
+                return;
+
             const float BarPixelW = 120f;
             const float BarPixelH = 20f;
-            const float TargetWorldW = 1.2f;   //# 모든 몬스터 동일한 월드 가로
-            const float HeadLocalY  = 1.2f;    //# 머리 위 — 자식 localY (월드 = ×monsterScale)
 
-            //# HpBar 루트 — WorldSpace Canvas. 회전은 MonsterHpBar 가 매 프레임 빌보드.
-            var barGo = new GameObject("HpBar", typeof(RectTransform), typeof(Canvas));
-            barGo.transform.SetParent(monster.transform, worldPositionStays: false);
-            var canvas = barGo.GetComponent<Canvas>();
+            //# png 를 Sprite(Single) 로 — textureType 만 바꾸면 Sprite 에셋이 안 생겨
+            //# LoadAssetAtPath<Sprite> 가 null. spriteImportMode=Single 까지 필수.
+            var imp = AssetImporter.GetAtPath(HpBarBgSpritePath) as TextureImporter;
+            if (imp != null && (imp.textureType != TextureImporterType.Sprite
+                                || imp.spriteImportMode != SpriteImportMode.Single))
+            {
+                imp.textureType = TextureImporterType.Sprite;
+                imp.spriteImportMode = SpriteImportMode.Single;
+                imp.SaveAndReimport();
+            }
+            var fillSprite = AssetDatabase.LoadAssetAtPath<Sprite>(HpBarBgSpritePath);
+            if (fillSprite == null)
+                Debug.LogWarning($"[CharacterPrefabBuilder] HP 바 fill 스프라이트 로드 실패: {HpBarBgSpritePath}");
+
+            //# 루트 — WorldSpace Canvas. 회전은 MonsterHpBar 가 매 프레임 빌보드.
+            var root = new GameObject("HpBar", typeof(RectTransform), typeof(Canvas));
+            var canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
+            var rootRt = (RectTransform)root.transform;
+            rootRt.sizeDelta = new Vector2(BarPixelW, BarPixelH);
 
-            var barRt = (RectTransform)barGo.transform;
-            barRt.sizeDelta = new Vector2(BarPixelW, BarPixelH);
-            //# canvasScale = 목표월드폭 / 픽셀폭 / 몬스터scale → 몬스터 크기 무관 동일 월드 크기.
-            float canvasScale = TargetWorldW / BarPixelW / monsterScale;
-            barRt.localScale = Vector3.one * canvasScale;
-            barRt.localRotation = Quaternion.identity;   //# 빌보드가 런타임에 회전
-            //# 머리 위 — 자식이라 localY 가 monsterScale 로 곱해져 큰 몬스터일수록 더 위.
-            barRt.localPosition = new Vector3(0f, HeadLocalY, 0f);
-
-            //# 배경 (회색)
+            //# 배경 — 회색 단색 트랙 (게이지 빈 부분)
             var bgGo = new GameObject("Background", typeof(RectTransform));
-            bgGo.transform.SetParent(barGo.transform, false);
-            var bgRt = (RectTransform)bgGo.transform;
-            SetStretch(bgRt);
+            bgGo.transform.SetParent(root.transform, false);
+            SetStretch((RectTransform)bgGo.transform);
             var bgImg = bgGo.AddComponent<Image>();
             bgImg.sprite = LairUIPrefabBuilder.GetUISprite();
             bgImg.type = Image.Type.Sliced;
             bgImg.color = HexColor("#374151");
 
-            //# fill (빨강, 가로 Filled)
+            //# fill — HpBarBackground.png, 가로 Filled (이미지 원본 색 → color 흰색)
             var fillGo = new GameObject("Fill", typeof(RectTransform));
             fillGo.transform.SetParent(bgGo.transform, false);
-            var fillRt = (RectTransform)fillGo.transform;
-            SetStretch(fillRt);
+            SetStretch((RectTransform)fillGo.transform);
             var fillImg = fillGo.AddComponent<Image>();
-            fillImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            fillImg.sprite = fillSprite != null ? fillSprite : LairUIPrefabBuilder.GetUISprite();
             fillImg.type = Image.Type.Filled;
             fillImg.fillMethod = Image.FillMethod.Horizontal;
             fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
-            fillImg.color = HexColor("#DC2626");
+            fillImg.color = Color.white;
             fillImg.fillAmount = 1f;
 
-            //# MonsterHpBar 컴포넌트 — 몬스터 루트에 부착, 참조 주입.
-            var bar = monster.AddComponent<MonsterHpBar>();
-            SetPrivateField(bar, "_health", health);
+            //# MonsterHpBar — 루트에 부착, _fill 주입 (프리팹 내부 참조).
+            var bar = root.AddComponent<MonsterHpBar>();
             SetPrivateField(bar, "_fill", fillImg);
-            SetPrivateField(bar, "_barRoot", barGo.transform);
+
+            PrefabUtility.SaveAsPrefabAsset(root, HpBarPrefabPath);
+            Object.DestroyImmediate(root);
+            Debug.Log("[CharacterPrefabBuilder] HpBar.prefab 생성");
+        }
+
+        //# 몬스터 자식으로 HpBar.prefab nested 인스턴스 부착. monsterScale 로 월드 크기 보정.
+        private static void AttachMonsterHpBar(GameObject monster, float monsterScale)
+        {
+            const float BarPixelW = 120f;
+            const float TargetWorldW = 1.2f;   //# 모든 몬스터 동일한 월드 가로
+            const float HeadLocalY  = 1.2f;    //# 머리 위 — 자식 localY (월드 = ×monsterScale)
+
+            var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
+            if (hpBarPrefab == null)
+            {
+                Debug.LogWarning("[CharacterPrefabBuilder] HpBar.prefab 미발견 — HP 바 생략");
+                return;
+            }
+
+            var inst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, monster.transform);
+            var rt = (RectTransform)inst.transform;
+            //# canvasScale = 목표월드폭 / 픽셀폭 / 몬스터scale → 몬스터 크기 무관 동일 월드 크기.
+            rt.localScale = Vector3.one * (TargetWorldW / BarPixelW / monsterScale);
+            rt.localRotation = Quaternion.identity;
+            rt.localPosition = new Vector3(0f, HeadLocalY, 0f);
         }
 
         private static void SetStretch(RectTransform rt)

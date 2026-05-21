@@ -11,8 +11,8 @@ namespace Lair.EditorTools
     //# PoisonAura (영웅 발 밑 연두 디스크) + 영웅 디버프 상태 표시 6종.
     public static class LairVisualPrefabBuilder
     {
-        public const string PrefabDir     = "Assets/_Lair/Prefabs/FX";
-        public const string MaterialDir   = "Assets/_Lair/Prefabs/FX";
+        public const string PrefabDir     = "Assets/_Lair/Art/FX";
+        public const string MaterialDir   = "Assets/_Lair/Art/Materials";
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
         public const string UrpLitShaderName = "Universal Render Pipeline/Lit";

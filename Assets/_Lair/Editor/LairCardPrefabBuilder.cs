@@ -13,8 +13,8 @@ namespace Lair.EditorTools
     //# SerializeReference 의 ICardEffect 슬롯 주입은 managedReferenceValue 사용.
     public static class LairCardPrefabBuilder
     {
-        public const string CardDir = "Assets/_Lair/Data/Cards/Cards";
-        public const string PoolDir = "Assets/_Lair/Data/Cards";
+        public const string CardDir = "Assets/_Lair/Art/Cards/Items";
+        public const string PoolDir = "Assets/_Lair/Art/Cards";
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
 

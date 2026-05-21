@@ -118,7 +118,7 @@ namespace Lair.EditorTools
             if (col != null) Object.DestroyImmediate(col);
 
             //# 회색 머티리얼
-            var matPath = "Assets/_Lair/Prefabs/Mat_Floor.mat";
+            var matPath = "Assets/_Lair/Art/Materials/Mat_Floor.mat";
             var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
             if (mat == null)
             {
@@ -133,7 +133,7 @@ namespace Lair.EditorTools
 
         private static void SpawnPrefab(GameObject parent, string assetName, Vector3 pos)
         {
-            var path = $"Assets/_Lair/Prefabs/Characters/{assetName}.prefab";
+            var path = $"Assets/_Lair/Art/Characters/{assetName}.prefab";
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null)
             {

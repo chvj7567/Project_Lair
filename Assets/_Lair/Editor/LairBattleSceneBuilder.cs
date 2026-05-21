@@ -26,7 +26,7 @@ namespace Lair.EditorTools
         private const string MonsterSpawn2Name      = "MonsterSpawn_02";
         private const string MonsterSpawn3Name      = "MonsterSpawn_03";
 
-        private const string FloorMaterialPath = "Assets/_Lair/Prefabs/Mat_Floor.mat";
+        private const string FloorMaterialPath = "Assets/_Lair/Art/Materials/Mat_Floor.mat";
 
         [MenuItem("Lair/Setup/M5 - Build Battle Scene")]
         public static void BuildBattleScene()
