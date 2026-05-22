@@ -46,8 +46,8 @@ namespace Lair.EditorTools
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
-                LairSetup.EnsureAddressablesSetup();
-                settings = AddressableAssetSettingsDefaultObject.Settings;
+                Debug.LogError("[LairVisualPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
+                return;
             }
             var group = settings.FindGroup(ResourceGroup);
 

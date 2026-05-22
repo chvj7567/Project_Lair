@@ -48,18 +48,18 @@ namespace Lair.EditorTools
         {
             EnsureDir(PrefabDir);
 
-            //# Addressables 사전 확인 (M1 셋업이 안 됐을 경우 자동 호출)
+            //# Addressables 사전 확인
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
-                LairSetup.EnsureAddressablesSetup();
-                settings = AddressableAssetSettingsDefaultObject.Settings;
+                Debug.LogError("[LairCharacterPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
+                return;
             }
             var group = settings.FindGroup(ResourceGroup);
             if (group == null)
             {
-                LairSetup.EnsureAddressablesSetup();
-                group = settings.FindGroup(ResourceGroup);
+                Debug.LogError("[LairCharacterPrefabBuilder] Addressables 'Resource' 그룹 미발견");
+                return;
             }
 
             //# HP 바 프리팹 1회 생성 (Rule 04 — 6 몬스터 공용). 각 몬스터가 nested 로 참조.
