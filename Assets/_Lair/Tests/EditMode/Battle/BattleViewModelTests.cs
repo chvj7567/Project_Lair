@@ -62,5 +62,26 @@ namespace Lair.Tests.UI
             Assert.AreEqual(BattleResult.Win, captured);
             Assert.AreEqual(BattleResult.Win, vm.Result);
         }
+
+        [Test]
+        public void AddPick_중복_픽은_Count_누적_분류_구분()
+        {
+            var vm = new BattleViewModel(new BattleStateModel());
+            var cardA = Lair.Tests.Helpers.FakeCardData.Create(ECardId.SlimeHpBoost);
+            var cardB = Lair.Tests.Helpers.FakeCardData.Create(ECardId.Frenzy);
+            int changed = 0;
+            vm.OnBuildChanged += () => changed++;
+
+            vm.AddPick(cardA, isPassive: true);
+            vm.AddPick(cardA, isPassive: true);   //# 같은 카드 재픽
+            vm.AddPick(cardB, isPassive: false);
+
+            Assert.AreEqual(2, vm.Build.Count, "고유 카드 2종");
+            Assert.AreEqual(2, vm.Build[0].Count, "cardA 2회 누적");
+            Assert.IsTrue(vm.Build[0].IsPassive);
+            Assert.AreEqual(1, vm.Build[1].Count, "cardB 1회");
+            Assert.IsFalse(vm.Build[1].IsPassive);
+            Assert.AreEqual(3, changed, "AddPick 마다 OnBuildChanged 발행");
+        }
     }
 }

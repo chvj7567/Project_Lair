@@ -255,7 +255,12 @@ namespace Lair.Battle
                     OnPicked = card =>
                     {
                         //# Slice C — 픽 기록
-                        if (card != null) _recorder.RecordPick(card.Id);
+                        if (card != null)
+                        {
+                            _recorder.RecordPick(card.Id);
+                            //# 빌드 패널 — VM 에 픽 누적
+                            _vm.AddPick(card, entry.SourceType == TriggerQueue.Source.Passive);
+                        }
                         if (card?.Effect != null && _ctx != null) card.Effect.Apply(_ctx);
                         tcs.TrySetResult(true);
                     }

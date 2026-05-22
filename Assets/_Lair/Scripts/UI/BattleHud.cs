@@ -17,6 +17,7 @@ namespace Lair.UI
     {
         [SerializeField] private CHText _timerText;
         [SerializeField] private Image _heroHpFill;
+        [SerializeField] private BuildPanel _buildPanel;
 
         private BattleViewModel _vm;
 
@@ -37,6 +38,13 @@ namespace Lair.UI
             closeDisposable.Add(() => vm.OnTimerChanged       -= HandleTimer);
             closeDisposable.Add(() => vm.OnHeroHpRatioChanged -= HandleHp);
             closeDisposable.Add(() => vm.OnBattleEnded        -= HandleEnded);
+
+            //# 빌드 패널 바인딩 (Close 시 자동 해제)
+            if (_buildPanel != null)
+            {
+                _buildPanel.Bind(vm);
+                closeDisposable.Add(() => _buildPanel.Unbind());
+            }
 
             //# 초기 동기화
             HandleTimer(vm.ElapsedSeconds, vm.TotalSeconds);

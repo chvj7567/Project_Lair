@@ -23,7 +23,8 @@ namespace Lair.UI
             _pickButton.OnClick(onClick);
         }
 
-        private static Color CategoryColor(ECardCategory c) => c switch
+        //# 카테고리 색 — CardView 와 BuildIconCell 이 공유 (Rule 03 — 색 매핑 단일 출처).
+        public static Color CategoryColor(ECardCategory c) => c switch
         {
             ECardCategory.Enhance     => new Color(0.13f, 0.77f, 0.37f),
             ECardCategory.Spawn       => new Color(0.23f, 0.51f, 0.96f),
