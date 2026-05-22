@@ -62,18 +62,22 @@ docs/
 
 ## 6. 멀티 에이전트 위임 규칙
 
-이 프로젝트는 **메인 오케스트레이터 + 4개 서브에이전트** 협업 구조다. 메인은 흐름을 조율하고 위임하며, **직접 코드를 짜지 않는다.**
+이 프로젝트는 **메인 오케스트레이터 + 6개 서브에이전트** 협업 구조다. 메인은 흐름을 조율하고 위임하며, **직접 코드를 짜지 않는다.**
 
 | 에이전트 | 호출 시점 | 정의 |
 |---|---|---|
 | **game-designer** | 새 카드·몬스터·시스템의 기획, 밸런스 수치, 페이싱·시너지 설계. 기능 기획서가 필요할 때 | `.claude/agents/game-designer.md` |
+| **design-reviewer** | game-designer 기획서를 사용자 리뷰 전에 1차 검토할 때. 논리·밸런스·범위·명세 완성도 점검 (읽기 전용) | `.claude/agents/design-reviewer.md` |
 | **gameplay-programmer** | `.cs` 파일을 한 줄이라도 작성·수정할 때. 구현·ChvjPackage 연동·MVVM·SO 스키마 | `.claude/agents/gameplay-programmer.md` |
+| **code-reviewer** | gameplay-programmer 산출 `.cs` 가 14개 룰 준수 + 기획서 일치하는지 검토할 때 (읽기 전용) | `.claude/agents/code-reviewer.md` |
 | **test-engineer** | gameplay-programmer 산출물의 본격 테스트 스위트(엣지 망라·회귀·통합)가 필요할 때 | `.claude/agents/test-engineer.md` |
 | **qa-simulator** | 밸런스 검증 — 헤드리스 N판 시뮬레이션 + 메트릭 리포트가 필요할 때 | `.claude/agents/qa-simulator.md` |
 
 위임 판단 기준:
 - 기획·수치·밸런스를 정해야 함 → **game-designer**
+- 기획서가 나왔고 사용자 리뷰 전 1차 검토가 필요함 → **design-reviewer**
 - C# 코드를 만들거나 고쳐야 함 → **gameplay-programmer** (기획서 없으면 game-designer 먼저)
+- 코드가 나왔고 룰 준수·기획 일치 검토가 필요함 → **code-reviewer**
 - 본격 테스트 코드가 필요함 (gameplay-programmer 의 "정상+엣지1" 을 넘어서) → **test-engineer**
 - "X 가 너무 강하다/약하다" 밸런스 의심 → **qa-simulator**
 
@@ -81,20 +85,24 @@ docs/
 
 ### 새 기능 개발
 1. **game-designer** 가 기획서 작성 → `docs/design/[기능명].md`
-2. **사용자** 가 기획서 리뷰·승인
-3. **gameplay-programmer** 가 기획서를 읽고 구현
-4. **test-engineer** 가 본격 테스트 스위트 작성
-5. (게임플레이 영향이 큰 경우) **qa-simulator** 가 시뮬레이션으로 밸런스 검증
-6. 변경사항 요약 + 커밋 메시지(안) 제시 — Rule 01 (직접 커밋 X, `git add` 까지)
+2. **design-reviewer** 가 기획서 1차 검토 — BLOCKER 있으면 game-designer 재작업 후 재검토
+3. **사용자** 가 기획서 리뷰·승인
+4. **gameplay-programmer** 가 기획서를 읽고 구현
+5. **code-reviewer** 가 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업 후 재검토
+6. **test-engineer** 가 본격 테스트 스위트 작성
+7. (게임플레이 영향이 큰 경우) **qa-simulator** 가 시뮬레이션으로 밸런스 검증
+8. 변경사항 요약 + 커밋 메시지(안) 제시 — Rule 01 (직접 커밋 X, `git add` 까지)
 
 ### 밸런스 조정
 1. 사용자 또는 game-designer 가 의심 제기 ("X 카드가 너무 강한 것 같다")
 2. **qa-simulator** 호출 → N판 시뮬 후 데이터 리포트 (`docs/qa-reports/`)
 3. **game-designer** 가 데이터 기반 조정안 작성
-4. 사용자 승인
-5. **gameplay-programmer** 가 SO/수치 수정
-6. **test-engineer** 가 회귀 테스트 통과 확인
-7. **qa-simulator** 가 조정 후 재시뮬로 검증
+4. **design-reviewer** 가 조정안 검토 — BLOCKER 있으면 game-designer 재작업
+5. 사용자 승인
+6. **gameplay-programmer** 가 SO/수치 수정
+7. **code-reviewer** 가 수정 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업
+8. **test-engineer** 가 회귀 테스트 통과 확인
+9. **qa-simulator** 가 조정 후 재시뮬로 검증
 
 ## 8. MVP 단계 특수 규칙
 
