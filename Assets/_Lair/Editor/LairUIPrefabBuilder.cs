@@ -279,6 +279,11 @@ namespace Lair.EditorTools
         {
             const string PrefabName = "BattleHud";
 
+            //# HpBar.prefab 이 없으면 생성 (M4 단독 실행 시 M3 미선행 상황 대비).
+            //# Rule 04 — HpBar.prefab 1개를 몬스터·HUD 가 공유.
+            LairCharacterPrefabBuilder.EnsureHpBarPrefab();
+            var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(LairCharacterPrefabBuilder.HpBarPrefabPath);
+
             //# 루트
             var root = new GameObject(PrefabName, typeof(RectTransform));
             var rootRt = (RectTransform)root.transform;
@@ -305,32 +310,33 @@ namespace Lair.EditorTools
             timerTmp.color = Color.white;
             var timerText = timerGo.AddComponent<CHText>();
 
-            //# HpBg — TimerText 박스(top -40 ~ -120) 아래로 충분히 떨어뜨림 (간격 20)
-            var hpBgGo = new GameObject("HpBg", typeof(RectTransform));
-            hpBgGo.transform.SetParent(root.transform, false);
-            var hpBgRt = (RectTransform)hpBgGo.transform;
-            hpBgRt.anchorMin = new Vector2(0.5f, 1f);
-            hpBgRt.anchorMax = new Vector2(0.5f, 1f);
-            hpBgRt.pivot     = new Vector2(0.5f, 1f);
-            hpBgRt.anchoredPosition = new Vector2(0f, -140f);
-            hpBgRt.sizeDelta = new Vector2(400f, 24f);
-            var hpBgImg = hpBgGo.AddComponent<Image>();
-            hpBgImg.sprite = GetUISprite();
-            hpBgImg.type = Image.Type.Sliced;
-            hpBgImg.color = ParseColor("#374151");
+            //# HeroHpBar — HpBar.prefab 인스턴스를 nest. 기존 HpBg 위치·크기 유지.
+            //# Rule 04 — 몬스터 머리 위와 동일 프리팹 공유.
+            Image hpFillImg = null;
+            if (hpBarPrefab != null)
+            {
+                var hpBarInst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, root.transform);
+                hpBarInst.name = "HeroHpBar";
+                var hpBarRt = (RectTransform)hpBarInst.transform;
+                //# 기존 HpBg 와 동일한 위치·크기
+                hpBarRt.anchorMin = new Vector2(0.5f, 1f);
+                hpBarRt.anchorMax = new Vector2(0.5f, 1f);
+                hpBarRt.pivot     = new Vector2(0.5f, 1f);
+                hpBarRt.anchoredPosition = new Vector2(0f, -140f);
+                hpBarRt.sizeDelta = new Vector2(400f, 24f);
+                hpBarRt.localScale = Vector3.one;
+                hpBarRt.localRotation = Quaternion.identity;
 
-            //# HpFill (HpBg 자식, full stretch)
-            var hpFillGo = new GameObject("HpFill", typeof(RectTransform));
-            hpFillGo.transform.SetParent(hpBgGo.transform, false);
-            var hpFillRt = (RectTransform)hpFillGo.transform;
-            SetFullStretch(hpFillRt);
-            var hpFillImg = hpFillGo.AddComponent<Image>();
-            hpFillImg.sprite = GetUISprite();
-            hpFillImg.color = ParseColor("#DC2626");
-            hpFillImg.type = Image.Type.Filled;
-            hpFillImg.fillMethod = Image.FillMethod.Horizontal;
-            hpFillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
-            hpFillImg.fillAmount = 1f;
+                //# Fill Image — 결정론적 경로 Background/Fill 로 탐색.
+                var fillTf = hpBarInst.transform.Find("Background/Fill");
+                hpFillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
+                if (hpFillImg == null)
+                    Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 내 Background/Fill Image 미발견");
+            }
+            else
+            {
+                Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 로드 실패 — 영웅 HP 바 생략");
+            }
 
             //# ----- 빌드 패널 (화면 하단) -----
             var buildPanelGo = new GameObject("BuildPanel", typeof(RectTransform));

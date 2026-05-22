@@ -3,7 +3,9 @@ using UnityEngine.UI;
 
 namespace Lair.Character
 {
-    //# HP 바 프리팹(HpBar.prefab) 루트에 부착. 부모 캐릭터의 IHealth 를 자동 탐색해 fill 갱신.
+    //# 빌더(AttachMonsterHpBar)가 몬스터 자식으로 생성하는 래퍼 GameObject 에 부착.
+    //# 래퍼는 WorldSpace Canvas + 이 MonsterHpBar. 그 자식에 HpBar.prefab 인스턴스가 nest.
+    //# _fill 은 nested HpBar.prefab 의 Background/Fill Image 를 빌더가 주입.
     //# 매 프레임 카메라를 향하도록 빌보드 회전 — 탑다운 45° 카메라에서 잘 보임.
     //# 캐릭터 프리팹의 nested 자식이라 풀 Pop/Push 에 자동 동행.
     public class MonsterHpBar : MonoBehaviour
