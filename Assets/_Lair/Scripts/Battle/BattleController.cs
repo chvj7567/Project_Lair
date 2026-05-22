@@ -245,6 +245,22 @@ namespace Lair.Battle
                 var deck = entry.SourceType == TriggerQueue.Source.Passive ? _passiveDeck : _activeDeck;
                 if (deck == null) continue;
 
+#if UNITY_EDITOR
+                //# 시뮬레이션 전용 — 팝업/일시정지를 건너뛰고 즉시 픽. tcs 무한 대기 회피.
+                if (DebugAutoPicker != null)
+                {
+                    var simChoices = deck.Draw(3);
+                    var picked = DebugAutoPicker(simChoices, entry.SourceType);
+                    if (picked != null)
+                    {
+                        _recorder.RecordPick(picked.Id);
+                        _vm.AddPick(picked, entry.SourceType == TriggerQueue.Source.Passive);
+                        if (picked.Effect != null && _ctx != null) picked.Effect.Apply(_ctx);
+                    }
+                    continue;
+                }
+#endif
+
                 _pause.Pause();
                 var choices = deck.Draw(3);
                 var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
@@ -316,6 +332,10 @@ namespace Lair.Battle
 
 #if UNITY_EDITOR
         //# ===== Slice C-M4 디버그 API — LairBalanceWindow 전용 =====
+
+        //# 시뮬레이션 전용 — 비-null 이면 카드 팝업 대신 호출되어 즉시 픽 결정.
+        //# 인자: 제시된 3장, 트리거 출처. 반환: 고른 카드(null 이면 스킵).
+        public System.Func<System.Collections.Generic.IReadOnlyList<CardData>, TriggerQueue.Source, CardData> DebugAutoPicker;
 
         //# 패시브 카드 선택을 즉시 큐에 넣음.
         public void DebugForcePassiveTrigger()
