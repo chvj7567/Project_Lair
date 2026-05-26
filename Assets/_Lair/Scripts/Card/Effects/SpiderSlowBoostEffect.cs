@@ -1,23 +1,18 @@
 using System;
-using Lair.Character;
 using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 살아있는 모든 거미의 둔화 배율 강화 (0.8 → _slowFactor, 낮을수록 강한 둔화).
+    //# 지속 스폰 — 거미 종 둔화 배율 글로벌 영구 버프 (SlowFactorMul ×_slowFactor).
+    //# _slowFactor 는 치환값이 아니라 배율 — 1픽 시 BaseSlowFactor 0.8 × 0.75 = 0.6 (§3.0.1).
+    //# 낮을수록 강한 둔화. SO 직렬화 값은 0.75 (SpiderSlowBoost.asset 재저장, §7.5.10).
     [Serializable]
     public class SpiderSlowBoostEffect : ICardEffect
     {
-        [SerializeField] private float _slowFactor = 0.6f;
+        [SerializeField] private float _slowFactor = 0.75f;
 
         public void Apply(IBattleContext ctx)
-        {
-            foreach (var hp in ctx.GetMonsters(EMonster.Spider))
-            {
-                if (hp is MonoBehaviour mb)
-                    mb.GetComponent<SpiderSlowOnHit>()?.SetSlowFactor(_slowFactor);
-            }
-        }
+            => ctx.RegisterMonsterTypeBuff(EMonster.Spider, EMonsterStatKind.SlowFactor, _slowFactor);
     }
 }

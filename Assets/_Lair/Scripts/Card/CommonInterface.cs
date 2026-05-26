@@ -39,6 +39,18 @@ namespace Lair.Card
         //# B3 — 폭주 즉발: 모든 몬스터 현재 HP 절반
         void HalveAllMonsterHp();
 
+        //# 지속 스폰 강화 카드 — 종별 스탯 배율을 글로벌 dict 에 곱연산 누적 +
+        //# 필드 동일 종 소급 적용 (resetCurrent:false). 강화 6장이 이 한 줄만 호출.
+        void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier);
+
+        //# 지속 스폰 추가소환 카드 — 해당 종을 출력 중인 모든 Spawner 의 동시 출력 +1.
+        //# 매칭 Spawner 0개면 no-op.
+        void IncrementSpawnerOutput(EMonster type);
+
+        //# 지속 스폰 융합 카드 — 출력 종이 from 인 모든 Spawner 의 출력 종을 to 로 영구 변경.
+        //# 매칭 Spawner 0개면 no-op.
+        void ReplaceSpawnerOutput(EMonster from, EMonster to);
+
         float DeltaTime { get; }
     }
 

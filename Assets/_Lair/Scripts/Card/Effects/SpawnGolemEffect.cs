@@ -1,21 +1,13 @@
 using System;
 using Lair.Data;
-using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 영웅 근처에 골렘 _count 마리 스폰.
+    //# 지속 스폰 — 골렘을 출력 중인 모든 Spawner 의 동시 출력 +1 (§3.2 C안).
     [Serializable]
     public class SpawnGolemEffect : ICardEffect
     {
-        [SerializeField] private int _count = 1;
-
         public void Apply(IBattleContext ctx)
-        {
-            var heroT = ctx.GetHeroTransform();
-            if (heroT == null) return;
-            for (int i = 0; i < _count; ++i)
-                ctx.SpawnMonster(EMonster.Golem, heroT.position);
-        }
+            => ctx.IncrementSpawnerOutput(EMonster.Golem);
     }
 }

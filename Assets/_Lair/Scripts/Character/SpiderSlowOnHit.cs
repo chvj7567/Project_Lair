@@ -9,6 +9,12 @@ namespace Lair.Character
     [RequireComponent(typeof(MeleeAttacker))]
     public class SpiderSlowOnHit : MonoBehaviour
     {
+        //# 거미 둔화 배율의 불변 baseline (지속 스폰). 컴파일타임 고정 —
+        //# 직렬화·풀 재사용·SetSlowFactor 호출 어디에도 오염되지 않는다.
+        //# ApplyMonsterStats 가 SetSlowFactor(BaseSlowFactor × SlowFactorMul) 로 매 Pop 갱신.
+        public const float BaseSlowFactor = 0.8f;
+
+        //# 런타임 적용값 캐시 — HandleHit 가 읽는 현재값. ApplyMonsterStats 가 Pop 마다 덮어쓴다.
         [SerializeField] private float _slowFactor = 0.8f;
         [SerializeField] private float _duration = 1.5f;
 

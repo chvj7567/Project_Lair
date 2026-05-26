@@ -1,21 +1,14 @@
 using System;
 using Lair.Data;
-using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 영웅 근처에 거미 _count 마리 스폰.
+    //# 지속 스폰 — 거미를 출력 중인 모든 Spawner 의 동시 출력 +1 (§3.2 C안).
+    //# 스타터 프리셋에는 거미 Spawner 가 없어 no-op (의도된 죽은 픽, §5.5).
     [Serializable]
     public class SpawnSpidersEffect : ICardEffect
     {
-        [SerializeField] private int _count = 2;
-
         public void Apply(IBattleContext ctx)
-        {
-            var heroT = ctx.GetHeroTransform();
-            if (heroT == null) return;
-            for (int i = 0; i < _count; ++i)
-                ctx.SpawnMonster(EMonster.Spider, heroT.position);
-        }
+            => ctx.IncrementSpawnerOutput(EMonster.Spider);
     }
 }

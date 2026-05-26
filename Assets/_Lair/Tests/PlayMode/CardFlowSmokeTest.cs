@@ -10,15 +10,24 @@ namespace Lair.Tests.PlayMode
 {
     public class CardFlowSmokeTest
     {
+        [TearDown]
+        public void TearDown()
+        {
+            //# 본 테스트가 의도적으로 카드 팝업을 띄우므로 timeScale=0 잔존 — 후속 테스트 영향 차단.
+            Time.timeScale = 1f;
+        }
+
         [UnityTest]
         public IEnumerator HP_90퍼_트리거시_CardSelectionPopup_자동표시()
         {
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 
-            //# 1) BattleController.Start 가 비동기 — 영웅 스폰 + HUD 표시 + CardPool 로드까지 대기
+            //# 1) BattleController.Start 가 비동기 — 영웅 스폰 + HUD 표시 + CardPool 로드까지 대기.
+            //# unscaledDeltaTime — 만약 초기화 중 영웅이 다른 트리거로 팝업을 띄워 timeScale=0
+            //# 으로 돼도 대기 루프가 hang 하지 않도록 견고화 (밸런스 변경 회귀 방지).
             float elapsed = 0f;
-            while (elapsed < 3f) { elapsed += Time.deltaTime; yield return null; }
+            while (elapsed < 3f) { elapsed += Time.unscaledDeltaTime; yield return null; }
 
             Assert.Greater(CharacterRegistry.Heroes.Count, 0, "Hero 스폰 확인");
 

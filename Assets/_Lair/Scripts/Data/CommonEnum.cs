@@ -106,6 +106,18 @@ namespace Lair.Data
         BerserkPower,  //# 데미지 ↑
     }
 
+    //# 지속 스폰 — 강화 카드가 RegisterMonsterTypeBuff 호출 시 "어느 스탯 배율인지" 지정.
+    //# 에셋 로드 키가 아닌 시스템 간 통신 계약. StatMultiplier 의 6개 필드와 1:1 대응.
+    public enum EMonsterStatKind
+    {
+        Hp,
+        Power,
+        Cooldown,
+        Range,
+        MoveSpeed,
+        SlowFactor,
+    }
+
     //# === Cross-System Communication ===
 
     //# 전투 결과 — BattleStateModel / BattleViewModel / BattleController / ResultPopup 공용.

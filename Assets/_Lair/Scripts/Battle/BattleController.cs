@@ -10,12 +10,20 @@ using UnityEngine;
 namespace Lair.Battle
 {
     //# 전투 씬 라이프사이클·스폰·VM 갱신·종료 처리.
-    public class BattleController : MonoBehaviour
+    public class BattleController : MonoBehaviour, ISpawnerHost
     {
         [SerializeField] private Transform _heroSpawn;
-        [SerializeField] private MonsterSpawnEntry[] _monsterSpawns;
+        //# 지속 스폰 — 씬에 배치된 Spawner 들. Rule 03 — FindObjectsOfType 대신 인스펙터 직렬 할당.
+        [SerializeField] private Spawner[] _spawners;
         //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
         [SerializeField] private BalanceConfig _balance;
+
+        //# 지속 스폰 — 글로벌 필드 몬스터 하드 캡 (§4.2). 어느 스폰 경로에서든 절대값.
+        //# v7: 12 → 18. Power 차등 하향으로 DPS 여유 확보 → 캡 복귀 (continuous-spawn-round.md §6.3).
+        private const int MonsterCap = 18;
+
+        //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
+        private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
         private BattleClock _clock;
         private BattleStateModel _model;
@@ -23,7 +31,6 @@ namespace Lair.Battle
 
         private CHPoolable _hero;
         private Health _heroHealth;
-        private readonly List<CHPoolable> _monsters = new();
 
         //# B1 신규
         private PauseService _pause;
@@ -74,9 +81,9 @@ namespace Lair.Battle
             await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
                 new BattleHudArg { ViewModel = _vm });
 
-            //# 4. 스폰
+            //# 4. 영웅 스폰. 몬스터는 지속 스폰 — Spawner 들이 주기마다 틱.
             await SpawnHero();
-            await SpawnMonsters();
+            BindSpawners();
 
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
@@ -128,10 +135,19 @@ namespace Lair.Battle
 
         private void Update()
         {
-            _clock?.Tick(Time.deltaTime);
+            float dt = Time.deltaTime;
+            _clock?.Tick(dt);
             //# B3 — 글로벌 버프/피의 갈증 시간 진행. Pause 중엔 deltaTime=0 이라 자연 정지.
-            _monsterBuffs?.Tick(Time.deltaTime);
-            _bloodThirst?.Tick(Time.deltaTime);
+            _monsterBuffs?.Tick(dt);
+            _bloodThirst?.Tick(dt);
+
+            //# 지속 스폰 — Spawner 들의 주기 타이머 틱. Pause 중 dt=0 자연 정지.
+            //# 전투 종료 후엔 스폰 중단.
+            if (_model != null && _model.Result == BattleResult.None && _spawners != null)
+            {
+                foreach (var sp in _spawners)
+                    if (sp != null) sp.Tick(dt);
+            }
         }
 
         //# B3 — BattleContext 가 위임하는 글로벌 버프/피의 갈증 진입점.
@@ -149,7 +165,8 @@ namespace Lair.Battle
         private void OnDestroy()
             => DespawnOnDeath.MonsterDied -= HandleMonsterDied;
 
-        //# Slice C — BalanceConfig 스탯을 스폰된 캐릭터에 적용. Pop 직후 호출.
+        //# Slice C — BalanceConfig 스탯을 영웅에 적용. Pop 직후 호출.
+        //# 영웅 전용 — 글로벌 타입 모디파이어가 없다. 시그니처·동작 그대로 유지.
         private void ApplyStats(GameObject character, BalanceConfig.CharacterStat stat)
         {
             if (character == null || stat == null) return;
@@ -159,6 +176,36 @@ namespace Lair.Battle
             if (attacker != null) attacker.Configure(stat.Range, stat.Cooldown, stat.Power);
             var mover = character.GetComponent<SimpleMover>();
             if (mover != null) mover.Speed = stat.MoveSpeed;
+        }
+
+        //# 지속 스폰 — 몬스터에 raw 스탯 × 글로벌 타입 모디파이어 배율 적용 (§7.5.2).
+        //# 모든 몬스터 스폰·소급 경로가 이 한 메서드를 거친다. 영웅은 절대 거치지 않는다.
+        //# resetCurrent: 신규 Pop = true(풀피), 강화 카드 필드 소급 = false(현재 HP 보존).
+        public void ApplyMonsterStats(GameObject character, EMonster key, bool resetCurrent)
+        {
+            if (character == null) return;
+            var raw = _balance?.GetMonster(key);
+            if (raw == null) return;
+            var mul = _typeModifiers.TryGetValue(key, out var m) ? m : StatMultiplier.Identity;
+
+            var health = character.GetComponent<Health>();
+            if (health != null)
+                health.SetMax(Mathf.Max(1, Mathf.RoundToInt(raw.Hp * mul.HpMul)), resetCurrent);
+
+            var attacker = character.GetComponent<MeleeAttacker>();
+            if (attacker != null)
+                attacker.Configure(
+                    raw.Range * mul.RangeMul,
+                    Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
+                    Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
+
+            var mover = character.GetComponent<SimpleMover>();
+            if (mover != null) mover.Speed = raw.MoveSpeed * mul.MoveSpeedMul;
+
+            //# 거미 한정 — 불변 baseline const × 배율. 복리 누적 버그 없음 (§7.5.9).
+            var slow = character.GetComponent<SpiderSlowOnHit>();
+            if (slow != null)
+                slow.SetSlowFactor(SpiderSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
         }
 
         private async Task SpawnHero()
@@ -186,21 +233,81 @@ namespace Lair.Battle
             }
         }
 
-        private async Task SpawnMonsters()
+        //# 지속 스폰 — 씬의 Spawner 들에 호스트 주입. 이후 Update 가 각자 주기 틱.
+        private void BindSpawners()
         {
-            if (_monsterSpawns == null) return;
-            foreach (var sp in _monsterSpawns)
+            if (_spawners == null) return;
+            foreach (var sp in _spawners)
+                if (sp != null) sp.Bind(this);
+        }
+
+        //# 지속 스폰 — 현재 살아있는 필드 몬스터 수 (캡 검사용).
+        private static int AliveMonsterCount()
+        {
+            int n = 0;
+            foreach (var e in CharacterRegistry.Monsters)
+                if (e?.Health != null && e.Health.IsAlive) ++n;
+            return n;
+        }
+
+        //# ISpawnerHost — Spawner 한 사이클. 사이클 진입 가부는 사이클 단위 검사 (§4.3).
+        //# 캡(18) 이상이면 사이클 전량 skip, 미만이면 count 마리 스폰.
+        public async void SpawnFromSpawner(EMonster type, Vector3 exactPos, int count)
+        {
+            if (_model != null && _model.Result != BattleResult.None) return;
+            //# 사이클 진입 판정 — 시작 시 1회 (§4.3 사이클 단위 검사).
+            if (AliveMonsterCount() >= MonsterCap) return;   //# 사이클 백오프 (await 전 선검사)
+
+            var prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
+            if (prefab == null) return;
+            //# await 후 종료/캡 재검사 — 동프레임 인터리브(다른 Spawner·증식) 시에도
+            //# 캡 18 절대값 보장 (§4.2). 사이클 진입은 이미 통과했으므로 잔여만 중단한다.
+            if (_model != null && _model.Result != BattleResult.None) return;
+            for (int i = 0; i < count; ++i)
             {
-                if (sp.Point == null) continue;
-                var prefab = await CHMResource.Instance.LoadAsync<GameObject>(sp.Key);
-                if (prefab == null) continue;
+                //# 마리 단위 캡 재검사 — 사이클 잔여를 중단해 캡을 절대 넘기지 않는다.
+                if (AliveMonsterCount() >= MonsterCap) break;
                 var p = CHMPool.Instance.Pop(prefab, transform);
                 if (p == null) continue;
-                p.transform.position = sp.Point.position;
-                _monsters.Add(p);
-                //# Slice C — 몬스터 스탯 적용
-                if (_balance != null) ApplyStats(p.gameObject, _balance.GetMonster(sp.Key));
+                p.transform.position = exactPos;
+                ApplyMonsterStats(p.gameObject, type, resetCurrent: true);
             }
+        }
+
+        //# 지속 스폰 — 강화 카드. 글로벌 dict 곱연산 갱신 + 필드 동일 종 소급 (§7.5.3).
+        public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
+        {
+            if (_typeModifiers.TryGetValue(type, out var m) == false)
+            {
+                m = new StatMultiplier();
+                _typeModifiers[type] = m;
+            }
+            m.Multiply(stat, multiplier);
+
+            //# 필드 동일 종 소급 — resetCurrent:false (현재 HP 보존, 최대치만 상향).
+            foreach (var e in CharacterRegistry.Monsters)
+            {
+                if (e?.Health == null || !e.Health.IsAlive || e.Transform == null) continue;
+                var tag = e.Transform.GetComponent<MonsterTag>();
+                if (tag == null || tag.Key != type) continue;
+                ApplyMonsterStats(e.Transform.gameObject, type, resetCurrent: false);
+            }
+        }
+
+        //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
+        public void IncrementSpawnerOutput(EMonster type)
+        {
+            if (_spawners == null) return;
+            foreach (var sp in _spawners)
+                if (sp != null && sp.CurrentType == type) sp.IncrementOutput();
+        }
+
+        //# 지속 스폰 — 융합 카드. 출력 종이 from 인 모든 Spawner 의 출력 종을 to 로 변경.
+        public void ReplaceSpawnerOutput(EMonster from, EMonster to)
+        {
+            if (_spawners == null) return;
+            foreach (var sp in _spawners)
+                if (sp != null && sp.CurrentType == from) sp.ReplaceOutput(to);
         }
 
         private async void EndBattle(BattleResult result)
@@ -296,12 +403,12 @@ namespace Lair.Battle
             var heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
             if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
 
-            //# 자연 스폰 + 카드 소환/증식/교체 대비 → 6종 각 5마리 비축
+            //# 지속 스폰 — 캡 18 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
             foreach (var key in new[] { EMonster.Slime, EMonster.Golem, EMonster.Orc,
                                         EMonster.Archer, EMonster.Spider, EMonster.Bat })
             {
                 var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
-                if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 5);
+                if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 10);
             }
 
             //# 시각 이펙트 — PoisonAura + 영웅 디버프 상태 표시 6종. 동시 표시 적어 count 2.
@@ -314,20 +421,27 @@ namespace Lair.Battle
             }
         }
 
-        //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰
-        //# 주의: 여기서 생성된 몬스터는 _monsters 리스트에 추가되지 않음 (현재 코드에서 _monsters 는 사용 안 됨)
+        //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰 (액티브 증식 카드 등).
+        //# 지속 스폰 — 마리 단위 캡 검사 (§4.4 truncate). 캡 이상이면 no-op.
+        //# 증식은 이 메서드를 N회 호출하므로 캡 도달 시점부터 자동으로 잘린다.
         public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
         {
+            if (_model != null && _model.Result != BattleResult.None) return;
+            if (AliveMonsterCount() >= MonsterCap) return;   //# 빠른 선검사 (await 전)
+
             var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null) return;
+            //# await 후 재검사 — 동프레임 다중 호출(증식)이 await 로 인터리브돼도 캡 절대값 보장.
+            if (_model != null && _model.Result != BattleResult.None) return;
+            if (AliveMonsterCount() >= MonsterCap) return;
             var p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
 
             var offset = UnityEngine.Random.insideUnitSphere * 2.5f;
             offset.y = 0f;
             p.transform.position = nearHero + offset;
-            //# Slice C — 카드 소환 몬스터도 스탯 적용
-            if (_balance != null) ApplyStats(p.gameObject, _balance.GetMonster(key));
+            //# 지속 스폰 — 카드 소환 몬스터도 글로벌 타입 모디파이어 적용 (신규 Pop → resetCurrent:true)
+            ApplyMonsterStats(p.gameObject, key, resetCurrent: true);
         }
 
 #if UNITY_EDITOR

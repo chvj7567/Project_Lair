@@ -34,17 +34,26 @@ namespace Lair.EditorTools
         [MenuItem("Lair/Tests/Run EditMode Tests")]
         public static void RunEditModeTests()
         {
-            RunTests(TestMode.EditMode, ResultFile);
+            RunTests(TestMode.EditMode, ResultFile, excludeSimulation: false);
         }
 
+        //# 일반 PlayMode 런 — 캠페인(BalanceSimulationTest [Category("Simulation")]) 제외.
+        //# 캠페인 44판은 분 단위 wall-time 이라 일반 회귀 런에서 분리한다.
         [MenuItem("Lair/Tests/Run PlayMode Tests")]
         public static void RunPlayModeTests()
         {
-            RunTests(TestMode.PlayMode, ResultFilePlayMode);
+            RunTests(TestMode.PlayMode, ResultFilePlayMode, excludeSimulation: true);
+        }
+
+        //# 캠페인 전용 런 — BalanceSimulationTest 만 실행.
+        [MenuItem("Lair/Tests/Run PlayMode Simulation")]
+        public static void RunPlayModeSimulation()
+        {
+            RunSimulationOnly(ResultFilePlayMode);
         }
 
         //# 공통 실행 진입점 — 모드/결과파일만 다르게.
-        private static void RunTests(TestMode mode, string resultFile)
+        private static void RunTests(TestMode mode, string resultFile, bool excludeSimulation)
         {
             //# 시작 전 SessionState 리셋
             SessionState.SetBool(KeyActive, true);
@@ -64,12 +73,44 @@ namespace Lair.EditorTools
             //# 여러 번 호출돼 카운트가 N 배 되는 버그 방지 (참조 일치로 매칭)
             api.UnregisterCallbacks(_sharedCallbacks);
             api.RegisterCallbacks(_sharedCallbacks);
+
+            var filter = new Filter { testMode = mode };
+            //# PlayMode 일반 런은 [Category("Simulation")] 테스트 제외.
+            //# Unity Filter 는 카테고리 negation 을 직접 지원 안 함 → groupNames 정규식 negative lookahead
+            //# 로 BalanceSimulationTest 클래스를 제외. groupNames 는 풀네임(namespace + class)에 매칭.
+            if (excludeSimulation)
+            {
+                filter.groupNames = new[] { "^(?!.*BalanceSimulationTest).*$" };
+            }
+            api.Execute(new ExecutionSettings(filter));
+
+            Debug.Log($"[LairTestRunner] {mode} 테스트 시작 (excludeSimulation={excludeSimulation}) — 결과는 {resultFile} 에 기록");
+        }
+
+        //# 캠페인 전용 — BalanceSimulationTest 클래스만 실행.
+        private static void RunSimulationOnly(string resultFile)
+        {
+            SessionState.SetBool(KeyActive, true);
+            SessionState.SetString(KeyResultFile, resultFile);
+            SessionState.SetString(KeyStartedAt, DateTime.Now.ToString("o"));
+            SessionState.SetString(KeyFinishedAt, string.Empty);
+            SessionState.SetInt(KeyPass, 0);
+            SessionState.SetInt(KeyFail, 0);
+            SessionState.SetInt(KeySkip, 0);
+            SessionState.SetString(KeyFailures, string.Empty);
+
+            WriteResultFromSession();
+
+            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            api.UnregisterCallbacks(_sharedCallbacks);
+            api.RegisterCallbacks(_sharedCallbacks);
             api.Execute(new ExecutionSettings(new Filter
             {
-                testMode = mode,
+                testMode = TestMode.PlayMode,
+                categoryNames = new[] { "Simulation" },
             }));
 
-            Debug.Log($"[LairTestRunner] {mode} 테스트 시작 — 결과는 {resultFile} 에 기록");
+            Debug.Log($"[LairTestRunner] PlayMode Simulation 테스트 시작 — 결과는 {resultFile} 에 기록");
         }
 
         //# 도메인 리로드마다 자동 호출 — Play 진입/종료 시 콜백 재등록 필수

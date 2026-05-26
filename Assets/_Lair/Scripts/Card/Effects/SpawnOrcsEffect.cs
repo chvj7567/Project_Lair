@@ -1,21 +1,13 @@
 using System;
 using Lair.Data;
-using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 영웅 근처에 오크 _count 마리 스폰.
+    //# 지속 스폰 — 오크를 출력 중인 모든 Spawner 의 동시 출력 +1 (§3.2 C안).
     [Serializable]
     public class SpawnOrcsEffect : ICardEffect
     {
-        [SerializeField] private int _count = 2;
-
         public void Apply(IBattleContext ctx)
-        {
-            var heroT = ctx.GetHeroTransform();
-            if (heroT == null) return;
-            for (int i = 0; i < _count; ++i)
-                ctx.SpawnMonster(EMonster.Orc, heroT.position);
-        }
+            => ctx.IncrementSpawnerOutput(EMonster.Orc);
     }
 }

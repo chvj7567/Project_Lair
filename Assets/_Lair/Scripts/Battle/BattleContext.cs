@@ -83,5 +83,16 @@ namespace Lair.Battle
             foreach (var m in GetMonsters())
                 m.TakeDamage(m.Current / 2);
         }
+
+        //# 지속 스폰 — 강화/추가소환/융합 카드는 BattleController 가 보유한
+        //# dict·Spawner 집합 조작이 필요하므로 위임.
+        public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
+            => _owner.RegisterMonsterTypeBuff(type, stat, multiplier);
+
+        public void IncrementSpawnerOutput(EMonster type)
+            => _owner.IncrementSpawnerOutput(type);
+
+        public void ReplaceSpawnerOutput(EMonster from, EMonster to)
+            => _owner.ReplaceSpawnerOutput(from, to);
     }
 }
