@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using GoogleMobileAds.Api;
+using GoogleMobileAds.Ump.Api;
 using UnityEngine;
 
 namespace ChvjUnityInfra
@@ -56,13 +59,99 @@ namespace ChvjUnityInfra
             }
 #endif
 
-            // MobileAds 초기화 완료 후 광고 load (SDK 권장 순서).
+            // iOS ATT → UMP(GDPR) 동의 → MobileAds 초기화 → 광고 load 순.
+            RequestATTIfNeeded();
+            GatherConsentAndInitialize(config);
+        }
+
+#if UNITY_IOS && !UNITY_EDITOR
+        [DllImport("__Internal")]
+        private static extern void CHATTRequestAuthorization();
+#endif
+
+        /// <summary>iOS 14+ App Tracking Transparency 권한 요청. Info.plist에 NSUserTrackingUsageDescription 필수.</summary>
+        private static void RequestATTIfNeeded()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            CHATTRequestAuthorization();
+#endif
+        }
+
+        /// <summary>UMP 동의 폼 처리. 동의 결과와 관계없이 MobileAds 초기화는 진행한다(NPA 광고).</summary>
+        private void GatherConsentAndInitialize(AdConfig config)
+        {
+            var requestParams = new ConsentRequestParameters
+            {
+                TagForUnderAgeOfConsent = false,
+            };
+
+            if (!string.IsNullOrEmpty(config.TestDeviceHashedId))
+            {
+                requestParams.ConsentDebugSettings = new ConsentDebugSettings
+                {
+                    DebugGeography = DebugGeography.EEA,
+                    TestDeviceHashedIds = new List<string> { config.TestDeviceHashedId },
+                };
+            }
+
+            ConsentInformation.Update(requestParams, updateError =>
+            {
+                if (updateError != null)
+                {
+                    Debug.LogError($"[CHMAdmob] UMP ConsentInformation.Update 실패: {updateError.Message}. SDK 초기화는 계속 진행.");
+                    InitializeMobileAds(config);
+                    return;
+                }
+
+                ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
+                {
+                    if (formError != null)
+                    {
+                        Debug.LogError($"[CHMAdmob] UMP ConsentForm 표시 실패: {formError.Message}");
+                    }
+                    InitializeMobileAds(config);
+                });
+            });
+        }
+
+        private void InitializeMobileAds(AdConfig config)
+        {
+            ApplyRequestConfiguration(config);
             MobileAds.Initialize(initStatus =>
             {
                 _adRequest = new AdRequest();
                 LoadInterstitialAd();
                 LoadRewardedAd();
             });
+        }
+
+        /// <summary>COPPA/연령 등급/콘텐츠 등급 적용. 기본 Unspecified는 영향 없음.</summary>
+        private static void ApplyRequestConfiguration(AdConfig config)
+        {
+            var req = new RequestConfiguration
+            {
+                TagForChildDirectedTreatment = config.ChildDirectedTreatment switch
+                {
+                    AdConfig.AdChildTreatment.True => TagForChildDirectedTreatment.True,
+                    AdConfig.AdChildTreatment.False => TagForChildDirectedTreatment.False,
+                    _ => TagForChildDirectedTreatment.Unspecified,
+                },
+                TagForUnderAgeOfConsent = config.UnderAgeOfConsent switch
+                {
+                    AdConfig.AdChildTreatment.True => TagForUnderAgeOfConsent.True,
+                    AdConfig.AdChildTreatment.False => TagForUnderAgeOfConsent.False,
+                    _ => TagForUnderAgeOfConsent.Unspecified,
+                },
+                MaxAdContentRating = config.MaxAdContentRating switch
+                {
+                    AdConfig.AdContentRating.G => MaxAdContentRating.G,
+                    AdConfig.AdContentRating.PG => MaxAdContentRating.PG,
+                    AdConfig.AdContentRating.T => MaxAdContentRating.T,
+                    AdConfig.AdContentRating.MA => MaxAdContentRating.MA,
+                    _ => MaxAdContentRating.Unspecified,
+                },
+            };
+            MobileAds.SetRequestConfiguration(req);
         }
 
         /// <summary>배너 표시. 기존 배너가 있으면 destroy 후 새로 생성.</summary>

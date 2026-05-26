@@ -9,5 +9,11 @@ namespace ChvjUnityInfra
         Failure,
         /// <summary>초기화 실패. Init 자체가 실패해 구매를 시도조차 못 한 경우.</summary>
         InitFailed,
+        /// <summary>구매 복구 성공 (iOS/OSX RestoreTransactions).</summary>
+        Restored,
+        /// <summary>구매 복구 실패.</summary>
+        RestoreFailed,
+        /// <summary>Init이 끝나지 않아 구매를 시도할 수 없음.</summary>
+        NotReady,
     }
 }

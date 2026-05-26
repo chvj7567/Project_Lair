@@ -155,7 +155,7 @@ public class UIShopArg : UIArg { public int category; }
 - `CHDebugLog` — 게임 내 로그 표시기
 
 ### Ads (옵트인 — `UNITY_INFRA_ADS`)
-1. **선결**: Google Mobile Ads Unity Plugin 임포트
+1. **선결**: Google Mobile Ads Unity Plugin **8.x+ (UMP 모듈 포함)** 임포트. UMP가 없는 구버전은 컴파일 에러.
 2. **활성화**: `Tools/ChvjUnityInfra/Settings` → Ads 탭 → `Use Admob` ✓
 3. **설정**: 같은 탭에서 "AdConfig 에셋 편집" 클릭 → Inspector에서 광고 ID 입력
 4. **호출**:
@@ -171,8 +171,15 @@ CHMAdmob.Instance.AcquireReward += () => { /* 리워드 지급 */ };
 - 프로덕션 ID 비어있으면 디바이스 빌드에서도 테스트 광고 fallback
 - AdConfig 에셋 없으면 경고 + 기본 테스트 광고
 
+**스토어 정책 자동 처리**:
+- UMP(GDPR) 동의 폼 → iOS ATT → MobileAds 초기화 순으로 자동 실행
+- iOS 빌드 시 `Info.plist`에 `NSUserTrackingUsageDescription` 자동 주입 (Player Settings에서 미리 채우면 우선 적용)
+- Android 빌드 시 `AndroidManifest.xml`에 `com.google.android.gms.permission.AD_ID` 자동 주입
+- `Plugins/iOS/PrivacyInfo.xcprivacy` 포함 (App Store 제출용)
+- 키즈 앱은 `AdConfig.ChildDirectedTreatment = True`로 설정
+
 ### IAP (옵트인 — `UNITY_INFRA_IAP`)
-1. **선결**: Window > Package Manager에서 "In-App Purchasing" 패키지 설치
+1. **선결**: Window > Package Manager에서 "In-App Purchasing" 패키지 설치 (5.0.0+ 권장)
 2. **활성화**: Settings → IAP 탭 → `Use IAP` ✓
 3. **설정**: "IAPProductConfig 에셋 편집" → Inspector에서 Products 추가
    - productName: 게임 코드 식별자 (예: `"RemoveAD"`)
@@ -182,11 +189,22 @@ CHMAdmob.Instance.AcquireReward += () => { /* 리워드 지급 */ };
 ```csharp
 CHMIAP.Instance.purchaseState += result =>
 {
-    if (result.state == EPurchase.Success) { /* 지급 */ }
+    if (result.state == EPurchase.Success)
+    {
+        // 지급 처리
+        CHMIAP.Instance.ConfirmPending(result.productName); // 지급 후 필수 호출
+    }
 };
 CHMIAP.Instance.Init();
 CHMIAP.Instance.Purchase("RemoveAD");
 ```
+
+**중요**: `ProcessPurchase`는 Pending 패턴으로 동작. `ConfirmPending(productName)`을 호출하지 않으면 다음 Init 시 같은 구매가 재진입되어 콜백이 다시 발생 → 더블 지급 위험.
+
+**영수증 검증 (선택, `UNITY_INFRA_IAP_VALIDATE`)**:
+1. Editor에서 `Window > Unity IAP > Receipt Validation Obfuscator` 실행해 Tangle 파일 생성
+2. ProjectSettings의 Scripting Define Symbols에 `UNITY_INFRA_IAP_VALIDATE` 추가
+3. 자동으로 `CrossPlatformValidator`가 ProcessPurchase에서 영수증 검증. 위조 영수증은 Failure 통지.
 
 ### Social — Google Play Games (옵트인 — `UNITY_INFRA_SOCIAL`, Android only)
 1. **선결**: Google Play Games Plugin for Unity 임포트

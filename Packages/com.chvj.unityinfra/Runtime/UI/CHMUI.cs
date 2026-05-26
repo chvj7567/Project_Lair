@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace ChvjUnityInfra
 {
@@ -13,10 +15,7 @@ namespace ChvjUnityInfra
     /// </summary>
     public class CHMUI : CHSingleton<CHMUI>
     {
-        private const string UICanvasTag = "UICanvas";
-        private const string UICanvasKey = "UICanvas";
         private bool _initialize = false;
-        private bool _canvasRequestInFlight = false;
         private Transform _rootTransform;
 
         // 현재 활성 UI
@@ -30,12 +29,24 @@ namespace ChvjUnityInfra
 
         private void Update()
         {
+#if ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                if (_dicCurrentUI.Count > 0)
-                {
-                    CloseUI(_dicCurrentUI.Last().Value);
-                }
+                CloseTopUI();
+            }
+#endif
+        }
+
+        /// <summary>
+        /// 활성 UI 스택의 최상위 UI 한 개를 닫는다. ESC 핸들러가 호출하는 메서드와 동일.
+        /// Input System Only 프로젝트에서는 ESC 자동 처리가 안 되므로
+        /// 게임 측 InputAction 콜백에서 직접 호출하면 동일한 동작을 얻을 수 있다.
+        /// </summary>
+        public void CloseTopUI()
+        {
+            if (_dicCurrentUI.Count > 0)
+            {
+                CloseUI(_dicCurrentUI.Last().Value);
             }
         }
 
@@ -63,53 +74,74 @@ namespace ChvjUnityInfra
             _rootTransform = root;
         }
 
-        // 비동기로 UI 전용 캔버스 확보:
-        // 1) 이미 _rootTransform 있으면 즉시 콜백
-        // 2) 씬에 UICanvas 태그된 GameObject가 있으면 그것을 사용
-        // 3) 둘 다 없으면 UICanvas 프리팹을 Addressables로 instantiate
+        // UI 전용 캔버스 확보 (우선순위):
+        // 1) SetRoot로 명시 지정된 _rootTransform이 있으면 그대로 사용 (커스텀 캔버스/sortingOrder 등)
+        // 2) 씬에 Tag="UICanvas"인 GameObject가 있고 Canvas 컴포넌트를 가지면 그걸 사용
+        // 3) 씬에 아무 Canvas나 있으면 그 중 첫 번째를 사용
+        // 4) 위 모두 없으면 Canvas + CanvasScaler + GraphicRaycaster를 코드로 즉시 생성
+        // 씬에 EventSystem이 없으면 같이 생성 — 버튼 클릭 이벤트 처리 위해 필수.
         private void EnsureRootAsync(Action<Transform> onReady)
         {
-            if (_rootTransform != null)
+            if (_rootTransform == null)
             {
-                onReady?.Invoke(_rootTransform);
-                return;
-            }
-
-            var existing = GameObject.FindGameObjectWithTag(UICanvasTag);
-            if (existing != null)
-            {
-                _rootTransform = existing.transform;
-                onReady?.Invoke(_rootTransform);
-                return;
-            }
-
-            if (_canvasRequestInFlight)
-            {
-                // 동시 ShowUI 호출 race 처리 — 한 프레임 뒤 재시도
-                StartCoroutine(WaitAndRetry(onReady));
-                return;
-            }
-
-            _canvasRequestInFlight = true;
-            CHMResource.Instance.Instantiate<GameObject>(UICanvasKey, canvas =>
-            {
-                _canvasRequestInFlight = false;
-                if (canvas == null)
+                var found = FindSceneCanvas();
+                if (found != null)
                 {
-                    Debug.LogWarning($"[CHMUI] '{UICanvasKey}' 프리팹을 로드할 수 없습니다.");
-                    onReady?.Invoke(null);
-                    return;
+                    _rootTransform = found.transform;
                 }
-                _rootTransform = canvas.transform;
-                onReady?.Invoke(_rootTransform);
-            });
+                else
+                {
+                    var go = new GameObject("@CHMUICanvas",
+                        typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+                    go.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                    _rootTransform = go.transform;
+                }
+
+                EnsureEventSystem();
+            }
+            onReady?.Invoke(_rootTransform);
         }
 
-        private System.Collections.IEnumerator WaitAndRetry(Action<Transform> onReady)
+        // 씬에서 UICanvas 태그가 붙은 Canvas → 없으면 임의의 Canvas 순으로 탐색.
+        // "UICanvas" 태그가 TagManager에 등록돼 있지 않으면 FindWithTag가 UnityException을 던지므로 try-catch로 무시.
+        private static Canvas FindSceneCanvas()
         {
-            while (_canvasRequestInFlight)
-                yield return null;
-            EnsureRootAsync(onReady);
+            GameObject tagged = null;
+            try { tagged = GameObject.FindWithTag("UICanvas"); }
+            catch (UnityException) { /* 태그 미등록 — 무시하고 다음 단계로 */ }
+
+            if (tagged != null)
+            {
+                var c = tagged.GetComponent<Canvas>();
+                if (c != null) return c;
+            }
+
+            return UnityEngine.Object.FindFirstObjectByType<Canvas>(FindObjectsInactive.Exclude);
+        }
+
+        // 씬에 EventSystem이 없으면 코드로 생성. Input System 패키지가 활성된 프로젝트면
+        // InputSystemUIInputModule을 reflection으로 부착(없으면 StandaloneInputModule로 fallback).
+        // 패키지에 com.unity.inputsystem를 hard dependency로 박지 않기 위해 reflection 사용.
+        private static void EnsureEventSystem()
+        {
+            if (EventSystem.current != null) return;
+
+            var es = new GameObject("@CHMUIEventSystem", typeof(EventSystem));
+
+#if ENABLE_INPUT_SYSTEM
+            // Input System 패키지가 있고 활성 — InputSystemUIInputModule 부착
+            var moduleType = Type.GetType(
+                "UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem",
+                throwOnError: false);
+            if (moduleType != null)
+            {
+                es.AddComponent(moduleType);
+                return;
+            }
+#endif
+#if ENABLE_LEGACY_INPUT_MANAGER
+            es.AddComponent<StandaloneInputModule>();
+#endif
         }
 
         public void ShowUI(Enum uiType, UIArg arg = null, Action<UIBase> callback = null)
