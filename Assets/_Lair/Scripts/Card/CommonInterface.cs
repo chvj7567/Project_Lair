@@ -24,7 +24,7 @@ namespace Lair.Card
         //# 액티브 카드 — 영웅 슬로우 효과용. 영웅 Transform 의 IMover 컴포넌트 반환.
         IMover GetHeroMover();
 
-        //# 동적 스폰 — "슬라임 3마리 소환" 같은 카드용
+        //# 동적 스폰 — "위스프 3마리 소환" 같은 카드용
         void SpawnMonster(EMonster key, Vector3 nearHero);
 
         //# 환경 카드 (예: 독 장판) — duration < 0 이면 무제한

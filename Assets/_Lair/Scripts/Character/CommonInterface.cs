@@ -51,7 +51,7 @@ namespace Lair.Character
         //# B3 — 데미지 배율 오버레이. 무력화/약화 카드가 IAttacker 타입으로 조작.
         float PowerScale { get; set; }
 
-        //# B3 — 공격 적중 시 target 으로 발행. 거미 SpiderSlowOnHit 가 구독.
+        //# B3 — 공격 적중 시 target 으로 발행. 플레이그 PlagueSlowOnHit 가 구독.
         event Action<IHealth> OnHit;
 
         //# 거리·쿨다운 만족 시 target.TakeDamage 호출 후 true.

@@ -9,9 +9,11 @@ using UnityEngine.UI;
 
 namespace Lair.EditorTools
 {
-    //# M3 — 캐릭터 프리팹 4종(Knight/Slime/Golem/Orc) 자동 생성 + Addressables 등록.
-    //# 프리미티브 메시 + URP Lit 머티리얼 + 컴포넌트 조립 + 인스펙터 필드(SerializedObject) 설정.
-    //# Rule 04 (프리팹화), Rule 08 (파일명 = Enum 값명) 자동 충족.
+    //# M3 — 캐릭터 프리팹 자동 생성 + Addressables 등록.
+    //# 영웅(Knight): 프리미티브 Capsule 그대로 유지.
+    //# 몬스터: 빈 루트 GameObject + Visual(LittleGhost nested prefab) + Aura(Cylinder placeholder)
+    //# + HpBarWrapper(머리 위 HP 바) 구조. 컴포넌트는 모두 루트에 부착.
+    //# Rule 04 (프리팹화), Rule 08 (파일명 = Enum 값명), Rule 14 (Art/ 하위 분류) 자동 충족.
     public static class LairCharacterPrefabBuilder
     {
         public const string PrefabDir = "Assets/_Lair/Art/Characters";
@@ -23,31 +25,40 @@ namespace Lair.EditorTools
         public const string ResourceLabel = "Resource";
         public const string UrpLitShaderName = "Universal Render Pipeline/Lit";
 
-        //# 캐릭터 빌드 스펙 — 메시/색/스케일만. 스탯은 BalanceConfig 가 단일 진실 (Slice C).
+        //# 오오라(발 밑 디스크 placeholder) 디자인 상수.
+        //# 자식이므로 루트 spec.Scale 에 따라 함께 스케일링됨 (작은 몬스터의 오오라는 자연히 작아짐).
+        private const float AuraDiscScale = 1.4f;   //# X/Z 디스크 반지름 비율 (루트 1.0 기준)
+        private const float AuraDiscHeight = 0.01f; //# 납작한 디스크
+        private const float AuraLocalY = 0.005f;    //# 바닥 살짝 위로 띄움 (z-fighting 방지)
+
+        //# 캐릭터 빌드 스펙 — 메시/색/스케일/Ghost 프리팹 경로.
+        //# 영웅은 Mesh + ColorHex 로 프리미티브 경로. 몬스터는 GhostPrefabPath + ColorHex(=오오라 색).
         public class Spec
         {
             public string Name;
-            public PrimitiveType Mesh;
-            public string ColorHex;
+            public PrimitiveType Mesh;        //# 영웅 전용. 몬스터는 GhostPrefabPath 사용.
+            public string ColorHex;           //# 영웅: body color / 몬스터: aura color
             public float Scale;
             public bool IsHero;
+            public string GhostPrefabPath;    //# 몬스터 visual nested prefab 경로. null/빈=프리미티브 경로
         }
 
         public static readonly Spec[] AllSpecs = new[]
         {
-            new Spec { Name = nameof(EHero.Knight),    Mesh = PrimitiveType.Capsule, ColorHex = "#3B82F6", Scale = 1.0f, IsHero = true  },
-            new Spec { Name = nameof(EMonster.Slime),  Mesh = PrimitiveType.Sphere,  ColorHex = "#22C55E", Scale = 0.6f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Golem),  Mesh = PrimitiveType.Cube,    ColorHex = "#6B7280", Scale = 1.2f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Orc),    Mesh = PrimitiveType.Capsule, ColorHex = "#EF4444", Scale = 0.9f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Archer), Mesh = PrimitiveType.Capsule, ColorHex = "#EAB308", Scale = 0.8f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Spider), Mesh = PrimitiveType.Cube,    ColorHex = "#A855F7", Scale = 0.5f, IsHero = false },
-            new Spec { Name = nameof(EMonster.Bat),    Mesh = PrimitiveType.Sphere,  ColorHex = "#1F2937", Scale = 0.3f, IsHero = false },
+            new Spec { Name = nameof(EHero.Knight),     Mesh = PrimitiveType.Capsule, ColorHex = "#3B82F6", Scale = 1.0f, IsHero = true,  GhostPrefabPath = null },
+            new Spec { Name = nameof(EMonster.Wisp),    Mesh = PrimitiveType.Sphere,  ColorHex = "#22C55E", Scale = 0.6f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_N1.prefab" },
+            new Spec { Name = nameof(EMonster.Wraith),  Mesh = PrimitiveType.Cube,    ColorHex = "#6B7280", Scale = 1.3f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_V1.prefab" },
+            new Spec { Name = nameof(EMonster.Reaper),  Mesh = PrimitiveType.Capsule, ColorHex = "#EF4444", Scale = 0.9f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_H1.prefab" },
+            new Spec { Name = nameof(EMonster.Hex),     Mesh = PrimitiveType.Capsule, ColorHex = "#EAB308", Scale = 0.8f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_M1.prefab" },
+            new Spec { Name = nameof(EMonster.Plague),  Mesh = PrimitiveType.Cube,    ColorHex = "#A855F7", Scale = 0.5f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_V2.prefab" },
+            new Spec { Name = nameof(EMonster.Phantom), Mesh = PrimitiveType.Sphere,  ColorHex = "#1F2937", Scale = 0.4f, IsHero = false, GhostPrefabPath = "Assets/Little_GhostLP(FREE)/Prefabs/LittleGhost_N2.prefab" },
         };
 
         [MenuItem("Lair/Setup/M3 - Build Character Prefabs")]
         public static void BuildAllCharacterPrefabs()
         {
             EnsureDir(PrefabDir);
+            EnsureDir(MaterialDir);
 
             //# Addressables 사전 확인
             var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -79,35 +90,51 @@ namespace Lair.EditorTools
 
         private static void BuildOne(Spec spec, AddressableAssetSettings settings, AddressableAssetGroup group)
         {
-            //# 1) 프리미티브 GameObject 생성
-            var go = GameObject.CreatePrimitive(spec.Mesh);
-            go.name = spec.Name;
-            go.transform.position = Vector3.zero;
-            go.transform.localScale = Vector3.one * spec.Scale;
-            //# 거미 — 납작하게 (기획서 §11.4 Y 스케일 0.3 배)
-            if (spec.Name == nameof(EMonster.Spider))
-                go.transform.localScale = new Vector3(spec.Scale, spec.Scale * 0.3f, spec.Scale);
+            GameObject go;
 
-            //# 2) Collider 제거 (Slice A 는 충돌 사용 안 함)
-            var col = go.GetComponent<Collider>();
-            if (col != null) Object.DestroyImmediate(col);
-
-            //# 3) 머티리얼 생성 + 색상 적용
-            var matPath = $"{MaterialDir}/Mat_{spec.Name}.mat";
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-            if (mat == null)
+            if (spec.IsHero || string.IsNullOrEmpty(spec.GhostPrefabPath))
             {
-                mat = new Material(Shader.Find(UrpLitShaderName));
-                if (ColorUtility.TryParseHtmlString(spec.ColorHex, out var color))
-                {
-                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
-                    mat.color = color;
-                }
-                AssetDatabase.CreateAsset(mat, matPath);
-            }
-            go.GetComponent<Renderer>().sharedMaterial = mat;
+                //# === 영웅 경로 — 기존 프리미티브 ===
+                go = GameObject.CreatePrimitive(spec.Mesh);
+                go.name = spec.Name;
+                go.transform.position = Vector3.zero;
+                go.transform.localScale = Vector3.one * spec.Scale;
 
-            //# 4) 컴포넌트 부착 — 추가 순서가 Awake 호출 순서이므로 Health 를 의존 컴포넌트보다 먼저
+                //# Collider 제거 (Slice A 는 충돌 사용 안 함)
+                var col = go.GetComponent<Collider>();
+                if (col != null) Object.DestroyImmediate(col);
+
+                //# 머티리얼 생성 + 색상 적용 — 영웅 본체 색
+                var mat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}.mat", spec.ColorHex);
+                go.GetComponent<Renderer>().sharedMaterial = mat;
+            }
+            else
+            {
+                //# === 몬스터 경로 — 빈 루트 + LittleGhost nested + Aura placeholder ===
+                go = new GameObject(spec.Name);
+                go.transform.position = Vector3.zero;
+                go.transform.localScale = Vector3.one * spec.Scale;
+
+                //# 1) Visual — LittleGhost prefab 을 nested instance 로 부착
+                var ghostPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(spec.GhostPrefabPath);
+                if (ghostPrefab == null)
+                {
+                    Debug.LogError($"[CharacterPrefabBuilder] LittleGhost 프리팹 로드 실패: {spec.GhostPrefabPath}");
+                }
+                else
+                {
+                    var visual = (GameObject)PrefabUtility.InstantiatePrefab(ghostPrefab, go.transform);
+                    visual.name = "Visual";
+                    visual.transform.localPosition = Vector3.zero;
+                    visual.transform.localRotation = Quaternion.identity;
+                    visual.transform.localScale = Vector3.one;   //# 루트 spec.Scale 에 영향받음
+                }
+
+                //# 2) Aura — Cylinder primitive 디스크 (정체성 색 placeholder)
+                AttachAuraDisc(go, spec);
+            }
+
+            //# 3) 컴포넌트 부착 — 추가 순서가 Awake 호출 순서이므로 Health 를 의존 컴포넌트보다 먼저
             go.AddComponent<SimpleMover>();
             go.AddComponent<Health>();
             go.AddComponent<MeleeAttacker>();
@@ -122,31 +149,81 @@ namespace Lair.EditorTools
                 var tag = go.AddComponent<MonsterTag>();
                 if (System.Enum.TryParse<EMonster>(spec.Name, out var key))
                     tag.Configure(key);
-                //# B3 — 거미 특수능력: 공격 시 영웅 둔화
-                if (spec.Name == nameof(EMonster.Spider))
-                    go.AddComponent<SpiderSlowOnHit>();
+                //# B3 — 플레이그 특수능력: 공격 시 영웅 둔화
+                if (spec.Name == nameof(EMonster.Plague))
+                    go.AddComponent<PlagueSlowOnHit>();
             }
             go.AddComponent<AutoCombatAI>();
             //# 시각 피드백 + 사망 처리
             go.AddComponent<HitFlash>();
             go.AddComponent<DespawnOnDeath>();
 
-            //# 5.5) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)
+            //# 4) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)
             if (!spec.IsHero)
                 AttachMonsterHpBar(go, spec.Scale);
 
-            //# 6) 프리팹 저장 (덮어쓰기)
+            //# 5) 프리팹 저장 (덮어쓰기)
             var prefabPath = $"{PrefabDir}/{spec.Name}.prefab";
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             Object.DestroyImmediate(go);
 
-            //# 7) Addressables 등록 — 주소 = 파일명 (Rule 08)
+            //# 6) Addressables 등록 — 주소 = 파일명 (Rule 08)
             var guid = AssetDatabase.AssetPathToGUID(prefabPath);
             var entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = spec.Name;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
             Debug.Log($"[CharacterPrefabBuilder] {spec.Name} 빌드 완료 (address={entry.address}, label={ResourceLabel})");
+        }
+
+        //# 몬스터 발 밑 오오라 placeholder — 납작한 Cylinder primitive.
+        //# 자식이므로 루트 spec.Scale 에 함께 스케일링됨. 머티리얼은 Mat_{Name}_Aura.mat 재사용.
+        //# 이름이 "Aura" 로 시작 → HitFlash 가 플래시 대상에서 자동 제외.
+        private static void AttachAuraDisc(GameObject root, Spec spec)
+        {
+            var aura = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            aura.name = "Aura";
+            aura.transform.SetParent(root.transform, false);
+            aura.transform.localPosition = new Vector3(0f, AuraLocalY, 0f);
+            aura.transform.localRotation = Quaternion.identity;
+            aura.transform.localScale = new Vector3(AuraDiscScale, AuraDiscHeight, AuraDiscScale);
+
+            //# Collider 제거 (placeholder 시각만)
+            var col = aura.GetComponent<Collider>();
+            if (col != null) Object.DestroyImmediate(col);
+
+            //# 정체성 색 머티리얼 (재사용 캐시)
+            var auraMat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}_Aura.mat", spec.ColorHex);
+            aura.GetComponent<Renderer>().sharedMaterial = auraMat;
+        }
+
+        //# URP/Lit 머티리얼을 지정 경로에 보장 — 기존 에셋이 있으면 색만 갱신, 없으면 생성.
+        //# GUID 보존을 위해 가능한 한 in-place 갱신.
+        private static Material EnsureUrpLitMaterial(string matPath, string colorHex)
+        {
+            if (!ColorUtility.TryParseHtmlString(colorHex, out var color))
+                color = Color.magenta;
+
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (mat == null)
+            {
+                mat = new Material(Shader.Find(UrpLitShaderName));
+                ApplyColor(mat, color);
+                AssetDatabase.CreateAsset(mat, matPath);
+            }
+            else
+            {
+                //# 기존 에셋 — 색만 갱신 (GUID 보존)
+                ApplyColor(mat, color);
+                EditorUtility.SetDirty(mat);
+            }
+            return mat;
+        }
+
+        private static void ApplyColor(Material mat, Color color)
+        {
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+            mat.color = color;
         }
 
         //# HP 바 프리팹(HpBar.prefab) 생성 — 순수 바 비주얼만. Canvas·MonsterHpBar 없음.
@@ -228,6 +305,7 @@ namespace Lair.EditorTools
             }
 
             //# 래퍼 GameObject — WorldSpace Canvas + MonsterHpBar 담당.
+            //# 이름이 "HpBarWrapper" 로 시작 → HitFlash 가 색 깜빡임에서 자동 제외 (ExcludeNamePrefixes "HpBar").
             var wrapper = new GameObject("HpBarWrapper", typeof(RectTransform), typeof(Canvas));
             wrapper.transform.SetParent(monster.transform, false);
             var wrapperCanvas = wrapper.GetComponent<Canvas>();

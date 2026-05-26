@@ -101,46 +101,46 @@ namespace Lair.Tests.Card
 
         //# ===== §3.5 케이스 1 — 융합 후 추가소환 no-op =====
 
-        //# 융합(슬라임→골렘) 픽 후 SpawnSlimes 픽 → 슬라임 Spawner 0개라 no-op (죽은 픽).
+        //# 융합(위스프→레이스) 픽 후 SpawnWisps 픽 → 위스프 Spawner 0개라 no-op (죽은 픽).
         [Test]
         public void 융합후_추가소환_매칭_Spawner_없으면_noop()
         {
             var host = new FakeSpawnerHost();
-            //# 슬라임 Spawner 1개만.
-            var slime = CreateSpawner(EMonster.Slime, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime });
+            //# 위스프 Spawner 1개만.
+            var wisp = CreateSpawner(EMonster.Wisp, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
 
-            //# 융합 카드 — 슬라임 Spawner → 골렘 출력.
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Golem, slime.CurrentType, "융합 후 출력 종 골렘");
+            //# 융합 카드 — 위스프 Spawner → 레이스 출력.
+            new ReplaceWispsToWraithEffect().Apply(ctx);
+            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "융합 후 출력 종 레이스");
 
-            //# SpawnSlimes — "슬라임 출력 Spawner" 를 찾는데 이미 0개 → 동시 출력 변화 없음.
-            new SpawnSlimesEffect().Apply(ctx);
+            //# SpawnWisps — "위스프 출력 Spawner" 를 찾는데 이미 0개 → 동시 출력 변화 없음.
+            new SpawnWispsEffect().Apply(ctx);
 
-            slime.Tick(0f);
+            wisp.Tick(0f);
             Assert.AreEqual(1, host.Spawns[0].count,
-                "융합 후 SpawnSlimes 는 죽은 픽 — 동시 출력 1 유지");
-            Assert.AreEqual(EMonster.Golem, host.Spawns[0].type);
+                "융합 후 SpawnWisps 는 죽은 픽 — 동시 출력 1 유지");
+            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type);
         }
 
         //# ===== §3.5 케이스 3 — 추가소환 후 융합: 출력 수 보너스 유지 =====
 
-        //# SpawnSlimes(출력+1) 픽 후 융합(슬라임→골렘) 픽 → 그 Spawner 는 골렘을 2마리씩 뱉음.
+        //# SpawnWisps(출력+1) 픽 후 융합(위스프→레이스) 픽 → 그 Spawner 는 레이스를 2마리씩 뱉음.
         //# 동시 출력 수는 Spawner 슬롯에 종속, 출력 종만 바뀐다.
         [Test]
         public void 추가소환후_융합_동시출력_보너스_Spawner에_유지()
         {
             var host = new FakeSpawnerHost();
-            var slime = CreateSpawner(EMonster.Slime, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime });
+            var wisp = CreateSpawner(EMonster.Wisp, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
 
-            //# SpawnSlimes — 슬라임 Spawner 동시 출력 1→2.
-            new SpawnSlimesEffect().Apply(ctx);
-            //# 융합 — 출력 종만 골렘으로. 동시 출력 2 는 유지.
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
+            //# SpawnWisps — 위스프 Spawner 동시 출력 1→2.
+            new SpawnWispsEffect().Apply(ctx);
+            //# 융합 — 출력 종만 레이스로. 동시 출력 2 는 유지.
+            new ReplaceWispsToWraithEffect().Apply(ctx);
 
-            slime.Tick(0f);
-            Assert.AreEqual(EMonster.Golem, host.Spawns[0].type, "출력 종은 골렘으로 변경");
+            wisp.Tick(0f);
+            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type, "출력 종은 레이스로 변경");
             Assert.AreEqual(2, host.Spawns[0].count,
                 "동시 출력 +1 보너스는 Spawner 슬롯에 귀속 — 종 변경 후에도 유지");
         }
@@ -151,94 +151,94 @@ namespace Lair.Tests.Card
         public void 융합_두번_픽_두번째는_매칭없어_noop()
         {
             var host = new FakeSpawnerHost();
-            var slime = CreateSpawner(EMonster.Slime, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime });
+            var wisp = CreateSpawner(EMonster.Wisp, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
 
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Golem, slime.CurrentType);
+            new ReplaceWispsToWraithEffect().Apply(ctx);
+            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType);
 
-            //# 두 번째 융합 — 슬라임 출력 Spawner 0개 → 변화 없음 (골렘이 슬라임으로 되돌지 않음).
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Golem, slime.CurrentType, "두 번째 융합은 no-op — 골렘 유지");
+            //# 두 번째 융합 — 위스프 출력 Spawner 0개 → 변화 없음 (레이스가 위스프로 되돌지 않음).
+            new ReplaceWispsToWraithEffect().Apply(ctx);
+            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "두 번째 융합은 no-op — 레이스 유지");
         }
 
-        //# ===== 추가소환 — 동일 종 Spawner 여러 개 동시 +1 (스타터 슬라임 2개 §5.3) =====
+        //# ===== 추가소환 — 동일 종 Spawner 여러 개 동시 +1 (스타터 위스프 2개 §5.3) =====
 
-        //# SpawnSlimes 한 번 픽이 슬라임 Spawner 2개를 각각 +1.
+        //# SpawnWisps 한 번 픽이 위스프 Spawner 2개를 각각 +1.
         [Test]
         public void 추가소환_동일종_Spawner_2개_모두_출력증가()
         {
             var host = new FakeSpawnerHost();
-            var slime1 = CreateSpawner(EMonster.Slime, host);
-            var slime2 = CreateSpawner(EMonster.Slime, host);
-            var bat = CreateSpawner(EMonster.Bat, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime1, slime2, bat });
+            var wisp1 = CreateSpawner(EMonster.Wisp, host);
+            var wisp2 = CreateSpawner(EMonster.Wisp, host);
+            var phantom = CreateSpawner(EMonster.Phantom, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp1, wisp2, phantom });
 
-            new SpawnSlimesEffect().Apply(ctx);
+            new SpawnWispsEffect().Apply(ctx);
 
-            slime1.Tick(0f);
-            slime2.Tick(0f);
-            bat.Tick(0f);
+            wisp1.Tick(0f);
+            wisp2.Tick(0f);
+            phantom.Tick(0f);
 
-            Assert.AreEqual(2, host.Spawns[0].count, "슬라임 Spawner 1 — 출력 2");
-            Assert.AreEqual(2, host.Spawns[1].count, "슬라임 Spawner 2 — 출력 2");
-            Assert.AreEqual(1, host.Spawns[2].count, "박쥐 Spawner — 무관, 출력 1 유지");
+            Assert.AreEqual(2, host.Spawns[0].count, "위스프 Spawner 1 — 출력 2");
+            Assert.AreEqual(2, host.Spawns[1].count, "위스프 Spawner 2 — 출력 2");
+            Assert.AreEqual(1, host.Spawns[2].count, "팬텀 Spawner — 무관, 출력 1 유지");
         }
 
         //# ===== 융합 — 입력 종 일치 Spawner 만 변경 (§3.4.1 완화안) =====
 
-        //# 슬라임 2개 / 오크 1개 — ReplaceSlimesToGolem 은 슬라임 2개만 골렘으로, 오크는 불변.
+        //# 위스프 2개 / 리퍼 1개 — ReplaceWispsToWraith 는 위스프 2개만 레이스로, 리퍼는 불변.
         [Test]
         public void 융합_입력종_일치_Spawner만_변경_나머지_불변()
         {
             var host = new FakeSpawnerHost();
-            var slime1 = CreateSpawner(EMonster.Slime, host);
-            var slime2 = CreateSpawner(EMonster.Slime, host);
-            var orc = CreateSpawner(EMonster.Orc, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime1, slime2, orc });
+            var wisp1 = CreateSpawner(EMonster.Wisp, host);
+            var wisp2 = CreateSpawner(EMonster.Wisp, host);
+            var reaper = CreateSpawner(EMonster.Reaper, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp1, wisp2, reaper });
 
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
+            new ReplaceWispsToWraithEffect().Apply(ctx);
 
-            Assert.AreEqual(EMonster.Golem, slime1.CurrentType, "슬라임 Spawner 1 → 골렘");
-            Assert.AreEqual(EMonster.Golem, slime2.CurrentType, "슬라임 Spawner 2 → 골렘");
-            Assert.AreEqual(EMonster.Orc, orc.CurrentType, "오크 Spawner — 입력 종 불일치, 불변");
+            Assert.AreEqual(EMonster.Wraith, wisp1.CurrentType, "위스프 Spawner 1 → 레이스");
+            Assert.AreEqual(EMonster.Wraith, wisp2.CurrentType, "위스프 Spawner 2 → 레이스");
+            Assert.AreEqual(EMonster.Reaper, reaper.CurrentType, "리퍼 Spawner — 입력 종 불일치, 불변");
         }
 
         //# ===== 추가소환 후 추가소환 — 선형 누적 =====
 
-        //# SpawnSlimes 두 번 픽 → 동시 출력 1→2→3 (선형, §3.2 C안).
+        //# SpawnWisps 두 번 픽 → 동시 출력 1→2→3 (선형, §3.2 C안).
         [Test]
         public void 추가소환_두번_픽_동시출력_선형_누적()
         {
             var host = new FakeSpawnerHost();
-            var slime = CreateSpawner(EMonster.Slime, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime });
+            var wisp = CreateSpawner(EMonster.Wisp, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
 
-            new SpawnSlimesEffect().Apply(ctx);
-            new SpawnSlimesEffect().Apply(ctx);
+            new SpawnWispsEffect().Apply(ctx);
+            new SpawnWispsEffect().Apply(ctx);
 
-            slime.Tick(0f);
+            wisp.Tick(0f);
             Assert.AreEqual(3, host.Spawns[0].count, "기본 1 + 2픽 = 3 (선형 누적)");
         }
 
-        //# ===== 융합 후 다음 융합이 새 종 체인 — ReplaceOrcsToArchers 후 슬라임 융합 독립 =====
+        //# ===== 융합 후 다음 융합이 새 종 체인 — ReplaceReapersToHex 후 위스프 융합 독립 =====
 
-        //# 융합 카드 2장은 서로 독립. ReplaceOrcsToArchers 는 오크만, ReplaceSlimesToGolem 은 슬라임만.
+        //# 융합 카드 2장은 서로 독립. ReplaceReapersToHex 는 리퍼만, ReplaceWispsToWraith 는 위스프만.
         [Test]
         public void 융합_두_카드_각자_입력종만_변경_상호_독립()
         {
             var host = new FakeSpawnerHost();
-            var slime = CreateSpawner(EMonster.Slime, host);
-            var orc = CreateSpawner(EMonster.Orc, host);
-            var ctx = new SpawnerAwareContext(new List<Spawner> { slime, orc });
+            var wisp = CreateSpawner(EMonster.Wisp, host);
+            var reaper = CreateSpawner(EMonster.Reaper, host);
+            var ctx = new SpawnerAwareContext(new List<Spawner> { wisp, reaper });
 
-            new ReplaceOrcsToArchersEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Slime, slime.CurrentType, "슬라임 — 오크 융합에 영향 없음");
-            Assert.AreEqual(EMonster.Archer, orc.CurrentType, "오크 → 궁수");
+            new ReplaceReapersToHexEffect().Apply(ctx);
+            Assert.AreEqual(EMonster.Wisp, wisp.CurrentType, "위스프 — 리퍼 융합에 영향 없음");
+            Assert.AreEqual(EMonster.Hex, reaper.CurrentType, "리퍼 → 헥스");
 
-            new ReplaceSlimesToGolemEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Golem, slime.CurrentType, "슬라임 → 골렘");
-            Assert.AreEqual(EMonster.Archer, orc.CurrentType, "궁수 — 슬라임 융합에 영향 없음");
+            new ReplaceWispsToWraithEffect().Apply(ctx);
+            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "위스프 → 레이스");
+            Assert.AreEqual(EMonster.Hex, reaper.CurrentType, "헥스 — 위스프 융합에 영향 없음");
         }
 
         //# ===== 빈 Spawner 집합 — 모든 카드 no-op, 예외 없음 =====
@@ -250,8 +250,8 @@ namespace Lair.Tests.Card
 
             Assert.DoesNotThrow(() =>
             {
-                new SpawnSlimesEffect().Apply(ctx);
-                new ReplaceSlimesToGolemEffect().Apply(ctx);
+                new SpawnWispsEffect().Apply(ctx);
+                new ReplaceWispsToWraithEffect().Apply(ctx);
             }, "Spawner 0개 — 카드 적용이 예외 없이 no-op");
         }
     }

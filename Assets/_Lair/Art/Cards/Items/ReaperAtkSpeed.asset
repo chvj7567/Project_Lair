@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
+  m_Name: ReaperAtkSpeed
+  m_EditorClassIdentifier: 
+  _id: 2
+  _category: 0
+  _displayName: "\uAD11\uD3ED \uB9AC\uD37C"
+  _description: "\uBAA8\uB4E0 \uB9AC\uD37C \uACF5\uACA9\uC18D\uB3C4 +30%"
+  _icon: {fileID: 0}
+  _effect:
+    rid: 2530925571701473366
+  references:
+    version: 2
+    RefIds:
+    - rid: 2530925571701473366
+      type: {class: ReaperAtkSpeedEffect, ns: Lair.Card, asm: Lair}
+      data:
+        _cdMul: 0.7

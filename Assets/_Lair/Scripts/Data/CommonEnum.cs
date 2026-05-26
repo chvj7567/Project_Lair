@@ -11,15 +11,17 @@ namespace Lair.Data
         Knight,
     }
 
-    //# CHMResource 로 몬스터 프리팹 로드.
+    //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
+    //# 순서 절대 변경 금지 — BalanceConfig.MonsterStatRow.Key (int 직렬화) 와 1:1 대응.
+    //# Wisp=0, Wraith=1, Reaper=2, Hex=3, Plague=4, Phantom=5.
     public enum EMonster
     {
-        Slime,
-        Golem,
-        Orc,
-        Archer,    //# B3 신규 — 원거리
-        Spider,    //# B3 신규 — 공격 시 영웅 둔화
-        Bat,       //# B3 신규 — 저비용 다수
+        Wisp,      //# 도깨비불 — 기본 잡몹 (구 Slime, 0)
+        Wraith,    //# 망령 — 보스급 탱커 (구 Golem, 1)
+        Reaper,    //# 사신 — 근접 광룡 (구 Orc, 2)
+        Hex,       //# 저주술사 — 원거리 캐스터 (구 Archer, 3)
+        Plague,    //# 역병귀 — 둔화 디버퍼 (구 Spider, 4)
+        Phantom,   //# 환령 — 스웜 (구 Bat, 5)
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.
@@ -46,27 +48,30 @@ namespace Lair.Data
         Environment,    //# 환경 (영웅 디버프)
     }
 
-    //# 카드 식별자 — 패시브 15장 + 액티브 10장 (B3 에서 최종 재정의).
+    //# 카드 식별자 — 패시브 15장 + 액티브 10장.
+    //# 종(種) 이름이 들어간 카드 ID 는 LittleGhost 테마로 동기화 (Wisp/Wraith/Reaper/Hex/Plague/Phantom).
+    //# 액티브 10장은 종 비종속이라 이름 변경 없음.
+    //# 순서 절대 변경 금지 — CardData._id (int 직렬화) 와 1:1 대응.
     public enum ECardId
     {
         //# 패시브 15장
-        SlimeHpBoost,
-        GolemDamageBoost,
-        OrcAtkSpeed,
-        ArcherRangeBoost,
-        SpiderSlowBoost,
-        BatMoveSpeedBoost,
-        SpawnSlimes,
-        SpawnGolem,
-        SpawnOrcs,
-        SpawnSpiders,
-        SpawnBats,
-        ReplaceSlimesToGolem,
-        ReplaceOrcsToArchers,
-        HeroPoisonAura,
-        HeroAttackDown,
+        WispHpBoost,                   //# 구 SlimeHpBoost (0)
+        WraithDamageBoost,             //# 구 GolemDamageBoost (1)
+        ReaperAtkSpeed,                //# 구 OrcAtkSpeed (2)
+        HexRangeBoost,                 //# 구 ArcherRangeBoost (3)
+        PlagueSlowBoost,               //# 구 SpiderSlowBoost (4)
+        PhantomMoveSpeedBoost,         //# 구 BatMoveSpeedBoost (5)
+        SpawnWisps,                    //# 구 SpawnSlimes (6)
+        SpawnWraith,                   //# 구 SpawnGolem (7)
+        SpawnReapers,                  //# 구 SpawnOrcs (8)
+        SpawnPlagues,                  //# 구 SpawnSpiders (9)
+        SpawnPhantoms,                 //# 구 SpawnBats (10)
+        ReplaceWispsToWraith,          //# 구 ReplaceSlimesToGolem (11)
+        ReplaceReapersToHex,           //# 구 ReplaceOrcsToArchers (12)
+        HeroPoisonAura,                //# (13)
+        HeroAttackDown,                //# (14)
 
-        //# 액티브 10장
+        //# 액티브 10장 — 종 비종속이라 이름 그대로
         Fear,
         Bleed,
         Weaken,

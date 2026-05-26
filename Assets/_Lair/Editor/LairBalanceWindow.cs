@@ -12,7 +12,7 @@ namespace Lair.EditorTools
     public class LairBalanceWindow : EditorWindow
     {
         private int _hpField = 500;
-        private ECardId _cardPick = ECardId.SlimeHpBoost;
+        private ECardId _cardPick = ECardId.WispHpBoost;
         private Vector2 _scroll;
         private List<RunRecord> _history;
 

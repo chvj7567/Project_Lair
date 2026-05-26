@@ -70,7 +70,7 @@ namespace Lair.Tests.Battle
         public void 첫발사_InitialDelay_0이면_즉시_발사()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);
@@ -83,7 +83,7 @@ namespace Lair.Tests.Battle
         public void 첫발사_InitialDelay_0점5_경계_정확()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Bat, 6f, 0.5f);
+            var sp = CreateSpawner(EMonster.Phantom, 6f, 0.5f);
             sp.Bind(host);
 
             sp.Tick(0.49f);
@@ -98,7 +98,7 @@ namespace Lair.Tests.Battle
         public void 첫발사_InitialDelay_2점5_도달전_미발사()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Archer, 15f, 2.5f);
+            var sp = CreateSpawner(EMonster.Hex, 15f, 2.5f);
             sp.Bind(host);
 
             sp.Tick(2.4f);
@@ -116,7 +116,7 @@ namespace Lair.Tests.Battle
         {
             var host = new FakeSpawnerHost();
             //# InitialDelay 1, 주기 3.
-            var sp = CreateSpawner(EMonster.Slime, 3f, 1f);
+            var sp = CreateSpawner(EMonster.Wisp, 3f, 1f);
             sp.Bind(host);
 
             //# t=1.0 첫 발사
@@ -140,7 +140,7 @@ namespace Lair.Tests.Battle
         public void 주기발사_작은_dt_다수_누적시_위상_유지()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Bat, 3f, 1f);
+            var sp = CreateSpawner(EMonster.Phantom, 3f, 1f);
             sp.Bind(host);
 
             for (int i = 0; i < 20; ++i)
@@ -155,7 +155,7 @@ namespace Lair.Tests.Battle
         public void 주기발사_InitialDelay_0_첫발사후_주기마다_1발()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);            //# t=0 첫 발사
@@ -175,7 +175,7 @@ namespace Lair.Tests.Battle
         public void dt폭주_한프레임_100초도_1발만_발사()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# t=0 첫 발사 후, 단일 Tick(100) — 주기 9 가 11번 들어가지만 1발만.
@@ -190,7 +190,7 @@ namespace Lair.Tests.Battle
         public void dt폭주_후_작은_Tick_누적분_드레인()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);     //# t=0 첫 발사 (총 1)
@@ -212,7 +212,7 @@ namespace Lair.Tests.Battle
         public void OnEnable_재호출시_타이머와_첫발사플래그_리셋()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 1f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 1f);
             sp.Bind(host);
 
             sp.Tick(1f);    //# 첫 발사 완료
@@ -236,7 +236,7 @@ namespace Lair.Tests.Battle
         public void OnEnable_재호출시_동시출력수_1로_리셋()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# 추가소환 카드 3회 — 동시 출력 4.
@@ -260,22 +260,22 @@ namespace Lair.Tests.Battle
         public void OnEnable_재호출시_출력종_직렬화값으로_리셋()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
-            //# 융합 카드 — 출력 종을 골렘으로 변경.
-            sp.ReplaceOutput(EMonster.Golem);
-            Assert.AreEqual(EMonster.Golem, sp.CurrentType);
+            //# 융합 카드 — 출력 종을 레이스으로 변경.
+            sp.ReplaceOutput(EMonster.Wraith);
+            Assert.AreEqual(EMonster.Wraith, sp.CurrentType);
 
-            //# 씬 재진입 — OnEnable 직접 호출이 _currentType = _outputType(Slime) 으로 리셋.
+            //# 씬 재진입 — OnEnable 직접 호출이 _currentType = _outputType(Wisp) 으로 리셋.
             InvokeOnEnable(sp);
             sp.Bind(host);
 
-            Assert.AreEqual(EMonster.Slime, sp.CurrentType,
-                "재진입 후 출력 종이 직렬화 _outputType(Slime) 으로 리셋");
+            Assert.AreEqual(EMonster.Wisp, sp.CurrentType,
+                "재진입 후 출력 종이 직렬화 _outputType(Wisp) 으로 리셋");
 
             sp.Tick(0f);
-            Assert.AreEqual(EMonster.Slime, host.Spawns[0].type, "리셋된 종으로 스폰");
+            Assert.AreEqual(EMonster.Wisp, host.Spawns[0].type, "리셋된 종으로 스폰");
         }
 
         //# ===== _host == null 방어 =====
@@ -284,7 +284,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Bind_미호출시_Tick_무동작()
         {
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             //# Bind 안 함 — _host == null.
 
             Assert.DoesNotThrow(() =>
@@ -300,7 +300,7 @@ namespace Lair.Tests.Battle
         public void Bind_미호출_Tick_후_Bind하면_정상_발사()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
 
             //# Bind 전 Tick — 무동작 (타이머 누적도 없음).
             sp.Tick(5f);
@@ -318,7 +318,7 @@ namespace Lair.Tests.Battle
         public void IncrementOutput_횟수만큼_동시출력_count_증가()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Bat, 6f, 0f);
+            var sp = CreateSpawner(EMonster.Phantom, 6f, 0f);
             sp.Bind(host);
 
             //# 추가소환 2회 — 동시 출력 3.
@@ -334,14 +334,14 @@ namespace Lair.Tests.Battle
         public void ReplaceOutput_이후_스폰종_변경()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
-            sp.ReplaceOutput(EMonster.Golem);
+            sp.ReplaceOutput(EMonster.Wraith);
             sp.Tick(0f);
 
-            Assert.AreEqual(EMonster.Golem, sp.CurrentType, "CurrentType 이 골렘으로 변경");
-            Assert.AreEqual(EMonster.Golem, host.Spawns[0].type, "융합 후 골렘 스폰");
+            Assert.AreEqual(EMonster.Wraith, sp.CurrentType, "CurrentType 이 레이스으로 변경");
+            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type, "융합 후 레이스 스폰");
         }
 
         //# §3.5 케이스 3 — 추가소환(출력+1) 후 융합(출력종 변경) → 출력 수 보너스 유지.
@@ -350,17 +350,17 @@ namespace Lair.Tests.Battle
         public void 추가소환_후_융합_동시출력수_유지_종만_변경()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
-            //# SpawnSlimes 2픽 — 슬라임 Spawner 동시 출력 3.
+            //# SpawnWisps 2픽 — 위스프 Spawner 동시 출력 3.
             sp.IncrementOutput();
             sp.IncrementOutput();
-            //# 융합(슬라임→골렘) — 출력 종만 골렘으로. 동시 출력 수는 유지.
-            sp.ReplaceOutput(EMonster.Golem);
+            //# 융합(위스프→레이스) — 출력 종만 레이스으로. 동시 출력 수는 유지.
+            sp.ReplaceOutput(EMonster.Wraith);
 
             sp.Tick(0f);
-            Assert.AreEqual(EMonster.Golem, host.Spawns[0].type, "출력 종은 골렘으로 변경");
+            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type, "출력 종은 레이스으로 변경");
             Assert.AreEqual(3, host.Spawns[0].count, "동시 출력 수 3 은 Spawner 슬롯에 귀속 — 유지");
         }
 
@@ -370,14 +370,14 @@ namespace Lair.Tests.Battle
         public void 융합_후_추가소환_변경된종으로_count_증가()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
-            sp.ReplaceOutput(EMonster.Golem);
+            sp.ReplaceOutput(EMonster.Wraith);
             sp.IncrementOutput();
 
             sp.Tick(0f);
-            Assert.AreEqual(EMonster.Golem, host.Spawns[0].type);
+            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type);
             Assert.AreEqual(2, host.Spawns[0].count, "융합 후 추가소환 — 기본 1 + 1 = 2");
         }
 
@@ -386,7 +386,7 @@ namespace Lair.Tests.Battle
         public void 스폰_위치는_Spawner_transform_position()
         {
             var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Slime, 9f, 0f);
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(9f, 0f, 0f);
             sp.Bind(host);
 

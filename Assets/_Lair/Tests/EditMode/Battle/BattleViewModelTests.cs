@@ -67,7 +67,7 @@ namespace Lair.Tests.UI
         public void AddPick_중복_픽은_Count_누적_분류_구분()
         {
             var vm = new BattleViewModel(new BattleStateModel());
-            var cardA = Lair.Tests.Helpers.FakeCardData.Create(ECardId.SlimeHpBoost);
+            var cardA = Lair.Tests.Helpers.FakeCardData.Create(ECardId.WispHpBoost);
             var cardB = Lair.Tests.Helpers.FakeCardData.Create(ECardId.Frenzy);
             int changed = 0;
             vm.OnBuildChanged += () => changed++;

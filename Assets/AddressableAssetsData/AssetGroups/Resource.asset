@@ -34,7 +34,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1964e33424a977a4fab659bd0ffeaa58
-    m_Address: Golem
+    m_Address: Wraith
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -46,13 +46,13 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 20717514c3db9fe40a305c983f8d422c
-    m_Address: SpawnSpiders
+    m_Address: SpawnPlagues
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 21cacc5caf7eecc4a872c28c2c03bab4
-    m_Address: Archer
+    m_Address: Hex
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -64,19 +64,19 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 333752740506e234c9bef03bb34c819a
-    m_Address: SpawnSlimes
+    m_Address: SpawnWisps
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 340e1bf958d3d9243a5216b496353280
-    m_Address: SlimeHpBoost
+    m_Address: WispHpBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4292e44906ad20c4dafaccfd984f616a
-    m_Address: Orc
+    m_Address: Reaper
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -94,7 +94,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 59c26869e664a394ba4afa3f39592551
-    m_Address: ReplaceOrcsToArchers
+    m_Address: ReplaceReapersToHex
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -112,7 +112,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 628c040e71e0e404385604ec8884702a
-    m_Address: BatMoveSpeedBoost
+    m_Address: PhantomMoveSpeedBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -130,13 +130,13 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70a0ee3a5efc06a40b5f0fef27161eb7
-    m_Address: Spider
+    m_Address: Plague
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 779d152d0cca52949adca330a02dbc21
-    m_Address: SpawnBats
+    m_Address: SpawnPhantoms
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -166,7 +166,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8752a01701fb7a149b2e29596f447224
-    m_Address: ReplaceSlimesToGolem
+    m_Address: ReplaceWispsToWraith
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -184,19 +184,19 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a8a2d4767e2f53746abeb9f44e0c1103
-    m_Address: ArcherRangeBoost
+    m_Address: HexRangeBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b703500b2fe0bc34eada6237e8348ee8
-    m_Address: OrcAtkSpeed
+    m_Address: ReaperAtkSpeed
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b70a2c70a7a0395429abe314966096db
-    m_Address: SpawnOrcs
+    m_Address: SpawnReapers
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -214,19 +214,19 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c74c635b370d2c34b8db1a291aa5f46d
-    m_Address: SpawnGolem
+    m_Address: SpawnWraith
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd39744aeaa7a5245a7d7a1ecfd12d44
-    m_Address: SpiderSlowBoost
+    m_Address: PlagueSlowBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d2466f1684f5a7c439b7087992a51787
-    m_Address: Bat
+    m_Address: Phantom
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -244,7 +244,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dabfd090c7368904cadc81cddd0cf296
-    m_Address: Slime
+    m_Address: Wisp
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -262,7 +262,7 @@ MonoBehaviour:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: edc950f54b9528e4fb96aa9cfcfc9abd
-    m_Address: GolemDamageBoost
+    m_Address: WraithDamageBoost
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource

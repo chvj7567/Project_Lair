@@ -12,12 +12,12 @@ namespace Lair.Tests.Data
         public void GetMonster_등록된키_스탯반환()
         {
             var config = ScriptableObject.CreateInstance<BalanceConfig>();
-            //# EMonster.Golem == 1 (Slime=0, Golem=1, ...)
+            //# EMonster.Wraith == 1 (Wisp=0, Wraith=1, ...)
             JsonUtility.FromJsonOverwrite(
                 "{\"_monsters\":[{\"Key\":1,\"Stat\":{\"Hp\":500,\"Power\":20}}]}",
                 config);
 
-            var stat = config.GetMonster(EMonster.Golem);
+            var stat = config.GetMonster(EMonster.Wraith);
 
             Assert.IsNotNull(stat);
             Assert.AreEqual(500, stat.Hp);
@@ -28,7 +28,7 @@ namespace Lair.Tests.Data
         public void GetMonster_미등록키_null반환()
         {
             var config = ScriptableObject.CreateInstance<BalanceConfig>();
-            Assert.IsNull(config.GetMonster(EMonster.Bat));
+            Assert.IsNull(config.GetMonster(EMonster.Phantom));
         }
     }
 }

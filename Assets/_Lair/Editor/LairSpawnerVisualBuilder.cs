@@ -18,15 +18,15 @@ namespace Lair.EditorTools
         private const string HpBarPrefabPath = "Assets/_Lair/Art/UI/HpBar.prefab";
         private const string UrpLitShaderName = "Universal Render Pipeline/Lit";
 
-        //# EMonster 순서(0=Slime, 1=Golem, 2=Orc, 3=Archer, 4=Spider, 5=Bat)와 1:1 대응.
+        //# EMonster 순서(0=Wisp, 1=Wraith, 2=Reaper, 3=Hex, 4=Plague, 5=Phantom)와 1:1 대응.
         private static readonly (EMonster Type, string ColorHex)[] SpawnerColorTable = new[]
         {
-            (EMonster.Slime,  "#22C55E"),
-            (EMonster.Golem,  "#6B7280"),
-            (EMonster.Orc,    "#EF4444"),
-            (EMonster.Archer, "#EAB308"),
-            (EMonster.Spider, "#A855F7"),
-            (EMonster.Bat,    "#1F2937"),
+            (EMonster.Wisp,    "#22C55E"),
+            (EMonster.Wraith,  "#6B7280"),
+            (EMonster.Reaper,  "#EF4444"),
+            (EMonster.Hex,     "#EAB308"),
+            (EMonster.Plague,  "#A855F7"),
+            (EMonster.Phantom, "#1F2937"),
         };
 
         [MenuItem("Lair/Setup/S1 - Attach Spawner Visuals")]
@@ -86,7 +86,7 @@ namespace Lair.EditorTools
             var col = body.GetComponent<Collider>();
             if (col != null) Object.DestroyImmediate(col);
 
-            //# _currentType 초기 읽기 — Spawner._outputType 의 기본값(Slime) 이 직렬화에 반영됨.
+            //# _currentType 초기 읽기 — Spawner._outputType 의 기본값(Wisp) 이 직렬화에 반영됨.
             //# SerializedObject 로 직렬화 필드를 읽어 초기 머티리얼 인덱스 결정.
             int initIndex = GetOutputTypeIndex(spawner);
             var renderer = body.GetComponent<Renderer>();

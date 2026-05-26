@@ -12,7 +12,7 @@ namespace Lair.Battle
         public float CooldownMul = 1f;    //# 공격 쿨다운 배율 (작을수록 빠름)
         public float RangeMul = 1f;       //# 사거리 배율
         public float MoveSpeedMul = 1f;   //# 이동속도 배율
-        public float SlowFactorMul = 1f;  //# 거미 둔화 배율
+        public float SlowFactorMul = 1f;  //# 플레이그 둔화 배율
 
         //# 글로벌 dict 에 종 키가 없을 때 쓰는 항등값 (전부 1.0).
         //# 매번 새 인스턴스 — 공유 가변 인스턴스 오염 방지 (호출처가 Multiply 호출 시 원본 보호).

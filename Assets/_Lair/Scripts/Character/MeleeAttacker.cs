@@ -27,7 +27,7 @@ namespace Lair.Character
         public float CooldownScale { get; set; } = 1f;
         public float PowerScale { get; set; } = 1f;
 
-        //# B3 — 공격 적중 시 발행. 거미 SpiderSlowOnHit 가 구독.
+        //# B3 — 공격 적중 시 발행. 플레이그 PlagueSlowOnHit 가 구독.
         public event Action<IHealth> OnHit;
 
         private float _lastAttackTime = float.NegativeInfinity;

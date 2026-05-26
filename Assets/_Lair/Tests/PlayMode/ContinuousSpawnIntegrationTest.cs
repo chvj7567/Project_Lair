@@ -26,13 +26,13 @@ namespace Lair.Tests.PlayMode
             //# CharacterRegistry 는 정적 — 테스트 간 잔존 방지 위해 비운다.
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
-            //# 런타임 BalanceConfig SO — 슬라임 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
+            //# 런타임 BalanceConfig SO — 위스프 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
             _balance = ScriptableObject.CreateInstance<BalanceConfig>();
             SetPrivate(_balance, "_monsters", new[]
             {
-                MakeRow(EMonster.Slime,  hp: 200, power: 10, range: 1.5f, cooldown: 1.0f, move: 2.0f),
-                MakeRow(EMonster.Golem,  hp: 500, power: 20, range: 1.5f, cooldown: 2.0f, move: 1.0f),
-                MakeRow(EMonster.Spider, hp: 40,  power: 5,  range: 1.2f, cooldown: 1.2f, move: 3.0f),
+                MakeRow(EMonster.Wisp,  hp: 200, power: 10, range: 1.5f, cooldown: 1.0f, move: 2.0f),
+                MakeRow(EMonster.Wraith,  hp: 500, power: 20, range: 1.5f, cooldown: 2.0f, move: 1.0f),
+                MakeRow(EMonster.Plague, hp: 40,  power: 5,  range: 1.2f, cooldown: 1.2f, move: 3.0f),
             });
         }
 
@@ -109,11 +109,11 @@ namespace Lair.Tests.PlayMode
         public IEnumerator ApplyMonsterStats_모디파이어_없으면_raw_스탯_그대로()
         {
             var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
 
             var hp = mon.GetComponent<Health>();
             var atk = mon.GetComponent<MeleeAttacker>();
@@ -128,14 +128,14 @@ namespace Lair.Tests.PlayMode
         public IEnumerator ApplyMonsterStats_강화_1픽후_신규Pop_raw곱배율()
         {
             var bc = CreateIsolatedController();
-            //# dict 에 슬라임 HP ×1.5 등록.
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            //# dict 에 위스프 HP ×1.5 등록.
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
 
             var hp = mon.GetComponent<Health>();
             Assert.AreEqual(300, hp.Max, "raw 200 × HpMul 1.5 = 300");
@@ -147,14 +147,14 @@ namespace Lair.Tests.PlayMode
         public IEnumerator ApplyMonsterStats_강화_2픽_곱연산_누적()
         {
             var bc = CreateIsolatedController();
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
 
             Assert.AreEqual(450, mon.GetComponent<Health>().Max, "200 × 1.5 × 1.5 = 450 (곱연산)");
         }
@@ -165,12 +165,12 @@ namespace Lair.Tests.PlayMode
         public IEnumerator RegisterMonsterTypeBuff_소급_현재HP_보존_최대치만_상향()
         {
             var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
             //# 먼저 raw 적용 후 데미지 — Current 50/200 상태로 만든다.
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             var hp = mon.GetComponent<Health>();
             hp.TakeDamage(150);
             Assert.AreEqual(50, hp.Current, "선조건 — Current 50/200");
@@ -179,7 +179,7 @@ namespace Lair.Tests.PlayMode
             CharacterRegistry.RegisterMonster(mon.transform, hp);
 
             //# 강화 카드 픽 — dict 갱신 + 필드 동일 종 소급(내부에서 resetCurrent:false 호출).
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
             Assert.AreEqual(300, hp.Max, "최대치는 200×1.5=300 으로 상향");
             Assert.AreEqual(50, hp.Current,
@@ -191,57 +191,57 @@ namespace Lair.Tests.PlayMode
         public IEnumerator ApplyMonsterStats_resetCurrent_true_현재HP_최대로()
         {
             var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             var hp = mon.GetComponent<Health>();
             hp.TakeDamage(100);
             Assert.AreEqual(100, hp.Current, "선조건 — Current 100/200");
 
             //# 풀 재사용 신규 Pop 시뮬 — resetCurrent:true 재적용.
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             Assert.AreEqual(200, hp.Current, "resetCurrent:true — 현재 HP 가 최대치로 복원");
         }
 
-        //# 엣지 — 거미 SlowFactor: ApplyMonsterStats 가 BaseSlowFactor 0.8 × 배율 적용.
+        //# 엣지 — 플레이그 SlowFactor: ApplyMonsterStats 가 BaseSlowFactor 0.8 × 배율 적용.
         [UnityTest]
-        public IEnumerator ApplyMonsterStats_거미_SlowFactor_baseline_곱배율()
+        public IEnumerator ApplyMonsterStats_플레이그_SlowFactor_baseline_곱배율()
         {
             var bc = CreateIsolatedController();
-            var spider = CreateMonster(EMonster.Spider);
-            spider.AddComponent<SpiderSlowOnHit>();
-            bc.RegisterMonsterTypeBuff(EMonster.Spider, EMonsterStatKind.SlowFactor, 0.75f);
-            spider.SetActive(true);
+            var plague = CreateMonster(EMonster.Plague);
+            plague.AddComponent<PlagueSlowOnHit>();
+            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
+            plague.SetActive(true);
             yield return null;
 
-            bc.ApplyMonsterStats(spider, EMonster.Spider, resetCurrent: true);
+            bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
 
             //# _slowFactor 는 private — 리플렉션으로 확인. BaseSlowFactor 0.8 × 0.75 = 0.6.
-            var slow = spider.GetComponent<SpiderSlowOnHit>();
+            var slow = plague.GetComponent<PlagueSlowOnHit>();
             float applied = GetPrivate<float>(slow, "_slowFactor");
-            Assert.AreEqual(0.6f, applied, 0.0001f, "거미 둔화 = BaseSlowFactor 0.8 × 0.75");
+            Assert.AreEqual(0.6f, applied, 0.0001f, "플레이그 둔화 = BaseSlowFactor 0.8 × 0.75");
         }
 
-        //# 회귀 — 거미 둔화는 풀 재사용(반복 ApplyMonsterStats) 시 복리 누적되지 않는다.
+        //# 회귀 — 플레이그 둔화는 풀 재사용(반복 ApplyMonsterStats) 시 복리 누적되지 않는다.
         //# baseline 이 const 0.8 이라 매 Pop 항상 0.8 부터 — §7.5.2 복리 버그 차단 검증.
         [UnityTest]
-        public IEnumerator ApplyMonsterStats_거미_반복적용_복리누적_없음()
+        public IEnumerator ApplyMonsterStats_플레이그_반복적용_복리누적_없음()
         {
             var bc = CreateIsolatedController();
-            var spider = CreateMonster(EMonster.Spider);
-            spider.AddComponent<SpiderSlowOnHit>();
-            bc.RegisterMonsterTypeBuff(EMonster.Spider, EMonsterStatKind.SlowFactor, 0.75f);
-            spider.SetActive(true);
+            var plague = CreateMonster(EMonster.Plague);
+            plague.AddComponent<PlagueSlowOnHit>();
+            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
+            plague.SetActive(true);
             yield return null;
 
-            var slow = spider.GetComponent<SpiderSlowOnHit>();
+            var slow = plague.GetComponent<PlagueSlowOnHit>();
 
             //# 같은 dict 상태로 3번 재적용 — 풀 재사용 Pop 반복 시뮬.
-            bc.ApplyMonsterStats(spider, EMonster.Spider, resetCurrent: true);
-            bc.ApplyMonsterStats(spider, EMonster.Spider, resetCurrent: true);
-            bc.ApplyMonsterStats(spider, EMonster.Spider, resetCurrent: true);
+            bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
+            bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
+            bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
 
             float applied = GetPrivate<float>(slow, "_slowFactor");
             Assert.AreEqual(0.6f, applied, 0.0001f,
@@ -255,19 +255,19 @@ namespace Lair.Tests.PlayMode
         public IEnumerator RegisterMonsterTypeBuff_필드_동일종_소급적용()
         {
             var bc = CreateIsolatedController();
-            //# 필드에 슬라임 몬스터 — CharacterRegistry 에 등록 (Health.OnEnable 의 자기등록은
+            //# 필드에 위스프 몬스터 — CharacterRegistry 에 등록 (Health.OnEnable 의 자기등록은
             //# 없으므로 명시 등록 — 실제로는 캐릭터가 자기 등록하지만 본 테스트는 합성).
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             var hp = mon.GetComponent<Health>();
             CharacterRegistry.RegisterMonster(mon.transform, hp);
 
             //# 강화 카드 픽 — dict 갱신 + 필드 소급.
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            Assert.AreEqual(300, hp.Max, "필드 슬라임에 소급 — 최대치 200×1.5=300");
+            Assert.AreEqual(300, hp.Max, "필드 위스프에 소급 — 최대치 200×1.5=300");
         }
 
         //# 회귀 — 강화 소급은 다른 종 몬스터를 건드리지 않는다 (종별 격리).
@@ -275,21 +275,21 @@ namespace Lair.Tests.PlayMode
         public IEnumerator RegisterMonsterTypeBuff_다른종_몬스터는_불변()
         {
             var bc = CreateIsolatedController();
-            var slime = CreateMonster(EMonster.Slime);
-            var golem = CreateMonster(EMonster.Golem);
-            slime.SetActive(true);
-            golem.SetActive(true);
+            var wisp = CreateMonster(EMonster.Wisp);
+            var wraith = CreateMonster(EMonster.Wraith);
+            wisp.SetActive(true);
+            wraith.SetActive(true);
             yield return null;
-            bc.ApplyMonsterStats(slime, EMonster.Slime, resetCurrent: true);
-            bc.ApplyMonsterStats(golem, EMonster.Golem, resetCurrent: true);
-            CharacterRegistry.RegisterMonster(slime.transform, slime.GetComponent<Health>());
-            CharacterRegistry.RegisterMonster(golem.transform, golem.GetComponent<Health>());
+            bc.ApplyMonsterStats(wisp, EMonster.Wisp, resetCurrent: true);
+            bc.ApplyMonsterStats(wraith, EMonster.Wraith, resetCurrent: true);
+            CharacterRegistry.RegisterMonster(wisp.transform, wisp.GetComponent<Health>());
+            CharacterRegistry.RegisterMonster(wraith.transform, wraith.GetComponent<Health>());
 
-            //# 슬라임 강화 — 골렘은 영향 없어야.
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            //# 위스프 강화 — 레이스은 영향 없어야.
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            Assert.AreEqual(300, slime.GetComponent<Health>().Max, "슬라임 — 소급 적용 300");
-            Assert.AreEqual(500, golem.GetComponent<Health>().Max, "골렘 — 종 불일치, raw 500 불변");
+            Assert.AreEqual(300, wisp.GetComponent<Health>().Max, "위스프 — 소급 적용 300");
+            Assert.AreEqual(500, wraith.GetComponent<Health>().Max, "레이스 — 종 불일치, raw 500 불변");
         }
 
         //# 회귀 — 죽은 몬스터에는 소급하지 않는다 (IsAlive 필터).
@@ -297,10 +297,10 @@ namespace Lair.Tests.PlayMode
         public IEnumerator RegisterMonsterTypeBuff_죽은_몬스터는_소급제외()
         {
             var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             var hp = mon.GetComponent<Health>();
             CharacterRegistry.RegisterMonster(mon.transform, hp);
 
@@ -309,7 +309,7 @@ namespace Lair.Tests.PlayMode
             Assert.IsFalse(hp.IsAlive, "선조건 — 몬스터 사망");
 
             //# 강화 픽 — 죽은 몬스터엔 소급 안 됨.
-            bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f);
+            bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
             Assert.AreEqual(200, hp.Max, "죽은 몬스터 — 소급 제외, Max 200 불변");
         }
@@ -321,16 +321,16 @@ namespace Lair.Tests.PlayMode
             var bc = CreateIsolatedController();
 
             Assert.DoesNotThrow(() =>
-                bc.RegisterMonsterTypeBuff(EMonster.Slime, EMonsterStatKind.Hp, 1.5f),
+                bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f),
                 "필드 몬스터 0개 — dict 갱신만, 예외 없음");
 
             //# 이후 신규 Pop 은 갱신된 dict 반영.
-            var mon = CreateMonster(EMonster.Slime);
+            var mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
-            bc.ApplyMonsterStats(mon, EMonster.Slime, resetCurrent: true);
+            bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
             Assert.AreEqual(300, mon.GetComponent<Health>().Max,
-                "필드 0개여도 dict 갱신됨 — 이후 신규 슬라임 300");
+                "필드 0개여도 dict 갱신됨 — 이후 신규 위스프 300");
         }
 
         //# ===== 3. 필드 몬스터 캡 15 — Battle 씬 통합 =====

@@ -45,20 +45,20 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(1f, id.SlowFactorMul, 0.0001f);
         }
 
-        //# 엣지 — 거미 둔화 배율: BaseSlowFactor 0.8 × 1픽 0.75 = 0.6 (기존 1차 수치, §3.0.1).
+        //# 엣지 — 플레이그 둔화 배율: BaseSlowFactor 0.8 × 1픽 0.75 = 0.6 (기존 1차 수치, §3.0.1).
         [Test]
         public void SlowFactor_1픽_baseline_0점8과_곱하면_0점6()
         {
             var m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
 
-            float applied = Lair.Character.SpiderSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
+            float applied = Lair.Character.PlagueSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
             Assert.AreEqual(0.6f, applied, 0.0001f);
         }
 
         //# === test-engineer 본격 스위트 — 엣지·회귀 보강 ===
 
-        //# 엣지 — 거미 둔화 2픽 누적: SlowFactorMul 0.75²=0.5625, baseline 곱하면 0.45 (§3.0.1).
+        //# 엣지 — 플레이그 둔화 2픽 누적: SlowFactorMul 0.75²=0.5625, baseline 곱하면 0.45 (§3.0.1).
         [Test]
         public void SlowFactor_2픽_곱연산_baseline과_곱하면_0점45()
         {
@@ -67,7 +67,7 @@ namespace Lair.Tests.Battle
             m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
 
             Assert.AreEqual(0.5625f, m.SlowFactorMul, 0.0001f);
-            float applied = Lair.Character.SpiderSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
+            float applied = Lair.Character.PlagueSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
             Assert.AreEqual(0.45f, applied, 0.0001f);
         }
 

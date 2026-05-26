@@ -16,7 +16,7 @@ namespace Lair.Tests.Battle
                 FinishedAt = "2026-05-21T10:00:00",
                 Result = "Win",
                 DeathTime = 184.5f,
-                Picks = new List<string> { "SlimeHpBoost", "Frenzy" },
+                Picks = new List<string> { "WispHpBoost", "Frenzy" },
                 SurvivingMonsters = 7,
             };
 

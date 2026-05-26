@@ -10,7 +10,7 @@ namespace Lair.Battle
     public class SpawnerBody : MonoBehaviour
     {
         [SerializeField] private Renderer _renderer;
-        //# 6종 머티리얼 배열 — 빌더가 EMonster 순서(0=Slime, 1=Golem …)대로 주입.
+        //# 6종 머티리얼 배열 — 빌더가 EMonster 순서(0=Wisp, 1=Wraith …)대로 주입.
         [SerializeField] private Material[] _materials;
 
         private ISpawnerOutputProvider _provider;

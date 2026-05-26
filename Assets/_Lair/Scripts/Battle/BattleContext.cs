@@ -18,7 +18,7 @@ namespace Lair.Battle
         public IEnumerable<IHealth> GetMonsters(EMonster? filter = null)
         {
             //# 스냅샷 반환 — 호출자가 iteration 중 TakeDamage/Destroy 로 CharacterRegistry.Monsters
-            //# 컬렉션을 수정해도 안전. yield return 으로 lazy 였을 때 ReplaceSlimesToGolem 같은 카드가
+            //# 컬렉션을 수정해도 안전. yield return 으로 lazy 였을 때 ReplaceWispsToWraith 같은 카드가
             //# Collection-modified 예외 일으킴.
             var result = new List<IHealth>();
             foreach (var e in CharacterRegistry.Monsters)

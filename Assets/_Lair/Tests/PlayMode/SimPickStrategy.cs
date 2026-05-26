@@ -22,8 +22,8 @@ namespace Lair.Tests.PlayMode
     //# 탱커/딜러/AoE 축이 아니므로, ECardId 별 archetype 을 시뮬 코드에서 직접 매핑한다(브리프 허용).
     public enum ECardArchetype
     {
-        Tanker,    //# 슬라임/골렘(탱커) 관련 카드
-        Dealer,    //# 오크/궁수(딜러) 관련 카드
+        Tanker,    //# 위스프/레이스(탱커) 관련 카드
+        Dealer,    //# 리퍼/헥스(딜러) 관련 카드
         Aoe,       //# 광역 성격 카드 (다수 소환/증식/광역 회복 등)
         Other,     //# 위 어디에도 강하게 속하지 않는 카드 (유틸·영웅 디버프 등)
     }
@@ -31,26 +31,26 @@ namespace Lair.Tests.PlayMode
     public static class SimPickStrategy
     {
         //# ECardId -> archetype 매핑. 컨셉 §11.3 기준:
-        //#   탱커 = 슬라임/골렘, 딜러 = 오크/궁수, 유틸 = 거미/박쥐.
+        //#   탱커 = 위스프/레이스, 딜러 = 리퍼/헥스, 유틸 = 플레이그/팬텀.
         //#   다수 소환·증식은 광역(AoE) 성격으로 분류.
         private static readonly Dictionary<ECardId, ECardArchetype> _archetypes = new()
         {
             //# === 패시브 15장 ===
-            { ECardId.SlimeHpBoost,          ECardArchetype.Tanker }, //# 슬라임 HP 강화
-            { ECardId.GolemDamageBoost,      ECardArchetype.Tanker }, //# 골렘 데미지 강화
-            { ECardId.OrcAtkSpeed,           ECardArchetype.Dealer }, //# 오크 공속 강화
-            { ECardId.ArcherRangeBoost,      ECardArchetype.Dealer }, //# 궁수 사거리 강화
-            { ECardId.SpiderSlowBoost,       ECardArchetype.Other  }, //# 거미 둔화 강화(유틸)
-            { ECardId.BatMoveSpeedBoost,     ECardArchetype.Other  }, //# 박쥐 이속 강화(유틸)
-            { ECardId.SpawnSlimes,           ECardArchetype.Aoe    }, //# 슬라임 3마리 소환(다수)
-            { ECardId.SpawnGolem,            ECardArchetype.Tanker }, //# 골렘 1마리 소환
-            { ECardId.SpawnOrcs,             ECardArchetype.Dealer }, //# 오크 2마리 소환
-            { ECardId.SpawnSpiders,          ECardArchetype.Other  }, //# 거미 2마리 소환(유틸)
-            { ECardId.SpawnBats,             ECardArchetype.Aoe    }, //# 박쥐 5마리 소환(다수)
-            { ECardId.ReplaceSlimesToGolem,  ECardArchetype.Tanker }, //# 슬라임 전부 -> 골렘
-            { ECardId.ReplaceOrcsToArchers,  ECardArchetype.Dealer }, //# 오크 전부 -> 궁수
-            { ECardId.HeroPoisonAura,        ECardArchetype.Other  }, //# 영웅 독 장판(환경)
-            { ECardId.HeroAttackDown,        ECardArchetype.Other  }, //# 영웅 공격력 감소(환경)
+            { ECardId.WispHpBoost,             ECardArchetype.Tanker }, //# 위스프 HP 강화
+            { ECardId.WraithDamageBoost,       ECardArchetype.Tanker }, //# 레이스 데미지 강화
+            { ECardId.ReaperAtkSpeed,          ECardArchetype.Dealer }, //# 리퍼 공속 강화
+            { ECardId.HexRangeBoost,           ECardArchetype.Dealer }, //# 헥스 사거리 강화
+            { ECardId.PlagueSlowBoost,         ECardArchetype.Other  }, //# 플레이그 둔화 강화(유틸)
+            { ECardId.PhantomMoveSpeedBoost,   ECardArchetype.Other  }, //# 팬텀 이속 강화(유틸)
+            { ECardId.SpawnWisps,              ECardArchetype.Aoe    }, //# 위스프 출력 +1(다수)
+            { ECardId.SpawnWraith,             ECardArchetype.Tanker }, //# 레이스 출력 +1
+            { ECardId.SpawnReapers,            ECardArchetype.Dealer }, //# 리퍼 출력 +1
+            { ECardId.SpawnPlagues,            ECardArchetype.Other  }, //# 플레이그 출력 +1(유틸)
+            { ECardId.SpawnPhantoms,           ECardArchetype.Aoe    }, //# 팬텀 출력 +1(다수)
+            { ECardId.ReplaceWispsToWraith,    ECardArchetype.Tanker }, //# 위스프 -> 레이스
+            { ECardId.ReplaceReapersToHex,     ECardArchetype.Dealer }, //# 리퍼 -> 헥스
+            { ECardId.HeroPoisonAura,          ECardArchetype.Other  }, //# 영웅 독 장판(환경)
+            { ECardId.HeroAttackDown,          ECardArchetype.Other  }, //# 영웅 공격력 감소(환경)
 
             //# === 액티브 10장 ===
             { ECardId.Fear,        ECardArchetype.Other  }, //# 영웅 도망(저주)

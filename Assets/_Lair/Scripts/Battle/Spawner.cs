@@ -12,7 +12,7 @@ namespace Lair.Battle
     {
         //# === 인스펙터 직렬화 — 스타터 프리셋 (§5.3) ===
         [Tooltip("이 Spawner 가 스폰하는 몬스터 종 (초기값 — 융합 카드로 런타임 변경됨)")]
-        [SerializeField] private EMonster _outputType = EMonster.Slime;
+        [SerializeField] private EMonster _outputType = EMonster.Wisp;
         [Tooltip("스폰 간격 (초)")]
         [SerializeField] private float _spawnPeriod = 9f;
         [Tooltip("첫 스폰까지 대기 (초) — 위상 오프셋")]

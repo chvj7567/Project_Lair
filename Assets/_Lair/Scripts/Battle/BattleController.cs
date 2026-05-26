@@ -202,10 +202,10 @@ namespace Lair.Battle
             var mover = character.GetComponent<SimpleMover>();
             if (mover != null) mover.Speed = raw.MoveSpeed * mul.MoveSpeedMul;
 
-            //# 거미 한정 — 불변 baseline const × 배율. 복리 누적 버그 없음 (§7.5.9).
-            var slow = character.GetComponent<SpiderSlowOnHit>();
+            //# 플레이그 한정 — 불변 baseline const × 배율. 복리 누적 버그 없음 (§7.5.9).
+            var slow = character.GetComponent<PlagueSlowOnHit>();
             if (slow != null)
-                slow.SetSlowFactor(SpiderSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
+                slow.SetSlowFactor(PlagueSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
         }
 
         private async Task SpawnHero()
@@ -404,8 +404,8 @@ namespace Lair.Battle
             if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
 
             //# 지속 스폰 — 캡 18 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
-            foreach (var key in new[] { EMonster.Slime, EMonster.Golem, EMonster.Orc,
-                                        EMonster.Archer, EMonster.Spider, EMonster.Bat })
+            foreach (var key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
+                                        EMonster.Hex, EMonster.Plague, EMonster.Phantom })
             {
                 var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 10);

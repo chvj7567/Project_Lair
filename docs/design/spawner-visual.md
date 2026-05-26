@@ -33,12 +33,12 @@ Spawner 본체 색상은 **현재 출력 중인 몬스터 종**의 컨셉 §11.4
 
 | 출력 종 | 틴트 색상 | 원본 (컨셉 §11.4) |
 |---|---|---|
-| Slime | `#22C55E` | 초록 |
-| Golem | `#6B7280` | 회색 |
-| Orc | `#EF4444` | 빨강 |
-| Archer | `#EAB308` | 노랑 |
-| Spider | `#A855F7` | 보라 |
-| Bat | `#1F2937` | 검정(어두운 회색) |
+| Wisp | `#22C55E` | 초록 |
+| Wraith | `#6B7280` | 회색 |
+| Reaper | `#EF4444` | 빨강 |
+| Hex | `#EAB308` | 노랑 |
+| Plague | `#A855F7` | 보라 |
+| Phantom | `#1F2937` | 검정(어두운 회색) |
 
 초기화 시 `_currentType` 에 맞는 색을 설정하고, `ReplaceOutput()` 호출 시 틴트를 갱신한다. 색상 갱신 책임은 Spawner 에 있는 시각 컴포넌트(`SpawnerBody` 역할)가 맡거나, `Spawner.ReplaceOutput` 에서 이벤트/콜백으로 알림을 내보내 시각 컴포넌트가 수신한다. 구체적 연결 방식은 gameplay-programmer 판단 영역이다.
 
@@ -48,7 +48,7 @@ Spawner 본체 색상은 **현재 출력 중인 몬스터 종**의 컨셉 §11.4
 
 - 프리팹 경로: `Assets/_Lair/Art/FX/Spawner.prefab`
 - 머티리얼 경로: `Assets/_Lair/Art/Materials/Mat_Spawner_[종이름].mat` (6종 각각)
-  - 예: `Mat_Spawner_Slime.mat`, `Mat_Spawner_Golem.mat` …
+  - 예: `Mat_Spawner_Wisp.mat`, `Mat_Spawner_Wraith.mat` …
 
 > **Addressables 등록 불필요**: Spawner 는 씬에 사전 배치된 정적 오브젝트다(Rule 12 예외). Spawner 비주얼 자식도 씬과 함께 로드되므로 CHMPool 대상이 아니다.
 
@@ -212,7 +212,7 @@ ISpawnerProgress
 
 **에셋 경로**
 - 프리팹: `Assets/_Lair/Art/FX/Spawner.prefab` (선택적 — 빌더 방식에 따라 프리팹 없이 씬 직접 수정도 가능)
-- 머티리얼: `Assets/_Lair/Art/Materials/Mat_Spawner_Slime.mat` 외 5종
+- 머티리얼: `Assets/_Lair/Art/Materials/Mat_Spawner_Wisp.mat` 외 5종
 
 **SO 스키마 / 수치 필드**
 - 새 SO 없음. 수치는 `SpawnerCooldownBar.cs` 상수로 인라인 (threshold `0.7f`, 색상 두 가지)
@@ -233,12 +233,12 @@ ISpawnerProgress
 |---|---|
 | Fill Cool (0~69%) | `#60A5FA` |
 | Fill Warm (70~100%) | `#F97316` |
-| Spawner Slime 틴트 | `#22C55E` |
-| Spawner Golem 틴트 | `#6B7280` |
-| Spawner Orc 틴트 | `#EF4444` |
-| Spawner Archer 틴트 | `#EAB308` |
-| Spawner Spider 틴트 | `#A855F7` |
-| Spawner Bat 틴트 | `#1F2937` |
+| Spawner Wisp 틴트 | `#22C55E` |
+| Spawner Wraith 틴트 | `#6B7280` |
+| Spawner Reaper 틴트 | `#EF4444` |
+| Spawner Hex 틴트 | `#EAB308` |
+| Spawner Plague 틴트 | `#A855F7` |
+| Spawner Phantom 틴트 | `#1F2937` |
 
 ---
 
