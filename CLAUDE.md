@@ -36,6 +36,8 @@ Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 07)
   agents/                      서브에이전트 정의
 docs/
   design/                      project_lair_concept.md (컨셉) + game-designer 기능 기획서
+  superpowers/specs/           메인 brainstorming 산출물 — 의도·범위·메커니즘 윤곽
+  superpowers/plans/           메인 writing-plans 산출물 — 단계별 구현 계획
   qa-reports/                  qa-simulator 시뮬레이션 리포트
 ```
 
@@ -45,6 +47,7 @@ docs/
 
 | # | 파일 | 한 줄 요약 |
 |---|---|---|
+| 00 | `00-project-meta-file.md` | agent 가 첫 단계에서 읽는 `.claude/project.md` 의 필수 키와 갱신 규약 (다른 모든 룰·에이전트의 진입점) |
 | 01 | `01-no-auto-commit.md` | `git commit` 직접 실행 금지. `git add`(스테이징) + 한글 커밋 메시지(안) `# [주제] - 메시지` 까지만 |
 | 02 | `02-comment-prefix.md` | 모든 단일 라인 주석은 `//#` 접두어 |
 | 03 | `03-loose-coupling.md` | 종속성 최소화 — 인터페이스/주입 우선, 싱글톤 직접 호출·`FindObjectOfType` 지양 |
@@ -84,14 +87,22 @@ docs/
 ## 7. 표준 협업 흐름
 
 ### 새 기능 개발
-1. **game-designer** 가 기획서 작성 → `docs/design/[기능명].md`
-2. **design-reviewer** 가 기획서 1차 검토 — BLOCKER 있으면 game-designer 재작업 후 재검토
-3. **사용자** 가 기획서 리뷰·승인
-4. **gameplay-programmer** 가 기획서를 읽고 구현
-5. **code-reviewer** 가 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업 후 재검토
-6. **test-engineer** 가 본격 테스트 스위트 작성
-7. (게임플레이 영향이 큰 경우) **qa-simulator** 가 시뮬레이션으로 밸런스 검증
-8. 변경사항 요약 + 커밋 메시지(안) 제시 — Rule 01 (직접 커밋 X, `git add` 까지)
+0. **메인** 이 `superpowers:brainstorming` 으로 사용자와 의도·범위·메커니즘 윤곽 합의 → `docs/superpowers/specs/YYYY-MM-DD-[기능명]-design.md`
+   - 구체 수치(HP/데미지/쿨다운 등)는 이 단계에서 정하지 않는다 — game-designer 결정 영역
+1. **메인** 이 `superpowers:writing-plans` 로 구현 계획 작성 → `docs/superpowers/plans/YYYY-MM-DD-[기능명].md`
+   - 호출 시 룰 컨텍스트(01·02·07·08·10·11·12·14 + ChvjPackage API) 와 스펙 문서를 함께 전달
+   - **우리 룰 적응**: 매 step `git commit` → "git add 까지"로 치환 (Rule 01), 매 step TDD 5단계는 강제하지 않음 — 본격 테스트는 test-engineer
+2. **game-designer** 가 스펙 + 계획서를 읽고 게임 도메인 기획서 작성 → `docs/design/[기능명].md`
+   - 밸런스 수치 / 시너지 / 페이싱 / 구현 요청사항 (계획서가 정한 파일 구조·인터페이스 안에서 결정)
+3. **design-reviewer** 가 기획서 1차 검토 — BLOCKER 있으면 game-designer 재작업 후 재검토
+4. **사용자** 가 기획서 리뷰·승인
+5. **gameplay-programmer** 가 스펙·계획서·기획서를 모두 읽고 구현
+6. **code-reviewer** 가 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업 후 재검토
+7. **test-engineer** 가 본격 테스트 스위트 작성
+8. (게임플레이 영향이 큰 경우) **qa-simulator** 가 시뮬레이션으로 밸런스 검증
+9. 변경사항 요약 + 커밋 메시지(안) 제시 — Rule 01 (직접 커밋 X, `git add` 까지)
+
+> **간이 흐름**: 프로토타입·throwaway 작업은 `start-develop-simple` 스킬을 통해 0~1 단계(brainstorming·writing-plans) 와 3·6·8 단계(design-reviewer·code-reviewer·qa-simulator) 를 생략 — game-designer → gameplay-programmer → test-engineer 만 돌린다.
 
 ### 밸런스 조정
 1. 사용자 또는 game-designer 가 의심 제기 ("X 카드가 너무 강한 것 같다")
@@ -124,3 +135,4 @@ docs/
 - `//` 일반 주석 (Rule 02) — `//#`
 - MVP 범위 밖 작업 (§8)
 - 메인 오케스트레이터가 직접 코드 작성 — 적절한 서브에이전트에 위임
+- `.claude/project.md` 의 필수 키 누락 또는 파일 부재 (Rule 00) — agent 가 프로젝트 메타를 못 읽어 동작 불능

@@ -6,9 +6,12 @@ tools: Read, Glob, Grep, Bash
 
 # code-reviewer — 코드 검토 전담 에이전트
 
-## 게임 정체성
+## 프로젝트 컨텍스트
 
-Project Lair — 5분 자동전투 로그라이크. 영웅 1명이 자동으로 던전을 돌파, 플레이어의 몬스터 무리가 자동 전투. HP 10%마다 패시브 카드, 30초마다 액티브 카드. 현재 MVP 단계 (영웅 1 · 몬스터 6 · 패시브 15 · 액티브 10, 프리미티브 비주얼). 코드 namespace 는 `Lair`, 인프라는 ChvjPackage(`com.chvj.unityinfra`).
+이 에이전트는 **프로젝트별 게임 컨텍스트**를 외부 메타 파일에서 읽어 적용한다 (Rule 00). 작업 시작 시:
+
+1. `.claude/project.md` 을 읽는다 — `infrastructure` · `namespace` · `architecture` · `code_root` 등으로 검토 기준 파악
+2. 기획서(`docs.design` 폴더의 `[기능명].md`) 를 읽는다 — 코드가 기획에 일치하는지 판단하는 기준
 
 ## 역할
 
