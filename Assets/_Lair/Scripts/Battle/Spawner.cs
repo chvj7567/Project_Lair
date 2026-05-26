@@ -6,7 +6,9 @@ namespace Lair.Battle
     //# 지속 스폰 — 씬에 사전 배치되는 컴포넌트 (Addressables 프리팹 아님 → Rule 12 예외).
     //# 한 판 동안 고정 주기로 출력 종 몬스터를 동시 출력 수만큼 스폰한다.
     //# 첫 스폰은 t=InitialDelay, 이후 t=InitialDelay+주기×n (§2.4 위상 오프셋).
-    public class Spawner : MonoBehaviour
+    //# ISpawnerProgress — 쿨다운 진행도(0~1) 노출 (SpawnerCooldownBar 전용).
+    //# ISpawnerOutputProvider — 출력 종 변경 이벤트 노출 (SpawnerBody 전용).
+    public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider
     {
         //# === 인스펙터 직렬화 — 스타터 프리셋 (§5.3) ===
         [Tooltip("이 Spawner 가 스폰하는 몬스터 종 (초기값 — 융합 카드로 런타임 변경됨)")]
@@ -31,6 +33,22 @@ namespace Lair.Battle
         //# 현재 출력 종 — IBattleContext 카드 API 가 매칭/변경에 사용.
         public EMonster CurrentType => _currentType;
 
+        //# ISpawnerProgress 구현 — SpawnerCooldownBar 가 읽음.
+        //# 초기 지연 국면(firstSpawnDone==false): 0f 고정.
+        //# 주기 국면: _timer / _spawnPeriod 클램프 [0, 1].
+        public float Progress
+        {
+            get
+            {
+                if (!_firstSpawnDone) return 0f;
+                if (_spawnPeriod <= 0f) return 1f;
+                return Mathf.Clamp01(_timer / _spawnPeriod);
+            }
+        }
+
+        //# ISpawnerOutputProvider 구현 — SpawnerBody 가 구독.
+        public event System.Action<EMonster> OnOutputTypeChanged;
+
         //# 풀 재사용은 없지만(씬 정적 오브젝트) 씬 재진입 시 상태 초기화 일관성 유지 (Rule 12 정신).
         private void OnEnable()
         {
@@ -39,6 +57,8 @@ namespace Lair.Battle
             //# 타이머 0 시작 — 첫 발사 전이라 _timer >= InitialDelay 도달 시점이 첫 발사 (t=InitialDelay).
             _timer = 0f;
             _firstSpawnDone = false;
+            //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerBody 가 초기 색상 수신.
+            OnOutputTypeChanged?.Invoke(_currentType);
         }
 
         //# BattleController 가 수집 시 1회 주입 (Rule 03 — 인터페이스 주입, 싱글톤 직접 호출 회피).
@@ -75,6 +95,11 @@ namespace Lair.Battle
         public void IncrementOutput() => _outputCount++;
 
         //# 융합 카드 — 출력 종 영구 변경. 동시 출력 수는 유지 (§3.5 케이스 3).
-        public void ReplaceOutput(EMonster to) => _currentType = to;
+        //# 변경 후 OnOutputTypeChanged 발행 — SpawnerBody 가 틴트 즉시 갱신.
+        public void ReplaceOutput(EMonster to)
+        {
+            _currentType = to;
+            OnOutputTypeChanged?.Invoke(_currentType);
+        }
     }
 }
