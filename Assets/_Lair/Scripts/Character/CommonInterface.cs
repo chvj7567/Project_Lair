@@ -65,4 +65,21 @@ namespace Lair.Character
     {
         bool TryFindNearest(Vector3 from, out Transform target, out IHealth health);
     }
+
+    //# ===== 회전 =====
+
+    //# Y축(yaw) 회전 추상. AutoCombatAI 가 상태별로 FaceDirection 호출.
+    //# 풀 재사용 시 SnapToDirection 으로 초기 방향 즉시 적용.
+    public interface IRotator
+    {
+        //# deg/s. 인스펙터 또는 BalanceConfig 로 설정.
+        float TurnSpeedDegPerSec { get; set; }
+
+        //# 목표 방향 설정 — 매 Update 호출 가능. magnitude < 0.001f 면 no-op.
+        //# Y 성분 무시 (XZ 평면 yaw 만 계산).
+        void FaceDirection(Vector3 worldDir);
+
+        //# 즉시 스냅 — OnEnable / 초기 스폰 시 사용. magnitude < 0.001f 면 no-op.
+        void SnapToDirection(Vector3 worldDir);
+    }
 }

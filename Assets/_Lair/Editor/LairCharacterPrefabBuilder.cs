@@ -138,6 +138,8 @@ namespace Lair.EditorTools
             go.AddComponent<SimpleMover>();
             go.AddComponent<Health>();
             go.AddComponent<MeleeAttacker>();
+            //# 캐릭터 회전 — IRotator 구현체. AutoCombatAI 가 RequireComponent 로 의존.
+            go.AddComponent<SimpleRotator>();
             if (spec.IsHero)
             {
                 go.AddComponent<HeroTargetProvider>();
