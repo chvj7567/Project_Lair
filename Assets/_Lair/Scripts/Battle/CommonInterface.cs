@@ -15,7 +15,7 @@ namespace Lair.Battle
     }
 
     //# Rule 10 — Spawner 쿨다운 진행도 노출 계약.
-    //# SpawnerCooldownBar 가 GetComponentInParent<ISpawnerProgress>() 로 읽음 (Rule 06).
+    //# SpawnerStatusCell 이 매 프레임 ISpawnerProgress.Progress 폴링 (기획서 §4.3 · §4.6).
     //# Spawner.cs 가 구현. 초기 지연 국면 = 0f, 주기 국면 = _timer / _spawnPeriod 클램프.
     public interface ISpawnerProgress
     {
@@ -23,15 +23,22 @@ namespace Lair.Battle
         float Progress { get; }
     }
 
-    //# Rule 10 — Spawner 출력 종(EMonster) 변경 이벤트 노출 계약.
+    //# Rule 10 — Spawner 출력 종(EMonster) 변경 이벤트 + 동시 출력 수 노출 계약.
     //# SpawnerBody 가 GetComponentInParent<ISpawnerOutputProvider>() 로 구독 (Rule 06).
-    //# Spawner.cs 가 구현. ReplaceOutput 호출 시 + OnEnable 시 이벤트 발행.
+    //# Spawner.cs 가 구현. ReplaceOutput 호출 시 + OnEnable 시 OnOutputTypeChanged 발행.
+    //# IncrementOutput 호출 시 OnOutputCountChanged 발행 (OnEnable 시점에는 발행 안 함 — VM 폴링).
     public interface ISpawnerOutputProvider
     {
         //# 현재 출력 중인 몬스터 종.
         EMonster CurrentType { get; }
 
+        //# 동시 출력 수 — 기본 1, 추가소환 카드(IncrementSpawnerOutput)로 +1.
+        int OutputCount { get; }
+
         //# ReplaceOutput 호출 시 또는 초기화(OnEnable) 시 발행.
         event System.Action<EMonster> OnOutputTypeChanged;
+
+        //# IncrementOutput 호출 시 발행. OnEnable 시점엔 발행 안 함 (VM 이 초기값을 직접 폴링).
+        event System.Action<int> OnOutputCountChanged;
     }
 }

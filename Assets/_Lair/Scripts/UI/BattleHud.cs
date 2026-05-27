@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using ChvjUnityInfra;
+using Lair.Battle;
 using Lair.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,6 +11,10 @@ namespace Lair.UI
     public class BattleHudArg : UIArg
     {
         public BattleViewModel ViewModel;
+        //# 스포너 상태 UI — 진행 바 폴링용 ISpawnerProgress 6개.
+        public IReadOnlyList<Spawner> Spawners;
+        //# 스포너 상태 UI — 툴팁이 base 스탯을 읽기 위한 단일 진실.
+        public BalanceConfig Balance;
     }
 
     //# CHMUI 로 띄워지는 HUD. UIArg 통해 ViewModel 주입받아 구독.
@@ -18,17 +24,20 @@ namespace Lair.UI
         [SerializeField] private CHText _timerText;
         [SerializeField] private Image _heroHpFill;
         [SerializeField] private BuildPanel _buildPanel;
+        //# 스포너 상태 UI — 화면 하단 6셀 패널 (기획서 §2.1).
+        [SerializeField] private SpawnerStatusPanel _spawnerStatusPanel;
 
         private BattleViewModel _vm;
 
         public override void InitUI(UIArg arg)
         {
             if (arg is BattleHudArg ba && ba.ViewModel != null)
-                Bind(ba.ViewModel);
+                Bind(ba);
         }
 
-        private void Bind(BattleViewModel vm)
+        private void Bind(BattleHudArg ba)
         {
+            var vm = ba.ViewModel;
             _vm = vm;
             vm.OnTimerChanged       += HandleTimer;
             vm.OnHeroHpRatioChanged += HandleHp;
@@ -44,6 +53,13 @@ namespace Lair.UI
             {
                 _buildPanel.Bind(vm);
                 closeDisposable.Add(() => _buildPanel.Unbind());
+            }
+
+            //# 스포너 상태 패널 바인딩 (Close 시 자동 해제)
+            if (_spawnerStatusPanel != null)
+            {
+                _spawnerStatusPanel.Bind(vm, ba.Spawners, ba.Balance);
+                closeDisposable.Add(() => _spawnerStatusPanel.Unbind());
             }
 
             //# 초기 동기화

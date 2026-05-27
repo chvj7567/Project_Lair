@@ -140,6 +140,14 @@ namespace Lair.EditorTools
                 return;
             }
 
+            //# 스포너 상태 UI 프리팹이 BattleHud nesting 의 의존성이므로 사전 빌드 (advisor §3).
+            //# 이미 빌드되어 있다면 PrefabUtility.SaveAsPrefabAsset 가 덮어쓴다 — idempotent.
+            if (AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/SpawnerStatusPanel.prefab") == null)
+            {
+                Debug.Log("[LairUIPrefabBuilder] SpawnerStatusPanel.prefab 미발견 — Spawner Status UI 빌더 선행 호출");
+                LairSpawnerStatusUIBuilder.BuildAll();
+            }
+
             BuildBuildIconCell();
             BuildBattleHud(settings, group);
             BuildResultPopup(settings, group);
@@ -155,6 +163,8 @@ namespace Lair.EditorTools
         public static void RunAllM4Setup()
         {
             EnsureUICanvas();
+            //# 스포너 상태 UI 프리팹(SpawnerStatusPanel 등) 을 먼저 빌드 — BattleHud 가 nesting 함.
+            LairSpawnerStatusUIBuilder.BuildAll();
             BuildAllUIPrefabs();
             Debug.Log("[LairUIPrefabBuilder] M4 셋업 완료");
         }
@@ -228,18 +238,24 @@ namespace Lair.EditorTools
             Debug.Log($"[LairUIPrefabBuilder] {PrefabName} 빌드 완료");
         }
 
-        //# 빌드 패널의 한 섹션(패시브/액티브) — 라벨 + 가로 레이아웃 컨테이너. 컨테이너 Transform 반환.
-        private static Transform BuildBuildSection(Transform parent, string name, string label, bool left)
+        //# 빌드 패널의 한 섹션(패시브/액티브) — 라벨 + ScrollRect + Viewport + Content.
+        //# v0.4: 상하 50:50 세로 분할. v0.5: 섹션마다 ScrollRect 1세트.
+        //# 반환값: Content Transform (BuildPanel.cs 의 _passiveContainer/_activeContainer 가 가리킴).
+        private static Transform BuildBuildSection(Transform parent, string name, string label, bool top)
         {
+            //# 섹션 RectTransform — 상하 50:50.
+            //# top=true → anchorMin (0, 0.5), anchorMax (1, 1)  : 상단 절반
+            //# top=false → anchorMin (0, 0), anchorMax (1, 0.5) : 하단 절반
             var sectionGo = new GameObject(name, typeof(RectTransform));
             sectionGo.transform.SetParent(parent, false);
             var rt = (RectTransform)sectionGo.transform;
-            rt.anchorMin = new Vector2(left ? 0f : 0.5f, 0f);
-            rt.anchorMax = new Vector2(left ? 0.5f : 1f, 1f);
-            rt.offsetMin = new Vector2(left ? 0f : 10f, 0f);
-            rt.offsetMax = new Vector2(left ? -10f : 0f, 0f);
+            rt.anchorMin = new Vector2(0f, top ? 0.5f : 0f);
+            rt.anchorMax = new Vector2(1f, top ? 1f   : 0.5f);
+            //# 섹션 사이 0.5px 여유 (분할선 1px 의 절반씩).
+            rt.offsetMin = new Vector2(0f, top ? 0.5f : 0f);
+            rt.offsetMax = new Vector2(0f, top ? 0f   : -0.5f);
 
-            //# 섹션 라벨
+            //# 섹션 라벨 — 상단 32px (§3.2 v0.5).
             var labelGo = new GameObject("Label", typeof(RectTransform));
             labelGo.transform.SetParent(sectionGo.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
@@ -247,7 +263,7 @@ namespace Lair.EditorTools
             labelRt.anchorMax = new Vector2(1f, 1f);
             labelRt.pivot     = new Vector2(0.5f, 1f);
             labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(0f, 28f);
+            labelRt.sizeDelta = new Vector2(0f, 32f);
             var labelTmp = labelGo.AddComponent<TextMeshProUGUI>();
             labelTmp.text = label;
             labelTmp.font = TMP_Settings.defaultFontAsset;
@@ -255,23 +271,67 @@ namespace Lair.EditorTools
             labelTmp.alignment = TextAlignmentOptions.Left;
             labelTmp.color = Color.white;
 
-            //# 아이콘 컨테이너 — 가로 레이아웃
-            var containerGo = new GameObject("Container", typeof(RectTransform));
-            containerGo.transform.SetParent(sectionGo.transform, false);
-            var containerRt = (RectTransform)containerGo.transform;
-            containerRt.anchorMin = new Vector2(0f, 0f);
-            containerRt.anchorMax = new Vector2(1f, 1f);
-            containerRt.offsetMin = new Vector2(0f, 0f);
-            containerRt.offsetMax = new Vector2(0f, -32f);
-            var hlg = containerGo.AddComponent<HorizontalLayoutGroup>();
-            hlg.spacing = 6;
-            hlg.childAlignment = TextAnchor.LowerLeft;
-            hlg.childForceExpandWidth = false;
-            hlg.childForceExpandHeight = false;
-            hlg.childControlWidth = false;
-            hlg.childControlHeight = false;
+            //# ScrollRect — 라벨 영역 32px 제외한 영역. Vertical only / Elastic / Inertia / Scrollbar 없음 (§2.8.5).
+            var scrollGo = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect));
+            scrollGo.transform.SetParent(sectionGo.transform, false);
+            var scrollRt = (RectTransform)scrollGo.transform;
+            scrollRt.anchorMin = new Vector2(0f, 0f);
+            scrollRt.anchorMax = new Vector2(1f, 1f);
+            scrollRt.offsetMin = new Vector2(0f, 0f);
+            scrollRt.offsetMax = new Vector2(0f, -32f);   //# 라벨 영역 제외.
+            var sr = scrollGo.GetComponent<ScrollRect>();
+            sr.horizontal = false;
+            sr.vertical = true;
+            sr.movementType = ScrollRect.MovementType.Elastic;
+            sr.elasticity = 0.1f;
+            sr.inertia = true;
+            sr.decelerationRate = 0.135f;
+            sr.scrollSensitivity = 1f;
+            sr.horizontalScrollbar = null;
+            sr.verticalScrollbar = null;
 
-            return containerGo.transform;
+            //# Viewport — RectMask2D + Image (alpha 0.001, raycast target). RectMask2D 만으로는
+            //# raycast 영역이 안 생기므로 거의 투명한 Image 를 raycast receiver 로 둠 (§2.8.5).
+            var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            viewportGo.transform.SetParent(scrollGo.transform, false);
+            var viewportRt = (RectTransform)viewportGo.transform;
+            viewportRt.anchorMin = Vector2.zero;
+            viewportRt.anchorMax = Vector2.one;
+            viewportRt.pivot = new Vector2(0.5f, 0.5f);
+            viewportRt.anchoredPosition = Vector2.zero;
+            viewportRt.sizeDelta = Vector2.zero;
+            var viewportImg = viewportGo.GetComponent<Image>();
+            viewportImg.sprite = GetUISprite();
+            viewportImg.color = new Color(0f, 0f, 0f, 0.001f);
+            viewportImg.raycastTarget = true;
+
+            //# Content — 위에서 아래로 쌓이는 표준 ScrollRect Content. pivot (0.5, 1).
+            //# VerticalLayoutGroup (spacing 6, padding 4) + ContentSizeFitter (Vertical=PreferredSize).
+            var contentGo = new GameObject("Content", typeof(RectTransform));
+            contentGo.transform.SetParent(viewportGo.transform, false);
+            var contentRt = (RectTransform)contentGo.transform;
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot     = new Vector2(0.5f, 1f);
+            contentRt.anchoredPosition = Vector2.zero;
+            contentRt.sizeDelta = new Vector2(0f, 0f);
+            var vlg = contentGo.AddComponent<VerticalLayoutGroup>();
+            vlg.spacing = 6f;
+            vlg.padding = new RectOffset(4, 4, 4, 4);
+            vlg.childAlignment = TextAnchor.UpperLeft;
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight = false;
+            var fitter = contentGo.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            //# ScrollRect 참조 묶기.
+            sr.viewport = viewportRt;
+            sr.content = contentRt;
+
+            return contentRt;
         }
 
         //# ---------- BattleHud 프리팹 ----------
@@ -338,85 +398,66 @@ namespace Lair.EditorTools
                 Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 로드 실패 — 영웅 HP 바 생략");
             }
 
-            //# ----- 빌드 패널 (화면 하단) -----
-            var buildPanelGo = new GameObject("BuildPanel", typeof(RectTransform));
+            //# ----- 빌드 패널 (화면 우측 세로 컬럼 — v0.4 §2.8) -----
+            //# Anchor (1,0)~(1,1), Pivot (1, 0.5), 폭 240 / 상단 32 / 하단 120 / 우측 24.
+            //# offsetMin = (-264, 120), offsetMax = (-24, -32) (§2.8.1 + §2.8.4).
+            //# 자식 셀은 raycast 차단(BuildIconCell.Bind(null) 시 처리), 루트 CHButton 이 클릭 잡음.
+            var buildPanelGo = new GameObject("BuildPanel", typeof(RectTransform), typeof(Image), typeof(Button));
             buildPanelGo.transform.SetParent(root.transform, false);
             var bpRt = (RectTransform)buildPanelGo.transform;
-            bpRt.anchorMin = new Vector2(0f, 0f);
-            bpRt.anchorMax = new Vector2(1f, 0f);
-            bpRt.pivot     = new Vector2(0.5f, 0f);
-            bpRt.anchoredPosition = new Vector2(0f, 16f);
-            bpRt.sizeDelta = new Vector2(-40f, 150f);
+            bpRt.anchorMin = new Vector2(1f, 0f);
+            bpRt.anchorMax = new Vector2(1f, 1f);
+            bpRt.pivot     = new Vector2(1f, 0.5f);
+            bpRt.offsetMin = new Vector2(-264f, 120f);
+            bpRt.offsetMax = new Vector2(-24f, -32f);
+            //# 패널 배경 — raycast 받는 거의 투명 Image.
+            var bpBg = buildPanelGo.GetComponent<Image>();
+            bpBg.sprite = GetUISprite();
+            bpBg.type = Image.Type.Sliced;
+            bpBg.color = new Color(0f, 0f, 0f, 0.001f);
+            var bpButton = buildPanelGo.GetComponent<Button>();
+            bpButton.targetGraphic = bpBg;
+            var bpChButton = buildPanelGo.AddComponent<CHButton>();
             var buildPanel = buildPanelGo.AddComponent<Lair.UI.BuildPanel>();
 
-            //# 패시브/액티브 섹션
-            var passiveContainer = BuildBuildSection(buildPanelGo.transform, "PassiveSection", "패시브", left: true);
-            var activeContainer  = BuildBuildSection(buildPanelGo.transform, "ActiveSection",  "액티브", left: false);
-
-            //# 상세 패널 (빌드 패널 위, 기본 숨김)
-            var detailGo = new GameObject("DetailPanel", typeof(RectTransform));
-            detailGo.transform.SetParent(root.transform, false);
-            var detailRt = (RectTransform)detailGo.transform;
-            detailRt.anchorMin = new Vector2(0.5f, 0f);
-            detailRt.anchorMax = new Vector2(0.5f, 0f);
-            detailRt.pivot     = new Vector2(0.5f, 0f);
-            detailRt.anchoredPosition = new Vector2(0f, 180f);
-            detailRt.sizeDelta = new Vector2(520f, 160f);
-            var detailBg = detailGo.AddComponent<Image>();
-            detailBg.sprite = GetUISprite();
-            detailBg.type = Image.Type.Sliced;
-            detailBg.color = new Color(0f, 0f, 0f, 0.85f);
-
-            var detailNameGo = new GameObject("DetailName", typeof(RectTransform));
-            detailNameGo.transform.SetParent(detailGo.transform, false);
-            var dnRt = (RectTransform)detailNameGo.transform;
-            dnRt.anchorMin = new Vector2(0f, 1f);
-            dnRt.anchorMax = new Vector2(1f, 1f);
-            dnRt.pivot     = new Vector2(0.5f, 1f);
-            dnRt.anchoredPosition = new Vector2(0f, -10f);
-            dnRt.sizeDelta = new Vector2(-20f, 44f);
-            var dnTmp = detailNameGo.AddComponent<TextMeshProUGUI>();
-            dnTmp.text = "Name";
-            dnTmp.font = TMP_Settings.defaultFontAsset;
-            dnTmp.fontSize = 30f;
-            dnTmp.alignment = TextAlignmentOptions.Center;
-            dnTmp.color = Color.white;
-            var detailName = detailNameGo.AddComponent<CHText>();
-
-            var detailDescGo = new GameObject("DetailDesc", typeof(RectTransform));
-            detailDescGo.transform.SetParent(detailGo.transform, false);
-            var ddRt = (RectTransform)detailDescGo.transform;
-            ddRt.anchorMin = new Vector2(0f, 0f);
-            ddRt.anchorMax = new Vector2(1f, 1f);
-            ddRt.offsetMin = new Vector2(16f, 16f);
-            ddRt.offsetMax = new Vector2(-16f, -54f);
-            var ddTmp = detailDescGo.AddComponent<TextMeshProUGUI>();
-            ddTmp.text = "Description";
-            ddTmp.font = TMP_Settings.defaultFontAsset;
-            ddTmp.fontSize = 22f;
-            ddTmp.alignment = TextAlignmentOptions.Top;
-            ddTmp.color = Color.white;
-            var detailDesc = detailDescGo.AddComponent<CHText>();
+            //# 패시브/액티브 섹션 — 상하 50:50 (v0.4). 각 섹션은 ScrollRect 구조 (v0.5 §2.8.5).
+            //# BuildPanel.cs 의 _passiveContainer/_activeContainer 는 각 섹션의 Content 를 가리킴.
+            var passiveContainer = BuildBuildSection(buildPanelGo.transform, "PassiveSection", "패시브", top: true);
+            var activeContainer  = BuildBuildSection(buildPanelGo.transform, "ActiveSection",  "액티브", top: false);
 
             //# 셀 프리팹 로드 (Step 1 의 BuildBuildIconCell 이 먼저 생성함)
             var cellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuildIconCell.prefab");
 
-            //# BuildPanel 필드 주입
+            //# BuildPanel 필드 주입 (스포너 상태 UI — _detailRoot/_detailName/_detailDesc 제거, _rootButton 추가)
             var bpSo = new SerializedObject(buildPanel);
             SetObjectField(bpSo, "_passiveContainer", passiveContainer);
             SetObjectField(bpSo, "_activeContainer",  activeContainer);
             SetObjectField(bpSo, "_cellPrefab",       cellPrefab);
-            SetObjectField(bpSo, "_detailRoot",       detailGo);
-            SetObjectField(bpSo, "_detailName",       detailName);
-            SetObjectField(bpSo, "_detailDesc",       detailDesc);
+            SetObjectField(bpSo, "_rootButton",       bpChButton);
             bpSo.ApplyModifiedPropertiesWithoutUndo();
-            detailGo.SetActive(false);
 
-            //# SerializeField 주입 — _timerText (CHText), _heroHpFill
+            //# ----- 스포너 상태 패널 (화면 하단 6셀) -----
+            //# 신규 빌더(Lair/Setup/Spawner Status UI) 가 SpawnerStatusPanel.prefab 을 생성한 다음 이 메뉴를 다시 돌리면
+            //# 본 BattleHud 빌더가 prefab 을 nested instance 로 끼워준다 (Addressable 등록 없음).
+            var spawnerPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/SpawnerStatusPanel.prefab");
+            Lair.UI.SpawnerStatusPanel spawnerPanelInst = null;
+            if (spawnerPanelPrefab != null)
+            {
+                var inst = (GameObject)PrefabUtility.InstantiatePrefab(spawnerPanelPrefab, root.transform);
+                spawnerPanelInst = inst.GetComponent<Lair.UI.SpawnerStatusPanel>();
+            }
+            else
+            {
+                Debug.LogWarning("[LairUIPrefabBuilder] SpawnerStatusPanel.prefab 미발견 — 'Lair/Setup/Spawner Status UI' 먼저 실행 권장");
+            }
+
+            //# SerializeField 주입 — _timerText (CHText), _heroHpFill, _buildPanel, _spawnerStatusPanel
             var so = new SerializedObject(hud);
             SetObjectField(so, "_timerText",  timerText);    //# CHText 컴포넌트
             SetObjectField(so, "_heroHpFill", hpFillImg);
             SetObjectField(so, "_buildPanel", buildPanel);
+            if (spawnerPanelInst != null)
+                SetObjectField(so, "_spawnerStatusPanel", spawnerPanelInst);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);

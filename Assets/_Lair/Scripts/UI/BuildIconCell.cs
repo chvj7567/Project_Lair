@@ -26,6 +26,8 @@ namespace Lair.UI
         }
 
         //# 카드 바인딩 — 프레임 색·아이콘·클릭 콜백 설정.
+        //# onClick == null 이면 자식 셀은 raycast 를 받지 않도록 Button.interactable=false 처리.
+        //# 패널 루트가 클릭을 받아 모달을 띄우기 위해서 (기획서 §2.6.2).
         public void Bind(CardData card, Action onClick)
         {
             if (card == null) return;
@@ -37,8 +39,25 @@ namespace Lair.UI
                 //# 아이콘 누락 시 비활성 — 프레임 색이 폴백.
                 _iconImage.enabled = card.Icon != null;
             }
-            if (_button != null && onClick != null)
-                _button.OnClick(onClick, _disposable);
+            if (_button != null)
+            {
+                if (onClick != null)
+                {
+                    _button.Interactable = true;
+                    _button.OnClick(onClick, _disposable);
+                }
+                else
+                {
+                    //# 자식 raycast 가 패널 루트 클릭을 가로채지 않게 비활성.
+                    _button.Interactable = false;
+                }
+            }
+
+            //# 셀 raycast 도 닫아 패널 루트 클릭이 막히지 않게 (기획서 §2.6.2).
+            //# onClick != null 인 케이스(기존 호환)에선 raycast 유지.
+            bool acceptRaycast = onClick != null;
+            if (_frameImage != null) _frameImage.raycastTarget = acceptRaycast;
+            if (_iconImage  != null) _iconImage.raycastTarget  = acceptRaycast;
         }
 
         //# ×N 배지 — N >= 2 일 때만 표시.

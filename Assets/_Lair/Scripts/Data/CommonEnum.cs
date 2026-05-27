@@ -30,6 +30,8 @@ namespace Lair.Data
         BattleHud,
         ResultPopup,
         CardSelectionPopup,    //# B1 신규
+        BuildModalPopup,       //# 스포너 상태 UI — BuildPanel 클릭 시 화면 중앙 모달
+        SpawnerStatusTooltip,  //# 스포너 상태 UI — 셀 클릭 시 셀 위 floating 툴팁
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)

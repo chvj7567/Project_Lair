@@ -7,7 +7,11 @@ namespace Lair.Tests.Helpers
     //# 테스트용 CardData 생성기 — SerializedObject 우회.
     public static class FakeCardData
     {
-        public static CardData Create(ECardId id, ECardCategory category = ECardCategory.Enhance)
+        //# effect: null 이면 _effect 미설정. ApplyCardEffect 가 null 검사로 no-op 분기 들어감.
+        public static CardData Create(
+            ECardId id,
+            ECardCategory category = ECardCategory.Enhance,
+            ICardEffect effect = null)
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             //# reflection 으로 private SerializeField 주입 (테스트 한정 허용)
@@ -18,6 +22,11 @@ namespace Lair.Tests.Helpers
                 ?.SetValue(card, category);
             t.GetField("_displayName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(card, id.ToString());
+            if (effect != null)
+            {
+                t.GetField("_effect", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    ?.SetValue(card, effect);
+            }
             return card;
         }
     }

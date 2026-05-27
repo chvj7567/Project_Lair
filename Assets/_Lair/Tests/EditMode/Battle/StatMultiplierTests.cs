@@ -120,6 +120,18 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(7f, m.SlowFactorMul, 0.0001f);
         }
 
+        //# 스포너 상태 UI — Get(stat) 정상: 누적 곱연산 결과를 그대로 읽어온다.
+        [Test]
+        public void Get_누적_배율_값_반환()
+        {
+            var m = new StatMultiplier();
+            m.Multiply(EMonsterStatKind.Hp, 1.5f);
+            m.Multiply(EMonsterStatKind.Hp, 1.5f);
+
+            Assert.AreEqual(2.25f, m.Get(EMonsterStatKind.Hp), 0.0001f, "Hp 2픽 곱연산 결과 = 2.25");
+            Assert.AreEqual(1f,   m.Get(EMonsterStatKind.Power), 0.0001f, "Power 미픽 — 1.0 유지");
+        }
+
         //# 회귀 — Identity 는 매 호출 새 인스턴스. 한 Identity 를 변경해도 다음 Identity 는 오염 없음.
         //# (StatMultiplier.Identity 가 공유 정적 인스턴스로 바뀌면 이 테스트가 깨진다.)
         [Test]

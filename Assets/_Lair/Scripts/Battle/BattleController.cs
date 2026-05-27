@@ -25,6 +25,17 @@ namespace Lair.Battle
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
+        //# 스포너 상태 UI — 종별 적용된 강화 카드 픽 누적 (툴팁 본문 + 셀 상단 아이콘 row 의 source).
+        //# Source 추적은 ApplyCardEffect(card) 가 _currentCardScope 에 카드를 저장한 동안
+        //# RegisterMonsterTypeBuff 가 호출되는 패턴으로만 갱신된다 (기획서 §4.2).
+        private readonly Dictionary<EMonster, List<BattleViewModel.AppliedBuff>> _typeModifierPicks = new();
+
+        //# 스포너 상태 UI — 카드 효과 적용 진입점이 임시로 저장하는 현재 픽 카드. RegisterMonsterTypeBuff 가 source 로 읽는다.
+        private CardData _currentCardScope;
+
+        //# 스포너 상태 UI — VM 이 구독. 종 단위 강화가 갱신되면 해당 종 출력 스포너 셀 모두 재계산.
+        public event System.Action<EMonster> OnTypeModifierChanged;
+
         private BattleClock _clock;
         private BattleStateModel _model;
         private BattleViewModel _vm;
@@ -77,13 +88,16 @@ namespace Lair.Battle
                 _model.TotalSeconds = _balance.RunDuration;
             _vm = new BattleViewModel(_model);
 
-            //# 3. HUD 표시
-            await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
-                new BattleHudArg { ViewModel = _vm });
-
-            //# 4. 영웅 스폰. 몬스터는 지속 스폰 — Spawner 들이 주기마다 틱.
+            //# 3. 영웅 스폰 + Spawner 바인딩.
+            //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
+            //#    HUD 가 먼저 뜨면 SpawnerStatusPanel.Bind 시점에 vm.Spawners 가 빈 리스트라 셀 0 개가 만들어진다.
+            //#    Spawner.Tick 은 _host == null 이면 early return 이라 사전 Bind 부작용 없음.
             await SpawnHero();
             BindSpawners();
+
+            //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
+            await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
+                new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance });
 
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
@@ -162,8 +176,12 @@ namespace Lair.Battle
             => _bloodThirst?.NotifyMonsterDied(pos);
 
         //# 정적 이벤트 구독 해제 — 씬 재시작 시 누수 방지.
+        //# 스포너 상태 UI — VM 이 Spawner / 본 컨트롤러 이벤트를 구독했으므로 함께 해제.
         private void OnDestroy()
-            => DespawnOnDeath.MonsterDied -= HandleMonsterDied;
+        {
+            DespawnOnDeath.MonsterDied -= HandleMonsterDied;
+            _vm?.DetachSpawners();
+        }
 
         //# Slice C — BalanceConfig 스탯을 영웅에 적용. Pop 직후 호출.
         //# 영웅 전용 — 글로벌 타입 모디파이어가 없다. 시그니처·동작 그대로 유지.
@@ -234,11 +252,14 @@ namespace Lair.Battle
         }
 
         //# 지속 스폰 — 씬의 Spawner 들에 호스트 주입. 이후 Update 가 각자 주기 틱.
+        //# 스포너 상태 UI — Spawner 6개 + 본 컨트롤러를 VM 에 묶어 SpawnerSnapshot 통합 노출.
         private void BindSpawners()
         {
             if (_spawners == null) return;
             foreach (var sp in _spawners)
                 if (sp != null) sp.Bind(this);
+            //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
+            _vm?.AttachSpawners(_spawners, this);
         }
 
         //# 지속 스폰 — 현재 살아있는 필드 몬스터 수 (캡 검사용).
@@ -275,6 +296,7 @@ namespace Lair.Battle
         }
 
         //# 지속 스폰 — 강화 카드. 글로벌 dict 곱연산 갱신 + 필드 동일 종 소급 (§7.5.3).
+        //# 스포너 상태 UI — _currentCardScope 가 non-null (= ApplyCardEffect 진입 중) 이면 source 추적.
         public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
         {
             if (_typeModifiers.TryGetValue(type, out var m) == false)
@@ -292,7 +314,63 @@ namespace Lair.Battle
                 if (tag == null || tag.Key != type) continue;
                 ApplyMonsterStats(e.Transform.gameObject, type, resetCurrent: false);
             }
+
+            //# 카드 source 가 있으면 픽 누적 추적 (직접 호출 / 시뮬레이션 외 경로는 _currentCardScope null).
+            if (_currentCardScope != null)
+                TrackCardPick(type, stat, _currentCardScope);
+
+            //# VM 셀이 동일 종 출력 스포너를 모두 갱신하도록 broadcast.
+            OnTypeModifierChanged?.Invoke(type);
         }
+
+        //# 스포너 상태 UI — 카드 효과 적용의 단일 진입점 (기획서 §4.2 BLOCKER 4 결정).
+        //# 3개 기존 호출지점(card.Effect.Apply(_ctx))을 이 메서드로 치환해 source 를 잠시 보관한다.
+        //# ICardEffect / IBattleContext / 25개 효과 클래스 시그니처는 일체 변경하지 않는다.
+        public void ApplyCardEffect(CardData card)
+        {
+            if (card?.Effect == null || _ctx == null) return;
+            _currentCardScope = card;
+            try { card.Effect.Apply(_ctx); }
+            finally { _currentCardScope = null; }
+        }
+
+        //# 스포너 상태 UI — _typeModifierPicks 에 픽 누적. 동일 source 면 PickCount++,
+        //# 신규 source 면 add. 동일 종·동일 Stat 의 누적 배율은 _typeModifiers 의 Get(stat) 으로 일괄 갱신.
+        private void TrackCardPick(EMonster type, EMonsterStatKind stat, CardData source)
+        {
+            if (_typeModifierPicks.TryGetValue(type, out var list) == false)
+                _typeModifierPicks[type] = list = new List<BattleViewModel.AppliedBuff>();
+
+            var existing = list.Find(b => b.Source == source);
+            if (existing != null)
+                existing.PickCount++;
+            else
+                list.Add(new BattleViewModel.AppliedBuff
+                {
+                    Source = source,
+                    PickCount = 1,
+                    Stat = stat,
+                    AggregateMultiplier = 1f,
+                });
+
+            //# 동일 종·동일 Stat 의 엔트리들에 누적 배율을 일괄 동기화 (종 1 ↔ 카드 1 매핑이지만
+            //# 향후 1↔다 매핑 확장에 대비해 list 순회로 갱신).
+            if (_typeModifiers.TryGetValue(type, out var mul))
+            {
+                foreach (var b in list)
+                    if (b.Stat == stat) b.AggregateMultiplier = mul.Get(stat);
+            }
+        }
+
+        //# 스포너 상태 UI — VM 이 SpawnerSnapshot 채울 때 사용. 없는 종이면 빈 array.
+        public IReadOnlyList<BattleViewModel.AppliedBuff> GetAppliedBuffs(EMonster type)
+            => _typeModifierPicks.TryGetValue(type, out var list)
+                ? (IReadOnlyList<BattleViewModel.AppliedBuff>)list
+                : System.Array.Empty<BattleViewModel.AppliedBuff>();
+
+        //# 스포너 상태 UI — 툴팁이 base 스탯(Hp/Power/Range/Cooldown/MoveSpeed)을 읽기 위해 노출.
+        //# Plague SlowFactor 의 base 는 코드 상수 Lair.Character.PlagueSlowOnHit.BaseSlowFactor 사용 (§2.5.5).
+        public BalanceConfig Balance => _balance;
 
         //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
         public void IncrementSpawnerOutput(EMonster type)
@@ -362,7 +440,8 @@ namespace Lair.Battle
                     {
                         _recorder.RecordPick(picked.Id);
                         _vm.AddPick(picked, entry.SourceType == TriggerQueue.Source.Passive);
-                        if (picked.Effect != null && _ctx != null) picked.Effect.Apply(_ctx);
+                        //# 스포너 상태 UI — source 추적용 단일 진입점 (기획서 §4.2).
+                        ApplyCardEffect(picked);
                     }
                     continue;
                 }
@@ -384,7 +463,8 @@ namespace Lair.Battle
                             //# 빌드 패널 — VM 에 픽 누적
                             _vm.AddPick(card, entry.SourceType == TriggerQueue.Source.Passive);
                         }
-                        if (card?.Effect != null && _ctx != null) card.Effect.Apply(_ctx);
+                        //# 스포너 상태 UI — source 추적용 단일 진입점 (기획서 §4.2).
+                        if (card != null) ApplyCardEffect(card);
                         tcs.TrySetResult(true);
                     }
                 };
@@ -474,7 +554,8 @@ namespace Lair.Battle
             {
                 if (c != null && c.Id == id)
                 {
-                    if (c.Effect != null && _ctx != null) c.Effect.Apply(_ctx);
+                    //# 스포너 상태 UI — 디버그 경로도 ApplyCardEffect 로 통과 (source 추적 동일하게 적용).
+                    ApplyCardEffect(c);
                     return;
                 }
             }

@@ -4,18 +4,17 @@ using Lair.Data;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Lair.EditorTools
 {
-    //# 씬에 배치된 Spawner(6개)에 SpawnerBody 자식(Cylinder 디스크) + CooldownBarWrapper 자식을 부착.
-    //# LairCharacterPrefabBuilder.AttachMonsterHpBar 패턴을 따름 (기획서 §6).
+    //# 씬에 배치된 Spawner(6개)에 SpawnerBody 자식(Cylinder 디스크)을 부착.
+    //# 스포너 상태 UI — World-space 진행 바(CooldownBarWrapper) 빌드 스텝 제거 (기획서 §4.11).
+    //# 진행 바는 BattleHud 의 SpawnerStatusPanel 6셀로 통합. 디스크 본체(SpawnerBody) 는 유지.
     //# Rule 12 예외: CreatePrimitive 는 에디터 빌더에서만 허용.
     //# 이미 존재하는 자식은 스킵 (idempotent).
     public static class LairSpawnerVisualBuilder
     {
         private const string MaterialDir   = "Assets/_Lair/Art/Materials";
-        private const string HpBarPrefabPath = "Assets/_Lair/Art/UI/HpBar.prefab";
         private const string UrpLitShaderName = "Universal Render Pipeline/Lit";
 
         //# EMonster 순서(0=Wisp, 1=Wraith, 2=Reaper, 3=Hex, 4=Plague, 5=Phantom)와 1:1 대응.
@@ -43,19 +42,13 @@ namespace Lair.EditorTools
             //# 6종 머티리얼을 미리 생성/로드해 두어 반복 참조.
             var mats = EnsureSpawnerMaterials();
 
-            var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
-            if (hpBarPrefab == null)
-            {
-                Debug.LogError("[LairSpawnerVisualBuilder] HpBar.prefab 미발견: " + HpBarPrefabPath);
-                return;
-            }
-
             int processed = 0;
             foreach (var spawner in spawners)
             {
                 bool changed = false;
                 changed |= EnsureSpawnerBody(spawner, mats);
-                changed |= EnsureCooldownBarWrapper(spawner, hpBarPrefab);
+                //# 스포너 상태 UI — 기존 CooldownBarWrapper 자식이 있다면 제거 (씬 마이그레이션, 기획서 §4.11).
+                changed |= RemoveCooldownBarWrapperIfExists(spawner);
 
                 if (changed)
                 {
@@ -67,6 +60,15 @@ namespace Lair.EditorTools
 
             AssetDatabase.SaveAssets();
             Debug.Log($"[LairSpawnerVisualBuilder] {spawners.Length}개 Spawner 중 {processed}개 수정 완료");
+        }
+
+        //# 씬에 잔존하는 CooldownBarWrapper 자식 제거 (idempotent). 신규 진행 바는 BattleHud 6셀.
+        private static bool RemoveCooldownBarWrapperIfExists(Spawner spawner)
+        {
+            var wrapper = spawner.transform.Find("CooldownBarWrapper");
+            if (wrapper == null) return false;
+            Object.DestroyImmediate(wrapper.gameObject);
+            return true;
         }
 
         //# SpawnerBody 자식 생성 — 이미 있으면 false 반환(스킵).
@@ -97,51 +99,6 @@ namespace Lair.EditorTools
             var bodyComp = body.AddComponent<SpawnerBody>();
             SetPrivateField(bodyComp, "_renderer", renderer);
             SetPrivateField(bodyComp, "_materials", mats);
-
-            return true;
-        }
-
-        //# CooldownBarWrapper 자식 생성 — 이미 있으면 false 반환(스킵).
-        private static bool EnsureCooldownBarWrapper(Spawner spawner, GameObject hpBarPrefab)
-        {
-            if (spawner.transform.Find("CooldownBarWrapper") != null) return false;
-
-            const float BarPixelW    = 120f;
-            const float TargetWorldW = 1.2f;
-            const float SpawnerScale = 1.0f;   //# Spawner 씬 배치 스케일 = 1 고정.
-            const float LocalY       = 0.5f;   //# 기획서 §3.4 — 디스크 살짝 위.
-
-            //# 래퍼 — WorldSpace Canvas + SpawnerCooldownBar.
-            var wrapper = new GameObject("CooldownBarWrapper", typeof(RectTransform), typeof(Canvas));
-            wrapper.transform.SetParent(spawner.transform, worldPositionStays: false);
-            var wrapperCanvas = wrapper.GetComponent<Canvas>();
-            wrapperCanvas.renderMode = RenderMode.WorldSpace;
-            var wrapperRt = (RectTransform)wrapper.transform;
-            wrapperRt.sizeDelta = new Vector2(BarPixelW, 20f);
-            wrapperRt.localScale = Vector3.one * (TargetWorldW / BarPixelW / SpawnerScale);
-            wrapperRt.localRotation = Quaternion.identity;
-            wrapperRt.localPosition = new Vector3(0f, LocalY, 0f);
-
-            //# HpBar.prefab 인스턴스 — 래퍼 자식 full-stretch.
-            var inst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, wrapper.transform);
-            var instRt = (RectTransform)inst.transform;
-            instRt.localScale    = Vector3.one;
-            instRt.localRotation = Quaternion.identity;
-            instRt.localPosition = Vector3.zero;
-            instRt.anchorMin  = Vector2.zero;
-            instRt.anchorMax  = Vector2.one;
-            instRt.offsetMin  = Vector2.zero;
-            instRt.offsetMax  = Vector2.zero;
-
-            //# Fill Image 탐색 — 결정론적 경로 Background/Fill.
-            var fillTf  = inst.transform.Find("Background/Fill");
-            var fillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
-            if (fillImg == null)
-                Debug.LogWarning("[LairSpawnerVisualBuilder] HpBar.prefab 내 Background/Fill Image 미발견");
-
-            //# SpawnerCooldownBar 부착 + _fill 주입.
-            var bar = wrapper.AddComponent<SpawnerCooldownBar>();
-            SetPrivateField(bar, "_fill", fillImg);
 
             return true;
         }

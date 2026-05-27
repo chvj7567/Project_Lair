@@ -31,5 +31,20 @@ namespace Lair.Battle
                 case EMonsterStatKind.SlowFactor: SlowFactorMul *= multiplier; break;
             }
         }
+
+        //# 지정 스탯 종류의 현재 누적 배율 조회 — 툴팁(AppliedBuff.AggregateMultiplier) 갱신 등 외부 read 용.
+        public float Get(EMonsterStatKind stat)
+        {
+            switch (stat)
+            {
+                case EMonsterStatKind.Hp:         return HpMul;
+                case EMonsterStatKind.Power:      return PowerMul;
+                case EMonsterStatKind.Cooldown:   return CooldownMul;
+                case EMonsterStatKind.Range:      return RangeMul;
+                case EMonsterStatKind.MoveSpeed:  return MoveSpeedMul;
+                case EMonsterStatKind.SlowFactor: return SlowFactorMul;
+                default:                          return 1f;
+            }
+        }
     }
 }
