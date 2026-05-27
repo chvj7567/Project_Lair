@@ -17,6 +17,16 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 기능 설명을 인자로 받는다. 인자가 없으면 무엇을 만들지 사용자에게 먼저 묻는다 (이 한 번만 멈춘다).
 
+## 사전 단계 — 슈퍼파워 분기
+
+`.claude/project.md` 의 `uses_superpowers` 키를 확인해 시작 지점을 결정한다.
+
+- **uses_superpowers: true** — 아래 파이프라인 앞에 다음 2단계를 먼저 수행 (단계 간 멈춤 없음, 단 brainstorming 의 사용자 합의 게이트는 그 스킬 자체 정책 따름):
+  - **0. `superpowers:brainstorming`** → `docs/superpowers/specs/YYYY-MM-DD-[기능명]-design.md`
+  - **1. `superpowers:writing-plans`** → `docs/superpowers/plans/YYYY-MM-DD-[기능명].md`
+  - 이후 game-designer 호출 시 spec + plan 경로를 함께 전달
+- **uses_superpowers: false** — 0·1 단계 생략. 메인이 사용자와 의도·범위를 대화로 합의한 뒤 아래 파이프라인 1번부터 시작.
+
 ## 파이프라인 (순서대로, 단계 간 멈춤 없이)
 
 1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성.

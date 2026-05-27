@@ -41,79 +41,31 @@ docs/
   qa-reports/                  qa-simulator 시뮬레이션 리포트
 ```
 
-## 5. 코딩 룰 — 14개 요약
+## 5. 코딩 룰
 
-전문은 `.claude/rules/NN-*.md` 각 파일에 있다. **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다.** 아래 요약만 보고 넘어가지 않는다.
+14개 룰은 `.claude/rules/NN-*.md` 각 파일에 정의되어 있다. **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
 
-| # | 파일 | 한 줄 요약 |
-|---|---|---|
-| 00 | `00-project-meta-file.md` | agent 가 첫 단계에서 읽는 `.claude/project.md` 의 필수 키와 갱신 규약 (다른 모든 룰·에이전트의 진입점) |
-| 01 | `01-no-auto-commit.md` | `git commit` 직접 실행 금지. `git add`(스테이징) + 한글 커밋 메시지(안) `# [주제] - 메시지` 까지만 |
-| 02 | `02-comment-prefix.md` | 모든 단일 라인 주석은 `//#` 접두어 |
-| 03 | `03-loose-coupling.md` | 종속성 최소화 — 인터페이스/주입 우선, 싱글톤 직접 호출·`FindObjectOfType` 지양 |
-| 04 | `04-prefab-repeated-assets.md` | 2회 이상 반복되는 GameObject 구성은 프리팹, 변형은 Prefab Variant |
-| 05 | `05-mvvm-pattern.md` | MVVM — View ↔ VM ↔ Model 단방향, View 에 비즈니스 로직 금지 |
-| 06 | `06-interface-for-parent.md` | 상위 스크립트는 인터페이스로 접근 — `GetComponentInParent<IXxx>()` |
-| 07 | `07-base-on-chvj-package.md` | ChvjPackage 기준 — 신규 작업 전 패키지 기능 우선 확인, 공통 기능은 패키지에 |
-| 08 | `08-enum-key-naming.md` | Enum 키 = 에셋 파일명 (대소문자 일치). `CHMResource`/`CHMUI` 는 `Enum.ToString()` 로드 |
-| 09 | `09-common-enum-single-file.md` | 공용 Enum 은 `Scripts/Data/CommonEnum.cs` 단일 파일에 통합 |
-| 10 | `10-common-interface-single-file.md` | 공용 Interface 는 도메인별 `CommonInterface.cs` 단일 파일에 통합 |
-| 11 | `11-use-chvj-ui-components.md` | UI 는 `CHText`/`CHButton`/`CHToggle`/`CHPoolingScrollView` 래퍼. Legacy Text·단일 Button 직접 사용 금지 |
-| 12 | `12-use-chvj-pool-for-all-spawns.md` | 모든 런타임 스폰은 `CHMPool.Pop`/`Push`. `Instantiate`/`CreatePrimitive` 직접 금지 |
-| 13 | `13-uiarg-with-uibase.md` | `UIArg` 파생은 페어 `UIBase` 파생과 같은 `.cs` 파일 상단에 정의 |
-| 14 | `14-asset-folder-structure.md` | Addressable 에셋은 `Art/` 하위 타입별 정리. 이동 시 `.meta` 동행. `Resources/` 금지 |
+룰은 도메인 비종속 reusable 정의 — 다른 프로젝트에 같은 `.claude/rules/` 폴더가 통째로 적용된다.
 
-## 6. 멀티 에이전트 위임 규칙
+## 6. 멀티 에이전트 위임
 
-이 프로젝트는 **메인 오케스트레이터 + 6개 서브에이전트** 협업 구조다. 메인은 흐름을 조율하고 위임하며, **직접 코드를 짜지 않는다.**
+6개 서브에이전트가 `.claude/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.**
 
-| 에이전트 | 호출 시점 | 정의 |
-|---|---|---|
-| **game-designer** | 새 카드·몬스터·시스템의 기획, 밸런스 수치, 페이싱·시너지 설계. 기능 기획서가 필요할 때 | `.claude/agents/game-designer.md` |
-| **design-reviewer** | game-designer 기획서를 사용자 리뷰 전에 1차 검토할 때. 논리·밸런스·범위·명세 완성도 점검 (읽기 전용) | `.claude/agents/design-reviewer.md` |
-| **gameplay-programmer** | `.cs` 파일을 한 줄이라도 작성·수정할 때. 구현·ChvjPackage 연동·MVVM·SO 스키마 | `.claude/agents/gameplay-programmer.md` |
-| **code-reviewer** | gameplay-programmer 산출 `.cs` 가 14개 룰 준수 + 기획서 일치하는지 검토할 때 (읽기 전용) | `.claude/agents/code-reviewer.md` |
-| **test-engineer** | gameplay-programmer 산출물의 본격 테스트 스위트(엣지 망라·회귀·통합)가 필요할 때 | `.claude/agents/test-engineer.md` |
-| **qa-simulator** | 밸런스 검증 — 헤드리스 N판 시뮬레이션 + 메트릭 리포트가 필요할 때 | `.claude/agents/qa-simulator.md` |
+- 에이전트 목록 · 역할 · 호출 시점 · 보고 형식 → 각 `.claude/agents/<name>.md` 전문
+- 단계별 위임 순서 (누구를 언제 호출할지) → `.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션
 
-위임 판단 기준:
-- 기획·수치·밸런스를 정해야 함 → **game-designer**
-- 기획서가 나왔고 사용자 리뷰 전 1차 검토가 필요함 → **design-reviewer**
-- C# 코드를 만들거나 고쳐야 함 → **gameplay-programmer** (기획서 없으면 game-designer 먼저)
-- 코드가 나왔고 룰 준수·기획 일치 검토가 필요함 → **code-reviewer**
-- 본격 테스트 코드가 필요함 (gameplay-programmer 의 "정상+엣지1" 을 넘어서) → **test-engineer**
-- "X 가 너무 강하다/약하다" 밸런스 의심 → **qa-simulator**
+에이전트 정의도 도메인 비종속 — 다른 프로젝트에 그대로 적용된다.
 
 ## 7. 표준 협업 흐름
 
-### 새 기능 개발
-0. **메인** 이 `superpowers:brainstorming` 으로 사용자와 의도·범위·메커니즘 윤곽 합의 → `docs/superpowers/specs/YYYY-MM-DD-[기능명]-design.md`
-   - 구체 수치(HP/데미지/쿨다운 등)는 이 단계에서 정하지 않는다 — game-designer 결정 영역
-1. **메인** 이 `superpowers:writing-plans` 로 구현 계획 작성 → `docs/superpowers/plans/YYYY-MM-DD-[기능명].md`
-   - 호출 시 룰 컨텍스트(01·02·07·08·10·11·12·14 + ChvjPackage API) 와 스펙 문서를 함께 전달
-   - **우리 룰 적응**: 매 step `git commit` → "git add 까지"로 치환 (Rule 01), 매 step TDD 5단계는 강제하지 않음 — 본격 테스트는 test-engineer
-2. **game-designer** 가 스펙 + 계획서를 읽고 게임 도메인 기획서 작성 → `docs/design/[기능명].md`
-   - 밸런스 수치 / 시너지 / 페이싱 / 구현 요청사항 (계획서가 정한 파일 구조·인터페이스 안에서 결정)
-3. **design-reviewer** 가 기획서 1차 검토 — BLOCKER 있으면 game-designer 재작업 후 재검토
-4. **사용자** 가 기획서 리뷰·승인
-5. **gameplay-programmer** 가 스펙·계획서·기획서를 모두 읽고 구현
-6. **code-reviewer** 가 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업 후 재검토
-7. **test-engineer** 가 본격 테스트 스위트 작성
-8. (게임플레이 영향이 큰 경우) **qa-simulator** 가 시뮬레이션으로 밸런스 검증
-9. 변경사항 요약 + 커밋 메시지(안) 제시 — Rule 01 (직접 커밋 X, `git add` 까지)
+표준 흐름·간이 흐름·밸런스 조정 흐름은 **`.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션** 이 단일 진실이다. 본 CLAUDE.md 는 진입점만 둔다.
 
-> **간이 흐름**: 프로토타입·throwaway 작업은 `start-develop-simple` 스킬을 통해 0~1 단계(brainstorming·writing-plans) 와 3·6·8 단계(design-reviewer·code-reviewer·qa-simulator) 를 생략 — game-designer → gameplay-programmer → test-engineer 만 돌린다.
+`.claude/project.md` 의 `uses_superpowers` 키가 `true` 면 표준 흐름(0~9 단계), `false` 면 간이 흐름(2번부터 시작) 으로 분기.
 
-### 밸런스 조정
-1. 사용자 또는 game-designer 가 의심 제기 ("X 카드가 너무 강한 것 같다")
-2. **qa-simulator** 호출 → N판 시뮬 후 데이터 리포트 (`docs/qa-reports/`)
-3. **game-designer** 가 데이터 기반 조정안 작성
-4. **design-reviewer** 가 조정안 검토 — BLOCKER 있으면 game-designer 재작업
-5. 사용자 승인
-6. **gameplay-programmer** 가 SO/수치 수정
-7. **code-reviewer** 가 수정 코드 검토 — BLOCKER 있으면 gameplay-programmer 재작업
-8. **test-engineer** 가 회귀 테스트 통과 확인
-9. **qa-simulator** 가 조정 후 재시뮬로 검증
+### Lair 특수 사항
+
+- **프로토타입 간이 흐름**: `start-develop-simple` 스킬은 `uses_superpowers: true` 상태에서도 design-reviewer·code-reviewer·qa-simulator 단계를 추가 생략. throwaway 작업에만 사용.
+- **MVP 단계 제약**: §8 의 비주얼/사운드/메타/메인메뉴 비작업 규칙이 모든 단계에 함께 적용됨.
 
 ## 8. MVP 단계 특수 규칙
 
