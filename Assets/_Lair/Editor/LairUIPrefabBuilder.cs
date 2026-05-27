@@ -42,13 +42,15 @@ namespace Lair.EditorTools
 
                 var scaler = canvasGo.AddComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                //# 기획서 v0.7~v0.9 의 모든 sizeDelta 단정이 1280×720 직접 기준 → CanvasScaler ref 도 동일.
+                //# 1920×1080 ref 였을 때 ScaleFactor ~0.667 로 인해 패널 850 이 화면 567 (44%, 2/3 미달) 만 차지하던 문제 해소.
+                scaler.referenceResolution = new Vector2(1280f, 720f);
                 scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
                 scaler.matchWidthOrHeight = 0.5f;
 
                 canvasGo.AddComponent<GraphicRaycaster>();
 
-                Debug.Log("[LairUIPrefabBuilder] UICanvas 생성 완료 (ScreenSpaceOverlay, 1920x1080)");
+                Debug.Log("[LairUIPrefabBuilder] UICanvas 생성 완료 (ScreenSpaceOverlay, 1280x720)");
             }
             else
             {
@@ -238,10 +240,12 @@ namespace Lair.EditorTools
             Debug.Log($"[LairUIPrefabBuilder] {PrefabName} 빌드 완료");
         }
 
-        //# 빌드 패널의 한 섹션(패시브/액티브) — 라벨 + ScrollRect + Viewport + Content.
-        //# v0.4: 상하 50:50 세로 분할. v0.5: 섹션마다 ScrollRect 1세트.
-        //# 반환값: Content Transform (BuildPanel.cs 의 _passiveContainer/_activeContainer 가 가리킴).
-        private static Transform BuildBuildSection(Transform parent, string name, string label, bool top)
+        //# 빌드 패널의 한 섹션(패시브/액티브) — 라벨 + CHPoolingScrollView<BuildIconCell, BuildEntry> (§2.8.5 v0.8).
+        //# v0.4: 상하 50:50 세로 분할. v0.5: 섹션마다 ScrollRect 1세트. v0.8: CHPoolingScrollView 완전 적용.
+        //# v0.9 B1: _columnCount = 1 직박이 (auto 시 viewport 419 / itemSize 72 = 5 멀티 컬럼화 위험).
+        //# v0.9 P1: _itemSize 는 dead serialization — BuildIconCell.prefab sizeDelta (72, 72) 가 단일 진실.
+        //# 반환값: BuildIconPoolingScrollView 컴포넌트 (BuildPanel.cs 의 _passiveScrollView/_activeScrollView 가 가리킴).
+        private static Lair.UI.BuildIconPoolingScrollView BuildBuildSection(Transform parent, string name, string label, bool top)
         {
             //# 섹션 RectTransform — 상하 50:50.
             //# top=true → anchorMin (0, 0.5), anchorMax (1, 1)  : 상단 절반
@@ -271,7 +275,7 @@ namespace Lair.EditorTools
             labelTmp.alignment = TextAlignmentOptions.Left;
             labelTmp.color = Color.white;
 
-            //# ScrollRect — 라벨 영역 32px 제외한 영역. Vertical only / Elastic / Inertia / Scrollbar 없음 (§2.8.5).
+            //# ScrollRect — 라벨 영역 32px 제외. CHPoolingScrollView 와 함께 부착 (§2.8.5).
             var scrollGo = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect));
             scrollGo.transform.SetParent(sectionGo.transform, false);
             var scrollRt = (RectTransform)scrollGo.transform;
@@ -290,8 +294,7 @@ namespace Lair.EditorTools
             sr.horizontalScrollbar = null;
             sr.verticalScrollbar = null;
 
-            //# Viewport — RectMask2D + Image (alpha 0.001, raycast target). RectMask2D 만으로는
-            //# raycast 영역이 안 생기므로 거의 투명한 Image 를 raycast receiver 로 둠 (§2.8.5).
+            //# Viewport — RectMask2D + Image (alpha 0.001, raycast target). drag receiver.
             var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
             viewportGo.transform.SetParent(scrollGo.transform, false);
             var viewportRt = (RectTransform)viewportGo.transform;
@@ -305,8 +308,8 @@ namespace Lair.EditorTools
             viewportImg.color = new Color(0f, 0f, 0f, 0.001f);
             viewportImg.raycastTarget = true;
 
-            //# Content — 위에서 아래로 쌓이는 표준 ScrollRect Content. pivot (0.5, 1).
-            //# VerticalLayoutGroup (spacing 6, padding 4) + ContentSizeFitter (Vertical=PreferredSize).
+            //# Content — RectTransform 만. CHPoolingScrollView 가 anchor/pivot/sizeDelta 자동 설정.
+            //# VerticalLayoutGroup / ContentSizeFitter 부착 X (CHPoolingScrollView 의 InitItemTransform 과 충돌).
             var contentGo = new GameObject("Content", typeof(RectTransform));
             contentGo.transform.SetParent(viewportGo.transform, false);
             var contentRt = (RectTransform)contentGo.transform;
@@ -315,23 +318,40 @@ namespace Lair.EditorTools
             contentRt.pivot     = new Vector2(0.5f, 1f);
             contentRt.anchoredPosition = Vector2.zero;
             contentRt.sizeDelta = new Vector2(0f, 0f);
-            var vlg = contentGo.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 6f;
-            vlg.padding = new RectOffset(4, 4, 4, 4);
-            vlg.childAlignment = TextAnchor.UpperLeft;
-            vlg.childControlWidth = false;
-            vlg.childControlHeight = false;
-            vlg.childForceExpandWidth = false;
-            vlg.childForceExpandHeight = false;
-            var fitter = contentGo.AddComponent<ContentSizeFitter>();
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            //# BuildIconCell prefab 인스턴스를 Content 첫 자식 → CHPoolingScrollView 의 _origin.
+            //# 깜빡임 방지로 사전 비활성.
+            var cellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuildIconCell.prefab");
+            GameObject originInst = null;
+            if (cellPrefab != null)
+            {
+                originInst = (GameObject)PrefabUtility.InstantiatePrefab(cellPrefab, contentGo.transform);
+                originInst.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("[LairUIPrefabBuilder] BuildIconCell.prefab 미발견 — BuildBuildIconCell 선행 필요");
+            }
 
             //# ScrollRect 참조 묶기.
             sr.viewport = viewportRt;
             sr.content = contentRt;
 
-            return contentRt;
+            //# CHPoolingScrollView 파생 컴포넌트 + 직렬화 wire-up.
+            //# _columnCount = 1 (B1 단정), _itemSize wire-up 안 함 (P1 — prefab sizeDelta = 단일 진실).
+            var iconScrollView = scrollGo.AddComponent<Lair.UI.BuildIconPoolingScrollView>();
+            var ssvSo = new SerializedObject(iconScrollView);
+            if (originInst != null) SetObjectField(ssvSo, "_origin", originInst);
+            SetVector2Field(ssvSo, "_itemGap", new Vector2(0f, 6f));
+            SetRectOffsetField(ssvSo, "_padding", 4, 4, 4, 4);
+            SetEnumField(ssvSo, "_scrollDirection", (int)ChvjUnityInfra.PoolingScrollViewDirection.Vertical);
+            SetEnumField(ssvSo, "_align", (int)ChvjUnityInfra.PoolingScrollViewAlign.LeftOrTop);
+            SetIntField(ssvSo, "_rowCount", 0);
+            SetIntField(ssvSo, "_columnCount", 1);   //# v0.9 B1 — 단일 컬럼 강제.
+            SetIntField(ssvSo, "_poolItemCount", 0);
+            ssvSo.ApplyModifiedPropertiesWithoutUndo();
+
+            return iconScrollView;
         }
 
         //# ---------- BattleHud 프리팹 ----------
@@ -398,9 +418,10 @@ namespace Lair.EditorTools
                 Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 로드 실패 — 영웅 HP 바 생략");
             }
 
-            //# ----- 빌드 패널 (화면 우측 세로 컬럼 — v0.4 §2.8) -----
-            //# Anchor (1,0)~(1,1), Pivot (1, 0.5), 폭 240 / 상단 32 / 하단 120 / 우측 24.
-            //# offsetMin = (-264, 120), offsetMax = (-24, -32) (§2.8.1 + §2.8.4).
+            //# ----- 빌드 패널 (화면 우측 1/3 폭 — v0.7 §2.8) -----
+            //# Anchor (1,0)~(1,1), Pivot (1, 0.5), 폭 427 (= 1280/3).
+            //# offsetMin = (-427, 0), offsetMax = (0, 0) — 우측 1/3 전체 세로 사용.
+            //# v0.6 (240×568, offset -264/120/-24/-32) → v0.7 (427×720, offset -427/0/0/0) (§2.8.1).
             //# 자식 셀은 raycast 차단(BuildIconCell.Bind(null) 시 처리), 루트 CHButton 이 클릭 잡음.
             var buildPanelGo = new GameObject("BuildPanel", typeof(RectTransform), typeof(Image), typeof(Button));
             buildPanelGo.transform.SetParent(root.transform, false);
@@ -408,8 +429,8 @@ namespace Lair.EditorTools
             bpRt.anchorMin = new Vector2(1f, 0f);
             bpRt.anchorMax = new Vector2(1f, 1f);
             bpRt.pivot     = new Vector2(1f, 0.5f);
-            bpRt.offsetMin = new Vector2(-264f, 120f);
-            bpRt.offsetMax = new Vector2(-24f, -32f);
+            bpRt.offsetMin = new Vector2(-427f, 0f);
+            bpRt.offsetMax = new Vector2(0f, 0f);
             //# 패널 배경 — raycast 받는 거의 투명 Image.
             var bpBg = buildPanelGo.GetComponent<Image>();
             bpBg.sprite = GetUISprite();
@@ -420,20 +441,17 @@ namespace Lair.EditorTools
             var bpChButton = buildPanelGo.AddComponent<CHButton>();
             var buildPanel = buildPanelGo.AddComponent<Lair.UI.BuildPanel>();
 
-            //# 패시브/액티브 섹션 — 상하 50:50 (v0.4). 각 섹션은 ScrollRect 구조 (v0.5 §2.8.5).
-            //# BuildPanel.cs 의 _passiveContainer/_activeContainer 는 각 섹션의 Content 를 가리킴.
-            var passiveContainer = BuildBuildSection(buildPanelGo.transform, "PassiveSection", "패시브", top: true);
-            var activeContainer  = BuildBuildSection(buildPanelGo.transform, "ActiveSection",  "액티브", top: false);
+            //# 패시브/액티브 섹션 — 상하 50:50 (v0.4). 각 섹션은 CHPoolingScrollView 1세트 (v0.8 §2.8.5).
+            //# BuildPanel.cs 의 _passiveScrollView/_activeScrollView 는 각 섹션의 BuildIconPoolingScrollView 를 가리킴.
+            var passiveScrollView = BuildBuildSection(buildPanelGo.transform, "PassiveSection", "패시브", top: true);
+            var activeScrollView  = BuildBuildSection(buildPanelGo.transform, "ActiveSection",  "액티브", top: false);
 
-            //# 셀 프리팹 로드 (Step 1 의 BuildBuildIconCell 이 먼저 생성함)
-            var cellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuildIconCell.prefab");
-
-            //# BuildPanel 필드 주입 (스포너 상태 UI — _detailRoot/_detailName/_detailDesc 제거, _rootButton 추가)
+            //# BuildPanel 필드 주입 (v0.8 — _passiveContainer/_activeContainer 제거, _passiveScrollView/_activeScrollView 신규).
+            //# _cellPrefab 직렬화는 제거됨 (CHPoolingScrollView 의 _origin 으로 이주).
             var bpSo = new SerializedObject(buildPanel);
-            SetObjectField(bpSo, "_passiveContainer", passiveContainer);
-            SetObjectField(bpSo, "_activeContainer",  activeContainer);
-            SetObjectField(bpSo, "_cellPrefab",       cellPrefab);
-            SetObjectField(bpSo, "_rootButton",       bpChButton);
+            SetObjectField(bpSo, "_passiveScrollView", passiveScrollView);
+            SetObjectField(bpSo, "_activeScrollView",  activeScrollView);
+            SetObjectField(bpSo, "_rootButton",        bpChButton);
             bpSo.ApplyModifiedPropertiesWithoutUndo();
 
             //# ----- 스포너 상태 패널 (화면 하단 6셀) -----
@@ -733,6 +751,58 @@ namespace Lair.EditorTools
                 return;
             }
             prop.objectReferenceValue = value;
+        }
+
+        //# CHPoolingScrollView 직렬화 필드 wire-up용 헬퍼 (v0.8).
+        private static void SetVector2Field(SerializedObject so, string fieldName, Vector2 value)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairUIPrefabBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.vector2Value = value;
+        }
+
+        private static void SetIntField(SerializedObject so, string fieldName, int value)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairUIPrefabBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.intValue = value;
+        }
+
+        private static void SetEnumField(SerializedObject so, string fieldName, int enumIndex)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairUIPrefabBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.enumValueIndex = enumIndex;
+        }
+
+        private static void SetRectOffsetField(SerializedObject so, string fieldName, int left, int right, int top, int bottom)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairUIPrefabBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            var leftProp   = prop.FindPropertyRelative("m_Left");
+            var rightProp  = prop.FindPropertyRelative("m_Right");
+            var topProp    = prop.FindPropertyRelative("m_Top");
+            var bottomProp = prop.FindPropertyRelative("m_Bottom");
+            if (leftProp   != null) leftProp.intValue   = left;
+            if (rightProp  != null) rightProp.intValue  = right;
+            if (topProp    != null) topProp.intValue    = top;
+            if (bottomProp != null) bottomProp.intValue = bottom;
         }
 
         private static Color ParseColor(string hex)

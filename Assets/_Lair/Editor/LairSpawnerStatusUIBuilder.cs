@@ -22,9 +22,9 @@ namespace Lair.EditorTools
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
 
-        //# 셀 치수 (기획서 §3.2 v0.4 — 64×80 1.4× 확대).
-        private const float CellWidth  = 64f;
-        private const float CellHeight = 80f;
+        //# 셀 치수 (기획서 §3.2 v0.7 — 134×168 2.094× 확대).
+        private const float CellWidth  = 134f;
+        private const float CellHeight = 168f;
         private const float CellSpacing = 6f;
         private const float PanelHorizontalPadding = 8f;
 
@@ -76,7 +76,7 @@ namespace Lair.EditorTools
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[LairSpawnerStatusUIBuilder] 스포너 상태 UI 4종 + 모달 셀 빌드 완료");
+            Debug.Log("[LairSpawnerStatusUIBuilder] 스포너 상태 UI 4종 + 모달 셀 + BuffLine 빌드 완료");
         }
 
         //# ===== SpawnerStatusCell =====
@@ -86,6 +86,8 @@ namespace Lair.EditorTools
 
             var root = new GameObject(PrefabName, typeof(RectTransform), typeof(Image), typeof(Button));
             var rootRt = (RectTransform)root.transform;
+            //# 셀 pivot (0, 0) 좌측 하단 — 본체/아이콘/진행 바 row 의 anchoredPosition 단일 진실 기준 (v0.8 §2.2.1).
+            rootRt.pivot = new Vector2(0f, 0f);
             rootRt.sizeDelta = new Vector2(CellWidth, CellHeight);
 
             var bg = root.GetComponent<Image>();
@@ -106,136 +108,104 @@ namespace Lair.EditorTools
             borderImg.color = new Color(0f, 0f, 0f, 0f);
             borderImg.raycastTarget = false;
 
-            //# IconRow — 셀 상단 20px (v0.4). 상단 padding 4 → anchoredPosition.y = -4.
+            //# IconRow — 셀 상단 42px (v0.7). 셀 pivot (0,0) — anchoredPosition.y = 118 (§2.2.1).
             var iconRowGo = new GameObject("IconRow", typeof(RectTransform));
             iconRowGo.transform.SetParent(root.transform, false);
             var iconRowRt = (RectTransform)iconRowGo.transform;
-            iconRowRt.anchorMin = new Vector2(0f, 1f);
-            iconRowRt.anchorMax = new Vector2(1f, 1f);
-            iconRowRt.pivot     = new Vector2(0.5f, 1f);
-            iconRowRt.anchoredPosition = new Vector2(0f, -4f);
-            iconRowRt.sizeDelta = new Vector2(0f, 20f);
+            iconRowRt.anchorMin = new Vector2(0f, 0f);
+            iconRowRt.anchorMax = new Vector2(1f, 0f);
+            iconRowRt.pivot     = new Vector2(0f, 0f);
+            iconRowRt.anchoredPosition = new Vector2(0f, 118f);
+            iconRowRt.sizeDelta = new Vector2(0f, 42f);
 
-            //# IconCircle 안에 들어가는 원 (14×14 v0.4) — Image (sprite = UISprite, 색 = 종 배경).
-            var circleGo = new GameObject("IconCircle", typeof(RectTransform), typeof(Image));
-            circleGo.transform.SetParent(iconRowGo.transform, false);
-            var circleRt = (RectTransform)circleGo.transform;
-            circleRt.anchorMin = new Vector2(0f, 0.5f);
-            circleRt.anchorMax = new Vector2(0f, 0.5f);
-            circleRt.pivot     = new Vector2(0f, 0.5f);
-            circleRt.anchoredPosition = new Vector2(6f, 0f);
-            circleRt.sizeDelta = new Vector2(14f, 14f);
-            var circleImg = circleGo.GetComponent<Image>();
-            circleImg.sprite = LairUIPrefabBuilder.GetUISprite();
-            circleImg.color = Color.gray;
-            circleImg.raycastTarget = false;
+            //# v1.0 — IconRow 는 2 슬롯 (좌 Enhance x=12 / 우 Spawn x=68). 슬롯 간 spacing 4 (§2.3.1 v1.0 검산).
+            //# 슬롯 1 — Enhance: anchoredPosition.x = 12.
+            var enhSlot = BuildIconSlot(iconRowGo.transform, "IconCircleEnhance", "IconLetterEnhance", "IconBadgeEnhance",
+                xPos: 12f, defaultLetter: "H");
+            var circleImgEnhance = enhSlot.circle;
+            var letterTextEnhance = enhSlot.letter;
+            var badgeTextEnhance = enhSlot.badge;
 
-            //# IconLetter — TMP_Text 1자. 11pt (v0.4).
-            var letterGo = new GameObject("IconLetter", typeof(RectTransform));
-            letterGo.transform.SetParent(circleGo.transform, false);
-            SetFullStretch((RectTransform)letterGo.transform);
-            var letterTmp = letterGo.AddComponent<TextMeshProUGUI>();
-            letterTmp.text = "H";
-            letterTmp.font = TMP_Settings.defaultFontAsset;
-            letterTmp.fontSize = 11f;
-            letterTmp.alignment = TextAlignmentOptions.Center;
-            letterTmp.color = Color.black;
-            letterTmp.raycastTarget = false;
-            var letterText = letterGo.AddComponent<CHText>();
+            //# 슬롯 2 — Spawn: anchoredPosition.x = 68 (= 슬롯 1 배지 우측 끝 64 + spacing 4).
+            var spnSlot = BuildIconSlot(iconRowGo.transform, "IconCircleSpawn", "IconLetterSpawn", "IconBadgeSpawn",
+                xPos: 68f, defaultLetter: "+");
+            var circleImgSpawn = spnSlot.circle;
+            var letterTextSpawn = spnSlot.letter;
+            var badgeTextSpawn = spnSlot.badge;
 
-            //# IconBadge — 원 우측 하단 ×N (TMP_Text, outline). 10pt (v0.4).
-            var badgeGo = new GameObject("IconBadge", typeof(RectTransform));
-            badgeGo.transform.SetParent(circleGo.transform, false);
-            var badgeRt = (RectTransform)badgeGo.transform;
-            badgeRt.anchorMin = new Vector2(1f, 0f);
-            badgeRt.anchorMax = new Vector2(1f, 0f);
-            badgeRt.pivot     = new Vector2(0f, 1f);
-            badgeRt.anchoredPosition = new Vector2(-2f, 1f);
-            badgeRt.sizeDelta = new Vector2(16f, 10f);
-            var badgeTmp = badgeGo.AddComponent<TextMeshProUGUI>();
-            badgeTmp.text = "×2";
-            badgeTmp.font = TMP_Settings.defaultFontAsset;
-            badgeTmp.fontSize = 10f;
-            badgeTmp.alignment = TextAlignmentOptions.Center;
-            badgeTmp.color = YellowAccent;
-            badgeTmp.outlineColor = Color.black;
-            badgeTmp.outlineWidth = 0.2f;
-            badgeTmp.raycastTarget = false;
-            var badgeText = badgeGo.AddComponent<CHText>();
-
-            //# 본체 row — 색칩 + 종명 + ×N. 높이 28 (v0.4).
-            //# 세로 배치: 상 padding 4 + 아이콘 row 20 + 간격 4 = 28 → BodyRow anchoredPosition.y = -28.
+            //# 본체 row — 색칩 + 종명 + ×N. 높이 58 (v0.7).
+            //# 셀 pivot (0,0) — anchoredPosition.y = 52 (§2.2.1).
             var bodyRowGo = new GameObject("BodyRow", typeof(RectTransform));
             bodyRowGo.transform.SetParent(root.transform, false);
             var bodyRowRt = (RectTransform)bodyRowGo.transform;
-            bodyRowRt.anchorMin = new Vector2(0f, 1f);
-            bodyRowRt.anchorMax = new Vector2(1f, 1f);
-            bodyRowRt.pivot     = new Vector2(0.5f, 1f);
-            bodyRowRt.anchoredPosition = new Vector2(0f, -28f);
-            bodyRowRt.sizeDelta = new Vector2(0f, 28f);
+            bodyRowRt.anchorMin = new Vector2(0f, 0f);
+            bodyRowRt.anchorMax = new Vector2(1f, 0f);
+            bodyRowRt.pivot     = new Vector2(0f, 0f);
+            bodyRowRt.anchoredPosition = new Vector2(0f, 52f);
+            bodyRowRt.sizeDelta = new Vector2(0f, 58f);
 
-            //# 색칩 14×14 (v0.4). 좌측 padding 6.
+            //# 색칩 30×30 (v0.7). 좌측 padding 12.
             var chipGo = new GameObject("ColorChip", typeof(RectTransform), typeof(Image));
             chipGo.transform.SetParent(bodyRowGo.transform, false);
             var chipRt = (RectTransform)chipGo.transform;
             chipRt.anchorMin = new Vector2(0f, 0.5f);
             chipRt.anchorMax = new Vector2(0f, 0.5f);
             chipRt.pivot     = new Vector2(0f, 0.5f);
-            chipRt.anchoredPosition = new Vector2(6f, 0f);
-            chipRt.sizeDelta = new Vector2(14f, 14f);
+            chipRt.anchoredPosition = new Vector2(12f, 0f);
+            chipRt.sizeDelta = new Vector2(30f, 30f);
             var chipImg = chipGo.GetComponent<Image>();
             chipImg.sprite = LairUIPrefabBuilder.GetUISprite();
             chipImg.color = Color.green;
             chipImg.raycastTarget = false;
 
-            //# 종명 (영문). 15pt (v0.4). 색칩 우측 gap 6 → offsetMin.x = 6 + 14 + 6 = 26.
+            //# 종명 (영문). 22pt (v0.7 cap 적용). 색칩 우측 gap 14 → offsetMin.x = 12 + 30 + 14 = 56.
             var speciesGo = new GameObject("SpeciesText", typeof(RectTransform));
             speciesGo.transform.SetParent(bodyRowGo.transform, false);
             var speciesRt = (RectTransform)speciesGo.transform;
             speciesRt.anchorMin = new Vector2(0f, 0f);
             speciesRt.anchorMax = new Vector2(1f, 1f);
-            speciesRt.offsetMin = new Vector2(26f, 0f);
-            speciesRt.offsetMax = new Vector2(-6f, 0f);
+            speciesRt.offsetMin = new Vector2(56f, 0f);
+            speciesRt.offsetMax = new Vector2(-12f, 0f);
             var speciesTmp = speciesGo.AddComponent<TextMeshProUGUI>();
             speciesTmp.text = "Wisp";
             speciesTmp.font = TMP_Settings.defaultFontAsset;
-            speciesTmp.fontSize = 15f;
+            speciesTmp.fontSize = 22f;
             speciesTmp.alignment = TextAlignmentOptions.Left;
             speciesTmp.color = Color.white;
             speciesTmp.overflowMode = TextOverflowModes.Truncate;
             speciesTmp.raycastTarget = false;
             var speciesText = speciesGo.AddComponent<CHText>();
 
-            //# ×N — 본체 row 우측 정렬. 14pt (v0.4).
+            //# ×N — 본체 row 우측 정렬. 20pt (v0.7 cap 적용).
             var countGo = new GameObject("CountText", typeof(RectTransform));
             countGo.transform.SetParent(bodyRowGo.transform, false);
             var countRt = (RectTransform)countGo.transform;
             countRt.anchorMin = new Vector2(1f, 0f);
             countRt.anchorMax = new Vector2(1f, 1f);
             countRt.pivot     = new Vector2(1f, 0.5f);
-            countRt.anchoredPosition = new Vector2(-4f, 0f);
-            countRt.sizeDelta = new Vector2(22f, 0f);
+            countRt.anchoredPosition = new Vector2(-8f, 0f);
+            countRt.sizeDelta = new Vector2(36f, 0f);
             var countTmp = countGo.AddComponent<TextMeshProUGUI>();
             countTmp.text = "×2";
             countTmp.font = TMP_Settings.defaultFontAsset;
-            countTmp.fontSize = 14f;
+            countTmp.fontSize = 20f;
             countTmp.alignment = TextAlignmentOptions.Right;
             countTmp.color = YellowAccent;
             countTmp.raycastTarget = false;
             var countText = countGo.AddComponent<CHText>();
             countGo.SetActive(false);
 
-            //# 진행 바 — Background + Fill. 8px 높이 (v0.4). 좌우 padding 6 → sizeDelta x = -12, 결과 폭 52.
-            //# 세로 위치: BodyRow 하단(y=24) - gap 4 = ProgressBar top y=20 → ProgressBar bottom y=12.
-            //# anchoredPosition.y = +12 (셀 하단으로부터 12, pivot.y=0). 진행 바 아래 잔여 padding 12px (기획서 §2.2.1 "잔여 padding 8" + 하 padding 4).
+            //# 진행 바 — Background + Fill. 17px 높이 (v0.7). 좌우 padding 12 → sizeDelta x = -24, 결과 폭 110.
+            //# 진행 바 anchoredPosition.y = 27 (§2.2.1 단일 진실, v0.8 BLOCKER B1).
+            //# pivot.y=0 으로 셀 하단 기준. anchor X 는 (0,1) stretch + pivot.x=0.5 → 가로 가운데, sizeDelta.x=-24 가 좌우 12px 여백.
             var progressBgGo = new GameObject("ProgressBackground", typeof(RectTransform), typeof(Image));
             progressBgGo.transform.SetParent(root.transform, false);
             var progressBgRt = (RectTransform)progressBgGo.transform;
             progressBgRt.anchorMin = new Vector2(0f, 0f);
             progressBgRt.anchorMax = new Vector2(1f, 0f);
             progressBgRt.pivot     = new Vector2(0.5f, 0f);
-            progressBgRt.anchoredPosition = new Vector2(0f, 12f);
-            progressBgRt.sizeDelta = new Vector2(-12f, 8f);
+            progressBgRt.anchoredPosition = new Vector2(0f, 27f);
+            progressBgRt.sizeDelta = new Vector2(-24f, 17f);
             var progressBgImg = progressBgGo.GetComponent<Image>();
             progressBgImg.sprite = LairUIPrefabBuilder.GetUISprite();
             progressBgImg.color = BarBackground;
@@ -254,18 +224,22 @@ namespace Lair.EditorTools
             fillImg.raycastTarget = false;
 
             //# SpawnerStatusCell 컴포넌트 부착 + 필드 주입.
+            //# v1.0 — 단일 아이콘 셋(_iconCircle/_iconLetter/_iconBadge) → 2 슬롯 (Enhance + Spawn) 6 필드로 분리.
             var cell = root.AddComponent<SpawnerStatusCell>();
             var so = new SerializedObject(cell);
-            SetObjectField(so, "_border",       borderImg);
-            SetObjectField(so, "_colorChip",    chipImg);
-            SetObjectField(so, "_speciesText",  speciesText);
-            SetObjectField(so, "_countText",    countText);
-            SetObjectField(so, "_progressFill", fillImg);
-            SetObjectField(so, "_button",       chBtn);
-            SetObjectField(so, "_iconRow",      iconRowRt);
-            SetObjectField(so, "_iconCircle",   circleImg);
-            SetObjectField(so, "_iconLetter",   letterText);
-            SetObjectField(so, "_iconBadge",    badgeText);
+            SetObjectField(so, "_border",              borderImg);
+            SetObjectField(so, "_colorChip",           chipImg);
+            SetObjectField(so, "_speciesText",         speciesText);
+            SetObjectField(so, "_countText",           countText);
+            SetObjectField(so, "_progressFill",        fillImg);
+            SetObjectField(so, "_button",              chBtn);
+            SetObjectField(so, "_iconRow",             iconRowRt);
+            SetObjectField(so, "_iconCircleEnhance",   circleImgEnhance);
+            SetObjectField(so, "_iconLetterEnhance",   letterTextEnhance);
+            SetObjectField(so, "_iconBadgeEnhance",    badgeTextEnhance);
+            SetObjectField(so, "_iconCircleSpawn",     circleImgSpawn);
+            SetObjectField(so, "_iconLetterSpawn",     letterTextSpawn);
+            SetObjectField(so, "_iconBadgeSpawn",      badgeTextSpawn);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             //# IconRow 는 기본 숨김 (강화 없음 시).
@@ -281,13 +255,13 @@ namespace Lair.EditorTools
 
             var root = new GameObject(PrefabName, typeof(RectTransform));
             var rootRt = (RectTransform)root.transform;
-            //# 화면 하단 가운데 정렬, Pivot (0.5, 0), anchored Y = +24.
-            rootRt.anchorMin = new Vector2(0.5f, 0f);
-            rootRt.anchorMax = new Vector2(0.5f, 0f);
-            rootRt.pivot     = new Vector2(0.5f, 0f);
-            rootRt.anchoredPosition = new Vector2(0f, 24f);
-            //# 430 = 6×64 + 5×6 + 2×8 (v0.4 기획서 §2.1).
-            rootRt.sizeDelta = new Vector2(430f, CellHeight);
+            //# 화면 좌측 하단 정렬 (v0.7 §2.1). Pivot (0, 0), anchoredPosition (0, 0).
+            rootRt.anchorMin = new Vector2(0f, 0f);
+            rootRt.anchorMax = new Vector2(0f, 0f);
+            rootRt.pivot     = new Vector2(0f, 0f);
+            rootRt.anchoredPosition = new Vector2(0f, 0f);
+            //# 850 = 6×134 + 5×6 + 2×8 (v0.7 기획서 §2.1).
+            rootRt.sizeDelta = new Vector2(850f, CellHeight);
 
             //# Container — HorizontalLayoutGroup.
             var containerGo = new GameObject("Container", typeof(RectTransform));
@@ -314,9 +288,14 @@ namespace Lair.EditorTools
         }
 
         //# ===== SpawnerStatusTooltip =====
+        //# v0.8 — Body 201×252 (셀 1개 134×168 의 1.5배), CHPoolingScrollView<BuffLine, AppliedBuff>.
+        //# v0.9 — _itemSize 는 dead serialization, BuffLine prefab sizeDelta = 단일 진실 (§4.11 P1).
         private static void BuildTooltipPrefab(AddressableAssetSettings settings, AddressableAssetGroup group)
         {
             const string PrefabName = "SpawnerStatusTooltip";
+
+            //# 사전 — BuffLine.prefab 빌드 (CHPoolingScrollView 의 _origin).
+            BuildBuffLinePrefab();
 
             //# 루트 — UIBase 의 SetActive(true) 기반, full-stretch overlay 가능.
             var root = new GameObject(PrefabName, typeof(RectTransform));
@@ -324,7 +303,7 @@ namespace Lair.EditorTools
             SetFullStretch(rootRt);
             var tooltip = root.AddComponent<SpawnerStatusTooltip>();
 
-            //# Body — 180 가변높이. 위치는 런타임 PositionAboveAnchor 가 결정.
+            //# Body — 201×252 (v0.7). 위치는 런타임 PositionAboveAnchor 가 결정.
             //# pivot/anchor 는 SpawnerStatusTooltip.PositionAboveAnchor 가 런타임에 갱신 (anchor 0.5,0.5 / pivot 0.5,0).
             var bodyGo = new GameObject("Body", typeof(RectTransform), typeof(Image));
             bodyGo.transform.SetParent(root.transform, false);
@@ -333,18 +312,18 @@ namespace Lair.EditorTools
             bodyRt.anchorMax = new Vector2(0.5f, 0.5f);
             bodyRt.pivot     = new Vector2(0.5f, 0f);
             bodyRt.anchoredPosition = new Vector2(0f, 0f);
-            bodyRt.sizeDelta = new Vector2(180f, 90f);
+            bodyRt.sizeDelta = new Vector2(201f, 252f);
             var bodyImg = bodyGo.GetComponent<Image>();
             bodyImg.sprite = LairUIPrefabBuilder.GetUISprite();
             bodyImg.type = Image.Type.Sliced;
             bodyImg.color = TooltipBg;
 
-            //# 노란 테두리 (#FBBF24 1px) — Outline 은 Image 와 같은 GameObject 에 부착 (advisor BLOCKER 2).
+            //# 노란 테두리 (#FBBF24 1px) — Outline 은 Image 와 같은 GameObject 에 부착.
             var bodyOutline = bodyGo.AddComponent<Outline>();
             bodyOutline.effectColor = YellowAccent;
             bodyOutline.effectDistance = new Vector2(1f, -1f);
 
-            //# Header.
+            //# Header — CHPoolingScrollView 외부 고정 (위쪽 32px 영역, padding 8 안쪽).
             var headerGo = new GameObject("Header", typeof(RectTransform));
             headerGo.transform.SetParent(bodyGo.transform, false);
             var headerRt = (RectTransform)headerGo.transform;
@@ -361,40 +340,213 @@ namespace Lair.EditorTools
             headerTmp.color = Color.white;
             var headerText = headerGo.AddComponent<CHText>();
 
-            //# Buff line.
-            var buffGo = new GameObject("BuffText", typeof(RectTransform));
-            buffGo.transform.SetParent(bodyGo.transform, false);
-            var buffRt = (RectTransform)buffGo.transform;
-            buffRt.anchorMin = new Vector2(0f, 0f);
-            buffRt.anchorMax = new Vector2(1f, 1f);
-            buffRt.offsetMin = new Vector2(8f, 8f);
-            buffRt.offsetMax = new Vector2(-8f, -36f);
-            var buffTmp = buffGo.AddComponent<TextMeshProUGUI>();
-            buffTmp.text = "적용된 강화 없음";
-            buffTmp.font = TMP_Settings.defaultFontAsset;
-            buffTmp.fontSize = 10f;
-            buffTmp.alignment = TextAlignmentOptions.TopLeft;
-            buffTmp.color = GrayLabel;
-            var buffText = buffGo.AddComponent<CHText>();
+            //# Empty state — CHPoolingScrollView 외부에서 buffs.Count==0 일 때만 SetActive(true).
+            var emptyGo = new GameObject("EmptyText", typeof(RectTransform));
+            emptyGo.transform.SetParent(bodyGo.transform, false);
+            var emptyRt = (RectTransform)emptyGo.transform;
+            emptyRt.anchorMin = new Vector2(0f, 0f);
+            emptyRt.anchorMax = new Vector2(1f, 1f);
+            emptyRt.offsetMin = new Vector2(8f, 8f);
+            emptyRt.offsetMax = new Vector2(-8f, -40f);
+            var emptyTmp = emptyGo.AddComponent<TextMeshProUGUI>();
+            emptyTmp.text = "적용된 강화 없음";
+            emptyTmp.font = TMP_Settings.defaultFontAsset;
+            emptyTmp.fontSize = 10f;
+            emptyTmp.alignment = TextAlignmentOptions.TopLeft;
+            emptyTmp.color = GrayLabel;
+            emptyTmp.raycastTarget = false;
+            var emptyText = emptyGo.AddComponent<CHText>();
+            emptyGo.SetActive(false);
 
-            //# SerializedObject 주입.
+            //# BuffScrollView — CHPoolingScrollView<BuffLine, AppliedBuff> 구조 (§2.5.5 v0.8).
+            //# RectTransform : anchor (0,0)~(1,1), offsetMin (8,8) / offsetMax (-8,-40) → 폭 185 / 세로 204.
+            var scrollGo = new GameObject("BuffScrollView", typeof(RectTransform), typeof(ScrollRect));
+            scrollGo.transform.SetParent(bodyGo.transform, false);
+            var scrollRt = (RectTransform)scrollGo.transform;
+            scrollRt.anchorMin = new Vector2(0f, 0f);
+            scrollRt.anchorMax = new Vector2(1f, 1f);
+            scrollRt.offsetMin = new Vector2(8f, 8f);
+            scrollRt.offsetMax = new Vector2(-8f, -40f);
+            var sr = scrollGo.GetComponent<ScrollRect>();
+            sr.horizontal = false;
+            sr.vertical = true;
+            sr.movementType = ScrollRect.MovementType.Elastic;
+            sr.elasticity = 0.1f;
+            sr.inertia = true;
+            sr.decelerationRate = 0.135f;
+            sr.scrollSensitivity = 1f;
+            sr.horizontalScrollbar = null;
+            sr.verticalScrollbar = null;
+
+            //# Viewport — RectMask2D + Image (alpha 0.001, raycast target). drag input receiver.
+            var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            viewportGo.transform.SetParent(scrollGo.transform, false);
+            var viewportRt = (RectTransform)viewportGo.transform;
+            viewportRt.anchorMin = Vector2.zero;
+            viewportRt.anchorMax = Vector2.one;
+            viewportRt.pivot = new Vector2(0.5f, 0.5f);
+            viewportRt.anchoredPosition = Vector2.zero;
+            viewportRt.sizeDelta = Vector2.zero;
+            var viewportImg = viewportGo.GetComponent<Image>();
+            viewportImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            viewportImg.color = new Color(0f, 0f, 0f, 0.001f);
+            viewportImg.raycastTarget = true;
+
+            //# Content — RectTransform 만. CHPoolingScrollView 가 anchor/pivot/sizeDelta 자동 설정.
+            //# VerticalLayoutGroup / ContentSizeFitter 부착 안 함 (CHPoolingScrollView 의 InitItemTransform 과 충돌).
+            var contentGo = new GameObject("Content", typeof(RectTransform));
+            contentGo.transform.SetParent(viewportGo.transform, false);
+            var contentRt = (RectTransform)contentGo.transform;
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot     = new Vector2(0.5f, 1f);
+            contentRt.anchoredPosition = Vector2.zero;
+            contentRt.sizeDelta = new Vector2(0f, 0f);
+
+            //# BuffLine prefab 인스턴스를 Content 첫 자식으로 nest → CHPoolingScrollView 의 _origin.
+            //# Start 에서 CHPoolingScrollView 가 SetActive(false) 자동 처리하지만, 깜빡임 방지로 사전 비활성.
+            var buffLinePrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuffLine.prefab");
+            GameObject originInst = null;
+            if (buffLinePrefab != null)
+            {
+                originInst = (GameObject)PrefabUtility.InstantiatePrefab(buffLinePrefab, contentGo.transform);
+                originInst.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("[LairSpawnerStatusUIBuilder] BuffLine.prefab 미발견 — BuildBuffLinePrefab 선행 필요");
+            }
+
+            //# ScrollRect viewport/content 참조 묶기.
+            sr.viewport = viewportRt;
+            sr.content = contentRt;
+
+            //# CHPoolingScrollView 파생 컴포넌트 부착 + 직렬화 필드 wire-up.
+            //# _itemSize 는 wire-up 안 함 (dead serialization, v0.9 P1) — BuffLine prefab sizeDelta = 단일 진실.
+            var buffScrollView = scrollGo.AddComponent<BuffPoolingScrollView>();
+            var bsvSo = new SerializedObject(buffScrollView);
+            if (originInst != null) SetObjectField(bsvSo, "_origin", originInst);
+            SetVector2Field(bsvSo, "_itemGap", new Vector2(0f, 4f));
+            SetRectOffsetField(bsvSo, "_padding", 2, 2, 2, 2);
+            SetEnumField(bsvSo, "_scrollDirection", (int)PoolingScrollViewDirection.Vertical);
+            SetEnumField(bsvSo, "_align", (int)PoolingScrollViewAlign.LeftOrTop);
+            SetIntField(bsvSo, "_rowCount", 0);
+            SetIntField(bsvSo, "_columnCount", 0);
+            SetIntField(bsvSo, "_poolItemCount", 0);
+            bsvSo.ApplyModifiedPropertiesWithoutUndo();
+
+            //# SpawnerStatusTooltip 직렬화 필드 주입 — _buffText 제거됨, _buffScrollView / _emptyText 신규.
             var so = new SerializedObject(tooltip);
-            SetObjectField(so, "_root",       bodyRt);
-            SetObjectField(so, "_headerText", headerText);
-            SetObjectField(so, "_buffText",   buffText);
+            SetObjectField(so, "_root",           bodyRt);
+            SetObjectField(so, "_headerText",     headerText);
+            SetObjectField(so, "_buffScrollView", buffScrollView);
+            SetObjectField(so, "_emptyText",      emptyText);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);
         }
 
+        //# ===== BuffLine prefab =====
+        //# 툴팁 본문 강화 줄 1개 — sizeDelta (185, 24).
+        //# 자식: IconCircle(16×16 원) + IconLetter(12pt) + Badge(10pt ×N) + Body(10pt 본문).
+        //# CHPoolingScrollView<BuffLine, AppliedBuff> 의 _origin 으로 nesting (§4.11 v0.8).
+        private static void BuildBuffLinePrefab()
+        {
+            const string PrefabName = "BuffLine";
+
+            var root = new GameObject(PrefabName, typeof(RectTransform));
+            var rootRt = (RectTransform)root.transform;
+            rootRt.sizeDelta = new Vector2(185f, 24f);
+            //# v0.9 P1 — prefab sizeDelta 가 BuffPoolingScrollView 의 itemSize 단일 진실.
+
+            //# IconCircle — 16×16 원형 (sprite = UISprite, color = 종 6색 매핑은 Bind 시 결정).
+            var circleGo = new GameObject("IconCircle", typeof(RectTransform), typeof(Image));
+            circleGo.transform.SetParent(root.transform, false);
+            var circleRt = (RectTransform)circleGo.transform;
+            circleRt.anchorMin = new Vector2(0f, 0.5f);
+            circleRt.anchorMax = new Vector2(0f, 0.5f);
+            circleRt.pivot     = new Vector2(0f, 0.5f);
+            circleRt.anchoredPosition = new Vector2(2f, 0f);
+            circleRt.sizeDelta = new Vector2(16f, 16f);
+            var circleImg = circleGo.GetComponent<Image>();
+            circleImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            circleImg.color = Color.gray;
+            circleImg.raycastTarget = false;
+
+            //# IconLetter — 12pt (v0.8 cap 적용, 셀의 16pt 와 별도 정책).
+            var letterGo = new GameObject("IconLetter", typeof(RectTransform));
+            letterGo.transform.SetParent(circleGo.transform, false);
+            SetFullStretch((RectTransform)letterGo.transform);
+            var letterTmp = letterGo.AddComponent<TextMeshProUGUI>();
+            letterTmp.text = "H";
+            letterTmp.font = TMP_Settings.defaultFontAsset;
+            letterTmp.fontSize = 12f;
+            letterTmp.alignment = TextAlignmentOptions.Center;
+            letterTmp.color = Color.black;
+            letterTmp.raycastTarget = false;
+            var letterText = letterGo.AddComponent<CHText>();
+
+            //# Badge — ×N 10pt 노랑 (v0.8 cap), IconCircle 우측.
+            var badgeGo = new GameObject("Badge", typeof(RectTransform));
+            badgeGo.transform.SetParent(root.transform, false);
+            var badgeRt = (RectTransform)badgeGo.transform;
+            badgeRt.anchorMin = new Vector2(0f, 0.5f);
+            badgeRt.anchorMax = new Vector2(0f, 0.5f);
+            badgeRt.pivot     = new Vector2(0f, 0.5f);
+            badgeRt.anchoredPosition = new Vector2(20f, 0f);
+            badgeRt.sizeDelta = new Vector2(24f, 12f);
+            var badgeTmp = badgeGo.AddComponent<TextMeshProUGUI>();
+            badgeTmp.text = "×2";
+            badgeTmp.font = TMP_Settings.defaultFontAsset;
+            badgeTmp.fontSize = 10f;
+            badgeTmp.alignment = TextAlignmentOptions.Left;
+            badgeTmp.color = YellowAccent;
+            badgeTmp.outlineColor = Color.black;
+            badgeTmp.outlineWidth = 0.2f;
+            badgeTmp.raycastTarget = false;
+            var badgeText = badgeGo.AddComponent<CHText>();
+            badgeGo.SetActive(false);
+
+            //# BodyText — 본문 10pt 흰색. IconCircle + Badge 영역 44px 제외 후 stretch.
+            var bodyGo = new GameObject("BodyText", typeof(RectTransform));
+            bodyGo.transform.SetParent(root.transform, false);
+            var bodyRt = (RectTransform)bodyGo.transform;
+            bodyRt.anchorMin = new Vector2(0f, 0f);
+            bodyRt.anchorMax = new Vector2(1f, 1f);
+            bodyRt.offsetMin = new Vector2(44f, 0f);
+            bodyRt.offsetMax = new Vector2(-2f, 0f);
+            var bodyTmp = bodyGo.AddComponent<TextMeshProUGUI>();
+            bodyTmp.text = "체력 ×1.5 (200 → 300)";
+            bodyTmp.font = TMP_Settings.defaultFontAsset;
+            bodyTmp.fontSize = 10f;
+            bodyTmp.alignment = TextAlignmentOptions.Left;
+            bodyTmp.color = Color.white;
+            bodyTmp.overflowMode = TextOverflowModes.Truncate;
+            bodyTmp.raycastTarget = false;
+            var bodyText = bodyGo.AddComponent<CHText>();
+
+            //# BuffLine 컴포넌트 부착 + 자식 4개 wire-up.
+            var line = root.AddComponent<BuffLine>();
+            var so = new SerializedObject(line);
+            SetObjectField(so, "_iconCircle", circleImg);
+            SetObjectField(so, "_iconLetter", letterText);
+            SetObjectField(so, "_badge",      badgeText);
+            SetObjectField(so, "_bodyText",   bodyText);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            SaveAsPrefab(root, PrefabName);
+        }
+
         //# ===== BuildModalCardCell =====
+        //# v0.9 P1 — sizeDelta (303, 56) (기존 280×56 갱신). prefab sizeDelta 가 CHPoolingScrollView 의
+        //# itemSize 단일 진실이므로 빌더가 박는다 (모달 가용 폭 절반 303).
         private static void BuildModalCardCellPrefab()
         {
             const string PrefabName = "BuildModalCardCell";
 
             var root = new GameObject(PrefabName, typeof(RectTransform));
             var rootRt = (RectTransform)root.transform;
-            rootRt.sizeDelta = new Vector2(280f, 56f);
+            rootRt.sizeDelta = new Vector2(303f, 56f);
 
             //# 프레임 — 좌측 세로 막대.
             var frameGo = new GameObject("Frame", typeof(RectTransform), typeof(Image));
@@ -576,30 +728,28 @@ namespace Lair.EditorTools
             dividerImg.color = DividerColor;
             dividerImg.raycastTarget = false;
 
-            //# 좌(패시브) 섹션 ScrollRect.
-            var passiveContent = BuildModalSection(bodyGo.transform, "PassiveSection", true, out var passiveEmpty);
-            //# 우(액티브) 섹션 ScrollRect.
-            var activeContent  = BuildModalSection(bodyGo.transform, "ActiveSection",  false, out var activeEmpty);
+            //# 좌(패시브) / 우(액티브) 섹션 — CHPoolingScrollView<BuildModalCardCell, BuildEntry> (§2.7.2 v0.8).
+            var passiveScroll = BuildModalSection(bodyGo.transform, "PassiveSection", true,  out var passiveEmpty);
+            var activeScroll  = BuildModalSection(bodyGo.transform, "ActiveSection",  false, out var activeEmpty);
 
-            //# 모달 카드 셀 프리팹 로드.
-            var cellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuildModalCardCell.prefab");
-
-            //# 필드 주입.
+            //# 필드 주입 — v0.8: _passiveContent/_activeContent (Transform) → _passiveScrollView/_activeScrollView (BuildModalCardPoolingScrollView).
+            //# _cellPrefab 직렬화는 제거됨 (CHPoolingScrollView 의 _origin 으로 이주).
             var so = new SerializedObject(popup);
-            SetObjectField(so, "_dimButton",        dimChButton);
-            SetObjectField(so, "_closeButton",      closeChButton);
-            SetObjectField(so, "_passiveContent",   passiveContent);
-            SetObjectField(so, "_activeContent",    activeContent);
-            SetObjectField(so, "_cellPrefab",       cellPrefab);
-            SetObjectField(so, "_passiveEmptyText", passiveEmpty);
-            SetObjectField(so, "_activeEmptyText",  activeEmpty);
+            SetObjectField(so, "_dimButton",         dimChButton);
+            SetObjectField(so, "_closeButton",       closeChButton);
+            SetObjectField(so, "_passiveScrollView", passiveScroll);
+            SetObjectField(so, "_activeScrollView",  activeScroll);
+            SetObjectField(so, "_passiveEmptyText",  passiveEmpty);
+            SetObjectField(so, "_activeEmptyText",   activeEmpty);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);
         }
 
-        //# 모달 한 섹션 — ScrollRect + Content + 빈 상태 텍스트. Content Transform 반환.
-        private static Transform BuildModalSection(Transform parent, string name, bool left, out CHText emptyText)
+        //# 모달 한 섹션 — CHPoolingScrollView<BuildModalCardCell, BuildEntry> (§2.7.2 v0.8).
+        //# 라벨 + ScrollRect[Viewport(RectMask2D + raycast Image) + Content(RectTransform 만)] + 빈 상태 텍스트.
+        //# 반환값: BuildModalCardPoolingScrollView 컴포넌트 (BuildModalPopup 이 _passiveScrollView/_activeScrollView 로 가리킴).
+        private static BuildModalCardPoolingScrollView BuildModalSection(Transform parent, string name, bool left, out CHText emptyText)
         {
             var sectionGo = new GameObject(name, typeof(RectTransform));
             sectionGo.transform.SetParent(parent, false);
@@ -625,49 +775,89 @@ namespace Lair.EditorTools
             labelTmp.alignment = TextAlignmentOptions.Left;
             labelTmp.color = Color.white;
 
-            //# ScrollRect viewport.
-            var scrollGo = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
+            //# ScrollRect — CHPoolingScrollView 와 함께 (§2.7.2 v0.8). Elastic 0.1 / Inertia / Scrollbar 없음.
+            var scrollGo = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect));
             scrollGo.transform.SetParent(sectionGo.transform, false);
             var scrollRt = (RectTransform)scrollGo.transform;
             scrollRt.anchorMin = new Vector2(0f, 0f);
             scrollRt.anchorMax = new Vector2(1f, 1f);
             scrollRt.offsetMin = new Vector2(0f, 0f);
             scrollRt.offsetMax = new Vector2(0f, -24f);
-            var scrollBg = scrollGo.GetComponent<Image>();
-            scrollBg.sprite = LairUIPrefabBuilder.GetUISprite();
-            scrollBg.color = new Color(0f, 0f, 0f, 0.2f);
-
             var sr = scrollGo.GetComponent<ScrollRect>();
             sr.horizontal = false;
             sr.vertical = true;
+            sr.movementType = ScrollRect.MovementType.Elastic;
+            sr.elasticity = 0.1f;
+            sr.inertia = true;
+            sr.decelerationRate = 0.135f;
+            sr.scrollSensitivity = 1f;
+            sr.horizontalScrollbar = null;
+            sr.verticalScrollbar = null;
 
-            //# Mask 안에 Content.
-            scrollGo.AddComponent<Mask>();
+            //# Viewport — RectMask2D + Image (alpha 0.001, raycast). drag receiver.
+            var viewportGo = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            viewportGo.transform.SetParent(scrollGo.transform, false);
+            var viewportRt = (RectTransform)viewportGo.transform;
+            viewportRt.anchorMin = Vector2.zero;
+            viewportRt.anchorMax = Vector2.one;
+            viewportRt.pivot = new Vector2(0.5f, 0.5f);
+            viewportRt.anchoredPosition = Vector2.zero;
+            viewportRt.sizeDelta = Vector2.zero;
+            var viewportImg = viewportGo.GetComponent<Image>();
+            viewportImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            viewportImg.color = new Color(0f, 0f, 0f, 0.001f);
+            viewportImg.raycastTarget = true;
 
+            //# Content — RectTransform 만. VLG/CSF 부착 X.
             var contentGo = new GameObject("Content", typeof(RectTransform));
-            contentGo.transform.SetParent(scrollGo.transform, false);
+            contentGo.transform.SetParent(viewportGo.transform, false);
             var contentRt = (RectTransform)contentGo.transform;
             contentRt.anchorMin = new Vector2(0f, 1f);
             contentRt.anchorMax = new Vector2(1f, 1f);
             contentRt.pivot     = new Vector2(0.5f, 1f);
             contentRt.anchoredPosition = Vector2.zero;
             contentRt.sizeDelta = new Vector2(0f, 0f);
-            var vlg = contentGo.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 4f;
-            vlg.padding = new RectOffset(4, 4, 4, 4);
-            vlg.childAlignment = TextAnchor.UpperCenter;
-            vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = false;
-            vlg.childControlWidth = true;
-            vlg.childControlHeight = false;
-            var fitter = contentGo.AddComponent<ContentSizeFitter>();
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            //# BuildModalCardCell prefab 인스턴스를 Content 첫 자식 → CHPoolingScrollView 의 _origin.
+            var cellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/BuildModalCardCell.prefab");
+            GameObject originInst = null;
+            if (cellPrefab != null)
+            {
+                originInst = (GameObject)PrefabUtility.InstantiatePrefab(cellPrefab, contentGo.transform);
+                originInst.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning("[LairSpawnerStatusUIBuilder] BuildModalCardCell.prefab 미발견 — BuildModalCardCellPrefab 선행 필요");
+            }
+
+            //# ScrollRect 참조 묶기.
+            sr.viewport = viewportRt;
             sr.content = contentRt;
 
-            //# Empty state — content 옆이 아니라 ScrollRect 위에 떠 있어야 한다.
+            //# CHPoolingScrollView 파생 컴포넌트 + 직렬화 필드 wire-up.
+            //# _itemSize 는 wire-up 안 함 (v0.9 P1) — BuildModalCardCell prefab sizeDelta (303, 56) 가 단일 진실.
+            //# _columnCount = 0 auto — viewport 303 / itemSize 303 = 1 자동 (BuildPanel B1 위험 없음).
+            var modalScrollView = scrollGo.AddComponent<BuildModalCardPoolingScrollView>();
+            var msvSo = new SerializedObject(modalScrollView);
+            if (originInst != null) SetObjectField(msvSo, "_origin", originInst);
+            SetVector2Field(msvSo, "_itemGap", new Vector2(0f, 4f));
+            SetRectOffsetField(msvSo, "_padding", 0, 0, 0, 0);
+            SetEnumField(msvSo, "_scrollDirection", (int)PoolingScrollViewDirection.Vertical);
+            SetEnumField(msvSo, "_align", (int)PoolingScrollViewAlign.LeftOrTop);
+            SetIntField(msvSo, "_rowCount", 0);
+            SetIntField(msvSo, "_columnCount", 0);
+            SetIntField(msvSo, "_poolItemCount", 0);
+            msvSo.ApplyModifiedPropertiesWithoutUndo();
+
+            //# Empty state — ScrollRect 위에 떠 있음.
             var emptyGo = new GameObject("EmptyText", typeof(RectTransform));
-            emptyGo.transform.SetParent(scrollGo.transform, false);
-            SetFullStretch((RectTransform)emptyGo.transform);
+            emptyGo.transform.SetParent(sectionGo.transform, false);
+            var emptyRt = (RectTransform)emptyGo.transform;
+            emptyRt.anchorMin = Vector2.zero;
+            emptyRt.anchorMax = Vector2.one;
+            emptyRt.offsetMin = new Vector2(0f, 0f);
+            emptyRt.offsetMax = new Vector2(0f, -24f);
             var emptyTmp = emptyGo.AddComponent<TextMeshProUGUI>();
             emptyTmp.text = "아직 픽한 카드가 없습니다";
             emptyTmp.font = TMP_Settings.defaultFontAsset;
@@ -677,10 +867,71 @@ namespace Lair.EditorTools
             emptyTmp.raycastTarget = false;
             emptyText = emptyGo.AddComponent<CHText>();
 
-            return contentRt;
+            return modalScrollView;
         }
 
         //# ===== 공통 헬퍼 =====
+
+        //# v1.0 — IconRow 의 한 슬롯 (Enhance 또는 Spawn) 빌드 헬퍼.
+        //# - circle: 30×30 원 (anchor (0, 0.5) / pivot (0, 0.5) — 기존 단일 슬롯 패턴 유지).
+        //# - letter: 16pt 1자 (circle 자식 full-stretch).
+        //# - badge:  14pt ×N (circle 우하단 모서리 — anchor (1, 0) / pivot (0, 1) / anchoredPos (-2, 1) / sizeDelta (24, 14)).
+        //# anchoredPosition.x 가 슬롯 간 유일한 차이 (12 = Enhance / 68 = Spawn — §2.3.1 v1.0).
+        private static (Image circle, CHText letter, CHText badge) BuildIconSlot(
+            Transform rowParent, string circleName, string letterName, string badgeName,
+            float xPos, string defaultLetter)
+        {
+            //# Circle.
+            var circleGo = new GameObject(circleName, typeof(RectTransform), typeof(Image));
+            circleGo.transform.SetParent(rowParent, false);
+            var circleRt = (RectTransform)circleGo.transform;
+            circleRt.anchorMin = new Vector2(0f, 0.5f);
+            circleRt.anchorMax = new Vector2(0f, 0.5f);
+            circleRt.pivot     = new Vector2(0f, 0.5f);
+            circleRt.anchoredPosition = new Vector2(xPos, 0f);
+            circleRt.sizeDelta = new Vector2(30f, 30f);
+            var circleImg = circleGo.GetComponent<Image>();
+            circleImg.sprite = LairUIPrefabBuilder.GetUISprite();
+            circleImg.color = Color.gray;
+            circleImg.raycastTarget = false;
+
+            //# Letter (circle 자식, full-stretch 16pt).
+            var letterGo = new GameObject(letterName, typeof(RectTransform));
+            letterGo.transform.SetParent(circleGo.transform, false);
+            SetFullStretch((RectTransform)letterGo.transform);
+            var letterTmp = letterGo.AddComponent<TextMeshProUGUI>();
+            letterTmp.text = defaultLetter;
+            letterTmp.font = TMP_Settings.defaultFontAsset;
+            letterTmp.fontSize = 16f;
+            letterTmp.alignment = TextAlignmentOptions.Center;
+            letterTmp.color = Color.black;
+            letterTmp.raycastTarget = false;
+            var letterText = letterGo.AddComponent<CHText>();
+
+            //# Badge (circle 자식, 우하단 14pt ×N + 노랑 + outline). 배지 우측 끝이 circle 우측 +22.
+            var badgeGo = new GameObject(badgeName, typeof(RectTransform));
+            badgeGo.transform.SetParent(circleGo.transform, false);
+            var badgeRt = (RectTransform)badgeGo.transform;
+            badgeRt.anchorMin = new Vector2(1f, 0f);
+            badgeRt.anchorMax = new Vector2(1f, 0f);
+            badgeRt.pivot     = new Vector2(0f, 1f);
+            badgeRt.anchoredPosition = new Vector2(-2f, 1f);
+            badgeRt.sizeDelta = new Vector2(24f, 14f);
+            var badgeTmp = badgeGo.AddComponent<TextMeshProUGUI>();
+            badgeTmp.text = "×2";
+            badgeTmp.font = TMP_Settings.defaultFontAsset;
+            badgeTmp.fontSize = 14f;
+            badgeTmp.alignment = TextAlignmentOptions.Center;
+            badgeTmp.color = YellowAccent;
+            badgeTmp.outlineColor = Color.black;
+            badgeTmp.outlineWidth = 0.2f;
+            badgeTmp.raycastTarget = false;
+            var badgeText = badgeGo.AddComponent<CHText>();
+            //# 슬롯은 기본 비활성 (강화/생산 카드 없을 때) — Cell 의 RebindIconRow / OnEnable 이 토글.
+            circleGo.SetActive(false);
+
+            return (circleImg, letterText, badgeText);
+        }
 
         private static void SaveAsPrefab(GameObject root, string prefabName)
         {
@@ -724,6 +975,59 @@ namespace Lair.EditorTools
                 return;
             }
             prop.objectReferenceValue = value;
+        }
+
+        //# CHPoolingScrollView 직렬화 필드 wire-up용 헬퍼 (v0.8).
+        private static void SetVector2Field(SerializedObject so, string fieldName, Vector2 value)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairSpawnerStatusUIBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.vector2Value = value;
+        }
+
+        private static void SetIntField(SerializedObject so, string fieldName, int value)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairSpawnerStatusUIBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.intValue = value;
+        }
+
+        private static void SetEnumField(SerializedObject so, string fieldName, int enumIndex)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairSpawnerStatusUIBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.enumValueIndex = enumIndex;
+        }
+
+        //# RectOffset 은 SerializedProperty 의 하위 child (m_Left/m_Right/m_Top/m_Bottom).
+        private static void SetRectOffsetField(SerializedObject so, string fieldName, int left, int right, int top, int bottom)
+        {
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairSpawnerStatusUIBuilder] 필드 미발견: {so.targetObject.GetType().Name}.{fieldName}");
+                return;
+            }
+            var leftProp   = prop.FindPropertyRelative("m_Left");
+            var rightProp  = prop.FindPropertyRelative("m_Right");
+            var topProp    = prop.FindPropertyRelative("m_Top");
+            var bottomProp = prop.FindPropertyRelative("m_Bottom");
+            if (leftProp   != null) leftProp.intValue   = left;
+            if (rightProp  != null) rightProp.intValue  = right;
+            if (topProp    != null) topProp.intValue    = top;
+            if (bottomProp != null) bottomProp.intValue = bottom;
         }
 
         private static void EnsureDir(string path)

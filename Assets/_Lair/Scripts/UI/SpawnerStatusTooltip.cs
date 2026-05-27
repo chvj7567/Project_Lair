@@ -1,8 +1,6 @@
 using System;
+using System.Collections.Generic;
 using ChvjUnityInfra;
-using Lair.Battle;
-using Lair.Card;
-using Lair.Character;
 using Lair.Data;
 using UnityEngine;
 
@@ -23,13 +21,16 @@ namespace Lair.UI
         public BalanceConfig Balance;
     }
 
-    //# 셀 위 floating 툴팁 — 헤더 + 강화 줄 (또는 "적용된 강화 없음").
+    //# 셀 위 floating 툴팁 — 헤더 + 강화 줄 리스트 (CHPoolingScrollView<BuffLine, AppliedBuff>).
     //# CHMUI.ShowUI(EUI.SpawnerStatusTooltip, arg) 로 띄움.
+    //# v0.8 — Rule 11 완전 적용. 본문 CHText 단일 텍스트 → BuffPoolingScrollView 로 교체.
+    //# FormatBuffLine 메서드는 BuffLine.cs 로 이주됨 — 본 클래스는 줄 수만큼 BuffLine 풀 인스턴스에 위임.
     public class SpawnerStatusTooltip : UIBase
     {
-        [SerializeField] private RectTransform _root;     //# 툴팁 본체 (가로 180px, padding 8, 위치 조정 대상)
-        [SerializeField] private CHText _headerText;      //# "Spawner #0 — Wisp ×2"
-        [SerializeField] private CHText _buffText;        //# "H 체력 ×1.5 (200 → 300)" 또는 "적용된 강화 없음"
+        [SerializeField] private RectTransform _root;                  //# 툴팁 본체 (가로 201px, padding 8, 위치 조정 대상)
+        [SerializeField] private CHText _headerText;                   //# "Spawner #0 — Wisp ×2"
+        [SerializeField] private BuffPoolingScrollView _buffScrollView; //# 강화 줄 리스트 (CHPoolingScrollView 외부에 헤더 고정)
+        [SerializeField] private CHText _emptyText;                    //# "적용된 강화 없음" — buffs.Count==0 일 때만 SetActive(true)
 
         private SpawnerStatusTooltipArg _arg;
         private BattleViewModel _vm;
@@ -95,7 +96,8 @@ namespace Lair.UI
             _root.anchorMin = new Vector2(0.5f, 0.5f);
             _root.anchorMax = new Vector2(0.5f, 0.5f);
 
-            //# 화면 좌우 clamp — 툴팁 width 의 절반 만큼 안전 margin.
+            //# 화면 좌우 clamp — 툴팁 width 의 절반 만큼 안전 margin (기획서 §2.5.2 v0.8).
+            //# v0.7 좌측 anchor 변경으로 셀 0 위 툴팁이 좌측 화면 벗어남 — 분기 자동 발동 (코드 변경 없음).
             float halfWidth = _root.rect.width * 0.5f;
             float canvasHalfWidth = canvasRt.rect.width * 0.5f;
             float safeMargin = 4f;
@@ -114,95 +116,33 @@ namespace Lair.UI
             var snap = spawners[_arg.SpawnerIndex];
             if (snap == null) return;
 
-            //# 헤더 — "Spawner #N — Wisp ×2" / count==1 이면 "×1" 생략 (기획서 §2.5.4 예시 "×2" 유지)
-            //# 일관성 — 헤더는 항상 ×count 표시 (1픽 케이스에도 명시). 기획서 §2.5.4 형식 그대로.
+            //# 헤더 — "Spawner #N — Wisp ×2" — 일관성 위해 1픽 케이스에도 ×count 표시 (기획서 §2.5.4).
             string speciesName = SpawnerStatusCell.SpeciesName(snap.CurrentType);
             if (_headerText != null)
                 _headerText.SetText($"Spawner #{snap.Index} — {speciesName} ×{snap.OutputCount}");
 
-            //# 강화 줄.
-            if (_buffText == null) return;
-
+            //# 강화 줄 — CHPoolingScrollView 가 자동 풀링·재바인딩.
             var buffs = snap.AppliedBuffs;
-            if (buffs == null || buffs.Count == 0)
-            {
-                _buffText.SetText("적용된 강화 없음");
-                _buffText.SetColor(new Color(0.612f, 0.639f, 0.686f, 1f));    //# #9CA3AF
-                return;
-            }
+            int count = buffs != null ? buffs.Count : 0;
 
-            //# 종 1 ↔ 카드 1 매핑 — 첫 buff 만 사용.
-            var first = buffs[0];
-            if (first == null || first.Source == null)
-            {
-                _buffText.SetText("적용된 강화 없음");
-                return;
-            }
+            if (_emptyText != null) _emptyText.gameObject.SetActive(count == 0);
 
-            string line = FormatBuffLine(snap.CurrentType, first);
-            _buffText.SetText(line);
-            _buffText.SetColor(Color.white);
+            if (_buffScrollView != null)
+            {
+                //# CHPoolingScrollView 가 풀 인스턴스를 viewport 기준으로 자동 관리.
+                //# Context (종 + balance) 를 SetItemList 전에 주입 — InitItem 안에서 BuffLine.Bind 가 그대로 사용.
+                _buffScrollView.SetContext(snap.CurrentType, _arg.Balance);
+                _buffScrollView.SetItemList(ToList(buffs));
+            }
         }
 
-        //# 스탯별 줄 포맷 (기획서 §2.5.5). Hp/Power/Range/MoveSpeed/Cooldown/SlowFactor.
-        //# Base 5스탯 → BalanceConfig 단일 진실. SlowFactor → PlagueSlowOnHit.BaseSlowFactor 상수.
-        private string FormatBuffLine(EMonster type, BattleViewModel.AppliedBuff buff)
+        //# IReadOnlyList → List 복사 (CHPoolingScrollView.SetItemList 가 List<TData> 요구).
+        private static List<BattleViewModel.AppliedBuff> ToList(IReadOnlyList<BattleViewModel.AppliedBuff> src)
         {
-            //# 아이콘 글자 + 픽 배지 prefix.
-            var letterInfo = SpawnerStatusCell.IconLetterFor(buff.Source.Id);
-            string prefix = letterInfo.letter == ' ' ? "" : letterInfo.letter.ToString();
-            string pickBadge = buff.PickCount >= 2 ? $" ×{buff.PickCount}" : "";
-
-            //# BalanceConfig 에서 base 스탯 읽기 (Plague SlowFactor 제외). Arg 로 주입된 단일 진실.
-            BalanceConfig balance = _arg != null ? _arg.Balance : null;
-            BalanceConfig.CharacterStat baseStat = balance?.GetMonster(type);
-
-            //# 스탯별 분기 (기획서 §2.5.5 표).
-            switch (buff.Stat)
-            {
-                case EMonsterStatKind.Hp:
-                {
-                    int baseHp = baseStat != null ? baseStat.Hp : 0;
-                    int result = Mathf.Max(1, Mathf.RoundToInt(baseHp * buff.AggregateMultiplier));
-                    return $"{prefix}{pickBadge} 체력 ×{buff.AggregateMultiplier:0.##} ({baseHp} → {result})";
-                }
-                case EMonsterStatKind.Power:
-                {
-                    int basePower = baseStat != null ? baseStat.Power : 0;
-                    int result = Mathf.Max(1, Mathf.RoundToInt(basePower * buff.AggregateMultiplier));
-                    return $"{prefix}{pickBadge} 공격력 ×{buff.AggregateMultiplier:0.##} ({basePower} → {result})";
-                }
-                case EMonsterStatKind.Range:
-                {
-                    float baseRange = baseStat != null ? baseStat.Range : 0f;
-                    float result = baseRange * buff.AggregateMultiplier;
-                    return $"{prefix}{pickBadge} 사거리 ×{buff.AggregateMultiplier:0.##} ({baseRange:0.0} → {result:0.0})";
-                }
-                case EMonsterStatKind.MoveSpeed:
-                {
-                    float baseMs = baseStat != null ? baseStat.MoveSpeed : 0f;
-                    float result = baseMs * buff.AggregateMultiplier;
-                    return $"{prefix}{pickBadge} 이동속도 ×{buff.AggregateMultiplier:0.##} ({baseMs:0.0} → {result:0.0})";
-                }
-                case EMonsterStatKind.Cooldown:
-                {
-                    //# CooldownMul 0.7 = 공격속도 ×1.43 (역수). 절대값은 cd 단위로 표시.
-                    float baseCd = baseStat != null ? baseStat.Cooldown : 0f;
-                    float resultCd = Mathf.Max(0.05f, baseCd * buff.AggregateMultiplier);
-                    float aspeed = buff.AggregateMultiplier > 0f ? 1f / buff.AggregateMultiplier : 0f;
-                    return $"{prefix}{pickBadge} 공격속도 ×{aspeed:0.##} (cd {baseCd:0.0}s → {resultCd:0.0}s)";
-                }
-                case EMonsterStatKind.SlowFactor:
-                {
-                    //# Plague — BalanceConfig 미보유. const 상수에서 직접.
-                    float baseSlow = PlagueSlowOnHit.BaseSlowFactor;
-                    float result = baseSlow * buff.AggregateMultiplier;
-                    return $"{prefix}{pickBadge} 둔화 효과 ({baseSlow:0.##} → {result:0.##}) — 강화";
-                }
-                default:
-                    return $"{prefix}{pickBadge} (알 수 없는 스탯)";
-            }
+            var list = new List<BattleViewModel.AppliedBuff>();
+            if (src == null) return list;
+            for (int i = 0; i < src.Count; ++i) list.Add(src[i]);
+            return list;
         }
-
     }
 }

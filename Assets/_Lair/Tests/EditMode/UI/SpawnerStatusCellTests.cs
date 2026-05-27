@@ -48,5 +48,28 @@ namespace Lair.Tests.UI
             Assert.AreEqual(Color.white, SpawnerStatusCell.IconLetterFor(ECardId.PhantomMoveSpeedBoost).fgColor);
             Assert.AreEqual(Color.black, SpawnerStatusCell.IconLetterFor(ECardId.WispHpBoost).fgColor);
         }
+
+        //# v1.0 정상 — Spawn 카드 5종 글자 '+' 매핑 (§2.3.3 v1.0).
+        [Test]
+        public void IconLetterFor_Spawn카드_5종_플러스_매핑_v1점0()
+        {
+            Assert.AreEqual('+', SpawnerStatusCell.IconLetterFor(ECardId.SpawnWisps).letter);
+            Assert.AreEqual('+', SpawnerStatusCell.IconLetterFor(ECardId.SpawnWraith).letter);
+            Assert.AreEqual('+', SpawnerStatusCell.IconLetterFor(ECardId.SpawnReapers).letter);
+            Assert.AreEqual('+', SpawnerStatusCell.IconLetterFor(ECardId.SpawnPlagues).letter);
+            Assert.AreEqual('+', SpawnerStatusCell.IconLetterFor(ECardId.SpawnPhantoms).letter);
+        }
+
+        //# v1.0 엣지 — Hex 종은 SpawnHex 카드 부재. 5 Spawn 카드 매핑에 없음 → Hex 셀의 Spawn 슬롯은
+        //# AppliedBuffs 안에 Spawn 픽이 없거나 (정상 시나리오 — pool 에 SpawnHex 가 없음), 잘못 들어와도
+        //# IconLetterFor 가 fallback(' ') 반환으로 슬롯 비활성 (§2.3.3 v1.0 Hex 종 행).
+        [Test]
+        public void IconLetterFor_Hex종_Spawn_슬롯은_매핑외_fallback_v1점0()
+        {
+            //# SpawnHex 같은 enum 값 자체가 ECardId 에 없음 — 컴파일 검증으로 끝.
+            //# Spawn 카드 5종 외 의도치 않은 비강화 카드 (예: Replace) 가 들어왔을 때 fallback 동작 확인.
+            var info = SpawnerStatusCell.IconLetterFor(ECardId.ReplaceWispsToWraith);
+            Assert.AreEqual(' ', info.letter, "Spawn 도 Enhance 도 아닌 카드는 fallback");
+        }
     }
 }

@@ -355,11 +355,35 @@ namespace Lair.Battle
 
             //# 동일 종·동일 Stat 의 엔트리들에 누적 배율을 일괄 동기화 (종 1 ↔ 카드 1 매핑이지만
             //# 향후 1↔다 매핑 확장에 대비해 list 순회로 갱신).
+            //# v1.0 — Enhance 카테고리만 갱신 대상. Spawn 엔트리(같은 list 에 들어감)의 AggregateMultiplier 가
+            //# 잘못 덮어쓰이지 않도록 Category 필터.
             if (_typeModifiers.TryGetValue(type, out var mul))
             {
                 foreach (var b in list)
-                    if (b.Stat == stat) b.AggregateMultiplier = mul.Get(stat);
+                    if (b.Stat == stat && b.Source != null && b.Source.Category == ECardCategory.Enhance)
+                        b.AggregateMultiplier = mul.Get(stat);
             }
+        }
+
+        //# v1.0 — Spawn 카테고리 픽 누적. Enhance 의 TrackCardPick 와 자료구조 공유 (Dictionary<EMonster, List<AppliedBuff>>).
+        //# Stat 필드는 EMonsterStatKind.Hp (default, BuffLine.FormatBody 의 Category 분기로 읽히지 않음 — §2.5.5 v1.0).
+        //# AggregateMultiplier 는 Spawn 에선 의미 없음. retroactive 정책 (§2.3.6) — type 출력 Spawner 가 0 대여도 누적.
+        private void TrackSpawnPick(EMonster type, CardData source)
+        {
+            if (_typeModifierPicks.TryGetValue(type, out var list) == false)
+                _typeModifierPicks[type] = list = new List<BattleViewModel.AppliedBuff>();
+
+            var existing = list.Find(b => b.Source == source);
+            if (existing != null)
+                existing.PickCount++;
+            else
+                list.Add(new BattleViewModel.AppliedBuff
+                {
+                    Source = source,
+                    PickCount = 1,
+                    Stat = EMonsterStatKind.Hp,    //# default — Category=Spawn 분기에서 안 읽음
+                    AggregateMultiplier = 1f,      //# unused for Spawn
+                });
         }
 
         //# 스포너 상태 UI — VM 이 SpawnerSnapshot 채울 때 사용. 없는 종이면 빈 array.
@@ -373,11 +397,20 @@ namespace Lair.Battle
         public BalanceConfig Balance => _balance;
 
         //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
+        //# v1.0 — _currentCardScope non-null (= ApplyCardEffect 진입 중) 이면 Spawn 픽 추적 + 셀 IconRow 갱신 이벤트 발행.
+        //# 셀 IconRow Spawn 슬롯은 OnTypeModifierChanged 의 동일 이벤트로 재계산 (의미 확장 — §4.3 v1.0).
         public void IncrementSpawnerOutput(EMonster type)
         {
             if (_spawners == null) return;
             foreach (var sp in _spawners)
                 if (sp != null && sp.CurrentType == type) sp.IncrementOutput();
+
+            //# v1.0 — Spawn 픽 누적 (type 출력 Spawner 0 대여도 누적 — retroactive 정책 §2.3.6).
+            if (_currentCardScope != null)
+                TrackSpawnPick(type, _currentCardScope);
+
+            //# v1.0 — Spawn 슬롯 IconRow 갱신용 broadcast. Enhance 와 같은 이벤트 (의미 확장).
+            OnTypeModifierChanged?.Invoke(type);
         }
 
         //# 지속 스폰 — 융합 카드. 출력 종이 from 인 모든 Spawner 의 출력 종을 to 로 변경.
