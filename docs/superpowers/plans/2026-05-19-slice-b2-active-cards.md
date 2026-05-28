@@ -6,7 +6,7 @@
 
 **Architecture:** `ActiveTriggerService` 가 `BattleClock.OnTick` 을 구독 → 9개 임계점(30/60/.../270초) 통과 1회 감지 → `TriggerQueue.Enqueue(Active, idx)` → 기존 `TryProcessNext()` 루프 재사용. 효과 5종(즉발/오라).
 
-**Tech Stack:** Unity 2022.3 / URP / TDD POCO / ChvjPackage(CHMResource·CHMUI·CHMPool)
+**Tech Stack:** Unity 6 (6000.0.68f1) / URP 17.0.4 / TDD POCO / ChvjPackage(CHMResource·CHMUI·CHMPool)
 
 ---
 

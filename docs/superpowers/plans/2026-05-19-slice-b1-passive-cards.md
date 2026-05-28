@@ -6,7 +6,7 @@
 
 **Architecture:** Time.timeScale=0 일시정지 + TriggerQueue 큐 + CardData(SO) 와 ICardEffect(Strategy) + IBattleContext 인터페이스 (Rule 06 자연 도입) + CHMUI 의 CardSelectionPopup.
 
-**Tech Stack:** Unity 2022.3, URP 17.0.4, C# 9, NUnit, Addressables 2.8.1, ScriptableObject + SerializeReference, com.chvj.unityinfra.
+**Tech Stack:** Unity 6 (6000.0.68f1), URP 17.0.4, C# 9, NUnit, Addressables 2.8.1, ScriptableObject + SerializeReference, com.chvj.unityinfra.
 
 **참고 설계서:** `docs/superpowers/specs/2026-05-19-slice-b1-passive-cards-design.md`
 

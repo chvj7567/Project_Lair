@@ -27,7 +27,7 @@
 
 ## 코드 / 인프라
 
-- **engine**: Unity 2022.3+ / URP
+- **engine**: Unity 6 (6000.0.68f1) / URP 17.0.4
 - **language**: C#
 - **namespace**: Lair
 - **architecture**: MVVM

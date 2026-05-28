@@ -15,7 +15,7 @@ Markdown. `## 섹션 ` 으로 그룹, `- **key**: value` 로 키-값. 중첩은 
 
 ```markdown
 ## 코드 / 인프라
-- **engine**: Unity 2022.3+
+- **engine**: Unity 6 (6000.0.68f1)
 - **infrastructure**
   - **package_id**: com.chvj.unityinfra
   - **alias**: ChvjPackage

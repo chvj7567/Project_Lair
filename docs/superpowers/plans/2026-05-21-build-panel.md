@@ -6,7 +6,7 @@
 
 **Architecture:** `CardData`에 아이콘 스프라이트 필드를 추가하고 카드 빌더가 `ECardId` 이름의 PNG를 자동 배정한다. `BattleViewModel`이 픽을 추적·집계(×N)하고, HUD 하위 `BuildPanel`이 `CHMPool`로 셀(`BuildIconCell`)을 스폰해 표시한다. UI 프리팹은 `LairUIPrefabBuilder` 절차적 빌드를 확장한다.
 
-**Tech Stack:** Unity 2022.3+ / C# / ScriptableObject / MVVM / NUnit (EditMode) / `ChvjUnityInfra` (CHMPool·CHText·CHButton)
+**Tech Stack:** Unity 6 (6000.0.68f1) / C# / ScriptableObject / MVVM / NUnit (EditMode) / `ChvjUnityInfra` (CHMPool·CHText·CHButton)
 
 **설계서:** `docs/superpowers/specs/2026-05-21-build-panel-design.md`
 

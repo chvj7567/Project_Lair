@@ -6,7 +6,7 @@
 
 **Architecture:** 데이터(`Spawner` + `BattleController`) → ViewModel(`BattleViewModel.SpawnerSnapshot`) → View(`SpawnerStatusPanel` 6 × `SpawnerStatusCell`) 단방향. 강화 카드의 source 추적은 `BattleController.ApplyCardEffect(card)` 진입점이 `_currentCardScope` 를 잠시 보관해 `RegisterMonsterTypeBuff` 가 self-key 로 사용하는 방식. Progress 만 셀 측 매 프레임 폴링(이벤트 우회), 나머지(종/카운트/강화)는 VM 이벤트 푸시.
 
-**Tech Stack:** Unity 2022.3+ / C# / MVVM / NUnit (EditMode·PlayMode) / `ChvjUnityInfra` (CHMPool · CHText · CHButton · CHMUI · CHMResource · Addressables)
+**Tech Stack:** Unity 6 (6000.0.68f1) / C# / MVVM / NUnit (EditMode·PlayMode) / `ChvjUnityInfra` (CHMPool · CHText · CHButton · CHMUI · CHMResource · Addressables)
 
 **설계서:** `docs/superpowers/specs/2026-05-27-spawner-status-ui-design.md`
 

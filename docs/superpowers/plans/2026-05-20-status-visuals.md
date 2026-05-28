@@ -6,7 +6,7 @@
 
 **Architecture:** `IStatusVisual` sibling 인터페이스를 6개 Aura 가 구현, `HeroAuraRunner` 가 visual 을 중앙에서 Pop/추적/Push. visual 은 root 레벨 + 매 프레임 영웅 추적.
 
-**Tech Stack:** Unity 2022.3 / URP / ChvjPackage(CHMResource·CHMPool)
+**Tech Stack:** Unity 6 (6000.0.68f1) / URP 17.0.4 / ChvjPackage(CHMResource·CHMPool)
 
 설계서: `docs/superpowers/specs/2026-05-20-status-visuals-design.md`
 

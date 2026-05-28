@@ -14,7 +14,7 @@
 
 ## 3. 기술 스택
 
-- **엔진**: Unity 2022.3+ / URP
+- **엔진**: Unity 6 (6000.0.68f1) / URP 17.0.4
 - **인프라 패키지**: `com.chvj.unityinfra` (ChvjPackage) — `Packages/com.chvj.unityinfra/`. 리소스·풀·UI·오디오. 모든 작업의 기준 인프라.
 - **에셋 로딩**: Addressables — `CHMResource`, Enum 키 기반
 - **아키텍처**: MVVM (View ↔ ViewModel ↔ Model 단방향)

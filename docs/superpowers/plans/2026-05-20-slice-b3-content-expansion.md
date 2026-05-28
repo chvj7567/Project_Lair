@@ -6,7 +6,7 @@
 
 **Architecture:** 인터페이스 3종 확장(`IHealth.Heal`/`IMover.IsMoving`/`IAttacker.OnHit`) + 런타임 오버레이 배율(`DamageTakenScale`/`CooldownScale`/`PowerScale`)로 글로벌 버프를 직접 필드 수정 없이 처리. `MonsterBuffService` 가 매 tick 전체 몬스터에 버프 재적용.
 
-**Tech Stack:** Unity 2022.3 / URP / TDD POCO / ChvjPackage(CHMResource·CHMUI·CHMPool)
+**Tech Stack:** Unity 6 (6000.0.68f1) / URP 17.0.4 / TDD POCO / ChvjPackage(CHMResource·CHMUI·CHMPool)
 
 설계서: `docs/superpowers/specs/2026-05-20-slice-b3-content-expansion-design.md`
 

@@ -6,7 +6,7 @@
 
 **Architecture:** `Loading.unity` 씬에서 `LoadingController`(MonoBehaviour)가 CHMResource 초기화 → JSON 로드 → PreloadByLabelAsync 순서로 오케스트레이션. `LoadingHud`(MonoBehaviour)는 씬에 직접 배치된 Canvas 컴포넌트로 진행 바 + 텍스트 갱신만 담당. MVVM 없음 — Rule 02 §6 "가벼운 화면 MVC 허용".
 
-**Tech Stack:** Unity 2022.3 / C# / Addressables / ChvjPackage (CHMResource, CHMUI, CHMPool, CHText, JsonArrayUtility) / Unity Test Framework (NUnit)
+**Tech Stack:** Unity 6 (6000.0.68f1) / C# / Addressables / ChvjPackage (CHMResource, CHMUI, CHMPool, CHText, JsonArrayUtility) / Unity Test Framework (NUnit)
 
 ---
 

@@ -6,7 +6,7 @@
 
 **Architecture:** 캐릭터 스탯 + 전투 상수를 `BalanceConfig` SO 한 곳에 두고 `BattleController`가 스폰 직후 런타임 적용한다 (프리팹 재빌드 불필요). 카드 효과값은 `RebuildAllCards`를 비파괴로 바꿔 .asset 직접 튜닝을 보호한다. 한 판 종료 시 결과를 jsonl 파일에 누적하고 `EditorWindow`에서 치트와 히스토리를 본다.
 
-**Tech Stack:** Unity 2022.3+ / C# / ScriptableObject / NUnit (EditMode) / IMGUI EditorWindow / `ChvjUnityInfra` (CHMResource·CHMPool)
+**Tech Stack:** Unity 6 (6000.0.68f1) / C# / ScriptableObject / NUnit (EditMode) / IMGUI EditorWindow / `ChvjUnityInfra` (CHMResource·CHMPool)
 
 **설계서:** `docs/superpowers/specs/2026-05-21-slice-c-balance-tooling-design.md`
 

@@ -6,7 +6,7 @@
 
 **Architecture:** 단방향 의존 4계층 (Bootstrap → UI MVVM → Battle Logic → Character Composition → ChvjPackage Infra). UI 만 풀세트 MVVM, 캐릭터는 인터페이스 4종(IMover/IHealth/IAttacker/ITargetProvider)의 컴포지션. 모든 에셋 로드는 `Enum.ToString()` 키를 통해 Addressables 로.
 
-**Tech Stack:** Unity 2022.3, URP 17.0.4, C# 9, NUnit (Unity Test Framework 1.6.0), Addressables 2.8.1, `com.chvj.unityinfra` (로컬 패키지).
+**Tech Stack:** Unity 6 (6000.0.68f1), URP 17.0.4, C# 9, NUnit (Unity Test Framework 1.6.0), Addressables 2.8.1, `com.chvj.unityinfra` (로컬 패키지).
 
 **참고 설계서:** `docs/superpowers/specs/2026-05-18-slice-a-battle-loop-design.md`
 
