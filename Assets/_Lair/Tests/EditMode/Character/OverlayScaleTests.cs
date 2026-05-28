@@ -11,8 +11,8 @@ namespace Lair.Tests.Character
         [Test]
         public void Health_DamageTakenScale_데미지에_곱셈_적용()
         {
-            var go = new GameObject("h");
-            var h = go.AddComponent<Health>();
+            GameObject go = new GameObject("h");
+            Health h = go.AddComponent<Health>();
             h.SetMax(100);
             h.DamageTakenScale = 0.5f;
             h.TakeDamage(40);   //# 실제 20
@@ -23,8 +23,8 @@ namespace Lair.Tests.Character
         [Test]
         public void Health_Heal_Max_초과_불가()
         {
-            var go = new GameObject("h");
-            var h = go.AddComponent<Health>();
+            GameObject go = new GameObject("h");
+            Health h = go.AddComponent<Health>();
             h.SetMax(100);
             h.TakeDamage(30);   //# 70
             h.Heal(999);
@@ -35,11 +35,11 @@ namespace Lair.Tests.Character
         [Test]
         public void MeleeAttacker_PowerScale_데미지에_곱셈_적용()
         {
-            var go = new GameObject("a");
-            var atk = go.AddComponent<MeleeAttacker>();
+            GameObject go = new GameObject("a");
+            MeleeAttacker atk = go.AddComponent<MeleeAttacker>();
             atk.Configure(2f, 0f, 100);
             atk.PowerScale = 0.5f;
-            var target = new FakeHealth();
+            FakeHealth target = new FakeHealth();
             target.SetMax(1000);
             atk.TryAttack(target, Vector3.zero, Vector3.zero, 100f);
             Assert.AreEqual(50, target.LastDamage);
@@ -49,12 +49,12 @@ namespace Lair.Tests.Character
         [Test]
         public void MeleeAttacker_OnHit_적중_시_발행()
         {
-            var go = new GameObject("a");
-            var atk = go.AddComponent<MeleeAttacker>();
+            GameObject go = new GameObject("a");
+            MeleeAttacker atk = go.AddComponent<MeleeAttacker>();
             atk.Configure(2f, 0f, 10);
             IHealth hit = null;
             atk.OnHit += t => hit = t;
-            var target = new FakeHealth();
+            FakeHealth target = new FakeHealth();
             target.SetMax(100);
             atk.TryAttack(target, Vector3.zero, Vector3.zero, 100f);
             Assert.AreSame(target, hit);

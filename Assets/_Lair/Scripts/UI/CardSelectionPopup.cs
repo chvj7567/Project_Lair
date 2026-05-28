@@ -28,7 +28,7 @@ namespace Lair.UI
 
                 if (i < sa.Choices.Count)
                 {
-                    var card = sa.Choices[i];
+                    CardData card = sa.Choices[i];
                     _slots[i].gameObject.SetActive(true);
                     _slots[i].Bind(card, () =>
                     {

@@ -19,7 +19,7 @@ namespace Lair.Tests.PlayMode
             string path = RunRecorder.LogPath;
             if (File.Exists(path) == false) return 0;
             int count = 0;
-            foreach (var line in File.ReadAllLines(path))
+            foreach (string line in File.ReadAllLines(path))
             {
                 if (string.IsNullOrWhiteSpace(line) == false) count++;
             }
@@ -29,11 +29,11 @@ namespace Lair.Tests.PlayMode
         //# baseline 이후에 추가된 RunRecord 만 파싱해 반환. 손상된 줄은 건너뜀.
         public static List<RunRecord> ReadSince(int baselineLineCount)
         {
-            var result = new List<RunRecord>();
+            List<RunRecord> result = new List<RunRecord>();
             string path = RunRecorder.LogPath;
             if (File.Exists(path) == false) return result;
 
-            var lines = File.ReadAllLines(path);
+            string[] lines = File.ReadAllLines(path);
             for (int i = 0; i < lines.Length; ++i)
             {
                 if (string.IsNullOrWhiteSpace(lines[i])) continue;
@@ -41,7 +41,7 @@ namespace Lair.Tests.PlayMode
                 if (i < baselineLineCount) continue;
                 try
                 {
-                    var rec = JsonUtility.FromJson<RunRecord>(lines[i]);
+                    RunRecord rec = JsonUtility.FromJson<RunRecord>(lines[i]);
                     if (rec != null) result.Add(rec);
                 }
                 catch (System.Exception)
@@ -55,7 +55,7 @@ namespace Lair.Tests.PlayMode
         //# RunRecord 목록 -> 밸런스 메트릭 요약 문자열. 컨셉 §8 기준 메트릭 포함.
         public static string Summarize(IReadOnlyList<RunRecord> records, string label)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine($"=== 시뮬레이션 메트릭 [{label}] ===");
 
             if (records == null || records.Count == 0)
@@ -69,10 +69,10 @@ namespace Lair.Tests.PlayMode
             float deathTimeSum = 0f;
             int survivorSum = 0;
             //# 카드별 픽 횟수 / 픽이 포함된 판의 승리 횟수.
-            var pickCount = new Dictionary<string, int>();
-            var pickWin = new Dictionary<string, int>();
+            Dictionary<string, int> pickCount = new Dictionary<string, int>();
+            Dictionary<string, int> pickWin = new Dictionary<string, int>();
 
-            foreach (var r in records)
+            foreach (RunRecord r in records)
             {
                 bool isWin = r.Result == BattleResult.Win.ToString();
                 if (isWin) wins++;
@@ -81,8 +81,8 @@ namespace Lair.Tests.PlayMode
 
                 if (r.Picks == null) continue;
                 //# 한 판에서 같은 카드를 여러 번 픽할 수 있으나, 픽률은 등장 횟수 기준으로 합산.
-                var seenThisRun = new HashSet<string>();
-                foreach (var pid in r.Picks)
+                HashSet<string> seenThisRun = new HashSet<string>();
+                foreach (string pid in r.Picks)
                 {
                     if (string.IsNullOrEmpty(pid)) continue;
                     pickCount.TryGetValue(pid, out int c);
@@ -91,7 +91,7 @@ namespace Lair.Tests.PlayMode
                 }
                 if (isWin)
                 {
-                    foreach (var pid in seenThisRun)
+                    foreach (string pid in seenThisRun)
                     {
                         pickWin.TryGetValue(pid, out int w);
                         pickWin[pid] = w + 1;
@@ -110,7 +110,7 @@ namespace Lair.Tests.PlayMode
             sb.AppendLine($"빌드 다양성(서로 다른 픽 카드 종): {pickCount.Count}종");
 
             sb.AppendLine("카드별 픽 횟수 / 픽 포함 판 승리 수:");
-            foreach (var kv in pickCount)
+            foreach (KeyValuePair<string, int> kv in pickCount)
             {
                 pickWin.TryGetValue(kv.Key, out int w);
                 sb.AppendLine($"  - {kv.Key}: 픽 {kv.Value}회, 픽-판 승리 {w}");

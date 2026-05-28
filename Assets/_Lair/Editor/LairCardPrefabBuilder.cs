@@ -129,11 +129,11 @@ namespace Lair.EditorTools
         //# spec 목록에 없는 .asset 만 삭제 (폐기 ECardId). 유효 카드는 보존.
         private static void RemoveStaleCards()
         {
-            var valid = new HashSet<string>();
-            foreach (var s in PassiveSpecs) valid.Add(s.Id.ToString());
-            foreach (var s in ActiveSpecs)  valid.Add(s.Id.ToString());
+            HashSet<string> valid = new HashSet<string>();
+            foreach (Spec s in PassiveSpecs) valid.Add(s.Id.ToString());
+            foreach (Spec s in ActiveSpecs)  valid.Add(s.Id.ToString());
 
-            foreach (var path in Directory.GetFiles(CardDir, "*.asset"))
+            foreach (string path in Directory.GetFiles(CardDir, "*.asset"))
             {
                 string name = Path.GetFileNameWithoutExtension(path);
                 if (valid.Contains(name) == false)
@@ -147,24 +147,24 @@ namespace Lair.EditorTools
         //# Spec 묶음 → CardData N장 + CardPool 1개 생성 + Addressables 등록.
         private static void BuildCardsAndPool(Spec[] specs, EData poolKey)
         {
-            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
                 Debug.LogError("[LairCardPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
                 return;
             }
-            var group = settings.FindGroup(ResourceGroup);
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
 
-            var createdCards = new List<CardData>();
+            List<CardData> createdCards = new List<CardData>();
 
-            foreach (var spec in specs)
+            foreach (Spec spec in specs)
             {
                 string path = $"{CardDir}/{spec.Id}.asset";
-                var card = AssetDatabase.LoadAssetAtPath<CardData>(path);
+                CardData card = AssetDatabase.LoadAssetAtPath<CardData>(path);
                 bool isNew = card == null;
                 if (isNew) card = ScriptableObject.CreateInstance<CardData>();
 
-                var so = new SerializedObject(card);
+                SerializedObject so = new SerializedObject(card);
                 so.FindProperty("_id").enumValueIndex       = (int)spec.Id;
                 so.FindProperty("_category").enumValueIndex = (int)spec.Category;
                 so.FindProperty("_displayName").stringValue = spec.DisplayName;
@@ -173,9 +173,9 @@ namespace Lair.EditorTools
                 so.FindProperty("_icon").objectReferenceValue = LoadCardIcon(spec.Id);
 
                 //# 비파괴 — 기존 카드의 _effect(튜닝값) 보존. 신규/타입불일치 시에만 새 효과.
-                var effectProp = so.FindProperty("_effect");
-                var wanted = spec.EffectFactory();
-                var existing = effectProp.managedReferenceValue;
+                SerializedProperty effectProp = so.FindProperty("_effect");
+                ICardEffect wanted = spec.EffectFactory();
+                object existing = effectProp.managedReferenceValue;
                 if (existing == null || existing.GetType() != wanted.GetType())
                     effectProp.managedReferenceValue = wanted;
 
@@ -189,9 +189,9 @@ namespace Lair.EditorTools
                 Debug.Log($"[LairCardPrefabBuilder] CardData {(isNew ? "생성" : "갱신")}: {spec.Id}");
             }
 
-            var pool = ScriptableObject.CreateInstance<CardPool>();
-            var poolSo = new SerializedObject(pool);
-            var listProp = poolSo.FindProperty("_cards");
+            CardPool pool = ScriptableObject.CreateInstance<CardPool>();
+            SerializedObject poolSo = new SerializedObject(pool);
+            SerializedProperty listProp = poolSo.FindProperty("_cards");
             listProp.arraySize = createdCards.Count;
             for (int i = 0; i < createdCards.Count; ++i)
             {
@@ -212,8 +212,8 @@ namespace Lair.EditorTools
         private static void RegisterAddressable(AddressableAssetSettings settings,
             AddressableAssetGroup group, string assetPath, string address)
         {
-            var guid = AssetDatabase.AssetPathToGUID(assetPath);
-            var entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
+            string guid = AssetDatabase.AssetPathToGUID(assetPath);
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = address;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
         }
@@ -225,7 +225,7 @@ namespace Lair.EditorTools
             string path = $"{IconDir}/{id}.png";
             if (File.Exists(path) == false) return null;
 
-            var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+            TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
             if (imp != null && (imp.textureType != TextureImporterType.Sprite
                                 || imp.spriteImportMode != SpriteImportMode.Single))
             {
@@ -238,7 +238,7 @@ namespace Lair.EditorTools
 
         private static void EnsureDir(string dir)
         {
-            if (!Directory.Exists(dir))
+            if (Directory.Exists(dir) == false)
             {
                 Directory.CreateDirectory(dir);
                 AssetDatabase.Refresh();

@@ -1,5 +1,6 @@
 using System;
 using Lair.Character;
+using UnityEngine;
 
 namespace Lair.Card
 {
@@ -9,9 +10,9 @@ namespace Lair.Card
     {
         public void Apply(IBattleContext ctx)
         {
-            var heroT = ctx.GetHeroTransform();
+            Transform heroT = ctx.GetHeroTransform();
             if (heroT == null) return;
-            var atk = heroT.GetComponent<IAttacker>();
+            IAttacker atk = heroT.GetComponent<IAttacker>();
             if (atk == null) return;
             ctx.ApplyHeroAura(new HeroAttackDownAura(atk), durationSeconds: -1f);
         }

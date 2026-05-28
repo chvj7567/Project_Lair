@@ -12,7 +12,7 @@ namespace Lair.Tests.Card
         [Test]
         public void 영역_안에서_1초마다_데미지_누적()
         {
-            var aura = new PoisonAura(dps: 5f, radius: 1.25f);
+            PoisonAura aura = new PoisonAura(dps: 5f, radius: 1.25f);
             Vector3 disk = Vector3.zero;
             Vector3 inside = Vector3.zero;   //# 디스크 중심 — 영역 안
 
@@ -27,7 +27,7 @@ namespace Lair.Tests.Card
         [Test]
         public void 영역_경계_밖에서는_데미지_없음()
         {
-            var aura = new PoisonAura(dps: 5f, radius: 1.25f);
+            PoisonAura aura = new PoisonAura(dps: 5f, radius: 1.25f);
             Vector3 disk = Vector3.zero;
             Vector3 outside = new Vector3(5f, 0f, 0f);   //# 반경 1.25 밖
 
@@ -37,7 +37,7 @@ namespace Lair.Tests.Card
         [Test]
         public void 영역_밖이면_accumulator_유지_재진입_시_이어서_누적()
         {
-            var aura = new PoisonAura(dps: 5f, radius: 1.25f);
+            PoisonAura aura = new PoisonAura(dps: 5f, radius: 1.25f);
             Vector3 disk = Vector3.zero;
             Vector3 inside = Vector3.zero;
             Vector3 outside = new Vector3(5f, 0f, 0f);
@@ -53,9 +53,9 @@ namespace Lair.Tests.Card
         [Test]
         public void OnAttached_OnDetached_안전성()
         {
-            var hp = new FakeHealth();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(100);
-            var aura = new PoisonAura(dps: 5f);
+            PoisonAura aura = new PoisonAura(dps: 5f);
 
             //# FakeHealth 는 POCO — OnAttached 가 _heroTransform 못 잡아도 예외 없이 통과.
             Assert.DoesNotThrow(() => aura.OnAttached(hp));

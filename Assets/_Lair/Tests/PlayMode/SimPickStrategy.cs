@@ -69,7 +69,7 @@ namespace Lair.Tests.PlayMode
         public static ECardArchetype ArchetypeOf(CardData card)
         {
             if (card == null) return ECardArchetype.Other;
-            return _archetypes.TryGetValue(card.Id, out var a) ? a : ECardArchetype.Other;
+            return _archetypes.TryGetValue(card.Id, out ECardArchetype a) ? a : ECardArchetype.Other;
         }
 
         //# 전략 enum -> 픽 함수. BattleController.DebugAutoPicker 에 그대로 대입 가능.
@@ -99,7 +99,7 @@ namespace Lair.Tests.PlayMode
             return (choices, source) =>
             {
                 if (choices == null || choices.Count == 0) return null;
-                foreach (var c in choices)
+                foreach (CardData c in choices)
                 {
                     if (ArchetypeOf(c) == preferred) return c;
                 }

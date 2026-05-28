@@ -26,7 +26,7 @@ namespace Lair.Tests.Battle
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
         }
@@ -36,9 +36,9 @@ namespace Lair.Tests.Battle
         //# PlayMode 에서는 production 의 OnEnable 이 자연 호출 — 본 헬퍼는 EditMode 전용.
         private Spawner CreateSpawner(EMonster outputType, float spawnPeriod, float initialDelay)
         {
-            var go = new GameObject("SpawnerUT");
+            GameObject go = new GameObject("SpawnerUT");
             _spawned.Add(go);
-            var sp = go.AddComponent<Spawner>();
+            Spawner sp = go.AddComponent<Spawner>();
             SetPrivate(sp, "_outputType", outputType);
             SetPrivate(sp, "_spawnPeriod", spawnPeriod);
             SetPrivate(sp, "_initialDelay", initialDelay);
@@ -49,7 +49,7 @@ namespace Lair.Tests.Battle
 
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"Spawner.{field} 필드가 존재해야 함 (production 시그니처 변경 감지)");
             fi.SetValue(target, value);
         }
@@ -57,7 +57,7 @@ namespace Lair.Tests.Battle
         //# Spawner.OnEnable 을 리플렉션으로 직접 호출 — EditMode 테스트 라이프사이클 보정.
         private static void InvokeOnEnable(Component c)
         {
-            var mi = c.GetType().GetMethod("OnEnable",
+            MethodInfo mi = c.GetType().GetMethod("OnEnable",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "Spawner.OnEnable 메서드 존재 확인 (production 시그니처 변경 감지)");
             mi.Invoke(c, null);
@@ -69,8 +69,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 첫발사_InitialDelay_0이면_즉시_발사()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);
@@ -82,8 +82,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 첫발사_InitialDelay_0점5_경계_정확()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Phantom, 6f, 0.5f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Phantom, 6f, 0.5f);
             sp.Bind(host);
 
             sp.Tick(0.49f);
@@ -97,8 +97,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 첫발사_InitialDelay_2점5_도달전_미발사()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Hex, 15f, 2.5f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Hex, 15f, 2.5f);
             sp.Bind(host);
 
             sp.Tick(2.4f);
@@ -114,9 +114,9 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기발사_InitialDelay_후_주기마다_1발()
         {
-            var host = new FakeSpawnerHost();
+            FakeSpawnerHost host = new FakeSpawnerHost();
             //# InitialDelay 1, 주기 3.
-            var sp = CreateSpawner(EMonster.Wisp, 3f, 1f);
+            Spawner sp = CreateSpawner(EMonster.Wisp, 3f, 1f);
             sp.Bind(host);
 
             //# t=1.0 첫 발사
@@ -139,8 +139,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기발사_작은_dt_다수_누적시_위상_유지()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Phantom, 3f, 1f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Phantom, 3f, 1f);
             sp.Bind(host);
 
             for (int i = 0; i < 20; ++i)
@@ -154,8 +154,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기발사_InitialDelay_0_첫발사후_주기마다_1발()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);            //# t=0 첫 발사
@@ -174,8 +174,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void dt폭주_한프레임_100초도_1발만_발사()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# t=0 첫 발사 후, 단일 Tick(100) — 주기 9 가 11번 들어가지만 1발만.
@@ -189,8 +189,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void dt폭주_후_작은_Tick_누적분_드레인()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.Tick(0f);     //# t=0 첫 발사 (총 1)
@@ -211,8 +211,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_재호출시_타이머와_첫발사플래그_리셋()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 1f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 1f);
             sp.Bind(host);
 
             sp.Tick(1f);    //# 첫 발사 완료
@@ -235,8 +235,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_재호출시_동시출력수_1로_리셋()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# 추가소환 카드 3회 — 동시 출력 4.
@@ -259,8 +259,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_재호출시_출력종_직렬화값으로_리셋()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# 융합 카드 — 출력 종을 레이스으로 변경.
@@ -284,7 +284,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Bind_미호출시_Tick_무동작()
         {
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             //# Bind 안 함 — _host == null.
 
             Assert.DoesNotThrow(() =>
@@ -299,8 +299,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void Bind_미호출_Tick_후_Bind하면_정상_발사()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
 
             //# Bind 전 Tick — 무동작 (타이머 누적도 없음).
             sp.Tick(5f);
@@ -317,8 +317,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void IncrementOutput_횟수만큼_동시출력_count_증가()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Phantom, 6f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Phantom, 6f, 0f);
             sp.Bind(host);
 
             //# 추가소환 2회 — 동시 출력 3.
@@ -333,8 +333,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_이후_스폰종_변경()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.ReplaceOutput(EMonster.Wraith);
@@ -349,8 +349,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 추가소환_후_융합_동시출력수_유지_종만_변경()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             //# SpawnWisps 2픽 — 위스프 Spawner 동시 출력 3.
@@ -369,8 +369,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 융합_후_추가소환_변경된종으로_count_증가()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host);
 
             sp.ReplaceOutput(EMonster.Wraith);
@@ -385,8 +385,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 스폰_위치는_Spawner_transform_position()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(9f, 0f, 0f);
             sp.Bind(host);
 
@@ -400,8 +400,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void spawnPoint_null이면_transform_position_fallback()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(5f, 0f, 0f);
             //# _spawnPoint 미할당 — 기본값 null.
             sp.Bind(host);
@@ -416,12 +416,12 @@ namespace Lair.Tests.Battle
         [Test]
         public void spawnPoint_할당시_spawnPoint_position_사용()
         {
-            var host = new FakeSpawnerHost();
-            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(30f, 0f, 0f);  //# 맵 밖 위치
 
             //# _spawnPoint — 맵 안의 실제 스폰 지점.
-            var spawnPointGo = new GameObject("SpawnPoint");
+            GameObject spawnPointGo = new GameObject("SpawnPoint");
             _spawned.Add(spawnPointGo);
             spawnPointGo.transform.position = new Vector3(8f, 0f, 0f);
             SetPrivate(sp, "_spawnPoint", spawnPointGo.transform);

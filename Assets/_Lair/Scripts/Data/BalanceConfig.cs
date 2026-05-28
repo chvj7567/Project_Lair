@@ -45,7 +45,7 @@ namespace Lair.Data
         {
             if (_monsters != null)
             {
-                foreach (var row in _monsters)
+                foreach (MonsterStatRow row in _monsters)
                 {
                     if (row != null && row.Key == key) return row.Stat;
                 }

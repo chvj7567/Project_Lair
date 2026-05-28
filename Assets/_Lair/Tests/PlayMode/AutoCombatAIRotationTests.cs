@@ -27,7 +27,7 @@ namespace Lair.Tests.PlayMode
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
             {
                 if (go != null) Object.DestroyImmediate(go);
             }
@@ -47,9 +47,9 @@ namespace Lair.Tests.PlayMode
         private (GameObject hero, GameObject monster) Spawn(
             Vector3 heroPos, Vector3 monsterPos, float monsterRange = 1.5f)
         {
-            var hero = new GameObject("hero");
+            GameObject hero = new GameObject("hero");
             hero.transform.position = heroPos;
-            var heroHp = hero.AddComponent<Health>();
+            Health heroHp = hero.AddComponent<Health>();
             heroHp.SetMax(1000);
             hero.AddComponent<SimpleMover>();
             hero.AddComponent<MeleeAttacker>().Configure(1.5f, 1.0f, 1);
@@ -58,9 +58,9 @@ namespace Lair.Tests.PlayMode
             hero.AddComponent<AutoCombatAI>();
             _spawned.Add(hero);
 
-            var monster = new GameObject("monster");
+            GameObject monster = new GameObject("monster");
             monster.transform.position = monsterPos;
-            var monHp = monster.AddComponent<Health>();
+            Health monHp = monster.AddComponent<Health>();
             monHp.SetMax(1000);
             monster.AddComponent<SimpleMover>().Speed = 0.001f;   //# 사실상 정지 — 위치 안정.
             monster.AddComponent<MeleeAttacker>().Configure(monsterRange, 1.0f, 1);
@@ -77,7 +77,7 @@ namespace Lair.Tests.PlayMode
         {
             //# 몬스터(0,0,0) 가 영웅(+X 방향, range 안)을 사정거리 안에서 공격.
             //# 기대: 몬스터의 yaw 가 +X 방향(90°) 정렬.
-            var (hero, monster) = Spawn(
+            (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(1f, 0f, 0f),
                 monsterPos: Vector3.zero,
                 monsterRange: 2f);   //# range > 1 → 즉시 공격 모드.
@@ -100,7 +100,7 @@ namespace Lair.Tests.PlayMode
             //# 몬스터가 영웅(0,0,5) 을 추적. range 1.5 << 거리 5 → Moving 상태.
             //# 기대: 몬스터 yaw 가 +Z 방향(0°) 정렬.
             //# 영웅 이동 차단을 위해 SimpleMover.Speed 도 0 으로.
-            var (hero, monster) = Spawn(
+            (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(0f, 0f, 5f),
                 monsterPos: Vector3.zero,
                 monsterRange: 1.5f);
@@ -127,7 +127,7 @@ namespace Lair.Tests.PlayMode
         {
             //# 기획서 §7 #3 — "타겟이 있다가 사라진 상황" 에서 마지막 yaw 유지.
             //# 시나리오: 몬스터가 영웅을 향해 회전 완료 → 영웅 제거 → 이후 yaw 변화 없어야.
-            var (hero, monster) = Spawn(
+            (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(1f, 0f, 0f),
                 monsterPos: Vector3.zero,
                 monsterRange: 2f);
@@ -165,9 +165,9 @@ namespace Lair.Tests.PlayMode
             //# 몬스터를 (3, 0, 0) 에 스폰 → 비활성 → yaw 외부 변형 (90°) → 재활성.
             //# AutoCombatAI.OnEnable 의 SnapToDirection(Vector3.zero - (3,0,0)) = (-X)
             //# → yaw 즉시 270° 로 스냅 (90° 의 이전 잔존이 사라져야).
-            var monster = new GameObject("recycled_monster");
+            GameObject monster = new GameObject("recycled_monster");
             monster.transform.position = new Vector3(3f, 0f, 0f);
-            var hp = monster.AddComponent<Health>();
+            Health hp = monster.AddComponent<Health>();
             hp.SetMax(1000);
             monster.AddComponent<SimpleMover>().Speed = 0.001f;
             monster.AddComponent<MeleeAttacker>().Configure(1.5f, 1f, 1);
@@ -200,7 +200,7 @@ namespace Lair.Tests.PlayMode
         public IEnumerator 사망_후_회전하지_않는다()
         {
             //# 영웅 + 몬스터 셋업 → 몬스터를 충전 회전시킨 후 사망 → 영웅 위치를 옮겨도 회전 X.
-            var (hero, monster) = Spawn(
+            (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(1f, 0f, 0f),
                 monsterPos: Vector3.zero,
                 monsterRange: 2f);
@@ -214,7 +214,7 @@ namespace Lair.Tests.PlayMode
             }
 
             //# 몬스터 사망.
-            var monHp = monster.GetComponent<Health>();
+            Health monHp = monster.GetComponent<Health>();
             monHp.TakeDamage(monHp.Current);
             Assert.IsFalse(monHp.IsAlive);
 
@@ -240,7 +240,7 @@ namespace Lair.Tests.PlayMode
         {
             //# 보충 케이스 — FleeMode = true 시 회전이 (-) 적 방향, 즉 적의 반대.
             //# 몬스터 (0,0,0), 영웅 (1,0,0) → away 는 (-X) 방향 → yaw 270°.
-            var (hero, monster) = Spawn(
+            (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(1f, 0f, 0f),
                 monsterPos: Vector3.zero,
                 monsterRange: 2f);

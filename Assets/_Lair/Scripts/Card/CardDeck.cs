@@ -17,9 +17,9 @@ namespace Lair.Card
         //# 무작위 n장 (중복 X). 풀 부족 시 가능한 만큼.
         public IReadOnlyList<CardData> Draw(int n)
         {
-            var pool = new List<CardData>(_all);
+            List<CardData> pool = new List<CardData>(_all);
             int actual = System.Math.Min(n, pool.Count);
-            var result = new List<CardData>(actual);
+            List<CardData> result = new List<CardData>(actual);
             for (int i = 0; i < actual; ++i)
             {
                 int idx = _rng.Next(pool.Count);

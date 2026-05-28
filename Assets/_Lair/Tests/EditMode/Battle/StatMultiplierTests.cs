@@ -12,7 +12,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Multiply_Hp_단일픽_필드에_배율_적용()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
 
             Assert.AreEqual(1.5f, m.HpMul, 0.0001f);
@@ -24,7 +24,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Multiply_같은_스탯_2회_곱연산_누적()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
 
@@ -35,7 +35,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Identity_모든_필드_1점0_불변()
         {
-            var id = StatMultiplier.Identity;
+            StatMultiplier id = StatMultiplier.Identity;
 
             Assert.AreEqual(1f, id.HpMul, 0.0001f);
             Assert.AreEqual(1f, id.PowerMul, 0.0001f);
@@ -49,7 +49,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void SlowFactor_1픽_baseline_0점8과_곱하면_0점6()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
 
             float applied = Lair.Character.PlagueSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
@@ -62,7 +62,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void SlowFactor_2픽_곱연산_baseline과_곱하면_0점45()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
             m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
 
@@ -75,7 +75,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Cooldown_1미만_배율_2픽_곱연산_0점49()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Cooldown, 0.7f);
             m.Multiply(EMonsterStatKind.Cooldown, 0.7f);
 
@@ -86,7 +86,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Multiply_한_스탯_갱신은_다른_스탯에_영향없음()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
             m.Multiply(EMonsterStatKind.Power, 1.5f);
             m.Multiply(EMonsterStatKind.MoveSpeed, 1.5f);
@@ -104,7 +104,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Multiply_6종_스탯_각자_올바른_필드로_라우팅()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Hp, 2f);
             m.Multiply(EMonsterStatKind.Power, 3f);
             m.Multiply(EMonsterStatKind.Cooldown, 4f);
@@ -124,7 +124,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Get_누적_배율_값_반환()
         {
-            var m = new StatMultiplier();
+            StatMultiplier m = new StatMultiplier();
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
             m.Multiply(EMonsterStatKind.Hp, 1.5f);
 
@@ -137,8 +137,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void Identity_매_호출_새_인스턴스_오염_불가()
         {
-            var a = StatMultiplier.Identity;
-            var b = StatMultiplier.Identity;
+            StatMultiplier a = StatMultiplier.Identity;
+            StatMultiplier b = StatMultiplier.Identity;
 
             //# 서로 다른 인스턴스여야 — 공유 가변 인스턴스면 오염 위험.
             Assert.AreNotSame(a, b, "Identity 는 호출마다 새 인스턴스");

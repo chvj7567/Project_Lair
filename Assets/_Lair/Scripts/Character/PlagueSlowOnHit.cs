@@ -40,7 +40,7 @@ namespace Lair.Character
         {
             //# 영웅만 대상 — HeroAuraRunner 보유 여부로 판별.
             if (target is not MonoBehaviour mb || mb == null) return;
-            var runner = mb.GetComponent<HeroAuraRunner>();
+            HeroAuraRunner runner = mb.GetComponent<HeroAuraRunner>();
             if (runner == null) return;
             runner.Attach(new SlowAura(mb.GetComponent<IMover>(), _slowFactor), _duration);
         }

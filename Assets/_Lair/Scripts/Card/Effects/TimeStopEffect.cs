@@ -12,10 +12,10 @@ namespace Lair.Card
 
         public void Apply(IBattleContext ctx)
         {
-            var heroT = ctx.GetHeroTransform();
+            Transform heroT = ctx.GetHeroTransform();
             if (heroT == null) return;
-            var mover = heroT.GetComponent<IMover>();
-            var atk = heroT.GetComponent<IAttacker>();
+            IMover mover = heroT.GetComponent<IMover>();
+            IAttacker atk = heroT.GetComponent<IAttacker>();
             ctx.ApplyHeroAura(new TimeStopAura(mover, atk), _duration);
         }
     }

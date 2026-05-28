@@ -58,7 +58,7 @@ namespace Lair.Tests.PlayMode
 
             //# 5초 시점에 영웅 1명 이상 살아있어야 (5분 안에 안 죽음)
             bool heroAlive = false;
-            foreach (var e in CharacterRegistry.Heroes)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
             {
                 if (e?.Health != null && e.Health.IsAlive) { heroAlive = true; break; }
             }

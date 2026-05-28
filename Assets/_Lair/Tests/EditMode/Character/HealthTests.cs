@@ -10,7 +10,7 @@ namespace Lair.Tests.Character
             //# Health 는 MonoBehaviour. 테스트에서는 ScriptableObject/MB 없이도 동작하도록
             //# 일반 클래스 형태의 내부 로직만 검증. (Unity 가 MB 인스턴스화 없이 new 호출은
             //# 권장하지 않지만 테스트 한정 허용.)
-            var h = new Health();
+            Health h = new Health();
             h.SetMax(max);
             return h;
         }
@@ -18,7 +18,7 @@ namespace Lair.Tests.Character
         [Test]
         public void TakeDamage_Current_감소_및_OnChanged_발행()
         {
-            var h = NewHealth(100);
+            Health h = NewHealth(100);
             int curCaptured = -1, maxCaptured = -1;
             h.OnChanged += (c, m) => { curCaptured = c; maxCaptured = m; };
 
@@ -32,7 +32,7 @@ namespace Lair.Tests.Character
         [Test]
         public void Current_0_도달_시_OnDied_1회만_발행()
         {
-            var h = NewHealth(50);
+            Health h = NewHealth(50);
             int diedCount = 0;
             h.OnDied += () => diedCount++;
 
@@ -48,7 +48,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 사망_후_TakeDamage_무시()
         {
-            var h = NewHealth(10);
+            Health h = NewHealth(10);
             h.TakeDamage(10);
             int onChangedAfterDeath = 0;
             h.OnChanged += (_, _) => onChangedAfterDeath++;
@@ -62,7 +62,7 @@ namespace Lair.Tests.Character
         [Test]
         public void SetMax_resetCurrent_옵션()
         {
-            var h = NewHealth(100);
+            Health h = NewHealth(100);
             h.TakeDamage(40);   //# Current=60
 
             h.SetMax(200, resetCurrent: false);

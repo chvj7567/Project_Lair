@@ -22,7 +22,7 @@ namespace Lair.Battle
         //# 전투 종료 시 1회 호출 — RunRecord 를 jsonl 한 줄로 append.
         public void FinishRun(BattleResult result, float deathTime, int survivingMonsters)
         {
-            var record = new RunRecord
+            RunRecord record = new RunRecord
             {
                 FinishedAt = DateTime.Now.ToString("o"),
                 Result = result.ToString(),

@@ -37,7 +37,7 @@ namespace Lair.UI
 
         private void Bind(BattleHudArg ba)
         {
-            var vm = ba.ViewModel;
+            BattleViewModel vm = ba.ViewModel;
             _vm = vm;
             vm.OnTimerChanged       += HandleTimer;
             vm.OnHeroHpRatioChanged += HandleHp;

@@ -61,13 +61,13 @@ namespace Lair.Character
         {
             _matInstances.Clear();
             _originalColors.Clear();
-            var renderers = GetComponentsInChildren<Renderer>(includeInactive: true);
-            foreach (var rd in renderers)
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(includeInactive: true);
+            foreach (Renderer rd in renderers)
             {
                 if (rd == null) continue;
                 if (IsExcluded(rd.gameObject.name)) continue;
                 //# .material 접근 시 sharedMaterial 의 인스턴스가 생성됨 → 다른 캐릭터 영향 X
-                var mat = rd.material;
+                Material mat = rd.material;
                 if (mat == null) continue;
                 _matInstances.Add(mat);
                 _originalColors.Add(ReadColor(mat));
@@ -88,7 +88,7 @@ namespace Lair.Character
         {
             for (int i = 0; i < _matInstances.Count; i++)
             {
-                var mat = _matInstances[i];
+                Material mat = _matInstances[i];
                 if (mat == null) continue;
                 WriteColor(mat, _originalColors[i]);
             }
@@ -98,7 +98,7 @@ namespace Lair.Character
         {
             for (int i = 0; i < _matInstances.Count; i++)
             {
-                var mat = _matInstances[i];
+                Material mat = _matInstances[i];
                 if (mat == null) continue;
                 WriteColor(mat, InvertColor(_originalColors[i]));
             }

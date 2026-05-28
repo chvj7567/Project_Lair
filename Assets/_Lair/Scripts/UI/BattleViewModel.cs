@@ -86,7 +86,7 @@ namespace Lair.UI
         public void AddPick(CardData card, bool isPassive)
         {
             if (card == null) return;
-            foreach (var e in _build)
+            foreach (BuildEntry e in _build)
             {
                 if (e.Card == card)
                 {
@@ -129,7 +129,7 @@ namespace Lair.UI
             _outputCountHandlers = new Action<int>[spawners.Count];
             for (int i = 0; i < spawners.Count; ++i)
             {
-                var sp = spawners[i];
+                Spawner sp = spawners[i];
                 if (sp == null)
                 {
                     _spawnerSnapshots.Add(null);
@@ -157,7 +157,7 @@ namespace Lair.UI
             {
                 for (int i = 0; i < _attachedSpawners.Count; ++i)
                 {
-                    var sp = _attachedSpawners[i];
+                    Spawner sp = _attachedSpawners[i];
                     if (sp == null) continue;
                     if (_outputTypeHandlers != null && _outputTypeHandlers[i] != null)
                         sp.OnOutputTypeChanged -= _outputTypeHandlers[i];
@@ -182,7 +182,7 @@ namespace Lair.UI
             if (_attachedSpawners == null || _attachedController == null) return;
             for (int i = 0; i < _attachedSpawners.Count; ++i)
             {
-                var sp = _attachedSpawners[i];
+                Spawner sp = _attachedSpawners[i];
                 if (sp == null) continue;
                 if (sp.CurrentType == type) RecomputeAt(i);
             }
@@ -193,7 +193,7 @@ namespace Lair.UI
         {
             if (_attachedSpawners == null || _attachedController == null) return;
             if (index < 0 || index >= _attachedSpawners.Count) return;
-            var sp = _attachedSpawners[index];
+            Spawner sp = _attachedSpawners[index];
             if (sp == null) return;
             _spawnerSnapshots[index] = BuildSnapshot(index, sp, _attachedController);
             OnSpawnerSnapshotChanged?.Invoke(index);

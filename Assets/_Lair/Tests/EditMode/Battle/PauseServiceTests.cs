@@ -16,7 +16,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Pause_시_timeScale_0_Resume_시_1()
         {
-            var ps = new PauseService();
+            PauseService ps = new PauseService();
             ps.Pause();
             Assert.AreEqual(0f, Time.timeScale, 0.0001f);
             Assert.IsTrue(ps.IsPaused);
@@ -29,7 +29,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 중첩_Pause_Resume_시_depth_관리()
         {
-            var ps = new PauseService();
+            PauseService ps = new PauseService();
             ps.Pause();
             ps.Pause();
             Assert.AreEqual(0f, Time.timeScale, 0.0001f);
@@ -46,7 +46,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ForcePause_즉시_정지_depth_무시()
         {
-            var ps = new PauseService();
+            PauseService ps = new PauseService();
             ps.ForcePause();
             Assert.AreEqual(0f, Time.timeScale, 0.0001f);
             Assert.IsTrue(ps.IsPaused);

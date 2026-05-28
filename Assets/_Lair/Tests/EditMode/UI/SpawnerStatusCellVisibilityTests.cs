@@ -26,7 +26,7 @@ namespace Lair.Tests.UI
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
         }
@@ -39,19 +39,19 @@ namespace Lair.Tests.UI
         //# null 로 유지 — RebindSnapshot / OnEnable 모두 null 체크가 있어 안전.
         private (SpawnerStatusCell cell, GameObject chipGo) CreateCellWithColorChip()
         {
-            var cellGo = new GameObject("Cell_UT");
+            GameObject cellGo = new GameObject("Cell_UT");
             cellGo.SetActive(false);
             _spawned.Add(cellGo);
 
-            var cell = cellGo.AddComponent<SpawnerStatusCell>();
+            SpawnerStatusCell cell = cellGo.AddComponent<SpawnerStatusCell>();
 
             //# 색칩은 셀의 자식 GO 에 Image 컴포넌트 — production 프리팹 구조와 동일.
-            var chipGo = new GameObject("ColorChip");
+            GameObject chipGo = new GameObject("ColorChip");
             chipGo.transform.SetParent(cellGo.transform, false);
-            var chipImage = chipGo.AddComponent<Image>();
+            Image chipImage = chipGo.AddComponent<Image>();
 
             //# private SerializeField _colorChip 주입.
-            var fi = typeof(SpawnerStatusCell).GetField(
+            FieldInfo fi = typeof(SpawnerStatusCell).GetField(
                 "_colorChip", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, "SpawnerStatusCell._colorChip 필드 존재 확인");
             fi.SetValue(cell, chipImage);
@@ -62,7 +62,7 @@ namespace Lair.Tests.UI
         //# OnEnable 명시 호출 — Cell GO 가 inactive 라 Unity 가 자동 호출하지 않음.
         private static void InvokeOnEnable(SpawnerStatusCell cell)
         {
-            var mi = typeof(SpawnerStatusCell).GetMethod(
+            MethodInfo mi = typeof(SpawnerStatusCell).GetMethod(
                 "OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "SpawnerStatusCell.OnEnable 메서드 존재 확인");
             mi.Invoke(cell, null);
@@ -86,7 +86,7 @@ namespace Lair.Tests.UI
         public void RebindSnapshot_N이_1이면_색칩_활성()
         {
             //# Arrange — OnEnable 로 visibility=true 초기화.
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
 
             //# Act — N=1 스냅샷 적용.
@@ -101,7 +101,7 @@ namespace Lair.Tests.UI
         [Test]
         public void RebindSnapshot_N이_2이면_색칩_비활성()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
 
             cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
@@ -115,7 +115,7 @@ namespace Lair.Tests.UI
         [Test]
         public void RebindSnapshot_N이_2에서_1로_전이시_색칩_복원()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
 
             //# 1단계 — N=2 로 숨김.
@@ -134,7 +134,7 @@ namespace Lair.Tests.UI
         [Test]
         public void RebindSnapshot_N이_1에서_2로_전이시_색칩_숨김()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
 
             //# 1단계 — N=1 로 노출 (OnEnable 의 기본값 그대로 — 검증 차원에서 명시 호출).
@@ -156,7 +156,7 @@ namespace Lair.Tests.UI
         [Test]
         public void OnEnable_직전_숨김상태에서_색칩_활성_복원()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
 
             //# Arrange — 풀 반환 직전 상황 시뮬레이션. RebindSnapshot(N=2) 로 색칩이 비활성으로 박힘.
             //# (OnEnable 호출 없이 직접 Rebind 만 — 풀 반환 직전 마지막 갱신을 모사.)
@@ -175,7 +175,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 풀재사용_OnEnable_후_N1_Rebind시_색칩_활성_유지()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             //# 직전 풀 반환 — N=2 숨김 잔재.
             cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
 
@@ -191,7 +191,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 풀재사용_OnEnable_후_N2_Rebind시_색칩_즉시_숨김()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             //# 직전 풀 반환 — N=1 노출 잔재.
             cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
             Assert.IsTrue(chipGo.activeSelf, "사전조건: 직전 노출");
@@ -212,7 +212,7 @@ namespace Lair.Tests.UI
         [Test]
         public void RebindSnapshot_null이면_NRE없이_색칩_상태_유지_숨김()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
             //# 직전: N=2 로 숨김.
             cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
@@ -231,7 +231,7 @@ namespace Lair.Tests.UI
         [Test]
         public void RebindSnapshot_null이면_색칩_상태_유지_노출()
         {
-            var (cell, chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
             InvokeOnEnable(cell);
             //# 직전: N=1 로 노출.
             cell.RebindSnapshot(MakeSnapshot(outputCount: 1));

@@ -32,7 +32,7 @@ namespace Lair.EditorTools
         public static void AttachSpawnerVisuals()
         {
             //# 씬의 모든 Spawner (disabled 포함) 탐색.
-            var spawners = Object.FindObjectsOfType<Spawner>(includeInactive: true);
+            Spawner[] spawners = Object.FindObjectsOfType<Spawner>(includeInactive: true);
             if (spawners.Length == 0)
             {
                 Debug.LogWarning("[LairSpawnerVisualBuilder] 씬에 Spawner 를 찾을 수 없음");
@@ -40,10 +40,10 @@ namespace Lair.EditorTools
             }
 
             //# 6종 머티리얼을 미리 생성/로드해 두어 반복 참조.
-            var mats = EnsureSpawnerMaterials();
+            Material[] mats = EnsureSpawnerMaterials();
 
             int processed = 0;
-            foreach (var spawner in spawners)
+            foreach (Spawner spawner in spawners)
             {
                 bool changed = false;
                 changed |= EnsureSpawnerBody(spawner, mats);
@@ -65,7 +65,7 @@ namespace Lair.EditorTools
         //# 씬에 잔존하는 CooldownBarWrapper 자식 제거 (idempotent). 신규 진행 바는 BattleHud 6셀.
         private static bool RemoveCooldownBarWrapperIfExists(Spawner spawner)
         {
-            var wrapper = spawner.transform.Find("CooldownBarWrapper");
+            Transform wrapper = spawner.transform.Find("CooldownBarWrapper");
             if (wrapper == null) return false;
             Object.DestroyImmediate(wrapper.gameObject);
             return true;
@@ -77,7 +77,7 @@ namespace Lair.EditorTools
             if (spawner.transform.Find("SpawnerBody") != null) return false;
 
             //# Cylinder 납작 디스크 생성 (Rule 12 에디터 예외).
-            var body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             body.name = "SpawnerBody";
             body.transform.SetParent(spawner.transform, worldPositionStays: false);
             body.transform.localPosition = Vector3.zero;
@@ -85,18 +85,18 @@ namespace Lair.EditorTools
             body.transform.localScale = new Vector3(2.0f, 0.05f, 2.0f);
 
             //# Collider 제거 — 전투 충돌 영향 없도록 (기획서 §2.1).
-            var col = body.GetComponent<Collider>();
+            Collider col = body.GetComponent<Collider>();
             if (col != null) Object.DestroyImmediate(col);
 
             //# _currentType 초기 읽기 — Spawner._outputType 의 기본값(Wisp) 이 직렬화에 반영됨.
             //# SerializedObject 로 직렬화 필드를 읽어 초기 머티리얼 인덱스 결정.
             int initIndex = GetOutputTypeIndex(spawner);
-            var renderer = body.GetComponent<Renderer>();
+            Renderer renderer = body.GetComponent<Renderer>();
             if (initIndex >= 0 && initIndex < mats.Length && mats[initIndex] != null)
                 renderer.sharedMaterial = mats[initIndex];
 
             //# SpawnerBody 컴포넌트 부착 — _renderer + _materials 주입.
-            var bodyComp = body.AddComponent<SpawnerBody>();
+            SpawnerBody bodyComp = body.AddComponent<SpawnerBody>();
             SetPrivateField(bodyComp, "_renderer", renderer);
             SetPrivateField(bodyComp, "_materials", mats);
 
@@ -106,22 +106,22 @@ namespace Lair.EditorTools
         //# 6종 머티리얼 생성 또는 로드 — EMonster 순서 인덱스 배열로 반환.
         private static Material[] EnsureSpawnerMaterials()
         {
-            if (!Directory.Exists(MaterialDir))
+            if (Directory.Exists(MaterialDir) == false)
             {
                 Directory.CreateDirectory(MaterialDir);
                 AssetDatabase.Refresh();
             }
 
-            var mats = new Material[SpawnerColorTable.Length];
+            Material[] mats = new Material[SpawnerColorTable.Length];
             for (int i = 0; i < SpawnerColorTable.Length; i++)
             {
-                var (type, hex) = SpawnerColorTable[i];
+                (EMonster type, string hex) = SpawnerColorTable[i];
                 string matPath = $"{MaterialDir}/Mat_Spawner_{type}.mat";
-                var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
                 if (mat == null)
                 {
                     mat = new Material(Shader.Find(UrpLitShaderName));
-                    if (ColorUtility.TryParseHtmlString(hex, out var color))
+                    if (ColorUtility.TryParseHtmlString(hex, out Color color))
                     {
                         if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
                         mat.color = color;
@@ -137,8 +137,8 @@ namespace Lair.EditorTools
         //# Spawner 의 직렬화 _outputType 필드를 읽어 EMonster 인덱스 반환.
         private static int GetOutputTypeIndex(Spawner spawner)
         {
-            var so = new SerializedObject(spawner);
-            var prop = so.FindProperty("_outputType");
+            SerializedObject so = new SerializedObject(spawner);
+            SerializedProperty prop = so.FindProperty("_outputType");
             if (prop == null) return 0;
             return prop.enumValueIndex;
         }
@@ -146,8 +146,8 @@ namespace Lair.EditorTools
         //# SerializedObject 로 private 필드 주입 (LairCharacterPrefabBuilder 와 동일 패턴).
         private static void SetPrivateField(Component target, string fieldName, object value)
         {
-            var so   = new SerializedObject(target);
-            var prop = so.FindProperty(fieldName);
+            SerializedObject so   = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(fieldName);
             if (prop == null)
             {
                 Debug.LogWarning($"[LairSpawnerVisualBuilder] 필드 미발견: {target.GetType().Name}.{fieldName}");

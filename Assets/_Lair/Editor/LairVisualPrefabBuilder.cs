@@ -43,19 +43,19 @@ namespace Lair.EditorTools
         {
             EnsureDir(PrefabDir);
 
-            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
                 Debug.LogError("[LairVisualPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
                 return;
             }
-            var group = settings.FindGroup(ResourceGroup);
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
 
             //# PoisonAura — 비균일 스케일(디스크)이라 special-case 유지.
             BuildPoisonAura(settings, group);
 
             //# 상태 표시 6종 — 일반 BuildVisual.
-            foreach (var spec in StatusSpecs)
+            foreach (VisualSpec spec in StatusSpecs)
                 BuildVisual(spec, settings, group);
 
             EditorUtility.SetDirty(settings);
@@ -69,19 +69,19 @@ namespace Lair.EditorTools
         {
             string prefabName = spec.Key.ToString();
 
-            var go = GameObject.CreatePrimitive(spec.Mesh);
+            GameObject go = GameObject.CreatePrimitive(spec.Mesh);
             go.name = prefabName;
             go.transform.localScale = Vector3.one * spec.Scale;
 
-            var col = go.GetComponent<Collider>();
+            Collider col = go.GetComponent<Collider>();
             if (col != null) Object.DestroyImmediate(col);
 
-            var matPath = $"{MaterialDir}/Mat_{prefabName}.mat";
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            string matPath = $"{MaterialDir}/Mat_{prefabName}.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
             if (mat == null)
             {
                 mat = new Material(Shader.Find(UrpLitShaderName));
-                ColorUtility.TryParseHtmlString(spec.ColorHex, out var c);
+                ColorUtility.TryParseHtmlString(spec.ColorHex, out Color c);
                 c.a = spec.Alpha;
 
                 //# 반투명이면 URP Lit Transparent Surface 셋업.
@@ -103,12 +103,12 @@ namespace Lair.EditorTools
             }
             go.GetComponent<Renderer>().sharedMaterial = mat;
 
-            var prefabPath = $"{PrefabDir}/{prefabName}.prefab";
+            string prefabPath = $"{PrefabDir}/{prefabName}.prefab";
             PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             Object.DestroyImmediate(go);
 
-            var guid = AssetDatabase.AssetPathToGUID(prefabPath);
-            var entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
+            string guid = AssetDatabase.AssetPathToGUID(prefabPath);
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = prefabName;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
@@ -120,31 +120,31 @@ namespace Lair.EditorTools
             const string PrefabName = nameof(EVisual.PoisonAura);
 
             //# Cylinder 디스크 — 직경 2.5, 두께 0.1
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             go.name = PrefabName;
             go.transform.localScale = new Vector3(2.5f, 0.1f, 2.5f);
 
-            var col = go.GetComponent<Collider>();
+            Collider col = go.GetComponent<Collider>();
             if (col != null) Object.DestroyImmediate(col);
 
-            var matPath = $"{MaterialDir}/Mat_PoisonAura.mat";
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            string matPath = $"{MaterialDir}/Mat_PoisonAura.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
             if (mat == null)
             {
                 mat = new Material(Shader.Find(UrpLitShaderName));
-                var c = new Color(0.518f, 0.8f, 0.086f, 1f);
+                Color c = new Color(0.518f, 0.8f, 0.086f, 1f);
                 if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
                 mat.color = c;
                 AssetDatabase.CreateAsset(mat, matPath);
             }
             go.GetComponent<Renderer>().sharedMaterial = mat;
 
-            var prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
             PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             Object.DestroyImmediate(go);
 
-            var guid = AssetDatabase.AssetPathToGUID(prefabPath);
-            var entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
+            string guid = AssetDatabase.AssetPathToGUID(prefabPath);
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = PrefabName;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
@@ -153,7 +153,7 @@ namespace Lair.EditorTools
 
         private static void EnsureDir(string path)
         {
-            if (!Directory.Exists(path))
+            if (Directory.Exists(path) == false)
             {
                 Directory.CreateDirectory(path);
                 AssetDatabase.Refresh();

@@ -11,10 +11,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void HP_90퍼_통과_시_OnTriggered_0_발행()
         {
-            var hp = new FakeHealth();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(1000);
-            var svc = new PassiveTriggerService(hp);
-            var fired = new List<int>();
+            PassiveTriggerService svc = new PassiveTriggerService(hp);
+            List<int> fired = new List<int>();
             svc.OnTriggered += i => fired.Add(i);
 
             hp.TakeDamage(100);   //# 1000 → 900 (90%)
@@ -26,10 +26,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void 여러_임계점_동시_통과_시_순차_발동()
         {
-            var hp = new FakeHealth();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(1000);
-            var svc = new PassiveTriggerService(hp);
-            var fired = new List<int>();
+            PassiveTriggerService svc = new PassiveTriggerService(hp);
+            List<int> fired = new List<int>();
             svc.OnTriggered += i => fired.Add(i);
 
             hp.TakeDamage(500);   //# 1000 → 500 (50%) — 90/80/70/60/50% 통과
@@ -40,10 +40,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void 한_임계점_1회만_발동()
         {
-            var hp = new FakeHealth();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(1000);
-            var svc = new PassiveTriggerService(hp);
-            var fired = new List<int>();
+            PassiveTriggerService svc = new PassiveTriggerService(hp);
+            List<int> fired = new List<int>();
             svc.OnTriggered += i => fired.Add(i);
 
             hp.TakeDamage(50);    //# 950
@@ -57,11 +57,11 @@ namespace Lair.Tests.Battle
         [Test]
         public void 커스텀_임계점_주입_시_그_임계점으로만_발동()
         {
-            var hp = new FakeHealth();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(1000);
             //# 50% 단일 임계점만 주입
-            var svc = new PassiveTriggerService(hp, new[] { 0.5f });
-            var fired = new List<int>();
+            PassiveTriggerService svc = new PassiveTriggerService(hp, new[] { 0.5f });
+            List<int> fired = new List<int>();
             svc.OnTriggered += i => fired.Add(i);
 
             hp.TakeDamage(100);   //# 900 (90%) — 50% 미통과 → 발동 X

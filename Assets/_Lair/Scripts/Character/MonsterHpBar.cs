@@ -24,7 +24,7 @@ namespace Lair.Character
         //# 풀 재사용 시 재구독 + 카메라 재캐시 + 현재 HP 반영.
         private void OnEnable()
         {
-            var mainCam = Camera.main;
+            Camera mainCam = Camera.main;
             _cam = mainCam != null ? mainCam.transform : null;
 
             if (_health == null) _health = GetComponentInParent<IHealth>();

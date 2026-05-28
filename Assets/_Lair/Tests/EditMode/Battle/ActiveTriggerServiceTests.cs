@@ -9,10 +9,10 @@ namespace Lair.Tests.Battle
     {
         private static (BattleClock clock, ActiveTriggerService svc, List<int> fired) Setup()
         {
-            var clock = new BattleClock(300f);
+            BattleClock clock = new BattleClock(300f);
             clock.Start();
-            var svc = new ActiveTriggerService(clock);
-            var fired = new List<int>();
+            ActiveTriggerService svc = new ActiveTriggerService(clock);
+            List<int> fired = new List<int>();
             svc.OnTriggered += idx => fired.Add(idx);
             return (clock, svc, fired);
         }
@@ -20,7 +20,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Tick_30초_미만은_미발동()
         {
-            var (clock, _, fired) = Setup();
+            (BattleClock clock, ActiveTriggerService _, List<int> fired) = Setup();
             clock.Tick(29.9f);
             Assert.AreEqual(0, fired.Count);
         }
@@ -28,7 +28,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Tick_30초_도달_시_Index0_발동()
         {
-            var (clock, _, fired) = Setup();
+            (BattleClock clock, ActiveTriggerService _, List<int> fired) = Setup();
             clock.Tick(30f);
             Assert.AreEqual(1, fired.Count);
             Assert.AreEqual(0, fired[0]);
@@ -37,7 +37,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 한_임계점_1회만_발동()
         {
-            var (clock, _, fired) = Setup();
+            (BattleClock clock, ActiveTriggerService _, List<int> fired) = Setup();
             clock.Tick(30f);
             clock.Tick(0.1f);
             Assert.AreEqual(1, fired.Count);
@@ -46,7 +46,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 큰_dt_로_여러_임계점_동시_통과_시_순차_발동()
         {
-            var (clock, _, fired) = Setup();
+            (BattleClock clock, ActiveTriggerService _, List<int> fired) = Setup();
             clock.Tick(95f);    //# 30, 60, 90 통과
             CollectionAssert.AreEqual(new[] { 0, 1, 2 }, fired);
         }
@@ -54,7 +54,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Dispose_후_미발동()
         {
-            var (clock, svc, fired) = Setup();
+            (BattleClock clock, ActiveTriggerService svc, List<int> fired) = Setup();
             svc.Dispose();
             clock.Tick(30f);
             Assert.AreEqual(0, fired.Count);

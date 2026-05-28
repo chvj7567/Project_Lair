@@ -45,7 +45,7 @@ namespace Lair.Character
         {
             t = null; h = null;
             float best = float.MaxValue;
-            foreach (var e in list)
+            foreach (Entry e in list)
             {
                 if (e.Transform == null) continue;
                 if (e.Health == null || e.Health.IsAlive == false) continue;

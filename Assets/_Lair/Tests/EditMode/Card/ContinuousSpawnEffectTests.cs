@@ -41,7 +41,7 @@ namespace Lair.Tests.Card
         [Test]
         public void WispHpBoost_위스프_Hp_배율_등록()
         {
-            var ctx = new FakeBattleContext();
+            FakeBattleContext ctx = new FakeBattleContext();
             new WispHpBoostEffect().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
@@ -54,7 +54,7 @@ namespace Lair.Tests.Card
         [Test]
         public void PlagueSlowBoost_플레이그_SlowFactor_배율_0점75_등록()
         {
-            var ctx = new FakeBattleContext();
+            FakeBattleContext ctx = new FakeBattleContext();
             new PlagueSlowBoostEffect().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
@@ -67,7 +67,7 @@ namespace Lair.Tests.Card
         [Test]
         public void SpawnWisps_위스프_출력증가_호출()
         {
-            var ctx = new FakeBattleContext();
+            FakeBattleContext ctx = new FakeBattleContext();
             new SpawnWispsEffect().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Increments.Count);
@@ -78,7 +78,7 @@ namespace Lair.Tests.Card
         [Test]
         public void ReplaceWispsToWraith_위스프에서_레이스_교체_호출()
         {
-            var ctx = new FakeBattleContext();
+            FakeBattleContext ctx = new FakeBattleContext();
             new ReplaceWispsToWraithEffect().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Replaces.Count);
@@ -92,7 +92,7 @@ namespace Lair.Tests.Card
         [Test]
         public void ReplaceReapersToHex_강화나_소환_API는_호출되지_않음()
         {
-            var ctx = new FakeBattleContext();
+            FakeBattleContext ctx = new FakeBattleContext();
             new ReplaceReapersToHexEffect().Apply(ctx);
 
             Assert.AreEqual(0, ctx.Buffs.Count);

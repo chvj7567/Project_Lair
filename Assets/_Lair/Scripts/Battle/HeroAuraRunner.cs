@@ -32,16 +32,16 @@ namespace Lair.Battle
             //# 같은 type 의 aura 가 이미 부착돼 있으면 Remain 연장 + 새 인스턴스 무시.
             //# 예: PoisonAura 가 이미 3초 남았는데 5초짜리 재부착 → Remain = 3 + 5 = 8초.
             //# 무제한(Indefinite) 슬롯은 변경 안 함. visual 도 재Pop 하지 않음.
-            foreach (var existing in _slots)
+            foreach (Slot existing in _slots)
             {
                 if (existing.Aura.GetType() == aura.GetType())
                 {
-                    if (!existing.Indefinite && duration > 0f) existing.Remain += duration;
+                    if (existing.Indefinite == false && duration > 0f) existing.Remain += duration;
                     return;
                 }
             }
 
-            var slot = new Slot { Aura = aura, Remain = duration, Indefinite = duration < 0f };
+            Slot slot = new Slot { Aura = aura, Remain = duration, Indefinite = duration < 0f };
             _slots.Add(slot);
             aura.OnAttached(_hero);
 
@@ -51,7 +51,7 @@ namespace Lair.Battle
                 CHMResource.Instance.Load<GameObject>(sv.VisualKey, prefab =>
                 {
                     if (prefab == null) return;
-                    var poolable = CHMPool.Instance.Pop(prefab, null);
+                    CHPoolable poolable = CHMPool.Instance.Pop(prefab, null);
                     if (poolable == null) return;
                     //# 콜백 도착 시 슬롯이 이미 사라졌으면 즉시 반환.
                     if (_slots.Contains(slot)) slot.Visual = poolable;
@@ -65,14 +65,14 @@ namespace Lair.Battle
             if (_hero == null) return;
             for (int i = _slots.Count - 1; i >= 0; --i)
             {
-                var s = _slots[i];
+                Slot s = _slots[i];
                 s.Aura.Tick(_hero, Time.deltaTime);
 
                 //# visual 이 있으면 영웅 위치 + Offset 으로 추적.
                 if (s.Visual != null && s.Aura is IStatusVisual sv)
                     s.Visual.transform.position = transform.position + sv.Offset;
 
-                if (!s.Indefinite)
+                if (s.Indefinite == false)
                 {
                     s.Remain -= Time.deltaTime;
                     if (s.Remain <= 0f)

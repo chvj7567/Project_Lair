@@ -53,15 +53,15 @@ namespace Lair.Tests.PlayMode
             while (elapsed < 3f) { elapsed += Time.unscaledDeltaTime; yield return null; }
 
             //# SpawnerStatusPanel 이 BattleHud 자식으로 활성화돼 있어야.
-            var panel = Object.FindFirstObjectByType<SpawnerStatusPanel>();
+            SpawnerStatusPanel panel = Object.FindFirstObjectByType<SpawnerStatusPanel>();
             Assert.IsNotNull(panel, "SpawnerStatusPanel 이 씬에 있어야 함 (BattleHud 자식)");
 
             //# VM 의 Spawners 가 6개 채워졌는지 — BattleHud 의 ViewModel 을 가져와 확인.
             //# 우회: BattleHud 의 _viewModel 직접 접근 대신 panel 의 reflection 으로 _vm 필드.
-            var fi = typeof(SpawnerStatusPanel).GetField("_vm",
+            System.Reflection.FieldInfo fi = typeof(SpawnerStatusPanel).GetField("_vm",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             Assert.IsNotNull(fi, "SpawnerStatusPanel._vm 필드 존재 확인");
-            var vm = fi.GetValue(panel) as BattleViewModel;
+            BattleViewModel vm = fi.GetValue(panel) as BattleViewModel;
             Assert.IsNotNull(vm, "Panel.Bind 가 VM 을 주입했어야 함");
 
             Assert.AreEqual(6, vm.Spawners.Count, "Battle 씬엔 6 스포너 — VM.Spawners 도 6");
@@ -69,7 +69,7 @@ namespace Lair.Tests.PlayMode
             //# 모든 인덱스 — Index 필드 정합.
             for (int i = 0; i < 6; ++i)
             {
-                var snap = vm.Spawners[i];
+                BattleViewModel.SpawnerSnapshot snap = vm.Spawners[i];
                 Assert.IsNotNull(snap, $"index {i} 스냅샷 non-null");
                 Assert.AreEqual(i, snap.Index, $"Index 필드 = {i}");
                 //# 초기 OutputCount 는 1 (Spawner.OnEnable 리셋).

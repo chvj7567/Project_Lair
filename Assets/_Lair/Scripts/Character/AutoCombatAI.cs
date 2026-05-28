@@ -48,7 +48,7 @@ namespace Lair.Character
             if (_targetProvider == null) return;
 
             //# Idle (타겟 없음) — 마지막 yaw 유지.
-            if (_targetProvider.TryFindNearest(transform.position, out var t, out var th) == false)
+            if (_targetProvider.TryFindNearest(transform.position, out Transform t, out IHealth th) == false)
             {
                 _mover.Stop();
                 return;

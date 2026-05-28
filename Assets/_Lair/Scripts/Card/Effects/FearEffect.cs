@@ -12,9 +12,9 @@ namespace Lair.Card
 
         public void Apply(IBattleContext ctx)
         {
-            var heroT = ctx.GetHeroTransform();
+            Transform heroT = ctx.GetHeroTransform();
             if (heroT == null) return;
-            var ai = heroT.GetComponent<AutoCombatAI>();
+            AutoCombatAI ai = heroT.GetComponent<AutoCombatAI>();
             if (ai == null) return;
             ctx.ApplyHeroAura(new FearAura(ai), _duration);
         }

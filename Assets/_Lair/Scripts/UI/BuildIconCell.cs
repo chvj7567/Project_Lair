@@ -33,7 +33,7 @@ namespace Lair.UI
             if (card == null) return;
             if (_frameImage != null)
             {
-                var iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
+                (char letter, Color bgColor, Color fgColor) iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
                 _frameImage.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Category);
             }
             if (_iconImage != null)

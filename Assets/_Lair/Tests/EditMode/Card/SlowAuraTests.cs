@@ -10,10 +10,10 @@ namespace Lair.Tests.Card
         [Test]
         public void OnAttached_시_Speed가_factor배로_감소()
         {
-            var hero = new FakeHealth();
+            FakeHealth hero = new FakeHealth();
             hero.SetMax(100);
-            var mover = new FakeMover { Speed = 5f };
-            var aura = new SlowAura(mover, slowFactor: 0.6f);
+            FakeMover mover = new FakeMover { Speed = 5f };
+            SlowAura aura = new SlowAura(mover, slowFactor: 0.6f);
 
             aura.OnAttached(hero);
 
@@ -23,10 +23,10 @@ namespace Lair.Tests.Card
         [Test]
         public void OnDetached_시_Speed가_원래값으로_복원()
         {
-            var hero = new FakeHealth();
+            FakeHealth hero = new FakeHealth();
             hero.SetMax(100);
-            var mover = new FakeMover { Speed = 5f };
-            var aura = new SlowAura(mover, slowFactor: 0.6f);
+            FakeMover mover = new FakeMover { Speed = 5f };
+            SlowAura aura = new SlowAura(mover, slowFactor: 0.6f);
 
             aura.OnAttached(hero);
             aura.OnDetached(hero);
@@ -37,9 +37,9 @@ namespace Lair.Tests.Card
         [Test]
         public void Mover가_null이면_NRE_없이_무동작()
         {
-            var hero = new FakeHealth();
+            FakeHealth hero = new FakeHealth();
             hero.SetMax(100);
-            var aura = new SlowAura(null, slowFactor: 0.6f);
+            SlowAura aura = new SlowAura(null, slowFactor: 0.6f);
 
             Assert.DoesNotThrow(() => aura.OnAttached(hero));
             Assert.DoesNotThrow(() => aura.OnDetached(hero));

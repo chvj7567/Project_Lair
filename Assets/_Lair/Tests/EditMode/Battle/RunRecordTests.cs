@@ -11,7 +11,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Json_왕복_시_모든_필드_보존()
         {
-            var original = new RunRecord
+            RunRecord original = new RunRecord
             {
                 FinishedAt = "2026-05-21T10:00:00",
                 Result = "Win",
@@ -21,7 +21,7 @@ namespace Lair.Tests.Battle
             };
 
             string json = JsonUtility.ToJson(original);
-            var restored = JsonUtility.FromJson<RunRecord>(json);
+            RunRecord restored = JsonUtility.FromJson<RunRecord>(json);
 
             Assert.AreEqual("2026-05-21T10:00:00", restored.FinishedAt);
             Assert.AreEqual("Win", restored.Result);

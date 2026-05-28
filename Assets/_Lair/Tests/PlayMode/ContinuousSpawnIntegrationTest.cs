@@ -39,7 +39,7 @@ namespace Lair.Tests.PlayMode
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.Destroy(go);
             _spawned.Clear();
             CharacterRegistry.Monsters.Clear();
@@ -66,14 +66,14 @@ namespace Lair.Tests.PlayMode
 
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인");
             fi.SetValue(target, value);
         }
 
         private static T GetPrivate<T>(object target, string field)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인");
             return (T)fi.GetValue(target);
         }
@@ -81,10 +81,10 @@ namespace Lair.Tests.PlayMode
         //# 비활성 BattleController — Start(async void) 미실행. _balance 만 주입해 순수 메서드 검증.
         private BattleController CreateIsolatedController()
         {
-            var go = new GameObject("BattleControllerUT");
+            GameObject go = new GameObject("BattleControllerUT");
             go.SetActive(false);   //# Start 가 안 돌도록 비활성 생성.
             _spawned.Add(go);
-            var bc = go.AddComponent<BattleController>();
+            BattleController bc = go.AddComponent<BattleController>();
             SetPrivate(bc, "_balance", _balance);
             return bc;
         }
@@ -93,7 +93,7 @@ namespace Lair.Tests.PlayMode
         //# 비활성 생성 후 반환 — 호출자가 필요 시 SetActive(true).
         private GameObject CreateMonster(EMonster key)
         {
-            var go = new GameObject($"Monster_{key}");
+            GameObject go = new GameObject($"Monster_{key}");
             go.SetActive(false);
             _spawned.Add(go);
             go.AddComponent<Health>();
@@ -108,15 +108,15 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_모디파이어_없으면_raw_스탯_그대로()
         {
-            var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Wisp);
+            BattleController bc = CreateIsolatedController();
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
 
-            var hp = mon.GetComponent<Health>();
-            var atk = mon.GetComponent<MeleeAttacker>();
+            Health hp = mon.GetComponent<Health>();
+            MeleeAttacker atk = mon.GetComponent<MeleeAttacker>();
             Assert.AreEqual(200, hp.Max, "raw HP 200 그대로");
             Assert.AreEqual(200, hp.Current, "resetCurrent:true — 풀피");
             Assert.AreEqual(10, atk.Power, "raw Power 10 그대로");
@@ -127,17 +127,17 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_강화_1픽후_신규Pop_raw곱배율()
         {
-            var bc = CreateIsolatedController();
+            BattleController bc = CreateIsolatedController();
             //# dict 에 위스프 HP ×1.5 등록.
             bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            var mon = CreateMonster(EMonster.Wisp);
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
 
-            var hp = mon.GetComponent<Health>();
+            Health hp = mon.GetComponent<Health>();
             Assert.AreEqual(300, hp.Max, "raw 200 × HpMul 1.5 = 300");
             Assert.AreEqual(300, hp.Current, "신규 Pop — 풀피 300");
         }
@@ -146,11 +146,11 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_강화_2픽_곱연산_누적()
         {
-            var bc = CreateIsolatedController();
+            BattleController bc = CreateIsolatedController();
             bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
             bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
 
-            var mon = CreateMonster(EMonster.Wisp);
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
@@ -164,14 +164,14 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator RegisterMonsterTypeBuff_소급_현재HP_보존_최대치만_상향()
         {
-            var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Wisp);
+            BattleController bc = CreateIsolatedController();
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
             //# 먼저 raw 적용 후 데미지 — Current 50/200 상태로 만든다.
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
-            var hp = mon.GetComponent<Health>();
+            Health hp = mon.GetComponent<Health>();
             hp.TakeDamage(150);
             Assert.AreEqual(50, hp.Current, "선조건 — Current 50/200");
 
@@ -190,13 +190,13 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_resetCurrent_true_현재HP_최대로()
         {
-            var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Wisp);
+            BattleController bc = CreateIsolatedController();
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
 
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
-            var hp = mon.GetComponent<Health>();
+            Health hp = mon.GetComponent<Health>();
             hp.TakeDamage(100);
             Assert.AreEqual(100, hp.Current, "선조건 — Current 100/200");
 
@@ -209,8 +209,8 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_플레이그_SlowFactor_baseline_곱배율()
         {
-            var bc = CreateIsolatedController();
-            var plague = CreateMonster(EMonster.Plague);
+            BattleController bc = CreateIsolatedController();
+            GameObject plague = CreateMonster(EMonster.Plague);
             plague.AddComponent<PlagueSlowOnHit>();
             bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
             plague.SetActive(true);
@@ -219,7 +219,7 @@ namespace Lair.Tests.PlayMode
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
 
             //# _slowFactor 는 private — 리플렉션으로 확인. BaseSlowFactor 0.8 × 0.75 = 0.6.
-            var slow = plague.GetComponent<PlagueSlowOnHit>();
+            PlagueSlowOnHit slow = plague.GetComponent<PlagueSlowOnHit>();
             float applied = GetPrivate<float>(slow, "_slowFactor");
             Assert.AreEqual(0.6f, applied, 0.0001f, "플레이그 둔화 = BaseSlowFactor 0.8 × 0.75");
         }
@@ -229,14 +229,14 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator ApplyMonsterStats_플레이그_반복적용_복리누적_없음()
         {
-            var bc = CreateIsolatedController();
-            var plague = CreateMonster(EMonster.Plague);
+            BattleController bc = CreateIsolatedController();
+            GameObject plague = CreateMonster(EMonster.Plague);
             plague.AddComponent<PlagueSlowOnHit>();
             bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
             plague.SetActive(true);
             yield return null;
 
-            var slow = plague.GetComponent<PlagueSlowOnHit>();
+            PlagueSlowOnHit slow = plague.GetComponent<PlagueSlowOnHit>();
 
             //# 같은 dict 상태로 3번 재적용 — 풀 재사용 Pop 반복 시뮬.
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
@@ -254,14 +254,14 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator RegisterMonsterTypeBuff_필드_동일종_소급적용()
         {
-            var bc = CreateIsolatedController();
+            BattleController bc = CreateIsolatedController();
             //# 필드에 위스프 몬스터 — CharacterRegistry 에 등록 (Health.OnEnable 의 자기등록은
             //# 없으므로 명시 등록 — 실제로는 캐릭터가 자기 등록하지만 본 테스트는 합성).
-            var mon = CreateMonster(EMonster.Wisp);
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
-            var hp = mon.GetComponent<Health>();
+            Health hp = mon.GetComponent<Health>();
             CharacterRegistry.RegisterMonster(mon.transform, hp);
 
             //# 강화 카드 픽 — dict 갱신 + 필드 소급.
@@ -274,9 +274,9 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator RegisterMonsterTypeBuff_다른종_몬스터는_불변()
         {
-            var bc = CreateIsolatedController();
-            var wisp = CreateMonster(EMonster.Wisp);
-            var wraith = CreateMonster(EMonster.Wraith);
+            BattleController bc = CreateIsolatedController();
+            GameObject wisp = CreateMonster(EMonster.Wisp);
+            GameObject wraith = CreateMonster(EMonster.Wraith);
             wisp.SetActive(true);
             wraith.SetActive(true);
             yield return null;
@@ -296,12 +296,12 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator RegisterMonsterTypeBuff_죽은_몬스터는_소급제외()
         {
-            var bc = CreateIsolatedController();
-            var mon = CreateMonster(EMonster.Wisp);
+            BattleController bc = CreateIsolatedController();
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
-            var hp = mon.GetComponent<Health>();
+            Health hp = mon.GetComponent<Health>();
             CharacterRegistry.RegisterMonster(mon.transform, hp);
 
             //# 몬스터 사망.
@@ -318,14 +318,14 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator RegisterMonsterTypeBuff_필드_몬스터_0개_예외없음()
         {
-            var bc = CreateIsolatedController();
+            BattleController bc = CreateIsolatedController();
 
             Assert.DoesNotThrow(() =>
                 bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f),
                 "필드 몬스터 0개 — dict 갱신만, 예외 없음");
 
             //# 이후 신규 Pop 은 갱신된 dict 반영.
-            var mon = CreateMonster(EMonster.Wisp);
+            GameObject mon = CreateMonster(EMonster.Wisp);
             mon.SetActive(true);
             yield return null;
             bc.ApplyMonsterStats(mon, EMonster.Wisp, resetCurrent: true);
@@ -389,7 +389,7 @@ namespace Lair.Tests.PlayMode
             while (wallElapsed < WallTimeLimit && gameTimeAccum < 70f)
             {
                 int alive = 0;
-                foreach (var e in CharacterRegistry.Monsters)
+                foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
                     if (e?.Health != null && e.Health.IsAlive) alive++;
                 if (alive > maxObserved) maxObserved = alive;
                 //# 캡 절대값 — 매 프레임 검사. 한 번이라도 초과하면 실패.
@@ -417,9 +417,9 @@ namespace Lair.Tests.PlayMode
         //# 영웅 전멸이면 스폰이 멈춤 — 캡15 테스트 조기 종료 조건.
         private static bool AllHeroesDead()
         {
-            var heroes = CharacterRegistry.Heroes;
+            List<CharacterRegistry.Entry> heroes = CharacterRegistry.Heroes;
             if (heroes.Count == 0) return false;
-            foreach (var e in heroes)
+            foreach (CharacterRegistry.Entry e in heroes)
                 if (e?.Health != null && e.Health.IsAlive) return false;
             return true;
         }
@@ -444,10 +444,10 @@ namespace Lair.Tests.PlayMode
             }
             Assert.IsNotNull(bc, "씬에 BattleController 존재");
 
-            var spawners = GetPrivate<Spawner[]>(bc, "_spawners");
+            Spawner[] spawners = GetPrivate<Spawner[]>(bc, "_spawners");
             Assert.IsNotNull(spawners, "_spawners 배열 배선 확인");
             Assert.AreEqual(6, spawners.Length, "스타터 프리셋 — Spawner 6개 (§5.3)");
-            foreach (var sp in spawners)
+            foreach (Spawner sp in spawners)
                 Assert.IsNotNull(sp, "Spawner 슬롯 누락 없음");
 
             yield return null;

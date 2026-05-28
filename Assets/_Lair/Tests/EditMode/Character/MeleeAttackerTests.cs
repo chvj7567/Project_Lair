@@ -9,7 +9,7 @@ namespace Lair.Tests.Character
     {
         private static MeleeAttacker NewAttacker(float range = 1.5f, float cd = 1.0f, int power = 50)
         {
-            var a = new MeleeAttacker();
+            MeleeAttacker a = new MeleeAttacker();
             a.Configure(range, cd, power);
             return a;
         }
@@ -17,8 +17,8 @@ namespace Lair.Tests.Character
         [Test]
         public void 사거리_밖_TryAttack_거부()
         {
-            var atk = NewAttacker(range: 1.0f);
-            var target = new FakeHealth();
+            MeleeAttacker atk = NewAttacker(range: 1.0f);
+            FakeHealth target = new FakeHealth();
 
             bool hit = atk.TryAttack(target, Vector3.zero, new Vector3(5, 0, 0), now: 0f);
 
@@ -29,8 +29,8 @@ namespace Lair.Tests.Character
         [Test]
         public void 사거리_내_쿨_0_데미지_Power_만큼_적용()
         {
-            var atk = NewAttacker(range: 2.0f, power: 50);
-            var target = new FakeHealth();
+            MeleeAttacker atk = NewAttacker(range: 2.0f, power: 50);
+            FakeHealth target = new FakeHealth();
 
             bool hit = atk.TryAttack(target, Vector3.zero, new Vector3(1, 0, 0), now: 0f);
 
@@ -42,8 +42,8 @@ namespace Lair.Tests.Character
         [Test]
         public void 쿨다운_중_재시도_거부()
         {
-            var atk = NewAttacker(cd: 1.0f);
-            var target = new FakeHealth();
+            MeleeAttacker atk = NewAttacker(cd: 1.0f);
+            FakeHealth target = new FakeHealth();
             atk.TryAttack(target, Vector3.zero, new Vector3(0.5f, 0, 0), now: 0f);
 
             bool hit = atk.TryAttack(target, Vector3.zero, new Vector3(0.5f, 0, 0), now: 0.5f);
@@ -55,8 +55,8 @@ namespace Lair.Tests.Character
         [Test]
         public void 쿨다운_경과_후_재공격_가능()
         {
-            var atk = NewAttacker(cd: 1.0f);
-            var target = new FakeHealth();
+            MeleeAttacker atk = NewAttacker(cd: 1.0f);
+            FakeHealth target = new FakeHealth();
             atk.TryAttack(target, Vector3.zero, new Vector3(0.5f, 0, 0), now: 0f);
 
             bool hit = atk.TryAttack(target, Vector3.zero, new Vector3(0.5f, 0, 0), now: 1.5f);

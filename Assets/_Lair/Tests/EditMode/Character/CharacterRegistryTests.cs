@@ -17,8 +17,8 @@ namespace Lair.Tests.Character
         [Test]
         public void Register_Unregister_Monsters()
         {
-            var t = new GameObject("m1").transform;
-            var h = new FakeHealth();
+            Transform t = new GameObject("m1").transform;
+            FakeHealth h = new FakeHealth();
             CharacterRegistry.RegisterMonster(t, h);
 
             Assert.AreEqual(1, CharacterRegistry.Monsters.Count);
@@ -32,13 +32,13 @@ namespace Lair.Tests.Character
         [Test]
         public void TryFindNearestMonster_거리순_가장_가까운()
         {
-            var near = new GameObject("near").transform; near.position = new Vector3(1, 0, 0);
-            var far  = new GameObject("far").transform;  far.position  = new Vector3(5, 0, 0);
+            Transform near = new GameObject("near").transform; near.position = new Vector3(1, 0, 0);
+            Transform far  = new GameObject("far").transform;  far.position  = new Vector3(5, 0, 0);
             CharacterRegistry.RegisterMonster(near, new FakeHealth());
             CharacterRegistry.RegisterMonster(far, new FakeHealth());
 
             bool found = CharacterRegistry.TryFindNearestMonster(
-                Vector3.zero, out var t, out var _);
+                Vector3.zero, out Transform t, out IHealth _);
 
             Assert.IsTrue(found);
             Assert.AreSame(near, t);
@@ -51,7 +51,7 @@ namespace Lair.Tests.Character
         public void TryFindNearestMonster_빈_레지스트리_false()
         {
             bool found = CharacterRegistry.TryFindNearestMonster(
-                Vector3.zero, out var t, out var h);
+                Vector3.zero, out Transform t, out IHealth h);
 
             Assert.IsFalse(found);
             Assert.IsNull(t);
@@ -61,16 +61,16 @@ namespace Lair.Tests.Character
         [Test]
         public void TryFindNearestMonster_죽은_적_제외()
         {
-            var alive = new GameObject("alive").transform; alive.position = new Vector3(5, 0, 0);
-            var dead  = new GameObject("dead").transform;  dead.position  = new Vector3(1, 0, 0);
-            var aliveHp = new FakeHealth();
-            var deadHp = new FakeHealth();
+            Transform alive = new GameObject("alive").transform; alive.position = new Vector3(5, 0, 0);
+            Transform dead  = new GameObject("dead").transform;  dead.position  = new Vector3(1, 0, 0);
+            FakeHealth aliveHp = new FakeHealth();
+            FakeHealth deadHp = new FakeHealth();
             deadHp.ForceSetCurrent(0);
             CharacterRegistry.RegisterMonster(alive, aliveHp);
             CharacterRegistry.RegisterMonster(dead, deadHp);
 
             bool found = CharacterRegistry.TryFindNearestMonster(
-                Vector3.zero, out var t, out var _);
+                Vector3.zero, out Transform t, out IHealth _);
 
             Assert.IsTrue(found);
             Assert.AreSame(alive, t, "더 가까운 dead 대신 alive 가 선택돼야 함");

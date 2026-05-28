@@ -68,13 +68,13 @@ namespace Lair.EditorTools
             //# "아직 미완료" 상태로 결과 파일 초기 기록 — 폴링 측이 명확히 인식
             WriteResultFromSession();
 
-            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            TestRunnerApi api = ScriptableObject.CreateInstance<TestRunnerApi>();
             //# Unregister 먼저 — RegisterCallbacks 가 중복 등록 시 같은 콜백이
             //# 여러 번 호출돼 카운트가 N 배 되는 버그 방지 (참조 일치로 매칭)
             api.UnregisterCallbacks(_sharedCallbacks);
             api.RegisterCallbacks(_sharedCallbacks);
 
-            var filter = new Filter { testMode = mode };
+            Filter filter = new Filter { testMode = mode };
             //# PlayMode 일반 런은 [Category("Simulation")] 테스트 제외.
             //# Unity Filter 는 카테고리 negation 을 직접 지원 안 함 → groupNames 정규식 negative lookahead
             //# 로 BalanceSimulationTest 클래스를 제외. groupNames 는 풀네임(namespace + class)에 매칭.
@@ -101,7 +101,7 @@ namespace Lair.EditorTools
 
             WriteResultFromSession();
 
-            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            TestRunnerApi api = ScriptableObject.CreateInstance<TestRunnerApi>();
             api.UnregisterCallbacks(_sharedCallbacks);
             api.RegisterCallbacks(_sharedCallbacks);
             api.Execute(new ExecutionSettings(new Filter
@@ -120,7 +120,7 @@ namespace Lair.EditorTools
             //# 활성 실행 중일 때만 재등록 (다른 테스트 러너 동작에 끼어들지 않도록)
             if (SessionState.GetBool(KeyActive, false) == false) return;
 
-            var api = ScriptableObject.CreateInstance<TestRunnerApi>();
+            TestRunnerApi api = ScriptableObject.CreateInstance<TestRunnerApi>();
             //# Unregister 먼저 — 중복 등록 방지
             api.UnregisterCallbacks(_sharedCallbacks);
             api.RegisterCallbacks(_sharedCallbacks);
@@ -144,17 +144,17 @@ namespace Lair.EditorTools
 
         private static void WriteResultFromSession()
         {
-            var path = SessionState.GetString(KeyResultFile, ResultFile);
+            string path = SessionState.GetString(KeyResultFile, ResultFile);
             if (string.IsNullOrEmpty(path)) path = ResultFile;
 
-            var failuresJoined = SessionState.GetString(KeyFailures, string.Empty);
-            var failures = string.IsNullOrEmpty(failuresJoined)
+            string failuresJoined = SessionState.GetString(KeyFailures, string.Empty);
+            List<string> failures = string.IsNullOrEmpty(failuresJoined)
                 ? new List<string>()
                 : new List<string>(failuresJoined.Split('\n'));
 
-            var s = new Summary
+            Summary s = new Summary
             {
-                done       = !string.IsNullOrEmpty(SessionState.GetString(KeyFinishedAt, string.Empty)),
+                done       = string.IsNullOrEmpty(SessionState.GetString(KeyFinishedAt, string.Empty)) == false,
                 startedAt  = SessionState.GetString(KeyStartedAt, string.Empty),
                 finishedAt = SessionState.GetString(KeyFinishedAt, string.Empty),
                 pass       = SessionState.GetInt(KeyPass, 0),
@@ -163,7 +163,7 @@ namespace Lair.EditorTools
                 failures   = failures,
             };
 
-            var json = JsonUtility.ToJson(s, prettyPrint: true);
+            string json = JsonUtility.ToJson(s, prettyPrint: true);
             File.WriteAllText(path, json, new UTF8Encoding(false));
         }
 
@@ -191,8 +191,8 @@ namespace Lair.EditorTools
                         break;
                     case TestStatus.Failed:
                         SessionState.SetInt(KeyFail, SessionState.GetInt(KeyFail, 0) + 1);
-                        var msg = $"{result.Test.FullName} : {SafeTrim(result.Message)}";
-                        var prev = SessionState.GetString(KeyFailures, string.Empty);
+                        string msg = $"{result.Test.FullName} : {SafeTrim(result.Message)}";
+                        string prev = SessionState.GetString(KeyFailures, string.Empty);
                         SessionState.SetString(KeyFailures,
                             string.IsNullOrEmpty(prev) ? msg : prev + "\n" + msg);
                         break;

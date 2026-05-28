@@ -11,8 +11,8 @@ namespace Lair.Tests.Card
         [Test]
         public void HeroAttackDownAura_OnAttached_PowerScale_0_75배()
         {
-            var atk = new FakeAttacker { PowerScale = 1f };
-            var aura = new HeroAttackDownAura(atk, 0.75f);
+            FakeAttacker atk = new FakeAttacker { PowerScale = 1f };
+            HeroAttackDownAura aura = new HeroAttackDownAura(atk, 0.75f);
 
             aura.OnAttached(new FakeHealth());
 
@@ -22,8 +22,8 @@ namespace Lair.Tests.Card
         [Test]
         public void HeroAttackDownAura_중복_OnAttached_시_1회만_적용()
         {
-            var atk = new FakeAttacker { PowerScale = 1f };
-            var aura = new HeroAttackDownAura(atk, 0.75f);
+            FakeAttacker atk = new FakeAttacker { PowerScale = 1f };
+            HeroAttackDownAura aura = new HeroAttackDownAura(atk, 0.75f);
 
             aura.OnAttached(new FakeHealth());
             aura.OnAttached(new FakeHealth());   //# 같은 인스턴스 재호출 — _applied 가드
@@ -34,7 +34,7 @@ namespace Lair.Tests.Card
         [Test]
         public void HeroAttackDownAura_Attacker가_null이면_무동작()
         {
-            var aura = new HeroAttackDownAura(null, 0.75f);
+            HeroAttackDownAura aura = new HeroAttackDownAura(null, 0.75f);
             Assert.DoesNotThrow(() => aura.OnAttached(new FakeHealth()));
             Assert.DoesNotThrow(() => aura.OnDetached(new FakeHealth()));
         }

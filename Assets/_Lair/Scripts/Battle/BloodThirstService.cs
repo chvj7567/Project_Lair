@@ -25,9 +25,9 @@ namespace Lair.Battle
         {
             if (IsActive == false) return;
             float sqr = HealRadius * HealRadius;
-            foreach (var e in CharacterRegistry.Monsters)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
             {
-                if (e?.Transform == null || e.Health == null || !e.Health.IsAlive) continue;
+                if (e?.Transform == null || e.Health == null || e.Health.IsAlive == false) continue;
                 if ((e.Transform.position - pos).sqrMagnitude <= sqr)
                     e.Health.Heal(HealAmount);
             }

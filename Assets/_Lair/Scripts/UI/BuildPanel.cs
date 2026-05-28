@@ -52,9 +52,9 @@ namespace Lair.UI
         {
             if (_vm == null) return;
 
-            var passive = new List<BattleViewModel.BuildEntry>();
-            var active  = new List<BattleViewModel.BuildEntry>();
-            foreach (var entry in _vm.Build)
+            List<BattleViewModel.BuildEntry> passive = new List<BattleViewModel.BuildEntry>();
+            List<BattleViewModel.BuildEntry> active  = new List<BattleViewModel.BuildEntry>();
+            foreach (BattleViewModel.BuildEntry entry in _vm.Build)
             {
                 if (entry == null || entry.Card == null) continue;
 

@@ -38,7 +38,7 @@ namespace Lair.UI
             }
 
             //# 아이콘 글자·배경 — SpawnerStatusCell 의 매핑 함수 재사용 (단일 진실).
-            var letterInfo = SpawnerStatusCell.IconLetterFor(buff.Source.Id);
+            (char letter, Color bgColor, Color fgColor) letterInfo = SpawnerStatusCell.IconLetterFor(buff.Source.Id);
             if (_iconCircle != null) _iconCircle.color = letterInfo.bgColor;
             if (_iconLetter != null)
             {
@@ -69,9 +69,7 @@ namespace Lair.UI
         {
             //# v1.0 — Spawn 카테고리는 stat 분기 전에 단일 줄 단정. Stat 필드 안 읽음.
             if (buff.Source != null && buff.Source.Category == ECardCategory.Spawn)
-            {
                 return $"동시 출력 +{buff.PickCount}";
-            }
 
             BalanceConfig.CharacterStat baseStat = balance != null ? balance.GetMonster(type) : null;
             switch (buff.Stat)

@@ -17,11 +17,11 @@ namespace Lair.Tests.Battle
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
 
-            foreach (var a in _assets)
+            foreach (Object a in _assets)
                 if (a != null) Object.DestroyImmediate(a);
             _assets.Clear();
         }
@@ -29,7 +29,7 @@ namespace Lair.Tests.Battle
         //# 리플렉션 헬퍼 — 직렬화 필드 강제 주입.
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인");
             fi.SetValue(target, value);
         }
@@ -37,7 +37,7 @@ namespace Lair.Tests.Battle
         //# Spawner.OnEnable 리플렉션 호출 — _currentType 초기화 + OnOutputTypeChanged 발행.
         private static void InvokeOnEnable(Component c)
         {
-            var mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "OnEnable 메서드 존재 확인");
             mi.Invoke(c, null);
         }
@@ -45,7 +45,7 @@ namespace Lair.Tests.Battle
         //# SpawnerBody.OnEnable 리플렉션 호출.
         private static void InvokeBodyOnEnable(SpawnerBody body)
         {
-            var mi = typeof(SpawnerBody).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = typeof(SpawnerBody).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "SpawnerBody.OnEnable 메서드 존재 확인");
             mi.Invoke(body, null);
         }
@@ -53,7 +53,7 @@ namespace Lair.Tests.Battle
         //# SpawnerBody.HandleTypeChanged 리플렉션 직접 호출 — ReplaceOutput 우회 케이스용.
         private static void InvokeHandleTypeChanged(SpawnerBody body, EMonster type)
         {
-            var mi = typeof(SpawnerBody).GetMethod("HandleTypeChanged",
+            MethodInfo mi = typeof(SpawnerBody).GetMethod("HandleTypeChanged",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "SpawnerBody.HandleTypeChanged 메서드 존재 확인");
             mi.Invoke(body, new object[] { type });
@@ -62,10 +62,10 @@ namespace Lair.Tests.Battle
         //# 머티리얼 배열 생성 (EMonster 순서: 0=Wisp, 1=Wraith, 2=Reaper, 3=Hex, 4=Plague, 5=Phantom).
         private Material[] MakeMaterials(int count)
         {
-            var mats = new Material[count];
+            Material[] mats = new Material[count];
             for (int i = 0; i < count; i++)
             {
-                var m = new Material(Shader.Find("Standard"));
+                Material m = new Material(Shader.Find("Standard"));
                 _assets.Add(m);
                 mats[i] = m;
             }
@@ -83,18 +83,18 @@ namespace Lair.Tests.Battle
                 int matCount = 6)
         {
             //# 부모 GameObject — Spawner.
-            var parentGo = new GameObject("SpawnerParent");
+            GameObject parentGo = new GameObject("SpawnerParent");
             _spawned.Add(parentGo);
-            var spawner = parentGo.AddComponent<Spawner>();
+            Spawner spawner = parentGo.AddComponent<Spawner>();
             SetPrivate(spawner, "_outputType", spawnerOutputType);
             SetPrivate(spawner, "_spawnPeriod", 9f);
             SetPrivate(spawner, "_initialDelay", 0f);
 
             //# 자식 GameObject — 부모 없이 생성 후 AddComponent → auto-OnEnable 시 _provider = null(구독 안 함).
             //# 이후 SetParent 로 부모 연결 → InvokeBodyOnEnable 에서 명시적으로 구독.
-            var childGo = new GameObject("SpawnerBodyChild");
+            GameObject childGo = new GameObject("SpawnerBodyChild");
             _spawned.Add(childGo);
-            var body = childGo.AddComponent<SpawnerBody>();
+            SpawnerBody body = childGo.AddComponent<SpawnerBody>();
             childGo.transform.SetParent(parentGo.transform);
 
             //# Renderer 와 Material 주입.
@@ -118,7 +118,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_초기_Wisp종으로_머티리얼_적용()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
 
             //# SpawnerBody.OnEnable 이 GetComponentInParent 로 Spawner 의 ISpawnerOutputProvider 를 찾고
             //# HandleTypeChanged 를 구독 후 즉시 동기화 호출.
@@ -133,7 +133,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_초기_Wraith종으로_머티리얼_적용()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wraith);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wraith);
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 
@@ -147,7 +147,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_Wraith_머티리얼_교체()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 
@@ -161,7 +161,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_연속교체_각각_올바른_머티리얼()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 
@@ -176,7 +176,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void HandleTypeChanged_Hex_인덱스_3_올바른_머티리얼()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 
@@ -189,7 +189,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void HandleTypeChanged_Phantom_인덱스_5_올바른_머티리얼()
         {
-            var (_, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
 
             //# HandleTypeChanged 직접 — SpawnerBody 독립 테스트.
             SetPrivate(body, "_renderer", renderer);
@@ -206,8 +206,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void _renderer_null_HandleTypeChanged_예외없음()
         {
-            var (_, body, _, mats) = CreateSetup(EMonster.Wisp, setupBody: false);
-            var fakeMats = MakeMaterials(6);
+            (Spawner _, SpawnerBody body, MeshRenderer _, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
+            Material[] fakeMats = MakeMaterials(6);
             //# _renderer 미주입, _materials 만 주입.
             SetPrivate(body, "_renderer", null);
             SetPrivate(body, "_materials", fakeMats);
@@ -220,10 +220,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void _materials_null_HandleTypeChanged_예외없음()
         {
-            var (_, body, _, _) = CreateSetup(EMonster.Wisp, setupBody: false);
-            var go = new GameObject("Rend");
+            (Spawner _, SpawnerBody body, MeshRenderer _, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
+            GameObject go = new GameObject("Rend");
             _spawned.Add(go);
-            var renderer = go.AddComponent<MeshRenderer>();
+            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
             //# _renderer 주입, _materials 미주입.
             SetPrivate(body, "_renderer", renderer);
             SetPrivate(body, "_materials", null);
@@ -236,10 +236,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void _materials_범위초과_인덱스_교체안함_예외없음()
         {
-            var (_, body, renderer, _) = CreateSetup(EMonster.Wisp, setupBody: false);
+            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
 
             //# Sentinel 머티리얼 — 교체가 안 일어나야 이 머티리얼이 그대로여야 함.
-            var sentinel = new Material(Shader.Find("Standard"));
+            Material sentinel = new Material(Shader.Find("Standard"));
             _assets.Add(sentinel);
             renderer.sharedMaterial = sentinel;
 
@@ -257,14 +257,14 @@ namespace Lair.Tests.Battle
         [Test]
         public void _materials_항목_null_교체안함_예외없음()
         {
-            var (_, body, renderer, _) = CreateSetup(EMonster.Wisp, setupBody: false);
+            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
 
-            var sentinel = new Material(Shader.Find("Standard"));
+            Material sentinel = new Material(Shader.Find("Standard"));
             _assets.Add(sentinel);
             renderer.sharedMaterial = sentinel;
 
             //# Wisp(0) 항목을 null 로.
-            var mats = MakeMaterials(6);
+            Material[] mats = MakeMaterials(6);
             mats[(int)EMonster.Wisp] = null;
             SetPrivate(body, "_renderer", renderer);
             SetPrivate(body, "_materials", mats);
@@ -280,16 +280,16 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnDisable_후_ReplaceOutput_머티리얼_변경안됨()
         {
-            var (spawner, body, renderer, mats) = CreateSetup(EMonster.Wisp);
+            (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] mats) = CreateSetup(EMonster.Wisp);
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 
             //# Wisp 머티리얼이 설정된 상태.
-            var slimeMat = mats[(int)EMonster.Wisp];
+            Material slimeMat = mats[(int)EMonster.Wisp];
             Assert.AreEqual(slimeMat, renderer.sharedMaterial);
 
             //# SpawnerBody.OnDisable — 이벤트 구독 해제.
-            var onDisable = typeof(SpawnerBody).GetMethod("OnDisable",
+            MethodInfo onDisable = typeof(SpawnerBody).GetMethod("OnDisable",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(onDisable, "SpawnerBody.OnDisable 존재 확인");
             onDisable.Invoke(body, null);

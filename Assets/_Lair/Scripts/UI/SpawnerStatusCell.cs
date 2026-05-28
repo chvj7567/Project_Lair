@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Battle;
 using Lair.Data;
@@ -128,12 +129,12 @@ namespace Lair.UI
             BattleViewModel.AppliedBuff enhanceBuff = null;
             BattleViewModel.AppliedBuff spawnBuff = null;
 
-            var buffs = snapshot.AppliedBuffs;
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = snapshot.AppliedBuffs;
             if (buffs != null)
             {
                 for (int i = 0; i < buffs.Count; ++i)
                 {
-                    var b = buffs[i];
+                    BattleViewModel.AppliedBuff b = buffs[i];
                     if (b == null || b.Source == null) continue;
                     if (b.Source.Category == ECardCategory.Enhance && enhanceBuff == null)
                         enhanceBuff = b;
@@ -158,7 +159,7 @@ namespace Lair.UI
                 if (circle != null) circle.gameObject.SetActive(false);
                 return false;
             }
-            var info = IconLetterFor(buff.Source.Id);
+            (char letter, Color bgColor, Color fgColor) info = IconLetterFor(buff.Source.Id);
             if (info.letter == ' ')
             {
                 //# 매핑 외 카드(예: Hex 종의 Spawn 슬롯 — SpawnHex 부재). 슬롯 비활성.

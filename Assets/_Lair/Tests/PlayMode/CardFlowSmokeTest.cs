@@ -32,7 +32,7 @@ namespace Lair.Tests.PlayMode
             Assert.Greater(CharacterRegistry.Heroes.Count, 0, "Hero 스폰 확인");
 
             //# 2) Hero 에게 강제 데미지 (90/80% 임계점 통과)
-            foreach (var e in CharacterRegistry.Heroes)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
             {
                 if (e?.Health != null)
                     e.Health.TakeDamage(e.Health.Max / 5);   //# 20% 데미지 → 80% 도달
@@ -45,7 +45,7 @@ namespace Lair.Tests.PlayMode
             while (elapsed < 1.5f) { elapsed += Time.unscaledDeltaTime; yield return null; }
 
             //# 4) CardSelectionPopup 이 씬에 활성화돼 있어야
-            var popup = Object.FindFirstObjectByType<CardSelectionPopup>();
+            CardSelectionPopup popup = Object.FindFirstObjectByType<CardSelectionPopup>();
             Assert.IsNotNull(popup, "CardSelectionPopup 자동 표시 확인");
 
             //# 5) Time.timeScale 이 0 (Pause 작동)

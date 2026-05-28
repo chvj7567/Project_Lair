@@ -9,7 +9,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Activate_후_IsActive_true()
         {
-            var svc = new BloodThirstService();
+            BloodThirstService svc = new BloodThirstService();
             svc.Activate(30f);
             Assert.IsTrue(svc.IsActive);
         }
@@ -17,7 +17,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 지속시간_경과_후_비활성()
         {
-            var svc = new BloodThirstService();
+            BloodThirstService svc = new BloodThirstService();
             svc.Activate(30f);
             svc.Tick(31f);
             Assert.IsFalse(svc.IsActive);
@@ -26,7 +26,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 재Activate_시_더_긴_쪽으로_연장()
         {
-            var svc = new BloodThirstService();
+            BloodThirstService svc = new BloodThirstService();
             svc.Activate(10f);
             svc.Tick(8f);            //# 남은 2
             svc.Activate(30f);       //# 30 으로 연장

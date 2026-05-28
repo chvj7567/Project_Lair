@@ -111,7 +111,7 @@ namespace Lair.Battle
             _bloodThirst = new BloodThirstService();
             DespawnOnDeath.MonsterDied += HandleMonsterDied;
 
-            var pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
+            CardPool pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
             if (pool != null)
             {
                 _passiveDeck = new CardDeck(pool.Cards);
@@ -132,7 +132,7 @@ namespace Lair.Battle
                 TryProcessNext();
             };
 
-            var activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
+            CardPool activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
             if (activePool != null)
             {
                 _activeDeck = new CardDeck(activePool.Cards);
@@ -152,7 +152,7 @@ namespace Lair.Battle
             //# 전투 종료 후엔 스폰 중단.
             if (_model != null && _model.Result == BattleResult.None && _spawners != null)
             {
-                foreach (var sp in _spawners)
+                foreach (Spawner sp in _spawners)
                     if (sp != null) sp.Tick(dt);
             }
         }
@@ -181,11 +181,11 @@ namespace Lair.Battle
         private void ApplyStats(GameObject character, BalanceConfig.CharacterStat stat)
         {
             if (character == null || stat == null) return;
-            var health = character.GetComponent<Health>();
+            Health health = character.GetComponent<Health>();
             if (health != null) health.SetMax(stat.Hp, resetCurrent: true);
-            var attacker = character.GetComponent<MeleeAttacker>();
+            MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null) attacker.Configure(stat.Range, stat.Cooldown, stat.Power);
-            var mover = character.GetComponent<SimpleMover>();
+            SimpleMover mover = character.GetComponent<SimpleMover>();
             if (mover != null) mover.Speed = stat.MoveSpeed;
         }
 
@@ -195,40 +195,40 @@ namespace Lair.Battle
         public void ApplyMonsterStats(GameObject character, EMonster key, bool resetCurrent)
         {
             if (character == null) return;
-            var raw = _balance?.GetMonster(key);
+            BalanceConfig.CharacterStat raw = _balance?.GetMonster(key);
             if (raw == null) return;
-            var mul = _typeModifiers.TryGetValue(key, out var m) ? m : StatMultiplier.Identity;
+            StatMultiplier mul = _typeModifiers.TryGetValue(key, out StatMultiplier m) ? m : StatMultiplier.Identity;
 
-            var health = character.GetComponent<Health>();
+            Health health = character.GetComponent<Health>();
             if (health != null)
                 health.SetMax(Mathf.Max(1, Mathf.RoundToInt(raw.Hp * mul.HpMul)), resetCurrent);
 
-            var attacker = character.GetComponent<MeleeAttacker>();
+            MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null)
                 attacker.Configure(
                     raw.Range * mul.RangeMul,
                     Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
                     Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
 
-            var mover = character.GetComponent<SimpleMover>();
+            SimpleMover mover = character.GetComponent<SimpleMover>();
             if (mover != null) mover.Speed = raw.MoveSpeed * mul.MoveSpeedMul;
 
             //# 플레이그 한정 — 불변 baseline const × 배율. 복리 누적 버그 없음 (§7.5.9).
-            var slow = character.GetComponent<PlagueSlowOnHit>();
+            PlagueSlowOnHit slow = character.GetComponent<PlagueSlowOnHit>();
             if (slow != null)
                 slow.SetSlowFactor(PlagueSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
         }
 
         private async Task SpawnHero()
         {
-            var prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
             if (prefab == null)
             {
                 Debug.LogError("[BattleController] Knight 프리팹 로드 실패");
                 return;
             }
 
-            var p = CHMPool.Instance.Pop(prefab, transform);
+            CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
             p.transform.position = _heroSpawn != null ? _heroSpawn.position : Vector3.zero;
 
@@ -244,7 +244,7 @@ namespace Lair.Battle
             }
 
             //# 영웅 이동 3초 지연 — 스폰 직후 AutoCombatAI 비활성화.
-            foreach (var ai in p.GetComponentsInChildren<AutoCombatAI>())
+            foreach (AutoCombatAI ai in p.GetComponentsInChildren<AutoCombatAI>())
                 if (ai != null) ai.enabled = false;
         }
 
@@ -253,7 +253,7 @@ namespace Lair.Battle
         {
             await Task.Delay((int)(delay * 1000));
             if (_hero == null) return;
-            foreach (var ai in _hero.GetComponentsInChildren<Lair.Character.AutoCombatAI>())
+            foreach (Lair.Character.AutoCombatAI ai in _hero.GetComponentsInChildren<Lair.Character.AutoCombatAI>())
                 if (ai != null) ai.enabled = true;
         }
 
@@ -262,7 +262,7 @@ namespace Lair.Battle
         private void BindSpawners()
         {
             if (_spawners == null) return;
-            foreach (var sp in _spawners)
+            foreach (Spawner sp in _spawners)
                 if (sp != null) sp.Bind(this);
             //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
             _vm?.AttachSpawners(_spawners, this);
@@ -272,7 +272,7 @@ namespace Lair.Battle
         private static int AliveMonsterCount()
         {
             int n = 0;
-            foreach (var e in CharacterRegistry.Monsters)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
                 if (e?.Health != null && e.Health.IsAlive) ++n;
             return n;
         }
@@ -285,7 +285,7 @@ namespace Lair.Battle
             //# 사이클 진입 판정 — 시작 시 1회 (§4.3 사이클 단위 검사).
             if (AliveMonsterCount() >= MonsterCap) return;   //# 사이클 백오프 (await 전 선검사)
 
-            var prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
             if (prefab == null) return;
             //# await 후 종료/캡 재검사 — 동프레임 인터리브(다른 Spawner·증식) 시에도
             //# 캡 18 절대값 보장 (§4.2). 사이클 진입은 이미 통과했으므로 잔여만 중단한다.
@@ -294,7 +294,7 @@ namespace Lair.Battle
             {
                 //# 마리 단위 캡 재검사 — 사이클 잔여를 중단해 캡을 절대 넘기지 않는다.
                 if (AliveMonsterCount() >= MonsterCap) break;
-                var p = CHMPool.Instance.Pop(prefab, transform);
+                CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
                 if (p == null) continue;
                 p.transform.position = exactPos;
                 ApplyMonsterStats(p.gameObject, type, resetCurrent: true);
@@ -305,7 +305,7 @@ namespace Lair.Battle
         //# 스포너 상태 UI — _currentCardScope 가 non-null (= ApplyCardEffect 진입 중) 이면 source 추적.
         public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
         {
-            if (_typeModifiers.TryGetValue(type, out var m) == false)
+            if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
             {
                 m = new StatMultiplier();
                 _typeModifiers[type] = m;
@@ -313,10 +313,10 @@ namespace Lair.Battle
             m.Multiply(stat, multiplier);
 
             //# 필드 동일 종 소급 — resetCurrent:false (현재 HP 보존, 최대치만 상향).
-            foreach (var e in CharacterRegistry.Monsters)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
             {
-                if (e?.Health == null || !e.Health.IsAlive || e.Transform == null) continue;
-                var tag = e.Transform.GetComponent<MonsterTag>();
+                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null) continue;
+                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
                 if (tag == null || tag.Key != type) continue;
                 ApplyMonsterStats(e.Transform.gameObject, type, resetCurrent: false);
             }
@@ -344,10 +344,10 @@ namespace Lair.Battle
         //# 신규 source 면 add. 동일 종·동일 Stat 의 누적 배율은 _typeModifiers 의 Get(stat) 으로 일괄 갱신.
         private void TrackCardPick(EMonster type, EMonsterStatKind stat, CardData source)
         {
-            if (_typeModifierPicks.TryGetValue(type, out var list) == false)
+            if (_typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list) == false)
                 _typeModifierPicks[type] = list = new List<BattleViewModel.AppliedBuff>();
 
-            var existing = list.Find(b => b.Source == source);
+            BattleViewModel.AppliedBuff existing = list.Find(b => b.Source == source);
             if (existing != null)
                 existing.PickCount++;
             else
@@ -363,9 +363,9 @@ namespace Lair.Battle
             //# 향후 1↔다 매핑 확장에 대비해 list 순회로 갱신).
             //# v1.0 — Enhance 카테고리만 갱신 대상. Spawn 엔트리(같은 list 에 들어감)의 AggregateMultiplier 가
             //# 잘못 덮어쓰이지 않도록 Category 필터.
-            if (_typeModifiers.TryGetValue(type, out var mul))
+            if (_typeModifiers.TryGetValue(type, out StatMultiplier mul))
             {
-                foreach (var b in list)
+                foreach (BattleViewModel.AppliedBuff b in list)
                     if (b.Stat == stat && b.Source != null && b.Source.Category == ECardCategory.Enhance)
                         b.AggregateMultiplier = mul.Get(stat);
             }
@@ -376,10 +376,10 @@ namespace Lair.Battle
         //# AggregateMultiplier 는 Spawn 에선 의미 없음. retroactive 정책 (§2.3.6) — type 출력 Spawner 가 0 대여도 누적.
         private void TrackSpawnPick(EMonster type, CardData source)
         {
-            if (_typeModifierPicks.TryGetValue(type, out var list) == false)
+            if (_typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list) == false)
                 _typeModifierPicks[type] = list = new List<BattleViewModel.AppliedBuff>();
 
-            var existing = list.Find(b => b.Source == source);
+            BattleViewModel.AppliedBuff existing = list.Find(b => b.Source == source);
             if (existing != null)
                 existing.PickCount++;
             else
@@ -394,7 +394,7 @@ namespace Lair.Battle
 
         //# 스포너 상태 UI — VM 이 SpawnerSnapshot 채울 때 사용. 없는 종이면 빈 array.
         public IReadOnlyList<BattleViewModel.AppliedBuff> GetAppliedBuffs(EMonster type)
-            => _typeModifierPicks.TryGetValue(type, out var list)
+            => _typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list)
                 ? (IReadOnlyList<BattleViewModel.AppliedBuff>)list
                 : System.Array.Empty<BattleViewModel.AppliedBuff>();
 
@@ -408,7 +408,7 @@ namespace Lair.Battle
         public void IncrementSpawnerOutput(EMonster type)
         {
             if (_spawners == null) return;
-            foreach (var sp in _spawners)
+            foreach (Spawner sp in _spawners)
                 if (sp != null && sp.CurrentType == type) sp.IncrementOutput();
 
             //# v1.0 — Spawn 픽 누적 (type 출력 Spawner 0 대여도 누적 — retroactive 정책 §2.3.6).
@@ -423,7 +423,7 @@ namespace Lair.Battle
         public void ReplaceSpawnerOutput(EMonster from, EMonster to)
         {
             if (_spawners == null) return;
-            foreach (var sp in _spawners)
+            foreach (Spawner sp in _spawners)
                 if (sp != null && sp.CurrentType == from) sp.ReplaceOutput(to);
         }
 
@@ -434,7 +434,7 @@ namespace Lair.Battle
 
             //# Slice C — 한 판 결과 기록 (생존 몬스터 수 집계)
             int aliveMonsters = 0;
-            foreach (var e in CharacterRegistry.Monsters)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
                 if (e?.Health != null && e.Health.IsAlive) aliveMonsters++;
             _recorder.FinishRun(result, _clock.Elapsed, aliveMonsters);
 
@@ -443,7 +443,7 @@ namespace Lair.Battle
             _passiveTriggers?.Dispose();
 
             //# 모든 AI 정지
-            foreach (var ai in GetComponentsInChildren<AutoCombatAI>())
+            foreach (AutoCombatAI ai in GetComponentsInChildren<AutoCombatAI>())
                 ai.enabled = false;
 
             _vm.EndBattle(result);
@@ -461,20 +461,20 @@ namespace Lair.Battle
 
             _processingQueue = true;
 
-            while (_queue.TryDequeue(out var entry))
+            while (_queue.TryDequeue(out TriggerQueue.Entry entry))
             {
                 if (_model.Result != BattleResult.None) break;
 
                 //# B2 — Source 에 따라 적절한 덱 선택. 덱 미로드면 해당 트리거 스킵.
-                var deck = entry.SourceType == TriggerQueue.Source.Passive ? _passiveDeck : _activeDeck;
+                CardDeck deck = entry.SourceType == TriggerQueue.Source.Passive ? _passiveDeck : _activeDeck;
                 if (deck == null) continue;
 
 #if UNITY_EDITOR
                 //# 시뮬레이션 전용 — 팝업/일시정지를 건너뛰고 즉시 픽. tcs 무한 대기 회피.
                 if (DebugAutoPicker != null)
                 {
-                    var simChoices = deck.Draw(3);
-                    var picked = DebugAutoPicker(simChoices, entry.SourceType);
+                    IReadOnlyList<CardData> simChoices = deck.Draw(3);
+                    CardData picked = DebugAutoPicker(simChoices, entry.SourceType);
                     if (picked != null)
                     {
                         _recorder.RecordPick(picked.Id);
@@ -487,10 +487,10 @@ namespace Lair.Battle
 #endif
 
                 _pause.Pause();
-                var choices = deck.Draw(3);
-                var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+                IReadOnlyList<CardData> choices = deck.Draw(3);
+                System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
-                var arg = new CardSelectionArg
+                CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
                     OnPicked = card =>
@@ -519,23 +519,23 @@ namespace Lair.Battle
         private async Task PrewarmPools()
         {
             //# 영웅 1마리
-            var heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
             if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
 
             //# 지속 스폰 — 캡 18 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
-            foreach (var key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
+            foreach (EMonster key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
                                         EMonster.Hex, EMonster.Plague, EMonster.Phantom })
             {
-                var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 10);
             }
 
             //# 시각 이펙트 — PoisonAura + 영웅 디버프 상태 표시 6종. 동시 표시 적어 count 2.
-            foreach (var key in new[] { EVisual.PoisonAura,
+            foreach (EVisual key in new[] { EVisual.PoisonAura,
                                         EVisual.SlowStatus, EVisual.FearStatus, EVisual.WeakenStatus,
                                         EVisual.AttackDownStatus, EVisual.TimeStopStatus, EVisual.BleedStatus })
             {
-                var fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
             }
         }
@@ -548,15 +548,15 @@ namespace Lair.Battle
             if (_model != null && _model.Result != BattleResult.None) return;
             if (AliveMonsterCount() >= MonsterCap) return;   //# 빠른 선검사 (await 전)
 
-            var prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null) return;
             //# await 후 재검사 — 동프레임 다중 호출(증식)이 await 로 인터리브돼도 캡 절대값 보장.
             if (_model != null && _model.Result != BattleResult.None) return;
             if (AliveMonsterCount() >= MonsterCap) return;
-            var p = CHMPool.Instance.Pop(prefab, transform);
+            CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
 
-            var offset = UnityEngine.Random.insideUnitSphere * 2.5f;
+            Vector3 offset = UnityEngine.Random.insideUnitSphere * 2.5f;
             offset.y = 0f;
             p.transform.position = nearHero + offset;
             //# 지속 스폰 — 카드 소환 몬스터도 글로벌 타입 모디파이어 적용 (신규 Pop → resetCurrent:true)
@@ -589,7 +589,7 @@ namespace Lair.Battle
         //# 지정 카드의 효과를 팝업 없이 즉시 적용.
         public void DebugApplyCard(ECardId id)
         {
-            foreach (var c in _allCards)
+            foreach (CardData c in _allCards)
             {
                 if (c != null && c.Id == id)
                 {

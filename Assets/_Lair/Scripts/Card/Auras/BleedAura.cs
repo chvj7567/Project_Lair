@@ -26,7 +26,7 @@ namespace Lair.Card
 
         public void Tick(IHealth hero, float dt)
         {
-            if (hero == null || _mover == null || !_mover.IsMoving) return;
+            if (hero == null || _mover == null || _mover.IsMoving == false) return;
             _acc += dt;
             while (_acc >= 1f)
             {

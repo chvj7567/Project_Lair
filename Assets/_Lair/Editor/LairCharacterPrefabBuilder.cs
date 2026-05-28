@@ -61,13 +61,13 @@ namespace Lair.EditorTools
             EnsureDir(MaterialDir);
 
             //# Addressables 사전 확인
-            var settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null)
             {
                 Debug.LogError("[LairCharacterPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
                 return;
             }
-            var group = settings.FindGroup(ResourceGroup);
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
             if (group == null)
             {
                 Debug.LogError("[LairCharacterPrefabBuilder] Addressables 'Resource' 그룹 미발견");
@@ -77,7 +77,7 @@ namespace Lair.EditorTools
             //# HP 바 프리팹 1회 생성 (Rule 04 — 6 몬스터 공용). 각 몬스터가 nested 로 참조.
             EnsureHpBarPrefab();
 
-            foreach (var spec in AllSpecs)
+            foreach (Spec spec in AllSpecs)
             {
                 BuildOne(spec, settings, group);
             }
@@ -101,11 +101,11 @@ namespace Lair.EditorTools
                 go.transform.localScale = Vector3.one * spec.Scale;
 
                 //# Collider 제거 (Slice A 는 충돌 사용 안 함)
-                var col = go.GetComponent<Collider>();
+                Collider col = go.GetComponent<Collider>();
                 if (col != null) Object.DestroyImmediate(col);
 
                 //# 머티리얼 생성 + 색상 적용 — 영웅 본체 색
-                var mat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}.mat", spec.ColorHex);
+                Material mat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}.mat", spec.ColorHex);
                 go.GetComponent<Renderer>().sharedMaterial = mat;
             }
             else
@@ -116,14 +116,14 @@ namespace Lair.EditorTools
                 go.transform.localScale = Vector3.one * spec.Scale;
 
                 //# 1) Visual — LittleGhost prefab 을 nested instance 로 부착
-                var ghostPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(spec.GhostPrefabPath);
+                GameObject ghostPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(spec.GhostPrefabPath);
                 if (ghostPrefab == null)
                 {
                     Debug.LogError($"[CharacterPrefabBuilder] LittleGhost 프리팹 로드 실패: {spec.GhostPrefabPath}");
                 }
                 else
                 {
-                    var visual = (GameObject)PrefabUtility.InstantiatePrefab(ghostPrefab, go.transform);
+                    GameObject visual = (GameObject)PrefabUtility.InstantiatePrefab(ghostPrefab, go.transform);
                     visual.name = "Visual";
                     visual.transform.localPosition = Vector3.zero;
                     visual.transform.localRotation = Quaternion.identity;
@@ -166,8 +166,8 @@ namespace Lair.EditorTools
             {
                 go.AddComponent<MonsterTargetProvider>();
                 //# B1 — MonsterTag 부착 + EMonster Key 주입
-                var tag = go.AddComponent<MonsterTag>();
-                if (System.Enum.TryParse<EMonster>(spec.Name, out var key))
+                MonsterTag tag = go.AddComponent<MonsterTag>();
+                if (System.Enum.TryParse<EMonster>(spec.Name, out EMonster key))
                     tag.Configure(key);
                 //# B3 — 플레이그 특수능력: 공격 시 영웅 둔화
                 if (spec.Name == nameof(EMonster.Plague))
@@ -179,17 +179,17 @@ namespace Lair.EditorTools
             go.AddComponent<DespawnOnDeath>();
 
             //# 4) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)
-            if (!spec.IsHero)
+            if (spec.IsHero == false)
                 AttachMonsterHpBar(go, spec.Scale);
 
             //# 5) 프리팹 저장 (덮어쓰기)
-            var prefabPath = $"{PrefabDir}/{spec.Name}.prefab";
-            var prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            string prefabPath = $"{PrefabDir}/{spec.Name}.prefab";
+            GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             Object.DestroyImmediate(go);
 
             //# 6) Addressables 등록 — 주소 = 파일명 (Rule 08)
-            var guid = AssetDatabase.AssetPathToGUID(prefabPath);
-            var entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
+            string guid = AssetDatabase.AssetPathToGUID(prefabPath);
+            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = spec.Name;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
@@ -201,7 +201,7 @@ namespace Lair.EditorTools
         //# 이름이 "Aura" 로 시작 → HitFlash 가 플래시 대상에서 자동 제외.
         private static void AttachAuraDisc(GameObject root, Spec spec)
         {
-            var aura = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GameObject aura = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             aura.name = "Aura";
             aura.transform.SetParent(root.transform, false);
             aura.transform.localPosition = new Vector3(0f, AuraLocalY, 0f);
@@ -209,11 +209,11 @@ namespace Lair.EditorTools
             aura.transform.localScale = new Vector3(AuraDiscScale, AuraDiscHeight, AuraDiscScale);
 
             //# Collider 제거 (placeholder 시각만)
-            var col = aura.GetComponent<Collider>();
+            Collider col = aura.GetComponent<Collider>();
             if (col != null) Object.DestroyImmediate(col);
 
             //# 정체성 색 머티리얼 (재사용 캐시)
-            var auraMat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}_Aura.mat", spec.ColorHex);
+            Material auraMat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}_Aura.mat", spec.ColorHex);
             aura.GetComponent<Renderer>().sharedMaterial = auraMat;
         }
 
@@ -221,10 +221,10 @@ namespace Lair.EditorTools
         //# GUID 보존을 위해 가능한 한 in-place 갱신.
         private static Material EnsureUrpLitMaterial(string matPath, string colorHex)
         {
-            if (!ColorUtility.TryParseHtmlString(colorHex, out var color))
+            if (ColorUtility.TryParseHtmlString(colorHex, out Color color) == false)
                 color = Color.magenta;
 
-            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
             if (mat == null)
             {
                 mat = new Material(Shader.Find(UrpLitShaderName));
@@ -261,7 +261,7 @@ namespace Lair.EditorTools
             //# 안 생겨 LoadAssetAtPath<Sprite> 가 null. spriteImportMode=Single 까지 필수.
             Sprite LoadBarSprite(string path)
             {
-                var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+                TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
                 if (imp != null && (imp.textureType != TextureImporterType.Sprite
                                     || imp.spriteImportMode != SpriteImportMode.Single))
                 {
@@ -269,33 +269,33 @@ namespace Lair.EditorTools
                     imp.spriteImportMode = SpriteImportMode.Single;
                     imp.SaveAndReimport();
                 }
-                var sp = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                Sprite sp = AssetDatabase.LoadAssetAtPath<Sprite>(path);
                 if (sp == null)
                     Debug.LogWarning($"[CharacterPrefabBuilder] HP 바 스프라이트 로드 실패: {path}");
                 return sp;
             }
 
-            var bgSprite   = LoadBarSprite(HpBarBgSpritePath);
-            var fillSprite = LoadBarSprite(HpBarFillSpritePath);
+            Sprite bgSprite   = LoadBarSprite(HpBarBgSpritePath);
+            Sprite fillSprite = LoadBarSprite(HpBarFillSpritePath);
 
             //# 루트 — RectTransform 만. Canvas·MonsterHpBar 없음 (순수 비주얼).
-            var root = new GameObject("HpBar", typeof(RectTransform));
-            var rootRt = (RectTransform)root.transform;
+            GameObject root = new GameObject("HpBar", typeof(RectTransform));
+            RectTransform rootRt = (RectTransform)root.transform;
             rootRt.sizeDelta = new Vector2(BarPixelW, BarPixelH);
 
             //# Background — HpBarBackground.png (게이지 빈 부분 트랙). 색 틴트 없음 — 흰색 기본.
-            var bgGo = new GameObject("Background", typeof(RectTransform));
+            GameObject bgGo = new GameObject("Background", typeof(RectTransform));
             bgGo.transform.SetParent(root.transform, false);
             SetStretch((RectTransform)bgGo.transform);
-            var bgImg = bgGo.AddComponent<Image>();
+            Image bgImg = bgGo.AddComponent<Image>();
             bgImg.sprite = bgSprite != null ? bgSprite : LairUIPrefabBuilder.GetUISprite();
             bgImg.type = Image.Type.Simple;
 
             //# Fill — HpBar.png, 가로 Filled (Background 의 자식)
-            var fillGo = new GameObject("Fill", typeof(RectTransform));
+            GameObject fillGo = new GameObject("Fill", typeof(RectTransform));
             fillGo.transform.SetParent(bgGo.transform, false);
             SetStretch((RectTransform)fillGo.transform);
-            var fillImg = fillGo.AddComponent<Image>();
+            Image fillImg = fillGo.AddComponent<Image>();
             fillImg.sprite = fillSprite != null ? fillSprite : LairUIPrefabBuilder.GetUISprite();
             fillImg.type = Image.Type.Filled;
             fillImg.fillMethod = Image.FillMethod.Horizontal;
@@ -317,7 +317,7 @@ namespace Lair.EditorTools
             const float TargetWorldW = 1.2f;   //# 모든 몬스터 동일한 월드 가로
             const float HeadLocalY  = 1.2f;    //# 머리 위 — 래퍼 localY (월드 = ×monsterScale)
 
-            var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
+            GameObject hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
             if (hpBarPrefab == null)
             {
                 Debug.LogWarning("[CharacterPrefabBuilder] HpBar.prefab 미발견 — HP 바 생략");
@@ -326,11 +326,11 @@ namespace Lair.EditorTools
 
             //# 래퍼 GameObject — WorldSpace Canvas + MonsterHpBar 담당.
             //# 이름이 "HpBarWrapper" 로 시작 → HitFlash 가 색 깜빡임에서 자동 제외 (ExcludeNamePrefixes "HpBar").
-            var wrapper = new GameObject("HpBarWrapper", typeof(RectTransform), typeof(Canvas));
+            GameObject wrapper = new GameObject("HpBarWrapper", typeof(RectTransform), typeof(Canvas));
             wrapper.transform.SetParent(monster.transform, false);
-            var wrapperCanvas = wrapper.GetComponent<Canvas>();
+            Canvas wrapperCanvas = wrapper.GetComponent<Canvas>();
             wrapperCanvas.renderMode = RenderMode.WorldSpace;
-            var wrapperRt = (RectTransform)wrapper.transform;
+            RectTransform wrapperRt = (RectTransform)wrapper.transform;
             //# canvasScale = 목표월드폭 / 픽셀폭 / 몬스터scale → 몬스터 크기 무관 동일 월드 크기.
             wrapperRt.sizeDelta = new Vector2(BarPixelW, 20f);
             wrapperRt.localScale = Vector3.one * (TargetWorldW / BarPixelW / monsterScale);
@@ -338,8 +338,8 @@ namespace Lair.EditorTools
             wrapperRt.localPosition = new Vector3(0f, HeadLocalY, 0f);
 
             //# HpBar.prefab 인스턴스 — 래퍼 자식으로 full-stretch.
-            var inst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, wrapper.transform);
-            var instRt = (RectTransform)inst.transform;
+            GameObject inst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, wrapper.transform);
+            RectTransform instRt = (RectTransform)inst.transform;
             instRt.localScale = Vector3.one;
             instRt.localRotation = Quaternion.identity;
             instRt.localPosition = Vector3.zero;
@@ -349,13 +349,13 @@ namespace Lair.EditorTools
             instRt.offsetMax = Vector2.zero;
 
             //# Fill Image — 결정론적 경로 Background/Fill 로 탐색.
-            var fillTf = inst.transform.Find("Background/Fill");
-            var fillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
+            Transform fillTf = inst.transform.Find("Background/Fill");
+            Image fillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
             if (fillImg == null)
                 Debug.LogWarning("[CharacterPrefabBuilder] HpBar.prefab 내 Background/Fill Image 미발견");
 
             //# MonsterHpBar — 래퍼에 부착, _fill 주입.
-            var bar = wrapper.AddComponent<MonsterHpBar>();
+            MonsterHpBar bar = wrapper.AddComponent<MonsterHpBar>();
             SetPrivateField(bar, "_fill", fillImg);
         }
 
@@ -369,14 +369,14 @@ namespace Lair.EditorTools
 
         private static Color HexColor(string hex)
         {
-            ColorUtility.TryParseHtmlString(hex, out var c);
+            ColorUtility.TryParseHtmlString(hex, out Color c);
             return c;
         }
 
         private static void SetPrivateField(Component target, string fieldName, object value)
         {
-            var so = new SerializedObject(target);
-            var prop = so.FindProperty(fieldName);
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(fieldName);
             if (prop == null)
             {
                 Debug.LogWarning($"[CharacterPrefabBuilder] 필드 미발견: {target.GetType().Name}.{fieldName}");
@@ -395,7 +395,7 @@ namespace Lair.EditorTools
 
         private static void EnsureDir(string path)
         {
-            if (!Directory.Exists(path))
+            if (Directory.Exists(path) == false)
             {
                 Directory.CreateDirectory(path);
                 AssetDatabase.Refresh();

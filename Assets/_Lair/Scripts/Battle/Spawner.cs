@@ -47,7 +47,7 @@ namespace Lair.Battle
         {
             get
             {
-                if (!_firstSpawnDone) return 0f;
+                if (_firstSpawnDone == false) return 0f;
                 if (_spawnPeriod <= 0f) return 1f;
                 return Mathf.Clamp01(_timer / _spawnPeriod);
             }

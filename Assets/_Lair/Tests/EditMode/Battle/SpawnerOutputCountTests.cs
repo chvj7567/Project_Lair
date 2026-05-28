@@ -21,9 +21,9 @@ namespace Lair.Tests.Battle
         private Spawner CreateSpawner()
         {
             _spawnerGo = new GameObject("SpawnerUT");
-            var sp = _spawnerGo.AddComponent<Spawner>();
+            Spawner sp = _spawnerGo.AddComponent<Spawner>();
             //# OnEnable 강제 호출 — EditMode 라이프사이클 한계 보정 (SpawnerTests 와 동일 패턴).
-            var mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             mi?.Invoke(sp, null);
             return sp;
         }
@@ -32,7 +32,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void IncrementOutput_OnOutputCountChanged_발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int captured = -1;
             sp.OnOutputCountChanged += n => captured = n;
 
@@ -50,14 +50,14 @@ namespace Lair.Tests.Battle
             //# 미리 핸들러 부착할 수 없음(OnEnable 이 컴포넌트 Add 시점에 1회 자동 발행).
             //# 그러므로 직접 OnEnable 재호출로 검증 — Add 한 뒤 핸들러 부착 후 OnEnable 재호출.
             _spawnerGo = new GameObject("SpawnerUT_OnEnable");
-            var sp = _spawnerGo.AddComponent<Spawner>();
+            Spawner sp = _spawnerGo.AddComponent<Spawner>();
             //# 1차 OnEnable 은 컴포넌트 Add 직후 Unity 가 호출 (또는 EditMode 한계로 호출 안 될 수도).
 
             int callCount = 0;
             sp.OnOutputCountChanged += _ => callCount++;
 
             //# OnEnable 명시 호출 — 기획서 §4.5 의 "OnEnable 에서 OnOutputCountChanged 발행하지 않는다" 확인.
-            var mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             mi?.Invoke(sp, null);
 
             Assert.AreEqual(0, callCount, "OnEnable 직접 호출 시 OnOutputCountChanged 미발행");

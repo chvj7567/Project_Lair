@@ -44,7 +44,7 @@ namespace Lair.EditorTools
                 return;
             }
 
-            var bc = Object.FindFirstObjectByType<BattleController>();
+            BattleController bc = Object.FindFirstObjectByType<BattleController>();
             if (bc == null)
             {
                 EditorGUILayout.HelpBox("BattleController 미발견", MessageType.Warning);
@@ -93,7 +93,7 @@ namespace Lair.EditorTools
             }
 
             //# 직전 판 강조
-            var last = _history[_history.Count - 1];
+            RunRecord last = _history[_history.Count - 1];
             EditorGUILayout.LabelField(
                 $"직전: {last.Result} / 사망 {FormatTime(last.DeathTime)} / 픽 {Count(last.Picks)} / 생존 {last.SurvivingMonsters}",
                 EditorStyles.helpBox);
@@ -101,7 +101,7 @@ namespace Lair.EditorTools
             _scroll = EditorGUILayout.BeginScrollView(_scroll, GUILayout.Height(200));
             for (int i = _history.Count - 1; i >= 0; --i)
             {
-                var r = _history[i];
+                RunRecord r = _history[i];
                 EditorGUILayout.LabelField(
                     $"#{i + 1}  {r.Result}  사망 {FormatTime(r.DeathTime)}  픽 {Count(r.Picks)}  생존 {r.SurvivingMonsters}");
             }
@@ -118,7 +118,7 @@ namespace Lair.EditorTools
             _history = new List<RunRecord>();
             string path = RunRecorder.LogPath;
             if (File.Exists(path) == false) return;
-            foreach (var line in File.ReadAllLines(path))
+            foreach (string line in File.ReadAllLines(path))
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 try

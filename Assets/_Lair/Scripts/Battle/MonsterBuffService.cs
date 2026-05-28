@@ -15,14 +15,14 @@ namespace Lair.Battle
 
         public bool IsActive(EMonsterBuff type)
         {
-            foreach (var b in _buffs) if (b.Type == type) return true;
+            foreach (Buff b in _buffs) if (b.Type == type) return true;
             return false;
         }
 
         //# 같은 type 이 있으면 Remain 을 더 큰 값으로 연장.
         public void AddBuff(EMonsterBuff type, float duration)
         {
-            foreach (var b in _buffs)
+            foreach (Buff b in _buffs)
             {
                 if (b.Type == type) { b.Remain = Mathf.Max(b.Remain, duration); return; }
             }
@@ -38,15 +38,15 @@ namespace Lair.Battle
                 if (_buffs[i].Remain <= 0f) _buffs.RemoveAt(i);
             }
 
-            foreach (var e in CharacterRegistry.Monsters)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
             {
                 if (e?.Transform == null) continue;
-                var atk = e.Transform.GetComponent<MeleeAttacker>();
-                var hp  = e.Transform.GetComponent<Health>();
+                MeleeAttacker atk = e.Transform.GetComponent<MeleeAttacker>();
+                Health hp  = e.Transform.GetComponent<Health>();
                 if (atk != null) { atk.CooldownScale = 1f; atk.PowerScale = 1f; }
                 if (hp  != null) hp.DamageTakenScale = 1f;
 
-                foreach (var b in _buffs)
+                foreach (Buff b in _buffs)
                 {
                     switch (b.Type)
                     {

@@ -16,7 +16,7 @@ namespace Lair.Tests.UI
         //# private static int CategoryOrder(ECardCategory) 리플렉션 호출.
         private static int CallCategoryOrder(ECardCategory category)
         {
-            var mi = typeof(BuildModalPopup).GetMethod("CategoryOrder",
+            MethodInfo mi = typeof(BuildModalPopup).GetMethod("CategoryOrder",
                 BindingFlags.NonPublic | BindingFlags.Static);
             Assert.IsNotNull(mi, "BuildModalPopup.CategoryOrder 메서드 존재");
             return (int)mi.Invoke(null, new object[] { category });
@@ -55,7 +55,7 @@ namespace Lair.Tests.UI
         public void CategoryOrder_정렬_시_Enhance_Spawn_Replace_Environment_순()
         {
             //# 의도적 무작위 순서 입력.
-            var input = new List<ECardCategory>
+            List<ECardCategory> input = new List<ECardCategory>
             {
                 ECardCategory.Environment,
                 ECardCategory.Spawn,

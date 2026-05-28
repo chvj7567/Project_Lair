@@ -10,7 +10,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void AddBuff_후_IsActive_true()
         {
-            var svc = new MonsterBuffService();
+            MonsterBuffService svc = new MonsterBuffService();
             svc.AddBuff(EMonsterBuff.Frenzy, 10f);
             Assert.IsTrue(svc.IsActive(EMonsterBuff.Frenzy));
         }
@@ -18,7 +18,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 지속시간_경과_후_만료()
         {
-            var svc = new MonsterBuffService();
+            MonsterBuffService svc = new MonsterBuffService();
             svc.AddBuff(EMonsterBuff.Frenzy, 5f);
             svc.Tick(6f);
             Assert.IsFalse(svc.IsActive(EMonsterBuff.Frenzy));
@@ -27,7 +27,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 같은_버프_재부착_시_지속시간_연장()
         {
-            var svc = new MonsterBuffService();
+            MonsterBuffService svc = new MonsterBuffService();
             svc.AddBuff(EMonsterBuff.IronWill, 5f);
             svc.Tick(3f);                          //# 남은 2
             svc.AddBuff(EMonsterBuff.IronWill, 5f); //# 5 로 연장
@@ -38,7 +38,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 서로_다른_버프_독립_관리()
         {
-            var svc = new MonsterBuffService();
+            MonsterBuffService svc = new MonsterBuffService();
             svc.AddBuff(EMonsterBuff.Frenzy, 5f);
             svc.AddBuff(EMonsterBuff.BerserkPower, 15f);
             svc.Tick(6f);

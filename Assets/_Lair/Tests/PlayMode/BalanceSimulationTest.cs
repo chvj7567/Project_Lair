@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -137,7 +138,7 @@ namespace Lair.Tests.PlayMode
             yield return null;
             yield return null;
 
-            var records = SimMetrics.ReadSince(baseline);
+            List<RunRecord> records = SimMetrics.ReadSince(baseline);
 
             //# 메트릭을 Assert 보다 먼저 로그한다 — 한 판이 stall 해 표본이 모자라도 부분 결과를 남긴다.
             Debug.Log(SimMetrics.Summarize(records, $"{label} / {gameCount}판 목표"));
@@ -209,9 +210,9 @@ namespace Lair.Tests.PlayMode
         //# 레지스트리의 모든 영웅이 사망/소멸 상태인지. 정적 리스트라 IsAlive 로 방어 필터.
         private static bool AllHeroesDead()
         {
-            var heroes = CharacterRegistry.Heroes;
+            List<CharacterRegistry.Entry> heroes = CharacterRegistry.Heroes;
             if (heroes.Count == 0) return false;   //# 아직 스폰 전 — 전멸로 오판 금지.
-            foreach (var e in heroes)
+            foreach (CharacterRegistry.Entry e in heroes)
             {
                 if (e?.Health != null && e.Health.IsAlive) return false;
             }

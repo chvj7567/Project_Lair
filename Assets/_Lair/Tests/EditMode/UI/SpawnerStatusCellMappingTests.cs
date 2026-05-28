@@ -71,7 +71,7 @@ namespace Lair.Tests.UI
         [Test]
         public void IconLetterFor_비강화_카드는_fallback_color()
         {
-            var info = SpawnerStatusCell.IconLetterFor(ECardId.Frenzy);
+            (char letter, Color bgColor, Color fgColor) info = SpawnerStatusCell.IconLetterFor(ECardId.Frenzy);
             Assert.AreEqual(' ', info.letter);
             Assert.AreEqual(Color.gray, info.bgColor, "비강화 fallback 배경 = gray");
             Assert.AreEqual(Color.white, info.fgColor, "비강화 fallback 글자 = white");

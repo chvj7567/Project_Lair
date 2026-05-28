@@ -50,10 +50,10 @@ namespace Lair.Character
                 MonsterDied?.Invoke(transform.position);
 
             //# 재사용 대비 — EndBattle 등에서 ai.enabled=false 됐던 상태 복원
-            var ai = GetComponent<AutoCombatAI>();
+            AutoCombatAI ai = GetComponent<AutoCombatAI>();
             if (ai != null) ai.enabled = true;
 
-            var poolable = GetComponent<CHPoolable>();
+            CHPoolable poolable = GetComponent<CHPoolable>();
             if (poolable != null)
             {
                 CHMPool.Instance.Push(poolable);

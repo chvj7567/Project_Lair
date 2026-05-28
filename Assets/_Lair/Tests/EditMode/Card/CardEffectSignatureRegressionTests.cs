@@ -26,10 +26,10 @@ namespace Lair.Tests.Card
         [Test]
         public void ICardEffect_Apply_시그니처_IBattleContext_1인자_유지()
         {
-            var method = typeof(ICardEffect).GetMethod("Apply");
+            MethodInfo method = typeof(ICardEffect).GetMethod("Apply");
             Assert.IsNotNull(method, "ICardEffect.Apply 메서드 존재");
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(1, parameters.Length,
                 "Apply 의 인자 수 = 1 (기획서 §4.2 BLOCKER 4 — 시그니처 변경 X)");
             Assert.AreEqual(typeof(IBattleContext), parameters[0].ParameterType,
@@ -42,10 +42,10 @@ namespace Lair.Tests.Card
         [Test]
         public void IBattleContext_RegisterMonsterTypeBuff_시그니처_3인자_유지()
         {
-            var method = typeof(IBattleContext).GetMethod("RegisterMonsterTypeBuff");
+            MethodInfo method = typeof(IBattleContext).GetMethod("RegisterMonsterTypeBuff");
             Assert.IsNotNull(method, "IBattleContext.RegisterMonsterTypeBuff 메서드 존재");
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(3, parameters.Length,
                 "RegisterMonsterTypeBuff 인자 수 = 3 (CardData source 인자 추가 안 함 — BLOCKER 4 결정)");
             Assert.AreEqual(typeof(EMonster),         parameters[0].ParameterType, "1번째: EMonster");
@@ -60,10 +60,10 @@ namespace Lair.Tests.Card
         public void BattleContext_RegisterMonsterTypeBuff_위임_시그니처_일치()
         {
             //# BattleContext (구체) 도 IBattleContext.RegisterMonsterTypeBuff 와 동일 시그니처.
-            var method = typeof(BattleContext).GetMethod("RegisterMonsterTypeBuff");
+            MethodInfo method = typeof(BattleContext).GetMethod("RegisterMonsterTypeBuff");
             Assert.IsNotNull(method, "BattleContext.RegisterMonsterTypeBuff 메서드 존재");
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(3, parameters.Length);
             Assert.AreEqual(typeof(EMonster), parameters[0].ParameterType);
             Assert.AreEqual(typeof(EMonsterStatKind), parameters[1].ParameterType);
@@ -76,11 +76,11 @@ namespace Lair.Tests.Card
         [Test]
         public void BattleController_RegisterMonsterTypeBuff_시그니처_3인자()
         {
-            var method = typeof(BattleController).GetMethod("RegisterMonsterTypeBuff",
+            MethodInfo method = typeof(BattleController).GetMethod("RegisterMonsterTypeBuff",
                 BindingFlags.Instance | BindingFlags.Public);
             Assert.IsNotNull(method, "BattleController.RegisterMonsterTypeBuff 메서드 존재");
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(3, parameters.Length, "공개 시그니처 3인자 유지");
         }
 
@@ -88,11 +88,11 @@ namespace Lair.Tests.Card
         [Test]
         public void BattleController_ApplyCardEffect_시그니처_CardData_1인자()
         {
-            var method = typeof(BattleController).GetMethod("ApplyCardEffect",
+            MethodInfo method = typeof(BattleController).GetMethod("ApplyCardEffect",
                 BindingFlags.Instance | BindingFlags.Public);
             Assert.IsNotNull(method, "BattleController.ApplyCardEffect 메서드 존재");
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(1, parameters.Length, "ApplyCardEffect 인자 수 = 1");
             Assert.AreEqual(typeof(CardData), parameters[0].ParameterType);
             Assert.AreEqual(typeof(void), method.ReturnType);
@@ -102,11 +102,11 @@ namespace Lair.Tests.Card
         [Test]
         public void BattleController_GetAppliedBuffs_시그니처_EMonster_to_IReadOnlyList()
         {
-            var method = typeof(BattleController).GetMethod("GetAppliedBuffs",
+            MethodInfo method = typeof(BattleController).GetMethod("GetAppliedBuffs",
                 BindingFlags.Instance | BindingFlags.Public);
             Assert.IsNotNull(method);
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(1, parameters.Length);
             Assert.AreEqual(typeof(EMonster), parameters[0].ParameterType);
             Assert.AreEqual(typeof(System.Collections.Generic.IReadOnlyList<Lair.UI.BattleViewModel.AppliedBuff>),
@@ -119,9 +119,9 @@ namespace Lair.Tests.Card
         [Test]
         public void IBattleContext_IncrementSpawnerOutput_시그니처_EMonster_1인자()
         {
-            var method = typeof(IBattleContext).GetMethod("IncrementSpawnerOutput");
+            MethodInfo method = typeof(IBattleContext).GetMethod("IncrementSpawnerOutput");
             Assert.IsNotNull(method);
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(1, parameters.Length);
             Assert.AreEqual(typeof(EMonster), parameters[0].ParameterType);
         }
@@ -129,9 +129,9 @@ namespace Lair.Tests.Card
         [Test]
         public void IBattleContext_ReplaceSpawnerOutput_시그니처_EMonster_2인자()
         {
-            var method = typeof(IBattleContext).GetMethod("ReplaceSpawnerOutput");
+            MethodInfo method = typeof(IBattleContext).GetMethod("ReplaceSpawnerOutput");
             Assert.IsNotNull(method);
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             Assert.AreEqual(2, parameters.Length);
             Assert.AreEqual(typeof(EMonster), parameters[0].ParameterType);
             Assert.AreEqual(typeof(EMonster), parameters[1].ParameterType);
@@ -145,8 +145,8 @@ namespace Lair.Tests.Card
         public void ICardEffect_구현_클래스_모두_Apply_1인자_보존()
         {
             //# Lair 어셈블리 안에서 ICardEffect 를 구현한 모든 타입 수집.
-            var assembly = typeof(ICardEffect).Assembly;
-            var implementations = assembly.GetTypes()
+            Assembly assembly = typeof(ICardEffect).Assembly;
+            Type[] implementations = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && typeof(ICardEffect).IsAssignableFrom(t))
                 .ToArray();
 
@@ -154,9 +154,9 @@ namespace Lair.Tests.Card
 
             //# 각 구현체의 Apply 메서드가 (IBattleContext) 1 인자 시그니처를 따르는지.
             //# 시그니처가 (IBattleContext, CardData) 로 확장된 적이 있던가? 라면 본 테스트 실패로 알아챈다.
-            foreach (var impl in implementations)
+            foreach (Type impl in implementations)
             {
-                var apply = impl.GetMethod("Apply", new[] { typeof(IBattleContext) });
+                MethodInfo apply = impl.GetMethod("Apply", new[] { typeof(IBattleContext) });
                 Assert.IsNotNull(apply,
                     $"{impl.Name} 의 Apply(IBattleContext) 시그니처 존재 — " +
                     "BLOCKER 4 결정대로 1 인자 유지");

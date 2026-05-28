@@ -13,9 +13,9 @@ namespace Lair.Tests.Helpers
             ECardCategory category = ECardCategory.Enhance,
             ICardEffect effect = null)
         {
-            var card = ScriptableObject.CreateInstance<CardData>();
+            CardData card = ScriptableObject.CreateInstance<CardData>();
             //# reflection 으로 private SerializeField 주입 (테스트 한정 허용)
-            var t = typeof(CardData);
+            System.Type t = typeof(CardData);
             t.GetField("_id", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(card, id);
             t.GetField("_category", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)

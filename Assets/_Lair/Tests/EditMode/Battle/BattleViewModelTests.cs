@@ -9,8 +9,8 @@ namespace Lair.Tests.UI
         [Test]
         public void UpdateTimer_이벤트_발행과_값_노출()
         {
-            var model = new BattleStateModel { TotalSeconds = 300f };
-            var vm = new BattleViewModel(model);
+            BattleStateModel model = new BattleStateModel { TotalSeconds = 300f };
+            BattleViewModel vm = new BattleViewModel(model);
             float captured = -1f;
             float capturedTotal = -1f;
             vm.OnTimerChanged += (e, t) => { captured = e; capturedTotal = t; };
@@ -25,8 +25,8 @@ namespace Lair.Tests.UI
         [Test]
         public void UpdateHeroHp_비율_계산_및_이벤트()
         {
-            var model = new BattleStateModel();
-            var vm = new BattleViewModel(model);
+            BattleStateModel model = new BattleStateModel();
+            BattleViewModel vm = new BattleViewModel(model);
             float capturedRatio = -1f;
             vm.OnHeroHpRatioChanged += r => capturedRatio = r;
 
@@ -39,8 +39,8 @@ namespace Lair.Tests.UI
         [Test]
         public void UpdateHeroHp_max_0이면_비율_0_안전()
         {
-            var model = new BattleStateModel();
-            var vm = new BattleViewModel(model);
+            BattleStateModel model = new BattleStateModel();
+            BattleViewModel vm = new BattleViewModel(model);
             float capturedRatio = -1f;
             vm.OnHeroHpRatioChanged += r => capturedRatio = r;
 
@@ -52,8 +52,8 @@ namespace Lair.Tests.UI
         [Test]
         public void EndBattle_Result_저장_이벤트_발행()
         {
-            var model = new BattleStateModel();
-            var vm = new BattleViewModel(model);
+            BattleStateModel model = new BattleStateModel();
+            BattleViewModel vm = new BattleViewModel(model);
             BattleResult captured = BattleResult.None;
             vm.OnBattleEnded += r => captured = r;
 
@@ -66,9 +66,9 @@ namespace Lair.Tests.UI
         [Test]
         public void AddPick_중복_픽은_Count_누적_분류_구분()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var cardA = Lair.Tests.Helpers.FakeCardData.Create(ECardId.WispHpBoost);
-            var cardB = Lair.Tests.Helpers.FakeCardData.Create(ECardId.Frenzy);
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            Lair.Card.CardData cardA = Lair.Tests.Helpers.FakeCardData.Create(ECardId.WispHpBoost);
+            Lair.Card.CardData cardB = Lair.Tests.Helpers.FakeCardData.Create(ECardId.Frenzy);
             int changed = 0;
             vm.OnBuildChanged += () => changed++;
 

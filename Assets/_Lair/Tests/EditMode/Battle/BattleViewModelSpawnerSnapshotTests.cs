@@ -37,7 +37,7 @@ namespace Lair.Tests.UI
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) UnityEngine.Object.DestroyImmediate(go);
             _spawned.Clear();
             Lair.Character.CharacterRegistry.Monsters.Clear();
@@ -47,10 +47,10 @@ namespace Lair.Tests.UI
         //# 비활성 BattleController — Start 미실행. 카드 source 추적 검증에 필요한 _ctx 주입.
         private BattleController CreateIsolatedController()
         {
-            var go = new GameObject("BC_VM_UT");
+            GameObject go = new GameObject("BC_VM_UT");
             go.SetActive(false);
             _spawned.Add(go);
-            var bc = go.AddComponent<BattleController>();
+            BattleController bc = go.AddComponent<BattleController>();
             SetPrivate(bc, "_ctx", new BattleContext(bc));
             return bc;
         }
@@ -58,21 +58,21 @@ namespace Lair.Tests.UI
         //# 기본 Spawner — _outputType 만 다르게 생성.
         private Spawner CreateSpawner(EMonster type)
         {
-            var go = new GameObject($"Spawner_{type}");
+            GameObject go = new GameObject($"Spawner_{type}");
             _spawned.Add(go);
-            var sp = go.AddComponent<Spawner>();
+            Spawner sp = go.AddComponent<Spawner>();
             SetPrivate(sp, "_outputType", type);
             SetPrivate(sp, "_spawnPeriod", 9f);
             SetPrivate(sp, "_initialDelay", 0f);
             //# OnEnable 호출 — _currentType = _outputType, _outputCount = 1.
-            var mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = typeof(Spawner).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             mi?.Invoke(sp, null);
             return sp;
         }
 
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인");
             fi.SetValue(target, value);
         }
@@ -97,9 +97,9 @@ namespace Lair.Tests.UI
         [Test]
         public void AttachSpawners_6개_초기_스냅샷_채워진다()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
 
             vm.AttachSpawners(spawners, bc);
 
@@ -107,7 +107,7 @@ namespace Lair.Tests.UI
             //# 각 스냅샷 — Index/CurrentType/OutputCount/AppliedBuffs(빈) 모두 채워짐.
             for (int i = 0; i < 6; ++i)
             {
-                var snap = vm.Spawners[i];
+                BattleViewModel.SpawnerSnapshot snap = vm.Spawners[i];
                 Assert.IsNotNull(snap, $"index {i} 스냅샷 non-null");
                 Assert.AreEqual(i, snap.Index, $"index 필드 = {i}");
                 Assert.AreEqual(spawners[i].CurrentType, snap.CurrentType, $"index {i} CurrentType 일치");
@@ -122,9 +122,9 @@ namespace Lair.Tests.UI
         [Test]
         public void AttachSpawners_초기_OutputCount_폴링값_반영()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             //# 0번에만 Increment 2회 — OutputCount = 3 인 상태에서 Attach.
             spawners[0].IncrementOutput();
             spawners[0].IncrementOutput();
@@ -139,8 +139,8 @@ namespace Lair.Tests.UI
         [Test]
         public void AttachSpawners_null_인자시_noop_예외없음()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
 
             Assert.DoesNotThrow(() => vm.AttachSpawners(null, bc));
             Assert.DoesNotThrow(() => vm.AttachSpawners(new Spawner[0], null));
@@ -151,9 +151,9 @@ namespace Lair.Tests.UI
         [Test]
         public void AttachSpawners_배열에_null_있어도_정상_채워짐()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = new[]
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = new[]
             {
                 CreateSpawner(EMonster.Wisp),
                 null,
@@ -174,9 +174,9 @@ namespace Lair.Tests.UI
         [Test]
         public void IncrementOutput_VM_해당_인덱스_스냅샷_갱신_이벤트_발행()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             int callbackIndex = -1;
@@ -193,9 +193,9 @@ namespace Lair.Tests.UI
         [Test]
         public void ReplaceOutput_VM_해당_인덱스_CurrentType_갱신()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             int callbackIndex = -1;
@@ -211,17 +211,17 @@ namespace Lair.Tests.UI
         [Test]
         public void ReplaceOutput_후_AppliedBuffs는_새_종_기준()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             //# Wraith 강화 픽 — Wraith 종에 buff 1개 누적.
-            var wraithEffect = new FakeCardEffect
+            FakeCardEffect wraithEffect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wraith, EMonsterStatKind.Power, 1.5f)
             };
-            var wraithCard = FakeCardData.Create(ECardId.WraithDamageBoost, effect: wraithEffect);
+            CardData wraithCard = FakeCardData.Create(ECardId.WraithDamageBoost, effect: wraithEffect);
             bc.ApplyCardEffect(wraithCard);
 
             //# 인덱스 0 (Wisp) 을 Wraith 로 변경 → 그 인덱스의 AppliedBuffs 가 Wraith buff 노출되어야.
@@ -239,19 +239,19 @@ namespace Lair.Tests.UI
         [Test]
         public void 강화_카드_픽시_동일_종_모든_인덱스_스냅샷_갱신()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();   //# 0=Wisp, 3=Wisp.
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();   //# 0=Wisp, 3=Wisp.
             vm.AttachSpawners(spawners, bc);
 
-            var changedIndexes = new List<int>();
+            List<int> changedIndexes = new List<int>();
             vm.OnSpawnerSnapshotChanged += idx => changedIndexes.Add(idx);
 
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
             bc.ApplyCardEffect(card);
 
             //# 인덱스 0 과 3 (Wisp 출력) 만 통지.
@@ -272,20 +272,20 @@ namespace Lair.Tests.UI
         [Test]
         public void 다른_종_강화_픽시_미매칭_인덱스_이벤트_미발행()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();   //# 0=Wisp, 1=Reaper, 2=Phantom, 3=Wisp, 4=Wraith, 5=Hex.
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();   //# 0=Wisp, 1=Reaper, 2=Phantom, 3=Wisp, 4=Wraith, 5=Hex.
             //# 6 종 중 Plague 가 없는 상태에서 Plague 강화 픽.
             vm.AttachSpawners(spawners, bc);
 
             int callCount = 0;
             vm.OnSpawnerSnapshotChanged += _ => callCount++;
 
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f)
             };
-            var card = FakeCardData.Create(ECardId.PlagueSlowBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.PlagueSlowBoost, effect: effect);
             bc.ApplyCardEffect(card);
 
             Assert.AreEqual(0, callCount,
@@ -296,23 +296,23 @@ namespace Lair.Tests.UI
         [Test]
         public void 같은_종_2픽_연속_각_매칭_인덱스_2회씩_통지()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
-            var perIndexCalls = new Dictionary<int, int>();
+            Dictionary<int, int> perIndexCalls = new Dictionary<int, int>();
             vm.OnSpawnerSnapshotChanged += idx =>
             {
                 perIndexCalls.TryGetValue(idx, out int c);
                 perIndexCalls[idx] = c + 1;
             };
 
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
             bc.ApplyCardEffect(card);
             bc.ApplyCardEffect(card);   //# 같은 카드 재픽.
 
@@ -329,9 +329,9 @@ namespace Lair.Tests.UI
         [Test]
         public void DetachSpawners_이후_Spawner_이벤트_미수신()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             int callCount = 0;
@@ -350,9 +350,9 @@ namespace Lair.Tests.UI
         [Test]
         public void DetachSpawners_이후_OnTypeModifierChanged_미수신()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             int callCount = 0;
@@ -360,11 +360,11 @@ namespace Lair.Tests.UI
 
             vm.DetachSpawners();
 
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
             bc.ApplyCardEffect(card);
 
             Assert.AreEqual(0, callCount, "Detach 후 controller 이벤트 미수신");
@@ -374,9 +374,9 @@ namespace Lair.Tests.UI
         [Test]
         public void DetachSpawners_이후_Spawners_컬렉션_비워짐()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
             Assert.AreEqual(6, vm.Spawners.Count);
 
@@ -389,9 +389,9 @@ namespace Lair.Tests.UI
         [Test]
         public void DetachSpawners_두번_호출시_예외없음()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var spawners = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] spawners = MakeSixSpawners();
             vm.AttachSpawners(spawners, bc);
 
             vm.DetachSpawners();
@@ -404,13 +404,13 @@ namespace Lair.Tests.UI
         [Test]
         public void AttachSpawners_중복_호출시_이전_구독_해제후_새로_attach()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
-            var bc = CreateIsolatedController();
-            var firstSet = MakeSixSpawners();
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            BattleController bc = CreateIsolatedController();
+            Spawner[] firstSet = MakeSixSpawners();
             vm.AttachSpawners(firstSet, bc);
 
             //# 두 번째 attach — 새 spawner 셋.
-            var secondSet = new[]
+            Spawner[] secondSet = new[]
             {
                 CreateSpawner(EMonster.Plague),
                 CreateSpawner(EMonster.Plague),
@@ -440,9 +440,9 @@ namespace Lair.Tests.UI
         [Test]
         public void Spawners_프로퍼티는_IReadOnlyList_타입()
         {
-            var vm = new BattleViewModel(new BattleStateModel());
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
             //# 외부에 IReadOnlyList<SpawnerSnapshot> 으로 노출되어야 — 리플렉션으로 시그니처 확인.
-            var prop = typeof(BattleViewModel).GetProperty("Spawners");
+            PropertyInfo prop = typeof(BattleViewModel).GetProperty("Spawners");
             Assert.IsNotNull(prop, "Spawners 프로퍼티 존재");
             Assert.AreEqual(typeof(IReadOnlyList<BattleViewModel.SpawnerSnapshot>),
                 prop.PropertyType,

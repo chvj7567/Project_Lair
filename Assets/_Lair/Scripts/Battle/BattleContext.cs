@@ -20,13 +20,13 @@ namespace Lair.Battle
             //# 스냅샷 반환 — 호출자가 iteration 중 TakeDamage/Destroy 로 CharacterRegistry.Monsters
             //# 컬렉션을 수정해도 안전. yield return 으로 lazy 였을 때 ReplaceWispsToWraith 같은 카드가
             //# Collection-modified 예외 일으킴.
-            var result = new List<IHealth>();
-            foreach (var e in CharacterRegistry.Monsters)
+            List<IHealth> result = new List<IHealth>();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
             {
-                if (e?.Health == null || !e.Health.IsAlive) continue;
+                if (e?.Health == null || e.Health.IsAlive == false) continue;
                 if (filter.HasValue)
                 {
-                    var tag = e.Transform != null ? e.Transform.GetComponent<MonsterTag>() : null;
+                    MonsterTag tag = e.Transform != null ? e.Transform.GetComponent<MonsterTag>() : null;
                     if (tag == null || tag.Key != filter.Value) continue;
                 }
                 result.Add(e.Health);
@@ -36,21 +36,21 @@ namespace Lair.Battle
 
         public IHealth GetHero()
         {
-            foreach (var e in CharacterRegistry.Heroes)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
                 if (e?.Health != null && e.Health.IsAlive) return e.Health;
             return null;
         }
 
         public Transform GetHeroTransform()
         {
-            foreach (var e in CharacterRegistry.Heroes)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
                 if (e?.Transform != null) return e.Transform;
             return null;
         }
 
         public IMover GetHeroMover()
         {
-            foreach (var e in CharacterRegistry.Heroes)
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
                 if (e?.Transform != null) return e.Transform.GetComponent<IMover>();
             return null;
         }
@@ -62,9 +62,9 @@ namespace Lair.Battle
 
         public void ApplyHeroAura(IHeroAura aura, float durationSeconds = -1f)
         {
-            var heroT = GetHeroTransform();
+            Transform heroT = GetHeroTransform();
             if (heroT == null) return;
-            var runner = heroT.GetComponent<HeroAuraRunner>()
+            HeroAuraRunner runner = heroT.GetComponent<HeroAuraRunner>()
                       ?? heroT.gameObject.AddComponent<HeroAuraRunner>();
             runner.Attach(aura, durationSeconds);
         }
@@ -80,7 +80,7 @@ namespace Lair.Battle
         //# Current/2 데미지는 사망을 일으키지 않아 안전하지만 일관성 위해 스냅샷 사용.
         public void HalveAllMonsterHp()
         {
-            foreach (var m in GetMonsters())
+            foreach (IHealth m in GetMonsters())
                 m.TakeDamage(m.Current / 2);
         }
 

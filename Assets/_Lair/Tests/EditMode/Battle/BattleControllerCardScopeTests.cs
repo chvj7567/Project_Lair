@@ -36,7 +36,7 @@ namespace Lair.Tests.Battle
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
             Lair.Character.CharacterRegistry.Monsters.Clear();
@@ -47,10 +47,10 @@ namespace Lair.Tests.Battle
         //# RegisterMonsterTypeBuff 가 require 하는 의존(_ctx 등)을 reflection 으로 주입.
         private BattleController CreateIsolated()
         {
-            var go = new GameObject("BC_UT");
+            GameObject go = new GameObject("BC_UT");
             go.SetActive(false);
             _spawned.Add(go);
-            var bc = go.AddComponent<BattleController>();
+            BattleController bc = go.AddComponent<BattleController>();
             //# BattleContext 주입 — Apply 가 ctx 를 받아 RegisterMonsterTypeBuff 위임할 때 사용.
             SetPrivate(bc, "_ctx", new BattleContext(bc));
             return bc;
@@ -58,14 +58,14 @@ namespace Lair.Tests.Battle
 
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인 (production 시그니처 변경 감지)");
             fi.SetValue(target, value);
         }
 
         private static T GetPrivate<T>(object target, string field)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"{target.GetType().Name}.{field} 필드 존재 확인");
             return (T)fi.GetValue(target);
         }
@@ -76,10 +76,10 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_진입시_currentCardScope에_카드_저장된다()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
             CardData seen = null;
-            var effect = new FakeCardEffect { OnApply = _ => { seen = GetPrivate<CardData>(bc, "_currentCardScope"); } };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            FakeCardEffect effect = new FakeCardEffect { OnApply = _ => { seen = GetPrivate<CardData>(bc, "_currentCardScope"); } };
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             bc.ApplyCardEffect(card);
 
@@ -90,9 +90,9 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_복귀후_currentCardScope_null로_복원()
         {
-            var bc = CreateIsolated();
-            var effect = new FakeCardEffect();
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            BattleController bc = CreateIsolated();
+            FakeCardEffect effect = new FakeCardEffect();
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             bc.ApplyCardEffect(card);
 
@@ -105,9 +105,9 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_Apply가_예외던져도_finally로_scope_복원()
         {
-            var bc = CreateIsolated();
-            var effect = new FakeCardEffect { OnApply = _ => throw new System.InvalidOperationException("테스트 예외") };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            BattleController bc = CreateIsolated();
+            FakeCardEffect effect = new FakeCardEffect { OnApply = _ => throw new System.InvalidOperationException("테스트 예외") };
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             Assert.Throws<System.InvalidOperationException>(() => bc.ApplyCardEffect(card),
                 "Apply 가 던진 예외는 ApplyCardEffect 가 swallow 하지 않고 그대로 전파");
@@ -120,7 +120,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_card_null이면_noop_예외없음()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
             Assert.DoesNotThrow(() => bc.ApplyCardEffect(null));
             Assert.IsNull(GetPrivate<CardData>(bc, "_currentCardScope"));
         }
@@ -129,8 +129,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_card_Effect_null이면_noop()
         {
-            var bc = CreateIsolated();
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: null);
+            BattleController bc = CreateIsolated();
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: null);
 
             Assert.DoesNotThrow(() => bc.ApplyCardEffect(card));
             Assert.IsNull(GetPrivate<CardData>(bc, "_currentCardScope"));
@@ -141,14 +141,14 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_ctx_null이면_noop_예외없음()
         {
-            var go = new GameObject("BC_UT_NullCtx");
+            GameObject go = new GameObject("BC_UT_NullCtx");
             go.SetActive(false);
             _spawned.Add(go);
-            var bc = go.AddComponent<BattleController>();
+            BattleController bc = go.AddComponent<BattleController>();
             //# _ctx 주입 생략 — null 그대로.
 
-            var effect = new FakeCardEffect();
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            FakeCardEffect effect = new FakeCardEffect();
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             Assert.DoesNotThrow(() => bc.ApplyCardEffect(card),
                 "_ctx null 시 Apply 호출하지 않고 no-op");
@@ -161,17 +161,17 @@ namespace Lair.Tests.Battle
         [Test]
         public void 강화_카드_1픽시_AppliedBuffs에_PickCount_1로_기록()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
             //# Apply 본문이 ctx.RegisterMonsterTypeBuff 를 호출하는 강화 카드 시뮬레이션.
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             bc.ApplyCardEffect(card);
 
-            var buffs = bc.GetAppliedBuffs(EMonster.Wisp);
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = bc.GetAppliedBuffs(EMonster.Wisp);
             Assert.AreEqual(1, buffs.Count, "Wisp 강화 1픽 → 엔트리 1개");
             Assert.AreSame(card, buffs[0].Source, "Source = 픽한 카드");
             Assert.AreEqual(1, buffs[0].PickCount, "PickCount = 1");
@@ -183,17 +183,17 @@ namespace Lair.Tests.Battle
         [Test]
         public void 강화_카드_중첩_2픽시_PickCount_2_AggregateMultiplier_2점25()
         {
-            var bc = CreateIsolated();
-            var effect = new FakeCardEffect
+            BattleController bc = CreateIsolated();
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
 
             bc.ApplyCardEffect(card);
             bc.ApplyCardEffect(card);   //# 같은 카드 재픽
 
-            var buffs = bc.GetAppliedBuffs(EMonster.Wisp);
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = bc.GetAppliedBuffs(EMonster.Wisp);
             Assert.AreEqual(1, buffs.Count, "같은 카드 → 같은 엔트리 (Source 동일성)");
             Assert.AreEqual(2, buffs[0].PickCount, "PickCount 2");
             Assert.AreEqual(2.25f, buffs[0].AggregateMultiplier, 0.0001f, "1.5 × 1.5 = 2.25");
@@ -203,23 +203,23 @@ namespace Lair.Tests.Battle
         [Test]
         public void 다른_종_강화는_dict_키_분리_서로_영향없음()
         {
-            var bc = CreateIsolated();
-            var wispEffect = new FakeCardEffect
+            BattleController bc = CreateIsolated();
+            FakeCardEffect wispEffect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var wraithEffect = new FakeCardEffect
+            FakeCardEffect wraithEffect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wraith, EMonsterStatKind.Power, 1.5f)
             };
-            var wispCard   = FakeCardData.Create(ECardId.WispHpBoost, effect: wispEffect);
-            var wraithCard = FakeCardData.Create(ECardId.WraithDamageBoost, effect: wraithEffect);
+            CardData wispCard   = FakeCardData.Create(ECardId.WispHpBoost, effect: wispEffect);
+            CardData wraithCard = FakeCardData.Create(ECardId.WraithDamageBoost, effect: wraithEffect);
 
             bc.ApplyCardEffect(wispCard);
             bc.ApplyCardEffect(wraithCard);
 
-            var wispBuffs   = bc.GetAppliedBuffs(EMonster.Wisp);
-            var wraithBuffs = bc.GetAppliedBuffs(EMonster.Wraith);
+            IReadOnlyList<BattleViewModel.AppliedBuff> wispBuffs   = bc.GetAppliedBuffs(EMonster.Wisp);
+            IReadOnlyList<BattleViewModel.AppliedBuff> wraithBuffs = bc.GetAppliedBuffs(EMonster.Wraith);
             Assert.AreEqual(1, wispBuffs.Count, "Wisp 엔트리 1");
             Assert.AreEqual(1, wraithBuffs.Count, "Wraith 엔트리 1");
             Assert.AreSame(wispCard,   wispBuffs[0].Source);
@@ -230,9 +230,9 @@ namespace Lair.Tests.Battle
         [Test]
         public void GetAppliedBuffs_미픽_종은_빈_배열_반환()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
 
-            var buffs = bc.GetAppliedBuffs(EMonster.Plague);
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = bc.GetAppliedBuffs(EMonster.Plague);
 
             Assert.IsNotNull(buffs, "null 아닌 빈 collection");
             Assert.AreEqual(0, buffs.Count, "빈 배열");
@@ -244,7 +244,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void RegisterMonsterTypeBuff_scope_없이_호출시_추적_미누적_배율은_정상()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
 
             //# scope 없이 직접 호출.
             bc.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f);
@@ -254,7 +254,7 @@ namespace Lair.Tests.Battle
                 "_currentCardScope null 시 TrackCardPick 미호출 — 빈 리스트 유지");
 
             //# 글로벌 dict (_typeModifiers) 는 정상 곱연산 — StatMultiplier 자체는 유지.
-            var modifiers = GetPrivate<Dictionary<EMonster, StatMultiplier>>(bc, "_typeModifiers");
+            Dictionary<EMonster, StatMultiplier> modifiers = GetPrivate<Dictionary<EMonster, StatMultiplier>>(bc, "_typeModifiers");
             Assert.IsTrue(modifiers.ContainsKey(EMonster.Wisp), "_typeModifiers 에 Wisp 엔트리 있음");
             Assert.AreEqual(1.5f, modifiers[EMonster.Wisp].HpMul, 0.0001f,
                 "곱연산 누적 자체는 정상 적용");
@@ -264,7 +264,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void RegisterMonsterTypeBuff_호출시_OnTypeModifierChanged_발행()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
             EMonster? captured = null;
             bc.OnTypeModifierChanged += type => captured = type;
 
@@ -278,15 +278,15 @@ namespace Lair.Tests.Battle
         [Test]
         public void ApplyCardEffect_경유시도_OnTypeModifierChanged_정상_발행()
         {
-            var bc = CreateIsolated();
+            BattleController bc = CreateIsolated();
             int callCount = 0;
             bc.OnTypeModifierChanged += _ => callCount++;
 
-            var effect = new FakeCardEffect
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Wisp, EMonsterStatKind.Hp, 1.5f)
             };
-            var card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, effect: effect);
             bc.ApplyCardEffect(card);
 
             Assert.AreEqual(1, callCount, "강화 카드 1픽 → 1회 발행");
@@ -297,17 +297,17 @@ namespace Lair.Tests.Battle
         [Test]
         public void TrackCardPick_AggregateMultiplier가_StatMultiplier_Get으로_동기화()
         {
-            var bc = CreateIsolated();
-            var effect = new FakeCardEffect
+            BattleController bc = CreateIsolated();
+            FakeCardEffect effect = new FakeCardEffect
             {
                 OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Reaper, EMonsterStatKind.Cooldown, 0.7f)
             };
-            var card = FakeCardData.Create(ECardId.ReaperAtkSpeed, effect: effect);
+            CardData card = FakeCardData.Create(ECardId.ReaperAtkSpeed, effect: effect);
 
             bc.ApplyCardEffect(card);
             bc.ApplyCardEffect(card);   //# 2픽 — 0.7 × 0.7 = 0.49.
 
-            var buffs = bc.GetAppliedBuffs(EMonster.Reaper);
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = bc.GetAppliedBuffs(EMonster.Reaper);
             Assert.AreEqual(1, buffs.Count);
             Assert.AreEqual(0.49f, buffs[0].AggregateMultiplier, 0.0001f,
                 "AggregateMultiplier = StatMultiplier.Get(Cooldown) = 0.49");

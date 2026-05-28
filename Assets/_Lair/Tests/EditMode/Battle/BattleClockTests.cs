@@ -8,7 +8,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Tick_누적되어_Elapsed_증가()
         {
-            var clock = new BattleClock(10f);
+            BattleClock clock = new BattleClock(10f);
             clock.Start();
 
             clock.Tick(0.5f);
@@ -21,7 +21,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnTick_매_Tick마다_발행()
         {
-            var clock = new BattleClock(10f);
+            BattleClock clock = new BattleClock(10f);
             clock.Start();
             int callCount = 0;
             clock.OnTick += _ => callCount++;
@@ -36,7 +36,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnTimeUp_Total_도달_시_1회만_발행()
         {
-            var clock = new BattleClock(1.0f);
+            BattleClock clock = new BattleClock(1.0f);
             clock.Start();
             int timeUpCount = 0;
             clock.OnTimeUp += () => timeUpCount++;
@@ -52,7 +52,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Stop_이후_Tick_무시()
         {
-            var clock = new BattleClock(10f);
+            BattleClock clock = new BattleClock(10f);
             clock.Start();
             clock.Tick(1.0f);
             clock.Stop();

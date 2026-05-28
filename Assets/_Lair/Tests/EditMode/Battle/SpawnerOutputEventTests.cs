@@ -22,16 +22,16 @@ namespace Lair.Tests.Battle
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
         }
 
         private Spawner CreateSpawner(EMonster type = EMonster.Wisp)
         {
-            var go = new GameObject("SpawnerUT");
+            GameObject go = new GameObject("SpawnerUT");
             _spawned.Add(go);
-            var sp = go.AddComponent<Spawner>();
+            Spawner sp = go.AddComponent<Spawner>();
             SetPrivate(sp, "_outputType", type);
             SetPrivate(sp, "_spawnPeriod", 9f);
             SetPrivate(sp, "_initialDelay", 0f);
@@ -41,14 +41,14 @@ namespace Lair.Tests.Battle
 
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"Spawner.{field} 필드 존재 확인");
             fi.SetValue(target, value);
         }
 
         private static void InvokeOnEnable(Component c)
         {
-            var mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "Spawner.OnEnable 메서드 존재 확인");
             mi.Invoke(c, null);
         }
@@ -60,7 +60,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_OnOutputCountChanged_미발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int countCallback = 0;
             sp.OnOutputCountChanged += _ => countCallback++;
 
@@ -74,7 +74,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_OnOutputTypeChanged_만_발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int typeCallback = 0;
             EMonster? lastType = null;
             sp.OnOutputTypeChanged += t => { typeCallback++; lastType = t; };
@@ -89,7 +89,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void IncrementOutput_OnOutputTypeChanged_미발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int typeCallback = 0;
             sp.OnOutputTypeChanged += _ => typeCallback++;
 
@@ -106,8 +106,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void IncrementOutput_3회_호출시_3회_발행_인자_단조증가()
         {
-            var sp = CreateSpawner();
-            var values = new List<int>();
+            Spawner sp = CreateSpawner();
+            List<int> values = new List<int>();
             sp.OnOutputCountChanged += n => values.Add(n);
 
             sp.IncrementOutput();   //# 1 → 2
@@ -126,7 +126,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void Increment_후_OnEnable_재호출시_count_1로_리셋_이벤트_미발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             sp.IncrementOutput();   //# 2
             sp.IncrementOutput();   //# 3
             Assert.AreEqual(3, sp.OutputCount);
@@ -145,7 +145,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_재호출_후_IncrementOutput_정상_동작()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             sp.IncrementOutput();
             sp.IncrementOutput();
             InvokeOnEnable(sp);
@@ -164,7 +164,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void IncrementOutput_다중_구독자에게_동일_인자_발행()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int a = -1, b = -1;
             sp.OnOutputCountChanged += n => a = n;
             sp.OnOutputCountChanged += n => b = n;
@@ -179,7 +179,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnOutputCountChanged_구독_해제후_핸들러_미호출()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int call = 0;
             System.Action<int> handler = _ => call++;
             sp.OnOutputCountChanged += handler;
@@ -199,7 +199,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnOutputTypeChanged_구독_해제후_핸들러_미호출()
         {
-            var sp = CreateSpawner();
+            Spawner sp = CreateSpawner();
             int call = 0;
             System.Action<EMonster> handler = _ => call++;
             sp.OnOutputTypeChanged += handler;

@@ -22,7 +22,7 @@ namespace Lair.Tests.Battle
         [TearDown]
         public void TearDown()
         {
-            foreach (var go in _spawned)
+            foreach (GameObject go in _spawned)
                 if (go != null) Object.DestroyImmediate(go);
             _spawned.Clear();
         }
@@ -30,7 +30,7 @@ namespace Lair.Tests.Battle
         //# 리플렉션 헬퍼 — 필드 강제 주입 (EditMode 직렬화 우회).
         private static void SetPrivate(object target, string field, object value)
         {
-            var fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo fi = target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(fi, $"Spawner.{field} 필드 존재 확인 (production 시그니처 변경 감지)");
             fi.SetValue(target, value);
         }
@@ -38,7 +38,7 @@ namespace Lair.Tests.Battle
         //# OnEnable 리플렉션 호출 — EditMode 라이프사이클 보정.
         private static void InvokeOnEnable(Component c)
         {
-            var mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = c.GetType().GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "OnEnable 메서드 존재 확인");
             mi.Invoke(c, null);
         }
@@ -48,9 +48,9 @@ namespace Lair.Tests.Battle
         private Spawner CreateSpawnerRaw(EMonster outputType, float spawnPeriod, float initialDelay,
             bool invokeOnEnable = true)
         {
-            var go = new GameObject("SpawnerUT");
+            GameObject go = new GameObject("SpawnerUT");
             _spawned.Add(go);
-            var sp = go.AddComponent<Spawner>();
+            Spawner sp = go.AddComponent<Spawner>();
             SetPrivate(sp, "_outputType", outputType);
             SetPrivate(sp, "_spawnPeriod", spawnPeriod);
             SetPrivate(sp, "_initialDelay", initialDelay);
@@ -64,7 +64,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 초기지연_국면에서_Progress는_0()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 5f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 5f);
             //# OnEnable 직후 _firstSpawnDone == false → 0f 고정.
             Assert.AreEqual(0f, sp.Progress, 0.0001f, "초기 지연 국면 Progress = 0");
         }
@@ -73,7 +73,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 초기지연_국면_Tick없이_Progress는_0()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 99f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 99f);
             Assert.AreEqual(0f, sp.Progress, 0.0001f, "Tick 없이도 초기 지연 국면 Progress = 0");
         }
 
@@ -83,8 +83,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기국면_진입직후_Progress는_0()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
             sp.Bind(host);
             sp.Tick(0f);    //# InitialDelay=0 → 첫 발사 → _firstSpawnDone=true, _timer=0
             Assert.AreEqual(0f, sp.Progress, 0.0001f, "첫 발사 직후 _timer=0 → Progress=0");
@@ -94,8 +94,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기절반_Progress_0점5()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
             sp.Bind(host);
             sp.Tick(0f);         //# 첫 발사
             sp.Tick(4.5f);       //# _timer = 4.5
@@ -106,8 +106,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 주기_거의_만료_Progress_1에_근접()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
             sp.Bind(host);
             sp.Tick(0f);         //# 첫 발사
             sp.Tick(8.99f);      //# _timer = 8.99
@@ -121,8 +121,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void 스폰_직후_Progress_0에_가깝게_리셋()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var host = new FakeSpawnerHost();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
             sp.Bind(host);
             sp.Tick(0f);         //# 첫 발사, _timer=0
             sp.Tick(9.5f);       //# 두 번째 발사 → _timer = 0.5
@@ -137,7 +137,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void spawnPeriod_0이면_Progress_1f()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 0f, 0f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 0f, 0f);
             //# _firstSpawnDone 을 강제 true — spawnPeriod=0 경계 단독 검증.
             SetPrivate(sp, "_firstSpawnDone", true);
             Assert.AreEqual(1f, sp.Progress, 0.0001f, "spawnPeriod=0 이면 Progress=1 (divide-by-zero 방어)");
@@ -147,7 +147,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void spawnPeriod_0_firstSpawnDone_false이면_Progress_0f()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 0f, 0f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 0f, 0f);
             //# OnEnable 에서 _firstSpawnDone = false 로 초기화됨.
             Assert.AreEqual(0f, sp.Progress, 0.0001f,
                 "spawnPeriod=0 이어도 초기 지연 국면이면 Progress=0");
@@ -160,9 +160,9 @@ namespace Lair.Tests.Battle
         public void OnEnable_시_현재_출력종으로_이벤트_1회_발행()
         {
             //# invokeOnEnable=false — 구독 후 OnEnable 을 직접 호출.
-            var sp = CreateSpawnerRaw(EMonster.Wraith, 9f, 0f, invokeOnEnable: false);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wraith, 9f, 0f, invokeOnEnable: false);
 
-            var received = new List<EMonster>();
+            List<EMonster> received = new List<EMonster>();
             sp.OnOutputTypeChanged += t => received.Add(t);
 
             InvokeOnEnable(sp);
@@ -175,7 +175,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void OnEnable_발행값은_직렬화_outputType()
         {
-            var sp = CreateSpawnerRaw(EMonster.Reaper, 9f, 0f, invokeOnEnable: false);
+            Spawner sp = CreateSpawnerRaw(EMonster.Reaper, 9f, 0f, invokeOnEnable: false);
             EMonster? received = null;
             sp.OnOutputTypeChanged += t => received = t;
             InvokeOnEnable(sp);
@@ -188,8 +188,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_이벤트_변경종으로_발행()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var received = new List<EMonster>();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            List<EMonster> received = new List<EMonster>();
             sp.OnOutputTypeChanged += t => received.Add(t);
 
             sp.ReplaceOutput(EMonster.Wraith);
@@ -204,7 +204,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_발행값이_이전종_아닌_새종()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             EMonster? lastReceived = null;
             sp.OnOutputTypeChanged += t => lastReceived = t;
 
@@ -220,8 +220,8 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_연속_각각_1회씩_발행()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
-            var received = new List<EMonster>();
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            List<EMonster> received = new List<EMonster>();
             sp.OnOutputTypeChanged += t => received.Add(t);
 
             sp.ReplaceOutput(EMonster.Wraith);
@@ -238,7 +238,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_CurrentType과_이벤트값_일치()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             EMonster? eventVal = null;
             sp.OnOutputTypeChanged += t => eventVal = t;
 
@@ -253,7 +253,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ReplaceOutput_구독자_없으면_예외없음()
         {
-            var sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
 
             Assert.DoesNotThrow(() => sp.ReplaceOutput(EMonster.Wraith),
                 "구독자 없을 때 ReplaceOutput 은 예외 없이 무동작");

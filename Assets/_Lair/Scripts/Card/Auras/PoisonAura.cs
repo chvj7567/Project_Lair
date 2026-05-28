@@ -33,7 +33,7 @@ namespace Lair.Card
             if (hero is MonoBehaviour mb && mb != null)
             {
                 _heroTransform = mb.transform;
-                var p = mb.transform.position;
+                Vector3 p = mb.transform.position;
                 //# Floor(y=0) 위 0.05 — z-fight 회피
                 RequestVisualAt(new Vector3(p.x, 0.05f, p.z));
             }
@@ -84,7 +84,7 @@ namespace Lair.Card
             CHMResource.Instance.Load<GameObject>(EVisual.PoisonAura, prefab =>
             {
                 if (prefab == null) return;
-                var poolable = CHMPool.Instance.Pop(prefab, null);
+                CHPoolable poolable = CHMPool.Instance.Pop(prefab, null);
                 if (poolable == null) return;
                 _visualPoolable = poolable;
                 _visualPoolable.transform.position = worldPos;

@@ -68,7 +68,7 @@ namespace Lair.Tests.UI
         {
             //# SpawnHex 같은 enum 값 자체가 ECardId 에 없음 — 컴파일 검증으로 끝.
             //# Spawn 카드 5종 외 의도치 않은 비강화 카드 (예: Replace) 가 들어왔을 때 fallback 동작 확인.
-            var info = SpawnerStatusCell.IconLetterFor(ECardId.ReplaceWispsToWraith);
+            (char letter, Color bgColor, Color fgColor) info = SpawnerStatusCell.IconLetterFor(ECardId.ReplaceWispsToWraith);
             Assert.AreEqual(' ', info.letter, "Spawn 도 Enhance 도 아닌 카드는 fallback");
         }
     }

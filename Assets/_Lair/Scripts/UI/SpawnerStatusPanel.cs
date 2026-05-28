@@ -55,10 +55,10 @@ namespace Lair.UI
             _openCellIndex = -1;
 
             //# 셀 반환 (CHMPool.Push) — 다음 씬 진입 시 재사용.
-            foreach (var cell in _cells)
+            foreach (SpawnerStatusCell cell in _cells)
             {
                 if (cell == null) continue;
-                var poolable = cell.GetComponent<CHPoolable>();
+                CHPoolable poolable = cell.GetComponent<CHPoolable>();
                 if (poolable != null) CHMPool.Instance.Push(poolable);
                 else                  Destroy(cell.gameObject);
             }
@@ -69,12 +69,12 @@ namespace Lair.UI
         private void RebuildAll()
         {
             if (_vm == null || _container == null || _cellPrefab == null) return;
-            var snapshots = _vm.Spawners;
+            IReadOnlyList<BattleViewModel.SpawnerSnapshot> snapshots = _vm.Spawners;
             if (snapshots == null) return;
 
             for (int i = 0; i < snapshots.Count; ++i)
             {
-                var snap = snapshots[i];
+                BattleViewModel.SpawnerSnapshot snap = snapshots[i];
                 if (snap == null)
                 {
                     //# 인덱스 정합 유지 — null slot. HandleSnapshotChanged 가 index 그대로 사용 가능.
@@ -82,13 +82,13 @@ namespace Lair.UI
                     continue;
                 }
 
-                var poolable = CHMPool.Instance.Pop(_cellPrefab, _container);
+                CHPoolable poolable = CHMPool.Instance.Pop(_cellPrefab, _container);
                 if (poolable == null)
                 {
                     _cells.Add(null);
                     continue;
                 }
-                var cell = poolable.GetComponent<SpawnerStatusCell>();
+                SpawnerStatusCell cell = poolable.GetComponent<SpawnerStatusCell>();
                 if (cell == null)
                 {
                     _cells.Add(null);
@@ -110,9 +110,9 @@ namespace Lair.UI
         {
             if (_vm == null) return;
             if (index < 0 || index >= _cells.Count) return;
-            var cell = _cells[index];
+            SpawnerStatusCell cell = _cells[index];
             if (cell == null) return;
-            var snapshots = _vm.Spawners;
+            IReadOnlyList<BattleViewModel.SpawnerSnapshot> snapshots = _vm.Spawners;
             if (snapshots == null || index >= snapshots.Count) return;
             cell.RebindSnapshot(snapshots[index]);
         }
@@ -139,7 +139,7 @@ namespace Lair.UI
 
             //# 툴팁 표시 — CHMUI 캐싱 재사용. anchorCell 로 셀 RectTransform 전달.
             //# 콜백으로 UIBase 인스턴스를 받아두어 Close() 직접 호출 가능 (closeDisposable.Clear 보장).
-            var rt = _cells[index].transform as RectTransform;
+            RectTransform rt = _cells[index].transform as RectTransform;
             CHMUI.Instance.ShowUI(EUI.SpawnerStatusTooltip, new SpawnerStatusTooltipArg
             {
                 SpawnerIndex = index,

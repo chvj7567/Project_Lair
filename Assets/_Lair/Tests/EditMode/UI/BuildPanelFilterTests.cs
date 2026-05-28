@@ -25,7 +25,7 @@ namespace Lair.Tests.UI
         private static CardData LoadCard(string fileName)
         {
             string path = $"{CardItemsFolder}/{fileName}.asset";
-            var card = AssetDatabase.LoadAssetAtPath<CardData>(path);
+            CardData card = AssetDatabase.LoadAssetAtPath<CardData>(path);
             Assert.IsNotNull(card, $"카드 SO 로드 실패: {path}");
             return card;
         }
@@ -40,7 +40,7 @@ namespace Lair.Tests.UI
         [TestCase("PhantomMoveSpeedBoost")]
         public void 강화_패시브_6장_Category_Enhance(string id)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             Assert.AreEqual(ECardCategory.Enhance, card.Category,
                 $"{id} 는 Category == Enhance 로 직렬화되어야 함 (BuildPanel 필터 대상)");
         }
@@ -56,7 +56,7 @@ namespace Lair.Tests.UI
         [TestCase("IronWill")]
         public void 액티브_4장_Category_Enhance_그대로_유지_BLOCKER1_회귀(string id)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             Assert.AreEqual(ECardCategory.Enhance, card.Category,
                 $"{id} 의 _category 가 Enhance 아닌 다른 값으로 재분류됨 — " +
                 "BuildPanel 필터 조건(Enhance && IsPassive) 검토 필요");
@@ -75,7 +75,7 @@ namespace Lair.Tests.UI
         [TestCase("HeroAttackDown",  ECardCategory.Environment)]
         public void 비강화_패시브_카테고리_정합(string id, ECardCategory expected)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             Assert.AreEqual(expected, card.Category,
                 $"{id} 의 카테고리가 {expected} 아님 — BuildPanel 필터 통과 여부 검토");
         }
@@ -94,7 +94,7 @@ namespace Lair.Tests.UI
         [TestCase("PhantomMoveSpeedBoost")]
         public void 강화_패시브_6장_필터_제외_대상_확인(string id)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             //# (IsPassive 는 BuildEntry 속성이라 카드 SO 에 직접 없음 — 본 테스트는 "패시브 풀에 속한다는 전제 하에" 평가)
             bool wouldBeExcluded = card.Category == ECardCategory.Enhance && true;   //# IsPassive=true 가정.
             Assert.IsTrue(wouldBeExcluded, $"{id} 는 패시브 풀에서 픽 시 필터로 제외되어야 함");
@@ -107,7 +107,7 @@ namespace Lair.Tests.UI
         [TestCase("IronWill")]
         public void 액티브_강화_4장_필터_통과_BLOCKER1_정합(string id)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             //# 액티브 풀에서 들어오므로 IsPassive=false.
             bool wouldBeExcluded = card.Category == ECardCategory.Enhance && false;
             Assert.IsFalse(wouldBeExcluded,
@@ -126,7 +126,7 @@ namespace Lair.Tests.UI
         [TestCase("HeroAttackDown")]
         public void 비강화_패시브_9장_필터_통과(string id)
         {
-            var card = LoadCard(id);
+            CardData card = LoadCard(id);
             bool wouldBeExcluded = card.Category == ECardCategory.Enhance && true;
             Assert.IsFalse(wouldBeExcluded, $"{id} 는 Enhance 아니므로 필터 통과");
         }

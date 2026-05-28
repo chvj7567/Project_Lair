@@ -70,7 +70,7 @@ namespace Lair.Tests.UI
         //# v0.8 이주 후 시그니처: (BuffLine 의 private static).
         private static string CallFormatBody(BattleViewModel.AppliedBuff buff, EMonster type, BalanceConfig balance)
         {
-            var mi = typeof(BuffLine).GetMethod("FormatBody",
+            MethodInfo mi = typeof(BuffLine).GetMethod("FormatBody",
                 BindingFlags.Static | BindingFlags.NonPublic);
             Assert.IsNotNull(mi, "BuffLine.FormatBody (private static) 시그니처 존재 — production 시그니처 변경 감지");
             return (string)mi.Invoke(null, new object[] { buff, type, balance });
@@ -96,7 +96,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Hp_체력_절대값_올바름()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.WispHpBoost, pickCount: 1, EMonsterStatKind.Hp, 1.5f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, pickCount: 1, EMonsterStatKind.Hp, 1.5f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -112,7 +112,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Power_공격력_절대값_올바름()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.WraithDamageBoost, 1, EMonsterStatKind.Power, 1.5f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WraithDamageBoost, 1, EMonsterStatKind.Power, 1.5f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wraith, _balance);
@@ -128,7 +128,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Range_사거리_float_포맷()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.HexRangeBoost, 1, EMonsterStatKind.Range, 1.4f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.HexRangeBoost, 1, EMonsterStatKind.Range, 1.4f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Hex, _balance);
@@ -144,7 +144,7 @@ namespace Lair.Tests.UI
         public void FormatBody_MoveSpeed_이동속도_float_포맷()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.PhantomMoveSpeedBoost, 1, EMonsterStatKind.MoveSpeed, 1.5f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.PhantomMoveSpeedBoost, 1, EMonsterStatKind.MoveSpeed, 1.5f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Phantom, _balance);
@@ -161,7 +161,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Cooldown_공격속도_역수표시()
         {
             //# Arrange — Reaper Cooldown 1.0 × 0.7 = 0.7.
-            var buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0.7f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0.7f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Reaper, _balance);
@@ -178,7 +178,7 @@ namespace Lair.Tests.UI
         public void FormatBody_SlowFactor_const_BaseSlowFactor_사용_강화_접미()
         {
             //# Arrange — Plague Slow 0.8 × 0.75 = 0.6.
-            var buff = MakeBuff(ECardId.PlagueSlowBoost, 1, EMonsterStatKind.SlowFactor, 0.75f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.PlagueSlowBoost, 1, EMonsterStatKind.SlowFactor, 0.75f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Plague, _balance);
@@ -201,7 +201,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Hp_2픽_누적_배율_본문_반영()
         {
             //# Arrange — Wisp Hp 2픽 누적 2.25 배율.
-            var buff = MakeBuff(ECardId.WispHpBoost, pickCount: 2, EMonsterStatKind.Hp, 2.25f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, pickCount: 2, EMonsterStatKind.Hp, 2.25f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -216,7 +216,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Hp_3픽_누적_배율_본문_반영()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.WispHpBoost, 3, EMonsterStatKind.Hp, 3.375f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, 3, EMonsterStatKind.Hp, 3.375f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -232,7 +232,7 @@ namespace Lair.Tests.UI
         public void FormatBody_누적_배율_1배_변화없음()
         {
             //# Arrange — Wraith Power 20 × 1.0 = 20.
-            var buff = MakeBuff(ECardId.WraithDamageBoost, 1, EMonsterStatKind.Power, 1.0f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WraithDamageBoost, 1, EMonsterStatKind.Power, 1.0f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wraith, _balance);
@@ -248,7 +248,7 @@ namespace Lair.Tests.UI
         public void FormatBody_알수없는_스탯_fallback_문자열()
         {
             //# Arrange — enum 캐스팅으로 미정의 값 주입.
-            var buff = MakeBuff(ECardId.WispHpBoost, 1, (EMonsterStatKind)999, 1.5f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, 1, (EMonsterStatKind)999, 1.5f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -263,7 +263,7 @@ namespace Lair.Tests.UI
         public void FormatBody_balance_null_안전_base0_fallback()
         {
             //# Arrange
-            var buff = MakeBuff(ECardId.WispHpBoost, 1, EMonsterStatKind.Hp, 1.5f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, 1, EMonsterStatKind.Hp, 1.5f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, balance: null);
@@ -279,7 +279,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Cooldown_AggregateMultiplier_0_안전_aspeed_0()
         {
             //# Arrange — 비현실적 입력이지만 production 의 division-by-zero 보호 분기 회귀.
-            var buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Reaper, _balance);
@@ -294,7 +294,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Cooldown_resultCd_최소_0_05s_clamp()
         {
             //# Arrange — Reaper Cooldown 1.0 × 0.01 = 0.01 → clamp 0.05s.
-            var buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0.01f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.ReaperAtkSpeed, 1, EMonsterStatKind.Cooldown, 0.01f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Reaper, _balance);
@@ -310,7 +310,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Hp_result_최소_1_clamp()
         {
             //# Arrange — balance null 로 base 0, AggregateMultiplier 0 → Max(1, 0) = 1.
-            var buff = MakeBuff(ECardId.WispHpBoost, 1, EMonsterStatKind.Hp, 0f);
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.WispHpBoost, 1, EMonsterStatKind.Hp, 0f);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -327,7 +327,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Spawn카드_동시출력_단일_포맷_v1점1()
         {
             //# Arrange — SpawnWisps 1픽. Stat 은 default Hp (TrackSpawnPick 컨벤션).
-            var buff = MakeBuff(ECardId.SpawnWisps, pickCount: 1, EMonsterStatKind.Hp, 1f,
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.SpawnWisps, pickCount: 1, EMonsterStatKind.Hp, 1f,
                 category: ECardCategory.Spawn);
 
             //# Act
@@ -344,7 +344,7 @@ namespace Lair.Tests.UI
         public void FormatBody_Spawn카드_2픽_Stat_무관_PickCount_반영_v1점1()
         {
             //# Arrange — SpawnPhantoms 2픽. Stat 을 비-default 로 설정해도 분기로 무시되는지 확인.
-            var buff = MakeBuff(ECardId.SpawnPhantoms, pickCount: 2, EMonsterStatKind.SlowFactor, 1f,
+            BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.SpawnPhantoms, pickCount: 2, EMonsterStatKind.SlowFactor, 1f,
                 category: ECardCategory.Spawn);
 
             //# Act

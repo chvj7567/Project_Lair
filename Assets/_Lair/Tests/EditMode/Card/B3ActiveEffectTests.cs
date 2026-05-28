@@ -12,9 +12,9 @@ namespace Lair.Tests.Card
         [Test]
         public void FearAura_OnAttached_FleeMode_ON_OnDetached_OFF()
         {
-            var go = new GameObject("hero");
-            var ai = go.AddComponent<AutoCombatAI>();
-            var aura = new FearAura(ai);
+            GameObject go = new GameObject("hero");
+            AutoCombatAI ai = go.AddComponent<AutoCombatAI>();
+            FearAura aura = new FearAura(ai);
 
             aura.OnAttached(new FakeHealth());
             Assert.IsTrue(ai.FleeMode);
@@ -27,8 +27,8 @@ namespace Lair.Tests.Card
         [Test]
         public void WeakenAura_PowerScale_절반_적용_후_복원()
         {
-            var atk = new FakeAttacker { PowerScale = 1f };
-            var aura = new WeakenAura(atk, 0.5f);
+            FakeAttacker atk = new FakeAttacker { PowerScale = 1f };
+            WeakenAura aura = new WeakenAura(atk, 0.5f);
 
             aura.OnAttached(new FakeHealth());
             Assert.AreEqual(0.5f, atk.PowerScale, 0.001f);
@@ -39,9 +39,9 @@ namespace Lair.Tests.Card
         [Test]
         public void TimeStopAura_이동_공격_정지_후_복원()
         {
-            var mover = new FakeMover { Speed = 5f };
-            var atk = new FakeAttacker { Enabled = true };
-            var aura = new TimeStopAura(mover, atk);
+            FakeMover mover = new FakeMover { Speed = 5f };
+            FakeAttacker atk = new FakeAttacker { Enabled = true };
+            TimeStopAura aura = new TimeStopAura(mover, atk);
 
             aura.OnAttached(new FakeHealth());
             Assert.AreEqual(0f, mover.Speed, 0.001f);
@@ -55,10 +55,10 @@ namespace Lair.Tests.Card
         [Test]
         public void BleedAura_이동_중에만_1초마다_데미지()
         {
-            var mover = new FakeMover();
-            var hp = new FakeHealth();
+            FakeMover mover = new FakeMover();
+            FakeHealth hp = new FakeHealth();
             hp.SetMax(100);
-            var aura = new BleedAura(mover, 0.02f);
+            BleedAura aura = new BleedAura(mover, 0.02f);
             aura.OnAttached(hp);
 
             //# 이동 중 — 0.6 + 0.6 = 1.2 → 1회 (Max 100 × 0.02 = 2)

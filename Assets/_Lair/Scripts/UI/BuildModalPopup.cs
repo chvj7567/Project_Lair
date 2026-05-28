@@ -28,7 +28,7 @@ namespace Lair.UI
         {
             if (arg is BuildModalPopupArg ma && ma.ViewModel != null)
             {
-                var vm = ma.ViewModel;
+                BattleViewModel vm = ma.ViewModel;
                 Build(vm);
                 //# 팝업 열려있는 동안 카드 픽 시 자동 갱신.
                 System.Action refresh = () => Build(vm);
@@ -45,13 +45,13 @@ namespace Lair.UI
 
         private void Build(BattleViewModel vm)
         {
-            var entries = vm.Build;
+            IReadOnlyList<BattleViewModel.BuildEntry> entries = vm.Build;
             //# 패시브 / 액티브 분리.
-            var passive = new List<BattleViewModel.BuildEntry>();
-            var active  = new List<BattleViewModel.BuildEntry>();
+            List<BattleViewModel.BuildEntry> passive = new List<BattleViewModel.BuildEntry>();
+            List<BattleViewModel.BuildEntry> active  = new List<BattleViewModel.BuildEntry>();
             if (entries != null)
             {
-                foreach (var e in entries)
+                foreach (BattleViewModel.BuildEntry e in entries)
                 {
                     if (e == null || e.Card == null) continue;
                     if (e.IsPassive) passive.Add(e);

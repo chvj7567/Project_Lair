@@ -61,7 +61,7 @@ namespace Lair.UI
             //# 인덱스를 전달해 Panel 이 stale 콜백을 self-ignore 한다 (advisor BLOCKER).
             if (_arg.OnClosed != null)
             {
-                var onClosed = _arg.OnClosed;
+                Action<int> onClosed = _arg.OnClosed;
                 int closedIndex = _arg.SpawnerIndex;
                 closeDisposable.Add(() => onClosed(closedIndex));
             }
@@ -82,11 +82,11 @@ namespace Lair.UI
             if (_root == null || _arg == null || _arg.AnchorCell == null) return;
 
             //# 안전 — 캔버스 좌표계가 일치한다고 가정 (둘 다 BattleHud 의 동일 캔버스 하위).
-            var canvasRt = _root.parent as RectTransform;
+            RectTransform canvasRt = _root.parent as RectTransform;
             if (canvasRt == null) return;
 
             //# 셀의 월드 위치를 캔버스 로컬로 변환해서 셀 상단 중앙을 구함.
-            var anchor = _arg.AnchorCell;
+            RectTransform anchor = _arg.AnchorCell;
             Vector3 cellTopWorld = anchor.TransformPoint(new Vector3(0f, anchor.rect.yMax, 0f));
             Vector3 localInCanvas = canvasRt.InverseTransformPoint(cellTopWorld);
 
@@ -111,9 +111,9 @@ namespace Lair.UI
         private void RefreshContent()
         {
             if (_arg == null || _vm == null) return;
-            var spawners = _vm.Spawners;
+            IReadOnlyList<BattleViewModel.SpawnerSnapshot> spawners = _vm.Spawners;
             if (spawners == null || _arg.SpawnerIndex < 0 || _arg.SpawnerIndex >= spawners.Count) return;
-            var snap = spawners[_arg.SpawnerIndex];
+            BattleViewModel.SpawnerSnapshot snap = spawners[_arg.SpawnerIndex];
             if (snap == null) return;
 
             //# 헤더 — "Spawner #N — Wisp ×2" — 일관성 위해 1픽 케이스에도 ×count 표시 (기획서 §2.5.4).
@@ -122,7 +122,7 @@ namespace Lair.UI
                 _headerText.SetText($"Spawner #{snap.Index} — {speciesName} ×{snap.OutputCount}");
 
             //# 강화 줄 — CHPoolingScrollView 가 자동 풀링·재바인딩.
-            var buffs = snap.AppliedBuffs;
+            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = snap.AppliedBuffs;
             int count = buffs != null ? buffs.Count : 0;
 
             if (_emptyText != null) _emptyText.gameObject.SetActive(count == 0);
@@ -139,7 +139,7 @@ namespace Lair.UI
         //# IReadOnlyList → List 복사 (CHPoolingScrollView.SetItemList 가 List<TData> 요구).
         private static List<BattleViewModel.AppliedBuff> ToList(IReadOnlyList<BattleViewModel.AppliedBuff> src)
         {
-            var list = new List<BattleViewModel.AppliedBuff>();
+            List<BattleViewModel.AppliedBuff> list = new List<BattleViewModel.AppliedBuff>();
             if (src == null) return list;
             for (int i = 0; i < src.Count; ++i) list.Add(src[i]);
             return list;

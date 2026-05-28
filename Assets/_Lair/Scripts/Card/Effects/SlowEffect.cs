@@ -1,4 +1,5 @@
 using System;
+using Lair.Character;
 using UnityEngine;
 
 namespace Lair.Card
@@ -12,7 +13,7 @@ namespace Lair.Card
 
         public void Apply(IBattleContext ctx)
         {
-            var mover = ctx.GetHeroMover();
+            IMover mover = ctx.GetHeroMover();
             if (mover == null) return;
             ctx.ApplyHeroAura(new SlowAura(mover, _factor), _duration);
         }
