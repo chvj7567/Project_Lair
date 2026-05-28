@@ -85,6 +85,29 @@
 
 > 간이 흐름에서는 `docs.specs/` · `docs.plans/` 폴더 자체가 비어 있어도 무방. game-designer / gameplay-programmer 의 self-review "스펙 커버리지" 항목은 "스펙 없음 — 사용자 요구 직접 매핑" 으로 처리.
 
+### 스킬 미지정 요청 — 메인 후보 제시 규칙
+
+사용자가 **코드/에셋 변경이 명확한 작업 요청**을 보냈는데 메시지에 스킬 이름(`/start-develop*`)을 명시하지 않은 경우, 메인 오케스트레이터는 즉시 작업을 시작하지 않는다. 4개 후보를 표로 제시하고 사용자가 선택할 때까지 멈춘다.
+
+| 스킬 | 적합 작업 | 파이프라인 단계 |
+|---|---|---|
+| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → design-reviewer → ⛔승인 → gameplay-programmer → code-reviewer → test-engineer |
+| `/start-develop-auto`  | 본격 기능 + 자동 리뷰어, 게이트 없음 | 위와 동일하되 ⛔승인 생략 |
+| `/start-develop-simple`| 프로토타입 — 리뷰·시뮬 생략, 테스트는 유지 | game-designer → gameplay-programmer → test-engineer |
+| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer → code-reviewer |
+
+`uses_superpowers: true` 면 위 모든 후보에 0·1단계(brainstorming·writing-plans) 가 앞단에 붙는다 — 단 `/start-develop-quick` 은 본인 정의상 0·1 도 스킵한다.
+
+**제외 케이스** — 다음은 후보 제시 없이 메인이 즉시 답변한다:
+- 메타 질문 ("X 가 뭐임?", "어떻게 해야 돼?", "이거 왜 이래?")
+- 단순 조회 · 탐색 · 파일 읽기 요청
+- 조언 · 추천 요청 (코드 변경을 명시하지 않은 의견 요청)
+- 일반 대화 · 명령 의도가 모호한 발화
+
+**스킬 이름이 메시지에 명시된 경우** — 후보 제시 생략. 박힌 스킬로 즉시 진행.
+
+**메인의 자체 분기 금지** — 메인이 "이건 quick 이면 충분" 같은 임의 판단으로 한 스킬에 직진하지 않는다. 잘못 판단하면 큰 작업이 게이트 없이 직진할 위험이 있으므로 사용자 선택이 단일 진실.
+
 ### 문서 분담 (uses_superpowers: true 일 때 — 3 문서가 같이 있을 때)
 
 세 문서는 같은 추상의 다른 버전이 아니라 **다른 차원**이다. 결합되어야 완전.
