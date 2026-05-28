@@ -264,5 +264,8 @@ namespace ChvjUnityInfra
             }
             _loadedHandles.Clear();
         }
+
+        /// <summary>Init 후 인덱싱된 모든 에셋 키 목록 반환. 디버그/로그 용도.</summary>
+        public IReadOnlyCollection<string> GetRegisteredKeys() => _dicAssetInfo.Keys;
     }
 }

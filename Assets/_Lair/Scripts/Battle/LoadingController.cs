@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using ChvjUnityInfra;
 using Lair.Data;
 using Lair.UI;
@@ -63,11 +64,29 @@ namespace Lair.Battle
             }
 
             //# 5. Addressables 번들 워밍 + 진행률 표시
+            List<string> loadedKeys = new List<string>();
+            string prevKey = string.Empty;
             await CHMResource.Instance.PreloadByLabelAsync(null, (ratio, key) =>
             {
                 string desc = descs.TryGetValue(key, out string text) ? text : defaultDesc;
                 _hud.SetProgress(ratio, desc);
+                if (key != prevKey && string.IsNullOrEmpty(key) == false)
+                {
+                    loadedKeys.Add($"  {Mathf.RoundToInt(ratio * 100),3}% — {key} : {desc}");
+                    prevKey = key;
+                }
             });
+
+            //# 로드된 에셋 목록 일괄 출력
+            System.Collections.Generic.IReadOnlyCollection<string> allKeys = CHMResource.Instance.GetRegisteredKeys();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"[Loading] 완료 — Addressables 등록 에셋 총 {allKeys.Count}개");
+            foreach (string k in allKeys)
+            {
+                string d = descs.TryGetValue(k, out string t) ? t : defaultDesc;
+                sb.AppendLine($"  - {k} : {d}");
+            }
+            Debug.Log(sb.ToString());
 
             //# 6. Battle 씬 자동 전환
             SceneManager.LoadScene(EScene.Battle.ToString());
