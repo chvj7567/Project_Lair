@@ -67,20 +67,6 @@ namespace Lair.Battle
 
         async void Start()
         {
-            //# 0. 스트링 테이블 — CHText.StringProvider 등록 (CHMResource.Init 이전)
-            StringTableProvider strTable = new StringTableProvider();
-            strTable.Load();
-            CHText.StringProvider = strTable;
-
-            //# 1. ChvjPackage 초기화
-            if (await CHMResource.Instance.Init() == false)
-            {
-                Debug.LogError("[BattleController] CHMResource.Init 실패");
-                return;
-            }
-            CHMUI.Instance.Init();
-            CHMPool.Instance.Init();
-
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
 

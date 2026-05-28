@@ -39,6 +39,8 @@ namespace Lair.Data
     {
         CardPool_Passive,
         CardPool_Active,    //# B2 신규
+        Strings_Ko,         //# 게임 전체 CHText 문자열 — Art/Json/Strings_Ko.json
+        LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Art/Json/LoadingStrings_Ko.json
     }
 
     //# B1 신규 — 카드 카테고리
@@ -89,6 +91,7 @@ namespace Lair.Data
     //# SceneManager.LoadScene(EScene.X.ToString()).
     public enum EScene
     {
+        Loading,   //# Build Settings index 0
         Battle,
     }
 
