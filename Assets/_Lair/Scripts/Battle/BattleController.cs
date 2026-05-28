@@ -67,6 +67,11 @@ namespace Lair.Battle
 
         async void Start()
         {
+            //# 0. 스트링 테이블 — CHText.StringProvider 등록 (CHMResource.Init 이전)
+            StringTableProvider strTable = new StringTableProvider();
+            strTable.Load();
+            CHText.StringProvider = strTable;
+
             //# 1. ChvjPackage 초기화
             if (await CHMResource.Instance.Init() == false)
             {
