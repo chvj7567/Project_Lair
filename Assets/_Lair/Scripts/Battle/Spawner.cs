@@ -17,6 +17,10 @@ namespace Lair.Battle
         [SerializeField] private float _spawnPeriod = 9f;
         [Tooltip("첫 스폰까지 대기 (초) — 위상 오프셋")]
         [SerializeField] private float _initialDelay = 0f;
+        //# Spawner 본체가 맵 밖에 있을 때 실제 스폰 지점을 분리 지정.
+        //# null 이면 transform.position 을 fallback 으로 사용 (기존 동작 보전).
+        [Tooltip("실제 몬스터 스폰 위치. null이면 Spawner transform.position 사용")]
+        [SerializeField] private Transform _spawnPoint;
 
         //# === 런타임 내부 상태 (직렬화 안 함) ===
         //# 현재 출력 종 — 융합 카드(ReplaceSpawnerOutput)로 변경.
@@ -95,7 +99,9 @@ namespace Lair.Battle
             }
 
             //# 캡 검사는 사이클 단위 (§4.3) — 호스트가 캡 이상이면 사이클 전량 skip.
-            _host.SpawnFromSpawner(_currentType, transform.position, _outputCount);
+            //# _spawnPoint 미할당(null)이면 transform.position fallback — Spawner 본체와 스폰 위치 분리 지원.
+            Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
+            _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
         }
 
         //# 추가소환 카드 — 동시 출력 +1 (Spawner 슬롯에 영구 귀속, §3.2).

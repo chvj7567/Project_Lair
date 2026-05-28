@@ -93,6 +93,8 @@ namespace Lair.Battle
             //#    HUD 가 먼저 뜨면 SpawnerStatusPanel.Bind 시점에 vm.Spawners 가 빈 리스트라 셀 0 개가 만들어진다.
             //#    Spawner.Tick 은 _host == null 이면 early return 이라 사전 Bind 부작용 없음.
             await SpawnHero();
+            //# 3초 후 영웅 AutoCombatAI 재활성화 — Start() 를 막지 않도록 백그라운드 실행.
+            _ = EnableHeroAIAfterDelay(3f);
             BindSpawners();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
@@ -249,6 +251,19 @@ namespace Lair.Battle
                 _heroHealth.OnDied    += () => EndBattle(BattleResult.Win);
                 _vm.UpdateHeroHp(_heroHealth.Current, _heroHealth.Max);
             }
+
+            //# 영웅 이동 3초 지연 — 스폰 직후 AutoCombatAI 비활성화.
+            foreach (var ai in p.GetComponentsInChildren<AutoCombatAI>())
+                if (ai != null) ai.enabled = false;
+        }
+
+        //# 영웅 AutoCombatAI 를 delay 초 후 활성화. Start() 백그라운드 호출용.
+        private async Task EnableHeroAIAfterDelay(float delay)
+        {
+            await Task.Delay((int)(delay * 1000));
+            if (_hero == null) return;
+            foreach (var ai in _hero.GetComponentsInChildren<Lair.Character.AutoCombatAI>())
+                if (ai != null) ai.enabled = true;
         }
 
         //# 지속 스폰 — 씬의 Spawner 들에 호스트 주입. 이후 Update 가 각자 주기 틱.

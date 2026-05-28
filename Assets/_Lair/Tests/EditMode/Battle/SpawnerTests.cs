@@ -393,5 +393,44 @@ namespace Lair.Tests.Battle
             sp.Tick(0f);
             Assert.AreEqual(new Vector3(9f, 0f, 0f), host.Spawns[0].pos);
         }
+
+        //# ===== _spawnPoint 분리 스폰 지점 =====
+
+        //# 정상 — _spawnPoint 가 null 이면 transform.position 을 fallback 으로 사용 (기존 동작 보전).
+        [Test]
+        public void spawnPoint_null이면_transform_position_fallback()
+        {
+            var host = new FakeSpawnerHost();
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            sp.transform.position = new Vector3(5f, 0f, 0f);
+            //# _spawnPoint 미할당 — 기본값 null.
+            sp.Bind(host);
+
+            sp.Tick(0f);
+
+            Assert.AreEqual(new Vector3(5f, 0f, 0f), host.Spawns[0].pos,
+                "_spawnPoint null fallback — transform.position 사용");
+        }
+
+        //# 엣지 — _spawnPoint 가 할당되면 transform.position 이 아닌 _spawnPoint.position 을 사용.
+        [Test]
+        public void spawnPoint_할당시_spawnPoint_position_사용()
+        {
+            var host = new FakeSpawnerHost();
+            var sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
+            sp.transform.position = new Vector3(30f, 0f, 0f);  //# 맵 밖 위치
+
+            //# _spawnPoint — 맵 안의 실제 스폰 지점.
+            var spawnPointGo = new GameObject("SpawnPoint");
+            _spawned.Add(spawnPointGo);
+            spawnPointGo.transform.position = new Vector3(8f, 0f, 0f);
+            SetPrivate(sp, "_spawnPoint", spawnPointGo.transform);
+
+            sp.Bind(host);
+            sp.Tick(0f);
+
+            Assert.AreEqual(new Vector3(8f, 0f, 0f), host.Spawns[0].pos,
+                "_spawnPoint 할당 — transform.position(30) 아닌 spawnPoint.position(8) 사용");
+        }
     }
 }
