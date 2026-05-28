@@ -33,7 +33,11 @@ namespace Lair.UI
         public void Bind(CardData card, int count)
         {
             if (card == null) return;
-            if (_frame != null) _frame.color = CardView.CategoryColor(card.Category);
+            if (_frame != null)
+            {
+                var iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
+                _frame.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Category);
+            }
             if (_nameText != null) _nameText.SetText(card.DisplayName);
             if (_descText != null)
             {

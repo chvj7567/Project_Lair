@@ -27,7 +27,14 @@ namespace Lair.UI
         public override void InitUI(UIArg arg)
         {
             if (arg is BuildModalPopupArg ma && ma.ViewModel != null)
-                Build(ma.ViewModel);
+            {
+                var vm = ma.ViewModel;
+                Build(vm);
+                //# 팝업 열려있는 동안 카드 픽 시 자동 갱신.
+                System.Action refresh = () => Build(vm);
+                vm.OnBuildChanged += refresh;
+                closeDisposable.Add(() => vm.OnBuildChanged -= refresh);
+            }
 
             //# 배경 dim 클릭 / X 버튼 클릭 → 닫힘.
             if (_dimButton != null)

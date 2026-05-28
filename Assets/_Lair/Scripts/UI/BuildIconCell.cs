@@ -32,7 +32,10 @@ namespace Lair.UI
         {
             if (card == null) return;
             if (_frameImage != null)
-                _frameImage.color = CardView.CategoryColor(card.Category);
+            {
+                var iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
+                _frameImage.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Category);
+            }
             if (_iconImage != null)
             {
                 _iconImage.sprite = card.Icon;

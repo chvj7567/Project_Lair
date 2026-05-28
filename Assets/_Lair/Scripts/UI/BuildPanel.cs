@@ -6,8 +6,7 @@ using UnityEngine;
 namespace Lair.UI
 {
     //# HUD 하위 컴포넌트 — 픽한 카드를 패시브/액티브 섹션에 아이콘으로 표시. BattleHud 가 Bind.
-    //# 종 강화 패시브 6장 (Enhance + IsPassive) 은 셀 표시에서 제외 — 스포너 상태 셀에 노출되므로.
-    //# 패널 루트 클릭 시 BuildModalPopup 으로 픽한 모든 카드(강화 포함) 표시 (기획서 §2.6.3).
+    //# 패널 루트 클릭 시 BuildModalPopup 으로 픽한 모든 카드 표시 (기획서 §2.6.3).
     //# v0.8 — Rule 11 의 `ScrollRect + 수동 풀링 → CHPoolingScrollView` 원칙 완전 적용.
     //# 기존 `_cells` Dict + `CHMPool.Pop` 분기 + `_cellPrefab` 직렬화 제거, 두 섹션을 BuildIconPoolingScrollView 로 통일.
     public class BuildPanel : MonoBehaviour
@@ -58,11 +57,6 @@ namespace Lair.UI
             foreach (var entry in _vm.Build)
             {
                 if (entry == null || entry.Card == null) continue;
-
-                //# 종 강화 패시브 6장 (Enhance + IsPassive) 제외 (기획서 §2.6.1).
-                //# 액티브 4장(Berserk/BloodThirst/Frenzy/IronWill) 도 _category 가 Enhance 로 직렬화돼 있지만
-                //# IsPassive = false 라 통과한다.
-                if (entry.Card.Category == ECardCategory.Enhance && entry.IsPassive) continue;
 
                 if (entry.IsPassive) passive.Add(entry);
                 else                 active.Add(entry);

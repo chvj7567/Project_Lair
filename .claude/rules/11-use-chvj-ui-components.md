@@ -3,6 +3,8 @@
 ## 룰
 UI 컴포넌트는 **ChvjPackage 의 래퍼(CHText / CHButton / CHToggle / CHPoolingScrollView)** 를 우선 사용한다. Legacy `UnityEngine.UI.Text`, 단일 `Button`/`Toggle` 직접 사용을 지양.
 
+> **정적 라벨도 예외 없음** — 코드에서 참조하지 않는 섹션 헤더·장식 텍스트도 프리팹에 TMP_Text 가 있으면 반드시 CHText 를 함께 붙인다. "코드 참조 없으면 CHText 불필요"는 잘못된 판단이다.
+
 ## 매핑 (필수 사용)
 | UGUI 표준 | ChvjPackage 래퍼 | 이유 |
 |---|---|---|
@@ -76,6 +78,22 @@ _timerText.text = "5:00";
 
 //# (X) Button onClick 직접 + 사운드 hook 누락
 _restartButton.onClick.AddListener(OnClick);   //# CHButton 미사용 → 사운드 X
+```
+
+프리팹 구성 금지 (YAML 관점):
+```
+//# (X) 정적 라벨 — TMP_Text 만 있고 CHText 없음
+GameObject "Label"
+  ├ RectTransform
+  ├ CanvasRenderer
+  └ TextMeshProUGUI   ← CHText 래퍼 누락
+
+//# (O) 올바른 구성
+GameObject "Label"
+  ├ RectTransform
+  ├ CanvasRenderer
+  ├ TextMeshProUGUI
+  └ CHText (_stringID: -1)
 ```
 
 ## 권장 예시
