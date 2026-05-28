@@ -138,6 +138,18 @@ namespace Lair.EditorTools
 
                 //# 2) Aura — Cylinder primitive 디스크 (정체성 색 placeholder)
                 AttachAuraDisc(go, spec);
+
+                //# 루트에 물리 컴포넌트 추가 — 몬스터끼리 수평 밀치기 허용
+                CapsuleCollider capsule = go.AddComponent<CapsuleCollider>();
+                capsule.center = new Vector3(0f, 0.9f, 0f);
+                capsule.radius = 0.5f;
+                capsule.height = 1.8f;
+                Rigidbody rigidbody = go.AddComponent<Rigidbody>();
+                rigidbody.useGravity = false;
+                rigidbody.isKinematic = false;
+                rigidbody.constraints = RigidbodyConstraints.FreezePositionY
+                    | RigidbodyConstraints.FreezeRotationX
+                    | RigidbodyConstraints.FreezeRotationZ;
             }
 
             //# 3) 컴포넌트 부착 — 추가 순서가 Awake 호출 순서이므로 Health 를 의존 컴포넌트보다 먼저

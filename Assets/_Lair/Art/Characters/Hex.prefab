@@ -9,9 +9,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1841267292111755787}
+  - component: {fileID: 8715895203252023507}
+  - component: {fileID: 1290119203294507639}
   - component: {fileID: 3735962353000057848}
   - component: {fileID: 1081031682460770456}
   - component: {fileID: 416209244278027665}
+  - component: {fileID: 8044433619619691698}
   - component: {fileID: 3900995249776928894}
   - component: {fileID: 6189756468237748710}
   - component: {fileID: 2379309649973636739}
@@ -42,6 +45,56 @@ Transform:
   - {fileID: 1932180774017959832}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &8715895203252023507
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881501178030039518}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1.8
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!54 &1290119203294507639
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881501178030039518}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 84
+  m_CollisionDetection: 0
 --- !u!114 &3735962353000057848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -83,6 +136,19 @@ MonoBehaviour:
   _range: 1.5
   _cooldown: 1
   _power: 50
+--- !u!114 &8044433619619691698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881501178030039518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7c28d2c61e51f44cb6ffc1bd0ed24a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _turnSpeedDegPerSec: 540
 --- !u!114 &3900995249776928894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -471,7 +537,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: Visual
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5446477390807014375, guid: b713585f24f940f4eadb10319818ef40, type: 3}
+    - {fileID: 5446477390807014372, guid: b713585f24f940f4eadb10319818ef40, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
