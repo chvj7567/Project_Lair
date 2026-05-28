@@ -39,14 +39,30 @@
 
 ## 동작 방식
 1. 변경 내용 요약
-2. **관련 변경 파일을 `git add`(스테이징)**
-3. 위 포맷의 제안 커밋 메시지를 코드블록으로 전달
-4. 사용자가 직접 커밋하거나, 명시적 승인 시에만 커밋 실행
+2. **Unity 에디터 포커스** — UnityMCP `editor_focus` 호출 (meta 파일 자동 생성 대기)
+3. **관련 변경 파일을 `git add`(스테이징)**
+4. 위 포맷의 제안 커밋 메시지를 코드블록으로 전달
+5. 사용자가 직접 커밋하거나, 명시적 승인 시에만 커밋 실행
 
 ## add 범위 주의
 - 관련 변경 파일만 스테이징 (`git add -A` / `git add .` 지양 — 무관 파일·민감 파일 혼입 방지)
 - `.env`, 인증 토큰 등 민감 파일은 제외
 - `.gitignore` 매칭 항목·외부 도구 산출물은 자연히 제외됨을 확인
+
+## meta 파일 스테이징 규칙
+Unity `.meta` 파일은 **신규 추가(A)·삭제(D) 파일의 것만** 함께 스테이징한다.
+수정(M) 파일의 `.meta` 는 포함하지 않는다.
+
+```
+# (O) 새 파일 추가 시
+git add Assets/_Lair/Scripts/Foo.cs Assets/_Lair/Scripts/Foo.cs.meta
+
+# (O) 파일 삭제 시
+git add Assets/_Lair/Scripts/Bar.cs Assets/_Lair/Scripts/Bar.cs.meta
+
+# (X) 수정 파일의 meta 포함 금지
+git add Assets/_Lair/Scripts/Baz.cs Assets/_Lair/Scripts/Baz.cs.meta
+```
 
 ## 예시
 ```
