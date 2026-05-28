@@ -38,7 +38,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 ## 규칙
 
 - 리뷰어·qa-simulator 생략은 **이 스킬 한정**이다. 다른 스킬/흐름의 단계를 임의로 빼지 않는다.
-- 14개 코딩 룰(CLAUDE.md §5)·MVP 범위(§8)·금지 사항(§9)은 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
+- 코딩 룰(Rule 00~04)(CLAUDE.md §5)·MVP 범위(§8)·금지 사항(§9)은 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
 - gameplay-programmer 가 자체적으로 "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 수행해야 한다 (정의 §6).
 - qa-simulator(밸런스 시뮬)는 포함하지 않는다. 밸런스 검증이 필요하면 마무리 후 사용자에게 별도 호출을 제안한다.
 - 다음 경우엔 멈춘다:
@@ -56,7 +56,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 ## 흔한 실수
 
-- 프로토타입이라며 14개 룰을 무시 — 금지. 룰은 그대로다.
+- 프로토타입이라며 코딩 룰(Rule 00~04)을 무시 — 금지. 룰은 그대로다.
 - 메인이 직접 `.cs` 를 수정 — 금지. gameplay-programmer 에 위임.
 - 프로토타입 코드를 그대로 머지 — 권장하지 않음. 머지 전엔 `start-develop` 또는 `start-develop-auto` 로 리뷰를 한 번 받는다.
 - 밸런스 의심이 생겼는데 이 스킬 안에서 해결하려 함 — 금지. 마무리 후 qa-simulator 별도 호출을 제안한다.

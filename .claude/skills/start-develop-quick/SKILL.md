@@ -27,7 +27,7 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 
 1. **gameplay-programmer** 위임 → 수정 구현.
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
-2. **code-reviewer** 위임 → 14개 룰(`CLAUDE.md §5`) 준수 + 사용자 의도와의 부합 검토.
+2. **code-reviewer** 위임 → 코딩 룰(Rule 00~04)(`CLAUDE.md §5`) 준수 + 사용자 의도와의 부합 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
 3. **마무리** — 변경사항 요약 + 한글 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 변경 파일 `git add` 까지만.
 
@@ -42,7 +42,7 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 
 ## 규칙
 
-- 14개 코딩 룰(CLAUDE.md §5) · MVP 범위(§8) · 금지 사항(§9) 은 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
+- 코딩 룰(Rule 00~04)(CLAUDE.md §5) · MVP 범위(§8) · 금지 사항(§9) 은 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
 - `test-engineer` 를 스킵한다. 회귀 위험은 gameplay-programmer 의 자체 스모크 확인에 의존하며, 본격 회귀 테스트가 필요한 작업이면 본 스킬 대신 `start-develop-simple` 이상을 사용한다.
 - `qa-simulator` 도 포함하지 않는다. 밸런스 의심이 생기면 마무리 후 사용자에게 별도 호출을 제안한다.
 - 최종 커밋 — **절대 자동 커밋하지 않는다** (Rule 01). `git add` + 커밋 메시지(안) 까지만.
@@ -60,6 +60,6 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 
 - 큰 작업을 quick 으로 진행 — gameplay-programmer 가 발각하면 에스컬레이션으로 빠져나옴. 사용자 측에서도 quick 후보 선택 전 의심되면 다른 스킬로.
 - 메인이 직접 `.cs` 수정 — 금지. gameplay-programmer 에 위임.
-- "사소하니까" 라며 14개 룰 무시 — 금지. code-reviewer 가 BLOCKER 로 차단.
+- "사소하니까" 라며 코딩 룰(Rule 00~04) 무시 — 금지. code-reviewer 가 BLOCKER 로 차단.
 - test-engineer 도 스킵이라며 정상 케이스 확인까지 빼먹기 — gameplay-programmer 자체 스모크는 반드시 수행.
 - 끝나고 자동 커밋 — 금지 (Rule 01).

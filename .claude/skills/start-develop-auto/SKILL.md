@@ -33,7 +33,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 2. **design-reviewer** 위임 → 기획서 검토.
    - BLOCKER 가 있으면 game-designer 에 수정 위임 후 재검토. **최대 3회.** 3회 후에도 남으면 거기서 멈추고 사용자에게 보고한다 (전자동이라도 풀리지 않는 결함은 강행하지 않는다).
 3. **gameplay-programmer** 위임 → design-reviewer 를 통과한 기획서대로 구현.
-4. **code-reviewer** 위임 → 14개 룰 준수 + 기획서 일치 검토.
+4. **code-reviewer** 위임 → 코딩 룰(Rule 00~04) 준수 + 기획서 일치 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임 후 재검토. **최대 3회.** 3회 후에도 남으면 멈추고 사용자에게 보고한다.
 5. **test-engineer** 위임 → 본격 테스트 스위트 작성.
 6. **마무리** — 변경사항 요약 + 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 파일 `git add` 까지만.

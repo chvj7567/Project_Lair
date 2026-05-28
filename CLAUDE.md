@@ -43,7 +43,7 @@ docs/
 
 ## 5. 코딩 룰
 
-14개 룰은 `.claude/rules/NN-*.md` 각 파일에 정의되어 있다. **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
+룰은 `.claude/rules/NN-*.md` 에 정의되어 있다 — Rule 00(프로젝트 메타), 01(커밋), 02(C# 스타일), 03(ChvjPackage 인프라), 04(Unity 에셋). **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
 
 룰은 도메인 비종속 reusable 정의 — 다른 프로젝트에 같은 `.claude/rules/` 폴더가 통째로 적용된다.
 
@@ -78,13 +78,13 @@ docs/
 ## 9. 절대 금지
 
 - `git commit` / `git push` 직접 실행 (Rule 01) — `git add` + 커밋 메시지(안)까지만
-- `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 12) — `CHMPool.Pop`/`Push`
-- Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 11) — `CHText`/`CHButton`/`CHToggle`
-- 하드코딩 문자열로 에셋 로드 (Rule 08) — Enum 키
-- `Resources/` 특수 폴더 사용 (Rule 14) — Addressables
-- View 에 비즈니스 로직 (Rule 05)
-- ChvjPackage → 게임 코드 역참조 (Rule 07) — 의존 방향은 게임 → 패키지
-- `//` 일반 주석 (Rule 02) — `//#`
+- `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 03 §4) — `CHMPool.Pop`/`Push`
+- Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 03 §3) — `CHText`/`CHButton`/`CHToggle`
+- 하드코딩 문자열로 에셋 로드 (Rule 03 §2) — Enum 키
+- `Resources/` 특수 폴더 사용 (Rule 04 §2) — Addressables
+- View 에 비즈니스 로직 (Rule 02 §6)
+- ChvjPackage → 게임 코드 역참조 (Rule 03 §1) — 의존 방향은 게임 → 패키지
+- `//` 일반 주석 (Rule 02 §1) — `//#`
 - MVP 범위 밖 작업 (§8)
 - 메인 오케스트레이터가 직접 코드 작성 — 적절한 서브에이전트에 위임
 - `.claude/project.md` 의 필수 키 누락 또는 파일 부재 (Rule 00) — agent 가 프로젝트 메타를 못 읽어 동작 불능

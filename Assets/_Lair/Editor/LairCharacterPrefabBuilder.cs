@@ -128,6 +128,12 @@ namespace Lair.EditorTools
                     visual.transform.localPosition = Vector3.zero;
                     visual.transform.localRotation = Quaternion.identity;
                     visual.transform.localScale = Vector3.one;   //# 루트 spec.Scale 에 영향받음
+
+                    //# LittleGhost 외부 에셋의 Rigidbody/Collider 제거 — 충돌 물리 영향 방지
+                    foreach (Rigidbody rb in visual.GetComponentsInChildren<Rigidbody>(true))
+                        Object.DestroyImmediate(rb);
+                    foreach (Collider col in visual.GetComponentsInChildren<Collider>(true))
+                        Object.DestroyImmediate(col);
                 }
 
                 //# 2) Aura — Cylinder primitive 디스크 (정체성 색 placeholder)

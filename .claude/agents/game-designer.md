@@ -44,9 +44,9 @@ tools: Read, Glob, Grep, Write, Edit
   - **핵심 메커니즘** — 2~3줄 요약
 - 기획서에는 룰·수치·밸런스·시너지·페이싱 근거를 담는다.
 - 기획서에 **§ "구현 요청사항"** 섹션을 둔다 — gameplay-programmer 가 바로 쓸 수 있도록 명세한다:
-  - 필요한 **Enum 값** — 어느 카테고리 Enum 에 추가할지 (프로젝트 도메인별 분리, Rule 08)
-  - 필요한 **Interface** — 있다면 (Rule 10)
-  - **에셋 키** — 프리팹/SO 파일명 = Enum 값명 (Rule 08)
+  - 필요한 **Enum 값** — 어느 카테고리 Enum 에 추가할지 (프로젝트 도메인별 분리, Rule 03 §2)
+  - 필요한 **Interface** — 있다면 (Rule 02 §9)
+  - **에셋 키** — 프리팹/SO 파일명 = Enum 값명 (Rule 03 §2)
   - **SO 스키마 / 수치 필드**
 - 코드 구조나 ChvjPackage API 를 지정하지 않는다 — 그건 gameplay-programmer 의 판단 영역이다.
 - **No Placeholders** — 다음 표현들을 기획서에 남기지 않는다. 데이터가 없어 단정 못 하는 수치는 비워두지 말고 **"qa-simulator 검증 후 결정"** + 결정 메트릭을 명시한다.

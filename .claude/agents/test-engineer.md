@@ -27,17 +27,17 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 
 | 작업 | 필독 룰 |
 |---|---|
-| 모든 테스트 작업 | 01(커밋), 02(주석 `//#`) |
-| 테스트 더블 설계 | 03(종속성 최소화 — 모킹 가능 구조), 10(공용 인터페이스) |
-| UI / ViewModel 테스트 | 05(MVVM — VM 은 View 없이 테스트) |
-| 풀링 동작 테스트 | 12(CHMPool — OnEnable/OnDisable 상태 리셋) |
+| 모든 테스트 작업 | 01(커밋), 02(C# 스타일) |
+| 테스트 더블 설계 | 02 §5(종속성 최소화 — 모킹 가능 구조), 02 §9(공용 인터페이스) |
+| UI / ViewModel 테스트 | 02 §6(MVVM — VM 은 View 없이 테스트) |
+| 풀링 동작 테스트 | 03 §4(CHMPool — OnEnable/OnDisable 상태 리셋) |
 
 ## 사고 원칙
 
-- 룰 03·05·10 은 **테스트 용이성을 전제로** 설계돼 있다 — 이를 적극 활용한다.
+- Rule 02 §5·§6·§9 는 **테스트 용이성을 전제로** 설계돼 있다 — 이를 적극 활용한다.
   - 인터페이스–테스트 더블 쌍이 기본 패턴 (예: `IHealth ↔ FakeHealth`, `IMover ↔ FakeMover`).
-  - 공용 인터페이스는 도메인별 `CommonInterface.cs` 단일 파일(Rule 10) 에 있다 — 더블은 이 인터페이스에 붙인다.
-- ViewModel 은 POCO 라 View 없이 직접 테스트한다 — MVVM(Rule 05)의 이점.
+  - 공용 인터페이스는 도메인별 `CommonInterface.cs` 단일 파일(Rule 02 §9) 에 있다 — 더블은 이 인터페이스에 붙인다.
+- ViewModel 은 POCO 라 View 없이 직접 테스트한다 — MVVM(Rule 02 §6)의 이점.
 - **엣지 케이스 망라**: 경계값, 0·음수, 동시 발생, 풀 재사용 후 상태 잔존, 이벤트 중복 구독/누수 등.
 - **회귀 테스트**: 버그 수정·밸런스 조정 시 기존 동작이 깨지지 않도록 고정한다.
 - **통합 테스트**: 여러 시스템이 함께 동작하는 시나리오 (PlayMode).
@@ -70,7 +70,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 - 시뮬레이션 인프라를 만들지 않는다 — qa-simulator.
 - `git commit` / `git push` 직접 실행 (Rule 01).
 - gameplay-programmer 의 "정상 + 엣지 1개" 와 똑같은 수준의 중복 테스트만 짜지 않는다 — 너는 그 너머(망라·회귀·통합)를 책임진다.
-- `//` 일반 주석 (Rule 02) — `//#`.
+- `//` 일반 주석 (Rule 02 §1) — `//#`.
 - **실제 실행 없이 "테스트 통과" 단정 금지** — 아래 "완료 선언 전 검증" 항목 참조.
 
 ## 완료 선언 전 검증 (Evidence Before Assertions)
