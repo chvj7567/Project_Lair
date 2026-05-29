@@ -4,6 +4,7 @@
     "references": [
         "Lair",
         "com.chvj.unityinfra",
+        "Lair.Editor.JsonSync",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
@@ -12,7 +13,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": ["UNITY_INCLUDE_TESTS"],

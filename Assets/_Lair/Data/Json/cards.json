@@ -1,0 +1,248 @@
+﻿[
+  {
+    "id": "Berserk",
+    "category": "Enhance",
+    "displayName": "폭주",
+    "description": "몬스터 HP -50%, 데미지 +200% (15초)",
+    "effect": {
+      "$type": "BerserkEffect",
+      "duration": 15.0
+    }
+  },
+  {
+    "id": "Bleed",
+    "category": "Environment",
+    "displayName": "출혈",
+    "description": "영웅 이동 시 HP 감소 (10초)",
+    "effect": {
+      "$type": "BleedEffect",
+      "ratio": 0.02,
+      "duration": 10.0
+    }
+  },
+  {
+    "id": "BloodThirst",
+    "category": "Enhance",
+    "displayName": "피의 갈증",
+    "description": "처치 시 주변 몬스터 회복 (30초)",
+    "effect": {
+      "$type": "BloodThirstEffect",
+      "duration": 30.0
+    }
+  },
+  {
+    "id": "Fear",
+    "category": "Environment",
+    "displayName": "공포",
+    "description": "영웅 3초간 도망",
+    "effect": {
+      "$type": "FearEffect",
+      "duration": 3.0
+    }
+  },
+  {
+    "id": "Frenzy",
+    "category": "Enhance",
+    "displayName": "광폭화",
+    "description": "모든 몬스터 공속 +50% (10초)",
+    "effect": {
+      "$type": "FrenzyEffect",
+      "duration": 10.0
+    }
+  },
+  {
+    "id": "HeroAttackDown",
+    "category": "Environment",
+    "displayName": "약화의 저주",
+    "description": "영웅 공격력 영구 -25%",
+    "effect": {
+      "$type": "HeroAttackDownEffect"
+    }
+  },
+  {
+    "id": "HeroPoisonAura",
+    "category": "Environment",
+    "displayName": "독 안개",
+    "description": "영웅 발 밑에 독 장판 (DPS 5)",
+    "effect": {
+      "$type": "HeroPoisonAuraEffect",
+      "dps": 5.0,
+      "duration": 5.0,
+      "radius": 1.25
+    }
+  },
+  {
+    "id": "HexRangeBoost",
+    "category": "Enhance",
+    "displayName": "헥스 정밀",
+    "description": "모든 헥스 사거리 +40%",
+    "effect": {
+      "$type": "HexRangeBoostEffect",
+      "rangeMul": 1.4
+    }
+  },
+  {
+    "id": "IronWill",
+    "category": "Enhance",
+    "displayName": "강철 의지",
+    "description": "몬스터 받는 데미지 -30% (15초)",
+    "effect": {
+      "$type": "IronWillEffect",
+      "duration": 15.0
+    }
+  },
+  {
+    "id": "Multiply",
+    "category": "Spawn",
+    "displayName": "증식",
+    "description": "최다 몬스터 종 즉시 2배",
+    "effect": {
+      "$type": "MultiplyEffect"
+    }
+  },
+  {
+    "id": "PhantomMoveSpeedBoost",
+    "category": "Enhance",
+    "displayName": "흡혈 팬텀 떼",
+    "description": "모든 팬텀 이동속도 +50%",
+    "effect": {
+      "$type": "PhantomMoveSpeedBoostEffect",
+      "speedMul": 1.5
+    }
+  },
+  {
+    "id": "PlagueSlowBoost",
+    "category": "Enhance",
+    "displayName": "독성 플레이그",
+    "description": "플레이그 둔화 효과 강화",
+    "effect": {
+      "$type": "PlagueSlowBoostEffect",
+      "slowFactor": 0.75
+    }
+  },
+  {
+    "id": "ReaperAtkSpeed",
+    "category": "Enhance",
+    "displayName": "광폭 리퍼",
+    "description": "모든 리퍼 공격속도 +30%",
+    "effect": {
+      "$type": "ReaperAtkSpeedEffect",
+      "cdMul": 0.7
+    }
+  },
+  {
+    "id": "ReplaceReapersToHex",
+    "category": "Replace",
+    "displayName": "주술 훈련",
+    "description": "리퍼 Spawner → 헥스 생산",
+    "effect": {
+      "$type": "ReplaceReapersToHexEffect"
+    }
+  },
+  {
+    "id": "ReplaceWispsToWraith",
+    "category": "Replace",
+    "displayName": "융합",
+    "description": "위스프 Spawner → 레이스 생산",
+    "effect": {
+      "$type": "ReplaceWispsToWraithEffect"
+    }
+  },
+  {
+    "id": "Slow",
+    "category": "Environment",
+    "displayName": "둔화",
+    "description": "영웅 이동속도 -50% (10초)",
+    "effect": {
+      "$type": "SlowEffect",
+      "factor": 0.5,
+      "duration": 10.0
+    }
+  },
+  {
+    "id": "SpawnPhantoms",
+    "category": "Spawn",
+    "displayName": "팬텀 무리",
+    "description": "팬텀 Spawner 출력 +1",
+    "effect": {
+      "$type": "SpawnPhantomsEffect"
+    }
+  },
+  {
+    "id": "SpawnPlagues",
+    "category": "Spawn",
+    "displayName": "플레이그 둥지",
+    "description": "플레이그 Spawner 출력 +1",
+    "effect": {
+      "$type": "SpawnPlaguesEffect"
+    }
+  },
+  {
+    "id": "SpawnReapers",
+    "category": "Spawn",
+    "displayName": "리퍼 증원",
+    "description": "리퍼 Spawner 출력 +1",
+    "effect": {
+      "$type": "SpawnReapersEffect"
+    }
+  },
+  {
+    "id": "SpawnWisps",
+    "category": "Spawn",
+    "displayName": "위스프 소환",
+    "description": "위스프 Spawner 출력 +1",
+    "effect": {
+      "$type": "SpawnWispsEffect"
+    }
+  },
+  {
+    "id": "SpawnWraith",
+    "category": "Spawn",
+    "displayName": "레이스 소환",
+    "description": "레이스 Spawner 출력 +1",
+    "effect": {
+      "$type": "SpawnWraithEffect"
+    }
+  },
+  {
+    "id": "TimeStop",
+    "category": "Environment",
+    "displayName": "시간 정지",
+    "description": "영웅 5초 멈춤",
+    "effect": {
+      "$type": "TimeStopEffect",
+      "duration": 5.0
+    }
+  },
+  {
+    "id": "Weaken",
+    "category": "Environment",
+    "displayName": "무력화",
+    "description": "영웅 데미지 -50% (10초)",
+    "effect": {
+      "$type": "WeakenEffect",
+      "factor": 0.5,
+      "duration": 10.0
+    }
+  },
+  {
+    "id": "WispHpBoost",
+    "category": "Enhance",
+    "displayName": "끈질긴 위스프",
+    "description": "모든 위스프 HP +50%",
+    "effect": {
+      "$type": "WispHpBoostEffect",
+      "hpMul": 1.5
+    }
+  },
+  {
+    "id": "WraithDamageBoost",
+    "category": "Enhance",
+    "displayName": "강철 레이스",
+    "description": "모든 레이스 데미지 +50%",
+    "effect": {
+      "$type": "WraithDamageBoostEffect",
+      "mul": 1.5
+    }
+  }
+]
