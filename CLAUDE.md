@@ -30,7 +30,7 @@ Assets/_Lair/                  게임 코드·에셋  (주의: _Project 가 아�
   Art/                         Addressable 에셋 — Characters/ FX/ UI/ Cards/ Materials/ Sprites/
   Data/                        비-Addressable 데이터 — Fonts/ , BalanceConfig.asset
   Scenes/                      Battle.unity
-Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 07)
+Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
 .claude/
   rules/                       코딩 룰 01~14  ← 단일 진실의 원천
   agents/                      서브에이전트 정의

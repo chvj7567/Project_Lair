@@ -40,11 +40,11 @@ tools: Read, Glob, Grep, Bash
 |---|---|
 | 룰 준수 | 위 매핑표의 룰 — 특히 C# 스타일(02), ChvjPackage 인프라(03), Unity 에셋(04) |
 | 기획서 일치 | 구현이 `docs/design/` 명세대로인가 — 누락 기능, 임의 변경, 임의 수치 |
-| 종속성 | Rule 03 — `FindObjectOfType`/`GameObject.Find` 남용, 구체 클래스 직결, 양방향 참조 |
-| 풀 안전성 | Rule 12 — 풀링 대상이 `OnEnable`/`OnDisable` 에서 상태를 리셋하는가 (재사용 시 이전 상태 누수) |
+| 종속성 | Rule 02 §5 — `FindObjectOfType`/`GameObject.Find` 남용, 구체 클래스 직결, 양방향 참조 |
+| 풀 안전성 | Rule 03 §4 — 풀링 대상이 `OnEnable`/`OnDisable` 에서 상태를 리셋하는가 (재사용 시 이전 상태 누수) |
 | 정적 결함 | 명백한 NRE 경로, 이벤트 구독 해제 누락, `async void` 예외 삼킴 |
 | YAGNI | 기획서·룰에 없는 불필요한 추상화·미래 대비 코드 |
-| 테스트 가능성 | 인터페이스/주입 구조라 test-engineer 가 모킹 가능한가 (Rule 03 의 목적) |
+| 테스트 가능성 | 인터페이스/주입 구조라 test-engineer 가 모킹 가능한가 (Rule 02 §5 의 목적) |
 
 > 컴파일·테스트 실행은 네 범위가 아니다 (도구도 없다). 명백한 컴파일 에러는 정적으로 지적하되, 실제 빌드 검증은 test-engineer / UnityMCP 흐름이 담당한다.
 
