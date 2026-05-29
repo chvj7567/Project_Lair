@@ -14,8 +14,8 @@ namespace Lair.Tests.PlayMode
     //# 지속 스폰 — PlayMode 통합. MonoBehaviour/CharacterRegistry/씬 의존 영역 검증.
     //# 1) ApplyMonsterStats — raw×배율 + resetCurrent 분기 (실제 Health/MeleeAttacker 컴포넌트).
     //# 2) RegisterMonsterTypeBuff — 글로벌 dict 곱연산 + 필드 동일 종 소급 (CharacterRegistry 경유).
-    //# 3) 필드 몬스터 캡 15 — Battle 씬 로드 후 라이브 BattleController 로 절대값 검증.
-    public class ContinuousSpawnIntegrationTest
+    //# 3) 필드 몬스터 캡 18 — Battle 씬 로드 후 라이브 BattleController 로 절대값 검증.
+    public class ContinuousSpawnIntegrationTest : BattlePlayTestBase
     {
         private readonly List<GameObject> _spawned = new();
         private BalanceConfig _balance;
@@ -45,7 +45,7 @@ namespace Lair.Tests.PlayMode
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
             if (_balance != null) Object.Destroy(_balance);
-            //# 캡15 테스트가 timeScale 가속을 쓰므로 원복 — 후속 테스트 영향 차단.
+            //# 캡18 테스트가 timeScale 가속을 쓰므로 원복 — 후속 테스트 영향 차단.
             Time.timeScale = 1f;
         }
 
@@ -333,18 +333,19 @@ namespace Lair.Tests.PlayMode
                 "필드 0개여도 dict 갱신됨 — 이후 신규 위스프 300");
         }
 
-        //# ===== 3. 필드 몬스터 캡 15 — Battle 씬 통합 =====
+        //# ===== 3. 필드 몬스터 캡 18 — Battle 씬 통합 =====
 
-        //# 통합 — Battle 씬을 진행해도 살아있는 몬스터가 캡 15 를 절대 넘지 않는다.
+        //# 통합 — Battle 씬을 진행해도 살아있는 몬스터가 캡 18 를 절대 넘지 않는다.
         //# Spawner 자연 스폰(사이클 skip) + 증식 경로 모두 합쳐도 절대값 유지 (§4.2).
         //# 카드 팝업은 DebugAutoPicker 로 즉시 처리해 hang 방지(Time.timeScale=0 Pause 회피).
         [UnityTest]
-        public IEnumerator Battle씬_지속스폰_살아있는_몬스터_캡15_절대초과없음()
+        public IEnumerator Battle씬_지속스폰_살아있는_몬스터_캡18_절대초과없음()
         {
             //# 정적 레지스트리 정리 — 본 테스트 전 상태 격리.
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
 
+            yield return EnsureCHMReady();
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 
@@ -393,8 +394,8 @@ namespace Lair.Tests.PlayMode
                     if (e?.Health != null && e.Health.IsAlive) alive++;
                 if (alive > maxObserved) maxObserved = alive;
                 //# 캡 절대값 — 매 프레임 검사. 한 번이라도 초과하면 실패.
-                Assert.LessOrEqual(alive, 15,
-                    $"살아있는 몬스터 {alive} — 캡 15 초과 금지 (게임 t={gameTimeAccum:F1}s)");
+                Assert.LessOrEqual(alive, 18,
+                    $"살아있는 몬스터 {alive} — 캡 18 초과 금지 (게임 t={gameTimeAccum:F1}s)");
 
                 //# 영웅 전멸이면 더 이상 스폰 안 됨 — 조기 종료.
                 if (AllHeroesDead()) break;
@@ -414,7 +415,7 @@ namespace Lair.Tests.PlayMode
             yield return null;
         }
 
-        //# 영웅 전멸이면 스폰이 멈춤 — 캡15 테스트 조기 종료 조건.
+        //# 영웅 전멸이면 스폰이 멈춤 — 캡18 테스트 조기 종료 조건.
         private static bool AllHeroesDead()
         {
             List<CharacterRegistry.Entry> heroes = CharacterRegistry.Heroes;
@@ -429,6 +430,7 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator Battle씬_BattleController에_Spawner_6개_배선()
         {
+            yield return EnsureCHMReady();
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 

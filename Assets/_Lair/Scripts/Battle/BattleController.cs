@@ -12,6 +12,11 @@ namespace Lair.Battle
     //# 전투 씬 라이프사이클·스폰·VM 갱신·종료 처리.
     public class BattleController : MonoBehaviour, ISpawnerHost
     {
+        //# Entry/march 시스템 단일 진실. 씬에 BattleZone GameObject 1개 배치 후 인스펙터 할당.
+        //# 미할당 시 _heroSpawn fallback 동작 (안전 경로).
+        [SerializeField] private BattleZone _zone;
+
+        //# (deprecated, fallback only — BattleZone 미할당 시 사용) 영웅 초기 스폰 Transform.
         [SerializeField] private Transform _heroSpawn;
         //# 지속 스폰 — 씬에 배치된 Spawner 들. Rule 03 — FindObjectsOfType 대신 인스펙터 직렬 할당.
         [SerializeField] private Spawner[] _spawners;
@@ -51,6 +56,12 @@ namespace Lair.Battle
         private IBattleContext _ctx;
         private bool _processingQueue;
 
+        //# 영웅이 zone 중심에 도달했는지. true 가 되면 Update 의 Spawner.Tick 호출이 활성화된다.
+        private bool _spawnersActive;
+
+        //# HeroEntryDriver 핸들 — Center 도달 후 비활성화 fallback 용.
+        private HeroEntryDriver _heroEntryDriver;
+
         //# B2 신규
         private ActiveTriggerService _activeTriggers;
         private CardDeck _activeDeck;
@@ -84,8 +95,7 @@ namespace Lair.Battle
             //#    HUD 가 먼저 뜨면 SpawnerStatusPanel.Bind 시점에 vm.Spawners 가 빈 리스트라 셀 0 개가 만들어진다.
             //#    Spawner.Tick 은 _host == null 이면 early return 이라 사전 Bind 부작용 없음.
             await SpawnHero();
-            //# 3초 후 영웅 AutoCombatAI 재활성화 — Start() 를 막지 않도록 백그라운드 실행.
-            _ = EnableHeroAIAfterDelay(3f);
+            //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
@@ -122,7 +132,8 @@ namespace Lair.Battle
             _clock = new BattleClock(_model.TotalSeconds);
             _clock.OnTick   += _vm.UpdateTimer;
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
-            _clock.Start();
+            //# BattleZone 활성 분기 — HandleHeroReachedCenter 가 Start() 호출. 폴백 분기는 즉시.
+            if (_zone == null) _clock.Start();
 
             //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
             _activeTriggers = new ActiveTriggerService(_clock, _balance?.ActiveThresholds);
@@ -149,8 +160,8 @@ namespace Lair.Battle
             _bloodThirst?.Tick(dt);
 
             //# 지속 스폰 — Spawner 들의 주기 타이머 틱. Pause 중 dt=0 자연 정지.
-            //# 전투 종료 후엔 스폰 중단.
-            if (_model != null && _model.Result == BattleResult.None && _spawners != null)
+            //# 전투 종료 후엔 스폰 중단. Hero 가 zone 중심 도달 전(_spawnersActive=false) 엔 무동작.
+            if (_spawnersActive && _model != null && _model.Result == BattleResult.None && _spawners != null)
             {
                 foreach (Spawner sp in _spawners)
                     if (sp != null) sp.Tick(dt);
@@ -173,6 +184,7 @@ namespace Lair.Battle
         private void OnDestroy()
         {
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
+            if (_zone != null) _zone.OnHeroReachedCenter -= HandleHeroReachedCenter;
             _vm?.DetachSpawners();
         }
 
@@ -230,7 +242,15 @@ namespace Lair.Battle
 
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
-            p.transform.position = _heroSpawn != null ? _heroSpawn.position : Vector3.zero;
+            //# 우선순위 — BattleZone.HeroEntryPoint > _heroSpawn > Vector3.zero.
+            Vector3 spawnPos;
+            if (_zone != null && _zone.HeroEntryPoint != null)
+                spawnPos = _zone.HeroEntryPoint.position;
+            else if (_heroSpawn != null)
+                spawnPos = _heroSpawn.position;
+            else
+                spawnPos = Vector3.zero;
+            p.transform.position = spawnPos;
 
             _hero = p;
             _heroHealth = p.GetComponent<Health>();
@@ -243,9 +263,51 @@ namespace Lair.Battle
                 _vm.UpdateHeroHp(_heroHealth.Current, _heroHealth.Max);
             }
 
-            //# 영웅 이동 3초 지연 — 스폰 직후 AutoCombatAI 비활성화.
+            //# 영웅 AutoCombatAI 비활성 — HeroEntryDriver 가 march 를 수행.
             foreach (AutoCombatAI ai in p.GetComponentsInChildren<AutoCombatAI>())
                 if (ai != null) ai.enabled = false;
+
+            //# BattleZone 이 있을 때만 HeroEntryDriver 동작. 없으면 기존 EnableHeroAIAfterDelay 폴백.
+            if (_zone != null)
+            {
+                //# 풀 Pop 직후 SimpleMover._clampZone 런타임 주입 — 씬 인스펙터 와이어링은 풀 reference broken 이라 사용 불가 (game-designer §12.B).
+                SimpleMover heroMover = p.GetComponent<SimpleMover>();
+                if (heroMover != null) heroMover.BindClampZone(_zone);
+
+                _heroEntryDriver = p.GetComponent<HeroEntryDriver>();
+                if (_heroEntryDriver == null)
+                    _heroEntryDriver = p.gameObject.AddComponent<HeroEntryDriver>();
+                _heroEntryDriver.Bind(_zone);
+                _heroEntryDriver.enabled = true;
+                _zone.OnHeroReachedCenter += HandleHeroReachedCenter;
+            }
+            else
+            {
+                //# 폴백 — 기존 3초 후 AI 활성화.
+                _ = EnableHeroAIAfterDelay(3f);
+                _spawnersActive = true;   //# zone 미할당 시 즉시 spawner 활성
+            }
+        }
+
+        //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 게임 시작.
+        //# 1회 동작 보장 — _spawnersActive 가 false 일 때만 진입.
+        private void HandleHeroReachedCenter()
+        {
+            if (_spawnersActive) return;
+            _spawnersActive = true;
+
+            //# 영웅 AutoCombatAI 활성화 — MonsterTargetProvider 가 zone 안 Engaging 몬스터 검색.
+            if (_hero != null)
+            {
+                foreach (AutoCombatAI ai in _hero.GetComponentsInChildren<AutoCombatAI>())
+                    if (ai != null) ai.enabled = true;
+            }
+
+            //# HeroEntryDriver 1회 비활성화 보강 — driver 자체도 enabled=false 호출하지만 안전망.
+            if (_heroEntryDriver != null) _heroEntryDriver.enabled = false;
+
+            //# BattleClock 시작 — 5분 카운트다운 개시.
+            _clock?.Start();
         }
 
         //# 영웅 AutoCombatAI 를 delay 초 후 활성화. Start() 백그라운드 호출용.
@@ -263,7 +325,7 @@ namespace Lair.Battle
         {
             if (_spawners == null) return;
             foreach (Spawner sp in _spawners)
-                if (sp != null) sp.Bind(this);
+                if (sp != null) sp.Bind(this, _zone);
             //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
             _vm?.AttachSpawners(_spawners, this);
         }

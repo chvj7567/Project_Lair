@@ -14,7 +14,7 @@ namespace Lair.Tests.PlayMode
     //#  - Battle 씬 로드 후 BattleViewModel.Spawners 가 6개 채워짐 (BattleController.BindSpawners 가 VM.AttachSpawners 호출).
     //#  - 6 SpawnerSnapshot 각자 Index/CurrentType/OutputCount 가 라이브 Spawner 값과 일치.
     //#  - 카드 픽 자동 처리 후 (DebugAutoPicker) BattleViewModel.Build 가 갱신.
-    public class SpawnerStatusUIPlayTests
+    public class SpawnerStatusUIPlayTests : BattlePlayTestBase
     {
         [TearDown]
         public void TearDown()
@@ -27,6 +27,7 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator Battle씬_로드후_BattleViewModel_Spawners_6개_채워진다()
         {
+            yield return EnsureCHMReady();
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 

@@ -79,7 +79,7 @@ namespace Lair.Tests.Card
             //# OnEnable 명시 호출 — EditMode 에서 SetActive 토글이 OnEnable 을 신뢰성 있게
             //# 트리거하지 못함. 직렬 _outputType 을 런타임 _currentType 에 반영하기 위해 필수.
             InvokeOnEnable(sp);
-            sp.Bind(host);
+            sp.Bind(host, null);
             return sp;
         }
 

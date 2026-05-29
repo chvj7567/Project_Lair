@@ -8,7 +8,7 @@ using Lair.UI;
 
 namespace Lair.Tests.PlayMode
 {
-    public class CardFlowSmokeTest
+    public class CardFlowSmokeTest : BattlePlayTestBase
     {
         [TearDown]
         public void TearDown()
@@ -20,6 +20,7 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator HP_90퍼_트리거시_CardSelectionPopup_자동표시()
         {
+            yield return EnsureCHMReady();
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 

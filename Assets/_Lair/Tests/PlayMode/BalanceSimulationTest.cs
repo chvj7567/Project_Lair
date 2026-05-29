@@ -31,7 +31,7 @@ namespace Lair.Tests.PlayMode
     //#   일반 스모크만 실행(캠페인 제외):
     //#     -testCategory "!Simulation"
     [Category("Simulation")]
-    public class BalanceSimulationTest
+    public class BalanceSimulationTest : BattlePlayTestBase
     {
         //# Battle 씬 초기화/전투 한 판이 절대 넘지 않을 실제 벽시계 안전 한도(초).
         //# 5분 전투 / timeScale 15x ≈ 20초 + 비동기 초기화 여유.
@@ -150,6 +150,8 @@ namespace Lair.Tests.PlayMode
         //# 한 판 = 씬 로드 → 초기화 대기 → 픽 전략 주입 → 가속 틱 → 종료 감지 → 원복.
         private IEnumerator RunOneGame(ESimStrategy strategy, float timeScale, float wallTimeFailSafe)
         {
+            //# a. CHMResource init 보장 (Loading 씬 건너뛰는 PlayMode 라 필수). 이후 Battle 씬 로드.
+            yield return EnsureCHMReady();
             //# a. Battle 씬 로드 (Build Settings Index 0). 정적 레지스트리는 재로드 시 갱신됨.
             yield return SceneManager.LoadSceneAsync(EScene.Battle.ToString());
             yield return null;

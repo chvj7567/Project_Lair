@@ -8,7 +8,7 @@ using Lair.Character;
 
 namespace Lair.Tests.PlayMode
 {
-    public class BattleSmokeTest
+    public class BattleSmokeTest : BattlePlayTestBase
     {
         [TearDown]
         public void TearDown()
@@ -20,6 +20,7 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator Battle씬_로드_5초후_영웅_살아있음()
         {
+            yield return EnsureCHMReady();
             //# 씬 로드 (Build Settings 의 Battle 이 Index 0)
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;

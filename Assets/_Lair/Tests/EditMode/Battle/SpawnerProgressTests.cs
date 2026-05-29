@@ -85,7 +85,7 @@ namespace Lair.Tests.Battle
         {
             Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             FakeSpawnerHost host = new FakeSpawnerHost();
-            sp.Bind(host);
+            sp.Bind(host, null);
             sp.Tick(0f);    //# InitialDelay=0 → 첫 발사 → _firstSpawnDone=true, _timer=0
             Assert.AreEqual(0f, sp.Progress, 0.0001f, "첫 발사 직후 _timer=0 → Progress=0");
         }
@@ -96,7 +96,7 @@ namespace Lair.Tests.Battle
         {
             Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             FakeSpawnerHost host = new FakeSpawnerHost();
-            sp.Bind(host);
+            sp.Bind(host, null);
             sp.Tick(0f);         //# 첫 발사
             sp.Tick(4.5f);       //# _timer = 4.5
             Assert.AreEqual(0.5f, sp.Progress, 0.001f, "주기 절반에서 Progress ≈ 0.5");
@@ -108,7 +108,7 @@ namespace Lair.Tests.Battle
         {
             Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             FakeSpawnerHost host = new FakeSpawnerHost();
-            sp.Bind(host);
+            sp.Bind(host, null);
             sp.Tick(0f);         //# 첫 발사
             sp.Tick(8.99f);      //# _timer = 8.99
             float progress = sp.Progress;
@@ -123,7 +123,7 @@ namespace Lair.Tests.Battle
         {
             Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
             FakeSpawnerHost host = new FakeSpawnerHost();
-            sp.Bind(host);
+            sp.Bind(host, null);
             sp.Tick(0f);         //# 첫 발사, _timer=0
             sp.Tick(9.5f);       //# 두 번째 발사 → _timer = 0.5
             float progress = sp.Progress;

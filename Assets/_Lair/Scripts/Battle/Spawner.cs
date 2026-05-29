@@ -33,6 +33,8 @@ namespace Lair.Battle
         private bool _firstSpawnDone;
 
         private ISpawnerHost _host;
+        //# BattleController 가 Bind 시 주입. null 이면 _spawnPoint → transform.position 순으로 fallback.
+        private BattleZone _zone;
 
         //# 현재 출력 종 — IBattleContext 카드 API 가 매칭/변경에 사용.
         public EMonster CurrentType => _currentType;
@@ -72,8 +74,13 @@ namespace Lair.Battle
             OnOutputTypeChanged?.Invoke(_currentType);
         }
 
-        //# BattleController 가 수집 시 1회 주입 (Rule 03 — 인터페이스 주입, 싱글톤 직접 호출 회피).
-        public void Bind(ISpawnerHost host) => _host = host;
+        //# BattleController 가 수집 시 1회 주입. zone 은 BattleZone.GetRandomSpawn() 픽 소스.
+        //# zone == null 이면 _spawnPoint → transform.position 순으로 fallback (기존 동작 유지).
+        public void Bind(ISpawnerHost host, BattleZone zone)
+        {
+            _host = host;
+            _zone = zone;
+        }
 
         //# BattleController 가 매 프레임 호출 — Update 직접 사용 대신 호스트가 구동 시점을 통제.
         //# Pause 중엔 호스트가 dt=0 또는 미호출로 자연 정지.
@@ -99,8 +106,18 @@ namespace Lair.Battle
             }
 
             //# 캡 검사는 사이클 단위 (§4.3) — 호스트가 캡 이상이면 사이클 전량 skip.
-            //# _spawnPoint 미할당(null)이면 transform.position fallback — Spawner 본체와 스폰 위치 분리 지원.
-            Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
+            //# 스폰 위치 우선순위 — zone.GetRandomSpawn() > _spawnPoint > transform.position.
+            Vector3 spawnPos = transform.position;
+            if (_zone != null)
+            {
+                Transform pick = _zone.GetRandomSpawn();
+                if (pick != null) spawnPos = pick.position;
+                else if (_spawnPoint != null) spawnPos = _spawnPoint.position;
+            }
+            else if (_spawnPoint != null)
+            {
+                spawnPos = _spawnPoint.position;
+            }
             _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
         }
 
