@@ -42,6 +42,16 @@ namespace Lair.UI
         private readonly List<BuildEntry> _build = new();
         private readonly List<SpawnerSnapshot> _spawnerSnapshots = new();
 
+        //# 카드 리뉴얼 v0.6 — 4축 빌드 카운트. AddPick 시 card.Axis 로 증가, BuildSynergyPanel 이 구독·표시.
+        //# OnBuildChanged 이벤트로 갱신 통지 (별도 이벤트 X — 카운트는 픽 시점에 함께 변동).
+        private readonly Dictionary<EBuildAxis, int> _buildAxisCounts = new()
+        {
+            { EBuildAxis.Tank,   0 },
+            { EBuildAxis.Dps,    0 },
+            { EBuildAxis.Debuff, 0 },
+            { EBuildAxis.Swarm,  0 },
+        };
+
         //# AttachSpawners 가 보관 — Detach 시 동일 인스턴스로 unsubscribe.
         private IReadOnlyList<Spawner> _attachedSpawners;
         private BattleController _attachedController;
@@ -83,9 +93,11 @@ namespace Lair.UI
         }
 
         //# 카드 픽 누적 — 같은 카드면 Count++, 아니면 신규 엔트리. 이후 OnBuildChanged.
+        //# 카드 리뉴얼 v0.6 — _buildAxisCounts 도 함께 증가 (BuildSynergyPanel 표시용).
         public void AddPick(CardData card, bool isPassive)
         {
             if (card == null) return;
+            _buildAxisCounts[card.Axis] = _buildAxisCounts[card.Axis] + 1;
             foreach (BuildEntry e in _build)
             {
                 if (e.Card == card)
@@ -97,6 +109,12 @@ namespace Lair.UI
             }
             _build.Add(new BuildEntry { Card = card, IsPassive = isPassive, Count = 1 });
             OnBuildChanged?.Invoke();
+        }
+
+        //# 카드 리뉴얼 v0.6 — 4축 빌드 카운트 조회. BuildSynergyPanel 이 OnBuildChanged 구독 후 호출.
+        public int GetBuildCount(EBuildAxis axis)
+        {
+            return _buildAxisCounts.TryGetValue(axis, out int v) ? v : 0;
         }
 
         //# 늦은 구독자용 현재값

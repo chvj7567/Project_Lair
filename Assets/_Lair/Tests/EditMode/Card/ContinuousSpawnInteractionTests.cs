@@ -106,68 +106,8 @@ namespace Lair.Tests.Card
             mi.Invoke(c, null);
         }
 
-        //# ===== §3.5 케이스 1 — 융합 후 추가소환 no-op =====
-
-        //# 융합(위스프→레이스) 픽 후 SpawnWisps 픽 → 위스프 Spawner 0개라 no-op (죽은 픽).
-        [Test]
-        public void 융합후_추가소환_매칭_Spawner_없으면_noop()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            //# 위스프 Spawner 1개만.
-            Spawner wisp = CreateSpawner(EMonster.Wisp, host);
-            SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
-
-            //# 융합 카드 — 위스프 Spawner → 레이스 출력.
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "융합 후 출력 종 레이스");
-
-            //# SpawnWisps — "위스프 출력 Spawner" 를 찾는데 이미 0개 → 동시 출력 변화 없음.
-            new SpawnWispsEffect().Apply(ctx);
-
-            wisp.Tick(0f);
-            Assert.AreEqual(1, host.Spawns[0].count,
-                "융합 후 SpawnWisps 는 죽은 픽 — 동시 출력 1 유지");
-            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type);
-        }
-
-        //# ===== §3.5 케이스 3 — 추가소환 후 융합: 출력 수 보너스 유지 =====
-
-        //# SpawnWisps(출력+1) 픽 후 융합(위스프→레이스) 픽 → 그 Spawner 는 레이스를 2마리씩 뱉음.
-        //# 동시 출력 수는 Spawner 슬롯에 종속, 출력 종만 바뀐다.
-        [Test]
-        public void 추가소환후_융합_동시출력_보너스_Spawner에_유지()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner wisp = CreateSpawner(EMonster.Wisp, host);
-            SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
-
-            //# SpawnWisps — 위스프 Spawner 동시 출력 1→2.
-            new SpawnWispsEffect().Apply(ctx);
-            //# 융합 — 출력 종만 레이스로. 동시 출력 2 는 유지.
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-
-            wisp.Tick(0f);
-            Assert.AreEqual(EMonster.Wraith, host.Spawns[0].type, "출력 종은 레이스로 변경");
-            Assert.AreEqual(2, host.Spawns[0].count,
-                "동시 출력 +1 보너스는 Spawner 슬롯에 귀속 — 종 변경 후에도 유지");
-        }
-
-        //# ===== §3.5 케이스 4 — 융합 두 번 픽: 두 번째는 no-op =====
-
-        [Test]
-        public void 융합_두번_픽_두번째는_매칭없어_noop()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner wisp = CreateSpawner(EMonster.Wisp, host);
-            SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner> { wisp });
-
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType);
-
-            //# 두 번째 융합 — 위스프 출력 Spawner 0개 → 변화 없음 (레이스가 위스프로 되돌지 않음).
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "두 번째 융합은 no-op — 레이스 유지");
-        }
+        //# 카드 리뉴얼 v0.6 patch — 융합 카드(ReplaceWispsToWraith/ReplaceReapersToHex) 폐기.
+        //# 효과가 WispWraithPowerBoost/ReaperHexPowerBoost 로 교체되어 §3.5 케이스 1·3·4 동작 검증 의미 사라짐.
 
         //# ===== 추가소환 — 동일 종 Spawner 여러 개 동시 +1 (스타터 위스프 2개 §5.3) =====
 
@@ -192,24 +132,7 @@ namespace Lair.Tests.Card
             Assert.AreEqual(1, host.Spawns[2].count, "팬텀 Spawner — 무관, 출력 1 유지");
         }
 
-        //# ===== 융합 — 입력 종 일치 Spawner 만 변경 (§3.4.1 완화안) =====
-
-        //# 위스프 2개 / 리퍼 1개 — ReplaceWispsToWraith 는 위스프 2개만 레이스로, 리퍼는 불변.
-        [Test]
-        public void 융합_입력종_일치_Spawner만_변경_나머지_불변()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner wisp1 = CreateSpawner(EMonster.Wisp, host);
-            Spawner wisp2 = CreateSpawner(EMonster.Wisp, host);
-            Spawner reaper = CreateSpawner(EMonster.Reaper, host);
-            SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner> { wisp1, wisp2, reaper });
-
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-
-            Assert.AreEqual(EMonster.Wraith, wisp1.CurrentType, "위스프 Spawner 1 → 레이스");
-            Assert.AreEqual(EMonster.Wraith, wisp2.CurrentType, "위스프 Spawner 2 → 레이스");
-            Assert.AreEqual(EMonster.Reaper, reaper.CurrentType, "리퍼 Spawner — 입력 종 불일치, 불변");
-        }
+        //# (v0.6 patch — 융합_입력종_일치_Spawner만_변경 테스트 폐기. 효과 교체로 ReplaceSpawnerOutput 동작 검증 의미 사라짐.)
 
         //# ===== 추가소환 후 추가소환 — 선형 누적 =====
 
@@ -228,37 +151,19 @@ namespace Lair.Tests.Card
             Assert.AreEqual(3, host.Spawns[0].count, "기본 1 + 2픽 = 3 (선형 누적)");
         }
 
-        //# ===== 융합 후 다음 융합이 새 종 체인 — ReplaceReapersToHex 후 위스프 융합 독립 =====
-
-        //# 융합 카드 2장은 서로 독립. ReplaceReapersToHex 는 리퍼만, ReplaceWispsToWraith 는 위스프만.
-        [Test]
-        public void 융합_두_카드_각자_입력종만_변경_상호_독립()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner wisp = CreateSpawner(EMonster.Wisp, host);
-            Spawner reaper = CreateSpawner(EMonster.Reaper, host);
-            SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner> { wisp, reaper });
-
-            new ReplaceReapersToHexEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Wisp, wisp.CurrentType, "위스프 — 리퍼 융합에 영향 없음");
-            Assert.AreEqual(EMonster.Hex, reaper.CurrentType, "리퍼 → 헥스");
-
-            new ReplaceWispsToWraithEffect().Apply(ctx);
-            Assert.AreEqual(EMonster.Wraith, wisp.CurrentType, "위스프 → 레이스");
-            Assert.AreEqual(EMonster.Hex, reaper.CurrentType, "헥스 — 위스프 융합에 영향 없음");
-        }
+        //# (v0.6 patch — 융합_두_카드_각자_입력종만_변경 테스트 폐기. 효과 교체로 의미 사라짐.)
 
         //# ===== 빈 Spawner 집합 — 모든 카드 no-op, 예외 없음 =====
 
         [Test]
-        public void Spawner_0개일때_추가소환_융합_예외없이_noop()
+        public void Spawner_0개일때_추가소환_강화_예외없이_noop()
         {
             SpawnerAwareContext ctx = new SpawnerAwareContext(new List<Spawner>());
 
             Assert.DoesNotThrow(() =>
             {
                 new SpawnWispsEffect().Apply(ctx);
-                new ReplaceWispsToWraithEffect().Apply(ctx);
+                new WispWraithPowerBoostEffect().Apply(ctx);
             }, "Spawner 0개 — 카드 적용이 예외 없이 no-op");
         }
     }

@@ -45,9 +45,10 @@ namespace Lair.EditorTools
             new Spec { Id = ECardId.SpawnWraith, Category = EBuildAxis.Tank,
                        DisplayName = "더 많은 망령", Description = "레이스 Spawner 출력 +1",
                        EffectFactory = () => new SpawnWraithEffect() },
+            //# 카드 리뉴얼 v0.6 patch — ReplaceWispsToWraith 효과는 WispWraithPowerBoost 로 교체. enum 값명·SO 파일명 보존.
             new Spec { Id = ECardId.ReplaceWispsToWraith, Category = EBuildAxis.Tank,
-                       DisplayName = "망령으로 진화", Description = "위스프 Spawner → 레이스 생산",
-                       EffectFactory = () => new ReplaceWispsToWraithEffect() },
+                       DisplayName = "공포의 군세", Description = "위스프·레이스 데미지 +30% (영구)",
+                       EffectFactory = () => new WispWraithPowerBoostEffect() },
             //# Dps P4
             new Spec { Id = ECardId.ReaperAtkSpeed, Category = EBuildAxis.Dps,
                        DisplayName = "신속한 사신", Description = "모든 리퍼 공격속도 +30%",
@@ -58,9 +59,10 @@ namespace Lair.EditorTools
             new Spec { Id = ECardId.SpawnReapers, Category = EBuildAxis.Dps,
                        DisplayName = "사신 떼거리", Description = "리퍼 Spawner 출력 +1",
                        EffectFactory = () => new SpawnReapersEffect() },
+            //# 카드 리뉴얼 v0.6 patch — ReplaceReapersToHex 효과는 ReaperHexPowerBoost 로 교체. enum 값명·SO 파일명 보존.
             new Spec { Id = ECardId.ReplaceReapersToHex, Category = EBuildAxis.Dps,
-                       DisplayName = "헥스로 진화", Description = "리퍼 Spawner → 헥스 생산",
-                       EffectFactory = () => new ReplaceReapersToHexEffect() },
+                       DisplayName = "처형 명령", Description = "리퍼·헥스 데미지 +30% (영구)",
+                       EffectFactory = () => new ReaperHexPowerBoostEffect() },
             //# Debuff P4
             new Spec { Id = ECardId.PlagueSlowBoost, Category = EBuildAxis.Debuff,
                        DisplayName = "역병의 손길", Description = "플레이그 둔화 효과 강화",

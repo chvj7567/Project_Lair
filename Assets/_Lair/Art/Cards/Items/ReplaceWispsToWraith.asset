@@ -11,11 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
   m_Name: ReplaceWispsToWraith
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _id: 11
   _axis: 0
-  _displayName: "\uC735\uD569"
-  _description: "\uC704\uC2A4\uD504 Spawner \u2192 \uB808\uC774\uC2A4 \uC0DD\uC0B0"
+  _displayName: "공포의 군세"
+  _description: "위스프·레이스 데미지 +30% (영구)"
   _icon: {fileID: 0}
   _effect:
     rid: 2530925571701473375
@@ -23,5 +23,6 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 2530925571701473375
-      type: {class: ReplaceWispsToWraithEffect, ns: Lair.Card, asm: Lair}
-      data: 
+      type: {class: WispWraithPowerBoostEffect, ns: Lair.Card, asm: Lair}
+      data:
+        _powerMul: 1.3

@@ -299,6 +299,34 @@
 
 ## 8. 시너지 UI 노출 — MVP 비주얼 안
 
+### 8.0 BattleHud 좌측 상시 패널 (v0.6.2 추가)
+
+전투 중 4축 빌드 상태를 **상시 표시**하는 좌측 세로 패널. 카드 픽 팝업이 닫혀 있어도 현재 누적 카운트와 활성 Tier 를 한눈에 확인 (롤토체스 트레이트 패널 형태).
+
+**위치**: BattleHud 좌상단 (anchor (0, 1), pivot (0, 1), offset (16, -16), size 240×200 px).
+
+**구조** — 4 행 (Tank/Dps/Debuff/Swarm) × 1 셀:
+```
+┌──────────────────────┐
+│ TANK    3/5    ■■   │ ← Tier1·2 활성 (5장 미달이면 ■)
+│ DPS     0/3          │ ← 미도달
+│ DEBUFF  5/7    ■■   │
+│ SWARM   7+     ■■■  │ ← Tier3 도달, 다음 임계 없음
+└──────────────────────┘
+```
+
+**셀 표시 규칙**:
+- 배경: 해당 축 키 색 (§2). 미도달 알파 30%, Tier 활성 50%, **임계 도달 시 0.3s 펄스** (sin 곡선 50→100→50).
+- 텍스트: `<AXIS>  N/<다음 임계>  ■×Tier`. 7장 도달 후엔 `N+`.
+- 패널 자체 배경: 반투명 검정 박스 (α 0.4).
+
+**구현** (`Assets/_Lair/Scripts/UI/BuildSynergyPanel.cs` + `BuildSynergyCell.cs`):
+- `BuildSynergyPanel.Awake` 에서 자식 4 Cell 동적 생성 — 인스펙터 참조 0건, 사용자 환경 액션 없음.
+- `BattleHud.EnsureSynergyPanel` 이 좌상단 RectTransform 자식으로 panel 자동 부착.
+- VM 측: `BattleViewModel.GetBuildCount(EBuildAxis)` + `AddPick` 시 `_buildAxisCounts` 누적. `OnBuildChanged` 이벤트 그대로 활용.
+
+**Rule 03 §3 준수**: 텍스트는 `CHText` (TMP_Text 자동 부착). 배경은 `Image`.
+
 ### 8.1 카드 픽 팝업 (`CardSelectionPopup`) 갱신 항목
 
 **현재**: 3장 카드만 가로 나열, 각 카드는 흰 배경 + 카테고리 색 테두리 + 한글 이름 + 한글 설명.

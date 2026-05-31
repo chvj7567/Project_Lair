@@ -145,19 +145,21 @@
   {
     "id": "ReplaceReapersToHex",
     "axis": "Dps",
-    "displayName": "헥스로 진화",
-    "description": "리퍼 Spawner → 헥스 생산",
+    "displayName": "처형 명령",
+    "description": "리퍼·헥스 데미지 +30% (영구)",
     "effect": {
-      "$type": "ReplaceReapersToHexEffect"
+      "$type": "ReaperHexPowerBoostEffect",
+      "powerMul": 1.3
     }
   },
   {
     "id": "ReplaceWispsToWraith",
     "axis": "Tank",
-    "displayName": "망령으로 진화",
-    "description": "위스프 Spawner → 레이스 생산",
+    "displayName": "공포의 군세",
+    "description": "위스프·레이스 데미지 +30% (영구)",
     "effect": {
-      "$type": "ReplaceWispsToWraithEffect"
+      "$type": "WispWraithPowerBoostEffect",
+      "powerMul": 1.3
     }
   },
   {

@@ -81,30 +81,31 @@ namespace Lair.Tests.Card
             Assert.AreEqual(EMonster.Wisp, ctx.Increments[0]);
         }
 
-        //# 정상 — 융합 카드는 from→to 로 ReplaceSpawnerOutput 1회 호출.
+        //# 카드 리뉴얼 v0.6 patch — 융합 카드 2장 (ReplaceWispsToWraith/ReplaceReapersToHex) 폐기.
+        //# 효과가 WispWraithPowerBoost/ReaperHexPowerBoost 로 교체되어 ReplaceSpawnerOutput 동작 검증 의미 사라짐.
+
+        //# 신규 — 공포의 군세: 위스프·레이스 Power ×1.3 RegisterMonsterTypeBuff 2회 호출.
         [Test]
-        public void ReplaceWispsToWraith_위스프에서_레이스_교체_호출()
+        public void WispWraithPowerBoost_Apply_RegisterMonsterTypeBuff_Wisp_Wraith_Power_2회_호출()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new ReplaceWispsToWraithEffect().Apply(ctx);
+            new WispWraithPowerBoostEffect().Apply(ctx);
 
-            Assert.AreEqual(1, ctx.Replaces.Count);
-            Assert.AreEqual(EMonster.Wisp, ctx.Replaces[0].Item1);
-            Assert.AreEqual(EMonster.Wraith, ctx.Replaces[0].Item2);
+            Assert.AreEqual(2, ctx.Buffs.Count, "위스프+레이스 2회 호출");
+            Assert.IsTrue(ctx.Buffs.Contains((EMonster.Wisp,   EMonsterStatKind.Power, 1.3f)));
+            Assert.IsTrue(ctx.Buffs.Contains((EMonster.Wraith, EMonsterStatKind.Power, 1.3f)));
         }
 
-        //# 엣지 — 융합 카드는 필드 몬스터를 건드리지 않는다 (즉살 로직 제거, §3.4.2):
-        //# GetMonsters 가 호출되지 않아야 한다. FakeBattleContext 의 GetMonsters 는
-        //# 빈 리스트만 반환하므로, 호출 여부 대신 다른 API 가 전혀 안 불렸음을 확인한다.
+        //# 신규 — 처형 명령: 리퍼·헥스 Power ×1.3.
         [Test]
-        public void ReplaceReapersToHex_강화나_소환_API는_호출되지_않음()
+        public void ReaperHexPowerBoost_Apply_RegisterMonsterTypeBuff_Reaper_Hex_Power_2회_호출()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new ReplaceReapersToHexEffect().Apply(ctx);
+            new ReaperHexPowerBoostEffect().Apply(ctx);
 
-            Assert.AreEqual(0, ctx.Buffs.Count);
-            Assert.AreEqual(0, ctx.Increments.Count);
-            Assert.AreEqual(1, ctx.Replaces.Count);
+            Assert.AreEqual(2, ctx.Buffs.Count, "리퍼+헥스 2회 호출");
+            Assert.IsTrue(ctx.Buffs.Contains((EMonster.Reaper, EMonsterStatKind.Power, 1.3f)));
+            Assert.IsTrue(ctx.Buffs.Contains((EMonster.Hex,    EMonsterStatKind.Power, 1.3f)));
         }
     }
 }
