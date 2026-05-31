@@ -1,7 +1,6 @@
 using System;
 using ChvjUnityInfra;
 using Lair.Card;
-using Lair.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,19 +18,9 @@ namespace Lair.UI
         {
             _nameText.SetText(card.DisplayName);
             _descText.SetText(card.Description);
-            _border.color = CategoryColor(card.Axis);
+            //# 테두리 색 — 카드 ID 기준 단일 출처 (CardBorderColors).
+            _border.color = CardBorderColors.BorderColorOf(card.Id);
             _pickButton.OnClick(onClick);
         }
-
-        //# 카테고리 색 — CardView 와 BuildIconCell 이 공유 (Rule 03 — 색 매핑 단일 출처).
-        //# 카드 리뉴얼 v0.6 Phase 2 — 기획서 §2 4축 색 매핑 정정.
-        public static Color CategoryColor(EBuildAxis c) => c switch
-        {
-            EBuildAxis.Tank   => new Color(0.133f, 0.773f, 0.369f, 1f),
-            EBuildAxis.Dps    => new Color(0.937f, 0.267f, 0.267f, 1f),
-            EBuildAxis.Debuff => new Color(0.659f, 0.333f, 0.969f, 1f),
-            EBuildAxis.Swarm  => new Color(0.122f, 0.157f, 0.220f, 1f),
-            _                 => Color.gray,
-        };
     }
 }

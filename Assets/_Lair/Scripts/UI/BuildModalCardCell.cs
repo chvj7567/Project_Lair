@@ -32,8 +32,8 @@ namespace Lair.UI
             if (card == null) return;
             if (_frame != null)
             {
-                (char letter, Color bgColor, Color fgColor) iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
-                _frame.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Axis);
+                //# 카드 ID 기준 단일 출처 — 종 색/영웅 백색/몬스터 전체 시안.
+                _frame.color = CardBorderColors.BorderColorOf(card.Id);
             }
             if (_nameText != null) _nameText.SetText(card.DisplayName);
             if (_descText != null)
