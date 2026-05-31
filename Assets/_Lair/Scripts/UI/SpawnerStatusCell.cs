@@ -73,13 +73,11 @@ namespace Lair.UI
             _snapshot = snapshot;
             if (snapshot == null) return;
 
-            //# 색칩 — 종 색.
+            //# 색칩 — 종 색. v0.6.4 IconRow 삭제로 redundancy 축이 줄어 항상 노출.
             if (_colorChip != null)
             {
                 _colorChip.color = SpeciesColor(snapshot.CurrentType);
-                //# 색칩 visibility — N≥2 일 때 숨겨 종명 가용 폭 확보 (기획서 §2.2.2 v0.5).
-                //# 강화 아이콘 row 배경색 + 디스크 본체 틴트와의 3중 redundancy 로 색 정보 보전.
-                _colorChip.gameObject.SetActive(snapshot.OutputCount < 2);
+                _colorChip.gameObject.SetActive(true);
             }
 
             //# 종명 영문.
