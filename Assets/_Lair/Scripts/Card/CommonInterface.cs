@@ -70,6 +70,11 @@ namespace Lair.Card
         //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — SwarmSynergyTier3).
         void IncrementAllSpawnerOutputs(int delta);
 
+        //# 카드 리뉴얼 v0.6 — 종별 Spawner 주기 곱연산 (영구).
+        //# 빠른 번식 카드 (FastBreeding): Phantom 스포너 주기 ×0.6 영구.
+        //# ScaleAllSpawnerPeriods 와 달리 출력 종 매칭. 매칭 Spawner 0개면 no-op.
+        void ScaleSpawnerPeriodForType(EMonster type, float mul);
+
         float DeltaTime { get; }
     }
 

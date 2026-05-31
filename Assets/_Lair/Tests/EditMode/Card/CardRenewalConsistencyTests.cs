@@ -122,10 +122,10 @@ namespace Lair.Tests.Card
 
             //# 신규 5개 확인.
             HashSet<string> names = new HashSet<string>(types.Select(t => t.Name));
-            Assert.Contains("WallOfWispsEffect", names.ToList(), "WallOfWispsEffect 구현 존재");
+            Assert.Contains("ToughHideEffect", names.ToList(), "ToughHideEffect 구현 존재");
             Assert.Contains("MarkOfDeathEffect", names.ToList(), "MarkOfDeathEffect 구현 존재");
             Assert.Contains("SpawnerHasteEffect", names.ToList(), "SpawnerHasteEffect 구현 존재");
-            Assert.Contains("SwarmRushEffect", names.ToList(), "SwarmRushEffect 구현 존재");
+            Assert.Contains("FastBreedingEffect", names.ToList(), "FastBreedingEffect 구현 존재");
             Assert.Contains("GuardianRageEffect", names.ToList(), "GuardianRageEffect 구현 존재");
         }
 
@@ -139,10 +139,10 @@ namespace Lair.Tests.Card
             ctx.HeroTransform = heroGo.transform;
             try
             {
-                Assert.DoesNotThrow(() => new WallOfWispsEffect().Apply(ctx), "WallOfWispsEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => new ToughHideEffect().Apply(ctx), "ToughHideEffect.Apply NRE 없음");
                 Assert.DoesNotThrow(() => new MarkOfDeathEffect().Apply(ctx), "MarkOfDeathEffect.Apply NRE 없음");
                 Assert.DoesNotThrow(() => new SpawnerHasteEffect().Apply(ctx), "SpawnerHasteEffect.Apply NRE 없음");
-                Assert.DoesNotThrow(() => new SwarmRushEffect().Apply(ctx), "SwarmRushEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => new FastBreedingEffect().Apply(ctx), "FastBreedingEffect.Apply NRE 없음");
                 Assert.DoesNotThrow(() => new GuardianRageEffect().Apply(ctx), "GuardianRageEffect.Apply NRE 없음");
             }
             finally
@@ -232,6 +232,7 @@ namespace Lair.Tests.Card
             public void IncrementGlobalMonsterCap(int delta) { }
             public void ScaleAllSpawnerPeriods(float mul) { }
             public void IncrementAllSpawnerOutputs(int delta) { }
+            public void ScaleSpawnerPeriodForType(EMonster type, float mul) { }
         }
     }
 }

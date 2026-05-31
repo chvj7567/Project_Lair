@@ -135,49 +135,42 @@ namespace Lair.Tests.Card
             Assert.AreEqual(0, ctx.Auras.Count, "Hero 없음 → ApplyHeroAura 호출 안 됨 (early return)");
         }
 
-        //# ===== 6. 신규 효과 5개 (Layer 2 호출 표면 회귀) =====
+        //# ===== 6. 신규 효과 (Layer 2 호출 표면 회귀) =====
 
-        //# WallOfWisps 2픽 → SpawnMonster(Wisp) 8회 호출 (가산 누적, 캡 truncate 는 SpawnMonster 내부).
+        //# 카드 리뉴얼 v0.6 patch — WallOfWisps→ToughHide / SwarmRush→FastBreeding 효과 교체로
+        //# WallOfWisps_2번_Apply / SwarmRush_2번_Apply 의 즉시 소환 다중픽 누적 케이스는 의미 사라짐.
+        //# ToughHide 다중픽 = AddMonsterBuff(ToughHide, -1) 매번 호출, MonsterBuffService 가 단일 영구 buff 로 유지.
+        //# FastBreeding 다중픽 = ScaleSpawnerPeriodForType(Phantom, 0.6) 매번 호출, BattleController._spawners 측 곱연산.
+
+        //# ToughHide 2픽 → AddMonsterBuff(ToughHide, -1) 2회 호출 (영구 buff 표면 회귀).
         [Test]
-        public void WallOfWisps_2번_Apply_SpawnMonster_8회_호출_가산누적()
+        public void ToughHide_2번_Apply_AddMonsterBuff_ToughHide_2회_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            GameObject heroGo = new GameObject("hero_t");
-            ctx.HeroTransform = heroGo.transform;
-            try
-            {
-                WallOfWispsEffect effect = new WallOfWispsEffect();
-                effect.Apply(ctx);
-                effect.Apply(ctx);
+            ToughHideEffect effect = new ToughHideEffect();
 
-                Assert.AreEqual(8, ctx.Spawned.Count, "2픽 → 4+4 = 8회 SpawnMonster 호출 (가산 누적)");
-                foreach (EMonster m in ctx.Spawned) Assert.AreEqual(EMonster.Wisp, m);
-            }
-            finally
-            {
-                Object.DestroyImmediate(heroGo);
-            }
+            effect.Apply(ctx);
+            effect.Apply(ctx);
+
+            Assert.AreEqual(2, ctx.MonsterBuffs.Count, "2픽 → 2회 호출");
+            foreach (EMonsterBuff b in ctx.MonsterBuffs) Assert.AreEqual(EMonsterBuff.ToughHide, b);
         }
 
-        //# SwarmRush 2픽 → SpawnMonster(Phantom) 12회 호출.
+        //# FastBreeding 2픽 → ScaleSpawnerPeriodForType(Phantom, 0.6) 2회 호출 (곱연산 누적은 BattleController 책임).
         [Test]
-        public void SwarmRush_2번_Apply_SpawnMonster_12회_호출_가산누적()
+        public void FastBreeding_2번_Apply_ScaleSpawnerPeriodForType_2회_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            GameObject heroGo = new GameObject("hero_t");
-            ctx.HeroTransform = heroGo.transform;
-            try
-            {
-                SwarmRushEffect effect = new SwarmRushEffect();
-                effect.Apply(ctx);
-                effect.Apply(ctx);
+            FastBreedingEffect effect = new FastBreedingEffect();
 
-                Assert.AreEqual(12, ctx.Spawned.Count, "2픽 → 6+6 = 12회 호출 (가산 누적)");
-                foreach (EMonster m in ctx.Spawned) Assert.AreEqual(EMonster.Phantom, m);
-            }
-            finally
+            effect.Apply(ctx);
+            effect.Apply(ctx);
+
+            Assert.AreEqual(2, ctx.SpawnerPeriodsByType.Count, "2픽 → 2회 호출");
+            foreach ((EMonster m, float mul) in ctx.SpawnerPeriodsByType)
             {
-                Object.DestroyImmediate(heroGo);
+                Assert.AreEqual(EMonster.Phantom, m, "팬텀 한정");
+                Assert.AreEqual(0.6f, mul, 0.0001f, "_periodMul = 0.6 — 매 픽 동일 인자");
             }
         }
 
@@ -203,6 +196,7 @@ namespace Lair.Tests.Card
             public readonly List<EMonster> Spawned = new();
             public readonly List<EMonsterBuff> MonsterBuffs = new();
             public readonly List<float> SpawnerPeriods = new();
+            public readonly List<(EMonster, float)> SpawnerPeriodsByType = new();
             public readonly List<IHeroAura> Auras = new();
             public Transform HeroTransform;
 
@@ -227,6 +221,7 @@ namespace Lair.Tests.Card
             public int GetBuildCount(EBuildAxis axis) => 0;
             public void IncrementGlobalMonsterCap(int delta) { }
             public void IncrementAllSpawnerOutputs(int delta) { }
+            public void ScaleSpawnerPeriodForType(EMonster type, float mul) => SpawnerPeriodsByType.Add((type, mul));
         }
     }
 }

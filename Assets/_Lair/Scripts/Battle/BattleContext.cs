@@ -125,5 +125,9 @@ namespace Lair.Battle
 
         public void IncrementAllSpawnerOutputs(int delta)
             => _owner.IncrementAllSpawnerOutputs(delta);
+
+        //# 카드 리뉴얼 v0.6 — 종별 Spawner 주기 곱연산 (영구). FastBreeding 카드 전용.
+        public void ScaleSpawnerPeriodForType(EMonster type, float mul)
+            => _owner.ScaleSpawnerPeriodForType(type, mul);
     }
 }

@@ -16,11 +16,12 @@ namespace Lair.Battle
 
         //# 카드 리뉴얼 v0.6 — EMonsterBuff 의 적용 종 한정 매핑.
         //# 미지정 buff 는 "전체 종" — 기존 Frenzy/IronWill/BerserkPower 동작 보존.
-        //# GuardianRage 만 {Wisp, Wraith} 한정 (기획서 §10.1 디자인 단정).
+        //# GuardianRage / ToughHide 만 {Wisp, Wraith} 한정 (기획서 §10.1 디자인 단정).
         private static readonly Dictionary<EMonsterBuff, HashSet<EMonster>> TargetTypes
             = new Dictionary<EMonsterBuff, HashSet<EMonster>>
             {
                 { EMonsterBuff.GuardianRage, new HashSet<EMonster> { EMonster.Wisp, EMonster.Wraith } },
+                { EMonsterBuff.ToughHide,    new HashSet<EMonster> { EMonster.Wisp, EMonster.Wraith } },
             };
 
         public bool IsActive(EMonsterBuff type)
@@ -30,13 +31,20 @@ namespace Lair.Battle
         }
 
         //# 같은 type 이 있으면 Remain 을 더 큰 값으로 연장.
+        //# 카드 리뉴얼 v0.6 — duration < 0 면 영구 (Tick 에서 Remain 감소 X).
+        //# 영구 ↔ 시한 동시 픽 시 영구 우선 (영구는 음수로 보존).
         public void AddBuff(EMonsterBuff type, float duration)
         {
             foreach (Buff b in _buffs)
             {
-                if (b.Type == type) { b.Remain = Mathf.Max(b.Remain, duration); return; }
+                if (b.Type == type)
+                {
+                    if (b.Remain < 0f || duration < 0f) b.Remain = -1f;
+                    else b.Remain = Mathf.Max(b.Remain, duration);
+                    return;
+                }
             }
-            _buffs.Add(new Buff { Type = type, Remain = duration });
+            _buffs.Add(new Buff { Type = type, Remain = duration < 0f ? -1f : duration });
         }
 
         //# 1) 만료 제거 2) 전체 몬스터 스케일 base 리셋 3) 활성 버프 곱셈 적용 (적용 종 한정).
@@ -44,6 +52,8 @@ namespace Lair.Battle
         {
             for (int i = _buffs.Count - 1; i >= 0; --i)
             {
+                //# 카드 리뉴얼 v0.6 — Remain < 0 은 영구 buff. 감소·제거 X.
+                if (_buffs[i].Remain < 0f) continue;
                 _buffs[i].Remain -= dt;
                 if (_buffs[i].Remain <= 0f) _buffs.RemoveAt(i);
             }
@@ -94,6 +104,11 @@ namespace Lair.Battle
                                 hp.DamageTakenScale *= 0.5f;
                                 hp.HpMaxScale *= 2f;
                             }
+                            break;
+                        case EMonsterBuff.ToughHide:
+                            //# 카드 리뉴얼 v0.6 — Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.75 영구.
+                            //# AddBuff(ToughHide, duration<0) 으로 영구 등록 시 매 tick 유지.
+                            if (hp != null) hp.DamageTakenScale *= 0.75f;
                             break;
                         case EMonsterBuff.SwarmSpeed:
                             //# 카드 리뉴얼 v0.6 [B2] — Slow 카드의 이중 효과 (모든 몬스터 이동속도 ×1.3 시한).

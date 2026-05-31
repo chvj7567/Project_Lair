@@ -105,11 +105,11 @@
   {
     "id": "Multiply",
     "axis": "Swarm",
-    "displayName": "스웜 러시",
-    "description": "팬텀 6마리 영웅 근처 즉시 소환",
+    "displayName": "빠른 번식",
+    "description": "팬텀 스포너 주기 -40% (영구)",
     "effect": {
-      "$type": "SwarmRushEffect",
-      "count": 6
+      "$type": "FastBreedingEffect",
+      "periodMul": 0.6
     }
   },
   {
@@ -240,12 +240,10 @@
   {
     "id": "WallOfWisps",
     "axis": "Tank",
-    "displayName": "위스프 장벽",
-    "description": "영웅 주변 4방위에 위스프 4마리 즉시 소환",
+    "displayName": "단단한 살갗",
+    "description": "위스프·레이스 받는 데미지 -25% (영구)",
     "effect": {
-      "$type": "WallOfWispsEffect",
-      "count": 4,
-      "radius": 2.5
+      "$type": "ToughHideEffect"
     }
   },
   {

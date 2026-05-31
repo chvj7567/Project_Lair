@@ -22,6 +22,7 @@ namespace Lair.Tests.Card
             public readonly List<float> SpawnerPeriods = new();
             public readonly List<int> CapDeltas = new();
             public readonly List<int> OutputDeltas = new();
+            public readonly List<(EMonster, float)> SpawnerPeriodsByType = new();
             public Transform HeroTransform;
 
             public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
@@ -31,6 +32,7 @@ namespace Lair.Tests.Card
             public void ScaleAllSpawnerPeriods(float mul) => SpawnerPeriods.Add(mul);
             public void IncrementGlobalMonsterCap(int delta) => CapDeltas.Add(delta);
             public void IncrementAllSpawnerOutputs(int delta) => OutputDeltas.Add(delta);
+            public void ScaleSpawnerPeriodForType(EMonster type, float mul) => SpawnerPeriodsByType.Add((type, mul));
             public void ApplyHeroAura(IHeroAura aura, float durationSeconds = -1f) { }
             public Transform GetHeroTransform() => HeroTransform;
 
@@ -70,47 +72,29 @@ namespace Lair.Tests.Card
         }
 
         //# WallOfWisps — Wisp 4마리 즉시 소환.
+        //# 카드 리뉴얼 v0.6 patch — ToughHide (구 WallOfWisps 자리) — AddMonsterBuff(ToughHide, -1) 영구 등록.
         [Test]
-        public void WallOfWisps_Apply_Wisp_4마리_소환()
+        public void ToughHide_Apply_AddMonsterBuff_ToughHide_영구_등록()
         {
             FakeCtx ctx = new FakeCtx();
-            GameObject heroGo = new GameObject("hero_t");
-            ctx.HeroTransform = heroGo.transform;
 
-            new WallOfWispsEffect().Apply(ctx);
+            new ToughHideEffect().Apply(ctx);
 
-            Assert.AreEqual(4, ctx.Spawned.Count);
-            foreach (EMonster m in ctx.Spawned)
-                Assert.AreEqual(EMonster.Wisp, m);
-
-            Object.DestroyImmediate(heroGo);
+            Assert.AreEqual(1, ctx.MonsterBuffs.Count);
+            Assert.AreEqual(EMonsterBuff.ToughHide, ctx.MonsterBuffs[0]);
         }
 
-        //# WallOfWisps 엣지 — Hero 가 없으면 no-op (예외 없음).
+        //# FastBreeding (구 SwarmRush 자리) — ScaleSpawnerPeriodForType(Phantom, 0.6) 영구.
         [Test]
-        public void WallOfWisps_Hero_없으면_noop()
+        public void FastBreeding_Apply_ScaleSpawnerPeriodForType_Phantom_0점6_호출()
         {
             FakeCtx ctx = new FakeCtx();
 
-            Assert.DoesNotThrow(() => new WallOfWispsEffect().Apply(ctx));
-            Assert.AreEqual(0, ctx.Spawned.Count);
-        }
+            new FastBreedingEffect().Apply(ctx);
 
-        //# SwarmRush — Phantom 6마리 즉시 소환.
-        [Test]
-        public void SwarmRush_Apply_Phantom_6마리_소환()
-        {
-            FakeCtx ctx = new FakeCtx();
-            GameObject heroGo = new GameObject("hero_t");
-            ctx.HeroTransform = heroGo.transform;
-
-            new SwarmRushEffect().Apply(ctx);
-
-            Assert.AreEqual(6, ctx.Spawned.Count);
-            foreach (EMonster m in ctx.Spawned)
-                Assert.AreEqual(EMonster.Phantom, m);
-
-            Object.DestroyImmediate(heroGo);
+            Assert.AreEqual(1, ctx.SpawnerPeriodsByType.Count);
+            Assert.AreEqual(EMonster.Phantom, ctx.SpawnerPeriodsByType[0].Item1);
+            Assert.AreEqual(0.6f, ctx.SpawnerPeriodsByType[0].Item2, 0.0001f);
         }
 
         //# SpawnerHaste — ScaleAllSpawnerPeriods(0.8) 1회 호출.

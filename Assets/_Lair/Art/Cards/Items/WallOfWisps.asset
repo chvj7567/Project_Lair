@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _id: 25
   _axis: 0
-  _displayName: "위스프 장벽"
-  _description: "영웅 주변 4방위에 위스프 4마리 즉시 소환"
+  _displayName: "단단한 살갗"
+  _description: "위스프·레이스 받는 데미지 -25% (영구)"
   _icon: {fileID: 0}
   _effect:
     rid: 2530925571701473400
@@ -23,7 +23,5 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 2530925571701473400
-      type: {class: WallOfWispsEffect, ns: Lair.Card, asm: Lair}
-      data:
-        _count: 4
-        _radius: 2.5
+      type: {class: ToughHideEffect, ns: Lair.Card, asm: Lair}
+      data: {}

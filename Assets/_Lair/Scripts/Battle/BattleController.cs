@@ -544,6 +544,15 @@ namespace Lair.Battle
                 if (sp != null) sp.IncrementOutput(delta);
         }
 
+        //# 카드 리뉴얼 v0.6 — FastBreeding 카드 전용. 출력 종이 type 인 Spawner 만 ScalePeriod(mul).
+        //# ScaleAllSpawnerPeriods 와 달리 종 매칭. 매칭 Spawner 0개면 no-op.
+        public void ScaleSpawnerPeriodForType(EMonster type, float mul)
+        {
+            if (_spawners == null || mul <= 0f) return;
+            foreach (Spawner sp in _spawners)
+                if (sp != null && sp.CurrentType == type) sp.ScalePeriod(mul);
+        }
+
         //# 카드 리뉴얼 v0.6 — 디버그 / 테스트용 read-only 노출. Tier3 발화 후 캡 변경 확인.
         public int MonsterCap => _monsterCap;
 

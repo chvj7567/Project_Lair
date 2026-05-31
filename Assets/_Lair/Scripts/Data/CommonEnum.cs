@@ -121,7 +121,7 @@ namespace Lair.Data
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
-    //# 카드 리뉴얼 v0.6 — GuardianRage / SwarmSpeed 신규 추가.
+    //# 카드 리뉴얼 v0.6 — GuardianRage / SwarmSpeed / ToughHide 신규 추가.
     public enum EMonsterBuff
     {
         Frenzy,        //# 공격속도 ↑ (전체 종)
@@ -129,6 +129,7 @@ namespace Lair.Data
         BerserkPower,  //# 데미지 ↑ (전체 종) — v0.6 에서 Berserk 카드 폐기로 미사용, enum 자리 보존
         GuardianRage,  //# 카드 리뉴얼 v0.6 — Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.5
         SwarmSpeed,    //# 카드 리뉴얼 v0.6 — Slow 카드의 이중 효과: 모든 몬스터 이동속도 ×1.3 (시한)
+        ToughHide,     //# 카드 리뉴얼 v0.6 — Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.75 영구 (단단한 살갗)
     }
 
     //# 지속 스폰 — 강화 카드가 RegisterMonsterTypeBuff 호출 시 "어느 스탯 배율인지" 지정.

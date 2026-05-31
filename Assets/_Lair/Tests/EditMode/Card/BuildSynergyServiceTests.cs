@@ -111,6 +111,7 @@ namespace Lair.Tests.Card
             public void IncrementGlobalMonsterCap(int delta) { }
             public void ScaleAllSpawnerPeriods(float mul) { }
             public void IncrementAllSpawnerOutputs(int delta) { }
+            public void ScaleSpawnerPeriodForType(EMonster type, float mul) { }
         }
     }
 }

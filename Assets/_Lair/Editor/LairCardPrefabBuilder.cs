@@ -96,9 +96,10 @@ namespace Lair.EditorTools
             new Spec { Id = ECardId.IronWill, Category = EBuildAxis.Tank,
                        DisplayName = "강철 의지", Description = "모든 몬스터 받는 데미지 -30% (15초)",
                        EffectFactory = () => new IronWillEffect() },
+            //# 카드 리뉴얼 v0.6 patch — WallOfWisps 효과는 ToughHide 로 교체. enum 값명·SO 파일명 보존.
             new Spec { Id = ECardId.WallOfWisps, Category = EBuildAxis.Tank,
-                       DisplayName = "위스프 장벽", Description = "영웅 주변 4방위에 위스프 4마리 즉시 소환",
-                       EffectFactory = () => new WallOfWispsEffect() },
+                       DisplayName = "단단한 살갗", Description = "위스프·레이스 받는 데미지 -25% (영구)",
+                       EffectFactory = () => new ToughHideEffect() },
             new Spec { Id = ECardId.Berserk, Category = EBuildAxis.Tank,
                        DisplayName = "수호자의 분노", Description = "위스프·레이스 받는 데미지 -50% (15초)",
                        EffectFactory = () => new GuardianRageEffect() },
@@ -126,11 +127,11 @@ namespace Lair.EditorTools
             new Spec { Id = ECardId.TimeStop, Category = EBuildAxis.Swarm,
                        DisplayName = "시간 정지", Description = "영웅 5초 멈춤",
                        EffectFactory = () => new TimeStopEffect() },
-            //# 카드 리뉴얼 v0.6 BLOCKER W1 — SwarmRush 효과는 ECardId.Multiply 자리 (값 20) 의 SO 파일 Multiply.asset 으로 재사용.
-            //# Berserk → GuardianRage 패턴과 동일: enum 값명·SO 파일명 보존, 효과/displayName 만 리뉴얼.
+            //# 카드 리뉴얼 v0.6 patch — Multiply 자리의 SwarmRush 효과는 FastBreeding 으로 교체.
+            //# enum 값명·SO 파일명 보존 (Berserk → GuardianRage 패턴 일관).
             new Spec { Id = ECardId.Multiply, Category = EBuildAxis.Swarm,
-                       DisplayName = "스웜 러시", Description = "팬텀 6마리 영웅 근처 즉시 소환",
-                       EffectFactory = () => new SwarmRushEffect() },
+                       DisplayName = "빠른 번식", Description = "팬텀 스포너 주기 -40% (영구)",
+                       EffectFactory = () => new FastBreedingEffect() },
             new Spec { Id = ECardId.Slow, Category = EBuildAxis.Swarm,
                        DisplayName = "던전의 점성", Description = "영웅 -50% 이동속도, 모든 몬스터 +30% 이동속도 (10초)",
                        EffectFactory = () => new SlowEffect() },

@@ -25,6 +25,7 @@ namespace Lair.Tests.Card
             public void IncrementGlobalMonsterCap(int delta) => CapDeltas.Add(delta);
             public void ScaleAllSpawnerPeriods(float mul) => SpawnerPeriods.Add(mul);
             public void IncrementAllSpawnerOutputs(int delta) => OutputDeltas.Add(delta);
+            public void ScaleSpawnerPeriodForType(EMonster type, float mul) { }
             public void ApplyHeroAura(IHeroAura aura, float durationSeconds = -1f) => Auras.Add(aura);
 
             //# no-op stubs
