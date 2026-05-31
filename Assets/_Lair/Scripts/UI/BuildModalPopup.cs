@@ -118,11 +118,12 @@ namespace Lair.UI
                 }
             }
 
-            //# 패시브 — 카테고리 그룹화 (Enhance → Spawn → Replace → Environment), 그룹 내 픽 시간 순.
+            //# 패시브 — 카테고리 그룹화 (Tank → Dps → Debuff → Swarm), 그룹 내 픽 시간 순.
+            //# 카드 리뉴얼 v0.6 — 구 카테고리 → EBuildAxis 자리 치환 (Phase 1 임시).
             passive.Sort((a, b) =>
             {
-                int oa = CategoryOrder(a.Card.Category);
-                int ob = CategoryOrder(b.Card.Category);
+                int oa = CategoryOrder(a.Card.Axis);
+                int ob = CategoryOrder(b.Card.Axis);
                 return oa.CompareTo(ob);
             });
 
@@ -137,13 +138,14 @@ namespace Lair.UI
             if (_activeScrollView  != null) _activeScrollView.SetItemList(active);
         }
 
-        private static int CategoryOrder(ECardCategory c) => c switch
+        //# 카드 리뉴얼 v0.6 — 구 카테고리 → EBuildAxis 자리 치환 (Phase 1 임시).
+        private static int CategoryOrder(EBuildAxis c) => c switch
         {
-            ECardCategory.Enhance     => 0,
-            ECardCategory.Spawn       => 1,
-            ECardCategory.Replace     => 2,
-            ECardCategory.Environment => 3,
-            _                         => 99,
+            EBuildAxis.Tank   => 0,
+            EBuildAxis.Dps    => 1,
+            EBuildAxis.Debuff => 2,
+            EBuildAxis.Swarm  => 3,
+            _                 => 99,
         };
     }
 }

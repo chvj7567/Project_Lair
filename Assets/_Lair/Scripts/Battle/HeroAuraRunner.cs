@@ -32,12 +32,20 @@ namespace Lair.Battle
             //# 같은 type 의 aura 가 이미 부착돼 있으면 Remain 연장 + 새 인스턴스 무시.
             //# 예: PoisonAura 가 이미 3초 남았는데 5초짜리 재부착 → Remain = 3 + 5 = 8초.
             //# 무제한(Indefinite) 슬롯은 변경 안 함. visual 도 재Pop 하지 않음.
+            //# [B3] 예외: IDistinctHeroAura 가 ShouldStackAsNew=true 반환 시 신규 인스턴스 부착 허용 (OnAttached 재호출).
+            //# HeroAttackDownAura 카드 픽 ×0.75 + Debuff Tier2 시너지 ×0.85 같은 factor 누적 케이스에 필요.
             foreach (Slot existing in _slots)
             {
                 if (existing.Aura.GetType() == aura.GetType())
                 {
-                    if (existing.Indefinite == false && duration > 0f) existing.Remain += duration;
-                    return;
+                    IDistinctHeroAura distinct = aura as IDistinctHeroAura;
+                    if (distinct == null || distinct.ShouldStackAsNew(existing.Aura) == false)
+                    {
+                        if (existing.Indefinite == false && duration > 0f) existing.Remain += duration;
+                        return;
+                    }
+                    //# Distinct + ShouldStackAsNew=true — 신규 부착 흐름으로 진입 (OnAttached 호출).
+                    break;
                 }
             }
 

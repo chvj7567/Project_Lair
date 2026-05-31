@@ -129,6 +129,26 @@ namespace Lair.Battle
             OnOutputCountChanged?.Invoke(_outputCount);
         }
 
+        //# 카드 리뉴얼 v0.6 — 모든 스포너 출력 +delta (Swarm Tier3). 가산 누적.
+        //# delta < 1 일 때도 음수 누적 방지 위해 Max(1) 클램프.
+        public void IncrementOutput(int delta)
+        {
+            if (delta <= 0) return;
+            _outputCount += delta;
+            OnOutputCountChanged?.Invoke(_outputCount);
+        }
+
+        //# 카드 리뉴얼 v0.6 — 스폰 주기 ×mul (SpawnerHaste 카드 / Swarm Tier2). 곱연산 누적.
+        //# mul <= 0 입력은 무시 (안전 가드). 최소 주기 0.05s 클램프 — 폭주 스폰 방지.
+        public void ScalePeriod(float mul)
+        {
+            if (mul <= 0f) return;
+            _spawnPeriod = Mathf.Max(0.05f, _spawnPeriod * mul);
+        }
+
+        //# 카드 리뉴얼 v0.6 — 디버그 / 테스트용 read-only 노출. 곱연산 누적 검증.
+        public float SpawnPeriod => _spawnPeriod;
+
         //# 융합 카드 — 출력 종 영구 변경. 동시 출력 수는 유지 (§3.5 케이스 3).
         //# 변경 후 OnOutputTypeChanged 발행 — SpawnerBody 가 틴트 즉시 갱신.
         public void ReplaceOutput(EMonster to)

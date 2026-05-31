@@ -24,7 +24,9 @@ namespace Lair.EditorTools
                 dtos.Add(new CardDataDto
                 {
                     Id          = card.Id.ToString(),
-                    Category    = card.Category.ToString(),
+                    //# 카드 리뉴얼 v0.6 — card.Category → card.Axis.
+                    //# json 의 "Category" 키명은 유지 (호환). 값은 EBuildAxis 의 enum 명("Tank"/"Dps"/...) 출력.
+                    Category    = card.Axis.ToString(),
                     DisplayName = card.DisplayName,
                     Description = card.Description,
                     Effect      = card.Effect
@@ -43,15 +45,17 @@ namespace Lair.EditorTools
                 Debug.LogWarning($"[CardDataSyncer] ECardId 파싱 실패 — skip: {dto.Id}");
                 return false;
             }
-            if (Enum.TryParse(dto.Category, out ECardCategory category) == false)
+            //# 카드 리뉴얼 v0.6 — 구 카테고리 → EBuildAxis. json 의 "Category" 키 값으로 axis enum 명 파싱.
+            //# 기존 json ("Enhance/Spawn/Replace/Environment") 은 본 시점에 파싱 실패 → skip (의도된 결과 — Phase 2 Task 14 에서 json 갱신).
+            if (Enum.TryParse(dto.Category, out EBuildAxis axis) == false)
             {
-                Debug.LogWarning($"[CardDataSyncer] ECardCategory 파싱 실패 — skip: {dto.Category} (카드 ID: {dto.Id})");
+                Debug.LogWarning($"[CardDataSyncer] EBuildAxis 파싱 실패 — skip: {dto.Category} (카드 ID: {dto.Id})");
                 return false;
             }
 
             SerializedObject so = new SerializedObject(card);
             so.FindProperty("_id").enumValueIndex          = (int)cardId;
-            so.FindProperty("_category").enumValueIndex    = (int)category;
+            so.FindProperty("_axis").enumValueIndex    = (int)axis;
             so.FindProperty("_displayName").stringValue    = dto.DisplayName;
             so.FindProperty("_description").stringValue    = dto.Description;
             so.FindProperty("_effect").managedReferenceValue = dto.Effect;

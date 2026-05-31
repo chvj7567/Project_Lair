@@ -16,11 +16,14 @@ namespace Lair.Tests.PlayMode
     //# 카드 픽 자동화는 BattleController.DebugAutoPicker(에디터 전용 훅)로만 구동 — 게임 로직 무수정.
     //#
     //# 캠페인 구조 — 전략별로 독립 [UnityTest] 메서드를 둔다(한 전략 실패가 다른 전략 결과를 잃지 않게):
-    //#   - 캠페인_Random전략_10판         : Random  @15x, N=10
-    //#   - 캠페인_TankerPriority전략_10판  : Tanker  @15x, N=10
-    //#   - 캠페인_DealerPriority전략_10판  : Dealer  @15x, N=10
-    //#   - 캠페인_AoEPriority전략_10판     : AoE     @15x, N=10
-    //#   - 검증_Random_5배속_3판          : Random  @5x,  N=3  (15x 가속 아티팩트 검증용)
+    //#   - 캠페인_Random전략_10판             : Random    @15x, N=25
+    //#   - 캠페인_TankAxisPriority전략_10판   : Tank 축   @15x, N=25
+    //#   - 캠페인_DpsAxisPriority전략_10판    : Dps 축    @15x, N=25
+    //#   - 캠페인_DebuffAxisPriority전략_10판 : Debuff 축 @15x, N=25
+    //#   - 캠페인_SwarmAxisPriority전략_10판  : Swarm 축  @15x, N=25
+    //#   - 검증_Random_5배속_3판              : Random    @5x,  N=3  (15x 가속 아티팩트 검증용)
+    //#
+    //# 카드 리뉴얼 v0.6 (2026-05-31, Phase 3 Task 16) — 기존 3 전략(Tanker/Dealer/AoE) → 4축 전략(Tank/Dps/Debuff/Swarm) 으로 갱신.
     //# 각 메서드는 시작 시 SimMetrics.CountExistingLines() 로 baseline 을 잡고,
     //# ReadSince(baseline) 으로 자기 슬라이스만 잘라 Summarize 한다 — RunRecord 에 전략 필드가 없으므로
     //# 순차 실행 + 메서드별 baseline 이 전략 분리의 유일한 안전 수단이다.
@@ -77,7 +80,7 @@ namespace Lair.Tests.PlayMode
                 WallTimeFailSafeSeconds, "스모크 / Random / 15x");
         }
 
-        //# ===== 본 캠페인 — 전략 4종 × 각 10판 @15x =====
+        //# ===== 본 캠페인 — 5 전략(Random + 4축) × 각 N판 @15x (v0.6) =====
 
         [UnityTest]
         public IEnumerator 캠페인_Random전략_10판()
@@ -87,24 +90,31 @@ namespace Lair.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator 캠페인_TankerPriority전략_10판()
+        public IEnumerator 캠페인_TankAxisPriority전략_10판()
         {
-            yield return RunCampaign(ESimStrategy.TankerPriority, CampaignGamesPerStrategy, SimTimeScale,
-                WallTimeFailSafeSeconds, "캠페인 / TankerPriority / 15x");
+            yield return RunCampaign(ESimStrategy.TankAxisPriority, CampaignGamesPerStrategy, SimTimeScale,
+                WallTimeFailSafeSeconds, "캠페인 / TankAxisPriority / 15x");
         }
 
         [UnityTest]
-        public IEnumerator 캠페인_DealerPriority전략_10판()
+        public IEnumerator 캠페인_DpsAxisPriority전략_10판()
         {
-            yield return RunCampaign(ESimStrategy.DealerPriority, CampaignGamesPerStrategy, SimTimeScale,
-                WallTimeFailSafeSeconds, "캠페인 / DealerPriority / 15x");
+            yield return RunCampaign(ESimStrategy.DpsAxisPriority, CampaignGamesPerStrategy, SimTimeScale,
+                WallTimeFailSafeSeconds, "캠페인 / DpsAxisPriority / 15x");
         }
 
         [UnityTest]
-        public IEnumerator 캠페인_AoEPriority전략_10판()
+        public IEnumerator 캠페인_DebuffAxisPriority전략_10판()
         {
-            yield return RunCampaign(ESimStrategy.AoEPriority, CampaignGamesPerStrategy, SimTimeScale,
-                WallTimeFailSafeSeconds, "캠페인 / AoEPriority / 15x");
+            yield return RunCampaign(ESimStrategy.DebuffAxisPriority, CampaignGamesPerStrategy, SimTimeScale,
+                WallTimeFailSafeSeconds, "캠페인 / DebuffAxisPriority / 15x");
+        }
+
+        [UnityTest]
+        public IEnumerator 캠페인_SwarmAxisPriority전략_10판()
+        {
+            yield return RunCampaign(ESimStrategy.SwarmAxisPriority, CampaignGamesPerStrategy, SimTimeScale,
+                WallTimeFailSafeSeconds, "캠페인 / SwarmAxisPriority / 15x");
         }
 
         //# ===== 가속 아티팩트 검증 — Random @5x =====

@@ -11,11 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 474dab41f45650645a20122bff380127, type: 3}
   m_Name: Berserk
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   _id: 24
-  _category: 0
-  _displayName: "\uD3ED\uC8FC"
-  _description: "\uBAAC\uC2A4\uD130 HP -50%, \uB370\uBBF8\uC9C0 +200% (15\uCD08)"
+  _axis: 0
+  _displayName: "수호자의 분노"
+  _description: "위스프·레이스 받는 데미지 -50% (15초)"
   _icon: {fileID: 0}
   _effect:
     rid: 2530925571701473388
@@ -23,6 +23,6 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 2530925571701473388
-      type: {class: BerserkEffect, ns: Lair.Card, asm: Lair}
+      type: {class: GuardianRageEffect, ns: Lair.Card, asm: Lair}
       data:
         _duration: 15

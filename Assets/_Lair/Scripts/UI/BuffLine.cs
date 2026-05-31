@@ -68,7 +68,8 @@ namespace Lair.UI
         private static string FormatBody(BattleViewModel.AppliedBuff buff, EMonster type, BalanceConfig balance)
         {
             //# v1.0 — Spawn 카테고리는 stat 분기 전에 단일 줄 단정. Stat 필드 안 읽음.
-            if (buff.Source != null && buff.Source.Category == ECardCategory.Spawn)
+            //# 카드 리뉴얼 v0.6 — 구 Spawn → EBuildAxis.Dps 자리 치환 (Phase 1 임시).
+            if (buff.Source != null && buff.Source.Axis == EBuildAxis.Dps)
                 return $"동시 출력 +{buff.PickCount}";
 
             BalanceConfig.CharacterStat baseStat = balance != null ? balance.GetMonster(type) : null;

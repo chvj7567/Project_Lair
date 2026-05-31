@@ -25,7 +25,8 @@ namespace Lair.Battle
 
         //# 지속 스폰 — 글로벌 필드 몬스터 하드 캡 (§4.2). 어느 스폰 경로에서든 절대값.
         //# v7: 12 → 18. Power 차등 하향으로 DPS 여유 확보 → 캡 복귀 (continuous-spawn-round.md §6.3).
-        private const int MonsterCap = 18;
+        //# 카드 리뉴얼 v0.6 — Tank Tier3 시너지가 런타임에 +6 (18→24) 가능하도록 const → 변수로 승격.
+        private int _monsterCap = 18;
 
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
@@ -69,6 +70,10 @@ namespace Lair.Battle
         //# B3 신규 — 몬스터 글로벌 버프 / 피의 갈증
         private MonsterBuffService _monsterBuffs;
         private BloodThirstService _bloodThirst;
+
+        //# 카드 리뉴얼 v0.6 — 빌드 시너지 (Phase 1 Task 4). BattleContext 가 위임 호출.
+        //# Tier 바인딩은 Phase 2 Task 11 에서 12개 (4축 × 3Tier) 추가.
+        private BuildSynergyService _synergy;
 
         //# Slice C — 한 판 결과 측정
         private readonly RunRecorder _recorder = new RunRecorder();
@@ -114,7 +119,24 @@ namespace Lair.Battle
                     TryProcessNext();
                 };
             }
-            _ctx = new BattleContext(this);
+            //# 카드 리뉴얼 v0.6 — 빌드 시너지 (Phase 1+2). BattleContext 보다 먼저 생성해 주입.
+            //# 라운드 시작 시 카운트 초기화 (씬 1회 진입 = 1 라운드라 Reset 필수 호출 아니지만, Restart 패턴 대비).
+            _synergy = new BuildSynergyService();
+            _synergy.Reset();
+            //# Phase 2 Task 11 — 12개 Tier 바인딩 (4축 × 3Tier). 기획서 §4.2 표.
+            _synergy.BindTier(EBuildAxis.Tank,   3, new TankSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Tank,   5, new TankSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Tank,   7, new TankSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Dps,    3, new DpsSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Dps,    5, new DpsSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Dps,    7, new DpsSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Debuff, 3, new DebuffSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Debuff, 5, new DebuffSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Debuff, 7, new DebuffSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Swarm,  3, new SwarmSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Swarm,  5, new SwarmSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Swarm,  7, new SwarmSynergyTier3());
+            _ctx = new BattleContext(this, _synergy);
 
             //# B3 — 몬스터 글로벌 버프 / 피의 갈증 서비스
             _monsterBuffs = new MonsterBuffService();
@@ -345,7 +367,7 @@ namespace Lair.Battle
         {
             if (_model != null && _model.Result != BattleResult.None) return;
             //# 사이클 진입 판정 — 시작 시 1회 (§4.3 사이클 단위 검사).
-            if (AliveMonsterCount() >= MonsterCap) return;   //# 사이클 백오프 (await 전 선검사)
+            if (AliveMonsterCount() >= _monsterCap) return;   //# 사이클 백오프 (await 전 선검사)
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
             if (prefab == null) return;
@@ -355,7 +377,7 @@ namespace Lair.Battle
             for (int i = 0; i < count; ++i)
             {
                 //# 마리 단위 캡 재검사 — 사이클 잔여를 중단해 캡을 절대 넘기지 않는다.
-                if (AliveMonsterCount() >= MonsterCap) break;
+                if (AliveMonsterCount() >= _monsterCap) break;
                 CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
                 if (p == null) continue;
                 p.transform.position = exactPos;
@@ -394,11 +416,17 @@ namespace Lair.Battle
         //# 스포너 상태 UI — 카드 효과 적용의 단일 진입점 (기획서 §4.2 BLOCKER 4 결정).
         //# 3개 기존 호출지점(card.Effect.Apply(_ctx))을 이 메서드로 치환해 source 를 잠시 보관한다.
         //# ICardEffect / IBattleContext / 25개 효과 클래스 시그니처는 일체 변경하지 않는다.
+        //# 카드 리뉴얼 v0.6 — Effect.Apply 직전 RegisterCardPick(axis) 로 빌드 시너지 카운트 + 임계 발화.
         public void ApplyCardEffect(CardData card)
         {
             if (card?.Effect == null || _ctx == null) return;
             _currentCardScope = card;
-            try { card.Effect.Apply(_ctx); }
+            try
+            {
+                //# 빌드 시너지 카운트 등록 (임계 도달 시 시너지 Tier Apply 1회 발화). Effect.Apply 직전 호출.
+                _ctx.RegisterCardPick(card.Axis);
+                card.Effect.Apply(_ctx);
+            }
             finally { _currentCardScope = null; }
         }
 
@@ -425,10 +453,14 @@ namespace Lair.Battle
             //# 향후 1↔다 매핑 확장에 대비해 list 순회로 갱신).
             //# v1.0 — Enhance 카테고리만 갱신 대상. Spawn 엔트리(같은 list 에 들어감)의 AggregateMultiplier 가
             //# 잘못 덮어쓰이지 않도록 Category 필터.
+            //# 카드 리뉴얼 v0.6 — 구 Enhance → EBuildAxis.Tank 자리 치환 (Phase 1 임시 매핑).
+            //# Phase 2 SO 재할당 후 실제 의미는 다시 정렬됨 — TrackCardPick / TrackSpawnPick 분기 자체를
+            //# axis 기반이 아닌 'TrackCardPick 가 호출됐는가(Enhance 류) / TrackSpawnPick 가 호출됐는가(Spawn 류)'
+            //# 의 호출 진입점 차이로 의도 보존. 본 필터는 stat 일치 검증이 본질이므로 axis 분기는 변환만 한 채 유지.
             if (_typeModifiers.TryGetValue(type, out StatMultiplier mul))
             {
                 foreach (BattleViewModel.AppliedBuff b in list)
-                    if (b.Stat == stat && b.Source != null && b.Source.Category == ECardCategory.Enhance)
+                    if (b.Stat == stat && b.Source != null && b.Source.Axis == EBuildAxis.Tank)
                         b.AggregateMultiplier = mul.Get(stat);
             }
         }
@@ -488,6 +520,32 @@ namespace Lair.Battle
             foreach (Spawner sp in _spawners)
                 if (sp != null && sp.CurrentType == from) sp.ReplaceOutput(to);
         }
+
+        //# 카드 리뉴얼 v0.6 — Tank Tier3. 글로벌 필드 캡 +delta. 음수 입력 무시 (안전 가드).
+        public void IncrementGlobalMonsterCap(int delta)
+        {
+            if (delta <= 0) return;
+            _monsterCap += delta;
+        }
+
+        //# 카드 리뉴얼 v0.6 — SpawnerHaste 카드 / Swarm Tier2. 모든 Spawner 의 _spawnPeriod ×mul (영구).
+        public void ScaleAllSpawnerPeriods(float mul)
+        {
+            if (_spawners == null || mul <= 0f) return;
+            foreach (Spawner sp in _spawners)
+                if (sp != null) sp.ScalePeriod(mul);
+        }
+
+        //# 카드 리뉴얼 v0.6 — Swarm Tier3. 모든 Spawner 의 _outputCount +delta (영구).
+        public void IncrementAllSpawnerOutputs(int delta)
+        {
+            if (_spawners == null || delta <= 0) return;
+            foreach (Spawner sp in _spawners)
+                if (sp != null) sp.IncrementOutput(delta);
+        }
+
+        //# 카드 리뉴얼 v0.6 — 디버그 / 테스트용 read-only 노출. Tier3 발화 후 캡 변경 확인.
+        public int MonsterCap => _monsterCap;
 
         private async void EndBattle(BattleResult result)
         {
@@ -608,13 +666,13 @@ namespace Lair.Battle
         public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
         {
             if (_model != null && _model.Result != BattleResult.None) return;
-            if (AliveMonsterCount() >= MonsterCap) return;   //# 빠른 선검사 (await 전)
+            if (AliveMonsterCount() >= _monsterCap) return;   //# 빠른 선검사 (await 전)
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null) return;
             //# await 후 재검사 — 동프레임 다중 호출(증식)이 await 로 인터리브돼도 캡 절대값 보장.
             if (_model != null && _model.Result != BattleResult.None) return;
-            if (AliveMonsterCount() >= MonsterCap) return;
+            if (AliveMonsterCount() >= _monsterCap) return;
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
 

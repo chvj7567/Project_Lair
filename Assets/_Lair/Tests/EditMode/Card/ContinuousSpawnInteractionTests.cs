@@ -54,6 +54,12 @@ namespace Lair.Tests.Card
             public void AddMonsterBuff(EMonsterBuff type, float duration) { }
             public void ActivateBloodThirst(float duration) { }
             public void HalveAllMonsterHp() { }
+            //# 카드 리뉴얼 v0.6 — IBattleContext 신규 표면 (Phase 1 Task 4). 본 테스트 미사용 stub.
+            public void RegisterCardPick(EBuildAxis axis) { }
+            public int GetBuildCount(EBuildAxis axis) => 0;
+            public void IncrementGlobalMonsterCap(int delta) { }
+            public void ScaleAllSpawnerPeriods(float mul) { }
+            public void IncrementAllSpawnerOutputs(int delta) { }
             public float DeltaTime => 0f;
         }
 

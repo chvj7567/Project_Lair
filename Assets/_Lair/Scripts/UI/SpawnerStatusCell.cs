@@ -118,7 +118,7 @@ namespace Lair.UI
             RebindIconRow(snapshot);
         }
 
-        //# v1.0 — AppliedBuffs 를 Source.Category 로 분기해 2 슬롯 (좌 Enhance / 우 Spawn) 각각에 바인딩.
+        //# v1.0 — AppliedBuffs 를 Source.Axis 로 분기해 2 슬롯 (좌 Tank=구 Enhance / 우 Dps=구 Spawn) 각각에 바인딩.
         //# 종 1 ↔ Enhance 카드 1 + 종 1 ↔ Spawn 카드 1 (Hex 제외) 매핑이라 각 슬롯의 distinct 아이콘은 0 또는 1.
         //# 양 슬롯 모두 비활성이면 IconRow 자체를 숨김 (기존 정책 유지 — 본체 row 위치 고정).
         private void RebindIconRow(BattleViewModel.SpawnerSnapshot snapshot)
@@ -126,6 +126,9 @@ namespace Lair.UI
             if (_iconRow == null) return;
 
             //# 슬롯별 매칭된 buff 찾기 (Category 분기).
+            //# 카드 리뉴얼 v0.6 — 구 Enhance/Spawn → EBuildAxis.Tank/Dps 자리 치환 (Phase 1 임시).
+            //# Phase 2 SO 마이그레이션 후 의미가 재정렬되면 본 분기를 카드 효과 종류(강화/스폰)와
+            //# 정합하도록 재설계 (TrackCardPick vs TrackSpawnPick 호출 진입점 기반 등).
             BattleViewModel.AppliedBuff enhanceBuff = null;
             BattleViewModel.AppliedBuff spawnBuff = null;
 
@@ -136,9 +139,9 @@ namespace Lair.UI
                 {
                     BattleViewModel.AppliedBuff b = buffs[i];
                     if (b == null || b.Source == null) continue;
-                    if (b.Source.Category == ECardCategory.Enhance && enhanceBuff == null)
+                    if (b.Source.Axis == EBuildAxis.Tank && enhanceBuff == null)
                         enhanceBuff = b;
-                    else if (b.Source.Category == ECardCategory.Spawn && spawnBuff == null)
+                    else if (b.Source.Axis == EBuildAxis.Dps && spawnBuff == null)
                         spawnBuff = b;
                 }
             }

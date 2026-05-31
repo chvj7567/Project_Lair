@@ -51,7 +51,8 @@ namespace Lair.Tests.UI
             go.SetActive(false);
             _spawned.Add(go);
             BattleController bc = go.AddComponent<BattleController>();
-            SetPrivate(bc, "_ctx", new BattleContext(bc));
+            //# 카드 리뉴얼 v0.6 — BattleContext 2-arg 시그니처 (BuildSynergyService 주입). null 안전.
+            SetPrivate(bc, "_ctx", new BattleContext(bc, null));
             return bc;
         }
 

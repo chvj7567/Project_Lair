@@ -52,7 +52,9 @@ namespace Lair.Tests.Battle
             _spawned.Add(go);
             BattleController bc = go.AddComponent<BattleController>();
             //# BattleContext 주입 — Apply 가 ctx 를 받아 RegisterMonsterTypeBuff 위임할 때 사용.
-            SetPrivate(bc, "_ctx", new BattleContext(bc));
+            //# 카드 리뉴얼 v0.6 — BattleContext 가 BuildSynergyService 주입을 받는 2-arg 시그니처로 변경.
+            //# 본 테스트의 검증 대상은 빌드 시너지가 아니므로 null 주입(BattleContext.RegisterCardPick null 가드).
+            SetPrivate(bc, "_ctx", new BattleContext(bc, null));
             return bc;
         }
 

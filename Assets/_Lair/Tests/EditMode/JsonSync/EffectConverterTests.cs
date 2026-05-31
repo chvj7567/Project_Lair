@@ -8,43 +8,43 @@ namespace Lair.Tests
 {
     public class EffectConverterTests
     {
-        //# BerserkEffect 의 $type 필드가 JSON 에 기록되는지 확인
+        //# GuardianRageEffect 의 $type 필드가 JSON 에 기록되는지 확인
         [Test]
-        public void BerserkEffect_Export_포함TypeField()
+        public void GuardianRageEffect_Export_포함TypeField()
         {
-            ICardEffect effect = new BerserkEffect();
+            ICardEffect effect = new GuardianRageEffect();
             JsonSerializerSettings settings = JsonSyncSettings.Build();
 
             string json = JsonConvert.SerializeObject(effect, typeof(ICardEffect), settings);
 
             Assert.IsTrue(json.Contains("\"$type\""), $"$type 필드 없음: {json}");
-            Assert.IsTrue(json.Contains("BerserkEffect"), $"타입명 없음: {json}");
+            Assert.IsTrue(json.Contains("GuardianRageEffect"), $"타입명 없음: {json}");
         }
 
         //# 직렬화 → 역직렬화 후 구상 타입 보존
         [Test]
-        public void BerserkEffect_RoundTrip_타입보존()
+        public void GuardianRageEffect_RoundTrip_타입보존()
         {
-            ICardEffect effect = new BerserkEffect();
+            ICardEffect effect = new GuardianRageEffect();
             JsonSerializerSettings settings = JsonSyncSettings.Build();
 
             string json = JsonConvert.SerializeObject(effect, typeof(ICardEffect), settings);
             ICardEffect result = JsonConvert.DeserializeObject<ICardEffect>(json, settings);
 
-            Assert.IsInstanceOf<BerserkEffect>(result);
+            Assert.IsInstanceOf<GuardianRageEffect>(result);
         }
 
         //# [SerializeField] private float _duration 기본값이 JSON 을 거쳐도 보존
         [Test]
-        public void BerserkEffect_RoundTrip_duration기본값보존()
+        public void GuardianRageEffect_RoundTrip_duration기본값보존()
         {
-            ICardEffect effect = new BerserkEffect(); //# _duration 기본값 15f
+            ICardEffect effect = new GuardianRageEffect(); //# _duration 기본값 15f
             JsonSerializerSettings settings = JsonSyncSettings.Build();
 
             string json = JsonConvert.SerializeObject(effect, typeof(ICardEffect), settings);
             ICardEffect result = JsonConvert.DeserializeObject<ICardEffect>(json, settings);
 
-            float duration = (float)typeof(BerserkEffect)
+            float duration = (float)typeof(GuardianRageEffect)
                 .GetField("_duration", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(result);
             Assert.AreEqual(15f, duration, 0.001f);
@@ -52,10 +52,10 @@ namespace Lair.Tests
 
         //# 기본값이 아닌 값으로 직렬화 후 역직렬화해도 필드 값 보존 (기본값 우연 통과 방지)
         [Test]
-        public void BerserkEffect_RoundTrip_duration비기본값보존()
+        public void GuardianRageEffect_RoundTrip_duration비기본값보존()
         {
-            BerserkEffect effect = new BerserkEffect();
-            typeof(BerserkEffect)
+            GuardianRageEffect effect = new GuardianRageEffect();
+            typeof(GuardianRageEffect)
                 .GetField("_duration", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(effect, 99f);
             JsonSerializerSettings settings = JsonSyncSettings.Build();
@@ -63,13 +63,13 @@ namespace Lair.Tests
             string json = JsonConvert.SerializeObject(effect, typeof(ICardEffect), settings);
             ICardEffect result = JsonConvert.DeserializeObject<ICardEffect>(json, settings);
 
-            float duration = (float)typeof(BerserkEffect)
+            float duration = (float)typeof(GuardianRageEffect)
                 .GetField("_duration", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(result);
             Assert.AreEqual(99f, duration, 0.001f);
         }
 
-        //# WispHpBoostEffect — BerserkEffect 외 다른 타입도 [SerializeField] 필드 round-trip
+        //# WispHpBoostEffect — GuardianRageEffect 외 다른 타입도 [SerializeField] 필드 round-trip
         [Test]
         public void WispHpBoostEffect_RoundTrip_hpMul보존()
         {

@@ -21,12 +21,23 @@ namespace Lair.Character
             set => _speed = value;
         }
 
+        //# 카드 리뉴얼 v0.6 [B2] — 일시 속도 배율 오버레이. MonsterBuffService 가 매 tick 재설정.
+        //# 기본 1.0. SwarmSpeed buff 활성 중 1.3 곱연산 → FixedUpdate 의 effectiveSpeed 계산에 반영.
+        //# buff 종료 후 Tick 에서 1.0 복원, 풀 재사용 시에도 1.0 리셋.
+        public float SpeedScale { get; set; } = 1f;
+
         //# B3 — MoveTo 후 Stop 전까지 true. 출혈 카드가 영웅 이동 판정에 사용.
         public bool IsMoving => _moving;
 
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
+        }
+
+        //# [B2] 풀 재사용 시 SpeedScale 잔존 방지.
+        private void OnEnable()
+        {
+            SpeedScale = 1f;
         }
 
         public void MoveTo(Vector3 target)
@@ -51,7 +62,9 @@ namespace Lair.Character
             if (_moving == false)
                 return;
 
-            Vector3 next = Vector3.MoveTowards(transform.position, _target, _speed * Time.fixedDeltaTime);
+            //# [B2] effectiveSpeed = base × SpeedScale. SwarmSpeed buff 활성 시 1.3 배수.
+            float effectiveSpeed = _speed * SpeedScale;
+            Vector3 next = Vector3.MoveTowards(transform.position, _target, effectiveSpeed * Time.fixedDeltaTime);
             //# Y 평면 고정 — 캐릭터가 카메라 각도로 떠오르지 않도록
             next.y = 0f;
 

@@ -20,10 +20,10 @@ namespace Lair.Tests
             _card = ScriptableObject.CreateInstance<CardData>();
             SerializedObject so = new SerializedObject(_card);
             so.FindProperty("_id").enumValueIndex          = (int)ECardId.Berserk;
-            so.FindProperty("_category").enumValueIndex    = (int)ECardCategory.Enhance;
+            so.FindProperty("_axis").enumValueIndex    = (int)EBuildAxis.Tank;
             so.FindProperty("_displayName").stringValue    = "폭주";
             so.FindProperty("_description").stringValue    = "테스트 설명";
-            so.FindProperty("_effect").managedReferenceValue = new BerserkEffect();
+            so.FindProperty("_effect").managedReferenceValue = new GuardianRageEffect();
 
             //# _icon 에 더미 Sprite 를 세팅 — ApplyDto 후 변경 여부 확인용
             Texture2D tex = new Texture2D(1, 1);
@@ -54,14 +54,15 @@ namespace Lair.Tests
             Assert.AreEqual("Berserk", arr[0]["id"]?.Value<string>());
         }
 
-        //# Export → JSON 에 category 필드 포함
+        //# Export → JSON 에 axis 필드 포함 (카드 리뉴얼 v0.6 — 키명 category → axis 변경).
         [Test]
-        public void ExportToJson_Category포함()
+        public void ExportToJson_Axis포함()
         {
             string json = CardDataSyncer.ExportToJson(new List<CardData> { _card });
             JArray arr = JArray.Parse(json);
 
-            Assert.AreEqual("Enhance", arr[0]["category"]?.Value<string>());
+            //# 카드 리뉴얼 v0.6 — json 의 "axis" 키 + EBuildAxis enum 명 ("Tank").
+            Assert.AreEqual("Tank", arr[0]["axis"]?.Value<string>());
         }
 
         //# Export → JSON 에 displayName 한글 포함
@@ -91,7 +92,7 @@ namespace Lair.Tests
             string json = CardDataSyncer.ExportToJson(new List<CardData> { _card });
             JArray arr = JArray.Parse(json);
 
-            Assert.AreEqual("BerserkEffect", arr[0]["effect"]?["$type"]?.Value<string>());
+            Assert.AreEqual("GuardianRageEffect", arr[0]["effect"]?["$type"]?.Value<string>());
         }
 
         //# Export → 빈 목록이면 빈 JSON 배열 반환
@@ -111,7 +112,7 @@ namespace Lair.Tests
             CardData card2 = ScriptableObject.CreateInstance<CardData>();
             SerializedObject so2 = new SerializedObject(card2);
             so2.FindProperty("_id").enumValueIndex       = (int)ECardId.Frenzy;
-            so2.FindProperty("_category").enumValueIndex = (int)ECardCategory.Enhance;
+            so2.FindProperty("_axis").enumValueIndex = (int)EBuildAxis.Tank;
             so2.FindProperty("_displayName").stringValue = "광폭화";
             so2.FindProperty("_description").stringValue = "설명2";
             so2.FindProperty("_effect").managedReferenceValue = new FrenzyEffect();
@@ -134,10 +135,10 @@ namespace Lair.Tests
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Berserk",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "폭주",
                 Description = "설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             bool result = CardDataSyncer.ApplyDto(dto, _card);
@@ -152,10 +153,10 @@ namespace Lair.Tests
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Berserk",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "새이름",
                 Description = "새설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             CardDataSyncer.ApplyDto(dto, _card);
@@ -170,10 +171,10 @@ namespace Lair.Tests
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Berserk",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "폭주",
                 Description = "바뀐 설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             CardDataSyncer.ApplyDto(dto, _card);
@@ -181,14 +182,14 @@ namespace Lair.Tests
             Assert.AreEqual("바뀐 설명", _card.Description);
         }
 
-        //# ApplyDto → effect 타입 갱신 (BerserkEffect → FrenzyEffect)
+        //# ApplyDto → effect 타입 갱신 (GuardianRageEffect → FrenzyEffect)
         [Test]
         public void ApplyDto_Effect타입갱신()
         {
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Frenzy",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "광폭화",
                 Description = "설명",
                 Effect      = new FrenzyEffect()
@@ -206,10 +207,10 @@ namespace Lair.Tests
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Berserk",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "새이름",
                 Description = "새설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             CardDataSyncer.ApplyDto(dto, _card);
@@ -227,10 +228,10 @@ namespace Lair.Tests
             CardDataDto dto = new CardDataDto
             {
                 Id          = "InvalidId",
-                Category    = "Enhance",
+                Category    = "Tank",
                 DisplayName = "변경된이름",
                 Description = "설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             bool result = CardDataSyncer.ApplyDto(dto, _card);
@@ -246,14 +247,15 @@ namespace Lair.Tests
         {
             string originalName     = _card.DisplayName;
             ECardId originalId      = _card.Id;
-            ECardCategory originalCat = _card.Category;
+            //# 카드 리뉴얼 v0.6 — Category → Axis (Phase 1).
+            EBuildAxis originalAxis = _card.Axis;
             CardDataDto dto = new CardDataDto
             {
                 Id          = "Berserk",
                 Category    = "InvalidCategory",
                 DisplayName = "변경된이름",
                 Description = "설명",
-                Effect      = new BerserkEffect()
+                Effect      = new GuardianRageEffect()
             };
 
             bool result = CardDataSyncer.ApplyDto(dto, _card);
@@ -261,7 +263,7 @@ namespace Lair.Tests
             Assert.IsFalse(result);
             Assert.AreEqual(originalName, _card.DisplayName, "DisplayName 이 변경됨");
             Assert.AreEqual(originalId,   _card.Id,          "Id 가 변경됨");
-            Assert.AreEqual(originalCat,  _card.Category,    "Category 가 변경됨");
+            Assert.AreEqual(originalAxis, _card.Axis,        "Axis 가 변경됨");
         }
     }
 }

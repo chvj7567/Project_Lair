@@ -1,31 +1,34 @@
-﻿{
+{
   "passive": [
     "WispHpBoost",
     "WraithDamageBoost",
+    "SpawnWraith",
+    "ReplaceWispsToWraith",
     "ReaperAtkSpeed",
     "HexRangeBoost",
-    "PlagueSlowBoost",
-    "PhantomMoveSpeedBoost",
-    "SpawnWisps",
-    "SpawnWraith",
     "SpawnReapers",
-    "SpawnPlagues",
-    "SpawnPhantoms",
-    "ReplaceWispsToWraith",
     "ReplaceReapersToHex",
+    "PlagueSlowBoost",
+    "SpawnPlagues",
     "HeroPoisonAura",
-    "HeroAttackDown"
+    "HeroAttackDown",
+    "PhantomMoveSpeedBoost",
+    "SpawnPhantoms",
+    "SpawnWisps",
+    "SpawnerHaste"
   ],
   "active": [
+    "IronWill",
+    "WallOfWisps",
+    "Berserk",
+    "Frenzy",
+    "BloodThirst",
+    "MarkOfDeath",
     "Fear",
     "Bleed",
     "Weaken",
-    "Slow",
-    "Frenzy",
-    "Multiply",
-    "BloodThirst",
-    "IronWill",
     "TimeStop",
-    "Berserk"
+    "Multiply",
+    "Slow"
   ]
 }

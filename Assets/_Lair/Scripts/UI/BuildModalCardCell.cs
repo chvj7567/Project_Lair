@@ -36,7 +36,7 @@ namespace Lair.UI
             if (_frame != null)
             {
                 (char letter, Color bgColor, Color fgColor) iconInfo = SpawnerStatusCell.IconLetterFor(card.Id);
-                _frame.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Category);
+                _frame.color = iconInfo.letter != ' ' ? iconInfo.bgColor : CardView.CategoryColor(card.Axis);
             }
             if (_nameText != null) _nameText.SetText(card.DisplayName);
             if (_descText != null)

@@ -11,9 +11,15 @@ namespace Lair.Battle
     public class BattleContext : IBattleContext
     {
         private readonly BattleController _owner;
+        //# 카드 리뉴얼 v0.6 — 빌드 시너지 코어 (Phase 1 Task 4). BattleController 가 주입.
+        private readonly BuildSynergyService _synergy;
         public float DeltaTime => Time.deltaTime;
 
-        public BattleContext(BattleController owner) => _owner = owner;
+        public BattleContext(BattleController owner, BuildSynergyService synergy)
+        {
+            _owner = owner;
+            _synergy = synergy;
+        }
 
         public IEnumerable<IHealth> GetMonsters(EMonster? filter = null)
         {
@@ -94,5 +100,30 @@ namespace Lair.Battle
 
         public void ReplaceSpawnerOutput(EMonster from, EMonster to)
             => _owner.ReplaceSpawnerOutput(from, to);
+
+        //# 카드 리뉴얼 v0.6 — 카드 픽 hook. BuildSynergyService 에 위임, 본 ctx 자신을 임계 발화 인자로 전달.
+        //# _synergy null 가드: 테스트가 단축 생성자 없이 부른 경우 안전 분기.
+        public void RegisterCardPick(EBuildAxis axis)
+        {
+            if (_synergy == null) return;
+            _synergy.RegisterPick(axis, this);
+        }
+
+        public int GetBuildCount(EBuildAxis axis)
+        {
+            if (_synergy == null) return 0;
+            return _synergy.GetCount(axis);
+        }
+
+        //# 카드 리뉴얼 v0.6 — Tank Tier3 시너지 / SpawnerHaste / Swarm Tier2·3 표면.
+        //# BattleController 가 _monsterCap (필드 승격) + Spawner 컴포넌트 집합 조작을 위임.
+        public void IncrementGlobalMonsterCap(int delta)
+            => _owner.IncrementGlobalMonsterCap(delta);
+
+        public void ScaleAllSpawnerPeriods(float mul)
+            => _owner.ScaleAllSpawnerPeriods(mul);
+
+        public void IncrementAllSpawnerOutputs(int delta)
+            => _owner.IncrementAllSpawnerOutputs(delta);
     }
 }

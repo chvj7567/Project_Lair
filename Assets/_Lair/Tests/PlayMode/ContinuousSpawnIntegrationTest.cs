@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Lair.Battle;
+using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 
@@ -355,7 +356,8 @@ namespace Lair.Tests.PlayMode
             while (waitInit < 4f)
             {
                 bc = Object.FindFirstObjectByType<BattleController>();
-                if (bc != null) break;
+                if (bc != null)
+                    break;
                 waitInit += Time.unscaledDeltaTime;
                 yield return null;
             }
@@ -440,7 +442,8 @@ namespace Lair.Tests.PlayMode
             while (wait < 2f)
             {
                 bc = Object.FindFirstObjectByType<BattleController>();
-                if (bc != null) break;
+                if (bc != null)
+                    break;
                 wait += Time.unscaledDeltaTime;
                 yield return null;
             }
@@ -453,6 +456,117 @@ namespace Lair.Tests.PlayMode
                 Assert.IsNotNull(sp, "Spawner 슬롯 누락 없음");
 
             yield return null;
+        }
+
+        //# ===== 4. 카드 리뉴얼 v0.6 — Plague Spawner #4 / Debuff Tier2 발화 / Multiply 자리 보존 =====
+
+        //# 통합 — 카드 리뉴얼 v0.6 Plague Spawner 정합 (Battle.unity §3.1):
+        //#   Wisp 2개(#1·#4) 구성에서 #4(180°) 가 Plague 로 전환되었다 (10s 주기, 1.5s 초기 지연).
+        //#   `continuous-spawn-round.md §3.1` 의 갱신 표(v0.6) 와 정합.
+        //#   본 시나리오는 배선 검증만 — 라이브 스폰 검증은 캡18 시나리오가 커버.
+        [UnityTest]
+        public IEnumerator Battle씬_v0점6_Spawner_종분포_6종_각1개_Plague_포함()
+        {
+            yield return EnsureCHMReady();
+            yield return SceneManager.LoadSceneAsync("Battle");
+            yield return null;
+
+            BattleController bc = null;
+            float wait = 0f;
+            while (wait < 2f)
+            {
+                bc = Object.FindFirstObjectByType<BattleController>();
+                if (bc != null)
+                    break;
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsNotNull(bc, "씬에 BattleController 존재");
+
+            Spawner[] spawners = GetPrivate<Spawner[]>(bc, "_spawners");
+            Assert.AreEqual(6, spawners.Length, "Spawner 6개 (§3.1)");
+
+            //# 종별 카운트 — 카드 리뉴얼 v0.6 (Wisp 2 → Wisp 1 + Plague 1) 으로 6종 모두 1개씩 균등.
+            Dictionary<EMonster, int> dist = new Dictionary<EMonster, int>();
+            foreach (Spawner sp in spawners)
+            {
+                EMonster outputType = GetPrivate<EMonster>(sp, "_outputType");
+                int v;
+                dist.TryGetValue(outputType, out v);
+                dist[outputType] = v + 1;
+            }
+
+            Assert.IsTrue(dist.ContainsKey(EMonster.Plague) && dist[EMonster.Plague] == 1,
+                "Plague Spawner 정확히 1개 — Debuff 빌드 축 작동의 전제 (card-renewal.md §5)");
+            Assert.IsTrue(dist.ContainsKey(EMonster.Wisp) && dist[EMonster.Wisp] == 1,
+                "Wisp Spawner 1개 (v0.6 에서 2→1 로 감소, #4 가 Plague 로 전환)");
+            Assert.AreEqual(6, dist.Count, "6종 모두 1개씩 균등 (v0.6 §3.1)");
+        }
+
+        //# 통합 — 카드 리뉴얼 v0.6: BattleController._synergy 가 Debuff 5장 픽에 Tier2 를 발화.
+        //#   라이브 BattleController 의 BindTier 12회 호출(§Phase 2) 이 실제로 작동하는지 검증.
+        //#   픽 5번 호출 → BuildSynergyService.GetCount(Debuff) == 5 + 임계 도달 시 1회 Apply.
+        //#   Tier2 Apply 의 부작용 (HeroAttackDownAura(0.85) 영구 부착) 까지 추적하는 건 hero 라이브
+        //#   상태 변동성이 커서 EditMode (BuildSynergyTiersTests.DebuffTier2_HeroAttackDown_0점85_영구_등록)
+        //#   가 단위 검증. PlayMode 는 *카운트 누적과 BattleController 와의 결합* 만 검증.
+        [UnityTest]
+        public IEnumerator Battle씬_v0점6_Debuff_5장_픽_시_Tier2_임계_도달()
+        {
+            yield return EnsureCHMReady();
+            yield return SceneManager.LoadSceneAsync("Battle");
+            yield return null;
+
+            BattleController bc = null;
+            float wait = 0f;
+            while (wait < 2f)
+            {
+                bc = Object.FindFirstObjectByType<BattleController>();
+                if (bc != null)
+                    break;
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsNotNull(bc, "씬에 BattleController 존재");
+
+            //# 비동기 Start (Addressables 로드 / 영웅 스폰) 완료를 대기 — _synergy 는 Start 안에서 생성됨.
+            float elapsed = 0f;
+            while (elapsed < 4f && GetPrivate<BuildSynergyService>(bc, "_synergy") == null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            BuildSynergyService synergy = GetPrivate<BuildSynergyService>(bc, "_synergy");
+            Assert.IsNotNull(synergy, "BattleController._synergy 가 Start 안에서 인스턴스화됨");
+
+            //# RegisterCardPick 5회 호출 — BattleContext.RegisterCardPick → BuildSynergyService.RegisterPick(axis, ctx).
+            IBattleContext ctx = GetPrivate<IBattleContext>(bc, "_ctx");
+            Assert.IsNotNull(ctx, "BattleController._ctx 가 Start 안에서 인스턴스화됨");
+
+            for (int i = 0; i < 5; i++)
+            {
+                ctx.RegisterCardPick(EBuildAxis.Debuff);
+            }
+
+            //# 5장 누적 — Tier1(3장 임계) + Tier2(5장 임계) 모두 도달했어야 함.
+            //# Tier2 발화 자체 검증은 EditMode 단위 테스트가 커버 (DebuffSynergyTier2.Apply 가 ApplyHeroAura 호출).
+            Assert.AreEqual(5, ctx.GetBuildCount(EBuildAxis.Debuff),
+                "Debuff 5장 픽 시 빌드 카운트 5 — Tier1·Tier2 임계 도달 (Tier2 발화는 EditMode 단위 검증)");
+            //# 다른 축은 미픽 — 0 유지.
+            Assert.AreEqual(0, ctx.GetBuildCount(EBuildAxis.Tank), "타 축 미픽 — 카운트 0 유지");
+            Assert.AreEqual(0, ctx.GetBuildCount(EBuildAxis.Dps), "타 축 미픽 — 카운트 0 유지");
+            Assert.AreEqual(0, ctx.GetBuildCount(EBuildAxis.Swarm), "타 축 미픽 — 카운트 0 유지");
+        }
+
+        //# 회귀 — 카드 리뉴얼 v0.6: Multiply enum 자리 보존 (값 20).
+        //#   spec D10 (Multiply 삭제) 의 실제 정책 = enum 자리·SO 파일명 보존 + 효과 클래스만 교체.
+        //#   값이 바뀌면 기존 SO 의 _id 직렬화(int=20) 와 desync — 인덱싱 회귀 방지.
+        //#   SO 파일·효과 클래스(SwarmRushEffect) 의 데이터 정합 검증은 EditMode
+        //#   (CardPoolDistributionTests / MultiplySwarmRushRegressionTests) 가 담당.
+        [Test]
+        public void v0점6_Multiply_enum_자리_보존_값20()
+        {
+            Assert.AreEqual(20, (int)ECardId.Multiply,
+                "ECardId.Multiply enum 값 자리 보존 (20) — SO _id 직렬화 정합");
         }
     }
 }

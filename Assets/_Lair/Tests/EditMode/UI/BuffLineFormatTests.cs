@@ -76,13 +76,14 @@ namespace Lair.Tests.UI
             return (string)mi.Invoke(null, new object[] { buff, type, balance });
         }
 
+        //# 카드 리뉴얼 v0.6 — 구 카테고리 → EBuildAxis (Phase 1 자리 치환: Enhance=Tank, Spawn=Dps).
         private static BattleViewModel.AppliedBuff MakeBuff(
             ECardId sourceId, int pickCount, EMonsterStatKind stat, float aggregateMul,
-            ECardCategory category = ECardCategory.Enhance)
+            EBuildAxis axis = EBuildAxis.Tank)
         {
             return new BattleViewModel.AppliedBuff
             {
-                Source = FakeCardData.Create(sourceId, category),
+                Source = FakeCardData.Create(sourceId, axis),
                 PickCount = pickCount,
                 Stat = stat,
                 AggregateMultiplier = aggregateMul,
@@ -328,7 +329,7 @@ namespace Lair.Tests.UI
         {
             //# Arrange — SpawnWisps 1픽. Stat 은 default Hp (TrackSpawnPick 컨벤션).
             BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.SpawnWisps, pickCount: 1, EMonsterStatKind.Hp, 1f,
-                category: ECardCategory.Spawn);
+                axis: EBuildAxis.Dps);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Wisp, _balance);
@@ -345,7 +346,7 @@ namespace Lair.Tests.UI
         {
             //# Arrange — SpawnPhantoms 2픽. Stat 을 비-default 로 설정해도 분기로 무시되는지 확인.
             BattleViewModel.AppliedBuff buff = MakeBuff(ECardId.SpawnPhantoms, pickCount: 2, EMonsterStatKind.SlowFactor, 1f,
-                category: ECardCategory.Spawn);
+                axis: EBuildAxis.Dps);
 
             //# Act
             string line = CallFormatBody(buff, EMonster.Phantom, _balance);

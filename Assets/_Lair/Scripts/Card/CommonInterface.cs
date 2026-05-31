@@ -51,6 +51,25 @@ namespace Lair.Card
         //# 매칭 Spawner 0개면 no-op.
         void ReplaceSpawnerOutput(EMonster from, EMonster to);
 
+        //# 카드 리뉴얼 v0.6 — 카드 픽 시 호출. BuildSynergyService 에 카운트 등록 + 임계 도달 시 시너지 발화.
+        //# 호출 시점: 패시브/액티브 카드 선택 직후, ICardEffect.Apply 직전 (BattleController.ApplyCardEffect).
+        void RegisterCardPick(EBuildAxis axis);
+
+        //# 카드 리뉴얼 v0.6 — 빌드 카운트 조회 (UI 카운트 바 / 시너지 카드 효과 내부 조건문에서 사용).
+        int GetBuildCount(EBuildAxis axis);
+
+        //# 카드 리뉴얼 v0.6 — Tank Tier3 표면.
+        //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — TankSynergyTier3).
+        void IncrementGlobalMonsterCap(int delta);
+
+        //# 카드 리뉴얼 v0.6 — Swarm Tier2 / SpawnerHaste 카드 공용 표면.
+        //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — SwarmSynergyTier2).
+        void ScaleAllSpawnerPeriods(float mul);
+
+        //# 카드 리뉴얼 v0.6 — Swarm Tier3 표면.
+        //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — SwarmSynergyTier3).
+        void IncrementAllSpawnerOutputs(int delta);
+
         float DeltaTime { get; }
     }
 
@@ -68,5 +87,16 @@ namespace Lair.Card
     {
         EVisual VisualKey { get; }   //# CHMResource 로 로드할 프리팹 키
         Vector3 Offset { get; }      //# 영웅 위치 기준 상대 오프셋
+    }
+
+    //# 카드 리뉴얼 v0.6 [B3] — 동일 type Aura 가드 완화 marker.
+    //# HeroAuraRunner.Attach 는 기본적으로 같은 type Aura 가 이미 부착돼 있으면 신규 인스턴스를 무시한다 (Fear·Bleed·Slow 등 single-instance 정책 보존).
+    //# 단 IDistinctHeroAura 를 구현한 Aura 는 ShouldStackAsNew 가 true 를 반환하면 신규 인스턴스로 부착되어 OnAttached 가 다시 호출된다 — HeroAttackDownAura 의 factor 다른 중복 부착 시 PowerScale 곱연산 누적용.
+    //# 구현체: HeroAttackDownAura (카드 픽 ×0.75 + Debuff Tier2 ×0.85 누적), MarkOfDeathAura 등 향후 factor 누적이 필요한 Aura.
+    public interface IDistinctHeroAura
+    {
+        //# existing = 이미 부착되어 있는 같은 type 의 Aura. 비교 후 신규 인스턴스로 부착해야 하면 true.
+        //# false 면 기존 가드 동작 (Remain 연장 + 신규 무시).
+        bool ShouldStackAsNew(IHeroAura existing);
     }
 }

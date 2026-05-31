@@ -1,17 +1,17 @@
-﻿[
+[
   {
     "id": "Berserk",
-    "category": "Enhance",
-    "displayName": "폭주",
-    "description": "몬스터 HP -50%, 데미지 +200% (15초)",
+    "axis": "Tank",
+    "displayName": "수호자의 분노",
+    "description": "위스프·레이스 받는 데미지 -50% (15초)",
     "effect": {
-      "$type": "BerserkEffect",
+      "$type": "GuardianRageEffect",
       "duration": 15.0
     }
   },
   {
     "id": "Bleed",
-    "category": "Environment",
+    "axis": "Debuff",
     "displayName": "출혈",
     "description": "영웅 이동 시 HP 감소 (10초)",
     "effect": {
@@ -22,7 +22,7 @@
   },
   {
     "id": "BloodThirst",
-    "category": "Enhance",
+    "axis": "Dps",
     "displayName": "피의 갈증",
     "description": "처치 시 주변 몬스터 회복 (30초)",
     "effect": {
@@ -32,7 +32,7 @@
   },
   {
     "id": "Fear",
-    "category": "Environment",
+    "axis": "Debuff",
     "displayName": "공포",
     "description": "영웅 3초간 도망",
     "effect": {
@@ -42,7 +42,7 @@
   },
   {
     "id": "Frenzy",
-    "category": "Enhance",
+    "axis": "Dps",
     "displayName": "광폭화",
     "description": "모든 몬스터 공속 +50% (10초)",
     "effect": {
@@ -52,7 +52,7 @@
   },
   {
     "id": "HeroAttackDown",
-    "category": "Environment",
+    "axis": "Debuff",
     "displayName": "약화의 저주",
     "description": "영웅 공격력 영구 -25%",
     "effect": {
@@ -61,8 +61,8 @@
   },
   {
     "id": "HeroPoisonAura",
-    "category": "Environment",
-    "displayName": "독 안개",
+    "axis": "Debuff",
+    "displayName": "독장판",
     "description": "영웅 발 밑에 독 장판 (DPS 5)",
     "effect": {
       "$type": "HeroPoisonAuraEffect",
@@ -73,8 +73,8 @@
   },
   {
     "id": "HexRangeBoost",
-    "category": "Enhance",
-    "displayName": "헥스 정밀",
+    "axis": "Dps",
+    "displayName": "저주의 시야",
     "description": "모든 헥스 사거리 +40%",
     "effect": {
       "$type": "HexRangeBoostEffect",
@@ -83,27 +83,39 @@
   },
   {
     "id": "IronWill",
-    "category": "Enhance",
+    "axis": "Tank",
     "displayName": "강철 의지",
-    "description": "몬스터 받는 데미지 -30% (15초)",
+    "description": "모든 몬스터 받는 데미지 -30% (15초)",
     "effect": {
       "$type": "IronWillEffect",
       "duration": 15.0
     }
   },
   {
-    "id": "Multiply",
-    "category": "Spawn",
-    "displayName": "증식",
-    "description": "최다 몬스터 종 즉시 2배",
+    "id": "MarkOfDeath",
+    "axis": "Dps",
+    "displayName": "죽음의 표식",
+    "description": "다음 5초간 영웅이 받는 데미지 +50%",
     "effect": {
-      "$type": "MultiplyEffect"
+      "$type": "MarkOfDeathEffect",
+      "dmgTakenMul": 1.5,
+      "duration": 5.0
+    }
+  },
+  {
+    "id": "Multiply",
+    "axis": "Swarm",
+    "displayName": "스웜 러시",
+    "description": "팬텀 6마리 영웅 근처 즉시 소환",
+    "effect": {
+      "$type": "SwarmRushEffect",
+      "count": 6
     }
   },
   {
     "id": "PhantomMoveSpeedBoost",
-    "category": "Enhance",
-    "displayName": "흡혈 팬텀 떼",
+    "axis": "Swarm",
+    "displayName": "환령의 발걸음",
     "description": "모든 팬텀 이동속도 +50%",
     "effect": {
       "$type": "PhantomMoveSpeedBoostEffect",
@@ -112,8 +124,8 @@
   },
   {
     "id": "PlagueSlowBoost",
-    "category": "Enhance",
-    "displayName": "독성 플레이그",
+    "axis": "Debuff",
+    "displayName": "역병의 손길",
     "description": "플레이그 둔화 효과 강화",
     "effect": {
       "$type": "PlagueSlowBoostEffect",
@@ -122,8 +134,8 @@
   },
   {
     "id": "ReaperAtkSpeed",
-    "category": "Enhance",
-    "displayName": "광폭 리퍼",
+    "axis": "Dps",
+    "displayName": "신속한 사신",
     "description": "모든 리퍼 공격속도 +30%",
     "effect": {
       "$type": "ReaperAtkSpeedEffect",
@@ -132,8 +144,8 @@
   },
   {
     "id": "ReplaceReapersToHex",
-    "category": "Replace",
-    "displayName": "주술 훈련",
+    "axis": "Dps",
+    "displayName": "헥스로 진화",
     "description": "리퍼 Spawner → 헥스 생산",
     "effect": {
       "$type": "ReplaceReapersToHexEffect"
@@ -141,8 +153,8 @@
   },
   {
     "id": "ReplaceWispsToWraith",
-    "category": "Replace",
-    "displayName": "융합",
+    "axis": "Tank",
+    "displayName": "망령으로 진화",
     "description": "위스프 Spawner → 레이스 생산",
     "effect": {
       "$type": "ReplaceWispsToWraithEffect"
@@ -150,19 +162,20 @@
   },
   {
     "id": "Slow",
-    "category": "Environment",
-    "displayName": "둔화",
-    "description": "영웅 이동속도 -50% (10초)",
+    "axis": "Swarm",
+    "displayName": "던전의 점성",
+    "description": "영웅 -50% 이동속도, 모든 몬스터 +30% 이동속도 (10초)",
     "effect": {
       "$type": "SlowEffect",
-      "factor": 0.5,
+      "heroFactor": 0.5,
+      "monsterMul": 1.3,
       "duration": 10.0
     }
   },
   {
     "id": "SpawnPhantoms",
-    "category": "Spawn",
-    "displayName": "팬텀 무리",
+    "axis": "Swarm",
+    "displayName": "환령 떼",
     "description": "팬텀 Spawner 출력 +1",
     "effect": {
       "$type": "SpawnPhantomsEffect"
@@ -170,8 +183,8 @@
   },
   {
     "id": "SpawnPlagues",
-    "category": "Spawn",
-    "displayName": "플레이그 둥지",
+    "axis": "Debuff",
+    "displayName": "역병 증식",
     "description": "플레이그 Spawner 출력 +1",
     "effect": {
       "$type": "SpawnPlaguesEffect"
@@ -179,8 +192,8 @@
   },
   {
     "id": "SpawnReapers",
-    "category": "Spawn",
-    "displayName": "리퍼 증원",
+    "axis": "Dps",
+    "displayName": "사신 떼거리",
     "description": "리퍼 Spawner 출력 +1",
     "effect": {
       "$type": "SpawnReapersEffect"
@@ -188,8 +201,8 @@
   },
   {
     "id": "SpawnWisps",
-    "category": "Spawn",
-    "displayName": "위스프 소환",
+    "axis": "Swarm",
+    "displayName": "위스프 떼",
     "description": "위스프 Spawner 출력 +1",
     "effect": {
       "$type": "SpawnWispsEffect"
@@ -197,16 +210,26 @@
   },
   {
     "id": "SpawnWraith",
-    "category": "Spawn",
-    "displayName": "레이스 소환",
+    "axis": "Tank",
+    "displayName": "더 많은 망령",
     "description": "레이스 Spawner 출력 +1",
     "effect": {
       "$type": "SpawnWraithEffect"
     }
   },
   {
+    "id": "SpawnerHaste",
+    "axis": "Swarm",
+    "displayName": "던전의 박동",
+    "description": "모든 스포너 주기 -20% (영구)",
+    "effect": {
+      "$type": "SpawnerHasteEffect",
+      "periodMul": 0.8
+    }
+  },
+  {
     "id": "TimeStop",
-    "category": "Environment",
+    "axis": "Swarm",
     "displayName": "시간 정지",
     "description": "영웅 5초 멈춤",
     "effect": {
@@ -215,8 +238,19 @@
     }
   },
   {
+    "id": "WallOfWisps",
+    "axis": "Tank",
+    "displayName": "위스프 장벽",
+    "description": "영웅 주변 4방위에 위스프 4마리 즉시 소환",
+    "effect": {
+      "$type": "WallOfWispsEffect",
+      "count": 4,
+      "radius": 2.5
+    }
+  },
+  {
     "id": "Weaken",
-    "category": "Environment",
+    "axis": "Debuff",
     "displayName": "무력화",
     "description": "영웅 데미지 -50% (10초)",
     "effect": {
@@ -227,7 +261,7 @@
   },
   {
     "id": "WispHpBoost",
-    "category": "Enhance",
+    "axis": "Tank",
     "displayName": "끈질긴 위스프",
     "description": "모든 위스프 HP +50%",
     "effect": {
@@ -237,12 +271,12 @@
   },
   {
     "id": "WraithDamageBoost",
-    "category": "Enhance",
-    "displayName": "강철 레이스",
-    "description": "모든 레이스 데미지 +50%",
+    "axis": "Tank",
+    "displayName": "망령의 압박",
+    "description": "모든 레이스 HP +50%",
     "effect": {
       "$type": "WraithDamageBoostEffect",
-      "mul": 1.5
+      "hpMul": 1.5
     }
   }
 ]
