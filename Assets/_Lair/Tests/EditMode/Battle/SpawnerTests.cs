@@ -33,7 +33,6 @@ namespace Lair.Tests.Battle
 
         //# Spawner 를 직렬화 필드 주입 후 생성. EditMode 에서는 SetActive 토글이 OnEnable 을
         //# 신뢰성 있게 트리거하지 못하므로(테스트 라이프사이클 한계), 리플렉션으로 직접 호출한다.
-        //# PlayMode 에서는 production 의 OnEnable 이 자연 호출 — 본 헬퍼는 EditMode 전용.
         private Spawner CreateSpawner(EMonster outputType, float spawnPeriod, float initialDelay)
         {
             GameObject go = new GameObject("SpawnerUT");
@@ -134,8 +133,6 @@ namespace Lair.Tests.Battle
 
         //# 회귀 — 작은 dt 다수로 위상이 InitialDelay 기준으로 유지되는지 (드리프트 없음).
         //# InitialDelay 1 / 주기 3 / dt 0.5 × 20 = t 10 → t=1,4,7,10 에서 4발.
-        //# dt 는 IEEE 754 정확 표현이 되는 0.5 사용 — 0.1 누적은 부동소수 드리프트로 마지막 발사를
-        //# 경계에서 놓칠 수 있어 테스트가 깨졌었음. 0.5×20=10.0 은 부동소수 정확값.
         [Test]
         public void 주기발사_작은_dt_다수_누적시_위상_유지()
         {

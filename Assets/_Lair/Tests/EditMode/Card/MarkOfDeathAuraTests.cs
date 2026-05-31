@@ -8,7 +8,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — MarkOfDeathAura 단위 검증.
     //# 기획서 §10.4 디자인 단정: 영웅 받는 데미지 ×1.5, _duration 초.
-    //# Health.DamageTakenScale 을 곱연산으로 누적 / Detach 시 동일 배율로 나누어 복원.
     public class MarkOfDeathAuraTests
     {
         [Test]

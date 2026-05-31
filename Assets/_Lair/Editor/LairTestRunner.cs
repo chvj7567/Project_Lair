@@ -10,12 +10,6 @@ namespace Lair.EditorTools
 {
     //# TestRunnerApi 래퍼 — UnityMCP editor_invoke_method 로 호출 가능.
     //# RunEditModeTests() / RunPlayModeTests() 가 비동기로 테스트를 시작하고,
-    //# 완료 시 결과 JSON 을 파일로 출력. 컨트롤러는 그 파일을 폴링·읽어 결과 확인.
-    //#
-    //# PlayMode 테스트 노트:
-    //#   Play 진입/종료 시 두 번의 도메인 리로드가 발생 → static 필드/콜백 인스턴스 모두 소실.
-    //#   따라서 (a) 상태는 SessionState (도메인 리로드 생존) 에 보관,
-    //#         (b) 콜백은 [InitializeOnLoadMethod] 로 도메인마다 재등록.
     public static class LairTestRunner
     {
         public const string ResultFile = "Library/lair-test-result.json";
@@ -77,7 +71,6 @@ namespace Lair.EditorTools
             Filter filter = new Filter { testMode = mode };
             //# PlayMode 일반 런은 [Category("Simulation")] 테스트 제외.
             //# Unity Filter 는 카테고리 negation 을 직접 지원 안 함 → groupNames 정규식 negative lookahead
-            //# 로 BalanceSimulationTest 클래스를 제외. groupNames 는 풀네임(namespace + class)에 매칭.
             if (excludeSimulation)
             {
                 filter.groupNames = new[] { "^(?!.*BalanceSimulationTest).*$" };

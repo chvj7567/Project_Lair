@@ -9,7 +9,6 @@ namespace Lair.Tests.Card
 {
     //# 지속 스폰 — 재작성된 카드 효과(강화/추가소환/융합)가 IBattleContext 의
     //# 올바른 신규 API 를 올바른 인자로 호출하는지 검증.
-    //# gameplay-programmer 자체 검증 수준 (정상 + 엣지 1). 본격 스위트는 test-engineer.
     public class ContinuousSpawnEffectTests
     {
         //# 최소 IBattleContext 더블 — 신규 3종 API 호출만 기록.

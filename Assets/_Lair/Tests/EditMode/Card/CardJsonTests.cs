@@ -8,7 +8,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 Phase 2 Task 14 — cards.json 항목 수 + Multiply 자리 보존 + axis 키 회귀.
     //# W1 결정 (Berserk 패턴 적용): Multiply enum 자리(값 20) 보존 + SO 파일명 "Multiply.asset" 보존
-    //# + 효과 클래스 SwarmRushEffect 교체. cards.json 의 "Multiply" id 도 보존됨.
     public class CardJsonTests
     {
         private const string CardsJsonPath = "Assets/_Lair/Data/Json/cards.json";

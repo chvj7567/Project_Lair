@@ -7,8 +7,6 @@ namespace Lair.Card
 {
     //# 영웅 공격력 영구 -25%. 무제한 지속 (HeroAuraRunner duration<0).
     //# PowerScale 에 _factor 를 1회 곱함 — 같은 카드 중복 선택 시 누적.
-    //# 카드 리뉴얼 v0.6 [B3] — IDistinctHeroAura 구현. 같은 type 이지만 factor 가 다르면 신규 인스턴스로 부착되어
-    //# Debuff Tier2 ×0.85 + 카드 픽 ×0.75 가 PowerScale 위에서 자연 곱연산 누적 (×0.6375 / ×0.4781 등).
     [Serializable]
     public class HeroAttackDownAura : IHeroAura, IStatusVisual, IDistinctHeroAura
     {

@@ -7,13 +7,6 @@ namespace Lair.Tests.PlayMode
 {
     //# 시뮬레이션 인프라 — 카드 픽 전략 모음. 게임 로직 아님(테스트 전용).
     //# BattleController.DebugAutoPicker 델리게이트 시그니처에 맞춘 Func 5종을 제공.
-    //# delegate: (제시된 3장 choices, 트리거 출처 source) -> 고른 CardData (null 이면 스킵).
-    //#
-    //# 카드 리뉴얼 v0.6 (2026-05-31, Phase 3 Task 16) 갱신:
-    //# - 기존 4 전략(AoEPriority / DealerPriority / Random / TankerPriority) → 4축 우선 픽 전략으로 갱신.
-    //# - 5 전략: TankAxisPriority / DpsAxisPriority / DebuffAxisPriority / SwarmAxisPriority / Random.
-    //# - 픽 로직: choices.Where(c => c.Axis == targetAxis).FirstOrDefault() ?? choices[0].
-    //# - 기존 archetype 매핑 dict 은 회귀 안전을 위해 보존(SwarmRushEffect 의미로 Multiply 유지).
 
     //# 5종 픽 전략 식별자. 캠페인 실행 시 전략별로 N판씩 돌린다.
     public enum ESimStrategy
@@ -39,7 +32,6 @@ namespace Lair.Tests.PlayMode
     {
         //# ECardId -> archetype 매핑 (legacy, 회귀 안전용 보존).
         //# 컨셉 §11.3 기준 탱커/딜러/유틸/광역 분류 — 카드 리뉴얼 v0.6 의 4축(EBuildAxis) 과는 별개.
-        //# 4축 전략은 CardData.Axis 를 직접 참조하므로 본 dict 은 시뮬 로깅·기존 테스트 호환용.
         private static readonly Dictionary<ECardId, ECardArchetype> _archetypes = new()
         {
             //# === 패시브 16장 ===

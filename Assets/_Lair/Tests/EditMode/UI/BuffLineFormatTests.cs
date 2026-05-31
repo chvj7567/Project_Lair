@@ -12,26 +12,6 @@ namespace Lair.Tests.UI
 {
     //# 스포너 상태 UI — 영역 F (BuffLine.FormatBody 스탯별 본문 포맷, 기획서 §2.5.5 v0.9).
     //#
-    //# v0.8 이주 — 기존 SpawnerStatusTooltip.FormatBuffLine 의 스탯 분기 로직은
-    //# BuffLine.FormatBody (private static) 로 옮겨짐 (Rule 11 CHPoolingScrollView 완전 적용).
-    //# 본 테스트는 그 redirect 결과 — FormatBody 의 본문 텍스트만 검증한다.
-    //#
-    //# 스코프:
-    //#  - FormatBody 는 본문(체력/공격력/사거리/이동속도/공격속도/둔화 효과) 텍스트만 반환.
-    //#  - H/D/S/R/M/P 글자 prefix · ×N 배지는 BuffLine.Bind 가 별도 UI 컴포넌트에
-    //#    세팅하므로 FormatBody 스코프 밖. 본 테스트 대상 아님 (별도 BindTests 필요 시 분리).
-    //#
-    //# 검증:
-    //#  - Hp:        "체력 ×1.5 (200 → 300)"
-    //#  - Power:     "공격력 ×1.5 (20 → 30)"
-    //#  - Range:     "사거리 ×1.4 (4.0 → 5.6)"
-    //#  - MoveSpeed: "이동속도 ×1.5 (2.0 → 3.0)"
-    //#  - Cooldown:  "공격속도 ×1.43 (cd 1.0s → 0.7s)"   ← 역수 변환
-    //#  - SlowFactor:"둔화 효과 (0.8 → 0.6) — 강화"     ← PlagueSlowOnHit.BaseSlowFactor 상수
-    //#  - default fallback: "(알 수 없는 스탯)"
-    //#  - 누적 배율 차이 (1픽 1.5 vs 2픽 2.25 → 결과값 변화)
-    //#  - balance == null 안전 (base 0 → result 1 로 clamp 또는 0 표시)
-    //#  - AggregateMultiplier 0 cooldown 보호 분기 (aspeed = 0)
     public class BuffLineFormatTests
     {
         private BalanceConfig _balance;
@@ -224,7 +204,6 @@ namespace Lair.Tests.UI
 
             //# Assert — "0.##" 는 마지막 0 절삭 → "3.38" (반올림).
             //# 3.375 → 0.## (두 자리, 셋째 자리 반올림) → "3.38".
-            //# Mathf.RoundToInt(200 × 3.375) = 675.
             StringAssert.Contains("(200 → 675)", line, "Base 200 × 3.375 = 675");
         }
 

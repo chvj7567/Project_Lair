@@ -9,7 +9,6 @@ namespace Lair.Tests.Character
         {
             //# Health 는 MonoBehaviour. 테스트에서는 ScriptableObject/MB 없이도 동작하도록
             //# 일반 클래스 형태의 내부 로직만 검증. (Unity 가 MB 인스턴스화 없이 new 호출은
-            //# 권장하지 않지만 테스트 한정 허용.)
             Health h = new Health();
             h.SetMax(max);
             return h;

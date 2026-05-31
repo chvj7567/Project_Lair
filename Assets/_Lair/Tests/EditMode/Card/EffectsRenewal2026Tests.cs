@@ -10,7 +10,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 Phase 2 — 신규/리뉴얼 카드 효과 단위 테스트.
     //# gameplay-programmer 자체 검증 수준 (정상 + 엣지 1). 본격 스위트는 test-engineer.
-    //# Phase 2 BLOCKER 회귀 (B1·B2·B3) 통합 — GuardianRage HP×2 + Slow SwarmSpeed + HeroAttackDown 누적.
     public class EffectsRenewal2026Tests
     {
         //# 최소 stub — 본 테스트 사용 표면만 기록.
@@ -126,7 +125,6 @@ namespace Lair.Tests.Card
 
         //# [B1] GuardianRage Tick 시 적용 종 (Wisp/Wraith) 만 HP×2 + 받는 데미지 ×0.5.
         //# 받는 데미지 ×0.5 확인 — DamageTakenScale 곱연산.
-        //# HP ×2 확인 — HpMaxScale 곱연산 + Current 비율 보존.
         [Test]
         public void GuardianRage_Tick_Wisp만_HP_2배_받는데미지_0점5_적용()
         {
@@ -223,7 +221,6 @@ namespace Lair.Tests.Card
 
         //# [B3] HeroAttackDownAura 1픽 (×0.75) + Debuff Tier2 (×0.85) 동시 부착 시
         //# IDistinctHeroAura.ShouldStackAsNew=true → 두 인스턴스 모두 OnAttached 호출 → PowerScale 곱연산.
-        //# 1.0 × 0.75 × 0.85 = 0.6375.
         [Test]
         public void HeroAttackDown_1픽_더하기_Tier2_누적_PowerScale_0점6375()
         {

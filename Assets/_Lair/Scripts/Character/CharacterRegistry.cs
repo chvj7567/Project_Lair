@@ -5,7 +5,6 @@ namespace Lair.Character
 {
     //# 영웅·몬스터 정적 레지스트리. 캐릭터의 OnEnable/OnDisable 에서 자기 등록.
     //# TryFindNearest 는 IsAlive 필터링 + 거리순 정렬 후 최근접 1개 반환.
-    //# 몬스터는 추가로 IsEngaging=true 만 영웅 AI 의 타겟 후보 (BattleZone 진입 후 true).
     public static class CharacterRegistry
     {
         public class Entry

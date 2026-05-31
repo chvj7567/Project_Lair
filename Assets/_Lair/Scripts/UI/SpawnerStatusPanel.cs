@@ -8,7 +8,6 @@ namespace Lair.UI
 {
     //# 6셀 컨테이너 — BattleHud 자식. VM.Spawners 구독 + OnSpawnerSnapshotChanged.
     //# 셀 풀링은 CHMPool (Rule 12) — BuildPanel 의 BuildIconCell 패턴 그대로.
-    //# 셀 클릭 → SpawnerStatusTooltip toggle 은 본 패널이 _openCellIndex 상태로 결정 (advisor §2).
     public class SpawnerStatusPanel : MonoBehaviour
     {
         [SerializeField] private Transform _container;       //# 셀들이 배치될 부모 (HorizontalLayoutGroup)
@@ -152,8 +151,6 @@ namespace Lair.UI
 
         //# 툴팁이 닫힐 때 호출 (closeDisposable.Clear 의 일부) — 활성 테두리 원복 + 캐시 정리.
         //# 닫힌 셀 인덱스를 받아 stale 콜백을 self-ignore (advisor BLOCKER).
-        //# 셀 전환 시 CHMUI.ShowUI 가 동기적으로 이전 disposable 을 Clear 하면서 이 콜백이 호출되는데,
-        //# 그 시점 _openCellIndex 는 이미 새 셀(B) 로 바뀌어 있어 closedIndex(A) 와 다르다 → 무시.
         private void HandleTooltipClosed(int closedIndex)
         {
             if (_openCellIndex != closedIndex)
@@ -169,7 +166,6 @@ namespace Lair.UI
 
         //# 패널 측에서 명시적으로 툴팁 닫기.
         //# UIBase.Close 직접 호출 — closeDisposable.Clear 까지 정상 수행 (advisor lower-priority 1).
-        //# Close 내부에서 OnClosed 콜백이 호출돼 _openCellIndex / SetActiveBorder 가 정리된다.
         private void CloseTooltip()
         {
             if (_openTooltipInstance != null)

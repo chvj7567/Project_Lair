@@ -11,8 +11,6 @@ namespace Lair.Tests.Card
 {
     //# 지속 스폰 — 카드 효과 × Spawner 상태 상호작용 통합 검증 (기획서 §3.5).
     //# 라우팅만 보는 ContinuousSpawnEffectTests 와 달리, 실제 Spawner 컴포넌트를 들고
-    //# IncrementSpawnerOutput / ReplaceSpawnerOutput 의 BattleController 구현 의미
-    //# (Spawner 배열 순회 + CurrentType 매칭) 를 재현해 카드 간 순서 의존을 검증한다.
     public class ContinuousSpawnInteractionTests
     {
         //# ISpawnerHost 더블 — 카드 적용 후 Spawner.Tick 결과를 받아 실제 스폰 종/수를 본다.
@@ -25,7 +23,6 @@ namespace Lair.Tests.Card
 
         //# Spawner 집합을 보유하는 IBattleContext 더블.
         //# IncrementSpawnerOutput / ReplaceSpawnerOutput 을 BattleController 와 동일한 의미로 구현
-        //# (CurrentType 매칭 후 Spawner 런타임 상태 변경) — §3.5 상호작용을 정확히 재현.
         private class SpawnerAwareContext : IBattleContext
         {
             private readonly List<Spawner> _spawners;

@@ -72,7 +72,6 @@ namespace Lair.Card
 
         //# 카드 리뉴얼 v0.6 — 종별 Spawner 주기 곱연산 (영구).
         //# 빠른 번식 카드 (FastBreeding): Phantom 스포너 주기 ×0.6 영구.
-        //# ScaleAllSpawnerPeriods 와 달리 출력 종 매칭. 매칭 Spawner 0개면 no-op.
         void ScaleSpawnerPeriodForType(EMonster type, float mul);
 
         float DeltaTime { get; }
@@ -96,8 +95,6 @@ namespace Lair.Card
 
     //# 카드 리뉴얼 v0.6 [B3] — 동일 type Aura 가드 완화 marker.
     //# HeroAuraRunner.Attach 는 기본적으로 같은 type Aura 가 이미 부착돼 있으면 신규 인스턴스를 무시한다 (Fear·Bleed·Slow 등 single-instance 정책 보존).
-    //# 단 IDistinctHeroAura 를 구현한 Aura 는 ShouldStackAsNew 가 true 를 반환하면 신규 인스턴스로 부착되어 OnAttached 가 다시 호출된다 — HeroAttackDownAura 의 factor 다른 중복 부착 시 PowerScale 곱연산 누적용.
-    //# 구현체: HeroAttackDownAura (카드 픽 ×0.75 + Debuff Tier2 ×0.85 누적), MarkOfDeathAura 등 향후 factor 누적이 필요한 Aura.
     public interface IDistinctHeroAura
     {
         //# existing = 이미 부착되어 있는 같은 type 의 Aura. 비교 후 신규 인스턴스로 부착해야 하면 true.

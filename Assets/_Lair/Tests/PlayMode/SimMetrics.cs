@@ -9,7 +9,6 @@ namespace Lair.Tests.PlayMode
 {
     //# 시뮬레이션 인프라 — RunRecorder 가 누적한 jsonl(Logs/lair_runs.jsonl)에서
     //# 한 캠페인에 해당하는 RunRecord 만 잘라내 밸런스 메트릭으로 집계한다.
-    //# 게임 로직을 건드리지 않고 기존 기록 파이프라인(RunRecorder)을 그대로 재사용.
 
     public static class SimMetrics
     {

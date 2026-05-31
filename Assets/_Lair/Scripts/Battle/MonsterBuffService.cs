@@ -7,7 +7,6 @@ namespace Lair.Battle
 {
     //# 모든 몬스터에 글로벌 버프를 매 tick 재적용. HeroAuraRunner 의 몬스터판.
     //# "상태 보존" 이 아니라 "매 tick 강제" — 중간 스폰 몬스터도 자동 포함, 만료 시 자연 복원.
-    //# 카드 리뉴얼 v0.6 — GuardianRage 신규 추가 (Tank 한정 {Wisp, Wraith} 매핑, 기획서 §10.1 옵션 (ii)).
     public class MonsterBuffService
     {
         private class Buff { public EMonsterBuff Type; public float Remain; }
@@ -16,7 +15,6 @@ namespace Lair.Battle
 
         //# 카드 리뉴얼 v0.6 — EMonsterBuff 의 적용 종 한정 매핑.
         //# 미지정 buff 는 "전체 종" — 기존 Frenzy/IronWill/BerserkPower 동작 보존.
-        //# GuardianRage / ToughHide 만 {Wisp, Wraith} 한정 (기획서 §10.1 디자인 단정).
         private static readonly Dictionary<EMonsterBuff, HashSet<EMonster>> TargetTypes
             = new Dictionary<EMonsterBuff, HashSet<EMonster>>
             {
@@ -32,7 +30,6 @@ namespace Lair.Battle
 
         //# 같은 type 이 있으면 Remain 을 더 큰 값으로 연장.
         //# 카드 리뉴얼 v0.6 — duration < 0 면 영구 (Tick 에서 Remain 감소 X).
-        //# 영구 ↔ 시한 동시 픽 시 영구 우선 (영구는 음수로 보존).
         public void AddBuff(EMonsterBuff type, float duration)
         {
             foreach (Buff b in _buffs)
@@ -97,8 +94,6 @@ namespace Lair.Battle
                         case EMonsterBuff.GuardianRage:
                             //# 카드 리뉴얼 v0.6 [B1] — 적용 종 한정 {Wisp, Wraith} (위 TargetTypes 매핑으로 필터).
                             //# 기획서 §10.4 단정: 받는 데미지 ×0.5 + HP ×2.0 (동시 적용).
-                            //# 받는 데미지 — DamageTakenScale 곱연산 오버레이.
-                            //# HP ×2.0 — HpMaxScale 곱연산 오버레이 (setter 가 Current 비율 보존).
                             if (hp != null)
                             {
                                 hp.DamageTakenScale *= 0.5f;
@@ -113,7 +108,6 @@ namespace Lair.Battle
                         case EMonsterBuff.SwarmSpeed:
                             //# 카드 리뉴얼 v0.6 [B2] — Slow 카드의 이중 효과 (모든 몬스터 이동속도 ×1.3 시한).
                             //# 적용 종 한정 없음 (TargetTypes 매핑에 미등록 → "전체 종") — 기획서 §3.4 #7 단정.
-                            //# SpeedScale 곱연산 — FixedUpdate 의 effectiveSpeed 계산에 반영.
                             if (mv != null) mv.SpeedScale *= 1.3f;
                             break;
                     }

@@ -6,9 +6,6 @@ namespace Lair.Character
 {
     //# 피격 시 자식 모든 Renderer 의 BaseColor 반전 → 짧게 깜빡 → 원복.
     //# Health.OnChanged 구독으로 데미지 감지 (회복은 무시).
-    //# root Renderer 가 없을 수도 있는 구조(LittleGhost nested 등) 를 지원하기 위해
-    //# GetComponentsInChildren<Renderer> 로 모든 Renderer 를 수집해 인스턴스 머티리얼을 적용한다.
-    //# Aura(자식 Cylinder primitive) 는 이름 기반으로 제외해 깜빡임에서 빠진다.
     [RequireComponent(typeof(Health))]
     public class HitFlash : MonoBehaviour
     {

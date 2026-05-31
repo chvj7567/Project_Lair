@@ -5,8 +5,6 @@ namespace Lair.Battle
 {
     //# Spawner 본체 Cylinder 디스크에 부착. 출력 종 변경 시 머티리얼 교체로 틴트를 갱신한다.
     //# 빌더(LairSpawnerVisualBuilder)가 _renderer 와 _materials 를 주입.
-    //# Rule 06 — 상위 ISpawnerOutputProvider 인터페이스로만 Spawner 를 참조.
-    //# Rule 03 — GetComponentInParent<ISpawnerOutputProvider>() 로 느슨한 결합.
     public class SpawnerBody : MonoBehaviour
     {
         [SerializeField] private Renderer _renderer;

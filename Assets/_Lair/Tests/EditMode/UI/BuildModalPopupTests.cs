@@ -8,10 +8,6 @@ namespace Lair.Tests.UI
 {
     //# 스포너 상태 UI — 영역 G (BuildModalPopup 카테고리 정렬 회귀, 기획서 §2.7.4).
     //#
-    //# private static CategoryOrder(EBuildAxis) → int 매핑 검증.
-    //# 패시브 섹션 위→아래: Tank(0) → Dps(1) → Debuff(2) → Swarm(3).
-    //# 정렬 알고리즘 자체보다 매핑 값의 안정성 회귀에 초점.
-    //# 카드 리뉴얼 v0.6 — 구 카드 카테고리(4종) → EBuildAxis (Phase 1 자리 치환: Enhance/Spawn/Replace/Environment = Tank/Dps/Debuff/Swarm).
     public class BuildModalPopupTests
     {
         //# private static int CategoryOrder(EBuildAxis) 리플렉션 호출.

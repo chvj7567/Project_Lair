@@ -9,12 +9,6 @@ namespace Lair.Tests.Battle
 {
     //# 스포너 상태 UI — 영역 B 보강 (OnOutputCountChanged / OnOutputTypeChanged 이벤트 경계).
     //#
-    //# gameplay-programmer 의 SpawnerOutputCountTests / SpawnerTests 가 다루지 않는 엣지·회귀:
-    //#  - ReplaceOutput 은 OnOutputCountChanged 를 발행하지 않는다 (출력 종만 변경).
-    //#  - IncrementOutput N 회 호출 시 정확히 N 회 발행 + 단조 증가.
-    //#  - OnEnable 시 _outputCount 가 1 로 리셋되지만 OnOutputCountChanged 는 미발행 (기획서 §4.5).
-    //#  - 다중 구독자 — 모두에게 동일 인자 전달.
-    //#  - 구독 해제 후 IncrementOutput 호출 시 해제된 핸들러 미호출 (누수 방지).
     public class SpawnerOutputEventTests
     {
         private readonly List<GameObject> _spawned = new();

@@ -13,15 +13,6 @@ namespace Lair.Tests.UI
 {
     //# 스포너 상태 UI — 영역 C (BattleViewModel SpawnerSnapshot · AttachSpawners · 이벤트 누수).
     //#
-    //# 검증 포인트:
-    //#  - AttachSpawners 후 6개 SpawnerSnapshot 가 초기 폴링값으로 채워짐.
-    //#  - OnOutputTypeChanged 핸들 → 해당 인덱스 CurrentType + AppliedBuffs 재계산 + OnSpawnerSnapshotChanged.
-    //#  - OnOutputCountChanged 핸들 → 해당 인덱스 OutputCount 갱신.
-    //#  - OnTypeModifierChanged 핸들 → 동일 종 출력 스포너 *모두* 재계산 (같은 종 여러 셀).
-    //#  - 다른 종 강화는 영향 X.
-    //#  - DetachSpawners 후 이벤트 미수신 (누수 방지).
-    //#  - AttachSpawners 중복 호출 멱등 (Detach 후 재attach).
-    //#  - null Spawner / null controller 안전.
     public class BattleViewModelSpawnerSnapshotTests
     {
         private readonly List<GameObject> _spawned = new();

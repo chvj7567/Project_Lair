@@ -169,7 +169,6 @@ namespace Lair.Tests.PlayMode
         {
             //# 풀 재사용 시 _hasTarget / _targetYaw 가 OnEnable 에서 리셋되는지.
             //# (transform.rotation 복원은 AutoCombatAI.OnEnable 의 SnapToDirection 책임 — 여기선
-            //# SimpleRotator 단독으로 "이전 FaceDirection 목표가 안 따라옴" 만 검증.)
             SimpleRotator r = NewRotator(out GameObject go, speed: 540f, initialYaw: 0f);
 
             //# 1) 목표 설정.

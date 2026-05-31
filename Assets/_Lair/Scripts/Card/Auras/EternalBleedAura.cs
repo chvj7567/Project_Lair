@@ -7,7 +7,6 @@ namespace Lair.Card
 {
     //# 카드 리뉴얼 v0.6 — Debuff Tier3 시너지 효과 (7장 임계).
     //# BleedAura 의 라운드 끝까지 무제한 변형. ratio 0.01 (1%/s) — 영웅 이동 시에만 발동.
-    //# 기존 BleedAura 와 동일 패턴 (IMover 주입 + IsMoving 조건) — 라이프사이클은 HeroAuraRunner.duration<0.
     [Serializable]
     public class EternalBleedAura : IHeroAura, IStatusVisual
     {

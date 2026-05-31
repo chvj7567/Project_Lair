@@ -29,7 +29,6 @@ namespace Lair.UI
 
         //# 카드 리뉴얼 v0.6 — 좌측 빌드 시너지 패널 (롤토체스 스타일).
         //# 사용자가 BattleHud prefab 안에 BuildSynergyPanel.prefab 자식으로 배치 + 인스펙터에서 본 필드에 드래그.
-        //# 동적 생성 없음 — 미할당이면 시너지 패널 표시 안 됨.
         [SerializeField] private BuildSynergyPanel _synergyPanel;
 
         private BattleViewModel _vm;

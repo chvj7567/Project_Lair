@@ -7,8 +7,6 @@ namespace Lair.Character
 {
     //# Health.OnDied 발행 시 GameObject 를 CHMPool 로 반환 (Rule 12).
     //# CHPoolable 없으면 Destroy 로 fallback. _delay > 0 이면 그 시간만큼 후에 처리.
-    //# OnDisable 흐름: Push → SetActive(false) → 자식 컴포넌트 OnDisable
-    //#                 → CharacterRegistry.Unregister*. 즉시 적 목록 자동 제외.
     [RequireComponent(typeof(Health))]
     public class DespawnOnDeath : MonoBehaviour
     {

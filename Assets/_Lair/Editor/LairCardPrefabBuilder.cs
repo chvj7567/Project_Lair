@@ -11,7 +11,6 @@ namespace Lair.EditorTools
 {
     //# 카드 SO 28장 (패시브 16 + 액티브 12) + CardPool 2개 자동 생성 + Addressables 등록.
     //# 카드 리뉴얼 v0.6 (2026-05-31) — 4축(Tank/Dps/Debuff/Swarm) × (P4 + A3) 균등 분배.
-    //# SerializeReference 의 ICardEffect 슬롯 주입은 managedReferenceValue 사용.
     public static class LairCardPrefabBuilder
     {
         public const string CardDir = "Assets/_Lair/Art/Cards/Items";
@@ -25,7 +24,6 @@ namespace Lair.EditorTools
             public ECardId Id;
             //# 카드 리뉴얼 v0.6 — Category(구 4종 카테고리 enum) → Axis(EBuildAxis).
             //# Phase 1 임시 매핑 (Enhance=Tank, Spawn=Dps, Replace=Debuff, Environment=Swarm).
-            //# Phase 2 Task 13 에서 기획서 §3 4축 라인업대로 재할당.
             public EBuildAxis Category;
             public string DisplayName;
             public string Description;

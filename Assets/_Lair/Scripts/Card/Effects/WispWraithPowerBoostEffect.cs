@@ -6,7 +6,6 @@ namespace Lair.Card
 {
     //# 카드 리뉴얼 v0.6 patch — 공포의 군세 (Tank P, 구 ReplaceWispsToWraith 자리 — 효과 교체, ECardId 값명·SO 파일명 보존).
     //# 영구 글로벌 강화: 위스프·레이스 Power ×_powerMul 곱연산 누적 (RegisterMonsterTypeBuff 의 dict + 필드 소급 적용).
-    //# 같은 카드 K번 픽 시 ×1.3 × ×1.3 = ×1.69 등 곱연산 누적 (기존 강화 카드 정책 그대로).
     [Serializable]
     public class WispWraithPowerBoostEffect : ICardEffect
     {

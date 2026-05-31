@@ -25,7 +25,6 @@ namespace Lair.Battle
 
         //# 지속 스폰 — 글로벌 필드 몬스터 하드 캡 (§4.2). 어느 스폰 경로에서든 절대값.
         //# v7: 12 → 18. Power 차등 하향으로 DPS 여유 확보 → 캡 복귀 (continuous-spawn-round.md §6.3).
-        //# 카드 리뉴얼 v0.6 — Tank Tier3 시너지가 런타임에 +6 (18→24) 가능하도록 const → 변수로 승격.
         private int _monsterCap = 18;
 
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
@@ -33,7 +32,6 @@ namespace Lair.Battle
 
         //# 스포너 상태 UI — 종별 적용된 강화 카드 픽 누적 (툴팁 본문 + 셀 상단 아이콘 row 의 source).
         //# Source 추적은 ApplyCardEffect(card) 가 _currentCardScope 에 카드를 저장한 동안
-        //# RegisterMonsterTypeBuff 가 호출되는 패턴으로만 갱신된다 (기획서 §4.2).
         private readonly Dictionary<EMonster, List<BattleViewModel.AppliedBuff>> _typeModifierPicks = new();
 
         //# 스포너 상태 UI — 카드 효과 적용 진입점이 임시로 저장하는 현재 픽 카드. RegisterMonsterTypeBuff 가 source 로 읽는다.
@@ -97,8 +95,6 @@ namespace Lair.Battle
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
-            //#    HUD 가 먼저 뜨면 SpawnerStatusPanel.Bind 시점에 vm.Spawners 가 빈 리스트라 셀 0 개가 만들어진다.
-            //#    Spawner.Tick 은 _host == null 이면 early return 이라 사전 Bind 부작용 없음.
             await SpawnHero();
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
@@ -225,7 +221,6 @@ namespace Lair.Battle
 
         //# 지속 스폰 — 몬스터에 raw 스탯 × 글로벌 타입 모디파이어 배율 적용 (§7.5.2).
         //# 모든 몬스터 스폰·소급 경로가 이 한 메서드를 거친다. 영웅은 절대 거치지 않는다.
-        //# resetCurrent: 신규 Pop = true(풀피), 강화 카드 필드 소급 = false(현재 HP 보존).
         public void ApplyMonsterStats(GameObject character, EMonster key, bool resetCurrent)
         {
             if (character == null) return;
@@ -415,8 +410,6 @@ namespace Lair.Battle
 
         //# 스포너 상태 UI — 카드 효과 적용의 단일 진입점 (기획서 §4.2 BLOCKER 4 결정).
         //# 3개 기존 호출지점(card.Effect.Apply(_ctx))을 이 메서드로 치환해 source 를 잠시 보관한다.
-        //# ICardEffect / IBattleContext / 25개 효과 클래스 시그니처는 일체 변경하지 않는다.
-        //# 카드 리뉴얼 v0.6 — Effect.Apply 직전 RegisterCardPick(axis) 로 빌드 시너지 카운트 + 임계 발화.
         public void ApplyCardEffect(CardData card)
         {
             if (card?.Effect == null || _ctx == null) return;
@@ -451,12 +444,6 @@ namespace Lair.Battle
 
             //# 동일 종·동일 Stat 의 엔트리들에 누적 배율을 일괄 동기화 (종 1 ↔ 카드 1 매핑이지만
             //# 향후 1↔다 매핑 확장에 대비해 list 순회로 갱신).
-            //# v1.0 — Enhance 카테고리만 갱신 대상. Spawn 엔트리(같은 list 에 들어감)의 AggregateMultiplier 가
-            //# 잘못 덮어쓰이지 않도록 Category 필터.
-            //# 카드 리뉴얼 v0.6 — 구 Enhance → EBuildAxis.Tank 자리 치환 (Phase 1 임시 매핑).
-            //# Phase 2 SO 재할당 후 실제 의미는 다시 정렬됨 — TrackCardPick / TrackSpawnPick 분기 자체를
-            //# axis 기반이 아닌 'TrackCardPick 가 호출됐는가(Enhance 류) / TrackSpawnPick 가 호출됐는가(Spawn 류)'
-            //# 의 호출 진입점 차이로 의도 보존. 본 필터는 stat 일치 검증이 본질이므로 axis 분기는 변환만 한 채 유지.
             if (_typeModifiers.TryGetValue(type, out StatMultiplier mul))
             {
                 foreach (BattleViewModel.AppliedBuff b in list)
@@ -467,7 +454,6 @@ namespace Lair.Battle
 
         //# v1.0 — Spawn 카테고리 픽 누적. Enhance 의 TrackCardPick 와 자료구조 공유 (Dictionary<EMonster, List<AppliedBuff>>).
         //# Stat 필드는 EMonsterStatKind.Hp (default, BuffLine.FormatBody 의 Category 분기로 읽히지 않음 — §2.5.5 v1.0).
-        //# AggregateMultiplier 는 Spawn 에선 의미 없음. retroactive 정책 (§2.3.6) — type 출력 Spawner 가 0 대여도 누적.
         private void TrackSpawnPick(EMonster type, CardData source)
         {
             if (_typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list) == false)
@@ -498,7 +484,6 @@ namespace Lair.Battle
 
         //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
         //# v1.0 — _currentCardScope non-null (= ApplyCardEffect 진입 중) 이면 Spawn 픽 추적 + 셀 IconRow 갱신 이벤트 발행.
-        //# 셀 IconRow Spawn 슬롯은 OnTypeModifierChanged 의 동일 이벤트로 재계산 (의미 확장 — §4.3 v1.0).
         public void IncrementSpawnerOutput(EMonster type)
         {
             if (_spawners == null) return;
@@ -671,7 +656,6 @@ namespace Lair.Battle
 
         //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰 (액티브 증식 카드 등).
         //# 지속 스폰 — 마리 단위 캡 검사 (§4.4 truncate). 캡 이상이면 no-op.
-        //# 증식은 이 메서드를 N회 호출하므로 캡 도달 시점부터 자동으로 잘린다.
         public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
         {
             if (_model != null && _model.Result != BattleResult.None) return;

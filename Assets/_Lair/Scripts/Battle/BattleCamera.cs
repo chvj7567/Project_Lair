@@ -4,9 +4,6 @@ namespace Lair.Battle
 {
     //# Main Camera 에 부착. 마우스 휠로 카메라를 forward 축 방향으로 이동시켜 줌 효과를 낸다.
     //# Perspective + 하향 틸트 카메라에서 FOV 변경 대신 position translate 를 사용하는 이유:
-    //# — FOV 변경은 원근 왜곡만 증가, 시점 중심 고정이 안 됨.
-    //# — transform.position.y 만 이동하면 틸트 때문에 시야 중심이 Z 축으로 밀림.
-    //# — forward 방향 이동은 카메라 바라보는 방향 그대로 가까워지고 멀어지므로 자연스러운 줌.
     [RequireComponent(typeof(Camera))]
     public class BattleCamera : MonoBehaviour
     {
@@ -64,8 +61,6 @@ namespace Lair.Battle
 
         //# 마우스 휠 입력을 목표 거리에 반영.
         //# 휠 업 = 줌인 (거리 감소), 휠 다운 = 줌아웃 (거리 증가).
-        //# Input.GetAxis — Project Settings > Player > Active Input Handling 이 "Old" 또는 "Both" 여야 동작.
-        //# "New Input System" 전용 설정이면 InputAction 기반으로 교체 필요.
         private void HandleScrollInput()
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");

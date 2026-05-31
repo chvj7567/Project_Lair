@@ -5,8 +5,6 @@ namespace Lair.Card
 {
     //# 카드 리뉴얼 v0.6 — 빌드 시너지 코어 (POCO, BattleController 가 보유).
     //# Layer 1: 한 라운드의 축별 픽 카운트를 누적하고, BindTier 로 등록된 임계(3/5/7)
-    //# 도달 시점에 1회 Apply 발화.
-    //# 라운드 시작 / Restart 시 Reset() 호출 — 픽 카운트만 초기화 (Tier 바인딩은 영구).
     public class BuildSynergyService
     {
         //# 축별 누적 픽 카운트. 같은 카드를 K번 픽하면 K번 누적 (기획서 §9.2).

@@ -74,10 +74,6 @@ namespace Lair.Tests.Battle
 
         //# 부모 Spawner 위에 자식 SpawnerBody 를 배치하는 표준 설정.
         //# spawnerOutputType — Spawner 직렬화 출력 종.
-        //# setupBody — Renderer + Materials 주입 여부.
-        //# 자식 SpawnerBody 는 부모가 없는 상태에서 AddComponent 해야 자동 OnEnable 이
-        //# GetComponentInParent 를 못 찾고 구독하지 않는다. SetParent 는 그 후에 한다.
-        //# (AddComponent on active GameObject triggers OnEnable immediately in EditMode)
         private (Spawner spawner, SpawnerBody body, MeshRenderer renderer, Material[] materials)
             CreateSetup(EMonster spawnerOutputType = EMonster.Wisp, bool setupBody = true,
                 int matCount = 6)
@@ -122,7 +118,6 @@ namespace Lair.Tests.Battle
 
             //# SpawnerBody.OnEnable 이 GetComponentInParent 로 Spawner 의 ISpawnerOutputProvider 를 찾고
             //# HandleTypeChanged 를 구독 후 즉시 동기화 호출.
-            //# Spawner 의 OnEnable 을 먼저 호출해 _currentType 초기화.
             InvokeOnEnable(spawner);
             InvokeBodyOnEnable(body);
 

@@ -5,8 +5,6 @@ namespace Lair.UI
 {
     //# BuildPanel 의 PassiveSection / ActiveSection 카드 아이콘 리스트 —
     //# CHPoolingScrollView<BuildIconCell, BuildEntry>.
-    //# Rule 11 v0.8 — `ScrollRect + 수동 풀링 → CHPoolingScrollView` 원칙 완전 적용.
-    //# 기존 `_cells` Dict + `CHMPool.Pop` 수동 풀링 폐기, 본 컴포넌트의 자체 풀링 사용.
     public class BuildIconPoolingScrollView
         : CHPoolingScrollView<BuildIconCell, BattleViewModel.BuildEntry>
     {

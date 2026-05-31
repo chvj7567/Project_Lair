@@ -7,11 +7,6 @@ namespace Lair.Tests.Battle
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — Plague Spawner #4 의 세부 정합 회귀.
     //# 기존 SpawnerConfigTests 는 Plague ≥1 / 총 6개만 검증. 본 스위트는 #4 슬롯의
-    //#   - _outputType = Plague(4)
-    //#   - _spawnPeriod = 10.0s
-    //#   - _initialDelay = 1.5s
-    //# 까지 정확 검증해 game-designer 기획서 §5.1 ↔ 씬 ↔ 컨셉서 §3.1 (continuous-spawn-round.md) 동기화 보장.
-    //# 회귀 의도: spec D9 / 기획서 §5 의 결정 락이 미래 씬 편집으로 깨지지 않도록 박제.
     public class PlagueSpawnerConfigTests
     {
         private const string BattleScenePath = "Assets/_Lair/Scenes/Battle.unity";

@@ -9,9 +9,6 @@ namespace Lair.EditorTools
 {
     //# 씬에 배치된 Spawner(6개)에 SpawnerBody 자식(Cylinder 디스크)을 부착.
     //# 스포너 상태 UI — World-space 진행 바(CooldownBarWrapper) 빌드 스텝 제거 (기획서 §4.11).
-    //# 진행 바는 BattleHud 의 SpawnerStatusPanel 6셀로 통합. 디스크 본체(SpawnerBody) 는 유지.
-    //# Rule 12 예외: CreatePrimitive 는 에디터 빌더에서만 허용.
-    //# 이미 존재하는 자식은 스킵 (idempotent).
     public static class LairSpawnerVisualBuilder
     {
         private const string MaterialDir   = "Assets/_Lair/Art/Materials";

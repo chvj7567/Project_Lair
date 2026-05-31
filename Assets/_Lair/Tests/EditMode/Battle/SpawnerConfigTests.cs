@@ -6,10 +6,6 @@ namespace Lair.Tests.Battle
 {
     //# 카드 리뉴얼 Phase 1 Task 5 — Battle.unity 의 Spawner 6개 중 Plague Spawner ≥1 보장.
     //# 디버프 축 작동의 구조적 전제 (기획서 §5, continuous-spawn-round.md §3.1).
-    //#
-    //# SpawnerConfig 는 SO asset 이 아니라 씬 (Battle.unity) 의 Spawner 컴포넌트 인스펙터 값으로 직렬화.
-    //# 본 테스트는 YAML 파일을 텍스트로 직접 읽어 Spawner 의 _outputType 값을 카운트 (EditMode 안전).
-    //# EMonster 인덱스: Wisp=0, Wraith=1, Reaper=2, Hex=3, Plague=4, Phantom=5 (CommonEnum.cs).
     public class SpawnerConfigTests
     {
         private const string BattleScenePath = "Assets/_Lair/Scenes/Battle.unity";

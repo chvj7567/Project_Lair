@@ -8,13 +8,10 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — HeroAttackDownAura factor 누적 시나리오 망라.
     //# EffectsRenewal2026Tests B3 회귀는 *1픽 + Tier2 = ×0.6375* 와 *같은 factor 재부착 무시* 만 확인.
-    //# 본 스위트는 *2픽 + Tier2 = ×0.4781* 까지 확장 (기획서 §4.5 누적 정책 예시 수치).
     public class HeroAuraRunnerAttackDownTests
     {
         //# 기획서 §4.5 누적 예시: 2픽 + Tier2 = ×0.75² × ×0.85 = ×0.4781.
         //# 단, "같은 factor 재부착 무시" 정책 때문에 시스템상 ×0.75 는 1회만 곱연산 — 따라서
-        //# 본 스위트는 *factor 가 다른 인스턴스 3개* 를 부착해 실제 PowerScale 가 3중 곱연산 되는지 검증.
-        //# (×0.75 카드픽 + ×0.85 Tier2 + ×0.65 가상 카드픽 = ×0.4144 — 시스템 누적 메커니즘 자체 회귀)
         [Test]
         public void HeroAttackDown_세_다른_factor_부착_PowerScale_3중_곱연산()
         {

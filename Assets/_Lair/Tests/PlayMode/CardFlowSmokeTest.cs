@@ -26,7 +26,6 @@ namespace Lair.Tests.PlayMode
 
             //# 1) BattleController.Start 가 비동기 — 영웅 스폰 + HUD 표시 + CardPool 로드까지 대기.
             //# unscaledDeltaTime — 만약 초기화 중 영웅이 다른 트리거로 팝업을 띄워 timeScale=0
-            //# 으로 돼도 대기 루프가 hang 하지 않도록 견고화 (밸런스 변경 회귀 방지).
             float elapsed = 0f;
             while (elapsed < 3f) { elapsed += Time.unscaledDeltaTime; yield return null; }
 

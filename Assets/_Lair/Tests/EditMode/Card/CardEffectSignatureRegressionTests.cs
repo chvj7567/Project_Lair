@@ -10,15 +10,6 @@ namespace Lair.Tests.Card
 {
     //# 스포너 상태 UI — 영역 H (인터페이스 시그니처 호환성 회귀, 기획서 §4.2 BLOCKER 4).
     //#
-    //# BLOCKER 4 결정: ICardEffect.Apply / IBattleContext.RegisterMonsterTypeBuff 시그니처를 변경하지 않고
-    //# BattleController 내부 _currentCardScope 로 source 추적. 25개 효과 클래스 / BattleContext / 6개 강화 효과
-    //# 모두 시그니처 불변. 본 테스트는 그 결정의 회귀 보호.
-    //#
-    //# 검증:
-    //#  - ICardEffect.Apply(IBattleContext) 1 인자 시그니처 유지.
-    //#  - IBattleContext.RegisterMonsterTypeBuff(EMonster, EMonsterStatKind, float) 3 인자 시그니처 유지.
-    //#  - IBattleContext 의 다른 메서드(IncrementSpawnerOutput / ReplaceSpawnerOutput) 도 시그니처 유지.
-    //#  - BattleContext 가 RegisterMonsterTypeBuff 를 그대로 위임 (시그니처 불변).
     public class CardEffectSignatureRegressionTests
     {
         //# ===== ICardEffect.Apply 시그니처 불변 =====

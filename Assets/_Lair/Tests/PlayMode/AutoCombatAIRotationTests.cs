@@ -99,7 +99,6 @@ namespace Lair.Tests.PlayMode
         {
             //# 몬스터가 영웅(0,0,5) 을 추적. range 1.5 << 거리 5 → Moving 상태.
             //# 기대: 몬스터 yaw 가 +Z 방향(0°) 정렬.
-            //# 영웅 이동 차단을 위해 SimpleMover.Speed 도 0 으로.
             (GameObject hero, GameObject monster) = Spawn(
                 heroPos: new Vector3(0f, 0f, 5f),
                 monsterPos: Vector3.zero,
@@ -164,7 +163,6 @@ namespace Lair.Tests.PlayMode
         {
             //# 몬스터를 (3, 0, 0) 에 스폰 → 비활성 → yaw 외부 변형 (90°) → 재활성.
             //# AutoCombatAI.OnEnable 의 SnapToDirection(Vector3.zero - (3,0,0)) = (-X)
-            //# → yaw 즉시 270° 로 스냅 (90° 의 이전 잔존이 사라져야).
             GameObject monster = new GameObject("recycled_monster");
             monster.transform.position = new Vector3(3f, 0f, 0f);
             Health hp = monster.AddComponent<Health>();

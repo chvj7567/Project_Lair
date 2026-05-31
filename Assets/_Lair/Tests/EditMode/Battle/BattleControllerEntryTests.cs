@@ -10,7 +10,6 @@ namespace Lair.Tests.Battle
 {
     //# BattleController.HandleHeroReachedCenter / Update 게이트 동작 검증 (EditMode).
     //# Start() 풀스택은 PlayMode 통합 영역. 본 스위트는 1회 동작 보장 + 중복 호출 idempotent + Spawner Tick 게이트.
-    //# HandleHeroReachedCenter 의 모든 의존성(_hero, _heroEntryDriver, _clock) 은 ?.* 가드 — null 안전.
     public class BattleControllerEntryTests
     {
         //# Update 게이트 테스트용 ISpawnerHost — Spawner 가 Bind(host, null) 받아야 Tick 진입.
@@ -148,7 +147,6 @@ namespace Lair.Tests.Battle
 
         //# Update 의 핵심 게이트 — Hero entry 전(_spawnersActive=false) 에는 Spawner.Tick 호출 안 됨.
         //# BattleClock 도 미시작이라 Tick(dt) 은 Elapsed 안 증가시킴.
-        //# 영웅 entry 동안 게임 진행이 정지되어야 한다는 spec §6.2 의 단일 진실 회귀.
         [Test]
         public void Update_spawnersActive_false_이면_Spawner_Tick_호출_안됨()
         {

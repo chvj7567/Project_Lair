@@ -25,7 +25,6 @@ namespace Lair.UI
 
         //# 카테고리 색 — CardView 와 BuildIconCell 이 공유 (Rule 03 — 색 매핑 단일 출처).
         //# 카드 리뉴얼 v0.6 Phase 2 — 기획서 §2 4축 색 매핑 정정.
-        //# Tank #22C55E (Wisp 초록) / Dps #EF4444 (Reaper 빨강) / Debuff #A855F7 (Plague 보라) / Swarm #1F2937 (Phantom 검정).
         public static Color CategoryColor(EBuildAxis c) => c switch
         {
             EBuildAxis.Tank   => new Color(0.133f, 0.773f, 0.369f, 1f),

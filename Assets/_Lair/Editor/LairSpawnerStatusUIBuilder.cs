@@ -12,10 +12,6 @@ namespace Lair.EditorTools
 {
     //# 스포너 상태 UI 신규 프리팹 4종 빌드 (기획서 §4.11).
     //# - SpawnerStatusPanel.prefab  (Addressable X — BattleHud nested)
-    //# - SpawnerStatusCell.prefab   (Addressable X — CHMPool 풀링, panel 직참)
-    //# - SpawnerStatusTooltip.prefab(Addressable O — CHMUI.ShowUI 키)
-    //# - BuildModalPopup.prefab     (Addressable O — CHMUI.ShowUI 키)
-    //# 파일명 = Enum 값명 (Rule 08). Art/UI 폴더 (Rule 14).
     public static class LairSpawnerStatusUIBuilder
     {
         public const string PrefabDir = "Assets/_Lair/Art/UI";
@@ -197,7 +193,6 @@ namespace Lair.EditorTools
 
             //# 진행 바 — Background + Fill. 17px 높이 (v0.7). 좌우 padding 12 → sizeDelta x = -24, 결과 폭 110.
             //# 진행 바 anchoredPosition.y = 27 (§2.2.1 단일 진실, v0.8 BLOCKER B1).
-            //# pivot.y=0 으로 셀 하단 기준. anchor X 는 (0,1) stretch + pivot.x=0.5 → 가로 가운데, sizeDelta.x=-24 가 좌우 12px 여백.
             GameObject progressBgGo = new GameObject("ProgressBackground", typeof(RectTransform), typeof(Image));
             progressBgGo.transform.SetParent(root.transform, false);
             RectTransform progressBgRt = (RectTransform)progressBgGo.transform;
@@ -289,7 +284,6 @@ namespace Lair.EditorTools
 
         //# ===== SpawnerStatusTooltip =====
         //# v0.8 — Body 201×252 (셀 1개 134×168 의 1.5배), CHPoolingScrollView<BuffLine, AppliedBuff>.
-        //# v0.9 — _itemSize 는 dead serialization, BuffLine prefab sizeDelta = 단일 진실 (§4.11 P1).
         private static void BuildTooltipPrefab(AddressableAssetSettings settings, AddressableAssetGroup group)
         {
             const string PrefabName = "SpawnerStatusTooltip";
@@ -448,8 +442,6 @@ namespace Lair.EditorTools
 
         //# ===== BuffLine prefab =====
         //# 툴팁 본문 강화 줄 1개 — sizeDelta (185, 24).
-        //# 자식: IconCircle(16×16 원) + IconLetter(12pt) + Badge(10pt ×N) + Body(10pt 본문).
-        //# CHPoolingScrollView<BuffLine, AppliedBuff> 의 _origin 으로 nesting (§4.11 v0.8).
         private static void BuildBuffLinePrefab()
         {
             const string PrefabName = "BuffLine";
@@ -539,7 +531,6 @@ namespace Lair.EditorTools
 
         //# ===== BuildModalCardCell =====
         //# v0.9 P1 — sizeDelta (303, 56) (기존 280×56 갱신). prefab sizeDelta 가 CHPoolingScrollView 의
-        //# itemSize 단일 진실이므로 빌더가 박는다 (모달 가용 폭 절반 303).
         private static void BuildModalCardCellPrefab()
         {
             const string PrefabName = "BuildModalCardCell";
@@ -748,7 +739,6 @@ namespace Lair.EditorTools
 
         //# 모달 한 섹션 — CHPoolingScrollView<BuildModalCardCell, BuildEntry> (§2.7.2 v0.8).
         //# 라벨 + ScrollRect[Viewport(RectMask2D + raycast Image) + Content(RectTransform 만)] + 빈 상태 텍스트.
-        //# 반환값: BuildModalCardPoolingScrollView 컴포넌트 (BuildModalPopup 이 _passiveScrollView/_activeScrollView 로 가리킴).
         private static BuildModalCardPoolingScrollView BuildModalSection(Transform parent, string name, bool left, out CHText emptyText)
         {
             GameObject sectionGo = new GameObject(name, typeof(RectTransform));
@@ -837,7 +827,6 @@ namespace Lair.EditorTools
 
             //# CHPoolingScrollView 파생 컴포넌트 + 직렬화 필드 wire-up.
             //# _itemSize 는 wire-up 안 함 (v0.9 P1) — BuildModalCardCell prefab sizeDelta (303, 56) 가 단일 진실.
-            //# _columnCount = 0 auto — viewport 303 / itemSize 303 = 1 자동 (BuildPanel B1 위험 없음).
             BuildModalCardPoolingScrollView modalScrollView = scrollGo.AddComponent<BuildModalCardPoolingScrollView>();
             SerializedObject msvSo = new SerializedObject(modalScrollView);
             if (originInst != null) SetObjectField(msvSo, "_origin", originInst);
@@ -874,9 +863,6 @@ namespace Lair.EditorTools
 
         //# v1.0 — IconRow 의 한 슬롯 (Enhance 또는 Spawn) 빌드 헬퍼.
         //# - circle: 30×30 원 (anchor (0, 0.5) / pivot (0, 0.5) — 기존 단일 슬롯 패턴 유지).
-        //# - letter: 16pt 1자 (circle 자식 full-stretch).
-        //# - badge:  14pt ×N (circle 우하단 모서리 — anchor (1, 0) / pivot (0, 1) / anchoredPos (-2, 1) / sizeDelta (24, 14)).
-        //# anchoredPosition.x 가 슬롯 간 유일한 차이 (12 = Enhance / 68 = Spawn — §2.3.1 v1.0).
         private static (Image circle, CHText letter, CHText badge) BuildIconSlot(
             Transform rowParent, string circleName, string letterName, string badgeName,
             float xPos, string defaultLetter)

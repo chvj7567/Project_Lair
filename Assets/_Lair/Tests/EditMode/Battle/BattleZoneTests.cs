@@ -91,7 +91,6 @@ namespace Lair.Tests.Battle
 
         //# 엣지 — IsInside 가 bounds.Contains 를 그대로 호출하므로 Y 축도 함께 검사된다.
         //# size.y=1 (±0.5) 기준으로 Y=10 은 XZ 가 zone 안이라도 false 가 정확한 동작.
-        //# Y 가 큰 입력이 zone 안으로 잘못 판정되지 않도록 회귀 박제.
         [Test]
         public void IsInside_Y가_bounds_밖이면_false()
         {

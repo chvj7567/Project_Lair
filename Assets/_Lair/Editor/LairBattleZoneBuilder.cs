@@ -8,8 +8,6 @@ namespace Lair.EditorTools
 {
     //# Battle 씬에 BattleZone GameObject 와 자식(spawn point 12 + hero entry 1) 일괄 셋업.
     //# 기획서 §2.3 (zone size 24) · §3.2 / §4.2 (spawn point ±14.4) · §5.1 (hero entry -15) 좌표 박제.
-    //# 인스펙터 와이어링 (_zoneTrigger / _spawnPoints / _heroEntryPoint) 도 함께 처리.
-    //# 마지막으로 BattleController._zone 도 자동 와이어링.
     public static class LairBattleZoneBuilder
     {
         [MenuItem("Lair/Setup/Build BattleZone (Scene)")]

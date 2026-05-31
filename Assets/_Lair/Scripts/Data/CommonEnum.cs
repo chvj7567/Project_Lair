@@ -13,7 +13,6 @@ namespace Lair.Data
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
     //# 순서 절대 변경 금지 — BalanceConfig.MonsterStatRow.Key (int 직렬화) 와 1:1 대응.
-    //# Wisp=0, Wraith=1, Reaper=2, Hex=3, Plague=4, Phantom=5.
     public enum EMonster
     {
         Wisp,      //# 도깨비불 — 기본 잡몹 (구 Slime, 0)
@@ -45,8 +44,6 @@ namespace Lair.Data
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
     //# 순서 절대 변경 금지 — CardData._axis (int 직렬화) 와 1:1 대응.
-    //# Phase 1 마이그레이션 정책: 구 카테고리 0/1/2/3 자리에 그대로 1:1 치환 (값 위치 보존).
-    //# 실제 카드의 의미적 축 매핑은 Phase 2 (SO 마이그레이션) 에서 game-designer 기획서대로 재할당.
     public enum EBuildAxis
     {
         Tank,    //# 탱커/포위 — Wisp + Wraith 중심
@@ -57,8 +54,6 @@ namespace Lair.Data
 
     //# 카드 식별자 — 카드 리뉴얼 v0.6 (2026-05-31) — 28장 (패시브 16 + 액티브 12).
     //# 종(種) 이름이 들어간 카드 ID 는 LittleGhost 테마로 동기화 (Wisp/Wraith/Reaper/Hex/Plague/Phantom).
-    //# 순서 절대 변경 금지 — CardData._id (int 직렬화) 와 1:1 대응.
-    //# Multiply (값 20) / Berserk (값 24) 는 enum 값명 보존, 효과/displayName 리뉴얼 (Berserk → GuardianRage, Multiply → SwarmRush 효과).
     public enum ECardId
     {
         //# 패시브 15장 (값 0~14 보존 — v0.6 에서 일부는 축 이동 + 효과 리뉴얼)
@@ -94,7 +89,6 @@ namespace Lair.Data
 
         //# 카드 리뉴얼 v0.6 신규 3장 (값 25~27 — int 직렬화 정합).
         //# SwarmRush 는 별도 enum 값을 두지 않고 Multiply enum 자리(값 20) + SO 파일명 Multiply.asset 을 그대로 사용
-        //# — Berserk → GuardianRage 패턴과 동일 (enum 값명·SO 파일명 보존, 효과/displayName 만 리뉴얼).
         WallOfWisps,                   //# (25) — Tank A
         MarkOfDeath,                   //# (26) — Dps A
         SpawnerHaste,                  //# (27) — Swarm P

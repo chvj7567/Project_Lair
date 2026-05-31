@@ -4,7 +4,6 @@ namespace Lair.Battle
 {
     //# 지속 스폰 — 종(EMonster)별 누적 스탯 배율 (§3.0.1).
     //# 강화 카드 픽 시 곱연산으로 갱신, ApplyMonsterStats 가 raw×배율로 적용.
-    //# 모든 필드 기본 1.0 — 픽 이력 리스트가 아니라 곱연산된 단일 배율값.
     public class StatMultiplier
     {
         public float HpMul = 1f;          //# 최대 HP 배율

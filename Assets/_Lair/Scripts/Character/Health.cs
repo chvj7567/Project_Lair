@@ -5,7 +5,6 @@ namespace Lair.Character
 {
     //# IHealth 구현체. 본 슬라이스 한정 POCO + MonoBehaviour 양립.
     //# Unity 컴포넌트로 사용 시: GameObject 에 AddComponent.
-    //# 테스트에서는 new Health() 직접 생성 후 SetMax 로 초기화.
     public class Health : MonoBehaviour, IHealth
     {
         [SerializeField] private int _max = 100;
@@ -23,7 +22,6 @@ namespace Lair.Character
 
         //# 카드 리뉴얼 v0.6 [B1] — 일시 HP 배율 오버레이. MonsterBuffService 가 매 tick 재설정.
         //# 기본 1.0. 변경 시 CurrentHp/MaxHp 비율 보존 (예: 80% 상태에서 1→2 변경 → CurrentHp 도 2배).
-        //# buff 종료 후 Tick 에서 1.0 으로 복원되면 CurrentHp 도 1/2 로 축소 (최소 1 보존).
         private float _hpMaxScale = 1f;
         public float HpMaxScale
         {
@@ -55,8 +53,6 @@ namespace Lair.Character
 
         //# CHMPool 재사용 시 사망 상태로 풀에서 빠져나온 인스턴스를 복원.
         //# Pop → SetActive(true) → OnEnable. Current > 0 이면 그대로 유지.
-        //# B3 — 오버레이 배율도 풀 재사용 시 잔존 방지 위해 1.0 리셋.
-        //# [B1] HpMaxScale 도 풀 재사용 시 1.0 리셋 (setter 우회: 직접 필드 — 비율 보존 로직 불요).
         private void OnEnable()
         {
             if (Current <= 0) Current = _max;

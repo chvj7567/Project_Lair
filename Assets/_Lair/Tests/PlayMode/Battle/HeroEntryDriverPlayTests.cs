@@ -11,8 +11,6 @@ namespace Lair.Tests.PlayMode.Battle
 {
     //# BattleZone + HeroEntryDriver + SimpleMover + Health + SimpleRotator 의 통합 시퀀스 검증.
     //# Fake POCO 더블은 GetComponent<I*>() 가 잡지 못하므로 (HeroEntryDriver.Awake 의 의존성),
-    //# real 컴포넌트를 그대로 부착한 GameObject 로 구성.
-    //# (AutoCombatAIRotationTests.Spawn 패턴 차용.)
     public class HeroEntryDriverPlayTests
     {
         private readonly List<GameObject> _spawned = new();
@@ -164,7 +162,6 @@ namespace Lair.Tests.PlayMode.Battle
 
         //# 통합 — 몬스터 GameObject 가 BattleZone 본체의 BoxCollider 안으로 진입하면
         //# BattleZone.OnTriggerEnter (Unity 물리) 가 발화 → CharacterRegistry.IsEngaging=true 자동 전환.
-        //# 실제 Rigidbody + Collider 충돌로 검증.
         [UnityTest]
         public IEnumerator 몬스터가_zone_진입시_IsEngaging_true_자동전환()
         {
@@ -204,7 +201,6 @@ namespace Lair.Tests.PlayMode.Battle
 
         //# 풀 재사용 안전성 — 몬스터를 Engaging 상태로 만든 후 SetActive(false) → SetActive(true).
         //# MonsterTag.OnEnable 이 IsEngaging=false 로 리셋해 Marching 상태 보장.
-        //# 풀 Push → Pop 의 핵심 invariant.
         [UnityTest]
         public IEnumerator 풀_Push_Pop_시뮬레이션시_IsEngaging_false_복귀()
         {

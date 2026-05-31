@@ -8,7 +8,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — EternalBleedAura 단위 검증 (Debuff Tier3 시너지).
     //# 기획서 §4.2·§10.3 단정: ratio 0.01 (1%/s) — 영웅 *이동 시에만* 발동. 라운드 끝까지 무제한.
-    //# 본 스위트는 IMover.IsMoving 분기 + ratio 적용 + 정지 시 무발동을 망라.
     public class EternalBleedAuraTests
     {
         //# 영웅 이동 중 1초 누적 → Max × 0.01 만큼 데미지.

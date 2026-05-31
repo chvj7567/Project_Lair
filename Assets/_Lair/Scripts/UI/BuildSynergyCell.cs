@@ -7,7 +7,6 @@ namespace Lair.UI
 {
     //# 카드 리뉴얼 v0.6 — BuildSynergyPanel 의 1축 셀.
     //# 표시: [배경 = 축 색] AXIS  N/임계  ■■■ (Tier 마커).
-    //# CHPoolingScrollView 의 Item — prefab 으로 만들고 인스펙터에서 _background/_text 참조 설정.
     public class BuildSynergyCell : MonoBehaviour
     {
         [SerializeField] private Image _background;

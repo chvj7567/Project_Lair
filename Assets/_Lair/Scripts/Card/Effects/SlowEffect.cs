@@ -8,7 +8,6 @@ namespace Lair.Card
 {
     //# 카드 리뉴얼 v0.6 — Slow (Swarm A 축 이동 + 리뉴얼, 기획서 §3.4 #7).
     //# 이중 효과: 영웅 이동속도 ×_heroFactor + 모든 몬스터 이동속도 ×_monsterMul, _duration 초.
-    //# 영웅 슬로우 — 기존 SlowAura 재사용. 몬스터 가속 — MonsterBuffService 의 SwarmSpeed 케이스 (후속 효과 본문 구현 필요).
     [Serializable]
     public class SlowEffect : ICardEffect
     {

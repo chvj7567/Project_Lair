@@ -4,8 +4,6 @@ namespace Lair.Character
 {
     //# IRotator 구현 — Y(yaw) 회전 전용. deg/s 기반 부드러운 보간.
     //# AutoCombatAI 가 상태별로 FaceDirection 호출 → Update 에서 MoveTowardsAngle 로 따라감.
-    //# Rule 12 — CHMPool 재사용 시 OnEnable 에서 내부 상태 리셋. transform.rotation 은 외부(AutoCombatAI.OnEnable)
-    //# 에서 SnapToDirection 으로 강제하므로 여기서는 _hasTarget / _targetYaw 만 비운다.
     public class SimpleRotator : MonoBehaviour, IRotator
     {
         //# 권장 540 deg/s — 기획서 §2.1. 180°를 0.33초.

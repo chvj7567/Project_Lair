@@ -130,8 +130,6 @@ namespace Lair.UI
 
         //# Spawner 6개 + BattleController 를 묶어 VM 이 종합 스냅샷을 제공.
         //# 초기 스냅샷은 직접 폴링으로 채우고, 이후 이벤트 구독으로 갱신.
-        //# BattleController 와 lifecycle 이 동치라 unsubscribe leak 영향은 작지만,
-        //# 안전을 위해 DetachSpawners 를 노출 (씬 재진입 / 테스트 재사용 대응).
         public void AttachSpawners(IReadOnlyList<Spawner> spawners, BattleController controller)
         {
             if (spawners == null || controller == null) return;

@@ -8,7 +8,6 @@ namespace Lair.Card
 {
     //# 영웅 발 밑에 독장판 고정 + 영웅이 그 영역 안에 있을 때만 1초마다 _dps 데미지.
     //# Visual 은 OnAttached 시점의 영웅 위치에 고정 — 영웅 이동에 따라가지 않음.
-    //# Visual 은 root 레벨 (영웅 자식 X) — Push 시 부모 deactivating 제약 회피.
     [Serializable]
     public class PoisonAura : IHeroAura
     {

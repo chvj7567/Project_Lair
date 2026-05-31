@@ -10,13 +10,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — Layer 2 카드 중첩 누적 검증.
     //# 기획서 §7.1·§7.2: 같은 카드 K번 픽 시 곱연산/가산/지속시간 누적이 IBattleContext 표면을 K번 재호출.
-    //#  - WispHpBoost 5픽 → RegisterMonsterTypeBuff(Wisp, Hp, 1.5) 5회 호출 (곱연산 누적)
-    //#  - SpawnerHaste 다중 픽 → ScaleAllSpawnerPeriods(0.8) K회 호출 (곱연산 누적)
-    //#  - HeroAttackDownEffect 다중 픽 → 같은 factor → ShouldStackAsNew=false → 첫 픽만 적용
-    //#  - Fear / SpawnerHaste 의 호출 카운트는 효과 클래스가 표면을 정확히 K번 호출하는지만 확인.
-    //# 본 단위 테스트는 *카드 효과 클래스가 IBattleContext 표면을 정확히 K회 호출* 하는지를 검증.
-    //# 실제 곱연산 누적(예: 1.5×1.5=2.25)은 BattleController 의 dict 누적 책임이며
-    //# ContinuousSpawnIntegrationTest.ApplyMonsterStats_강화_2픽_곱연산_누적 이 이미 회귀로 박제.
     public class CardStackingTests
     {
         //# ===== 1. WispHpBoost 5픽 → RegisterMonsterTypeBuff 5회 호출 (Layer 2 곱연산 누적의 표면 검증) =====
@@ -59,9 +52,6 @@ namespace Lair.Tests.Card
 
         //# HeroAttackDownEffect 가 호출하는 Aura factor 기본값 (HeroAttackDownAura(_attacker) → 0.75 기본).
         //# Effect 자체는 매 Apply 마다 ApplyHeroAura 호출 — 표면 호출 카운트는 K회.
-        //# 다만 HeroAuraRunner 가 같은 factor 의 IDistinctHeroAura 를 ShouldStackAsNew=false 로 가드하므로
-        //# 같은 카드 다중 픽 시 PowerScale 은 1회만 곱연산 (단일 인스턴스 정책).
-        //# B3 회귀 EffectsRenewal2026Tests.HeroAttackDown_같은_factor_재부착은_PowerScale_재곱연산_안됨 의 보강.
         [Test]
         public void HeroAttackDown_같은카드_5번_픽_같은_factor_PowerScale_1회만_곱연산()
         {
@@ -90,7 +80,6 @@ namespace Lair.Tests.Card
 
         //# 기획서 §4.5 누적 정책: 카드 픽 (×0.75) + Debuff Tier2 (×0.85) + 카드 2픽 누적 가능 시 ×0.75 × ×0.85.
         //# 같은 factor 재부착은 1회만 적용되므로 *카드 픽 1회 (×0.75) + Tier2 (×0.85) = ×0.6375* 가
-        //# 본 시스템의 최대 누적. 카드 픽 2회 시 두 번째 ×0.75 는 첫 ×0.75 와 ShouldStackAsNew=false 가드.
         [Test]
         public void HeroAttackDown_카드픽_2회_더하기_Tier2_1회_누적_PowerScale_0점6375()
         {
@@ -119,8 +108,6 @@ namespace Lair.Tests.Card
 
         //# Fear 효과는 영웅 AutoCombatAI 가 있어야 작동 — 본 단위 테스트에선 무관, 표면 호출 카운트만 검증.
         //# 기획서 §7.2: "지속시간 누적 — 효과 진행 중 재픽 시 잔여 + duration".
-        //# Effect.Apply 가 매번 ApplyHeroAura 호출 = K픽 시 K번 호출. 실제 잔여+duration 누적은
-        //# HeroAuraRunner.Attach 의 "existing.Remain += duration" 경로가 담당.
         [Test]
         public void Fear_5번_Apply_ApplyHeroAura_호출표면_보호()
         {
@@ -139,8 +126,6 @@ namespace Lair.Tests.Card
 
         //# 카드 리뉴얼 v0.6 patch — WallOfWisps→ToughHide / SwarmRush→FastBreeding 효과 교체로
         //# WallOfWisps_2번_Apply / SwarmRush_2번_Apply 의 즉시 소환 다중픽 누적 케이스는 의미 사라짐.
-        //# ToughHide 다중픽 = AddMonsterBuff(ToughHide, -1) 매번 호출, MonsterBuffService 가 단일 영구 buff 로 유지.
-        //# FastBreeding 다중픽 = ScaleSpawnerPeriodForType(Phantom, 0.6) 매번 호출, BattleController._spawners 측 곱연산.
 
         //# ToughHide 2픽 → AddMonsterBuff(ToughHide, -1) 2회 호출 (영구 buff 표면 회귀).
         [Test]

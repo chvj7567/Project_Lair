@@ -10,10 +10,6 @@ namespace Lair.Tests.PlayMode
 {
     //# 스포너 상태 UI — PlayMode 통합 (실제 씬 + BattleController 라이프사이클).
     //#
-    //# 검증 포인트:
-    //#  - Battle 씬 로드 후 BattleViewModel.Spawners 가 6개 채워짐 (BattleController.BindSpawners 가 VM.AttachSpawners 호출).
-    //#  - 6 SpawnerSnapshot 각자 Index/CurrentType/OutputCount 가 라이브 Spawner 값과 일치.
-    //#  - 카드 픽 자동 처리 후 (DebugAutoPicker) BattleViewModel.Build 가 갱신.
     public class SpawnerStatusUIPlayTests : BattlePlayTestBase
     {
         [TearDown]

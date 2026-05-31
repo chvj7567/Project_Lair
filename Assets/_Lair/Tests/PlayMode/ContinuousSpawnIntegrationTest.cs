@@ -14,8 +14,6 @@ namespace Lair.Tests.PlayMode
 {
     //# 지속 스폰 — PlayMode 통합. MonoBehaviour/CharacterRegistry/씬 의존 영역 검증.
     //# 1) ApplyMonsterStats — raw×배율 + resetCurrent 분기 (실제 Health/MeleeAttacker 컴포넌트).
-    //# 2) RegisterMonsterTypeBuff — 글로벌 dict 곱연산 + 필드 동일 종 소급 (CharacterRegistry 경유).
-    //# 3) 필드 몬스터 캡 18 — Battle 씬 로드 후 라이브 BattleController 로 절대값 검증.
     public class ContinuousSpawnIntegrationTest : BattlePlayTestBase
     {
         private readonly List<GameObject> _spawned = new();
@@ -338,7 +336,6 @@ namespace Lair.Tests.PlayMode
 
         //# 통합 — Battle 씬을 진행해도 살아있는 몬스터가 캡 18 를 절대 넘지 않는다.
         //# Spawner 자연 스폰(사이클 skip) + 증식 경로 모두 합쳐도 절대값 유지 (§4.2).
-        //# 카드 팝업은 DebugAutoPicker 로 즉시 처리해 hang 방지(Time.timeScale=0 Pause 회피).
         [UnityTest]
         public IEnumerator Battle씬_지속스폰_살아있는_몬스터_캡18_절대초과없음()
         {
@@ -462,8 +459,6 @@ namespace Lair.Tests.PlayMode
 
         //# 통합 — 카드 리뉴얼 v0.6 Plague Spawner 정합 (Battle.unity §3.1):
         //#   Wisp 2개(#1·#4) 구성에서 #4(180°) 가 Plague 로 전환되었다 (10s 주기, 1.5s 초기 지연).
-        //#   `continuous-spawn-round.md §3.1` 의 갱신 표(v0.6) 와 정합.
-        //#   본 시나리오는 배선 검증만 — 라이브 스폰 검증은 캡18 시나리오가 커버.
         [UnityTest]
         public IEnumerator Battle씬_v0점6_Spawner_종분포_6종_각1개_Plague_포함()
         {
@@ -505,10 +500,6 @@ namespace Lair.Tests.PlayMode
 
         //# 통합 — 카드 리뉴얼 v0.6: BattleController._synergy 가 Debuff 5장 픽에 Tier2 를 발화.
         //#   라이브 BattleController 의 BindTier 12회 호출(§Phase 2) 이 실제로 작동하는지 검증.
-        //#   픽 5번 호출 → BuildSynergyService.GetCount(Debuff) == 5 + 임계 도달 시 1회 Apply.
-        //#   Tier2 Apply 의 부작용 (HeroAttackDownAura(0.85) 영구 부착) 까지 추적하는 건 hero 라이브
-        //#   상태 변동성이 커서 EditMode (BuildSynergyTiersTests.DebuffTier2_HeroAttackDown_0점85_영구_등록)
-        //#   가 단위 검증. PlayMode 는 *카운트 누적과 BattleController 와의 결합* 만 검증.
         [UnityTest]
         public IEnumerator Battle씬_v0점6_Debuff_5장_픽_시_Tier2_임계_도달()
         {
@@ -559,9 +550,6 @@ namespace Lair.Tests.PlayMode
 
         //# 회귀 — 카드 리뉴얼 v0.6: Multiply enum 자리 보존 (값 20).
         //#   spec D10 (Multiply 삭제) 의 실제 정책 = enum 자리·SO 파일명 보존 + 효과 클래스만 교체.
-        //#   값이 바뀌면 기존 SO 의 _id 직렬화(int=20) 와 desync — 인덱싱 회귀 방지.
-        //#   SO 파일·효과 클래스(SwarmRushEffect) 의 데이터 정합 검증은 EditMode
-        //#   (CardPoolDistributionTests / MultiplySwarmRushRegressionTests) 가 담당.
         [Test]
         public void v0점6_Multiply_enum_자리_보존_값20()
         {

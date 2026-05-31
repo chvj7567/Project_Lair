@@ -7,9 +7,6 @@ namespace Lair.UI
 {
     //# 모달 카드 셀 — 프레임(카테고리 색) + 이름 + ×N + 설명 한 줄.
     //# 기획서 §2.7.3 — 8×40 프레임 + 12pt 이름 + 10pt ×N + 10pt 설명.
-    //# CHPoolingScrollView<BuildModalCardCell, BuildEntry> 의 TItem (Rule 11 v0.8).
-    //# 기존 BuildModalPopup.cs nested 정의를 분리 — CHPoolingScrollView 의 _origin 으로
-    //# 참조되려면 별도 클래스 / 별도 prefab 의 component 로 직렬화돼야 함.
     public class BuildModalCardCell : MonoBehaviour
     {
         [SerializeField] private Image _frame;

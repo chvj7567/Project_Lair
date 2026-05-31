@@ -10,14 +10,6 @@ namespace Lair.Tests.UI
 {
     //# 스포너 상태 UI — 색칩 visibility 토글 회귀 (기획서 §2.2.2 v0.5).
     //#
-    //# 대상 로직 (SpawnerStatusCell.cs):
-    //#  - RebindSnapshot 안의 `_colorChip.gameObject.SetActive(snapshot.OutputCount < 2)`
-    //#    (N=1 → 노출, N≥2 → 숨김. 종명 가용 폭 회복용.)
-    //#  - OnEnable 의 `_colorChip.gameObject.SetActive(true)` 풀 재사용 visibility 회복.
-    //#
-    //# 본 테스트는 SpawnerStatusCell 인스턴스 라이프사이클(EditMode 한정 — Canvas 없이도 Image
-    //# 컴포넌트의 .color / .gameObject.activeSelf 만 검증 가능)을 다룬다.
-    //# 정적 매핑 회귀는 SpawnerStatusCellTests / SpawnerStatusCellMappingTests 가 담당.
     public class SpawnerStatusCellVisibilityTests
     {
         //# 정리 대상 — TearDown 에서 DestroyImmediate.
@@ -33,10 +25,6 @@ namespace Lair.Tests.UI
 
         //# 비활성 셀 GO + colorChip 자식(Image) 만 채워둔 상태로 생성.
         //# Cell 본체는 SetActive(false) 로 만들어 Unity 의 OnEnable 자동 호출을 막고
-        //# 테스트가 reflection 으로 명시 호출한다 (BattleViewModelSpawnerSnapshotTests 패턴).
-        //#
-        //# 다른 SerializeField (_speciesText, _countText, _iconRow, _border 등) 는
-        //# null 로 유지 — RebindSnapshot / OnEnable 모두 null 체크가 있어 안전.
         private (SpawnerStatusCell cell, GameObject chipGo) CreateCellWithColorChip()
         {
             GameObject cellGo = new GameObject("Cell_UT");
@@ -152,7 +140,6 @@ namespace Lair.Tests.UI
 
         //# 직전 셀이 N=2 로 숨김 상태로 풀에 반환됐어도, 재Pop 시 OnEnable 이 색칩을 다시 활성화해야 함.
         //# (Rule 12 — OnEnable / OnDisable 상태 리셋. RebindSnapshot 직전에 visibility 가 true 시작점이어야
-        //# 첫 스냅샷이 어떤 N 이든 결정성 있게 토글됨.)
         [Test]
         public void OnEnable_직전_숨김상태에서_색칩_활성_복원()
         {

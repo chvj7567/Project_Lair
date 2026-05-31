@@ -12,7 +12,6 @@ namespace Lair.Tests.PlayMode
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 (PlayMode) — Spawner 주기·출력 변경 시너지 통합 검증.
     //# ContinuousSpawnIntegrationTest 는 ApplyMonsterStats / RegisterMonsterTypeBuff / Plague Spawner 분포 / Debuff 5장 카운트만 다룸.
-    //# 본 스위트는 SpawnerHaste · Swarm Tier2 · Swarm Tier3 · Tank Tier3 의 *Spawner 직접 변경* 표면을 라이브 BattleController 위에서 검증.
     public class CardRenewalSpawnerIntegrationTest : BattlePlayTestBase
     {
         [TearDown]

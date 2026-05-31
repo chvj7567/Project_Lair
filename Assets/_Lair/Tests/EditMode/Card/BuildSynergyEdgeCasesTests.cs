@@ -9,7 +9,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — BuildSynergyService 엣지 망라.
     //# 기존 BuildSynergyServiceTests 는 정상 + 엣지 1 (3장 도달 / 4장 재발화 X / 다른 축 침범 X) 수준.
-    //# 본 스위트는 5·7장 임계 / 7장 도달 후 8·9장 픽 / 4축 동시 임계 / Reset 후 카운트 0 / Tier 누적 (1+2+3) 까지 망라.
     public class BuildSynergyEdgeCasesTests
     {
         //# ===== 1. 임계 5·7장 발화 + 도달 후 재발화 X =====

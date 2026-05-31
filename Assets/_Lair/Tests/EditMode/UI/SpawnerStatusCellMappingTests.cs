@@ -7,11 +7,6 @@ namespace Lair.Tests.UI
 {
     //# 스포너 상태 UI — 영역 E 보강 (SpawnerStatusCell 6종 색칩 매핑 + 강화 카드 6종 배경색 매핑).
     //#
-    //# gameplay-programmer 가 추가한 SpawnerStatusCellTests 는 SpeciesName / IconLetterFor.letter / fgColor 위주.
-    //# 본 테스트는 다음을 추가 검증:
-    //#  - SpeciesColor 6종 (#22C55E / #6B7280 / #EF4444 / #EAB308 / #A855F7 / #1F2937 — 컨셉 §11.4).
-    //#  - IconLetterFor.bgColor 6종 (강화 카드 — 종 색과 동일해야 함, 기획서 §2.3.3).
-    //#  - IconLetterFor.bgColor 비강화는 fallback 색 (gray).
     public class SpawnerStatusCellMappingTests
     {
         //# Hex → RGB(0~1) float — Unity Color 비교용. 정밀도 1/255.

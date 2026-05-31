@@ -8,8 +8,6 @@ namespace Lair.UI
 {
     //# 툴팁 본문의 강화 줄 1개 — 아이콘 원 + 글자(H/D/S/R/M/P) + ×N 배지 + 본문 텍스트.
     //# CHPoolingScrollView<BuffLine, AppliedBuff> 의 TItem (Rule 11 v0.8).
-    //# 기존 SpawnerStatusTooltip.FormatBuffLine 의 스탯별 분기 로직을 본 클래스로 이주 —
-    //# 한 줄 한 줄을 BuffLine 자기책임 (기획서 §2.5.5 v0.8 "다중 자식 BuffLine 단정").
     public class BuffLine : MonoBehaviour
     {
         [SerializeField] private Image _iconCircle;   //# 종 6색 배경 원
@@ -64,7 +62,6 @@ namespace Lair.UI
 
         //# 스탯별 줄 포맷 — Hp/Power/Range/MoveSpeed/Cooldown/SlowFactor.
         //# v1.0 — Spawn 카테고리는 stat 필드 무관, 단일 포맷 "동시 출력 +{PickCount}" 로 먼저 분기 (§2.5.5 v1.0).
-        //# Base 5스탯 → BalanceConfig 단일 진실. SlowFactor → PlagueSlowOnHit.BaseSlowFactor 상수.
         private static string FormatBody(BattleViewModel.AppliedBuff buff, EMonster type, BalanceConfig balance)
         {
             //# v1.0 — Spawn 카테고리는 stat 분기 전에 단일 줄 단정. Stat 필드 안 읽음.

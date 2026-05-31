@@ -14,14 +14,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — 4중 정합 회귀 + 신규 효과 5개 NRE 없음 + ECardCategory 잔존 0건.
     //# 검증 4중 정합:
-    //#   1) ECardId enum (28개)
-    //#   2) SO 파일 28장 (Multiply 포함 — 자리 보존)
-    //#   3) CardPool Passive 16 + Active 12 = 28
-    //#   4) cards.json 28장
-    //# 추가 회귀:
-    //#   - ICardEffect 구현체 25 → 28 (신규 5 효과 모두 ICardEffect 구현)
-    //#   - 신규 5 효과 (WallOfWisps·MarkOfDeath·SpawnerHaste·SwarmRush·GuardianRage) 의 Apply 본문이 NRE 없음
-    //#   - ECardCategory 잔존 0건 (production 코드 grep)
     public class CardRenewalConsistencyTests
     {
         //# ===== 1. 28장 카운트 4중 정합 =====

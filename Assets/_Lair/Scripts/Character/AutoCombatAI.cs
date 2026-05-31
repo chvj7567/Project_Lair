@@ -30,7 +30,6 @@ namespace Lair.Character
 
         //# 풀 재사용 시 도주 상태 잔존 방지 + 초기 방향 스냅.
         //# Vector3.zero 가 ring 중심 → 스폰 직후 몬스터는 영웅(중심)을 바라보고 출발.
-        //# 자기 위치가 zero 와 거의 같으면(영웅) SnapToDirection 은 magnitude 가드로 no-op.
         private void OnEnable()
         {
             FleeMode = false;

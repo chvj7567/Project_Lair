@@ -5,7 +5,6 @@ namespace Lair.UI
 {
     //# 모달 좌/우 섹션의 카드 리스트 — CHPoolingScrollView<BuildModalCardCell, BuildEntry>.
     //# Rule 11 v0.8 — `ScrollRect + 수동 풀링 → CHPoolingScrollView` 원칙 완전 적용.
-    //# 기존 `CHMPool.Pop` + `_spawnedCells` List 수동 풀링 폐기, 본 컴포넌트의 자체 풀링 사용.
     public class BuildModalCardPoolingScrollView
         : CHPoolingScrollView<BuildModalCardCell, BattleViewModel.BuildEntry>
     {

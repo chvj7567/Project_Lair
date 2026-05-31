@@ -116,7 +116,6 @@ namespace Lair.Tests.Character
 
         //# 엣지 — 모든 몬스터가 Marching(IsEngaging=false) 일 때 TryFindNearestMonster 는
         //# false 를 반환하고 out 매개변수는 null. 영웅 entry 중에 영웅 AI 가 wandering 하지 않도록
-        //# 보장하는 핵심 안전망 (회귀).
         [Test]
         public void TryFindNearestMonster_모두_Marching이면_false_out은_null()
         {

@@ -9,7 +9,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 Phase 2 Task 11 — 12개 IBuildSynergyTier 단위 테스트.
     //# 각 Tier 의 Apply 가 IBattleContext 의 어느 표면을 어떤 인자로 호출하는지만 검증.
-    //# 본격 행동 검증 (시너지 발화 후 실제 몬스터 강화) 은 test-engineer 영역.
     public class BuildSynergyTiersTests
     {
         private class FakeCtx : IBattleContext

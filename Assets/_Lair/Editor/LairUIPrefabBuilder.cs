@@ -109,7 +109,6 @@ namespace Lair.EditorTools
 
         //# InputSystemUIInputModule 이 com.unity.inputsystem 패키지 어셈블리에 있음.
         //# 직접 type reference 대신 reflection 으로 attach — 패키지 의존성 부담 X.
-        //# 실패 시 StandaloneInputModule 로 fallback.
         private static void AddInputModule(GameObject go)
         {
             //# 1순위: Input System Package 의 UI 모듈
@@ -242,14 +241,10 @@ namespace Lair.EditorTools
 
         //# 빌드 패널의 한 섹션(패시브/액티브) — 라벨 + CHPoolingScrollView<BuildIconCell, BuildEntry> (§2.8.5 v0.8).
         //# v0.4: 상하 50:50 세로 분할. v0.5: 섹션마다 ScrollRect 1세트. v0.8: CHPoolingScrollView 완전 적용.
-        //# v0.9 B1: _columnCount = 1 직박이 (auto 시 viewport 419 / itemSize 72 = 5 멀티 컬럼화 위험).
-        //# v0.9 P1: _itemSize 는 dead serialization — BuildIconCell.prefab sizeDelta (72, 72) 가 단일 진실.
-        //# 반환값: BuildIconPoolingScrollView 컴포넌트 (BuildPanel.cs 의 _passiveScrollView/_activeScrollView 가 가리킴).
         private static Lair.UI.BuildIconPoolingScrollView BuildBuildSection(Transform parent, string name, string label, bool top)
         {
             //# 섹션 RectTransform — 상하 50:50.
             //# top=true → anchorMin (0, 0.5), anchorMax (1, 1)  : 상단 절반
-            //# top=false → anchorMin (0, 0), anchorMax (1, 0.5) : 하단 절반
             GameObject sectionGo = new GameObject(name, typeof(RectTransform));
             sectionGo.transform.SetParent(parent, false);
             RectTransform rt = (RectTransform)sectionGo.transform;
@@ -420,9 +415,6 @@ namespace Lair.EditorTools
 
             //# ----- 빌드 패널 (화면 우측 1/3 폭 — v0.7 §2.8) -----
             //# Anchor (1,0)~(1,1), Pivot (1, 0.5), 폭 427 (= 1280/3).
-            //# offsetMin = (-427, 0), offsetMax = (0, 0) — 우측 1/3 전체 세로 사용.
-            //# v0.6 (240×568, offset -264/120/-24/-32) → v0.7 (427×720, offset -427/0/0/0) (§2.8.1).
-            //# 자식 셀은 raycast 차단(BuildIconCell.Bind(null) 시 처리), 루트 CHButton 이 클릭 잡음.
             GameObject buildPanelGo = new GameObject("BuildPanel", typeof(RectTransform), typeof(Image), typeof(Button));
             buildPanelGo.transform.SetParent(root.transform, false);
             RectTransform bpRt = (RectTransform)buildPanelGo.transform;
@@ -456,7 +448,6 @@ namespace Lair.EditorTools
 
             //# ----- 스포너 상태 패널 (화면 하단 6셀) -----
             //# 신규 빌더(Lair/Setup/Spawner Status UI) 가 SpawnerStatusPanel.prefab 을 생성한 다음 이 메뉴를 다시 돌리면
-            //# 본 BattleHud 빌더가 prefab 을 nested instance 로 끼워준다 (Addressable 등록 없음).
             GameObject spawnerPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabDir}/SpawnerStatusPanel.prefab");
             Lair.UI.SpawnerStatusPanel spawnerPanelInst = null;
             if (spawnerPanelPrefab != null)

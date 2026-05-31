@@ -14,8 +14,6 @@ namespace Lair.UI
 
     //# 화면 중앙 모달 — 픽한 모든 카드 표시. 좌(패시브) : 우(액티브) 50:50.
     //# 패시브 섹션은 카테고리 그룹(Enhance→Spawn→Replace→Environment), 액티브는 픽 시간 순 (기획서 §2.7.4).
-    //# v0.8 — Rule 11 완전 적용. 각 섹션이 BuildModalCardPoolingScrollView 1세트.
-    //# 기존 `_spawnedCells` List + `CHMPool.Push` 루프 + `_cellPrefab` 직렬화 + nested BuildModalCardCell 모두 제거.
     public class BuildModalPopup : UIBase
     {
         [SerializeField] private CHButton _dimButton;                                //# 전체 화면 dim (#000 α=0.6) CHButton — 클릭 시 닫힘
@@ -32,12 +30,6 @@ namespace Lair.UI
         {
             //# Build 첫 호출은 OnEnable 또는 (prefab active 케이스의) InitUI 끝 분기가 담당.
             //# 이유: CHMUI.ActivateUI 는 InitUI → SetActive(true) 순서다. prefab 이 inactive 로 저장된
-            //# 경우엔 InitUI 시점 GameObject 가 비활성이고, 이때 SetItemList 를 부르면 viewport.rect 가
-            //# layout 미산정 상태(0)라 CHPoolingScrollView 의 _poolItemCount / Content 크기 계산이
-            //# 0 기준으로 굳어버린다. 그 결과 다음 픽(첫 픽)으로 SetItemList 가 재호출돼도 굳은 풀 크기·
-            //# Content 크기 때문에 첫 카드가 화면에 표시되지 않는 버그가 발생 → OnEnable 가 처리.
-            //# prefab 이 active 로 저장된 경우엔 SetActive(true) 가 no-op 라 OnEnable 이 발화하지 않으므로
-            //# InitUI 끝의 isActiveAndEnabled 분기가 BuildAndLayout 을 직접 호출한다.
             if (arg is BuildModalPopupArg ma && ma.ViewModel != null)
             {
                 _vm = ma.ViewModel;
@@ -48,7 +40,6 @@ namespace Lair.UI
                 closeDisposable.Add(() => vmRef.OnBuildChanged -= refresh);
                 //# Close(reuse: true) 시 _vm 가 그대로 남아있으면 다음 ShowUI 때 잘못된 vm 으로
                 //# Build 가 돌 수 있으므로 close 직후 null 화. closeDisposable 가 Init() 마다 새로 생성되므로
-                //# 이 람다는 이번 lifecycle 종료 시점에만 실행된다.
                 closeDisposable.Add(() => _vm = null);
             }
 
@@ -60,12 +51,6 @@ namespace Lair.UI
 
             //# prefab 이 active 상태로 저장된 경우 (BuildModalPopup.prefab 의 root m_IsActive: 1) 보강.
             //# CHMUI.ActivateUI 는 InitUI → SetActive(true) 순서인데, prefab 이 이미 active 면
-            //# Object.Instantiate 직후 OnEnable 이 1회 발화 (이때 _vm null 가드로 skip) → SetParent →
-            //# Init → InitUI → SetActive(true) 가 no-op (이미 active) → OnEnable 재발화 없음.
-            //# 결과로 BuildAndLayout 가 한 번도 호출되지 않아 첫 열림에서 누적 카드가 빈 화면으로 표시됨.
-            //# 이 시점 GameObject 는 이미 active + parent (CHMUI root) 도 active 라
-            //# isActiveAndEnabled == true → 직접 호출해도 layout 산정·Build 정상 동작.
-            //# (BuildPanel / SpawnerStatusTooltip 의 동일 분기와 같은 패턴.)
             if (isActiveAndEnabled)
             {
                 BuildAndLayout();
@@ -83,7 +68,6 @@ namespace Lair.UI
 
         //# 모달 루트 RectTransform 강제 산정 후 Build. InitUI(prefab active 케이스)·OnEnable 양쪽에서 호출.
         //# 모달 루트 한 번 ForceRebuildLayoutImmediate 면 viewport 까지 chain 으로 산정됨 — CHPoolingScrollView
-        //# 가 viewport.rect 기준으로 풀 크기·Content 크기를 정상 계산한다.
         private void BuildAndLayout()
         {
             RectTransform rt = transform as RectTransform;

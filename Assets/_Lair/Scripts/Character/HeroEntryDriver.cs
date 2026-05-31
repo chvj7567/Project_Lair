@@ -5,7 +5,6 @@ namespace Lair.Character
 {
     //# 영웅 zone 진입 단계 드라이버. AutoCombatAI 가 비활성화된 동안 영웅을 BattleZone.Center 로 이동시킨다.
     //# 도달 시 BattleZone.NotifyHeroReachedCenter() 호출 후 자기 비활성화. AutoCombatAI 활성화는 BattleController 가 담당.
-    //# Rule 02 §5/§7 — IMover/IRotator/IHealth 인터페이스 의존 (구체 클래스 직접 참조 회피).
     public class HeroEntryDriver : MonoBehaviour
     {
         //# 도달 임계값 (m). spec §10 — 0.5m.

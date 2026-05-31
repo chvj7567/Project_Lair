@@ -62,7 +62,6 @@ namespace Lair.Tests.UI
 
         //# v1.0 엣지 — Hex 종은 SpawnHex 카드 부재. 5 Spawn 카드 매핑에 없음 → Hex 셀의 Spawn 슬롯은
         //# AppliedBuffs 안에 Spawn 픽이 없거나 (정상 시나리오 — pool 에 SpawnHex 가 없음), 잘못 들어와도
-        //# IconLetterFor 가 fallback(' ') 반환으로 슬롯 비활성 (§2.3.3 v1.0 Hex 종 행).
         [Test]
         public void IconLetterFor_Hex종_Spawn_슬롯은_매핑외_fallback_v1점0()
         {

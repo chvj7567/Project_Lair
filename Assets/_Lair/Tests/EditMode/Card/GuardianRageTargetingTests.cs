@@ -8,7 +8,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — GuardianRage 적용 종 한정 회귀 (기획서 §10.1 디자인 단정).
     //# EffectsRenewal2026Tests 는 (Wisp·Reaper) 2종만 확인. 본 스위트는 6종 전체 망라 + Wraith 까지 검증.
-    //# 적용 종 {Wisp, Wraith} 만 HP×2.0 + DamageTaken×0.5, 그 외(Reaper·Hex·Plague·Phantom) 모두 무영향.
     public class GuardianRageTargetingTests
     {
         [TearDown]

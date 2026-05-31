@@ -11,9 +11,6 @@ namespace Lair.EditorTools
 {
     //# M3 — 캐릭터 프리팹 자동 생성 + Addressables 등록.
     //# 영웅(Knight): 프리미티브 Capsule 그대로 유지.
-    //# 몬스터: 빈 루트 GameObject + Visual(LittleGhost nested prefab) + Aura(Cylinder placeholder)
-    //# + HpBarWrapper(머리 위 HP 바) 구조. 컴포넌트는 모두 루트에 부착.
-    //# Rule 04 (프리팹화), Rule 08 (파일명 = Enum 값명), Rule 14 (Art/ 하위 분류) 자동 충족.
     public static class LairCharacterPrefabBuilder
     {
         public const string PrefabDir = "Assets/_Lair/Art/Characters";
@@ -198,7 +195,6 @@ namespace Lair.EditorTools
 
         //# 몬스터 발 밑 오오라 placeholder — 납작한 Cylinder primitive.
         //# 자식이므로 루트 spec.Scale 에 함께 스케일링됨. 머티리얼은 Mat_{Name}_Aura.mat 재사용.
-        //# 이름이 "Aura" 로 시작 → HitFlash 가 플래시 대상에서 자동 제외.
         private static void AttachAuraDisc(GameObject root, Spec spec)
         {
             GameObject aura = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -248,8 +244,6 @@ namespace Lair.EditorTools
 
         //# HP 바 프리팹(HpBar.prefab) 생성 — 순수 바 비주얼만. Canvas·MonsterHpBar 없음.
         //# 몬스터 머리 위는 AttachMonsterHpBar 가 래퍼(Canvas+MonsterHpBar)를 만들어 nest.
-        //# HUD 영웅 바는 BuildBattleHud 가 이 프리팹을 nest 해 _heroHpFill 에 주입.
-        //# Rule 04 — HpBar.prefab 1개를 몬스터·HUD 가 공유.
         public static void EnsureHpBarPrefab()
         {
             //# SaveAsPrefabAsset 가 기존 경로를 덮어쓰며 GUID 를 보존한다 — 삭제하지 않는다.
@@ -310,7 +304,6 @@ namespace Lair.EditorTools
 
         //# 몬스터 자식으로 래퍼(WorldSpace Canvas + MonsterHpBar)를 만들고,
         //# 그 아래 HpBar.prefab 인스턴스를 nest. monsterScale 로 월드 크기 보정.
-        //# Rule 04 — HpBar.prefab 은 순수 비주얼. Canvas·MonsterHpBar 는 래퍼가 담당.
         private static void AttachMonsterHpBar(GameObject monster, float monsterScale)
         {
             const float BarPixelW = 120f;

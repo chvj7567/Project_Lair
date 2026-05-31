@@ -7,10 +7,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — Berserk enum 자리·SO 파일명 보존 + GuardianRageEffect 정합 회귀.
     //# code-reviewer Phase 3 권장수정 1 — Multiply/SwarmRush 패턴(MultiplySwarmRushRegressionTests) 과 동일 패턴으로 박제.
-    //# 다음 desync 회피용:
-    //#   1) ECardId.Berserk enum 값이 24 자리에서 옮겨가면 기존 SO _id 직렬화와 desync.
-    //#   2) Berserk.asset 의 효과가 BerserkPowerEffect 등 폐기 클래스로 회귀하면 GuardianRage 효과(Wisp/Wraith HP×2) 사라짐.
-    //#   3) Berserk.asset 의 _axis 가 Tank(0) 외로 회귀하면 §3.5 4×7 균등 분배 깨짐.
     public class BerserkGuardianRageRegressionTests
     {
         private const string BerserkAssetPath = "Assets/_Lair/Art/Cards/Items/Berserk.asset";

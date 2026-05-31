@@ -12,14 +12,6 @@ namespace Lair.Tests.Battle
 {
     //# 스포너 상태 UI — 영역 A (BattleController 카드 source 추적, 기획서 §4.2 BLOCKER 4 결정).
     //#
-    //# 검증 포인트:
-    //#  - ApplyCardEffect(card) 가 _currentCardScope 를 카드로 잠시 설정하고 finally 로 해제.
-    //#  - 강화 카드 픽 → RegisterMonsterTypeBuff 가 _currentCardScope 를 source 로 TrackCardPick 호출.
-    //#  - 중첩 픽: PickCount 누적 + AggregateMultiplier 곱연산 동기화.
-    //#  - 다른 종 강화는 같은 dict 의 키 분리.
-    //#  - _currentCardScope == null (시뮬레이션 외 직접 호출) 일 때는 추적 데이터 누적 안 됨.
-    //#
-    //# 본격 스위트 (test-engineer) — gameplay-programmer 자체 검증을 넘어 엣지·회귀 망라.
     public class BattleControllerCardScopeTests
     {
         private readonly List<GameObject> _spawned = new();
@@ -53,7 +45,6 @@ namespace Lair.Tests.Battle
             BattleController bc = go.AddComponent<BattleController>();
             //# BattleContext 주입 — Apply 가 ctx 를 받아 RegisterMonsterTypeBuff 위임할 때 사용.
             //# 카드 리뉴얼 v0.6 — BattleContext 가 BuildSynergyService 주입을 받는 2-arg 시그니처로 변경.
-            //# 본 테스트의 검증 대상은 빌드 시너지가 아니므로 null 주입(BattleContext.RegisterCardPick null 가드).
             SetPrivate(bc, "_ctx", new BattleContext(bc, null));
             return bc;
         }
@@ -242,7 +233,6 @@ namespace Lair.Tests.Battle
 
         //# 회귀 — RegisterMonsterTypeBuff 를 ApplyCardEffect 밖에서 직접 호출 시
         //# (_currentCardScope == null) TrackCardPick 이 호출되지 않아 _typeModifierPicks 누적 안 됨.
-        //# 그러나 StatMultiplier 누적은 정상 (강화 효과 자체는 적용).
         [Test]
         public void RegisterMonsterTypeBuff_scope_없이_호출시_추적_미누적_배율은_정상()
         {

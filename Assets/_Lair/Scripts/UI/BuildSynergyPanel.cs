@@ -7,7 +7,6 @@ namespace Lair.UI
 {
     //# 카드 리뉴얼 v0.6 — BattleHud 좌측 빌드 시너지 패널 (롤토체스 스타일).
     //# Rule 11 v0.8 — BuildModalPopup 패턴: Panel 은 단순 컨테이너, ScrollView 는 별도 컴포넌트.
-    //# prefab 안에 BuildSynergyCardPoolingScrollView 자식으로 박혀 있고 인스펙터에서 본 필드에 드래그.
     public class BuildSynergyPanel : MonoBehaviour
     {
         [SerializeField] private BuildSynergyCardPoolingScrollView _scrollView;

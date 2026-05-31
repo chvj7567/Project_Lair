@@ -37,7 +37,6 @@ namespace Lair.EditorTools
 
         //# DTO 를 기존 CardData SO 에 적용 (SerializedObject 사용, LairCardPrefabBuilder 동일 패턴).
         //# _icon 필드는 건드리지 않음 — LairCardPrefabBuilder 가 관리.
-        //# Enum 파싱 실패 시 false 반환 — Import 에서 SO 생성/저장을 skip.
         public static bool ApplyDto(CardDataDto dto, CardData card)
         {
             if (Enum.TryParse(dto.Id, out ECardId cardId) == false)

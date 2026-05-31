@@ -5,9 +5,6 @@ namespace Lair.Battle
 {
     //# 지속 스폰 — 씬에 사전 배치되는 컴포넌트 (Addressables 프리팹 아님 → Rule 12 예외).
     //# 한 판 동안 고정 주기로 출력 종 몬스터를 동시 출력 수만큼 스폰한다.
-    //# 첫 스폰은 t=InitialDelay, 이후 t=InitialDelay+주기×n (§2.4 위상 오프셋).
-    //# ISpawnerProgress — 쿨다운 진행도(0~1) 노출 (SpawnerStatusCell 매 프레임 폴링).
-    //# ISpawnerOutputProvider — 출력 종 변경 + 동시 출력 수 노출 (SpawnerBody · SpawnerStatusCell).
     public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider
     {
         //# === 인스펙터 직렬화 — 스타터 프리셋 (§5.3) ===
@@ -44,7 +41,6 @@ namespace Lair.Battle
 
         //# ISpawnerProgress 구현 — SpawnerStatusCell 이 매 프레임 폴링.
         //# 초기 지연 국면(firstSpawnDone==false): 0f 고정.
-        //# 주기 국면: _timer / _spawnPeriod 클램프 [0, 1].
         public float Progress
         {
             get

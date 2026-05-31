@@ -9,7 +9,6 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 Phase 1 Task 2·3 — BuildSynergyService 단위 테스트.
     //# Task 2: 카운트 누적 / Reset.
-    //# Task 3: Tier 임계(3장) 도달 시 1회 Apply 발화 + 재발화 없음.
     public class BuildSynergyServiceTests
     {
         [Test]

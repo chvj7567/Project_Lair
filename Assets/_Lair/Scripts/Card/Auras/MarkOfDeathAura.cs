@@ -7,9 +7,6 @@ namespace Lair.Card
 {
     //# 카드 리뉴얼 v0.6 — 죽음의 표식 (Dps A).
     //# 영웅에 부착되어 _dmgTakenMul 배율로 받는 데미지 ↑. Detach 시 자연 복원.
-    //# Health.DamageTakenScale 필드를 곱연산으로 누적 / Detach 시 동일 배율로 나누어 복원.
-    //# 기존 BleedAura·HeroAttackDownAura 가 영웅 컴포넌트(IMover/IAttacker) 를 받는 패턴과 동일하게
-    //# 부착 대상 IHealth 의 구체 타입 Health 가 노출하는 DamageTakenScale 을 직접 곱연산.
     [Serializable]
     public class MarkOfDeathAura : IHeroAura, IStatusVisual
     {

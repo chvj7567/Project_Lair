@@ -27,7 +27,6 @@ namespace Lair.UI
 
         //# 카드 바인딩 — 프레임 색·아이콘·클릭 콜백 설정.
         //# onClick == null 이면 자식 셀은 raycast 를 받지 않도록 Button.interactable=false 처리.
-        //# 패널 루트가 클릭을 받아 모달을 띄우기 위해서 (기획서 §2.6.2).
         public void Bind(CardData card, Action onClick)
         {
             if (card == null) return;
