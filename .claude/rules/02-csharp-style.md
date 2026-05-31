@@ -22,6 +22,20 @@ if (transform.parent != null)
 - `#region` 등 컴파일러 디렉티브는 그대로
 - 기존 주석은 해당 줄 수정 시 함께 변환
 
+**주석 분량 — 2줄 내외**: 한 블록 주석은 2줄을 넘기지 않는다. 긴 설계 사유·이력은 기획서/plan/spec 으로. 코드 옆 주석은 "*무엇·왜* 한 문장"으로 압축.
+
+```csharp
+//# (X) 4줄짜리 사유 설명
+//# CHMUI.ActivateUI 는 InitUI → SetActive(true) 순서다. prefab 이 inactive 로
+//# 저장된 경우엔 InitUI 시점 GameObject 가 비활성이고, 이때 SetItemList 를 부르면
+//# viewport.rect 가 layout 미산정 상태(0)라 CHPoolingScrollView 의 _poolItemCount /
+//# Content 크기 계산이 0 기준으로 굳어버린다. 그 결과 ...
+
+//# (O) 2줄 — 핵심만, 디테일은 기획서 §X 로
+//# prefab inactive 일 때 InitUI 시점은 layout 미산정 → 첫 BuildAndLayout 은 OnEnable 이 담당.
+//# 자세한 분기 표는 기획서 §2.6 참조.
+```
+
 ---
 
 ## 2. 가드 절 — 중괄호 없이 개행
