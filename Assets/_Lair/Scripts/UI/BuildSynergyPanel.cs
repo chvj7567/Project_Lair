@@ -1,30 +1,28 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Data;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Lair.UI
 {
     //# 카드 리뉴얼 v0.6 — BattleHud 좌측 빌드 시너지 패널 (롤토체스 스타일).
-    //# 4축 (Tank/Dps/Debuff/Swarm) 행. 각 행 = 색 박스 + 축 이름 + 카운트 + Tier 마커.
-    //# Bind 시 VM.OnBuildChanged 구독. 임계(3/5/7) 도달 시 0.3s 펄스 애니메이션.
-    //# 자식 4 Cell 은 Awake 에서 동적 생성 — 사용자 환경 액션 0건.
+    //# Rule 11 v0.8 — BuildModalPopup 패턴: Panel 은 단순 컨테이너, ScrollView 는 별도 컴포넌트.
+    //# prefab 안에 BuildSynergyCardPoolingScrollView 자식으로 박혀 있고 인스펙터에서 본 필드에 드래그.
     public class BuildSynergyPanel : MonoBehaviour
     {
+        [SerializeField] private BuildSynergyCardPoolingScrollView _scrollView;
+
         //# 4축 키 색 (기획서 §2 / §11.4). MonsterTag 색과 동일.
-        private static readonly Dictionary<EBuildAxis, Color> AxisColor = new()
+        public static readonly Dictionary<EBuildAxis, Color> AxisColor = new()
         {
-            { EBuildAxis.Tank,   new Color32(0x22, 0xC5, 0x5E, 0xFF) }, //# #22C55E
-            { EBuildAxis.Dps,    new Color32(0xEF, 0x44, 0x44, 0xFF) }, //# #EF4444
-            { EBuildAxis.Debuff, new Color32(0xA8, 0x55, 0xF7, 0xFF) }, //# #A855F7
-            { EBuildAxis.Swarm,  new Color32(0x1F, 0x29, 0x37, 0xFF) }, //# #1F2937
+            { EBuildAxis.Tank,   new Color32(0x22, 0xC5, 0x5E, 0xFF) },
+            { EBuildAxis.Dps,    new Color32(0xEF, 0x44, 0x44, 0xFF) },
+            { EBuildAxis.Debuff, new Color32(0xA8, 0x55, 0xF7, 0xFF) },
+            { EBuildAxis.Swarm,  new Color32(0x1F, 0x29, 0x37, 0xFF) },
         };
 
         //# 축 이름 (UI 표시용 — Enum 명 그대로, MVP §8 비주얼).
-        private static readonly Dictionary<EBuildAxis, string> AxisLabel = new()
+        public static readonly Dictionary<EBuildAxis, string> AxisLabel = new()
         {
             { EBuildAxis.Tank,   "TANK"   },
             { EBuildAxis.Dps,    "DPS"    },
@@ -35,48 +33,18 @@ namespace Lair.UI
         //# 임계 단계 — 기획서 §4.1 (3/5/7장).
         private static readonly int[] Thresholds = { 3, 5, 7 };
 
+        private static readonly EBuildAxis[] AllAxes =
+            { EBuildAxis.Tank, EBuildAxis.Dps, EBuildAxis.Debuff, EBuildAxis.Swarm };
+
         private BattleViewModel _vm;
-        private readonly Dictionary<EBuildAxis, BuildSynergyCell> _cells = new();
-
-        //# 동적 자식 생성 — 자식 4 Cell. 호출자(BattleHud) 가 panel 의 RectTransform anchor 만 설정.
-        private void Awake()
-        {
-            BuildCells();
-        }
-
-        private void BuildCells()
-        {
-            if (_cells.Count > 0) return;
-
-            //# VerticalLayoutGroup — 자식 4 Cell 수직 배치, 간격 4px.
-            VerticalLayoutGroup vlg = gameObject.GetComponent<VerticalLayoutGroup>();
-            if (vlg == null) vlg = gameObject.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 4f;
-            vlg.padding = new RectOffset(8, 8, 8, 8);
-            vlg.childForceExpandWidth = true;
-            vlg.childForceExpandHeight = false;
-            vlg.childControlWidth = true;
-            vlg.childControlHeight = true;
-
-            //# 패널 자체 배경 (반투명 어두운 박스 — 가독성).
-            Image bg = gameObject.GetComponent<Image>();
-            if (bg == null) bg = gameObject.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.4f);
-
-            EBuildAxis[] axes = { EBuildAxis.Tank, EBuildAxis.Dps, EBuildAxis.Debuff, EBuildAxis.Swarm };
-            foreach (EBuildAxis axis in axes)
-            {
-                BuildSynergyCell cell = BuildSynergyCell.Create(transform, axis, AxisColor[axis], AxisLabel[axis]);
-                _cells[axis] = cell;
-            }
-        }
+        private readonly List<BuildSynergyCellData> _dataList = new();
+        private readonly Dictionary<EBuildAxis, int> _prevCounts = new();
 
         public void Bind(BattleViewModel vm)
         {
             _vm = vm;
             if (_vm == null) return;
             _vm.OnBuildChanged += HandleBuildChanged;
-            //# 초기 동기화.
             HandleBuildChanged();
         }
 
@@ -89,15 +57,24 @@ namespace Lair.UI
 
         private void HandleBuildChanged()
         {
-            if (_vm == null) return;
-            foreach (KeyValuePair<EBuildAxis, BuildSynergyCell> kv in _cells)
+            if (_vm == null || _scrollView == null) return;
+            _dataList.Clear();
+            foreach (EBuildAxis axis in AllAxes)
             {
-                int count = _vm.GetBuildCount(kv.Key);
-                int prev = kv.Value.Count;
-                kv.Value.SetCount(count, NextThreshold(count), ActiveTier(count));
-                //# 임계 도달 시 펄스 — prev 와 count 비교해 새 임계 넘은 경우만.
-                if (CrossedThreshold(prev, count)) kv.Value.Pulse();
+                int count = _vm.GetBuildCount(axis);
+                _dataList.Add(new BuildSynergyCellData
+                {
+                    Axis          = axis,
+                    Color         = AxisColor[axis],
+                    Label         = AxisLabel[axis],
+                    Count         = count,
+                    NextThreshold = NextThreshold(count),
+                    ActiveTier    = ActiveTier(count),
+                    JustCrossed   = CrossedThreshold(_prevCounts.GetValueOrDefault(axis, 0), count),
+                });
+                _prevCounts[axis] = count;
             }
+            _scrollView.SetItemList(_dataList);
         }
 
         //# 새 임계를 넘었는지 — prev < T <= count 인 T 존재.
@@ -124,5 +101,17 @@ namespace Lair.UI
                 if (count >= t) ++tier;
             return tier;
         }
+    }
+
+    //# CHPoolingScrollView 의 TData — 1축 셀에 푸시되는 데이터.
+    public class BuildSynergyCellData
+    {
+        public EBuildAxis Axis;
+        public Color Color;
+        public string Label;
+        public int Count;
+        public int NextThreshold;   //# -1 이면 7+ 도달
+        public int ActiveTier;      //# 0·1·2·3
+        public bool JustCrossed;    //# 이번 갱신에서 임계를 새로 넘은 경우 펄스
     }
 }

@@ -106,6 +106,96 @@ CHToggle.ChangeSoundHook = () => CHMSound.Instance?.Play(EAudio.UIClick);
 
 예외: 에디터 전용 UI, WorldSpace 디버그 표시, 래퍼 미지원 컴포넌트(Slider 등).
 
+### CHPoolingScrollView 사용 구조 (필수 패턴)
+
+`CHPoolingScrollView<TItem, TData>` 를 쓸 때는 **BuildModalPopup 패턴**을 따른다. 코드 동적 생성(`new GameObject` / `Instantiate`) 금지 — 모든 GameObject 는 prefab 에 정적으로 박혀 있고 인스펙터 참조로 연결한다.
+
+**구조 (3 파일)**:
+
+```
+Panel.prefab                     (UIBase 또는 단순 컨테이너 컴포넌트)
+└─ ScrollView (GameObject)       (자식)
+   ├─ ScrollRect                 (Unity 표준)
+   ├─ CHPoolingScrollView<…> 상속 컴포넌트
+   │     - _origin → Cell.prefab 인스턴스 GameObject
+   ├─ Viewport
+   │  ├─ Image (mask)
+   │  ├─ RectMask2D
+   │  └─ Content
+   │     ├─ LayoutGroup (Vertical/Horizontal/Grid)
+   │     └─ Cell.prefab 인스턴스 (origin — 풀 prototype)
+   └─ …
+
+Cell.prefab                      (Item 컴포넌트 — 재사용 가능한 단일 셀)
+└─ RectTransform + Image/CHText 등 + Item 컴포넌트 ([SerializeField] 참조)
+```
+
+**코드 3-class 분리**:
+
+| 클래스 | 책임 |
+|---|---|
+| `XxxPanel : MonoBehaviour` (또는 `UIBase`) | 컨테이너 — `[SerializeField] _scrollView` 인스펙터 참조. `Bind(vm)` 시 데이터 가공 → `_scrollView.SetItemList(data)` 호출 |
+| `XxxCardPoolingScrollView : CHPoolingScrollView<TItem, TData>` | ScrollView 컴포넌트 — `InitItem(item, data, index)` / `InitPoolingObject(item)` 만 오버라이드. `_origin` 은 인스펙터 |
+| `XxxCell : MonoBehaviour` | Item — `[SerializeField]` 로 자식 컴포넌트 참조. `Bind(data)` / `OnEnable` 풀 재사용 리셋 |
+
+**금지 패턴**:
+
+```csharp
+//# (X) 코드 동적 GameObject 생성
+GameObject panelGo = new GameObject("XxxPanel", typeof(RectTransform));
+panelGo.AddComponent<XxxPanel>();   //# prefab 에 박지 않고 코드로 만들기
+
+//# (X) Awake 에서 자식 Cell 동적 생성 — origin prefab 없이 셀 만들기
+private void Awake() => BuildCells();
+
+//# (X) prefab Instantiate fallback
+if (_panel == null) _panel = Instantiate(_panelPrefab, transform);
+```
+
+**필수 패턴**:
+
+```csharp
+//# (O) Panel — 인스펙터 ScrollView 참조 + SetItemList 호출만
+public class XxxPanel : MonoBehaviour
+{
+    [SerializeField] private XxxCardPoolingScrollView _scrollView;
+
+    public void Bind(BattleViewModel vm)
+    {
+        vm.OnChanged += () => _scrollView.SetItemList(BuildData(vm));
+    }
+}
+
+//# (O) ScrollView — InitItem 만
+public class XxxCardPoolingScrollView : CHPoolingScrollView<XxxCell, XxxCellData>
+{
+    public override void InitItem(XxxCell item, XxxCellData data, int index)
+        => item.Bind(data);
+
+    public override void InitPoolingObject(XxxCell item) { }
+}
+
+//# (O) Cell — SerializeField + Bind + OnEnable 리셋
+public class XxxCell : MonoBehaviour
+{
+    [SerializeField] private Image _background;
+    [SerializeField] private CHText _text;
+
+    private void OnEnable() { /* 풀 재사용 리셋 */ }
+    public void Bind(XxxCellData data) { /* 표시 갱신 */ }
+}
+```
+
+**prefab 작업 체크리스트**:
+- [ ] `Cell.prefab` 은 별도 파일 — 재사용 가능
+- [ ] `Panel.prefab` 안에 ScrollView/Viewport/Content/origin Cell 정적 배치 (PrefabInstance 형태)
+- [ ] `Panel._scrollView` 인스펙터에 자식 ScrollView GameObject 드래그
+- [ ] `XxxCardPoolingScrollView._origin` 인스펙터에 origin Cell 인스턴스 드래그
+- [ ] Cell 의 `[SerializeField]` 자식 (`_background` / `_text` 등) 모두 인스펙터 참조 연결
+- [ ] origin Cell 인스턴스에서 컴포넌트 제거(`m_RemovedComponents`) 금지 — `_background` reference null 되어 시각 깨짐
+
+**참고**: `BuildModalPopup.prefab` + `BuildModalCardCell.prefab` + `BuildModalCardPoolingScrollView` 가 단일 진실의 예시.
+
 ---
 
 ## 4. 모든 런타임 스폰은 `CHMPool`
