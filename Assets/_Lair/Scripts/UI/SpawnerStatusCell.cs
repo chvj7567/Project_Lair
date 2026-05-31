@@ -33,17 +33,6 @@ namespace Lair.UI
         [SerializeField] private CHText _countText;      //# ×N (N≥2 일 때만 노출)
         [SerializeField] private Image _progressFill;    //# 진행 바 Fill (fillAmount)
         [SerializeField] private CHButton _button;       //# 셀 클릭 — Panel 콜백
-        [SerializeField] private RectTransform _iconRow; //# 강화·생산 아이콘 row 컨테이너 (2 슬롯: 좌 Enhance / 우 Spawn)
-
-        //# v1.0 — IconRow 2 슬롯 분리. 슬롯 1 (Enhance, x=12, 글자 H/D/S/R/M/P).
-        [SerializeField] private Image _iconCircleEnhance;   //# Enhance 슬롯 원 (종 색 배경)
-        [SerializeField] private CHText _iconLetterEnhance;  //# Enhance 슬롯 글자 (H/D/S/R/M/P)
-        [SerializeField] private CHText _iconBadgeEnhance;   //# Enhance 슬롯 ×N 배지 (PickCount≥2)
-
-        //# v1.0 — 슬롯 2 (Spawn, x=68, 글자 '+').
-        [SerializeField] private Image _iconCircleSpawn;     //# Spawn 슬롯 원 (종 색 배경)
-        [SerializeField] private CHText _iconLetterSpawn;    //# Spawn 슬롯 글자 ('+')
-        [SerializeField] private CHText _iconBadgeSpawn;     //# Spawn 슬롯 ×N 배지 (PickCount≥2)
 
         //# 클릭 리스너 수명 관리 (BuildIconCell 선례 패턴).
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
@@ -58,10 +47,6 @@ namespace Lair.UI
         {
             _disposable.Clear();
             if (_countText != null) _countText.gameObject.SetActive(false);
-            if (_iconRow != null) _iconRow.gameObject.SetActive(false);
-            //# v1.0 — 2 슬롯 circle 도 비활성화 (badge/letter 는 circle 의 자식이라 자동 비활성).
-            if (_iconCircleEnhance != null) _iconCircleEnhance.gameObject.SetActive(false);
-            if (_iconCircleSpawn != null)   _iconCircleSpawn.gameObject.SetActive(false);
             if (_progressFill != null) _progressFill.fillAmount = 0f;
             //# 색칩 기본 노출 회복 — 직전 셀이 N≥2 였다면 숨겨진 채 풀로 반환됐을 수 있음 (Rule 12).
             if (_colorChip != null) _colorChip.gameObject.SetActive(true);
@@ -112,76 +97,6 @@ namespace Lair.UI
                 }
             }
 
-            //# 강화 아이콘 row — 종 1 ↔ 카드 1 매핑이므로 distinct 아이콘은 0 또는 1 (§2.3 전제).
-            RebindIconRow(snapshot);
-        }
-
-        //# v1.0 — AppliedBuffs 를 Source.Axis 로 분기해 2 슬롯 (좌 Tank=구 Enhance / 우 Dps=구 Spawn) 각각에 바인딩.
-        //# 종 1 ↔ Enhance 카드 1 + 종 1 ↔ Spawn 카드 1 (Hex 제외) 매핑이라 각 슬롯의 distinct 아이콘은 0 또는 1.
-        private void RebindIconRow(BattleViewModel.SpawnerSnapshot snapshot)
-        {
-            if (_iconRow == null) return;
-
-            //# 슬롯별 매칭된 buff 찾기 (Category 분기).
-            //# 카드 리뉴얼 v0.6 — 구 Enhance/Spawn → EBuildAxis.Tank/Dps 자리 치환 (Phase 1 임시).
-            BattleViewModel.AppliedBuff enhanceBuff = null;
-            BattleViewModel.AppliedBuff spawnBuff = null;
-
-            IReadOnlyList<BattleViewModel.AppliedBuff> buffs = snapshot.AppliedBuffs;
-            if (buffs != null)
-            {
-                for (int i = 0; i < buffs.Count; ++i)
-                {
-                    BattleViewModel.AppliedBuff b = buffs[i];
-                    if (b == null || b.Source == null) continue;
-                    if (b.Source.Axis == EBuildAxis.Tank && enhanceBuff == null)
-                        enhanceBuff = b;
-                    else if (b.Source.Axis == EBuildAxis.Dps && spawnBuff == null)
-                        spawnBuff = b;
-                }
-            }
-
-            //# 슬롯별 바인딩.
-            bool enhanceShown = BindIconSlot(enhanceBuff, _iconCircleEnhance, _iconLetterEnhance, _iconBadgeEnhance);
-            bool spawnShown   = BindIconSlot(spawnBuff,   _iconCircleSpawn,   _iconLetterSpawn,   _iconBadgeSpawn);
-
-            //# 둘 다 비활성이면 row 숨김 — 기존 정책 유지.
-            _iconRow.gameObject.SetActive(enhanceShown || spawnShown);
-        }
-
-        //# 한 슬롯 바인딩 — buff 가 유효 카드면 circle/letter/badge 세팅하고 true 반환, 아니면 비활성 + false.
-        private static bool BindIconSlot(BattleViewModel.AppliedBuff buff, Image circle, CHText letter, CHText badge)
-        {
-            if (buff == null || buff.Source == null)
-            {
-                if (circle != null) circle.gameObject.SetActive(false);
-                return false;
-            }
-            (char letter, Color bgColor, Color fgColor) info = IconLetterFor(buff.Source.Id);
-            if (info.letter == ' ')
-            {
-                //# 매핑 외 카드(예: Hex 종의 Spawn 슬롯 — SpawnHex 부재). 슬롯 비활성.
-                if (circle != null) circle.gameObject.SetActive(false);
-                return false;
-            }
-
-            if (circle != null)
-            {
-                circle.gameObject.SetActive(true);
-                circle.color = info.bgColor;
-            }
-            if (letter != null)
-            {
-                letter.SetText(info.letter.ToString());
-                letter.SetColor(info.fgColor);
-            }
-            if (badge != null)
-            {
-                bool showBadge = buff.PickCount >= 2;
-                badge.gameObject.SetActive(showBadge);
-                if (showBadge) badge.SetText($"×{buff.PickCount}");
-            }
-            return true;
         }
 
         //# 매 프레임 Progress 폴링 — VM 이벤트 우회 (기획서 §4.3·§4.6).

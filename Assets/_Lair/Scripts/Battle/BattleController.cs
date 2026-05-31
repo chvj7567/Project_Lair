@@ -453,7 +453,7 @@ namespace Lair.Battle
         }
 
         //# v1.0 — Spawn 카테고리 픽 누적. Enhance 의 TrackCardPick 와 자료구조 공유 (Dictionary<EMonster, List<AppliedBuff>>).
-        //# Stat 필드는 EMonsterStatKind.Hp (default, BuffLine.FormatBody 의 Category 분기로 읽히지 않음 — §2.5.5 v1.0).
+        //# Stat 필드는 EMonsterStatKind.Hp (기본값) — 표시 가공 모듈이 카테고리 분기로 읽지 않음.
         private void TrackSpawnPick(EMonster type, CardData source)
         {
             if (_typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list) == false)

@@ -69,7 +69,7 @@ namespace Lair.UI
             //# 스포너 상태 패널 바인딩 (Close 시 자동 해제)
             if (_spawnerStatusPanel != null)
             {
-                _spawnerStatusPanel.Bind(vm, ba.Spawners, ba.Balance);
+                _spawnerStatusPanel.Bind(vm, ba.Spawners);
                 closeDisposable.Add(() => _spawnerStatusPanel.Unbind());
             }
 
