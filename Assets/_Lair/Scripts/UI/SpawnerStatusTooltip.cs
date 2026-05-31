@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Data;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -41,9 +42,13 @@ namespace Lair.UI
             if (_arg == null) return;
             _vm = _arg.ViewModel;
 
-            //# 동일 셀이라도 매번 InitUI 시 재구성 — 카드 픽 누적으로 강화 줄이 갱신될 수 있음.
-            RefreshContent();
-            PositionAboveAnchor();
+            //# RefreshContent / PositionAboveAnchor 첫 호출은 OnEnable 로 미룬다.
+            //# 이유: CHMUI.ActivateUI 는 InitUI → SetActive(true) 순서라 InitUI 시점엔
+            //# GameObject 가 비활성. 이때 CHPoolingScrollView.SetItemList 를 부르면 viewport.rect = 0
+            //# 기준으로 풀 크기/Content 크기가 굳어 다음 픽(첫 강화 픽) 갱신이 빈 화면이 된다.
+            //# PositionAboveAnchor 도 _root.rect.width / canvasRt.rect.width 가 layout 미산정이라
+            //# 0 기준으로 clamp 가 잘못 계산돼 좌표가 어긋난다.
+            //# (BuildModalPopup / BuildPanel 과 동일 root cause.)
 
             //# VM 갱신 구독 — 툴팁 열려있는 동안 출력 종 / count / 강화 픽 변경 시 자동 갱신.
             if (_vm != null)
@@ -65,6 +70,49 @@ namespace Lair.UI
                 int closedIndex = _arg.SpawnerIndex;
                 closeDisposable.Add(() => onClosed(closedIndex));
             }
+
+            //# 셀 전환 케이스 보강 — SpawnerStatusPanel.HandleCellClicked 는 이전 툴팁을 닫지 않고
+            //# 다른 셀로 ShowUI 를 재호출한다 (CHMUI 캐시 재사용). 그 경로에서는 이미 활성 상태라
+            //# SetActive(true) 가 OnEnable 을 재발화시키지 않아 RefreshWithLayout 가 안 돈다.
+            //# 이미 활성이면 layout 도 산정된 상태이므로 InitUI 끝에서 직접 호출해도 viewport rect 가 정상.
+            if (isActiveAndEnabled)
+            {
+                RefreshWithLayout();
+            }
+        }
+
+        //# 활성화 직후 layout 산정 + 최초 RefreshContent / PositionAboveAnchor.
+        //# CHMUI.ActivateUI 는 InitUI → SetActive(true) 순서이고 prefab 은 inactive 로 저장되어 있으므로
+        //# 첫 표시 흐름에서 OnEnable 은 InitUI 직후 발화 → _arg / _vm 이 세팅된 상태가 보장된다.
+        //# 같은 셀 재오픈(close → reopen) 케이스도 SetActive(false) → SetActive(true) 로 OnEnable 재발화.
+        //# 셀 전환(이전 close 없이 다른 셀로 ShowUI 재호출) 케이스는 이미 활성이라 여기 안 들어오고,
+        //# InitUI 끝의 isActiveAndEnabled 분기가 RefreshWithLayout 를 직접 호출하여 처리한다.
+        //# 만약 prefab 이 active 로 저장돼 OnEnable 이 InitUI 보다 먼저 발화하면 _arg == null 가드로 skip.
+        //# (BuildModalPopup / BuildPanel 의 OnEnable 패턴과 동일.)
+        private void OnEnable()
+        {
+            if (_arg == null || _vm == null)
+                return;
+            RefreshWithLayout();
+        }
+
+        //# 첫 SetItemList 가 viewport rect 0 으로 굳거나 좌표 계산이 0 폭으로 빗나가는 것을 막기 위해
+        //# 부모 캔버스 RectTransform 부터 ForceRebuildLayoutImmediate 선행.
+        //# 툴팁은 위치 계산이 _root.rect / canvasRt.rect / anchor cell 의 world TransformPoint 에 의존하므로
+        //# _root 단독 rebuild 만으로는 부모 캔버스 rect 가 0 으로 남을 수 있다 — 부모부터 rebuild.
+        private void RefreshWithLayout()
+        {
+            RectTransform parentRt = _root != null ? _root.parent as RectTransform : null;
+            if (parentRt != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+            }
+            else if (_root != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_root);
+            }
+            RefreshContent();
+            PositionAboveAnchor();
         }
 
         private void HandleSnapshotChanged(int index)

@@ -205,12 +205,16 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
         if (_canvasGroupContent == null)
             _canvasGroupContent = _scrollRect.content.GetComponent<CanvasGroup>();
+
+        //# origin 비활성화는 SetItemList 호출보다 반드시 먼저 끝나야 함 — Start 는 end-of-frame 발화라
+        //# InitUI 분기에서 호출된 첫 SetItemList 가 origin 을 데이터 cell 로 사용한 후 Start 가 origin 을
+        //# 비활성화시켜 데이터 셀이 사라지는 버그(첫 열림 빈 화면) 를 회피하기 위해 Awake 로 이동.
+        if (_origin != null)
+            _origin.SetActive(false);
     }
 
     private void Start()
     {
-        _origin.SetActive(false);
-
         var scrollRect = GetComponent<ScrollRect>();
         scrollRect.onValueChanged.AddListener(OnScroll);
     }
