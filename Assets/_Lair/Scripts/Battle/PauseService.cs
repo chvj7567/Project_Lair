@@ -23,6 +23,10 @@ namespace Lair.Battle
         }
 
         //# Slice A 의 EndBattle 같은 강제 정지 — depth 무시
-        public void ForcePause() { _depth = int.MaxValue / 2; Time.timeScale = 0f; }
+        public void ForcePause()
+        {
+            _depth = int.MaxValue / 2;
+            Time.timeScale = 0f;
+        }
     }
 }

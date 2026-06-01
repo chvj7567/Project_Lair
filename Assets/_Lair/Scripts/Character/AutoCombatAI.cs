@@ -22,6 +22,11 @@ namespace Lair.Character
         //# 도주 시 위협 centroid 를 모으는 반경. 포위 상황에서 진동(갇힘) 방지.
         [SerializeField] private float _fleeThreatRadius = 4f;
 
+        //# 교전 히스테리시스 — 사거리 경계 Move/Stop 매 프레임 토글(동기 stop-go) 방지.
+        //# dist<=Range 면 교전 진입, 교전 중엔 dist>Range+버퍼 여야 해제 (6종·영웅 공통 절대값).
+        [SerializeField] private float _engageBuffer = 0.5f;
+        private bool _engaged;
+
         private void Awake()
         {
             _mover = GetComponent<IMover>();
@@ -36,6 +41,7 @@ namespace Lair.Character
         private void OnEnable()
         {
             FleeMode = false;
+            _engaged = false;   //# 풀 재사용 + enabled=true 전환 시 교전 상태 잔존 방지
             _rotator?.SnapToDirection(Vector3.zero - transform.position);
         }
 
@@ -79,9 +85,27 @@ namespace Lair.Character
             }
 
             float dist = Vector3.Distance(transform.position, t.position);
-            if (dist <= _attacker.Range)
+            float range = _attacker.Range;
+
+            //# 히스테리시스 — 미교전: 사거리 닿으면 진입 / 교전: 버퍼 밖으로 벗어나야 해제.
+            if (_engaged)
             {
-                //# Attacking — 타겟 방향을 정확히 바라봄.
+                if (dist > range + _engageBuffer)
+                {
+                    _engaged = false;
+                }
+            }
+            else
+            {
+                if (dist <= range)
+                {
+                    _engaged = true;
+                }
+            }
+
+            if (_engaged)
+            {
+                //# Attacking — 정지 + 타겟 향해 회전 + 공격(명중은 dist<=Range 일 때만).
                 _rotator?.FaceDirection(t.position - transform.position);
                 _mover.Stop();
                 _attacker.TryAttack(th, transform.position, t.position, Time.time);
