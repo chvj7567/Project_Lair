@@ -61,27 +61,28 @@ namespace Lair.Tests.Battle
             mi.Invoke(bc, null);
         }
 
-        //# 정상 — HandleHeroReachedCenter 호출 시 _spawnersActive=true + _clock.IsRunning=true.
+        //# 정상 — HandleHeroReachedCenter 호출 시 _heroEntered=true + _clock.IsRunning=true.
+        //# 스폰 개시(_spawnersActive)는 BindSpawners 가 담당 — 본 메서드는 clock·AI 만.
         [Test]
-        public void HandleHeroReachedCenter_호출시_spawnersActive_true_및_clock_시작()
+        public void HandleHeroReachedCenter_호출시_heroEntered_true_및_clock_시작()
         {
             BattleController bc = CreateController();
             BattleClock clock = new BattleClock(300f);
             SetPrivate(bc, "_clock", clock);
 
-            //# 사전 상태 — _spawnersActive false, clock 미시작.
-            Assert.IsFalse(GetPrivate<bool>(bc, "_spawnersActive"), "초기 false");
+            //# 사전 상태 — _heroEntered false, clock 미시작.
+            Assert.IsFalse(GetPrivate<bool>(bc, "_heroEntered"), "초기 false");
             Assert.IsFalse(clock.IsRunning, "초기 미시작");
 
             InvokeHandleHeroReachedCenter(bc);
 
-            Assert.IsTrue(GetPrivate<bool>(bc, "_spawnersActive"),
-                "HandleHeroReachedCenter 후 _spawnersActive=true");
+            Assert.IsTrue(GetPrivate<bool>(bc, "_heroEntered"),
+                "HandleHeroReachedCenter 후 _heroEntered=true");
             Assert.IsTrue(clock.IsRunning,
                 "HandleHeroReachedCenter 후 _clock.Start() 호출 → IsRunning=true");
         }
 
-        //# 엣지 — 중복 호출시 첫 호출만 동작 (early return 으로 _spawnersActive 변동 없음).
+        //# 엣지 — 중복 호출시 첫 호출만 동작 (early return 으로 _heroEntered 변동 없음).
         //# _clock 도 첫 호출에서 Start() 됐고 두 번째 호출은 진입 자체가 안 됨 → Elapsed=0 그대로.
         [Test]
         public void HandleHeroReachedCenter_중복호출시_idempotent()
@@ -91,7 +92,7 @@ namespace Lair.Tests.Battle
             SetPrivate(bc, "_clock", clock);
 
             InvokeHandleHeroReachedCenter(bc);
-            Assert.IsTrue(GetPrivate<bool>(bc, "_spawnersActive"), "첫 호출로 true");
+            Assert.IsTrue(GetPrivate<bool>(bc, "_heroEntered"), "첫 호출로 true");
             Assert.IsTrue(clock.IsRunning);
 
             //# 첫 호출 후 Tick — Elapsed 진행.
@@ -102,22 +103,47 @@ namespace Lair.Tests.Battle
             //# early return 이라 Elapsed 가 그대로 1.5f 유지돼야 함.
             InvokeHandleHeroReachedCenter(bc);
 
-            Assert.IsTrue(GetPrivate<bool>(bc, "_spawnersActive"), "여전히 true");
+            Assert.IsTrue(GetPrivate<bool>(bc, "_heroEntered"), "여전히 true");
             Assert.AreEqual(1.5f, clock.Elapsed, 0.001f,
                 "early return 이라 clock.Start() 재호출 안 됨 → Elapsed 유지 (중복 호출 idempotent)");
         }
 
-        //# 엣지 — _clock=null 이어도 ?.Start() 가드로 예외 없이 동작. _spawnersActive 는 그대로 set.
+        //# 엣지 — _clock=null 이어도 ?.Start() 가드로 예외 없이 동작. _heroEntered 는 그대로 set.
         [Test]
-        public void HandleHeroReachedCenter_clock_null_이어도_예외없이_spawnersActive_true()
+        public void HandleHeroReachedCenter_clock_null_이어도_예외없이_heroEntered_true()
         {
             BattleController bc = CreateController();
             //# _clock 미할당 — 기본 null.
 
             Assert.DoesNotThrow(() => InvokeHandleHeroReachedCenter(bc),
                 "_clock null 이어도 ?. 가드로 예외 없음");
+            Assert.IsTrue(GetPrivate<bool>(bc, "_heroEntered"),
+                "_clock null 이어도 _heroEntered=true 는 set");
+        }
+
+        //# 회귀 (decouple) — BindSpawners 가 _spawnersActive 를 true 로 켠다 (영웅 입장과 무관 즉시 스폰).
+        //# clock·AI 는 HandleHeroReachedCenter 가 별도로 처리하므로 BindSpawners 후엔 clock 미시작이어야 한다.
+        [Test]
+        public void BindSpawners_호출시_spawnersActive_true_clock_미시작()
+        {
+            BattleController bc = CreateController();
+            BattleClock clock = new BattleClock(300f);
+            SetPrivate(bc, "_clock", clock);
+            SetPrivate(bc, "_spawners", new Spawner[0]);
+
+            Assert.IsFalse(GetPrivate<bool>(bc, "_spawnersActive"), "초기 false");
+
+            MethodInfo mi = typeof(BattleController).GetMethod("BindSpawners",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(mi, "BattleController.BindSpawners 메서드 존재");
+            mi.Invoke(bc, null);
+
             Assert.IsTrue(GetPrivate<bool>(bc, "_spawnersActive"),
-                "_clock null 이어도 _spawnersActive=true 는 set");
+                "BindSpawners 후 _spawnersActive=true (전투 시작 직후 즉시 스폰)");
+            Assert.IsFalse(GetPrivate<bool>(bc, "_heroEntered"),
+                "BindSpawners 는 영웅 입장 게이트를 건드리지 않음");
+            Assert.IsFalse(clock.IsRunning,
+                "BindSpawners 는 clock 을 시작하지 않음 (HandleHeroReachedCenter 담당)");
         }
 
         //# 엣지 — _heroEntryDriver 가 할당돼 있으면 호출 시 enabled=false 로 전환.
@@ -177,10 +203,10 @@ namespace Lair.Tests.Battle
                 "clock.IsRunning=false 라 clock.Tick(dt) 이 early return → Elapsed 0 유지");
         }
 
-        //# Update 게이트 활성화 — HandleHeroReachedCenter 호출 후 Spawner.Tick 진입 + clock Tick 진행.
-        //# spec §6.2 — 영웅이 zone 중심 도달 후 게임 진행 시작.
+        //# Update 게이트 활성화 — _spawnersActive=true (BindSpawners 가 켜는 플래그) 이후 Spawner.Tick 진입.
+        //# decouple 후 스폰 게이트는 영웅 입장(HandleHeroReachedCenter)과 독립이다.
         [Test]
-        public void Update_HandleHeroReachedCenter_호출후_Spawner_Tick_진입()
+        public void Update_spawnersActive_true_이면_Spawner_Tick_진입()
         {
             BattleController bc = CreateController();
             BattleStateModel model = new BattleStateModel();
@@ -188,21 +214,19 @@ namespace Lair.Tests.Battle
             BattleClock clock = new BattleClock(300f);
             SetPrivate(bc, "_clock", clock);
 
-            //# InitialDelay 0, 주기 9 — 첫 Update 의 dt(=Time.deltaTime) 가 0 이라도 첫 발사.
+            //# 주기 9 — 첫 Update 의 dt(=Time.deltaTime) 가 0 이라도 첫 Tick 에 즉시 첫 발사.
             StubSpawnerHost host = new StubSpawnerHost();
             Spawner sp = CreateBoundSpawner(host);
             SetPrivate(bc, "_spawners", new Spawner[] { sp });
 
-            //# 게이트 열기 — _spawnersActive=true + clock.Start().
-            InvokeHandleHeroReachedCenter(bc);
-            Assert.IsTrue(GetPrivate<bool>(bc, "_spawnersActive"));
-            Assert.IsTrue(clock.IsRunning);
+            //# 스폰 게이트 열기 — BindSpawners 가 set 하는 플래그 직접 set (영웅 입장 무관).
+            SetPrivate(bc, "_spawnersActive", true);
 
-            //# Update 호출 → Spawner.Tick 진입. InitialDelay 0 이라 첫 Tick 에 1발.
+            //# Update 호출 → Spawner.Tick 진입. 첫 Tick 에 즉시 1발.
             InvokeUpdate(bc);
 
             Assert.AreEqual(1, host.CallCount,
-                "_spawnersActive=true 이후 첫 Update — Spawner.Tick 진입 → 첫 발사 (InitialDelay 0)");
+                "_spawnersActive=true 이후 첫 Update — Spawner.Tick 진입 → 첫 발사 (즉시 스폰)");
         }
 
         //# 엣지 — 전투 종료(_model.Result != None) 이면 _spawnersActive 가 true 라도 Spawner.Tick 안 됨.

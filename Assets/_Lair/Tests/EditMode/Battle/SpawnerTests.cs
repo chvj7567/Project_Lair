@@ -8,7 +8,7 @@ using Lair.Data;
 namespace Lair.Tests.Battle
 {
     //# 지속 스폰 — Spawner 주기 구동 컴포넌트 본격 스위트 (엣지·회귀).
-    //# Tick(dt) 수동 주입으로 EditMode 검증. 첫 발사 t=InitialDelay, 이후 t=InitialDelay+주기×n (§2.4).
+    //# Tick(dt) 수동 주입으로 EditMode 검증. 첫 발사는 첫 Tick(t≈0) 에 즉시, 이후 t=주기×n.
     public class SpawnerTests
     {
         //# ISpawnerHost 테스트 더블 — SpawnFromSpawner 호출을 전부 기록.
@@ -62,7 +62,7 @@ namespace Lair.Tests.Battle
             mi.Invoke(c, null);
         }
 
-        //# ===== 첫 발사 시점 (위상 오프셋 §2.4) =====
+        //# ===== 첫 발사 시점 (전투 시작 직후 즉시) =====
 
         //# 정상 — InitialDelay 0: 첫 Tick(0) 시점에 즉시 첫 발사.
         [Test]
@@ -77,62 +77,46 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(1, host.CallCount, "InitialDelay 0 — 첫 Tick(0) 에 발사");
         }
 
-        //# 경계 — InitialDelay 0.5: 0.49 누적까진 미발사, 0.5 도달 시 발사.
+        //# 회귀 (수정2) — InitialDelay 가 양수여도 첫 Tick 에 즉시 발사 (지연 무시).
         [Test]
-        public void 첫발사_InitialDelay_0점5_경계_정확()
+        public void 첫발사_InitialDelay_양수여도_첫Tick에_즉시_발사()
         {
             FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Phantom, 6f, 0.5f);
+            Spawner sp = CreateSpawner(EMonster.Phantom, 6f, 2.5f);
             sp.Bind(host, null);
 
-            sp.Tick(0.49f);
-            Assert.AreEqual(0, host.CallCount, "0.49s — InitialDelay 0.5 미만이라 미발사");
-
-            sp.Tick(0.01f);
-            Assert.AreEqual(1, host.CallCount, "누적 0.5s — InitialDelay 도달 시 첫 발사");
+            //# InitialDelay 2.5 이지만 첫 Tick(0) 에 즉시 발사 — 게임 시작 직후 스폰.
+            sp.Tick(0f);
+            Assert.AreEqual(1, host.CallCount, "InitialDelay 2.5 무시 — 첫 Tick 에 즉시 발사");
         }
 
-        //# 경계 — InitialDelay 2.5: 스타터 프리셋 최대 지연. 2.5 도달 전 미발사.
+        //# ===== 주기 발사 위상 유지 (첫 발사 후 t = 주기×n) =====
+
+        //# 정상 — 첫 발사(t≈0) 후 주기마다 1발씩. InitialDelay 와 무관하게 첫 발사 기준 위상.
         [Test]
-        public void 첫발사_InitialDelay_2점5_도달전_미발사()
+        public void 주기발사_첫발사후_주기마다_1발()
         {
             FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Hex, 15f, 2.5f);
-            sp.Bind(host, null);
-
-            sp.Tick(2.4f);
-            Assert.AreEqual(0, host.CallCount, "2.4s — 미발사");
-
-            sp.Tick(0.1f);
-            Assert.AreEqual(1, host.CallCount, "누적 2.5s — 첫 발사");
-        }
-
-        //# ===== 주기 발사 위상 유지 (t = InitialDelay + 주기×n) =====
-
-        //# 정상 — InitialDelay 후 주기마다 1발씩. 위상이 InitialDelay 기준으로 유지된다.
-        [Test]
-        public void 주기발사_InitialDelay_후_주기마다_1발()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            //# InitialDelay 1, 주기 3.
+            //# InitialDelay 1(무시), 주기 3.
             Spawner sp = CreateSpawner(EMonster.Wisp, 3f, 1f);
             sp.Bind(host, null);
 
-            //# t=1.0 첫 발사
-            sp.Tick(1.0f);
-            Assert.AreEqual(1, host.CallCount, "t=1.0 첫 발사");
+            //# t=0 첫 발사 (즉시)
+            sp.Tick(0f);
+            Assert.AreEqual(1, host.CallCount, "첫 Tick 즉시 발사");
 
-            //# t=4.0 두 번째 (InitialDelay 1 + 주기 3)
+            //# +3 두 번째
             sp.Tick(3.0f);
-            Assert.AreEqual(2, host.CallCount, "t=4.0 두 번째 발사");
+            Assert.AreEqual(2, host.CallCount, "첫 발사 +주기 3 → 두 번째 발사");
 
-            //# t=7.0 세 번째
+            //# +3 세 번째
             sp.Tick(3.0f);
-            Assert.AreEqual(3, host.CallCount, "t=7.0 세 번째 발사");
+            Assert.AreEqual(3, host.CallCount, "세 번째 발사");
         }
 
-        //# 회귀 — 작은 dt 다수로 위상이 InitialDelay 기준으로 유지되는지 (드리프트 없음).
-        //# InitialDelay 1 / 주기 3 / dt 0.5 × 20 = t 10 → t=1,4,7,10 에서 4발.
+        //# 회귀 — 작은 dt 다수로 위상이 첫 발사 기준으로 유지되는지 (드리프트 없음).
+        //# 주기 3 / dt 0.5: 첫 Tick 즉시 1발(_timer 0 리셋), 이후 6 Tick(3.0초) 마다 1발.
+        //# t=0,3,6,9 에서 발사 — 20 Tick(10초)이면 4발.
         [Test]
         public void 주기발사_작은_dt_다수_누적시_위상_유지()
         {
@@ -143,8 +127,8 @@ namespace Lair.Tests.Battle
             for (int i = 0; i < 20; ++i)
                 sp.Tick(0.5f);
 
-            //# t=1,4,7,10 — 정확히 4발.
-            Assert.AreEqual(4, host.CallCount, "t=10 까지 InitialDelay 1 + 주기 3 위상으로 4발");
+            //# 첫 Tick(t=0) 즉시 + t=3,6,9 — 정확히 4발.
+            Assert.AreEqual(4, host.CallCount, "첫 발사 후 주기 3 위상으로 총 4발");
         }
 
         //# 경계 — InitialDelay 0 일 때도 첫 발사(t=0) 후 주기마다 정확히 1발.
@@ -204,28 +188,30 @@ namespace Lair.Tests.Battle
         //# ===== OnEnable 상태 리셋 (씬 재진입) =====
 
         //# 회귀 — 씬 재진입(OnEnable 재호출) 시 _firstSpawnDone·타이머 리셋.
-        //# 비활성화 전 첫 발사를 끝낸 Spawner 가 재활성화되면 다시 InitialDelay 부터 시작.
+        //# 비활성화 전 발사를 진행한 Spawner 가 재활성화되면 다시 첫 발사(즉시) 국면으로 복귀.
         [Test]
         public void OnEnable_재호출시_타이머와_첫발사플래그_리셋()
         {
             FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 1f);
+            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.Bind(host, null);
 
-            sp.Tick(1f);    //# 첫 발사 완료
-            Assert.AreEqual(1, host.CallCount);
+            sp.Tick(0f);    //# 첫 발사 완료 (즉시)
+            sp.Tick(9f);    //# 두 번째 발사 — _firstSpawnDone=true 국면
+            Assert.AreEqual(2, host.CallCount);
 
             //# 씬 재진입 시뮬 — OnEnable 직접 호출 (_timer=0 / _firstSpawnDone=false).
             //# EditMode 에서 SetActive 토글은 신뢰성 없어 리플렉션으로 직접 호출.
             InvokeOnEnable(sp);
             sp.Bind(host, null);  //# 재바인드 (Bind 는 OnEnable 에서 안 하므로 명시)
 
-            //# InitialDelay 1 미만은 다시 미발사여야 — 리셋 안 됐으면 즉시 발사됨.
-            sp.Tick(0.5f);
-            Assert.AreEqual(1, host.CallCount, "재진입 후 InitialDelay 미도달 — 미발사 (타이머 리셋 확인)");
+            //# 재진입 후 첫 Tick — _firstSpawnDone 리셋됐으므로 즉시 첫 발사여야 (리셋 확인).
+            sp.Tick(0f);
+            Assert.AreEqual(3, host.CallCount, "재진입 후 첫 Tick — 첫 발사 국면 복귀로 즉시 발사");
 
-            sp.Tick(0.5f);
-            Assert.AreEqual(2, host.CallCount, "재진입 후 누적 1.0s — 첫 발사 다시 발생");
+            //# 주기 미경과 — 미발사 (타이머도 0 으로 리셋됐는지 확인).
+            sp.Tick(8.99f);
+            Assert.AreEqual(3, host.CallCount, "재진입 후 주기 미경과 — 미발사 (타이머 리셋 확인)");
         }
 
         //# 회귀 — OnEnable 이 _outputCount 를 1 로 리셋. 추가소환 +N 후 재진입하면 출력 1 로 복귀.
@@ -430,23 +416,25 @@ namespace Lair.Tests.Battle
                 "_spawnPoint 할당 — transform.position(30) 아닌 spawnPoint.position(8) 사용");
         }
 
-        //# ===== BattleZone 주입 (Task 6) =====
+        //# ===== BattleZone 주입 — 스폰 위치 미사용 (수정1) =====
+        //# zone 은 Bind 시그니처 보존을 위해 주입되나 스폰 위치 산정엔 더 이상 쓰이지 않는다.
+        //# 스폰 위치는 항상 _spawnPoint → transform.position.
 
-        //# 정상 — Bind 시 zone 주입 + zone.GetRandomSpawn() 가 _spawnPoint/transform.position 보다 우선.
+        //# 회귀 (수정1) — zone 에 spawn points 가 있어도 스폰 위치는 _spawnPoint(없으면 transform).
+        //# 과거엔 zone.GetRandomSpawn() 가 우선이었으나 이제 zone 은 위치 산정에서 무시된다.
         [Test]
-        public void Bind_with_zone_Tick시_zone_랜덤픽_사용()
+        public void Bind_with_zone_여도_스폰위치는_transform_position()
         {
             FakeSpawnerHost host = new FakeSpawnerHost();
             Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
-            sp.transform.position = new Vector3(30f, 0f, 0f);    //# 본체 위치 무관
+            sp.transform.position = new Vector3(30f, 0f, 0f);
 
-            //# BattleZone + spawn points 준비.
+            //# BattleZone + spawn points 준비 (이제 위치 산정에 미사용).
             GameObject zoneGo = new GameObject("BattleZoneUT");
             BoxCollider col = zoneGo.AddComponent<BoxCollider>();
             col.isTrigger = true; col.size = new Vector3(10, 1, 10);
             BattleZone zone = zoneGo.AddComponent<BattleZone>();
             _spawned.Add(zoneGo);
-            //# BattleZone.Awake 가 _zoneTrigger 폴백 — EditMode 에서는 리플렉션 호출.
             MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             awakeMi?.Invoke(zone, null);
@@ -455,43 +443,21 @@ namespace Lair.Tests.Battle
             _spawned.Add(sp1);
             SetPrivate(zone, "_spawnPoints", new Transform[] { sp1.transform });
 
-            //# 새 시그니처 — Bind(host, zone).
             sp.Bind(host, zone);
             sp.Tick(0f);
 
-            Assert.AreEqual(new Vector3(8f, 0f, 0f), host.Spawns[0].pos,
-                "Bind 의 zone.GetRandomSpawn() 위치 사용 — transform.position(30)/_spawnPoint 어느 쪽도 아님");
+            Assert.AreEqual(new Vector3(30f, 0f, 0f), host.Spawns[0].pos,
+                "zone spawn point(8) 무시 — _spawnPoint 미할당이라 transform.position(30) 사용");
         }
 
-        //# 정상 — Bind 시 zone=null 이면 _spawnPoint fallback (기존 동작 보전).
+        //# 회귀 (수정1) — zone 이 있어도 _spawnPoint 가 할당되면 _spawnPoint 우선.
         [Test]
-        public void Bind_zone_null_이면_기존_spawnPoint_fallback()
+        public void Bind_with_zone_여도_spawnPoint_있으면_spawnPoint_우선()
         {
             FakeSpawnerHost host = new FakeSpawnerHost();
             Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(30f, 0f, 0f);
-            GameObject sp1 = new GameObject("spawnPoint"); sp1.transform.position = new Vector3(8f, 0f, 0f);
-            _spawned.Add(sp1);
-            SetPrivate(sp, "_spawnPoint", sp1.transform);
 
-            //# 새 시그니처 — zone=null. _spawnPoint 가 fallback.
-            sp.Bind(host, null);
-            sp.Tick(0f);
-
-            Assert.AreEqual(new Vector3(8f, 0f, 0f), host.Spawns[0].pos,
-                "zone null fallback — _spawnPoint(8) 사용");
-        }
-
-        //# 엣지 — zone 은 할당됐지만 GetRandomSpawn() 가 null (배열 비어있음) 반환 시
-        //# _spawnPoint 로 폴백한다 (zone.GetRandomSpawn > _spawnPoint > transform.position 순).
-        [Test]
-        public void Bind_zone_있어도_GetRandomSpawn_null이면_spawnPoint로_폴백()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
-            sp.transform.position = new Vector3(30f, 0f, 0f);  //# 본체 위치 무관
-
-            //# zone — 단, _spawnPoints 미할당 → GetRandomSpawn() 는 null.
             GameObject zoneGo = new GameObject("BattleZoneUT");
             BoxCollider col = zoneGo.AddComponent<BoxCollider>();
             col.isTrigger = true; col.size = new Vector3(10, 1, 10);
@@ -500,8 +466,12 @@ namespace Lair.Tests.Battle
             MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             awakeMi?.Invoke(zone, null);
+            //# zone spawn point(99) — 무시돼야 함.
+            GameObject zonePt = new GameObject("zonePt"); zonePt.transform.position = new Vector3(99f, 0f, 0f);
+            _spawned.Add(zonePt);
+            SetPrivate(zone, "_spawnPoints", new Transform[] { zonePt.transform });
 
-            //# Spawner._spawnPoint — 폴백 대상.
+            //# Spawner._spawnPoint(8) — 우선 사용.
             GameObject spawnPointGo = new GameObject("SpawnPoint");
             spawnPointGo.transform.position = new Vector3(8f, 0f, 0f);
             _spawned.Add(spawnPointGo);
@@ -511,132 +481,31 @@ namespace Lair.Tests.Battle
             sp.Tick(0f);
 
             Assert.AreEqual(new Vector3(8f, 0f, 0f), host.Spawns[0].pos,
-                "zone.GetRandomSpawn() null → _spawnPoint(8) 폴백 — transform.position(30) 아님");
+                "_spawnPoint(8) 우선 — zone spawn point(99)/transform(30) 무시");
         }
 
-        //# 엣지 — zone 도 _spawnPoint 도 둘 다 폴백 실패하면 transform.position 사용.
-        //# zone 할당 + GetRandomSpawn null + _spawnPoint 미할당 → transform.position.
+        //# 엣지 — Bind 재호출시 host 갱신 (zone 은 위치 산정 무관).
         [Test]
-        public void Bind_zone_있어도_GetRandomSpawn_null_이고_spawnPoint도_null이면_transform_사용()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
-            sp.transform.position = new Vector3(42f, 0f, 0f);
-
-            GameObject zoneGo = new GameObject("BattleZoneUT");
-            BoxCollider col = zoneGo.AddComponent<BoxCollider>();
-            col.isTrigger = true; col.size = new Vector3(10, 1, 10);
-            BattleZone zone = zoneGo.AddComponent<BattleZone>();
-            _spawned.Add(zoneGo);
-            MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            awakeMi?.Invoke(zone, null);
-
-            sp.Bind(host, zone);
-            sp.Tick(0f);
-
-            Assert.AreEqual(new Vector3(42f, 0f, 0f), host.Spawns[0].pos,
-                "zone+spawnPoint 둘 다 fallback 실패 → transform.position(42)");
-        }
-
-        //# 엣지 — Bind 재호출시 host/zone 모두 갱신된다.
-        //# 두 번째 zone 의 spawn point 가 첫 번째 zone 이 아닌 두 번째의 것으로 사용됨을 검증.
-        [Test]
-        public void Bind_재호출시_host와_zone_모두_갱신()
+        public void Bind_재호출시_host_갱신()
         {
             FakeSpawnerHost host1 = new FakeSpawnerHost();
             FakeSpawnerHost host2 = new FakeSpawnerHost();
             Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
-            sp.transform.position = new Vector3(30f, 0f, 0f);
+            sp.transform.position = new Vector3(7f, 0f, 0f);
 
-            //# 첫 zone — spawn point X=1.
-            GameObject z1Go = new GameObject("Zone1");
-            BoxCollider c1 = z1Go.AddComponent<BoxCollider>();
-            c1.isTrigger = true; c1.size = new Vector3(10, 1, 10);
-            BattleZone z1 = z1Go.AddComponent<BattleZone>();
-            _spawned.Add(z1Go);
-            MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            awakeMi?.Invoke(z1, null);
-            GameObject p1 = new GameObject("p1"); p1.transform.position = new Vector3(1f, 0f, 0f);
-            _spawned.Add(p1);
-            SetPrivate(z1, "_spawnPoints", new Transform[] { p1.transform });
-
-            sp.Bind(host1, z1);
+            sp.Bind(host1, null);
             sp.Tick(0f);
-            Assert.AreEqual(host1.CallCount, 1, "첫 Bind 후 host1 에 1회 발사");
-            Assert.AreEqual(new Vector3(1f, 0f, 0f), host1.Spawns[0].pos, "zone1 의 p1 위치");
+            Assert.AreEqual(1, host1.CallCount, "첫 Bind 후 host1 에 1회 발사");
+            Assert.AreEqual(new Vector3(7f, 0f, 0f), host1.Spawns[0].pos, "transform.position 사용");
 
-            //# 두 번째 zone — spawn point X=9. Bind 재호출.
-            GameObject z2Go = new GameObject("Zone2");
-            BoxCollider c2 = z2Go.AddComponent<BoxCollider>();
-            c2.isTrigger = true; c2.size = new Vector3(10, 1, 10);
-            BattleZone z2 = z2Go.AddComponent<BattleZone>();
-            _spawned.Add(z2Go);
-            awakeMi?.Invoke(z2, null);
-            GameObject p2 = new GameObject("p2"); p2.transform.position = new Vector3(9f, 0f, 0f);
-            _spawned.Add(p2);
-            SetPrivate(z2, "_spawnPoints", new Transform[] { p2.transform });
-
-            sp.Bind(host2, z2);
+            //# Bind 재호출 — host2 로 갱신.
+            sp.Bind(host2, null);
             sp.Tick(9f);   //# 주기 9 — 두 번째 발사.
 
-            Assert.AreEqual(0, host1.CallCount - 1, "host1 는 추가 발사 없음");
+            Assert.AreEqual(1, host1.CallCount, "host1 는 추가 발사 없음");
             Assert.AreEqual(1, host2.CallCount, "host2 로 갱신 — 1회 발사");
-            Assert.AreEqual(new Vector3(9f, 0f, 0f), host2.Spawns[0].pos,
-                "zone2 의 p2 위치 사용 — Bind 재호출로 zone 갱신 확인");
-        }
-
-        //# 엣지 — zone 의 spawn points 가 N>1 일 때, 다회 Tick 발사로 각 위치 모두 등장.
-        //# Spawner 의 시각에서도 분산이 정상 흐름함을 확인.
-        [Test]
-        public void zone_다중_spawn_points_다회_Tick시_위치_분산()
-        {
-            FakeSpawnerHost host = new FakeSpawnerHost();
-            Spawner sp = CreateSpawner(EMonster.Wisp, 1f, 0f);   //# 주기 1, InitialDelay 0.
-
-            GameObject zoneGo = new GameObject("BattleZoneUT");
-            BoxCollider col = zoneGo.AddComponent<BoxCollider>();
-            col.isTrigger = true; col.size = new Vector3(10, 1, 10);
-            BattleZone zone = zoneGo.AddComponent<BattleZone>();
-            _spawned.Add(zoneGo);
-            MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            awakeMi?.Invoke(zone, null);
-
-            //# 4개 spawn point.
-            GameObject[] pts = new GameObject[4];
-            Transform[] tfs = new Transform[4];
-            for (int i = 0; i < 4; ++i)
-            {
-                pts[i] = new GameObject($"pt{i}");
-                pts[i].transform.position = new Vector3(i, 0f, 0f);
-                tfs[i] = pts[i].transform;
-                _spawned.Add(pts[i]);
-            }
-            SetPrivate(zone, "_spawnPoints", tfs);
-
-            sp.Bind(host, zone);
-
-            //# 고정 시드 — 결정적.
-            Random.State prevState = Random.state;
-            Random.InitState(54321);
-            try
-            {
-                //# 200회 발사 (t=0,1,2,...).
-                for (int i = 0; i < 200; ++i) sp.Tick(1f);
-            }
-            finally
-            {
-                Random.state = prevState;
-            }
-
-            //# 발사된 위치들 — 4개 spawn point 가 모두 등장.
-            System.Collections.Generic.HashSet<Vector3> seen = new System.Collections.Generic.HashSet<Vector3>();
-            foreach ((EMonster _, Vector3 pos, int _) in host.Spawns)
-                seen.Add(pos);
-            Assert.AreEqual(4, seen.Count,
-                "200회 Tick 시 4개 spawn point 위치가 모두 사용 (Spawner 단에서 분산 정상 흐름)");
+            Assert.AreEqual(new Vector3(7f, 0f, 0f), host2.Spawns[0].pos,
+                "host2 도 동일 transform.position(7) 에 스폰");
         }
     }
 }

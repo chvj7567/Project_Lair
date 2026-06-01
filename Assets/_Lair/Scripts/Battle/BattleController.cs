@@ -55,8 +55,11 @@ namespace Lair.Battle
         private IBattleContext _ctx;
         private bool _processingQueue;
 
-        //# 영웅이 zone 중심에 도달했는지. true 가 되면 Update 의 Spawner.Tick 호출이 활성화된다.
+        //# Spawner Tick 게이트 — BindSpawners(전투 시작 직후) 에서 true. 영웅 입장과 무관하게 즉시 스폰 개시.
         private bool _spawnersActive;
+
+        //# 영웅 zone 중심 도달 1회 처리 게이트 — clock 시작 + 영웅 AI 활성화. _spawnersActive 와 분리.
+        private bool _heroEntered;
 
         //# HeroEntryDriver 핸들 — Center 도달 후 비활성화 fallback 용.
         private HeroEntryDriver _heroEntryDriver;
@@ -154,8 +157,17 @@ namespace Lair.Battle
             _clock = new BattleClock(_model.TotalSeconds);
             _clock.OnTick   += _vm.UpdateTimer;
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
-            //# BattleZone 활성 분기 — HandleHeroReachedCenter 가 Start() 호출. 폴백 분기는 즉시.
-            if (_zone == null) _clock.Start();
+            //# 폴백 분기(zone 미할당)는 즉시 시작.
+            if (_zone == null)
+            {
+                _clock.Start();
+            }
+            //# zone 활성 분기 — race 보강. clock 생성 전 영웅이 이미 입장했으면(L334 _clock?.Start() 가 null no-op)
+            //# 여기서 시작. 아직이면 이후 HandleHeroReachedCenter 가 시작 → 두 진입 순서 모두 정확히 1회 Start.
+            else if (_heroEntered)
+            {
+                _clock.Start();
+            }
 
             //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
             _activeTriggers = new ActiveTriggerService(_clock, _balance?.ActiveThresholds);
@@ -182,7 +194,7 @@ namespace Lair.Battle
             _bloodThirst?.Tick(dt);
 
             //# 지속 스폰 — Spawner 들의 주기 타이머 틱. Pause 중 dt=0 자연 정지.
-            //# 전투 종료 후엔 스폰 중단. Hero 가 zone 중심 도달 전(_spawnersActive=false) 엔 무동작.
+            //# 전투 종료 후엔 스폰 중단. BindSpawners 전(_spawnersActive=false) 엔 무동작.
             if (_spawnersActive && _model != null && _model.Result == BattleResult.None && _spawners != null)
             {
                 foreach (Spawner sp in _spawners)
@@ -310,12 +322,12 @@ namespace Lair.Battle
             }
         }
 
-        //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 게임 시작.
-        //# 1회 동작 보장 — _spawnersActive 가 false 일 때만 진입.
+        //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.
+        //# 1회 동작 보장 — _heroEntered 가 false 일 때만 진입. 스폰 개시(_spawnersActive)는 BindSpawners 가 담당.
         private void HandleHeroReachedCenter()
         {
-            if (_spawnersActive) return;
-            _spawnersActive = true;
+            if (_heroEntered) return;
+            _heroEntered = true;
 
             //# 영웅 AutoCombatAI 활성화 — MonsterTargetProvider 가 zone 안 Engaging 몬스터 검색.
             if (_hero != null)
@@ -347,6 +359,9 @@ namespace Lair.Battle
             if (_spawners == null) return;
             foreach (Spawner sp in _spawners)
                 if (sp != null) sp.Bind(this, _zone);
+            //# 전투 시작 직후 스폰 개시 — 영웅 입장 완료를 기다리지 않고 첫 Tick 에 즉시 첫 스폰.
+            //# (clock 시작·영웅 AI 활성화는 HandleHeroReachedCenter 가 별도로 처리.)
+            _spawnersActive = true;
             //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
             _vm?.AttachSpawners(_spawners, this);
         }
