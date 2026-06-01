@@ -31,11 +31,20 @@ namespace Lair.Card
             while (_acc >= 1f)
             {
                 _acc -= 1f;
+                //# 데미지 숫자 색 스탬프 — TakeDamage(OnChanged 동기 발행) 직전.
+                StampColor(hero, HitFeedbackPalette.Bleed);
                 //# RoundToInt — float 정밀도로 (int) 캐스팅이 2.0→1 로 깎이는 것 방지.
                 hero.TakeDamage(Mathf.RoundToInt(hero.Max * _ratio));
             }
         }
 
         public void OnDetached(IHealth hero) { }
+
+        //# DoT 데미지 숫자 색 스탬프 — 피격자의 IDamageColorSink 로 전달.
+        private static void StampColor(IHealth hero, Color c)
+        {
+            if (hero is Component comp && comp != null)
+                comp.GetComponent<IDamageColorSink>()?.StampDamageColor(c);
+        }
     }
 }

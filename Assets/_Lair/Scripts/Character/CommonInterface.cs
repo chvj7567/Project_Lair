@@ -35,6 +35,13 @@ namespace Lair.Character
         void SetMax(int max, bool resetCurrent = true);
     }
 
+    //# 데미지 숫자 색 스탬프 수신구. 데미지 출처가 TakeDamage 직전 호출.
+    //# OnChanged 가 TakeDamage 내부에서 동기 발행되므로 직전 스탬프값이 핸들러에서 읽힌다.
+    public interface IDamageColorSink
+    {
+        void StampDamageColor(Color color);
+    }
+
     //# ===== 공격 =====
 
     //# 사거리·쿨다운·데미지 적용을 한 곳에서 담당. now 인자로 시간 의존성 주입 (테스트 가능).

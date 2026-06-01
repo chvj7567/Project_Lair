@@ -19,6 +19,8 @@ GameObject:
   - component: {fileID: 5572953556716386121}
   - component: {fileID: 4714778337006952125}
   - component: {fileID: 3418358130653599916}
+  - component: {fileID: 1489885472083321565}
+  - component: {fileID: 7601198101170296883}
   - component: {fileID: 5943683239150279958}
   m_Layer: 0
   m_Name: Wisp
@@ -108,6 +110,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 3
+  _maxDepenetrationVelocity: 1
+  _clampZone: {fileID: 0}
 --- !u!114 &6622655881669400139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,6 +190,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd2f2f33d62095a4998d707b4ff0f533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fleeThreatRadius: 4
 --- !u!114 &3418358130653599916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,6 +204,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _duration: 0.1
+--- !u!114 &1489885472083321565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a930a8980938ec3498ab848e5e45ac93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _punchScale: 1.15
+  _punchDuration: 0.12
+  _flashWhiteLerp: 0.6
+  _heroWhiteDamageColor: 0
+--- !u!114 &7601198101170296883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a2b91ca7d64aea44ba528081968b7df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5943683239150279958
 MonoBehaviour:
   m_ObjectHideFlags: 0

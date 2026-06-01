@@ -112,6 +112,9 @@ namespace Lair.Data
         AttackDownStatus,
         TimeStopStatus,
         BleedStatus,
+        //# 타격 피드백 (2026-06-01)
+        HitImpact,    //# 피격 지점 프리미티브 버스트 파티클
+        DamagePopup,  //# 부상+페이드 데미지 숫자 (월드스페이스 TMP+CHText)
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).

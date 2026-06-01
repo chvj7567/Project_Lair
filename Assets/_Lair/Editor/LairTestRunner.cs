@@ -17,6 +17,9 @@ namespace Lair.EditorTools
 
         //# SessionState 키 — 도메인 리로드 너머로 살아남는 상태
         private const string KeyActive       = "lair.testrunner.active";
+        //# 일반 PlayMode 런은 BalanceSimulationTest 를 스킵하라는 신호.
+        //# BalanceSimulationTest.[SetUp] 이 이 키를 읽어 Assert.Ignore 한다.
+        public  const string KeyExcludeSim   = "lair.testrunner.excludeSim";
         private const string KeyResultFile   = "lair.testrunner.resultFile";
         private const string KeyStartedAt    = "lair.testrunner.startedAt";
         private const string KeyFinishedAt   = "lair.testrunner.finishedAt";
@@ -51,6 +54,8 @@ namespace Lair.EditorTools
         {
             //# 시작 전 SessionState 리셋
             SessionState.SetBool(KeyActive, true);
+            //# 이 런이 시뮬레이션을 제외하는지 신호 — BalanceSimulationTest.[SetUp] 이 읽는다.
+            SessionState.SetBool(KeyExcludeSim, excludeSimulation);
             SessionState.SetString(KeyResultFile, resultFile);
             SessionState.SetString(KeyStartedAt, DateTime.Now.ToString("o"));
             SessionState.SetString(KeyFinishedAt, string.Empty);
@@ -68,13 +73,9 @@ namespace Lair.EditorTools
             api.UnregisterCallbacks(_sharedCallbacks);
             api.RegisterCallbacks(_sharedCallbacks);
 
+            //# 시뮬레이션 제외는 Filter 정규식 대신 SessionState 신호 + 테스트측 Assert.Ignore 로 처리.
+            //# (Unity Filter 의 groupNames negative lookahead 가 실제로는 적용 안 됨)
             Filter filter = new Filter { testMode = mode };
-            //# PlayMode 일반 런은 [Category("Simulation")] 테스트 제외.
-            //# Unity Filter 는 카테고리 negation 을 직접 지원 안 함 → groupNames 정규식 negative lookahead
-            if (excludeSimulation)
-            {
-                filter.groupNames = new[] { "^(?!.*BalanceSimulationTest).*$" };
-            }
             api.Execute(new ExecutionSettings(filter));
 
             Debug.Log($"[LairTestRunner] {mode} 테스트 시작 (excludeSimulation={excludeSimulation}) — 결과는 {resultFile} 에 기록");
@@ -84,6 +85,8 @@ namespace Lair.EditorTools
         private static void RunSimulationOnly(string resultFile)
         {
             SessionState.SetBool(KeyActive, true);
+            //# 시뮬 전용 런이므로 제외 신호를 명시적으로 끈다 — 직전 PlayMode 런의 잔존 true 가 시뮬을 self-Ignore 시키지 않도록.
+            SessionState.SetBool(KeyExcludeSim, false);
             SessionState.SetString(KeyResultFile, resultFile);
             SessionState.SetString(KeyStartedAt, DateTime.Now.ToString("o"));
             SessionState.SetString(KeyFinishedAt, string.Empty);

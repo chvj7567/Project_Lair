@@ -659,6 +659,25 @@ namespace Lair.Battle
                 GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
             }
+
+            //# 타격 피드백 FX — 동시 표시 상한 없음 → 스웜 최악 추정 floor 40 (기획서 §6).
+            GameObject impact = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.HitImpact);
+            if (impact != null) CHMPool.Instance.CreatePool(impact, count: 40);
+            GameObject popup = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.DamagePopup);
+            if (popup != null) CHMPool.Instance.CreatePool(popup, count: 40);
+
+            //# HitFeedbackSpawner 보장 + 프리팹 핸들 주입 (DamageFeedback 가 동기 Pop).
+            HitFeedbackSpawner spawner = FindOrCreateHitFeedbackSpawner();
+            spawner.Init(impact, popup);
+        }
+
+        //# 씬 진입점 단일 매니저 — 런타임 스폰 풀 대상 아님 (Rule 03 §4 예외: 매니저성 단일 오브젝트).
+        private HitFeedbackSpawner FindOrCreateHitFeedbackSpawner()
+        {
+            if (HitFeedbackSpawner.Instance != null)
+                return HitFeedbackSpawner.Instance;
+            GameObject go = new GameObject("HitFeedbackSpawner");
+            return go.AddComponent<HitFeedbackSpawner>();
         }
 
         //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰 (액티브 증식 카드 등).

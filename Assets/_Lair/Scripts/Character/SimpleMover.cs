@@ -33,7 +33,8 @@ namespace Lair.Character
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
-            //# 영웅은 _rigidbody null → 무영향. 몬스터(Dynamic)만 분리 속도 캡 적용.
+            //# 몬스터(Dynamic)는 MovePosition + 분리 속도 캡 적용. 영웅(Kinematic)도 MovePosition 으로 이동하나
+            //# depenetration 캡은 kinematic body 라 무력(동작 무해).
             if (_rigidbody != null)
             {
                 _rigidbody.maxDepenetrationVelocity = _maxDepenetrationVelocity;

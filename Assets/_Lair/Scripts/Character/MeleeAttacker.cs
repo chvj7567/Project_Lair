@@ -30,6 +30,9 @@ namespace Lair.Character
         //# B3 — 공격 적중 시 발행. 플레이그 PlagueSlowOnHit 가 구독.
         public event Action<IHealth> OnHit;
 
+        //# 데미지 숫자 대표색. AttackJuice 가 OnEnable 에 몸체색(영웅은 흰색) 주입. 기본 백색.
+        public Color DamageColor { get; set; } = Color.white;
+
         private float _lastAttackTime = float.NegativeInfinity;
 
         //# CHMPool 재사용 시 쿨다운 기록 + 오버레이 배율 리셋.
@@ -54,6 +57,10 @@ namespace Lair.Character
             float dist = Vector3.Distance(selfPos, targetPos);
             if (dist > _range) return false;
             if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
+
+            //# 데미지 숫자 색 스탬프 — TakeDamage 가 OnChanged 를 동기 발행하기 전에 찍어야 한다.
+            if (target is Component tc && tc != null)
+                tc.GetComponent<IDamageColorSink>()?.StampDamageColor(DamageColor);
 
             target.TakeDamage(Mathf.RoundToInt(_power * PowerScale));
             _lastAttackTime = now;

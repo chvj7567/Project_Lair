@@ -179,6 +179,8 @@ GameObject:
   - component: {fileID: 674492820695160515}
   - component: {fileID: 8043710810638408703}
   - component: {fileID: 1260455406174791708}
+  - component: {fileID: 6287633906747732235}
+  - component: {fileID: 2102278440824054758}
   - component: {fileID: 5974855633169413346}
   m_Layer: 0
   m_Name: Wraith
@@ -268,6 +270,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 3
+  _maxDepenetrationVelocity: 1
+  _clampZone: {fileID: 0}
 --- !u!114 &6234594550213911524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -346,6 +350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd2f2f33d62095a4998d707b4ff0f533, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fleeThreatRadius: 4
 --- !u!114 &1260455406174791708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,6 +364,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _duration: 0.1
+--- !u!114 &6287633906747732235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a930a8980938ec3498ab848e5e45ac93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _punchScale: 1.15
+  _punchDuration: 0.12
+  _flashWhiteLerp: 0.6
+  _heroWhiteDamageColor: 0
+--- !u!114 &2102278440824054758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a2b91ca7d64aea44ba528081968b7df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5974855633169413346
 MonoBehaviour:
   m_ObjectHideFlags: 0

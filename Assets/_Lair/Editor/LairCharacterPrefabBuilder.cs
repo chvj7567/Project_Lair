@@ -24,7 +24,7 @@ namespace Lair.EditorTools
 
         //# 오오라(발 밑 디스크 placeholder) 디자인 상수.
         //# 자식이므로 루트 spec.Scale 에 따라 함께 스케일링됨 (작은 몬스터의 오오라는 자연히 작아짐).
-        private const float AuraDiscScale = 1.4f;   //# X/Z 디스크 반지름 비율 (루트 1.0 기준)
+        private const float AuraDiscScale = 0.47f;  //# X/Z 디스크 반지름 비율 (루트 1.0 기준) — 프리팹 의도값(HEAD=0.47 균일)과 일치
         private const float AuraDiscHeight = 0.01f; //# 납작한 디스크
         private const float AuraLocalY = 0.005f;    //# 바닥 살짝 위로 띄움 (z-fighting 방지)
 
@@ -97,9 +97,19 @@ namespace Lair.EditorTools
                 go.transform.position = Vector3.zero;
                 go.transform.localScale = Vector3.one * spec.Scale;
 
-                //# Collider 제거 (Slice A 는 충돌 사용 안 함)
-                Collider col = go.GetComponent<Collider>();
-                if (col != null) Object.DestroyImmediate(col);
+                //# 프리미티브 기본 콜라이더 제거 후 몬스터와 동일 치수 캡슐 재부착.
+                Collider primitiveCol = go.GetComponent<Collider>();
+                if (primitiveCol != null) Object.DestroyImmediate(primitiveCol);
+
+                //# 영웅 콜라이더 — 스웜 몬스터 관통 방지용. 치수는 몬스터와 동일.
+                CapsuleCollider heroCapsule = go.AddComponent<CapsuleCollider>();
+                heroCapsule.center = new Vector3(0f, 0.9f, 0f);
+                heroCapsule.radius = 0.5f;
+                heroCapsule.height = 1.8f;
+                //# Rigidbody kinematic — 이동 권한은 SimpleMover. 물리력에 안 밀려 경로 유지.
+                Rigidbody heroRigidbody = go.AddComponent<Rigidbody>();
+                heroRigidbody.useGravity = false;
+                heroRigidbody.isKinematic = true;
 
                 //# 머티리얼 생성 + 색상 적용 — 영웅 본체 색
                 Material mat = EnsureUrpLitMaterial($"{MaterialDir}/Mat_{spec.Name}.mat", spec.ColorHex);
@@ -173,6 +183,12 @@ namespace Lair.EditorTools
             go.AddComponent<AutoCombatAI>();
             //# 시각 피드백 + 사망 처리
             go.AddComponent<HitFlash>();
+            //# 타격 피드백 (2026-06-01) — 공격자 펀치·플래시 + 피격 임팩트·숫자.
+            AttackJuice juice = go.AddComponent<AttackJuice>();
+            //# 영웅 한정 — 데미지 숫자 대표색 흰색 오버라이드(기획서 §4.3).
+            if (spec.IsHero)
+                SetPrivateField(juice, "_heroWhiteDamageColor", true);
+            go.AddComponent<DamageFeedback>();
             go.AddComponent<DespawnOnDeath>();
 
             //# 4) 몬스터 머리 위 HP 바 — HpBar.prefab nested 부착 (영웅 제외 — HUD 에 있음)

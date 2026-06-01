@@ -69,8 +69,19 @@ namespace Lair.Battle
             if (_hero == null) return;
             for (int i = _slots.Count - 1; i >= 0; --i)
             {
+                //# 재진입 가드 — 이전 반복의 Tick/OnDetached 가 영웅 사망→OnDisable 을 유발해
+                //# _slots 가 비워졌을 수 있다. 인덱스가 무효면 정리는 OnDisable 이 끝냈으므로 즉시 종료.
+                if (i >= _slots.Count)
+                    continue;
+
                 Slot s = _slots[i];
                 s.Aura.Tick(_hero, Time.deltaTime);
+
+                //# Tick 이 영웅을 죽이면 OnDisable 이 _slots 를 비우거나 GameObject 가 꺼진다.
+                //# 그 경우 cleanup 은 이미 OnDisable 이 수행했으니 더 진행하지 않고 루프 종료.
+                if (_hero.IsAlive == false || _slots.Count == 0 || i >= _slots.Count
+                    || ReferenceEquals(_slots[i], s) == false)
+                    return;
 
                 //# visual 이 있으면 영웅 위치 + Offset 으로 추적.
                 if (s.Visual != null && s.Aura is IStatusVisual sv)
@@ -82,6 +93,10 @@ namespace Lair.Battle
                     if (s.Remain <= 0f)
                     {
                         s.Aura.OnDetached(_hero);
+                        //# 현재 어떤 IHeroAura.OnDetached 도 _slots 를 변경(영웅 사망/runner disable)하지 않음
+                        //# → OnDetached 재진입은 도달 불가. 아래 가드는 무해한 하드닝일 뿐, 재진입 플래그 등 추가 방어는 의도적으로 안 함.
+                        if (_slots.Count == 0 || i >= _slots.Count || ReferenceEquals(_slots[i], s) == false)
+                            return;
                         if (s.Visual != null) CHMPool.Instance.Push(s.Visual);
                         _slots.RemoveAt(i);
                     }

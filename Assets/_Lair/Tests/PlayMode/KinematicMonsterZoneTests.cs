@@ -21,6 +21,15 @@ namespace Lair.Tests.PlayMode
         {
             CharacterRegistry.Heroes.Clear();
             CharacterRegistry.Monsters.Clear();
+            //# 선행 Battle 씬 로드 테스트가 남긴 BattleZone trigger 제거.
+            //# 물리는 로드된 씬 전역 공유라 활성씬 교체만으론 부족 — 잔존 zone 을 직접 파괴해야
+            //# 본 테스트 몬스터(10,0,0)가 남의 zone 에 걸려 오염되는 것을 막는다.
+            BattleZone[] residual = Object.FindObjectsByType<BattleZone>(FindObjectsSortMode.None);
+            foreach (BattleZone bz in residual)
+            {
+                if (bz == null) continue;
+                Object.DestroyImmediate(bz.gameObject);
+            }
         }
 
         [TearDown]

@@ -18,6 +18,8 @@ namespace Lair.Character
         private readonly List<Color> _originalColors = new List<Color>();
         private int _lastHp = -1;
         private Coroutine _co;
+        //# 공격자 색 플래시(AttackJuice) 전용 — 피격 flash 와 별도 코루틴/우선순위.
+        private Coroutine _attackCo;
 
         private void Awake()
         {
@@ -41,15 +43,64 @@ namespace Lair.Character
             }
             //# 진행 중이던 flash 정리 + 색상 원복
             if (_co != null) { StopCoroutine(_co); _co = null; }
+            if (_attackCo != null) { StopCoroutine(_attackCo); _attackCo = null; }
             RestoreOriginalColors();
         }
 
         private void OnDisable()
         {
             if (_health != null) _health.OnChanged -= HandleChanged;
-            //# 코루틴은 GameObject 비활성화 시 자동 중단되지만 _co 참조 정리 + 색상 원복
+            //# 코루틴은 GameObject 비활성화 시 자동 중단되지만 참조 정리 + 색상 원복
             _co = null;
+            _attackCo = null;
             RestoreOriginalColors();
+        }
+
+        //# 공격자 색 플래시 (AttackJuice 호출) — 원색에서 흰색으로 lerp 만큼 밝게 번쩍 후 원복.
+        //# 피격 flash(_co) 가 진행 중이면 양보 — 피격 표시가 우선.
+        public void FlashAttack(float whiteLerp, float duration)
+        {
+            if (isActiveAndEnabled == false) return;
+            if (_co != null) return;
+            if (_attackCo != null)
+            {
+                StopCoroutine(_attackCo);
+            }
+            _attackCo = StartCoroutine(AttackFlashCo(whiteLerp, duration));
+        }
+
+        private IEnumerator AttackFlashCo(float whiteLerp, float duration)
+        {
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = t / duration;
+                //# sin 반원: 0→peak→0. peak 에서 원색→흰색 whiteLerp 만큼.
+                float amt = whiteLerp * Mathf.Sin(k * Mathf.PI);
+                //# 피격 flash 가 도중에 시작되면 양보하고 원복.
+                if (_co != null)
+                {
+                    break;
+                }
+                ApplyBrightenedColors(amt);
+                yield return null;
+            }
+            RestoreOriginalColors();
+            _attackCo = null;
+        }
+
+        private void ApplyBrightenedColors(float toWhite)
+        {
+            for (int i = 0; i < _matInstances.Count; i++)
+            {
+                Material mat = _matInstances[i];
+                if (mat == null) continue;
+                Color c = _originalColors[i];
+                Color lit = Color.Lerp(c, Color.white, toWhite);
+                lit.a = c.a;
+                WriteColor(mat, lit);
+            }
         }
 
         //# 자식의 모든 Renderer 를 수집해 .material 로 인스턴스화하고 원본 색 캐시.
@@ -112,6 +163,8 @@ namespace Lair.Character
             //# 데미지(감소)인 경우에만 플래시. 회복(증가)은 무시.
             if (current < _lastHp)
             {
+                //# 피격 표시 우선 — 진행 중인 공격 플래시 중단 + 원복.
+                if (_attackCo != null) { StopCoroutine(_attackCo); _attackCo = null; RestoreOriginalColors(); }
                 if (_co != null) StopCoroutine(_co);
                 _co = StartCoroutine(FlashCo());
             }

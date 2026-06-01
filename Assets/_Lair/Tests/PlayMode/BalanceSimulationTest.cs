@@ -39,6 +39,23 @@ namespace Lair.Tests.PlayMode
         //# 가속 아티팩트 검증판 표본 수. 15x 와 평균 사망시각을 비교만 하면 되므로 소표본.
         private const int ValidationGames = 3;
 
+        //# LairTestRunner.KeyExcludeSim 과 동일 문자열 — Editor 어셈블리 참조를 끌어오지 않으려 리터럴로 미러.
+        //# 값이 바뀌면 LairTestRunner 와 이 상수를 함께 갱신해야 한다.
+        private const string KeyExcludeSim = "lair.testrunner.excludeSim";
+
+        [SetUp]
+        public void SetUp()
+        {
+            //# 일반 PlayMode 런(Run PlayMode Tests)은 분 단위 캠페인을 제외한다.
+            //# LairTestRunner 가 SessionState 신호를 세팅하면 본문 실행 전 전체 스킵.
+#if UNITY_EDITOR
+            if (UnityEditor.SessionState.GetBool(KeyExcludeSim, false))
+            {
+                Assert.Ignore("일반 PlayMode 런은 시뮬레이션 제외 — Run PlayMode Simulation 으로 별도 실행");
+            }
+#endif
+        }
+
         [TearDown]
         public void TearDown()
         {

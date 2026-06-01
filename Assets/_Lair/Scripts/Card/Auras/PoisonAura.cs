@@ -45,7 +45,11 @@ namespace Lair.Card
             int ticks = AccumulateDamageTicks(
                 _heroTransform.position, _visualPoolable.transform.position, dt);
             for (int i = 0; i < ticks; ++i)
+            {
+                //# 데미지 숫자 색 스탬프 — TakeDamage(OnChanged 동기 발행) 직전.
+                StampColor(hero, HitFeedbackPalette.Poison);
                 hero.TakeDamage((int)_dps);
+            }
         }
 
         //# 영역판정 + 1초 누적 코어 (순수 로직 — Transform/CHPoolable 비의존, 테스트 가능).
@@ -75,6 +79,13 @@ namespace Lair.Card
             }
             _visualPoolable = null;
             _heroTransform = null;
+        }
+
+        //# DoT 데미지 숫자 색 스탬프 — 피격자의 IDamageColorSink 로 전달.
+        private static void StampColor(IHealth hero, Color c)
+        {
+            if (hero is Component comp && comp != null)
+                comp.GetComponent<IDamageColorSink>()?.StampDamageColor(c);
         }
 
         //# CHMResource 캐시 hit 시 즉시 callback (사전 워밍 후 즉시 처리).
