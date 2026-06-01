@@ -8,6 +8,24 @@
 
 ---
 
+## 변경 이력 — 2026-06-01 에셋 동기화 (v0.6 원안 대비 변경점)
+
+> **이 블록은 사실 동기화 기록이다.** 본 기획서 v0.6 원안(2026-05-31)은 그 뒤 데일리 카드 루틴(리퍼·헥스 딜러 심화, 패시브 재조정 등 — git log `4b32741`·`cce7032`·`02d606a` 등)이 실제 `.asset` 을 후속 수정하면서 문서와 게임 데이터가 어긋났다. 2026-06-01 동기화에서 **에셋(.asset) 을 진실(SoT)로 삼아** 본문 §3·§6·§8·§10·§11 의 카드명·효과요약·핵심수치를 현행으로 교체했다. 원안 설계 의도는 보존하되, 어긋난 항목은 현행 사실로 치환하고 필요 시 `(원안: …, 현행: …)` 로 병기했다. §4.2 Tier 표(Layer 1)는 에셋이 아닌 `BuildSynergyService` 코드 영역이라 수치는 손대지 않고 참조 카드명만 정합화 + "구현 검증 필요" 주석을 유지한다. §12 Self-Review 는 v0.6 원안 점검 기록(2026-05-31)으로 날짜 박제 — 그 안의 일관성 단언(예: SwarmRush 신규 3장)은 현행과 다를 수 있으므로 본 변경 이력 블록이 우선한다.
+
+**원안 → 현행 주요 변경점 요약**:
+
+| # | 카드 / 항목 | 원안 (v0.6 설계) | 현행 (2026-06-01 에셋) |
+|---|---|---|---|
+| 1 | `WallOfWisps` ("단단한 살갗") | 위스프 4방위 4마리 즉시 소환 (`WallOfWispsEffect`, 가산 누적) | 위스프·레이스 받는 데미지 ×0.75 영구 (`ToughHideEffect`, `EMonsterBuff.ToughHide`). displayName "단단한 살갗", 소환 카드 아님 |
+| 2 | `ReplaceWispsToWraith` ("공포의 군세") | Wisp 스포너 → Wraith 출력 영구 교체 (멱등) | 위스프·레이스 Power ×1.3 영구 (`WispWraithPowerBoostEffect`, 곱연산 누적). 종 교체 아님 |
+| 3 | `ReplaceReapersToHex` ("처형 명령") | Reaper 스포너 → Hex 출력 영구 교체 (멱등) | 리퍼·헥스 Power ×1.3 영구 (`ReaperHexPowerBoostEffect`, 곱연산 누적). 종 교체 아님 |
+| 4 | `Berserk` ("수호자의 분노", `GuardianRageEffect`) | HP×2.0 + 받피×0.5, 15초 | **받피 ×0.5 만** (2026-06-01 HP×2.0 제거 — `MonsterBuffService.GuardianRage` case 가 `DamageTakenScale *= 0.5f` 만 적용). SO `_description` "받피 -50% (15초)" 와 일치 (§3.1 #7 정합 완료, spec 2026-06-01 §2B) |
+| 5 | Swarm 액티브 (`Multiply` 자리) | `Multiply` 폐기 → `SwarmRush`(팬텀 6마리 즉시 소환) 신설 | **SwarmRush 미구현.** `Multiply.asset`("빠른 번식") 잔존 — `FastBreedingEffect` (팬텀 스포너 주기 ×0.6 영구). enum `ECardId.Multiply` 도 유지 |
+| 6 | `SpawnerHaste` 3픽 캡 (§9.6 사전 의도 (a)) | QA 7차 후 발동 (선반영 안 함) | **전역 3픽 캡(2026-06-01)으로 포섭** — SpawnerHaste 단독 effect-cap 불요. 전역 캡으로 3픽 후 후보 제외되어 ×0.8³ = ×0.512 가 상한. `docs/design/card-3pick-cap.md` 참조 |
+| 7 | `EMonsterBuff` | Frenzy/IronWill/BerserkPower/GuardianRage | 현행 += `ToughHide`, `SwarmSpeed` (Slow 의 몬스터 가속용). §10.1 표 갱신 |
+
+---
+
 ## § 헤더
 
 - **목표**: 카드 28장을 Tank/Dps/Debuff/Swarm 4축에 균등 배치(축당 패시브 4 + 액티브 3)하고, 같은 축 N장 픽 시 3·5·7장 임계에서 즉시 발화하는 2-Layer 시너지를 도입한다.
@@ -59,89 +77,106 @@
 
 다음 컬럼 의미:
 - **ECardId**: `CommonEnum.cs` 의 enum 값명 (= 에셋 SO 파일명, Rule 03 §2 일치).
-- **분류**: 기존 25장 = 보존/리뉴얼, Multiply = 삭제, 신규 3장 = 신규.
+- **분류 (현행 2026-06-01)**: 보존 / 리뉴얼(효과 교체) / 축이동(`_axis` 변경) / 신규 2장(MarkOfDeath·SpawnerHaste) / 잔존(Multiply — 원안 삭제 예정이나 잔존). 원안의 "신규 3장 / Multiply 삭제 / SwarmRush 신설"은 미실현 (§3.4·§3.5 참조).
 - **축**: Tank/Dps/Debuff/Swarm.
 - **T**: 트리거 — P=Passive(HP 10%), A=Active(30s).
 - **중첩**: 같은 카드 2픽·3픽 시의 누적 방식.
 
 ### 3.1 Tank 축 (7장: P4 + A3)
 
-| # | ECardId | 분류 | T | 한글명 | 효과 요약 | 핵심 수치 | 중첩 정책 |
-|---|---|---|---|---|---|---|---|
-| 1 | `WispHpBoost` | 보존 | P | 끈질긴 위스프 | Wisp 종 글로벌 HP ×1.5 | `_hpMul=1.5` | 곱연산 누적 (2픽=×2.25, 3픽=×3.375) |
-| 2 | `WraithDamageBoost` | **축 이동** (Dps→Tank) + 리뉴얼 | P | 망령의 압박 | Wraith 종 글로벌 HP ×1.5 (구 데미지 ×1.5 폐기) | `_hpMul=1.5` | 곱연산 누적 |
-| 3 | `SpawnWraith` | 보존 | P | 더 많은 망령 | Wraith 스포너 동시 출력 +1 | `+1` | 가산 누적 (2픽=+2, 3픽=+3, 캡 18 적용) |
-| 4 | `ReplaceWispsToWraith` | 보존 | P | 망령으로 진화 | Wisp 스포너 → Wraith 출력 영구 변경 | n/a | 멱등 (이미 Wraith 면 no-op — 컨셉 §6.3 규칙 그대로) |
-| 5 | `IronWill` | 보존 | A | 강철 의지 | 모든 몬스터 받는 데미지 ×0.7, 15s | `_duration=15` (배율 ×0.7 은 `MonsterBuffService` IronWill case 내 상수 — 코드 변경 없음) | **지속시간 누적**: 2픽 → 효과 진행 중 재픽 시 잔여+15s, 효과량 그대로 |
-| 6 | `WallOfWisps` *(신규 1)* | 신규 | A | 위스프 장벽 | 영웅 주변 4방위에 Wisp 즉시 4마리 소환 (캡 18 적용) | `_count=4 _radius=2.5` | 가산 누적 (2픽 = 8마리, 캡 truncate) |
-| 7 | `Berserk` → **`GuardianRage`** (리네임은 하지 않고 enum 자리 유지, 효과만 리뉴얼) | **리뉴얼 (자살 구조 해소)** | A | 수호자의 분노 | Wraith·Wisp 의 HP ×2.0 + 받는 데미지 ×0.5, 15s | `_duration=15` (배율 HP×2.0 / 받는데미지×0.5 + 적용 종 `{Wisp, Wraith}` 는 `MonsterBuffService.cs` GuardianRage case 내 상수 — §10.1) | 지속시간 누적 (잔여+15s) |
+> **현행 에셋 동기화 (2026-06-01)** — 아래 표의 한글명·효과요약·핵심수치는 `Assets/_Lair/Art/Cards/Items/*.asset` 현행값. `_axis=0` (Tank). 중첩 정책은 효과 클래스 구현으로 검증.
 
-> *Berserk 처리*: ECardId.Berserk enum 값은 **자리 보존** (int 직렬화 정합), 효과 클래스는 신규 `GuardianRageEffect` 로 교체. SO 파일명도 `Berserk.asset` 유지 (Addressable 키 = enum 값 정합, Rule 03 §2). UI displayName 만 "수호자의 분노" 로 변경. 자살 구조(몬스터 HP -50%) 폐기 → Tank 보호 카드로 재해석.
+| # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `WispHpBoost` | 보존 | P | 끈질긴 위스프 | 모든 위스프 HP +50% | `_hpMul=1.5` | `WispHpBoostEffect` | 곱연산 누적 (2픽=×2.25, 3픽=×3.375) |
+| 2 | `WraithDamageBoost` | 리뉴얼 (데미지→HP) | P | 망령의 압박 | 모든 레이스 HP +50% | `_hpMul=1.5` | `WraithDamageBoostEffect` | 곱연산 누적 (Wraith Hp 배율, RegisterMonsterTypeBuff) |
+| 3 | `SpawnWraith` | 보존 | P | 레이스 소환 | 레이스 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnWraithEffect` | 가산 누적 (2픽=+2, 3픽=+3, 캡 18 적용) |
+| 4 | `ReplaceWispsToWraith` | 리뉴얼 (교체→Power강화) | P | 공포의 군세 | 위스프·레이스 데미지 +30% (영구) | `_powerMul=1.3` | `WispWraithPowerBoostEffect` | 곱연산 누적 (Wisp·Wraith Power ×1.3, RegisterMonsterTypeBuff 종별 2회). 종 교체 아님·멱등 아님 |
+| 5 | `IronWill` | 보존 | A | 강철 의지 | 몬스터 받는 데미지 -30% (15초) | `_duration=15` (배율 ×0.7 은 `MonsterBuffService` IronWill case 내 상수) | `IronWillEffect` | 지속시간 누적 (`AddBuff` dedup — 같은 buff 재호출 시 Remain 을 더 큰 값으로 연장, 효과량 그대로) |
+| 6 | `WallOfWisps` | 리뉴얼 (소환→영구 받피감소) | A | 단단한 살갗 | 위스프·레이스 받는 데미지 -25% (영구) | SO `data` 비어있음 — `MonsterBuffService.ToughHide` case 의 `hp.DamageTakenScale *= 0.75f` 상수 (적용 종 `{Wisp, Wraith}`) | `ToughHideEffect` → `EMonsterBuff.ToughHide` 영구 등록 (`AddMonsterBuff(-1f)`) | **멱등에 가까움**: `AddBuff` dedup 으로 같은 buff 중복 등록되지 않음 (영구 1개만 유지). 가산 아님. 소환 카드 아님 |
+| 7 | `Berserk` (효과 `GuardianRageEffect`) | 리뉴얼 (자살 구조 해소) | A | 수호자의 분노 | 위스프·레이스 받는 데미지 -50% (15초) | `_duration=15`. **받피 ×0.5 만** (`MonsterBuffService.GuardianRage` case, 적용 종 `{Wisp, Wraith}`. 2026-06-01 HP ×2.0 제거 — SO description "받는 데미지 -50%" 와 일치) | `GuardianRageEffect` → `EMonsterBuff.GuardianRage` | 지속시간 누적 (`AddBuff` dedup, Remain 연장) |
 
-> *몬스터 글로벌 버프 카드 (IronWill / Frenzy / GuardianRage) 의 SO 필드 노출 정책*: 본 기획은 **기존 코드 동작 보존** 을 전제로 한다.
-> - `IronWillEffect.cs` 는 `_duration` 만 들고 있고, 받는 데미지 배율 ×0.7 은 `MonsterBuffService.cs` 의 IronWill case 안 상수(현재 코드: `hp.DamageTakenScale *= 0.7f`) 다. 본 기획은 이 상수를 SO 필드로 끌어올리지 **않는다**. SO 에는 `_duration=15` 만.
-> - `FrenzyEffect.cs` 도 `_duration=10` 만. 공속 +50% 는 `MonsterBuffService.cs` 의 Frenzy case 안 상수(현재 코드: 공격 쿨다운 ×0.67 = 공속 +50%). 본 기획은 변경 안 함.
-> - `BerserkPowerEffect.cs` 의 데미지 ×N 상수도 동일 정책 — 단 본 기획은 Berserk 자살 구조 자체를 폐기하고 `GuardianRageEffect` 로 교체하므로 BerserkPower buff 적용 자체가 사라진다 (§10.4).
-> - 신규 `GuardianRageEffect` 도 같은 패턴 — SO 에는 `_duration=15` 만, 배율 (`HP ×2.0` + `받는데미지 ×0.5`) 은 `MonsterBuffService.cs` 의 GuardianRage case 내 상수로 들어간다.
-> 정책 근거: 본 기획 범위는 *카드 라인업·축·시너지* 의 리뉴얼이며, 몬스터 글로벌 버프 시스템의 SO 스키마 변경은 범위 외다 (D1~D11 어디에도 없음). 배율 튜닝이 필요하면 후속 밸런스 사이클에서 `MonsterBuffService` 상수만 조정.
+> **[GuardianRage 노출/메커니즘 정합 완료, 2026-06-01]**: 과거 불일치(SO `_description` 은 "받피 -50%" 만 노출, 코드는 받피×0.5 + HP×2.0 둘 다 적용)는 **HP×2.0 제거(선택지 ②)로 해소**됐다. 현행 `MonsterBuffService.cs` GuardianRage case 는 `hp.DamageTakenScale *= 0.5f` 만 적용해 SO description "위스프·레이스 받는 데미지 -50% (15초)" 와 일치한다. (spec `docs/superpowers/specs/2026-06-01-card-3pick-cap-and-fixes-design.md` §2B. 약화 후 IronWill·ToughHide 와의 역할 분담 근거는 `docs/design/card-3pick-cap.md` §5.)
+
+> *Berserk 처리 (원안 보존 기록)*: ECardId.Berserk enum 값은 **자리 보존** (int 직렬화 정합), 효과 클래스는 `GuardianRageEffect`. SO 파일명도 `Berserk.asset` 유지 (Addressable 키 = enum 값 정합, Rule 03 §2). displayName 은 "수호자의 분노". 원안의 "자살 구조(몬스터 HP -50%) 폐기 → Tank 보호 카드로 재해석" 의도는 그대로 구현됨.
+
+> *몬스터 글로벌 버프 카드 (IronWill / Frenzy / GuardianRage / ToughHide) 의 SO 필드 노출 정책 — 현행 코드 (2026-06-01 확인)*: 효과 배율은 SO 필드가 아니라 `MonsterBuffService.cs` 의 case 내 상수다. SO 에는 `_duration` 만 (영구 buff 는 그마저 없음).
+> - `IronWillEffect.cs` → `AddMonsterBuff(IronWill, 15)`. 받피 ×0.7 은 IronWill case 상수 (`hp.DamageTakenScale *= 0.7f`, line 89). 적용 종 한정 없음 (전체 종). SO `_duration=15`.
+> - `FrenzyEffect.cs` → `_duration=10`. 공속 +50% 는 Frenzy case 상수 (`atk.CooldownScale *= 0.67f`, line 86). 전체 종.
+> - `GuardianRageEffect.cs` → `AddMonsterBuff(GuardianRage, 15)`. GuardianRage case 가 적용 종 `{Wisp, Wraith}` 에만 `DamageTakenScale *= 0.5f` (2026-06-01 HP×2.0 제거 — `HpMaxScale *= 2f` 더 이상 없음). SO `_duration=15` 만.
+> - `ToughHideEffect.cs` → `AddMonsterBuff(ToughHide, -1f)` (영구). ToughHide case 가 적용 종 `{Wisp, Wraith}` 에만 `DamageTakenScale *= 0.75f` (line 106). SO `data` 비어있음.
+> - `EMonsterBuff.BerserkPower` case (`atk.PowerScale *= 3f`, line 92) 는 enum·case 모두 잔존하나, 이를 호출하는 카드 효과 클래스가 없어 **미사용 상태** (전체 종 적용 상수).
+> - **중첩 동작 (현행)**: `MonsterBuffService.AddBuff` 는 같은 `EMonsterBuff` 가 이미 있으면 dedup — 새 인스턴스를 추가하지 않고 Remain 을 더 큰 값으로 연장(시한) 또는 영구 유지(`-1f`). 즉 IronWill/GuardianRage/ToughHide 를 같은 라운드에 K번 픽해도 **효과량은 1배 그대로**, 시한 buff 는 잔여시간만 연장된다.
 
 ### 3.2 Dps 축 (7장: P4 + A3)
 
-| # | ECardId | 분류 | T | 한글명 | 효과 요약 | 핵심 수치 | 중첩 정책 |
-|---|---|---|---|---|---|---|---|
-| 1 | `ReaperAtkSpeed` | 보존 | P | 신속한 사신 | Reaper 종 공격 쿨다운 ×0.7 | `_cdMul=0.7` | 곱연산 누적 |
-| 2 | `HexRangeBoost` | 보존 | P | 저주의 시야 | Hex 종 사거리 ×1.4 | `_rangeMul=1.4` | 곱연산 누적 |
-| 3 | `SpawnReapers` | 보존 | P | 사신 떼거리 | Reaper 스포너 동시 출력 +1 | `+1` | 가산 누적 |
-| 4 | `ReplaceReapersToHex` | 보존 | P | 헥스로 진화 | Reaper 스포너 → Hex 출력 영구 변경 | n/a | 멱등 |
-| 5 | `Frenzy` | 보존 | A | 광폭화 | 모든 몬스터 공격속도 +50%, 10s | `_duration=10` (Frenzy 버프=공속+50%) | 지속시간 누적 |
-| 6 | `BloodThirst` | **축 이동** (Swarm→Dps) | A | 피의 갈증 | 처치 시 주변 몬스터 HP +30 회복, 30s | `_duration=30` | 지속시간 누적 |
-| 7 | `MarkOfDeath` *(신규 2)* | 신규 | A | 죽음의 표식 | 영웅에게 표식 부착 — 다음 5초간 영웅이 받는 데미지 ×1.5 | `_dmgTakenMul=1.5 _duration=5` | 지속시간 누적 (잔여+5s) |
+> **현행 에셋 동기화 (2026-06-01)** — `_axis=1` (Dps).
 
-> *BloodThirst 축 이동 근거*: 컨셉 원안 "버프"는 도구일 뿐, "처치 시 회복"은 DPS 축이 영웅 HP 를 깎는 동안 자신을 유지하는 효과로 가장 잘 작동한다. Swarm 의 "머릿수로 압도"는 회복보다 즉시 충원이 어울려 BloodThirst 를 Dps 로 이동.
+| # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `ReaperAtkSpeed` | 보존 | P | 광폭 리퍼 | 모든 리퍼 공격속도 +30% | `_cdMul=0.7` | `ReaperAtkSpeedEffect` | 곱연산 누적 |
+| 2 | `HexRangeBoost` | 보존 | P | 헥스 정밀 | 모든 헥스 사거리 +40% | `_rangeMul=1.4` | `HexRangeBoostEffect` | 곱연산 누적 |
+| 3 | `SpawnReapers` | 보존 | P | 리퍼 증원 | 리퍼 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnReapersEffect` | 가산 누적 |
+| 4 | `ReplaceReapersToHex` | 리뉴얼 (교체→Power강화) | P | 처형 명령 | 리퍼·헥스 데미지 +30% (영구) | `_powerMul=1.3` | `ReaperHexPowerBoostEffect` | 곱연산 누적 (Reaper·Hex Power ×1.3, RegisterMonsterTypeBuff 종별 2회). 종 교체 아님·멱등 아님 |
+| 5 | `Frenzy` | 보존 | A | 광폭화 | 모든 몬스터 공속 +50% (10초) | `_duration=10` (공속+50% 는 Frenzy case 상수) | `FrenzyEffect` | 지속시간 누적 (`AddBuff` dedup) |
+| 6 | `BloodThirst` | 축 이동 (Swarm→Dps) | A | 피의 갈증 | 처치 시 주변 몬스터 회복 (30초) | `_duration=30` | `BloodThirstEffect` (`ActivateBloodThirst`) | 지속시간 누적 |
+| 7 | `MarkOfDeath` | 신규 | A | 죽음의 표식 | 다음 5초간 영웅이 받는 데미지 +50% | `_dmgTakenMul=1.5 _duration=5` | `MarkOfDeathEffect` → `MarkOfDeathAura` | 지속시간 누적 (잔여+5s) |
+
+> *BloodThirst 축 이동 근거*: 컨셉 원안 "버프"는 도구일 뿐, "처치 시 회복"은 DPS 축이 영웅 HP 를 깎는 동안 자신을 유지하는 효과로 가장 잘 작동한다. Swarm 의 "머릿수로 압도"는 회복보다 즉시 충원이 어울려 BloodThirst 를 Dps 로 이동. (현행 `_axis=1` 로 적용 완료.)
 
 ### 3.3 Debuff 축 (7장: P4 + A3)
 
-| # | ECardId | 분류 | T | 한글명 | 효과 요약 | 핵심 수치 | 중첩 정책 |
-|---|---|---|---|---|---|---|---|
-| 1 | `PlagueSlowBoost` | 보존 (Plague Spawner 추가로 활성화) | P | 역병의 손길 | Plague 종 SlowFactor ×0.75 (강한 둔화) | `_slowFactor=0.75` | 곱연산 누적 |
-| 2 | `SpawnPlagues` | 보존 (Plague Spawner 추가로 활성화) | P | 역병 증식 | Plague 스포너 동시 출력 +1 | `+1` | 가산 누적 |
-| 3 | `HeroPoisonAura` | 보존 | P | 독장판 | 영웅 발 밑 독장판 — 영역 내 1초당 5 DPS, 5s 지속 (영웅 발에 부착, 영웅 이동 시 따라 이동) | `_dps=5 _duration=5 _radius=1.25` | **지속시간 누적**: 잔여+5s |
-| 4 | `HeroAttackDown` | 보존 | P | 약화의 저주 | 영웅 공격력 영구 ×0.75 | `_factor=0.75` | 곱연산 누적 (2픽=×0.5625) |
-| 5 | `Fear` | 보존 | A | 공포 | 영웅 3s 도주 | `_duration=3` | 지속시간 누적 |
-| 6 | `Bleed` | 보존 | A | 출혈 | 영웅 이동 시 1s당 HP -2%, 10s | `_ratio=0.02 _duration=10` | 지속시간 누적 |
-| 7 | `Weaken` | 보존 | A | 무력화 | 영웅 공격력 ×0.5, 10s | `_factor=0.5 _duration=10` | 지속시간 누적 |
+> **현행 에셋 동기화 (2026-06-01)** — `_axis=2` (Debuff).
 
-> `Slow` 카드는 어떻게 됐나? — 디버프 축 액티브 풀이 4장(Fear/Bleed/Weaken/Slow)이라 1장 과잉이었다. Slow 는 **Swarm 축으로 이동 + 리뉴얼** (§3.4 #5 `TimeStop` 자리 보존, Slow 는 §3.4 #7 신규 슬롯으로 재해석). 자세한 처리는 §6 잠정 매핑 정합화 참조.
+| # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `PlagueSlowBoost` | 보존 (Plague Spawner 활성화) | P | 독성 플레이그 | 플레이그 둔화 효과 강화 | `_slowFactor=0.75` (BaseSlowFactor 0.8 × 0.75 = 0.6 곱연산, `PlagueSlowBoostEffect.cs` 주석) | `PlagueSlowBoostEffect` | 곱연산 누적 |
+| 2 | `SpawnPlagues` | 보존 (Plague Spawner 활성화) | P | 플레이그 둥지 | 플레이그 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPlaguesEffect` | 가산 누적 |
+| 3 | `HeroPoisonAura` | 보존 | P | 독 안개 | 영웅 발 밑 독 장판 (DPS 5) | `_dps=5 _duration=5 _radius=1.25` | `HeroPoisonAuraEffect` | 지속시간 누적: 잔여+5s |
+| 4 | `HeroAttackDown` | 보존 | P | 약화의 저주 | 영웅 공격력 영구 -25% | SO `data` 비어있음 — `HeroAttackDownAura(atk)` 생성자 기본 `factor=0.75f` (`HeroAttackDownAura.cs:23`) | `HeroAttackDownEffect` → `HeroAttackDownAura` | 곱연산 누적 (`OnAttached` 가 매번 `PowerScale *= 0.75`, 2픽=×0.5625) |
+| 5 | `Fear` | 보존 | A | 공포 | 영웅 3초간 도주 | `_duration=3` | `FearEffect` | 지속시간 누적 |
+| 6 | `Bleed` | 보존 | A | 출혈 | 영웅 이동 시 HP 감소 (10초) | `_ratio=0.02 _duration=10` | `BleedEffect` | 지속시간 누적 |
+| 7 | `Weaken` | 보존 | A | 무력화 | 영웅 데미지 -50% (10초) | `_factor=0.5 _duration=10` | `WeakenEffect` | 지속시간 누적 |
+
+> *`Slow` 카드 처리 (현행 확인)*: `Slow` 는 `_axis=3` (Swarm) 으로 이동 + 효과 리뉴얼 완료 (§3.4 #7). Debuff 축 액티브는 Fear/Bleed/Weaken 3장으로 정리됨. 자세한 처리는 §6 매핑 정합화 참조.
 
 ### 3.4 Swarm 축 (7장: P4 + A3)
 
-| # | ECardId | 분류 | T | 한글명 | 효과 요약 | 핵심 수치 | 중첩 정책 |
-|---|---|---|---|---|---|---|---|
-| 1 | `PhantomMoveSpeedBoost` | 보존 | P | 환령의 발걸음 | Phantom 종 이동속도 ×1.5 | `_speedMul=1.5` | 곱연산 누적 |
-| 2 | `SpawnPhantoms` | 보존 | P | 환령 떼 | Phantom 스포너 동시 출력 +1 | `+1` | 가산 누적 |
-| 3 | `SpawnWisps` | **축 이동** (Tank→Swarm) | P | 위스프 떼 | Wisp 스포너 동시 출력 +1 | `+1` | 가산 누적 |
-| 4 | `SpawnerHaste` *(신규 3)* | 신규 | P | 던전 박동 | **모든 스포너** 의 스폰 주기 ×0.8 (영구) | `_periodMul=0.8` | 곱연산 누적 (2픽=×0.64, 3픽=×0.512) |
-| 5 | `TimeStop` | 보존 | A | 시간 정지 | 영웅 5s 정지 | `_duration=5` | 지속시간 누적 |
-| 6 | `SwarmRush` *(Multiply 자리 리뉴얼)* | **Multiply 대체** | A | 스웜 러시 | **Phantom 즉시 6마리 영웅 근처 소환** (캡 18 truncate) | `_count=6` | 가산 누적 (2픽 = 12마리, 캡 truncate) |
-| 7 | `Slow` | **축 이동** (Debuff→Swarm) + 리뉴얼 | A | 던전의 점성 | 영웅 이동속도 ×0.5, 10s + **모든 몬스터 이동속도 ×1.3, 10s** | `_heroFactor=0.5 _monsterMul=1.3 _duration=10` | 지속시간 누적 |
+> **현행 에셋 동기화 (2026-06-01)** — `_axis=3` (Swarm). **이 축이 원안 대비 가장 크게 어긋난 축이다** (SwarmRush 미구현 / Multiply 잔존).
 
-> *Multiply 폐기 자리에 `SwarmRush` 신설*: 기존 Multiply 가 "광역 빌드에 절대적이라 다른 액티브 선택지를 압살"한 이유는 "최다 종 즉시 2배" 의 **빌드 누적 효과**에 있었다. 신 `SwarmRush` 는 **Phantom 고정 6마리 즉시 소환** 으로 *축이 정해진* 효과로 좁혀 압살을 막는다. Phantom Spawner 가 0개여도 액티브가 직접 SpawnMonster 호출로 작동하므로 활성화 보장.
+| # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `PhantomMoveSpeedBoost` | 보존 | P | 흡혈 팬텀 떼 | 모든 팬텀 이동속도 +50% | `_speedMul=1.5` | `PhantomMoveSpeedBoostEffect` | 곱연산 누적 |
+| 2 | `SpawnPhantoms` | 보존 | P | 팬텀 무리 | 팬텀 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPhantomsEffect` | 가산 누적 |
+| 3 | `SpawnWisps` | 축 이동 (Tank→Swarm) | P | 위스프 소환 | 위스프 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnWispsEffect` | 가산 누적 |
+| 4 | `SpawnerHaste` | 신규 | P | 던전의 박동 | 모든 스포너 주기 -20% (영구) | `_periodMul=0.8` | `SpawnerHasteEffect` → `ScaleAllSpawnerPeriods` | 곱연산 누적 (2픽=×0.64, 3픽=×0.512). **전역 3픽 캡(2026-06-01)으로 ×0.512 가 상한** — 4픽 이상 불가 (§9.6 / `card-3pick-cap.md`) |
+| 5 | `TimeStop` | 보존 | A | 시간 정지 | 영웅 5초 멈춤 | `_duration=5` | `TimeStopEffect` | 지속시간 누적 |
+| 6 | `Multiply` | (원안: SwarmRush 대체 예정 → 현행: 미구현, Multiply 잔존) | A | 빠른 번식 | 팬텀 스포너 주기 -40% (영구) | `_periodMul=0.6` | `FastBreedingEffect` → `ScaleSpawnerPeriodForType(Phantom)` | 곱연산 누적 (Phantom 스포너만, 종 매칭) |
+| 7 | `Slow` | 축 이동 (Debuff→Swarm) + 리뉴얼 | A | 던전의 점성 | 영웅 -50% 이동속도, 모든 몬스터 +30% 이동속도 (10초) | `_heroFactor=0.5 _monsterMul=1.3 _duration=10` | `SlowEffect` (몬스터 가속은 `EMonsterBuff.SwarmSpeed` 전체 종) | 지속시간 누적 |
 
-> *Slow 리뉴얼 근거*: 단순 "영웅 둔화" 만으로는 Debuff 축 액티브 4장(Fear/Bleed/Weaken/Slow) 안에서 차별이 없었다. Swarm 축으로 이동하며 **이중 효과(영웅 -50% + 몬스터 +30%)** 로 전환 → Swarm 의 "머릿수로 압도" 정체성에 맞춤. 영웅이 느려진 동안 몬스터가 빨라져 둘러싸는 그림.
+> **[Multiply / SwarmRush 불일치 — 2026-06-01 동기화 확인]**: 원안 §3.4 #6 은 `Multiply` 를 폐기하고 `SwarmRush`(Phantom 6마리 즉시 소환, `_count=6`) 를 신설하기로 했으나, **현행 에셋에는 SwarmRush 가 존재하지 않는다.** `Multiply.asset` ("빠른 번식", `FastBreedingEffect`, 팬텀 스포너 주기 ×0.6) 가 그대로 잔존하며 `ECardId.Multiply` (값 20) enum 도 유지·CardPool 에 등록됨. 원안의 "광역 압살 폐기 → 축 고정 소환으로 좁힘" 의도(아래 보존)는 **미실현 상태**. SwarmRush 신설을 진행하려면 별도 구현 사이클이 필요하며, 그때 본 표 #6 을 SwarmRush 로 재작성한다.
 
-> *SpawnWisps 축 이동 근거*: Wisp 는 "느리고 작고 떼로 몰리는" 종(컨셉 §11.3). Tank 축의 "묶어 둔다"보다 Swarm 축의 "머릿수" 정체성에 더 가깝다. Tank 축의 Wisp 정체성은 `WispHpBoost`(HP 강화 = 묶어 두기)가 담당, Swarm 축은 `SpawnWisps`(수량 = 머릿수)가 담당하는 분담으로 정리.
+> *원안 의도 보존 — Multiply 폐기 자리 SwarmRush 신설*: (원안) 기존 Multiply 가 "광역 빌드에 절대적이라 다른 액티브 선택지를 압살"한 이유는 "최다 종 즉시 2배"의 빌드 누적 효과에 있었다. 신 SwarmRush 는 Phantom 고정 6마리 즉시 소환으로 축이 정해진 효과로 좁혀 압살을 막는다. **(현행)** 미구현 — Multiply 가 팬텀 스포너 주기 ×0.6 으로 잔존하므로 "광역 압살" 우려도 일부 잔존 (단 효과 표면이 즉시 2배 → 주기 단축으로 약화됨).
 
-### 3.5 라인업 통계 (균등 분배 검증)
+> *Slow 리뉴얼 근거 (현행 적용 완료)*: 단순 "영웅 둔화" 만으로는 Debuff 축 안에서 차별이 없었다. Swarm 축으로 이동하며 이중 효과(영웅 ×0.5 + 몬스터 ×1.3)로 전환. 현행 `SlowEffect` 가 영웅 둔화 + `EMonsterBuff.SwarmSpeed`(전체 종 ×1.3 시한) 로 구현됨.
 
-| 축 | 패시브 | 액티브 | 합 | 보존 | 리뉴얼 | 축 이동 | 신규 |
-|---|---|---|---|---|---|---|---|
-| Tank | 4 | 3 | 7 | 4 (WispHpBoost · SpawnWraith · ReplaceWispsToWraith · IronWill) | 1 (Berserk→GuardianRage) | 1 (WraithDamageBoost: Dps→Tank, 효과도 HP로 리뉴얼) | 1 (WallOfWisps) |
-| Dps | 4 | 3 | 7 | 5 (ReaperAtkSpeed · HexRangeBoost · SpawnReapers · ReplaceReapersToHex · Frenzy) | 0 | 1 (BloodThirst: Swarm→Dps) | 1 (MarkOfDeath) |
-| Debuff | 4 | 3 | 7 | 7 (PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown · Fear · Bleed · Weaken) | 0 | 0 | 0 |
-| Swarm | 4 | 3 | 7 | 3 (PhantomMoveSpeedBoost · SpawnPhantoms · TimeStop) | 1 (Multiply→SwarmRush) | 2 (SpawnWisps: Tank→Swarm, Slow: Debuff→Swarm 리뉴얼) | 1 (SpawnerHaste) |
-| **합계** | **16** | **12** | **28** | **19** | **2** | **4** | **3** |
+> *SpawnWisps 축 이동 근거 (현행 적용 완료)*: Wisp 는 "느리고 작고 떼로 몰리는" 종(컨셉 §11.3). Swarm 축의 "머릿수" 정체성. 현행 `_axis=3` 적용 완료.
 
-> 검산: 16 = 4×4 ✓ / 12 = 4×3 ✓ / 28 = 16 + 12 ✓ / 보존 19 + 리뉴얼 2 + 축 이동 4 + 신규 3 = 28 ✓.
+### 3.5 라인업 통계 (균등 분배 검증) — 2026-06-01 현행 에셋 기준
+
+> 현행 에셋 기준 재산정. 원안과 다른 점: ① `WallOfWisps` 는 원안에서 "신규(소환 카드)" 였으나 현행은 ToughHide 로 **리뉴얼**(기존 자리 효과 교체)된 카드 — 신규로 세지 않음. ② `Slow` 는 축이동+리뉴얼 둘 다 해당하나 카운트는 카드당 1분류 원칙으로 **축이동** 에 귀속. ③ 현행 신규는 `SpawnerHaste`·`MarkOfDeath` **2장**(원안의 SwarmRush 미구현). ④ Swarm A 의 `Multiply` 는 원안 폐기 예정이나 **잔존**(별도 분류 "잔존").
+
+| 축 | 패시브 | 액티브 | 합 | 보존 | 리뉴얼 (효과 교체) | 축 이동 | 신규 | 잔존 |
+|---|---|---|---|---|---|---|---|---|
+| Tank | 4 | 3 | 7 | 3 (WispHpBoost · SpawnWraith · IronWill) | 4 (WraithDamageBoost 데미지→HP · ReplaceWispsToWraith 교체→Power · WallOfWisps 소환→ToughHide · Berserk→GuardianRage) | 0 | 0 | 0 |
+| Dps | 4 | 3 | 7 | 4 (ReaperAtkSpeed · HexRangeBoost · SpawnReapers · Frenzy) | 1 (ReplaceReapersToHex 교체→Power) | 1 (BloodThirst: Swarm→Dps) | 1 (MarkOfDeath) | 0 |
+| Debuff | 4 | 3 | 7 | 7 (PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown · Fear · Bleed · Weaken) | 0 | 0 | 0 | 0 |
+| Swarm | 4 | 3 | 7 | 3 (PhantomMoveSpeedBoost · SpawnPhantoms · TimeStop) | 1 (Slow: Debuff→Swarm 이동+리뉴얼) | 1 (SpawnWisps: Tank→Swarm) | 1 (SpawnerHaste) | 1 (Multiply 잔존) |
+
+> **검산 (카드당 1분류 기준)**: 16 = 4×4 ✓ / 12 = 4×3 ✓ / 28 = 16 + 12 ✓.
+> 분류 합산: 보존 17 (Tank 3 + Dps 4 + Debuff 7 + Swarm 3) + 리뉴얼 6 (Tank 4 + Dps 1 + Swarm 1) + 축이동 2 (Dps 1 + Swarm 1) + 신규 2 (Dps 1 + Swarm 1) + 잔존 1 (Swarm Multiply) = 17 + 6 + 2 + 2 + 1 = **28** ✓. 가로행 검산: Tank 3+4=7, Dps 4+1+1+1=7, Debuff 7=7, Swarm 3+1+1+1=7 — 모두 7 ✓.
+>
+> 분류 정의 (현행): **보존** = SO·효과 그대로. **리뉴얼** = SO 파일·enum 자리는 유지하되 `_effect` 클래스/효과를 교체. **축이동** = `_axis` 필드만 변경. **신규** = SO·enum 신규 생성. **잔존** = 원안 폐기 대상이나 아직 에셋·enum 에 남아있음. (Tank 의 WraithDamageBoost 는 데미지→HP 효과 교체 + Dps→Tank 축이동을 둘 다 했으나 리뉴얼로 귀속.)
 
 ---
 
@@ -154,6 +189,8 @@
 - 적용 표면: `IBattleContext.RegisterMonsterTypeBuff` (영구 글로벌 버프) 사용. Layer 2 곱연산 시스템과 동일 표면 = 같은 종 강화 카드와 곱연산 누적.
 
 ### 4.2 Tier 효과 마스터 표
+
+> **[구현 검증 필요 — 2026-06-01]**: §4 Layer 1 시너지 Tier 표는 에셋(.asset) 이 아니라 `BuildSynergyService` + `Assets/_Lair/Scripts/Card/Synergy/*.cs` 코드 영역이다. 본 동기화는 에셋 데이터로 검증 불가하므로 **아래 Tier 효과 수치를 변경하지 않는다.** Synergy 클래스 일부(예: `SwarmSynergyTier2`)는 코드에 실재 확인되나, 12개 Tier 전체의 효과량·발화 임계가 코드와 일치하는지는 qa-simulator 또는 code-reviewer 의 별도 검증 대상. 참조하는 카드/종 이름만 현행 정합.
 
 | 축 | Tier1 (3장) | Tier2 (5장) | Tier3 (7장) |
 |---|---|---|---|
@@ -247,24 +284,24 @@
 | `SpawnWisps` | Tank P → **Swarm P 이동** | Wisp 는 "느리고 작고 떼" 종성격 — 수량은 Swarm 정체성. Tank 의 Wisp 정체성은 `WispHpBoost` 가 담당 |
 | `BloodThirst` | Swarm A → **Dps A 이동** | "처치 시 회복"은 DPS 축이 영웅 HP 깎으며 자기 유지 — Dps 정체성과 일치 |
 | `Slow` | Debuff A → **Swarm A 이동 + 리뉴얼** (이중 효과: 영웅 둔화 + 몬스터 가속) | Debuff 액티브 4장 압축, Swarm 액티브 채움. "영웅 느려지고 몬스터 빨라짐" = 스웜 정체성 |
-| `Berserk` | spec 자살 구조 폐기 → **Tank A 로 리뉴얼** (`GuardianRageEffect`) | 자살 구조 해소, Tank 의 보호 액티브로 재해석 |
-| `Multiply` | spec 삭제 → **Swarm A 자리에 `SwarmRush` 신설** | 광역 압살 폐기, *축이 정해진* Phantom 6마리 즉시 소환으로 좁힘 |
-| **신규 1: `WallOfWisps`** | — → Tank A | Tank "묶어두기" 액티브 정체성. 영웅 주변 4방위 Wisp 4마리 즉시 |
-| **신규 2: `MarkOfDeath`** | — → Dps A | "다음 5초간 영웅이 받는 데미지 ×1.5" — 깡딜 보조, 짧고 강함 |
-| **신규 3: `SpawnerHaste`** | — → Swarm P | "모든 스포너 주기 ×0.8 영구" — Swarm 의 "수적 압박" 정체성 |
+| `Berserk` | spec 자살 구조 폐기 → **Tank A 로 리뉴얼** (`GuardianRageEffect`) | 자살 구조 해소, Tank 의 보호 액티브로 재해석. **현행 적용 완료** |
+| `Multiply` | (원안) spec 삭제 → Swarm A 자리에 `SwarmRush` 신설 | **현행: SwarmRush 미구현, Multiply("빠른 번식", `FastBreedingEffect`) 잔존.** 광역 압살 폐기 의도 미실현 |
+| `WallOfWisps` ("단단한 살갗") | — → Tank A | (원안) 영웅 주변 4방위 Wisp 4마리 즉시 소환. **현행: ToughHideEffect 로 리뉴얼** — 위스프·레이스 받피 -25% 영구. 소환 카드 아님 |
+| **신규: `MarkOfDeath`** | — → Dps A | "다음 5초간 영웅이 받는 데미지 +50%" — 깡딜 보조, 짧고 강함. **현행 적용 완료** |
+| **신규: `SpawnerHaste`** | — → Swarm P | "모든 스포너 주기 -20% 영구" — Swarm 의 "수적 압박" 정체성. **현행 적용 완료** (3픽 상한은 전역 3픽 캡(2026-06-01)으로 포섭, ×0.512 상한) |
 
-### 6.3 정합화 후 카운트 검증
+### 6.3 정합화 후 카운트 검증 — 2026-06-01 현행 에셋 기준
 
-각 축 7장(P4 + A3):
+각 축 7장(P4 + A3) — 현행 `_axis` · 효과 클래스 기준:
 
 | 축 | Passive 4장 | Active 3장 |
 |---|---|---|
-| Tank | WispHpBoost, WraithDamageBoost(HP리뉴얼), SpawnWraith, ReplaceWispsToWraith | IronWill, WallOfWisps(신규), Berserk(GuardianRage 리뉴얼) |
-| Dps | ReaperAtkSpeed, HexRangeBoost, SpawnReapers, ReplaceReapersToHex | Frenzy, BloodThirst, MarkOfDeath(신규) |
+| Tank | WispHpBoost, WraithDamageBoost(HP리뉴얼), SpawnWraith, ReplaceWispsToWraith(Power강화) | IronWill, WallOfWisps(ToughHide 리뉴얼), Berserk(GuardianRage 리뉴얼) |
+| Dps | ReaperAtkSpeed, HexRangeBoost, SpawnReapers, ReplaceReapersToHex(Power강화) | Frenzy, BloodThirst, MarkOfDeath(신규) |
 | Debuff | PlagueSlowBoost, SpawnPlagues, HeroPoisonAura, HeroAttackDown | Fear, Bleed, Weaken |
-| Swarm | PhantomMoveSpeedBoost, SpawnPhantoms, SpawnWisps, SpawnerHaste(신규) | TimeStop, SwarmRush(Multiply대체), Slow(리뉴얼) |
+| Swarm | PhantomMoveSpeedBoost, SpawnPhantoms, SpawnWisps, SpawnerHaste(신규) | TimeStop, Multiply(잔존, SwarmRush 미구현), Slow(리뉴얼) |
 
-→ 4 × (P4 + A3) = 28 ✓
+→ 4 × (P4 + A3) = 28 ✓ (현행 에셋 28장 모두 확인: 패시브 16 + 액티브 12).
 
 ---
 
@@ -272,24 +309,30 @@
 
 ### 7.1 정책 종류
 
-| 정책 | 의미 | 적용 카드 |
+| 정책 | 의미 | 적용 카드 (현행) |
 |---|---|---|
-| **곱연산 누적** | K픽 = 기준값^K | 종 글로벌 스탯 강화 (HP·Power·Cooldown·Range·MoveSpeed·SlowFactor 배율 카드) |
-| **가산 누적** | K픽 = 기준값 ×K | Spawner 동시 출력 +N 카드, 즉시 소환 마릿수 N |
-| **지속시간 누적** | 효과 진행 중 재픽 시 잔여+duration | 액티브 디버프·버프·오라 (효과량은 그대로) |
-| **멱등** | 같은 결과로 수렴, 2픽 이상 효과 없음 | Spawner 출력 종 변경 카드 (이미 그 종이면 no-op) |
-| **곱연산 누적 (영구)** | 영구 효과 배율 곱연산 | HeroAttackDown (영구 ×0.75 → 2픽 ×0.5625) |
+| **곱연산 누적** | K픽 = 기준값^K | 종 글로벌 스탯 강화 (HP·Power·Cooldown·Range·MoveSpeed·SlowFactor 배율 카드). 현행 Power 강화 = ReplaceWispsToWraith·ReplaceReapersToHex (RegisterMonsterTypeBuff dict 곱연산) |
+| **가산 누적** | K픽 = 기준값 ×K | Spawner 동시 출력 +N 카드 (SpawnWraith·SpawnReapers·SpawnPlagues·SpawnPhantoms·SpawnWisps) |
+| **지속시간 누적** | 효과 진행 중 재픽 시 잔여+duration | 영웅 대상 액티브 디버프·오라 (Fear·Bleed·Weaken·Slow·MarkOfDeath·HeroPoisonAura) |
+| **버프 dedup (시한/영구)** | 같은 `EMonsterBuff` 는 인스턴스 1개만 — 시한은 Remain 연장, 영구는 유지. 효과량 1배 고정 | `MonsterBuffService` 위임 (IronWill·Frenzy·GuardianRage·ToughHide·Slow 의 SwarmSpeed). `AddBuff` dedup |
+| **곱연산 누적 (영구)** | 영구 효과 배율 곱연산 | HeroAttackDown (영구 ×0.75 → 2픽 ×0.5625, `HeroAttackDownAura.OnAttached` 가 매번 곱) |
+| **즉시(소환/주기) 영구** | 픽마다 1회 적용 | FastBreeding(Multiply, 팬텀 주기 ×0.6 곱연산), SpawnerHaste(모든 주기 ×0.8 곱연산) |
 
-### 7.2 카드별 명시 (28장 전체)
+> **전역 3픽 캡 (2026-06-01)** — 모든 카드는 같은 카드 3픽 시 후보에서 제외되어 4픽 이상 발생 불가. 따라서 위 곱연산/가산 누적표의 **3픽 값이 모든 카드의 실효 상한**이다 (곱연산 = ×value³, 가산 = +3). 단일 카드 반복 픽으로는 Layer 1 축 카운트를 최대 3 만 올려 Tier1(3장) 까지만 단독 도달하고, Tier2(5장)·Tier3(7장)는 서로 다른 같은-축 카드 조합으로만 열린다. 상세 밸런스·천장 수치표·페이싱 검산은 `docs/design/card-3pick-cap.md` 가 단일 진실(SoT).
 
-위 §3 표의 "중첩 정책" 컬럼 참조. 본 절은 **액티브 카드 중첩** (game-designer 결정 요청 사항) 만 별도 정리:
+> **[원안 "멱등" 정책 폐기 — 2026-06-01]**: 원안 §7.1 의 "멱등 (Spawner 출력 종 변경 카드)" 행은 현행에 **해당 카드가 없다.** ReplaceWispsToWraith·ReplaceReapersToHex 는 종 교체 카드가 아니라 Power 강화 카드(곱연산 누적)로 리뉴얼됐기 때문이다. 멱등 행 삭제.
 
-- **모든 액티브 카드의 기본 정책 = 지속시간 누적**. 효과량(데미지·둔화율·공속%)은 1픽 기준값 그대로, 효과 진행 중 재픽 시 잔여시간 + 카드의 base duration 만큼 연장.
-- **예외 1 — `SwarmRush` / `WallOfWisps`**: 즉시 소환 카드는 지속시간이 없음. **가산 누적** (2픽 = 2배 마릿수, 캡 18 적용 truncate).
-- **예외 2 — `Frenzy` / `IronWill` / `Berserk(GuardianRage)`**: 몬스터 글로벌 버프 시스템(`MonsterBuffService`) 위임 카드들. 시스템상 이미 *효과 진행 중 재호출 시 duration 갱신* 으로 동작 (기존 코드). 정책 그대로 = 지속시간 누적.
-- **예외 3 — `MarkOfDeath`**: 영웅이 받는 데미지 ×1.5 효과 — `HeroAura` 패턴. 지속시간 누적 (잔여+5s).
-- **예외 4 — `BloodThirst`**: 처치 시 회복 효과 — `BloodThirstService` 위임. 지속시간 누적 (잔여+30s).
-- **예외 5 — `TimeStop` / `Fear`**: 영웅 행동 제약 강력. 5s / 3s 가 *반복 부여 시 픽률 ↑* 우려 있지만 본 기획은 지속시간 누적 일관 정책 유지 → 중첩 시 영웅 8s 정지 가능. *밸런스 모니터링 항목* (QA 7차에서 픽률 추적).
+### 7.2 카드별 명시 (28장 전체) — 현행
+
+위 §3 표의 "중첩 정책" 컬럼 참조. 본 절은 **액티브 카드 중첩** 만 별도 정리:
+
+- **영웅 대상 액티브의 기본 정책 = 지속시간 누적**. 효과량은 1픽 기준값 그대로, 재픽 시 잔여시간 + base duration 연장. (Fear·Bleed·Weaken·Slow·MarkOfDeath·HeroPoisonAura.)
+- **`WallOfWisps`(ToughHide)**: (원안: 즉시 소환 가산 누적) → **현행: 즉시 소환 아님.** `EMonsterBuff.ToughHide` 영구 등록 + `AddBuff` dedup → 멱등에 가까움 (중복 픽해도 영구 buff 1개만).
+- **`Frenzy` / `IronWill` / `Berserk(GuardianRage)`**: 몬스터 글로벌 버프 (`MonsterBuffService`) 위임. `AddBuff` dedup — 시한은 Remain 을 더 큰 값으로 연장, 효과량 1배 고정.
+- **`MarkOfDeath`**: 영웅 받는 데미지 ×1.5 — `MarkOfDeathAura` (`HeroAura` 패턴). 지속시간 누적 (잔여+5s).
+- **`BloodThirst`**: 처치 시 회복 — `BloodThirstService` 위임 (`ActivateBloodThirst`). 지속시간 누적 (잔여+30s).
+- **`TimeStop` / `Fear`**: 영웅 행동 제약 강력. 5s / 3s. 지속시간 누적 일관 정책 → 중첩 시 영웅 8s 정지 가능. *밸런스 모니터링 항목*.
+- **`Multiply`(FastBreeding) / `SpawnerHaste`**: 스폰 주기 곱연산 영구. 픽마다 ×0.6 / ×0.8 누적. 전역 3픽 캡(2026-06-01)으로 둘 다 3픽 후 후보 제외 → 상한 Multiply ×0.6³=×0.216 / SpawnerHaste ×0.8³=×0.512 (`card-3pick-cap.md`).
 
 ### 7.3 곱연산 누적의 표면 (이미 구현됨, 확인용)
 
@@ -391,7 +434,9 @@
 - 예: `WispHpBoost` 를 3픽 → Layer 2: HP ×1.5³ = ×3.375 / Layer 1: Tank 카운트 +3 → Tier1 즉시 도달.
 - → *Tank 빌드의 빠른 진입 경로*가 열림. 디자인 의도와 일치.
 
-> **[트레이드오프 T2 — 사용자 승인 게이트 명시 항목]**: 같은 카드 K번 픽으로 Tier 즉시 발동을 *허용* 한다. 대안은 "고유 카드 K장만 카운트" 였으나, 본 기획은 **누적 픽 카운트** 를 채택. 효과: 단일 카드 반복 픽 빌드(예: WispHpBoost ×3) 가 1·2·3턴 안에 Tier1 시너지를 발화시켜 *빠른 빌드 정체성 확립* 을 만든다. 부작용: *카드 종류 다양성 ≠ 빌드 다양성* 이라는 가설을 수용해야 하며, 같은 카드를 7번 픽하면 Tier3 까지 즉시 도달한다. 사용자가 "고유 카드 K장 카운트" 로 정책을 뒤집고 싶으면 본 기획 §4.1 / §7 / §9.2 / §9.3 를 함께 갱신해야 한다.
+> **[트레이드오프 T2 — 사용자 승인 게이트 명시 항목]**: 같은 카드 K번 픽으로 Tier 즉시 발동을 *허용* 한다. 대안은 "고유 카드 K장만 카운트" 였으나, 본 기획은 **누적 픽 카운트** 를 채택. 효과: 단일 카드 반복 픽 빌드(예: WispHpBoost ×3) 가 1·2·3턴 안에 Tier1 시너지를 발화시켜 *빠른 빌드 정체성 확립* 을 만든다. 부작용: *카드 종류 다양성 ≠ 빌드 다양성* 이라는 가설을 수용해야 한다. 사용자가 "고유 카드 K장 카운트" 로 정책을 뒤집고 싶으면 본 기획 §4.1 / §7 / §9.2 / §9.3 를 함께 갱신해야 한다.
+>
+> **[2026-06-01 전역 3픽 캡 반영]**: 같은 카드는 최대 3픽(`CardDeck.Draw` 후보 제외)이므로 단일 카드는 Layer 1 축 카운트를 최대 3 만 올려 **Tier1(3장)까지만 단독 도달**한다. 위 "같은 카드 7번 픽 → Tier3" 시나리오는 캡 도입으로 **불가**. K번 픽 즉시 발동은 K ≤ 3 (Tier1) 한정으로 좁혀진다. Tier2·Tier3 는 서로 다른 같은-축 카드 조합으로만 열린다 (`docs/design/card-3pick-cap.md` §2.4).
 
 ### 9.3 9픽 한계 vs 임계
 
@@ -424,6 +469,7 @@
   - (b) 대안 — Swarm Tier2 의 ×0.85 → ×0.92 완화.
 - **사전 의도 = (a) 우선** 근거: (b) 는 빌드 정체성 효과량 자체를 낮춰 Tier2 의 "이 빌드의 색깔이 명확해진다" 의도를 약화 — 약한 빌드가 됨. (a) 는 단일 카드 중첩의 캡 도입으로 *균형* 만 회복하면서 Swarm Tier2 효과량은 유지.
 - 본 기획 시점에는 (a) 를 **선반영하지 않는다** — QA 7차 데이터로 *실제로* 캡 포화 5초가 발생할 때 발동.
+- **[현행 확인 2026-06-01 — 전역 3픽 캡으로 포섭됨]**: 사전 의도 (a) 의 SpawnerHaste *단독* 3픽 캡은 별도 구현하지 않는다. 대신 **전역 3픽 캡(2026-06-01, `docs/design/card-3pick-cap.md`)** 이 이를 포섭한다 — SpawnerHaste 도 3픽 후 `CardDeck.Draw` 후보에서 제외되어 4픽 이상 발생 불가하므로, 곱연산 상한이 **×0.8³ = ×0.512** 로 고정된다. 따라서 단독 effect-cap(사전 의도 (a))은 불요. 위 최악 시나리오의 "SpawnerHaste 3픽(×0.512) + Swarm Tier2(×0.85) = ×0.435 / Phantom 2.61s" 가 곧 전역 캡 하의 실효 천장이며, 4픽 이상 폭주는 캡으로 차단된다. (b) Swarm Tier2 완화는 미적용.
 
 ### 9.7 QA 6차 권고와 본 기획 결합
 
@@ -442,6 +488,8 @@
 ---
 
 ## 10. 구현 요청사항 (gameplay-programmer 용)
+
+> **구현 상태 (2026-06-01)**: 본 절의 표면·enum 은 이미 구현 완료 (CommonEnum.cs:92-94, BattleContext.cs:119-130). 이하는 명세 보존용.
 
 ### 10.1 신규 Enum 값 (Rule 02 §8, Rule 03 §2)
 
@@ -489,19 +537,25 @@ SynergyToast,   //# 시너지 임계 발화 토스트 UI (1.5s 자동 close)
 
 > 검토했던 대안 옵션 — (A) `GuardianRage` buff 신규 추가, (B) IronWill + Hp 강화 두 buff 합성으로 처리, (C) HeroAura 패턴 재활용. **결정: 옵션 (A)**. 근거: (B) 는 적용 종 한정(Wisp·Wraith)이 IronWill 의 *전체 종 적용* 의미와 충돌, (C) 는 영웅에 부착되는 Aura 가 몬스터 강화에 부적합. (A) 가 적용 종 한정 + 두 스탯(HP·받는데미지) 동시 적용 + 영구 vs 시한 분리가 가장 깔끔.
 
-**결정**: 옵션 (A) — `EMonsterBuff.GuardianRage` 신규 추가.
+**결정 (원안)**: 옵션 (A) — `EMonsterBuff.GuardianRage` 신규 추가.
 
-```
+**현행 `EMonsterBuff` (2026-06-01, `CommonEnum.cs` 확인)** — 원안 대비 `ToughHide`·`SwarmSpeed` 2개 더 추가됨:
+
+```csharp
 public enum EMonsterBuff
 {
-    Frenzy,        //# 공격속도 ↑ (전체 종)
-    IronWill,      //# 받는 데미지 ↓ (전체 종)
-    BerserkPower,  //# 데미지 ↑ (전체 종) — 본 기획에서 Berserk 카드 폐기로 미사용, enum 자리 보존
-    GuardianRage,  //# 신규 — Tank 한정 ({Wisp, Wraith}): 받는 데미지 ×0.5 + HP ×2.0
+    Frenzy,        //# 공격속도 ↑ (전체 종, CooldownScale ×0.67)
+    IronWill,      //# 받는 데미지 ↓ (전체 종, DamageTakenScale ×0.7)
+    BerserkPower,  //# 데미지 ↑ (전체 종, PowerScale ×3) — 호출 카드 없어 미사용, enum·case 잔존
+    GuardianRage,  //# Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.5 (2026-06-01 HP×2.0 제거)
+    SwarmSpeed,    //# 카드 리뉴얼 v0.6 — Slow 의 몬스터 가속 (전체 종, SpeedScale ×1.3 시한)
+    ToughHide,     //# 카드 리뉴얼 v0.6 — Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.75 영구 (단단한 살갗)
 }
 ```
 
-**GuardianRage 의 적용 종 = `{ EMonster.Wisp, EMonster.Wraith }` 고정. 이는 디자인 결정이지 시스템 결정이 아니다.** 본 기획 §1 "빌드 정체성" 원칙(Tank = Wisp·Wraith 강화 축) 의 직접 귀결이며, 이 필터가 빠지면 GuardianRage 가 *모든 몬스터* 의 HP×2 + 받는데미지×0.5 트럼프 카드가 되어 4축 분리가 깨진다.
+> 적용 종 한정 매핑은 `MonsterBuffService.TargetTypes` dict (구현 옵션 (ii) 채택됨): `GuardianRage` · `ToughHide` → `{Wisp, Wraith}`, 그 외(Frenzy·IronWill·BerserkPower·SwarmSpeed) → 전체 종.
+
+**GuardianRage 의 적용 종 = `{ EMonster.Wisp, EMonster.Wraith }` 고정. 이는 디자인 결정이지 시스템 결정이 아니다.** 본 기획 §1 "빌드 정체성" 원칙(Tank = Wisp·Wraith 강화 축) 의 직접 귀결이며, 이 필터가 빠지면 GuardianRage 가 *모든 몬스터* 의 받는데미지×0.5 트럼프 카드가 되어 4축 분리가 깨진다.
 
 `MonsterBuffService` 의 구현 옵션 (어느 쪽을 택해도 결과는 동일):
 - 옵션 (i): `MonsterBuffService.ApplyBuff` 시그니처에 `IReadOnlyList<EMonster> targetTypes` 인자 추가 — 호출자(GuardianRageEffect)가 명시.
@@ -536,6 +590,8 @@ void IncrementAllSpawnerOutputs(int delta);
 
 ### 10.3 신규 IBuildSynergyTier 구현체 12개
 
+> **[구현 검증 필요 — §4.2 우산 확장]**: 본 §10.3 은 §4 Layer 1 시너지 코드 영역(`Assets/_Lair/Scripts/Card/Synergy/*.cs`)이라 에셋으로 검증 불가 — 수치는 변경하지 않는다. 한 가지 알려진 표기 불일치: 아래 `DebuffSynergyTier2 — new HeroAttackDownEffect { _factor=0.85 }` 는 **존재하지 않는 필드 참조**다. 현행 `HeroAttackDownEffect.cs` 에는 `_factor` 필드가 없고, 배율은 `HeroAttackDownAura` 생성자(기본 0.75)에 있다. Tier2 의 0.85 약화 효과를 구현하려면 `HeroAttackDownAura(atk, 0.85f)` 경로를 써야 한다 — code-reviewer / gameplay-programmer 검증 대상.
+
 plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문은 §4.2 표 그대로:
 
 - `TankSynergyTier1` — ctx.RegisterMonsterTypeBuff(Wisp, Hp, 1.3) + (Wraith, Hp, 1.3)
@@ -555,14 +611,21 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 
 ### 10.4 카드 효과 클래스 — 신규/리뉴얼 5개
 
-| 신규/리뉴얼 | 클래스명 | 필드 | Apply 본문 |
-|---|---|---|---|
-| 신규 | `WallOfWispsEffect` | `_count=4`, `_radius=2.5f` | 영웅 transform 위치 기준 4방위(0°/90°/180°/270°) 에 `_radius` 거리에서 ctx.SpawnMonster(EMonster.Wisp, pos) 를 `_count` 회. 캡 검사는 SpawnMonster 내부 (기존 글로벌 캡 로직). |
-| 신규 | `MarkOfDeathEffect` | `_dmgTakenMul=1.5f`, `_duration=5f` | 영웅에 신규 `MarkOfDeathAura` (IHeroAura 패턴) 부착 — Mark 부착 중 영웅 받는 데미지 ×1.5. `ApplyHeroAura(new MarkOfDeathAura(hero, _dmgTakenMul), _duration)`. **본 표면은 디자인 결정**: §10.2 와 동일 격으로 단정 — `Hero` 의 받는 데미지 배율 적용 경로를 본 기획에서 신규 도입한다 (Mark 부착 중 영웅 받는 데미지 ×1.5 효과를 만들기 위한 *기획서 요청사항*). 구현 옵션 둘 중 어느 쪽이든 결과는 동일: (i) `IHealth.TakeDamage(int amount)` → `IHealth.TakeDamage(int amount, float scale = 1f)` 시그니처 확장, (ii) `Hero` 에 `DamageTakenScale` 필드 신규 도입 + `MarkOfDeathAura` 가 그 필드에 곱연산 누적/복원. 옵션 선택은 gameplay-programmer 의 구현 결정 영역, 단 **×1.5 배율과 Mark 부착 중 적용 보장은 디자인 결정**. |
-| 신규 | `SpawnerHasteEffect` | `_periodMul=0.8f` | ctx.ScaleAllSpawnerPeriods(_periodMul) |
-| Multiply→대체 | `SwarmRushEffect` | `_count=6` | 영웅 transform 위치에서 _count 회 ctx.SpawnMonster(EMonster.Phantom, pos). 캡 truncate 는 SpawnMonster 내부. |
-| Berserk→리뉴얼 | `GuardianRageEffect` | `_duration=15f` (배율 HP×2.0 / 받는데미지×0.5 + 적용 종 `{Wisp, Wraith}` 는 `MonsterBuffService` GuardianRage case 내 상수 — §3.1 SO 노출 정책과 동일 패턴, §10.1 적용 종 디자인 단정 참조) | `ctx.AddMonsterBuff(EMonsterBuff.GuardianRage, _duration)`. `MonsterBuffService` 의 GuardianRage case 가 적용 종 `{EMonster.Wisp, EMonster.Wraith}` 에만 HP×2.0 + 받는 데미지×0.5 영구 곱연산 적용. 적용 종 집합은 **디자인 단정** (§10.1), 구현 옵션 (i)/(ii) 는 시스템 결정. |
-| WraithDamageBoost 리뉴얼 | `WraithDamageBoostEffect` (이름 유지) | `_hpMul=1.5f` (구 `_mul=1.5` 데미지) | ctx.RegisterMonsterTypeBuff(EMonster.Wraith, EMonsterStatKind.Hp, _hpMul). 효과 본문이 Hp 로 바뀜. 필드 재명명은 안전(기존 _mul 도 1.5 였음, SO 재저장 필요). |
+> **현행 효과 클래스 (2026-06-01 확인)** — 원안 §10.4 의 `WallOfWispsEffect`(소환)·`SwarmRushEffect`(신설)는 **구현되지 않았다.** 현행 실제 클래스로 표를 교체한다.
+
+| 카드 (ECardId) | 현행 Effect 클래스 | 필드 (현행) | Apply 본문 (현행) | 원안과 차이 |
+|---|---|---|---|---|
+| `WallOfWisps` | `ToughHideEffect` | 없음 (`data {}`) | `ctx.AddMonsterBuff(EMonsterBuff.ToughHide, -1f)` → `{Wisp, Wraith}` 받피 ×0.75 영구 | 원안 `WallOfWispsEffect`(Wisp 4마리 소환) **미구현**. 영구 받피 감소로 대체됨 |
+| `MarkOfDeath` | `MarkOfDeathEffect` | `_dmgTakenMul=1.5f`, `_duration=5f` | `ctx.ApplyHeroAura(new MarkOfDeathAura(_dmgTakenMul), _duration)` — Mark 부착 중 영웅 `DamageTakenScale *= 1.5` (만료 시 `/= 1.5` 복원, `MarkOfDeathAura.cs`) | 원안과 일치 (옵션 (ii): `Health.DamageTakenScale` 필드 사용) |
+| `SpawnerHaste` | `SpawnerHasteEffect` | `_periodMul=0.8f` | `ctx.ScaleAllSpawnerPeriods(_periodMul)` | 원안과 일치. 3픽 상한은 전역 3픽 캡(2026-06-01)으로 포섭 (×0.512 상한) |
+| `Berserk` | `GuardianRageEffect` | `_duration=15f` (배율은 `MonsterBuffService` GuardianRage case 상수) | `ctx.AddMonsterBuff(EMonsterBuff.GuardianRage, _duration)` → `{Wisp, Wraith}` 받피 ×0.5 만 (2026-06-01 HP×2.0 제거) | 원안 HP×2.0 제거 |
+| `WraithDamageBoost` | `WraithDamageBoostEffect` | `_hpMul=1.5f` | `ctx.RegisterMonsterTypeBuff(EMonster.Wraith, EMonsterStatKind.Hp, _hpMul)` | 원안과 일치 (데미지→HP 리뉴얼 완료) |
+| `ReplaceWispsToWraith` | `WispWraithPowerBoostEffect` | `_powerMul=1.3f` | `RegisterMonsterTypeBuff(Wisp, Power, 1.3)` + `(Wraith, Power, 1.3)` | (원안엔 없던 카드 — 종 교체→Power 강화 리뉴얼) |
+| `ReplaceReapersToHex` | `ReaperHexPowerBoostEffect` | `_powerMul=1.3f` | `RegisterMonsterTypeBuff(Reaper, Power, 1.3)` + `(Hex, Power, 1.3)` | (종 교체→Power 강화 리뉴얼) |
+| `Slow` | `SlowEffect` | `_heroFactor=0.5 _monsterMul=1.3 _duration=10` | 영웅 둔화 + `AddMonsterBuff(SwarmSpeed, 10)` (전체 종 ×1.3 시한) | 원안 이중 효과 의도 구현됨 |
+| `Multiply` (잔존) | `FastBreedingEffect` | `_periodMul=0.6f` | `ctx.ScaleSpawnerPeriodForType(EMonster.Phantom, _periodMul)` | **원안: 삭제 예정 → 현행: 잔존.** `MultiplyEffect.cs` 가 아니라 `FastBreedingEffect.cs` 로 존재 |
+
+> **[SwarmRush 미구현 — 구현 검증/후속 작업 필요]**: 원안의 `SwarmRushEffect`(Phantom 6마리 즉시 소환, `_count=6`)·`SwarmRush.asset` 은 현행에 없다. `MarkOfDeathEffect` 표면 디자인 단정(받는 데미지 배율 경로)은 현행 `Health.DamageTakenScale` + `MarkOfDeathAura` 로 구현 완료됐다.
 
 ### 10.5 카드 SO 마이그레이션 (28장)
 
@@ -595,16 +658,16 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 | TimeStop | 3 | Swarm |
 | Berserk | 0 | Tank (효과 클래스 GuardianRage 로 교체, displayName "수호자의 분노") |
 
-신규 3장 SO:
-- `Assets/_Lair/Art/Cards/Items/WallOfWisps.asset` — `_id=25, _axis=0, _displayName="위스프 장벽", _description="영웅 주변에 위스프 4마리 즉시 소환"`
-- `Assets/_Lair/Art/Cards/Items/MarkOfDeath.asset` — `_id=26, _axis=1, _displayName="죽음의 표식", _description="다음 5초간 영웅이 받는 데미지 +50%"`
-- `Assets/_Lair/Art/Cards/Items/SpawnerHaste.asset` — `_id=27, _axis=3, _displayName="던전의 박동", _description="모든 스포너 주기 -20% (영구)"`
+신규 SO (현행 2026-06-01 — `WallOfWisps.asset` 은 신규 생성됐으나 효과가 ToughHide 로 리뉴얼됨):
+- `Assets/_Lair/Art/Cards/Items/WallOfWisps.asset` — 현행 `_id=25, _axis=0, _displayName="단단한 살갗", _description="위스프·레이스 받는 데미지 -25% (영구)"`, `_effect: ToughHideEffect` (data 비어있음). (원안: displayName "위스프 장벽" / 소환 카드)
+- `Assets/_Lair/Art/Cards/Items/MarkOfDeath.asset` — `_id=26, _axis=1, _displayName="죽음의 표식", _description="다음 5초간 영웅이 받는 데미지 +50%"`, `_effect: MarkOfDeathEffect {_dmgTakenMul:1.5, _duration:5}`
+- `Assets/_Lair/Art/Cards/Items/SpawnerHaste.asset` — `_id=27, _axis=3, _displayName="던전의 박동", _description="모든 스포너 주기 -20% (영구)"`, `_effect: SpawnerHasteEffect {_periodMul:0.8}`
 
-**효과 SerializeReference**: 각 SO 의 `_effect` 필드는 위 §10.4 클래스의 인스턴스. 수치는 §3 표·§10.4 표 그대로.
+**효과 SerializeReference**: 각 SO 의 `_effect` 필드는 위 §10.4 표의 현행 클래스 인스턴스. 수치는 §3 표·§10.4 표 그대로.
 
-**삭제 (Multiply)**:
-- `Assets/_Lair/Art/Cards/Items/Multiply.asset` (+ `.meta`)
-- `Assets/_Lair/Scripts/Card/Effects/MultiplyEffect.cs` (+ `.meta`)
+**Multiply (원안: 삭제 → 현행: 잔존)**:
+- `Assets/_Lair/Art/Cards/Items/Multiply.asset` — **현행 잔존** (`_id=20, _axis=3, _displayName="빠른 번식", _description="팬텀 스포너 주기 -40% (영구)"`, `_effect: FastBreedingEffect {_periodMul:0.6}`).
+- 효과 클래스도 `MultiplyEffect.cs` 가 아니라 `Assets/_Lair/Scripts/Card/Effects/FastBreedingEffect.cs` 로 존재. SwarmRush 신설 시 이 SO·클래스를 교체/삭제하는 후속 작업 필요.
 
 ### 10.6 SpawnerConfig (씬 Spawner 인스펙터 값 수정)
 
@@ -618,35 +681,32 @@ _initialDelay: 1.5     # 보존
 
 > Spawner #4 의 식별은 GameObject 이름 또는 Transform 위치 (-14.0, ?, 0.0) 으로. 정확 GameObject 경로는 gameplay-programmer 가 씬 검수 시 확정.
 
-### 10.7 CardPool 갱신
+### 10.7 CardPool 갱신 — 2026-06-01 현행 에셋 기준
 
-- `Assets/_Lair/Art/Cards/CardPool_Passive.asset` — 카드 ref 15 → **16** (신규 `SpawnerHaste` 추가, 그 외 보존+축이동만이라 ref 카운트는 +1).
-- `Assets/_Lair/Art/Cards/CardPool_Active.asset` — 카드 ref 10 → **12** (Multiply ref 제거, 신규 `WallOfWisps`·`MarkOfDeath`·`SwarmRush` 3개 추가 → 순 +2).
+- `Assets/_Lair/Art/Cards/CardPool_Passive.asset` — 카드 ref **16**.
+- `Assets/_Lair/Art/Cards/CardPool_Active.asset` — 카드 ref **12**.
 
-→ **검산 (§3.5 라인업 통계 표 기준 — SO 파일 카운트 기준 합산)**:
+> 요청자 검증: CardPool 패시브 16장 + 액티브 12장 모두 풀 등록 확인, 축 분배 P4+A3 균등 유지.
+
+→ **검산 (현행 SO 파일 카운트 기준)**:
 >
-> **패시브 풀 16장**:
-> - 보존 (SO 그대로) = 13장: WispHpBoost · SpawnWraith · ReplaceWispsToWraith · ReaperAtkSpeed · HexRangeBoost · SpawnReapers · ReplaceReapersToHex · PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown · PhantomMoveSpeedBoost · SpawnPhantoms
-> - 축이동 (SO 보존, `_axis` 필드만 변경) = 2장: WraithDamageBoost (Dps→Tank, 효과 필드도 리뉴얼) · SpawnWisps (Tank→Swarm)
-> - 신규 (SO 신규 생성) = 1장: SpawnerHaste
-> - 합계 = 13 + 2 + 1 = **16** ✓
+> **패시브 풀 16장** (모두 SO 파일 실재):
+> - WispHpBoost · WraithDamageBoost · SpawnWraith · ReplaceWispsToWraith (Tank 4)
+> - ReaperAtkSpeed · HexRangeBoost · SpawnReapers · ReplaceReapersToHex (Dps 4)
+> - PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown (Debuff 4)
+> - PhantomMoveSpeedBoost · SpawnPhantoms · SpawnWisps · SpawnerHaste (Swarm 4)
+> - 합계 = 16 ✓ (Tank/Dps/Debuff/Swarm 각 4장 균등)
 >
-> **액티브 풀 12장**:
-> - 보존 (SO 그대로) = 6장: IronWill · Frenzy · Fear · Bleed · Weaken · TimeStop
-> - 축이동 (SO 보존, `_axis` 필드만 변경) = 2장: BloodThirst (Swarm→Dps) · Slow (Debuff→Swarm, 효과도 리뉴얼하므로 `_effect` 필드도 변경)
-> - 리뉴얼 (SO 보존, `_effect` 필드 클래스 교체) = 1장: Berserk (효과 BerserkPowerEffect → GuardianRageEffect, displayName "수호자의 분노")
-> - 신규 (SO 신규 생성) = 3장: WallOfWisps · MarkOfDeath · SwarmRush (SwarmRush 는 Multiply.asset 자리 교체 — Multiply.asset 은 §10.5 에서 삭제하므로 SwarmRush 는 신규 카운트)
-> - 합계 = 6 + 2 + 1 + 3 = **12** ✓
+> **액티브 풀 12장** (모두 SO 파일 실재):
+> - IronWill · WallOfWisps · Berserk (Tank 3)
+> - Frenzy · BloodThirst · MarkOfDeath (Dps 3)
+> - Fear · Bleed · Weaken (Debuff 3)
+> - TimeStop · Multiply · Slow (Swarm 3)
+> - 합계 = 12 ✓ (각 축 3장 균등)
 >
-> **풀 ref 변경 검산**:
-> - Passive ref: 15 + 1 (SpawnerHaste 추가) = 16 ✓
-> - Active ref: 10 − 1 (Multiply 제거) + 3 (WallOfWisps · MarkOfDeath · SwarmRush 추가) = 12 ✓
+> **28장 총합**: 패시브 16 + 액티브 12 = 28 ✓.
 >
-> **28장 총합 검산**:
-> - 패시브 16 + 액티브 12 = 28 ✓
-> - SO 파일 카운트 기준 총합: 보존 19 (= 패시브 보존 13 + 액티브 보존 6) + 축이동 4 (= 패시브 축이동 2 + 액티브 축이동 2) + 리뉴얼 1 (= 액티브 리뉴얼 1, Berserk→GuardianRage) + 신규 4 (= 패시브 신규 1 + 액티브 신규 3) = 19 + 4 + 1 + 4 = 28 ✓
->
-> > **§3.5 통계 표와의 관계**: §3.5 표는 *카드 기준* (28장 라인업의 변화 분류 — 보존 19 / 리뉴얼 2 / 축이동 4 / 신규 3 = 28). 본 §10.7 검산은 *SO 파일 기준* (보존 19 / 축이동 4 / 리뉴얼 1 / 신규 4 = 28). 보존 19 는 양쪽 표에서 일치. 리뉴얼/신규 카운트 차이는 SwarmRush 의 분류만 다름 — §3.5 는 *Multiply 자리 리뉴얼* (리뉴얼 2 = Berserk + SwarmRush), §10.7 은 *SO 신규 생성* (신규 4 = WallOfWisps + MarkOfDeath + SpawnerHaste + SwarmRush). 두 표 모두 합계 28 일치.
+> **원안 검산과의 차이**: 원안 §10.7 은 액티브 12장에 `SwarmRush`(신규)를 넣고 `Multiply` 를 삭제한다고 가정했으나, **현행은 SwarmRush 가 없고 Multiply(빠른 번식)가 Swarm 액티브 3장 중 하나로 잔존**한다. Tank 액티브의 `WallOfWisps` 도 원안의 소환 카드가 아니라 ToughHide 리뉴얼 카드다. 28장 총합·축 균등(각 P4+A3)은 원안·현행 모두 동일하게 성립.
 
 ### 10.8 LairCardPrefabBuilder 4축 색 매핑
 
@@ -666,10 +726,12 @@ private static readonly Dictionary<EBuildAxis, Color> AxisBorderColor = new Dict
 
 ### 10.9 cards.json / card_pools.json
 
-- `cards.json` 항목 25→28, 필드 `category` 제거, 필드 `axis` 추가 ("Tank|Dps|Debuff|Swarm"). 신규 3장 항목 추가, Multiply 항목 삭제.
+> **현행 (2026-06-01)**: 카드 SO 의 단일 진실은 `.asset` 파일(`_axis` 필드)이다. 별도 `cards.json` / `card_pools.json` 미러가 운용된다면 다음을 맞춘다 — 단 현행은 SwarmRush 미구현·Multiply 잔존이므로 원안 문구를 정정한다.
+
+- `cards.json` 항목 **28**, 필드 `axis` ("Tank|Dps|Debuff|Swarm"). **Multiply 항목은 잔존**(삭제 아님), SwarmRush 항목 없음. 신규 2장(MarkOfDeath/SpawnerHaste) + 리뉴얼된 WallOfWisps(ToughHide) 포함.
 - `card_pools.json` Passive 16개 / Active 12개.
 
-수치는 §3 표·§10.4 표 그대로.
+수치는 §3 표·§10.4 표(현행) 그대로.
 
 ---
 
@@ -685,9 +747,9 @@ private static readonly Dictionary<EBuildAxis, Color> AxisBorderColor = new Dict
 - **§11.4** — 카드 테두리 색 매핑:
   - 기존 7색 (강화 초록 / 추가 파랑 / 교체 주황 / 환경 보라 / 저주 빨강 / 버프 노랑 / 와일드 무지개) → **4색** (Tank 초록 / Dps 빨강 / Debuff 보라 / Swarm 검정)
   - 헥스 코드 §2 표 그대로
-- **변경 이력 v0.6** 추가:
+- **변경 이력 v0.6** 추가 (현행 사실 반영):
   ```
-  - v0.6 (2026-05-31): 카드 전체 리뉴얼. 25장 → 28장. 카테고리 7종 → 4축(Tank/Dps/Debuff/Swarm). 2-Layer 시너지(빌드 카운트 임계 3/5/7 + 카드 중첩) 도입. Plague Spawner 1개 추가(Spawner #4: Wisp→Plague). Multiply 카드 삭제, Berserk 효과 GuardianRage 로 리뉴얼, 신규 3장(WallOfWisps/MarkOfDeath/SpawnerHaste) 추가. 정합: spec docs/superpowers/specs/2026-05-31-card-renewal-design.md, plan docs/superpowers/plans/2026-05-31-card-renewal.md, 기획서 docs/design/card-renewal.md.
+  - v0.6 (2026-05-31 ~ 2026-06-01): 카드 전체 리뉴얼. 25장 → 28장. 카테고리 7종 → 4축(Tank/Dps/Debuff/Swarm). 2-Layer 시너지(빌드 카운트 임계 3/5/7 + 카드 중첩) 도입. Plague Spawner 1개 추가(Spawner #4: Wisp→Plague). Berserk→GuardianRage(받피×0.5, 2026-06-01 HP×2.0 제거로 SO description 정합), WallOfWisps→ToughHide(받피-25% 영구), Replace 2종→Power +30% 강화로 리뉴얼. 신규 2장(MarkOfDeath/SpawnerHaste). 단 SwarmRush 미구현(Multiply "빠른 번식" 잔존). 전역 3픽 캡(2026-06-01) 도입 — 모든 카드 3픽 후 후보 제외, SpawnerHaste 단독 3픽 캡은 이로 포섭(×0.512 상한). 정합: spec docs/superpowers/specs/2026-05-31-card-renewal-design.md, plan docs/superpowers/plans/2026-05-31-card-renewal.md, 기획서 docs/design/card-renewal.md(2026-06-01 에셋 동기화) + docs/design/card-3pick-cap.md(전역 3픽 캡).
   ```
 
 ### 11.2 `continuous-spawn-round.md`
@@ -699,7 +761,9 @@ private static readonly Dictionary<EBuildAxis, Color> AxisBorderColor = new Dict
 
 ---
 
-## 12. Self-Review
+## 12. Self-Review (v0.6 원안 점검 기록 — 2026-05-31 박제)
+
+> **[2026-06-01 동기화 주의]**: 본 §12 는 v0.6 **원안 작성 시점(2026-05-31)** 의 Self-Review 기록을 그대로 박제한 것이다. 그 안의 일관성 단언(예: "신규 3 = WallOfWisps/MarkOfDeath/SpawnerHaste", "SwarmRushEffect 정의 일치", "Multiply 삭제" 등)은 **현행 에셋과 다르다** — 그 뒤 데일리 루틴이 WallOfWisps 를 ToughHide 로 리뉴얼하고, SwarmRush 를 구현하지 않고, Multiply 를 잔존시켰기 때문이다. 현행 사실은 **문서 상단 "변경 이력 — 2026-06-01 에셋 동기화" 블록 + §3~§10 의 (현행) 표기가 우선**한다. §12 는 원안의 의사결정 이력으로만 참조하라 (히스토리 보존 목적).
 
 ### 12.1 design-reviewer 리뷰 반영 결과 (v0.6.1 → v0.6.2, 2026-05-31)
 

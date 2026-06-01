@@ -11,6 +11,8 @@ namespace Lair.UI
     {
         public IReadOnlyList<CardData> Choices;
         public Action<CardData> OnPicked;
+        //# 3픽 캡 배지 — 카드별 현재 픽 누적수 공급 (null 이면 0 처리).
+        public Func<CardData, int> PickCountOf;
     }
 
     //# CHMUI 로 띄워지는 카드 선택 팝업. 3장 표시 → 1장 선택 → OnPicked → Close.
@@ -30,12 +32,13 @@ namespace Lair.UI
                 {
                     CardData card = sa.Choices[i];
                     _slots[i].gameObject.SetActive(true);
+                    int pickCount = sa.PickCountOf != null ? sa.PickCountOf(card) : 0;
                     _slots[i].Bind(card, () =>
                     {
                         sa.OnPicked?.Invoke(card);
                         //# reuse=false — 매번 새 인스턴스로 띄워 CHButton listener 누적 방지
                         Close(reuse: false);
-                    });
+                    }, pickCount);
                 }
                 else
                 {

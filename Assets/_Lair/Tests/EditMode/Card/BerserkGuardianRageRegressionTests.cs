@@ -33,7 +33,7 @@ namespace Lair.Tests.Card
                 "Berserk.asset 의 _axis = Tank (4축 분배 §3.5: Tank 액티브 3장 자리)");
 
             Assert.IsInstanceOf<GuardianRageEffect>(berserkCard.Effect,
-                "Berserk.asset 의 효과 클래스 = GuardianRageEffect (v0.6 — Wisp/Wraith HP×2 + 받는데미지×0.5)");
+                "Berserk.asset 의 효과 클래스 = GuardianRageEffect (2026-06-01 — Wisp/Wraith 받는데미지×0.5, HP×2.0 제거)");
         }
 
         //# DisplayName 도 "수호자의 분노" 로 리뉴얼됨 — UI 표기 desync 방지.

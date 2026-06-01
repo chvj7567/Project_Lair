@@ -123,10 +123,10 @@ namespace Lair.Tests.Card
             CharacterRegistry.Monsters.Clear();
         }
 
-        //# [B1] GuardianRage Tick 시 적용 종 (Wisp/Wraith) 만 HP×2 + 받는 데미지 ×0.5.
+        //# [B1] GuardianRage Tick 시 적용 종 (Wisp/Wraith) 만 받는 데미지 ×0.5. HP 배율 불변 (2026-06-01 ×2.0 제거).
         //# 받는 데미지 ×0.5 확인 — DamageTakenScale 곱연산.
         [Test]
-        public void GuardianRage_Tick_Wisp만_HP_2배_받는데미지_0점5_적용()
+        public void GuardianRage_Tick_Wisp만_받는데미지_0점5_적용_HP_불변()
         {
             //# 1) Wisp Health 준비 (base max 100, current 100).
             GameObject wisp = new GameObject("wisp");
@@ -146,19 +146,19 @@ namespace Lair.Tests.Card
             svc.AddBuff(EMonsterBuff.GuardianRage, 15f);
             svc.Tick(0.016f);
 
-            //# Wisp — HP×2, 받는 데미지 ×0.5 모두 적용.
-            Assert.AreEqual(2f, hpWisp.HpMaxScale, 0.0001f, "Wisp HpMaxScale = 2");
+            //# Wisp — 받는 데미지 ×0.5 만. HP 배율 불변 (2026-06-01 ×2.0 제거).
+            Assert.AreEqual(1f, hpWisp.HpMaxScale, 0.0001f, "Wisp HpMaxScale 불변 (×2.0 제거됨)");
             Assert.AreEqual(0.5f, hpWisp.DamageTakenScale, 0.0001f, "Wisp DamageTakenScale = 0.5");
-            Assert.AreEqual(200, hpWisp.EffectiveMaxHp, "Wisp EffectiveMaxHp = base 100 × 2");
-            Assert.AreEqual(200, hpWisp.Current, "Wisp Current 도 비율 보존으로 2배 (100 → 200)");
+            Assert.AreEqual(100, hpWisp.EffectiveMaxHp, "Wisp EffectiveMaxHp = base 100 (배율 불변)");
+            Assert.AreEqual(100, hpWisp.Current, "Wisp Current 불변 (HP 배율 영향 없음)");
             //# Reaper — 적용 종 외 → 1.0 유지.
             Assert.AreEqual(1f, hpReaper.HpMaxScale, 0.0001f, "Reaper HpMaxScale 유지 (적용 종 외)");
             Assert.AreEqual(1f, hpReaper.DamageTakenScale, 0.0001f, "Reaper DamageTakenScale 유지");
         }
 
-        //# [B1] 엣지 — GuardianRage 활성 → 비활성 (Tick 후 만료) 시 HpMaxScale 1.0 복원 + Current 비율 보존으로 축소.
+        //# [B1] 엣지 — GuardianRage 활성·만료 어느 시점에도 HP 배율/Current 불변 (2026-06-01 HP×2.0 제거).
         [Test]
-        public void GuardianRage_만료_후_HpMaxScale_복원_Current_축소()
+        public void GuardianRage_활성_만료_모두_HP_불변()
         {
             GameObject wisp = new GameObject("wisp");
             wisp.AddComponent<MonsterTag>().Configure(EMonster.Wisp);
@@ -169,13 +169,15 @@ namespace Lair.Tests.Card
             MonsterBuffService svc = new MonsterBuffService();
             svc.AddBuff(EMonsterBuff.GuardianRage, 0.01f);
             svc.Tick(0.005f);
-            Assert.AreEqual(2f, hp.HpMaxScale, 0.0001f, "Tick 1: 활성 → 2배");
-            Assert.AreEqual(200, hp.Current, "Tick 1: Current 2배");
+            Assert.AreEqual(1f, hp.HpMaxScale, 0.0001f, "Tick 1: 활성 → HP 배율 불변");
+            Assert.AreEqual(100, hp.Current, "Tick 1: Current 불변");
+            Assert.AreEqual(0.5f, hp.DamageTakenScale, 0.0001f, "Tick 1: 받는 데미지 ×0.5");
 
-            //# 만료 발생할 dt 로 Tick → buff 제거 → HpMaxScale 1.0 복원 → Current 절반.
+            //# 만료 발생할 dt 로 Tick → buff 제거 → 받피 1.0 복원, HP 는 애초에 불변.
             svc.Tick(0.02f);
-            Assert.AreEqual(1f, hp.HpMaxScale, 0.0001f, "Tick 2: 만료 → 1.0 복원");
-            Assert.AreEqual(100, hp.Current, "Tick 2: Current 도 비율 복원 (200 → 100)");
+            Assert.AreEqual(1f, hp.HpMaxScale, 0.0001f, "Tick 2: 만료 → HP 배율 여전히 불변");
+            Assert.AreEqual(100, hp.Current, "Tick 2: Current 불변");
+            Assert.AreEqual(1f, hp.DamageTakenScale, 0.0001f, "Tick 2: 만료 → 받피 1.0 복원");
         }
 
         //# [B2] Slow 카드 Apply → SwarmSpeed buff 활성 후 Tick → 모든 몬스터 SpeedScale=1.3.

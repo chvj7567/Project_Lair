@@ -8,6 +8,7 @@ namespace Lair.Tests.Card
 {
     //# 카드 리뉴얼 v0.6 본격 스위트 — GuardianRage 적용 종 한정 회귀 (기획서 §10.1 디자인 단정).
     //# EffectsRenewal2026Tests 는 (Wisp·Reaper) 2종만 확인. 본 스위트는 6종 전체 망라 + Wraith 까지 검증.
+    //# 2026-06-01 정합 — GuardianRage 는 받는 데미지 ×0.5 만 (구 HP ×2.0 제거). HpMaxScale 은 어느 종도 불변.
     public class GuardianRageTargetingTests
     {
         [TearDown]
@@ -21,9 +22,9 @@ namespace Lair.Tests.Card
             CharacterRegistry.Monsters.Clear();
         }
 
-        //# Wisp / Wraith — 적용 종 한정에 포함되어 HP×2.0 + DamageTaken×0.5.
+        //# Wisp / Wraith — 적용 종 한정에 포함되어 받는 데미지 ×0.5. HP 배율은 불변 (구 ×2.0 제거).
         [Test]
-        public void GuardianRage_Wisp_Wraith_적용_종_HP_2배_받는데미지_0점5()
+        public void GuardianRage_Wisp_Wraith_적용_종_받는데미지_0점5_HP_불변()
         {
             Health hpWisp = MakeMonster(EMonster.Wisp);
             Health hpWraith = MakeMonster(EMonster.Wraith);
@@ -32,9 +33,9 @@ namespace Lair.Tests.Card
             svc.AddBuff(EMonsterBuff.GuardianRage, 15f);
             svc.Tick(0.016f);
 
-            Assert.AreEqual(2f, hpWisp.HpMaxScale, 0.0001f, "Wisp HpMaxScale = 2.0");
+            Assert.AreEqual(1f, hpWisp.HpMaxScale, 0.0001f, "Wisp HpMaxScale 불변 (×2.0 제거됨)");
             Assert.AreEqual(0.5f, hpWisp.DamageTakenScale, 0.0001f, "Wisp DamageTakenScale = 0.5");
-            Assert.AreEqual(2f, hpWraith.HpMaxScale, 0.0001f, "Wraith HpMaxScale = 2.0");
+            Assert.AreEqual(1f, hpWraith.HpMaxScale, 0.0001f, "Wraith HpMaxScale 불변 (×2.0 제거됨)");
             Assert.AreEqual(0.5f, hpWraith.DamageTakenScale, 0.0001f, "Wraith DamageTakenScale = 0.5");
         }
 
@@ -94,7 +95,7 @@ namespace Lair.Tests.Card
             Assert.AreEqual(1f, hp.DamageTakenScale, 0.0001f, "Phantom DamageTakenScale 유지");
         }
 
-        //# 혼합 — Wisp + Reaper + Phantom 동시 등록 → Wisp 만 적용.
+        //# 혼합 — Wisp + Reaper + Phantom 동시 등록 → Wisp 만 받는 데미지 ×0.5. HP 배율은 전부 불변.
         [Test]
         public void GuardianRage_혼합_종_Wisp만_적용_Reaper_Phantom_불변()
         {
@@ -106,7 +107,8 @@ namespace Lair.Tests.Card
             svc.AddBuff(EMonsterBuff.GuardianRage, 15f);
             svc.Tick(0.016f);
 
-            Assert.AreEqual(2f, hpWisp.HpMaxScale, 0.0001f, "Wisp 적용 종 → HpMaxScale 2");
+            Assert.AreEqual(0.5f, hpWisp.DamageTakenScale, 0.0001f, "Wisp 적용 종 → DamageTakenScale 0.5");
+            Assert.AreEqual(1f, hpWisp.HpMaxScale, 0.0001f, "Wisp HpMaxScale 불변 (×2.0 제거됨)");
             Assert.AreEqual(1f, hpReaper.HpMaxScale, 0.0001f, "Reaper 적용외 → HpMaxScale 1");
             Assert.AreEqual(1f, hpPhantom.HpMaxScale, 0.0001f, "Phantom 적용외 → HpMaxScale 1");
         }

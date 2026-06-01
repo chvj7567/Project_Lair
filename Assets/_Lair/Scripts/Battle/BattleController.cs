@@ -72,6 +72,7 @@ namespace Lair.Battle
         //# 카드 리뉴얼 v0.6 — 빌드 시너지 (Phase 1 Task 4). BattleContext 가 위임 호출.
         //# Tier 바인딩은 Phase 2 Task 11 에서 12개 (4축 × 3Tier) 추가.
         private BuildSynergyService _synergy;
+        private CardPickCounter _pickCounter;   //# 카드 3픽 캡 (전역)
 
         //# Slice C — 한 판 결과 측정
         private readonly RunRecorder _recorder = new RunRecorder();
@@ -119,6 +120,9 @@ namespace Lair.Battle
             //# 라운드 시작 시 카운트 초기화 (씬 1회 진입 = 1 라운드라 Reset 필수 호출 아니지만, Restart 패턴 대비).
             _synergy = new BuildSynergyService();
             _synergy.Reset();
+            //# 카드 3픽 캡 — 시너지와 동일 시점 초기화 (Restart 패턴 대비).
+            _pickCounter = new CardPickCounter();
+            _pickCounter.Reset();
             //# Phase 2 Task 11 — 12개 Tier 바인딩 (4축 × 3Tier). 기획서 §4.2 표.
             _synergy.BindTier(EBuildAxis.Tank,   3, new TankSynergyTier1());
             _synergy.BindTier(EBuildAxis.Tank,   5, new TankSynergyTier2());
@@ -587,11 +591,12 @@ namespace Lair.Battle
                 //# 시뮬레이션 전용 — 팝업/일시정지를 건너뛰고 즉시 픽. tcs 무한 대기 회피.
                 if (DebugAutoPicker != null)
                 {
-                    IReadOnlyList<CardData> simChoices = deck.Draw(3);
+                    IReadOnlyList<CardData> simChoices = deck.Draw(3, id => _pickCounter.IsCapped(id));
                     CardData picked = DebugAutoPicker(simChoices, entry.SourceType);
                     if (picked != null)
                     {
                         _recorder.RecordPick(picked.Id);
+                        _pickCounter.RecordPick(picked.Id);   //# 3픽 캡 누적
                         _vm.AddPick(picked, entry.SourceType == TriggerQueue.Source.Passive);
                         //# 스포너 상태 UI — source 추적용 단일 진입점 (기획서 §4.2).
                         ApplyCardEffect(picked);
@@ -601,18 +606,20 @@ namespace Lair.Battle
 #endif
 
                 _pause.Pause();
-                IReadOnlyList<CardData> choices = deck.Draw(3);
+                IReadOnlyList<CardData> choices = deck.Draw(3, id => _pickCounter.IsCapped(id));
                 System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
                 CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
+                    PickCountOf = c => _pickCounter.GetCount(c.Id),   //# 배지 N/3 — 픽 전 누적값
                     OnPicked = card =>
                     {
                         //# Slice C — 픽 기록
                         if (card != null)
                         {
                             _recorder.RecordPick(card.Id);
+                            _pickCounter.RecordPick(card.Id);   //# 3픽 캡 누적
                             //# 빌드 패널 — VM 에 픽 누적
                             _vm.AddPick(card, entry.SourceType == TriggerQueue.Source.Passive);
                         }

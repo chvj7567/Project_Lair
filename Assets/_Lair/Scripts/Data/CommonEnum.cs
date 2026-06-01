@@ -79,8 +79,8 @@ namespace Lair.Data
         Weaken,                        //# (17) — Debuff A
         Slow,                          //# (18) — Swarm A (v0.6 Debuff→Swarm 축 이동 + 효과 리뉴얼)
         Frenzy,                        //# (19) — Dps A
-        //# SwarmRush (구 Multiply 자리 — 카드 리뉴얼 v0.6 으로 효과·displayName 교체, enum 값명만 보존)
-        Multiply,                      //# (20) — Swarm A (효과 클래스 = SwarmRushEffect, displayName "스웜 러시")
+        //# 폐기 (카드 리뉴얼 v0.6 — SO/풀 ref 제거, enum 자리만 보존. 실제 효과는 FastBreedingEffect/"빠른 번식")
+        Multiply,                      //# (20) — Swarm A (실제 SO: Multiply.asset / FastBreedingEffect, 팬텀 스포너 주기 ×0.6)
         BloodThirst,                   //# (21) — Dps A (v0.6 Swarm→Dps 축 이동)
         IronWill,                      //# (22) — Tank A
         TimeStop,                      //# (23) — Swarm A
@@ -88,7 +88,7 @@ namespace Lair.Data
         Berserk,                       //# (24) — Tank A (효과 클래스 = GuardianRageEffect)
 
         //# 카드 리뉴얼 v0.6 신규 3장 (값 25~27 — int 직렬화 정합).
-        //# SwarmRush 는 별도 enum 값을 두지 않고 Multiply enum 자리(값 20) + SO 파일명 Multiply.asset 을 그대로 사용
+        //# SwarmRush 미구현 — Multiply enum 자리(값 20) + SO 파일명 Multiply.asset 을 그대로 사용 (실효 효과 FastBreedingEffect)
         WallOfWisps,                   //# (25) — Tank A
         MarkOfDeath,                   //# (26) — Dps A
         SpawnerHaste,                  //# (27) — Swarm P

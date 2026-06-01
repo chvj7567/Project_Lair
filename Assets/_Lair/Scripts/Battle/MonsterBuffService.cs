@@ -83,32 +83,46 @@ namespace Lair.Battle
                     switch (b.Type)
                     {
                         case EMonsterBuff.Frenzy:
-                            if (atk != null) atk.CooldownScale *= 0.67f;
+                            if (atk != null)
+                            {
+                                atk.CooldownScale *= 0.67f;
+                            }
                             break;
                         case EMonsterBuff.IronWill:
-                            if (hp != null) hp.DamageTakenScale *= 0.7f;
+                            if (hp != null)
+                            {
+                                hp.DamageTakenScale *= 0.7f;
+                            }
                             break;
                         case EMonsterBuff.BerserkPower:
-                            if (atk != null) atk.PowerScale *= 3f;
+                            if (atk != null)
+                            {
+                                atk.PowerScale *= 3f;
+                            }
                             break;
                         case EMonsterBuff.GuardianRage:
-                            //# 카드 리뉴얼 v0.6 [B1] — 적용 종 한정 {Wisp, Wraith} (위 TargetTypes 매핑으로 필터).
-                            //# 기획서 §10.4 단정: 받는 데미지 ×0.5 + HP ×2.0 (동시 적용).
+                            //# 적용 종 한정 {Wisp, Wraith} (위 TargetTypes 매핑으로 필터).
+                            //# 받는 데미지 ×0.5 만 (구 HP ×2.0 제거 — SO description "받는 데미지 -50%" 와 정합, spec 2026-06-01).
                             if (hp != null)
                             {
                                 hp.DamageTakenScale *= 0.5f;
-                                hp.HpMaxScale *= 2f;
                             }
                             break;
                         case EMonsterBuff.ToughHide:
                             //# 카드 리뉴얼 v0.6 — Tank 한정 {Wisp, Wraith}: 받는 데미지 ×0.75 영구.
                             //# AddBuff(ToughHide, duration<0) 으로 영구 등록 시 매 tick 유지.
-                            if (hp != null) hp.DamageTakenScale *= 0.75f;
+                            if (hp != null)
+                            {
+                                hp.DamageTakenScale *= 0.75f;
+                            }
                             break;
                         case EMonsterBuff.SwarmSpeed:
                             //# 카드 리뉴얼 v0.6 [B2] — Slow 카드의 이중 효과 (모든 몬스터 이동속도 ×1.3 시한).
                             //# 적용 종 한정 없음 (TargetTypes 매핑에 미등록 → "전체 종") — 기획서 §3.4 #7 단정.
-                            if (mv != null) mv.SpeedScale *= 1.3f;
+                            if (mv != null)
+                            {
+                                mv.SpeedScale *= 1.3f;
+                            }
                             break;
                     }
                 }

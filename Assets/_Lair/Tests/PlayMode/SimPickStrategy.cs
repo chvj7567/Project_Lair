@@ -64,7 +64,7 @@ namespace Lair.Tests.PlayMode
             { ECardId.BloodThirst, ECardArchetype.Aoe    }, //# 처치 시 주변 회복(광역, v0.6 Dps 축)
             { ECardId.IronWill,    ECardArchetype.Other  }, //# 전 몬스터 받는 데미지 -30%
             { ECardId.TimeStop,    ECardArchetype.Other  }, //# 영웅 정지(와일드)
-            //# 카드 리뉴얼 v0.6 — Berserk enum 자리는 보존, 효과는 GuardianRageEffect (Wisp·Wraith 한정 HP×2 + 받는데미지×0.5) 로 교체.
+            //# 카드 리뉴얼 v0.6 — Berserk enum 자리는 보존, 효과는 GuardianRageEffect (Wisp·Wraith 한정 받는데미지×0.5, 2026-06-01 HP×2 제거) 로 교체.
             { ECardId.Berserk,     ECardArchetype.Tanker }, //# v0.6 GuardianRage — Tank 보호 액티브 (자살 구조 폐기)
             { ECardId.WallOfWisps, ECardArchetype.Tanker }, //# v0.6 신규 — 영웅 주변 Wisp 4마리 즉시 소환 (Tank A)
             { ECardId.MarkOfDeath, ECardArchetype.Other  }, //# v0.6 신규 — 영웅 받는 데미지 ×1.5 5s (Dps A 보조)

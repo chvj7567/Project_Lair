@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Lair.Card
@@ -15,9 +16,20 @@ namespace Lair.Card
         }
 
         //# 무작위 n장 (중복 X). 풀 부족 시 가능한 만큼.
-        public IReadOnlyList<CardData> Draw(int n)
+        public IReadOnlyList<CardData> Draw(int n) => Draw(n, null);
+
+        //# isExcluded(id) == true 인 카드는 후보에서 제외 (3픽 캡). null 이면 전체 후보.
+        //# 제외 후 적격 카드가 n 미만이면 가능한 만큼만 반환 (기존 graceful fallback).
+        public IReadOnlyList<CardData> Draw(int n, Func<Lair.Data.ECardId, bool> isExcluded)
         {
-            List<CardData> pool = new List<CardData>(_all);
+            List<CardData> pool = new List<CardData>();
+            for (int i = 0; i < _all.Count; ++i)
+            {
+                if (isExcluded != null && isExcluded(_all[i].Id))
+                    continue;
+                pool.Add(_all[i]);
+            }
+
             int actual = System.Math.Min(n, pool.Count);
             List<CardData> result = new List<CardData>(actual);
             for (int i = 0; i < actual; ++i)
