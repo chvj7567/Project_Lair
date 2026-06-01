@@ -16,8 +16,11 @@ namespace Lair.Character
         private ITargetProvider _targetProvider;
         private IRotator _rotator;
 
-        //# B3 — 공포 카드. true 면 가장 가까운 적의 반대 방향으로 도주, 공격 안 함.
+        //# B3 — 공포 카드. true 면 주변 위협 무리의 반대 방향으로 도주, 공격 안 함.
         public bool FleeMode { get; set; }
+
+        //# 도주 시 위협 centroid 를 모으는 반경. 포위 상황에서 진동(갇힘) 방지.
+        [SerializeField] private float _fleeThreatRadius = 4f;
 
         private void Awake()
         {
@@ -53,12 +56,23 @@ namespace Lair.Character
                 return;
             }
 
-            //# B3 공포 (Fleeing) — 가장 가까운 적의 반대 방향으로 이동, 공격 X.
-            //# 회전은 이동 목표(away) 방향 = 자연스럽게 적의 반대.
+            //# B3 공포 (Fleeing) — 주변 위협 centroid 의 반대 방향으로 도주, 공격 X.
+            //# 포위 시 최근접 1마리만 보면 매 프레임 방향 뒤집혀 제자리 진동 → centroid 로 안정화.
             if (FleeMode)
             {
-                Vector3 away = transform.position
-                    + (transform.position - t.position).normalized * 5f;
+                Vector3 fleeDir = transform.position - t.position;
+                if (_targetProvider.TryGetThreatCentroid(
+                        transform.position, _fleeThreatRadius, out Vector3 centroid, out int count)
+                    && count > 0)
+                {
+                    Vector3 fromCentroid = transform.position - centroid;
+                    //# centroid 가 자기 위치와 거의 일치(대칭 포위)면 0벡터 → 최근접 fallback 유지.
+                    if (fromCentroid.sqrMagnitude > 0.0001f)
+                    {
+                        fleeDir = fromCentroid;
+                    }
+                }
+                Vector3 away = transform.position + fleeDir.normalized * 5f;
                 _rotator?.FaceDirection(away - transform.position);
                 _mover.MoveTo(away);
                 return;

@@ -22,5 +22,8 @@ namespace Lair.Character
 
         public bool TryFindNearest(Vector3 from, out Transform target, out IHealth health)
             => CharacterRegistry.TryFindNearestHero(from, out target, out health);
+
+        public bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => CharacterRegistry.TryGetThreatCentroidHero(from, radius, out centroid, out count);
     }
 }

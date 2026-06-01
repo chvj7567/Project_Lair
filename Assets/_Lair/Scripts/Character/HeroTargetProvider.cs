@@ -23,5 +23,8 @@ namespace Lair.Character
 
         public bool TryFindNearest(Vector3 from, out Transform target, out IHealth health)
             => CharacterRegistry.TryFindNearestMonster(from, out target, out health);
+
+        public bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => CharacterRegistry.TryGetThreatCentroidMonster(from, radius, out centroid, out count);
     }
 }

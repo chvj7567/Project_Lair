@@ -8,6 +8,9 @@ namespace Lair.Character
     public class SimpleMover : MonoBehaviour, IMover
     {
         [SerializeField] private float _speed = 3f;
+        //# 몬스터 캡슐 콜라이더 깊은 겹침 시 PhysX depenetration 폭발 방지 — 분리 속도 상한.
+        //# 0 금지(영구 정체). 프리팹 미편집 — Dynamic Rigidbody 만 Awake 에서 적용.
+        [SerializeField] private float _maxDepenetrationVelocity = 1f;
         //# 런타임 주입 — BindClampZone 으로 설정. 인스펙터 와이어링은 풀 Pop 시 reference broken 이라 사용 안 함.
         [SerializeField] private BattleZone _clampZone;
         private bool _moving;
@@ -30,6 +33,11 @@ namespace Lair.Character
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
+            //# 영웅은 _rigidbody null → 무영향. 몬스터(Dynamic)만 분리 속도 캡 적용.
+            if (_rigidbody != null)
+            {
+                _rigidbody.maxDepenetrationVelocity = _maxDepenetrationVelocity;
+            }
         }
 
         //# [B2] 풀 재사용 시 SpeedScale 잔존 방지.

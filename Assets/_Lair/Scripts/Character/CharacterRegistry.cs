@@ -43,6 +43,12 @@ namespace Lair.Character
         public static bool TryFindNearestMonster(Vector3 from, out Transform t, out IHealth h)
             => TryFindNearest(Monsters, from, out t, out h, requireEngaging: true);
 
+        //# 공포 도주 centroid — TryFindNearest 와 동일한 필터(살아있음 + 몬스터 Engaging) 적용.
+        public static bool TryGetThreatCentroidHero(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => TryGetThreatCentroid(Heroes, from, radius, out centroid, out count, requireEngaging: false);
+        public static bool TryGetThreatCentroidMonster(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => TryGetThreatCentroid(Monsters, from, radius, out centroid, out count, requireEngaging: true);
+
         private static void Add(List<Entry> list, Transform t, IHealth h)
         {
             if (t == null) return;
@@ -78,6 +84,29 @@ namespace Lair.Character
                 }
             }
             return t != null;
+        }
+
+        //# 반경 내 적들의 위치 평균(centroid)과 개수. TryFindNearest 와 동일 필터.
+        private static bool TryGetThreatCentroid(
+            List<Entry> list, Vector3 from, float radius, out Vector3 centroid, out int count, bool requireEngaging)
+        {
+            centroid = Vector3.zero;
+            count = 0;
+            float sqrRadius = radius * radius;
+            Vector3 sum = Vector3.zero;
+            foreach (Entry e in list)
+            {
+                if (e.Transform == null) continue;
+                if (e.Health == null || e.Health.IsAlive == false) continue;
+                if (requireEngaging && e.IsEngaging == false) continue;
+                if ((e.Transform.position - from).sqrMagnitude > sqrRadius) continue;
+                sum += e.Transform.position;
+                ++count;
+            }
+            if (count == 0)
+                return false;
+            centroid = sum / count;
+            return true;
         }
     }
 }
