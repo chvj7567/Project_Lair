@@ -16,6 +16,7 @@ namespace Lair.EditorTools
         public const string CardDir = "Assets/_Lair/Art/Cards/Items";
         public const string PoolDir = "Assets/_Lair/Art/Cards";
         public const string IconDir = "Assets/_Lair/Art/Sprites/CardIcons";
+        public const string CardArtDir = "Assets/_Lair/Art/Sprites/CardArt";
         public const string ResourceGroup = "Resource";
         public const string ResourceLabel = "Resource";
 
@@ -144,6 +145,7 @@ namespace Lair.EditorTools
             EnsureDir(CardDir);
             EnsureDir(PoolDir);
             EnsureDir(IconDir);
+            EnsureDir(CardArtDir);
             RemoveStaleCards();
             BuildCardsAndPool(PassiveSpecs, EData.CardPool_Passive);
             BuildCardsAndPool(ActiveSpecs, EData.CardPool_Active);
@@ -196,6 +198,8 @@ namespace Lair.EditorTools
                 so.FindProperty("_description").stringValue = spec.Description;
                 //# 빌드 패널 아이콘 — ECardId 이름 PNG 자동 배정 (없으면 null). _effect 와 달리 매번 재설정.
                 so.FindProperty("_icon").objectReferenceValue = LoadCardIcon(spec.Id);
+                //# 3택1 팝업 일러스트 — ECardId 이름 PNG 자동 배정 (없으면 null). 매번 재설정.
+                so.FindProperty("_cardImage").objectReferenceValue = LoadCardImage(spec.Id);
 
                 //# 비파괴 — 기존 카드의 _effect(튜닝값) 보존. 신규/타입불일치 시에만 새 효과.
                 SerializedProperty effectProp = so.FindProperty("_effect");
@@ -248,7 +252,27 @@ namespace Lair.EditorTools
         private static Sprite LoadCardIcon(ECardId id)
         {
             string path = $"{IconDir}/{id}.png";
-            if (File.Exists(path) == false) return null;
+            if (File.Exists(path) == false)
+                return null;
+
+            TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (imp != null && (imp.textureType != TextureImporterType.Sprite
+                                || imp.spriteImportMode != SpriteImportMode.Single))
+            {
+                imp.textureType = TextureImporterType.Sprite;
+                imp.spriteImportMode = SpriteImportMode.Single;
+                imp.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        //# ECardId 이름의 일러스트 PNG 를 Sprite 로 로드. 미존재 시 null.
+        //# import 설정 보정(textureType=Sprite / spriteImportMode=Single)은 LoadCardIcon 과 동일.
+        private static Sprite LoadCardImage(ECardId id)
+        {
+            string path = $"{CardArtDir}/{id}.png";
+            if (File.Exists(path) == false)
+                return null;
 
             TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
             if (imp != null && (imp.textureType != TextureImporterType.Sprite

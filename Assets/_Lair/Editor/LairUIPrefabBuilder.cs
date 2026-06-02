@@ -648,38 +648,88 @@ namespace Lair.EditorTools
             bgImg.type = Image.Type.Sliced;
             bgImg.color = Color.white;
 
-            //# NameText
+            //# CardArt — 풀블리드 (Border 안쪽 = Bg 와 동일 rect). 카드 3:4 ≈ 일러스트 3:4 라 cover 로 꽉 채움.
+            //# 런타임에 CardView.ApplyArt 가 sprite/표시여부 제어. 기획서 §3.4·§6.5.
+            GameObject artGo = new GameObject("CardArt", typeof(RectTransform));
+            artGo.transform.SetParent(slot.transform, false);
+            RectTransform artRt = (RectTransform)artGo.transform;
+            artRt.anchorMin = Vector2.zero;
+            artRt.anchorMax = Vector2.one;
+            artRt.offsetMin = new Vector2(8f, 8f);
+            artRt.offsetMax = new Vector2(-8f, -8f);
+            Image artImg = artGo.AddComponent<Image>();
+            artImg.preserveAspect = false;           //# cover — 카드/아트 비율 거의 동일, 왜곡 ~1.6% 무시 (여백 0)
+            artImg.color = Color.white;
+            artImg.raycastTarget = false;            //# 장식 — 픽 버튼 클릭 가로채지 않게 (§3.3)
+
+            //# Scrim — 하단 가독용 반투명 어두운 띠. 아트 위·텍스트 아래. 아트 유무와 무관하게 항상 표시.
+            GameObject scrimGo = new GameObject("Scrim", typeof(RectTransform));
+            scrimGo.transform.SetParent(slot.transform, false);
+            RectTransform scrimRt = (RectTransform)scrimGo.transform;
+            scrimRt.anchorMin = new Vector2(0f, 0f);
+            scrimRt.anchorMax = new Vector2(1f, 0.42f);
+            scrimRt.offsetMin = new Vector2(8f, 8f);
+            scrimRt.offsetMax = new Vector2(-8f, 0f);
+            Image scrimImg = scrimGo.AddComponent<Image>();
+            scrimImg.sprite = GetUISprite();
+            scrimImg.type = Image.Type.Sliced;
+            scrimImg.color = new Color(0f, 0f, 0f, 0.6f);
+            scrimImg.raycastTarget = false;          //# 장식 — 픽 버튼 클릭 가로채지 않게
+
+            //# NameText — 하단 스크림 상부 (§6.5). 흰색 (아트 오버레이 대비). pivot/anchoredPosition/sizeDelta 잔류값 리셋 필수.
             GameObject nameGo = new GameObject("NameText", typeof(RectTransform));
             nameGo.transform.SetParent(slot.transform, false);
             RectTransform nameRt = (RectTransform)nameGo.transform;
-            nameRt.anchorMin = new Vector2(0f, 1f);
-            nameRt.anchorMax = new Vector2(1f, 1f);
-            nameRt.pivot     = new Vector2(0.5f, 1f);
-            nameRt.anchoredPosition = new Vector2(0f, -30f);
-            nameRt.sizeDelta = new Vector2(0f, 60f);
+            nameRt.pivot     = new Vector2(0.5f, 0.5f);
+            nameRt.anchorMin = new Vector2(0f, 0.30f);
+            nameRt.anchorMax = new Vector2(1f, 0.42f);
+            nameRt.offsetMin = new Vector2(12f, 0f);
+            nameRt.offsetMax = new Vector2(-12f, 0f);
+            nameRt.anchoredPosition = Vector2.zero;
+            nameRt.sizeDelta = Vector2.zero;
             TextMeshProUGUI nameTmp = nameGo.AddComponent<TextMeshProUGUI>();
             nameTmp.text = "Name";
             nameTmp.font = TMP_Settings.defaultFontAsset;
             nameTmp.fontSize = 32f;
             nameTmp.alignment = TextAlignmentOptions.Center;
-            nameTmp.color = Color.black;
+            nameTmp.color = Color.white;
             CHText nameText = nameGo.AddComponent<CHText>();
 
-            //# DescText
+            //# DescText — 하단 스크림 본문 (§6.5). 흰색. auto-size 16~22 로 최장 설명도 잘림 없이 수용.
             GameObject descGo = new GameObject("DescText", typeof(RectTransform));
             descGo.transform.SetParent(slot.transform, false);
             RectTransform descRt = (RectTransform)descGo.transform;
-            descRt.anchorMin = new Vector2(0f, 0f);
-            descRt.anchorMax = new Vector2(1f, 0.7f);
-            descRt.offsetMin = new Vector2(20f, 20f);
-            descRt.offsetMax = new Vector2(-20f, -20f);
+            descRt.anchorMin = new Vector2(0f, 0.04f);
+            descRt.anchorMax = new Vector2(1f, 0.30f);
+            descRt.offsetMin = new Vector2(16f, 8f);
+            descRt.offsetMax = new Vector2(-16f, -2f);
             TextMeshProUGUI descTmp = descGo.AddComponent<TextMeshProUGUI>();
             descTmp.text = "Description";
             descTmp.font = TMP_Settings.defaultFontAsset;
-            descTmp.fontSize = 22f;
+            descTmp.enableAutoSizing = true;
+            descTmp.fontSizeMin = 16f;
+            descTmp.fontSizeMax = 22f;
             descTmp.alignment = TextAlignmentOptions.TopLeft;
-            descTmp.color = Color.black;
+            descTmp.color = Color.white;
             CHText descText = descGo.AddComponent<CHText>();
+
+            //# CountBadge — 3픽 캡 "N/3" 배지. pickCount>0 일 때만 CardView 가 표시. HEAD 스펙(상단 앵커) 재현.
+            //# 레이아웃 주의: ap(0,-90)+높이 60 은 현 레이아웃의 아트 상단부에 얹힘 (보고 참조). HEAD 동작 복원 우선.
+            GameObject countBadgeGo = new GameObject("CountBadge", typeof(RectTransform));
+            countBadgeGo.transform.SetParent(slot.transform, false);
+            RectTransform countBadgeRt = (RectTransform)countBadgeGo.transform;
+            countBadgeRt.anchorMin = new Vector2(0f, 1f);
+            countBadgeRt.anchorMax = new Vector2(1f, 1f);
+            countBadgeRt.pivot     = new Vector2(0.5f, 1f);
+            countBadgeRt.anchoredPosition = new Vector2(0f, -90f);
+            countBadgeRt.sizeDelta = new Vector2(0f, 60f);
+            TextMeshProUGUI countBadgeTmp = countBadgeGo.AddComponent<TextMeshProUGUI>();
+            countBadgeTmp.text = "1/3";                          //# 런타임에 CardView.UpdateBadge 가 SetText 로 덮어씀
+            countBadgeTmp.font = TMP_Settings.defaultFontAsset;
+            countBadgeTmp.fontSize = 20f;
+            countBadgeTmp.alignment = TextAlignmentOptions.Center;
+            countBadgeTmp.color = Color.white;        //# 아트 오버레이 위 가독성 — 흰색
+            CHText countBadge = countBadgeGo.AddComponent<CHText>();
 
             //# PickButton (full stretch over the whole card)
             GameObject btnGo = new GameObject("PickButton", typeof(RectTransform));
@@ -699,7 +749,9 @@ namespace Lair.EditorTools
             SetObjectField(cvSo, "_nameText", nameText);
             SetObjectField(cvSo, "_descText", descText);
             SetObjectField(cvSo, "_border", borderImg);
+            SetObjectField(cvSo, "_artImage", artImg);
             SetObjectField(cvSo, "_pickButton", chBtn);
+            SetObjectField(cvSo, "_countBadge", countBadge);
             cvSo.ApplyModifiedPropertiesWithoutUndo();
 
             return cv;

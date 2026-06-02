@@ -16,6 +16,8 @@ namespace Lair.Card
         [TextArea] [SerializeField] private string _description;
         //# 빌드 패널 아이콘 — LairCardPrefabBuilder 가 ECardId 이름 PNG 로 배정. 없으면 null.
         [SerializeField] private Sprite _icon;
+        //# 3택1 팝업 카드 일러스트(3:4) — LairCardPrefabBuilder 가 CardArt/{ECardId}.png 로 배정. 없으면 null.
+        [SerializeField] private Sprite _cardImage;
         [SerializeReference] private ICardEffect _effect;
 
         public ECardId Id => _id;
@@ -23,6 +25,7 @@ namespace Lair.Card
         public string DisplayName => _displayName;
         public string Description => _description;
         public Sprite Icon => _icon;
+        public Sprite CardImage => _cardImage;
         public ICardEffect Effect => _effect;
     }
 }
