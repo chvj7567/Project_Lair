@@ -282,38 +282,51 @@ namespace Lair.EditorTools
         }
 
         //# ===== BuildModalCardCell =====
-        //# v0.9 P1 — sizeDelta (303, 56) (기존 280×56 갱신). prefab sizeDelta 가 CHPoolingScrollView 의
+        //# 셀 sizeDelta (280, 56) — 모달 섹션 뷰포트 폭(296) 보다 좁아야 CountText 우측 클립 방지 (사용자 수기 수정 반영).
         private static void BuildModalCardCellPrefab()
         {
             const string PrefabName = "BuildModalCardCell";
 
             GameObject root = new GameObject(PrefabName, typeof(RectTransform));
             RectTransform rootRt = (RectTransform)root.transform;
-            rootRt.sizeDelta = new Vector2(303f, 56f);
+            rootRt.sizeDelta = new Vector2(280f, 56f);
 
-            //# 프레임 — 좌측 세로 막대.
+            //# 프레임 — 아이콘 뒤 테두리(48×48). 아이콘(10,0/40×40)과 동심, 사방 4px 삐져나옴.
             GameObject frameGo = new GameObject("Frame", typeof(RectTransform), typeof(Image));
             frameGo.transform.SetParent(root.transform, false);
             RectTransform frameRt = (RectTransform)frameGo.transform;
             frameRt.anchorMin = new Vector2(0f, 0.5f);
             frameRt.anchorMax = new Vector2(0f, 0.5f);
             frameRt.pivot     = new Vector2(0f, 0.5f);
-            frameRt.anchoredPosition = new Vector2(4f, 0f);
-            frameRt.sizeDelta = new Vector2(8f, 40f);
+            frameRt.anchoredPosition = new Vector2(6f, 0f);
+            frameRt.sizeDelta = new Vector2(48f, 48f);
             Image frameImg = frameGo.GetComponent<Image>();
             frameImg.sprite = LairUIPrefabBuilder.GetUISprite();
             frameImg.color = Color.gray;
             frameImg.raycastTarget = false;
 
-            //# 카드 이름.
+            //# 카드 아이콘 — 프레임 위, 세로 중앙 정사각(40×40). card.Icon 없으면 Bind 가 비활성.
+            GameObject iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconGo.transform.SetParent(root.transform, false);
+            RectTransform iconRt = (RectTransform)iconGo.transform;
+            iconRt.anchorMin = new Vector2(0f, 0.5f);
+            iconRt.anchorMax = new Vector2(0f, 0.5f);
+            iconRt.pivot     = new Vector2(0f, 0.5f);
+            iconRt.anchoredPosition = new Vector2(10f, 0f);
+            iconRt.sizeDelta = new Vector2(40f, 40f);
+            Image iconImg = iconGo.GetComponent<Image>();
+            iconImg.preserveAspect = true;
+            iconImg.raycastTarget = false;
+
+            //# 카드 이름 — 아이콘 우측으로 이동 (x 20 → 64).
             GameObject nameGo = new GameObject("NameText", typeof(RectTransform));
             nameGo.transform.SetParent(root.transform, false);
             RectTransform nameRt = (RectTransform)nameGo.transform;
             nameRt.anchorMin = new Vector2(0f, 1f);
             nameRt.anchorMax = new Vector2(1f, 1f);
             nameRt.pivot     = new Vector2(0f, 1f);
-            nameRt.anchoredPosition = new Vector2(20f, -4f);
-            nameRt.sizeDelta = new Vector2(-30f, 22f);
+            nameRt.anchoredPosition = new Vector2(64f, -4f);
+            nameRt.sizeDelta = new Vector2(-74f, 22f);
             TextMeshProUGUI nameTmp = nameGo.AddComponent<TextMeshProUGUI>();
             nameTmp.text = "Name";
             nameTmp.font = TMP_Settings.defaultFontAsset;
@@ -349,8 +362,8 @@ namespace Lair.EditorTools
             descRt.anchorMin = new Vector2(0f, 0f);
             descRt.anchorMax = new Vector2(1f, 0f);
             descRt.pivot     = new Vector2(0f, 0f);
-            descRt.anchoredPosition = new Vector2(20f, 4f);
-            descRt.sizeDelta = new Vector2(-24f, 22f);
+            descRt.anchoredPosition = new Vector2(64f, 4f);
+            descRt.sizeDelta = new Vector2(-68f, 22f);
             TextMeshProUGUI descTmp = descGo.AddComponent<TextMeshProUGUI>();
             descTmp.text = "Description";
             descTmp.font = TMP_Settings.defaultFontAsset;
@@ -366,6 +379,7 @@ namespace Lair.EditorTools
             BuildModalCardCell cell = root.AddComponent<BuildModalCardCell>();
             SerializedObject so = new SerializedObject(cell);
             SetObjectField(so, "_frame",     frameImg);
+            SetObjectField(so, "_icon",      iconImg);
             SetObjectField(so, "_nameText",  nameText);
             SetObjectField(so, "_countText", countText);
             SetObjectField(so, "_descText",  descText);
@@ -578,7 +592,7 @@ namespace Lair.EditorTools
             sr.content = contentRt;
 
             //# CHPoolingScrollView 파생 컴포넌트 + 직렬화 필드 wire-up.
-            //# _itemSize 는 wire-up 안 함 (v0.9 P1) — BuildModalCardCell prefab sizeDelta (303, 56) 가 단일 진실.
+            //# _itemSize 는 wire-up 안 함 — origin (BuildModalCardCell prefab 인스턴스) sizeDelta (280, 56) 가 단일 진실.
             BuildModalCardPoolingScrollView modalScrollView = scrollGo.AddComponent<BuildModalCardPoolingScrollView>();
             SerializedObject msvSo = new SerializedObject(modalScrollView);
             if (originInst != null) SetObjectField(msvSo, "_origin", originInst);

@@ -5,11 +5,12 @@ using UnityEngine.UI;
 
 namespace Lair.UI
 {
-    //# 모달 카드 셀 — 프레임(카테고리 색) + 이름 + ×N + 설명 한 줄.
-    //# 기획서 §2.7.3 — 8×40 프레임 + 12pt 이름 + 10pt ×N + 10pt 설명.
+    //# 모달 카드 셀 — 아이콘 + 그 뒤 카테고리 색 테두리(48×48) + 이름 + ×N + 설명 한 줄.
+    //# 기획서 §2.7.3 — 아이콘 둘레 축 색 테두리 + 12pt 이름 + 10pt ×N + 10pt 설명.
     public class BuildModalCardCell : MonoBehaviour
     {
         [SerializeField] private Image _frame;
+        [SerializeField] private Image _icon;
         [SerializeField] private CHText _nameText;
         [SerializeField] private CHText _countText;
         [SerializeField] private CHText _descText;
@@ -19,12 +20,7 @@ namespace Lair.UI
         //# 설명 회색 (#D1D5DB).
         private static readonly Color DescColor  = new Color(0.820f, 0.835f, 0.859f, 1f);
 
-        //# 풀 재사용 시 상태 리셋 (Rule 12) — Bind 가 매번 ×N 표시를 다시 결정하므로 OnEnable 도 안전.
-        private void OnEnable()
-        {
-            if (_countText != null) _countText.gameObject.SetActive(false);
-        }
-
+        //# 표시 상태는 Bind 가 완전히 결정 — CardView 와 동일 단일 출처. OnEnable 리셋은 재오픈 시 Bind 이후 발화해 잔상 역효과라 제거.
         //# CardData + 픽 카운트 받기. CHPoolingScrollView 어댑터(BuildModalCardPoolingScrollView)가
         //# InitItem 안에서 entry.Card / entry.Count 를 풀어 호출.
         public void Bind(CardData card, int count)
@@ -34,6 +30,16 @@ namespace Lair.UI
             {
                 //# 카드 ID 기준 단일 출처 — 종 색/영웅 백색/몬스터 전체 시안.
                 _frame.color = CardBorderColors.BorderColorOf(card.Id);
+            }
+            if (_icon != null)
+            {
+                //# 아이콘 없으면 비활성 — 풀 재사용 시 Bind 가 매 Pop 마다 active 상태를 다시 결정하므로 누수 없음.
+                bool hasIcon = card.Icon != null;
+                _icon.gameObject.SetActive(hasIcon);
+                if (hasIcon)
+                {
+                    _icon.sprite = card.Icon;
+                }
             }
             if (_nameText != null) _nameText.SetText(card.DisplayName);
             if (_descText != null)

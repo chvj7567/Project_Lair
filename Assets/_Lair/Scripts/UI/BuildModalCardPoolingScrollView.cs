@@ -14,7 +14,7 @@ namespace Lair.UI
             item.Bind(data);
         }
 
-        //# 풀 인스턴스 1회 초기화. BuildModalCardCell 의 OnEnable 이 ×N 텍스트를 reset 하므로 추가 작업 불요.
+        //# 풀 인스턴스 1회 초기화. Bind 가 매 InitItem 마다 표시 상태를 재결정하므로 추가 작업 불요.
         public override void InitPoolingObject(BuildModalCardCell item)
         {
         }
