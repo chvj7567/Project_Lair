@@ -11,6 +11,13 @@ namespace Lair.UI
     {
         [SerializeField] private BuildSynergyCardPoolingScrollView _scrollView;
 
+        //# 4축 아이콘 — 직접 Sprite 참조 (CardData._icon 과 동일 관례, Addressables 키 아님).
+        //# 인스펙터 순서 = EBuildAxis 순서 (Tank·Dps·Debuff·Swarm). AxisIcon 으로 매핑.
+        [SerializeField] private Sprite _tankIcon;
+        [SerializeField] private Sprite _dpsIcon;
+        [SerializeField] private Sprite _debuffIcon;
+        [SerializeField] private Sprite _swarmIcon;
+
         //# 4축 키 색 (기획서 §2 / §11.4). MonsterTag 색과 동일.
         public static readonly Dictionary<EBuildAxis, Color> AxisColor = new()
         {
@@ -66,6 +73,7 @@ namespace Lair.UI
                     Axis          = axis,
                     Color         = AxisColor[axis],
                     Label         = AxisLabel[axis],
+                    Icon          = AxisIcon(axis),
                     Count         = count,
                     NextThreshold = NextThreshold(count),
                     ActiveTier    = ActiveTier(count),
@@ -74,6 +82,20 @@ namespace Lair.UI
                 _prevCounts[axis] = count;
             }
             _scrollView.SetItemList(_dataList);
+        }
+
+        //# 축별 아이콘 — 인스펙터 직접 참조 4개를 EBuildAxis 로 매핑. 미할당이면 null (셀이 마커 전부 숨김).
+        private Sprite AxisIcon(EBuildAxis axis)
+        {
+            if (axis == EBuildAxis.Tank)
+                return _tankIcon;
+            if (axis == EBuildAxis.Dps)
+                return _dpsIcon;
+            if (axis == EBuildAxis.Debuff)
+                return _debuffIcon;
+            if (axis == EBuildAxis.Swarm)
+                return _swarmIcon;
+            return null;
         }
 
         //# 새 임계를 넘었는지 — prev < T <= count 인 T 존재.
@@ -108,6 +130,7 @@ namespace Lair.UI
         public EBuildAxis Axis;
         public Color Color;
         public string Label;
+        public Sprite Icon;         //# 축 아이콘. ActiveTier 만큼 우측 티어 마커로 표시. null 이면 마커 전부 숨김.
         public int Count;
         public int NextThreshold;   //# -1 이면 7+ 도달
         public int ActiveTier;      //# 0·1·2·3

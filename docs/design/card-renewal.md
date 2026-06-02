@@ -30,7 +30,7 @@
 
 - **목표**: 카드 28장을 Tank/Dps/Debuff/Swarm 4축에 균등 배치(축당 패시브 4 + 액티브 3)하고, 같은 축 N장 픽 시 3·5·7장 임계에서 즉시 발화하는 2-Layer 시너지를 도입한다.
 - **검증 가설**: 카드 픽이 단일 종 강화로 수렴하던 패턴이 **4가지 명확한 빌드 패턴(탱커/DPS/디버프/스웜)** 으로 분기되고, 각 빌드가 영웅 처치 경로의 차이를 만들어 *재플레이 동기*를 만든다.
-- **현재 단계 범위 적합성**: 범위 내. 컨셉 §11.2 항목 표의 "패시브 15 → 16장 / 액티브 10 → 12장 / 몬스터 6종 고정 / 영웅 1명 고정" 안에서 동작한다. 메타·서버·사운드·아트는 손대지 않는다. (§11.4 카드 테두리 7색 → 4색 매핑 갱신은 컨셉서 동기화 범위.)
+- **현재 단계 범위 적합성**: 범위 내. 컨셉 §11.2 항목 표의 "패시브 15 → 16장 / 액티브 10 → 12장 / 몬스터 6종 고정 / 영웅 1명 고정" 안에서 동작한다. 메타·서버·사운드·아트는 손대지 않는다. (§11.4 카드 테두리 7색 → 4색 매핑 갱신은 컨셉서 동기화 범위.) **예외(사용자 명시 승격, 2026-06-02)**: 카드 아이콘/일러스트(커밋 8a5bfbd·31b66a6) 및 시너지 패널 축 아이콘 4장(`Art/Sprites/SynergyIcons/`)은 사용자가 직접 제작·제공해 §8 아트 금지의 명시 승격 항목으로 처리됨 (메인 오케스트레이터 §8 "game-designer 명시 승격" 경로). 결정 근거는 §1 MVP 비주얼 [결정 2026-06-02] 참조.
 - **핵심 메커니즘**:
   1. 카드 카테고리를 7종(강화/추가/교체/환경/저주/버프/와일드) → **4축(Tank/Dps/Debuff/Swarm)** 으로 교체.
   2. **Layer 1** — 같은 축 3·5·7장 누적 시 임계 도달 즉시 1회 발화 (12 시너지 효과).
@@ -50,7 +50,8 @@
 - **결정 부담 최소** — 픽 한 번에 "이 카드가 어느 축인가"가 카드 테두리 색·헤더 텍스트 한 줄로 즉시 식별돼야 한다. 4색만 사용한다.
 - **No-op 회피** — 모든 카드가 픽 시점에 가시적 변화를 만든다. SpawnPlagues·PlagueSlowBoost 는 Plague Spawner 추가로 활성화. SpawnWraith 처럼 *Wraith 스포너 없음* 같은 경우엔 대응 시너지 임계 도달 시점에 우회 발화 경로를 마련하지 않고 **교체 카드를 그 자리에 두는** 정책으로 단순화한다 (§9.1 엣지 참조).
 - **QA 정합성** — Hero HP 4600 / 평균 사망 76s 베이스라인을 깨지 않는다. 한 축 5장 임계 도달 빌드가 평균 사망을 **5~10s 단축** 정도로 가정 (강화는 했지만 영웅이 더 빨리 죽는 정도). 7장 임계는 **클리어율 하락(타임오버 발생)** 까지는 못 만든다 — 그건 별도 밸런스 사이클의 일이다. 본 기획은 빌드 *다양성* 우선, *난이도 상승* 은 부수.
-- **MVP 비주얼** — 프리미티브 + 4색만. UI 는 흰 배경 + 검정 텍스트 + 4축 테두리색. 시너지 임계 표시도 텍스트 + 4축 색 사각형.
+- **MVP 비주얼** — 프리미티브 + 4색만 (캐릭터/월드/이펙트 한정 — 컨셉 §11.4). UI 는 흰 배경 + 검정 텍스트 + 4축 테두리색. 시너지 임계(Tier) 표시는 **텍스트 + 축 아이콘 마커**(활성 티어 수만큼 1~3개) — 동일 축 아이콘 1장을 티어 수만큼 반복 표시. 미도달 0개 / Tier1(3장) 1개 / Tier2(5장) 2개 / Tier3(7장) 3개. 아이콘 파일: `Assets/_Lair/Art/Sprites/SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png`.
+  > **[결정 2026-06-02]** 시너지 패널 티어 마커를 기존 "4축 색 사각형(`■`)" → **축 일러스트 아이콘**으로 교체. 근거: 사용자 확정(아이콘 4장 직접 제작·제공), 카드 UI 아이콘/일러스트 도입(커밋 8a5bfbd·31b66a6)과 비주얼 일관. MVP §8 아트 금지 예외 처리는 §헤더 line 33 참조. 표시 사양 단일 진실: 본 §8.0 / §8.2.
 
 ---
 
@@ -351,22 +352,27 @@
 **구조** — 4 행 (Tank/Dps/Debuff/Swarm) × 1 셀:
 ```
 ┌──────────────────────┐
-│ TANK    3/5    ■■   │ ← Tier1·2 활성 (5장 미달이면 ■)
-│ DPS     0/3          │ ← 미도달
-│ DEBUFF  5/7    ■■   │
-│ SWARM   7+     ■■■  │ ← Tier3 도달, 다음 임계 없음
+│ TANK    3/5   [icon][icon]      │ ← Tier1·2 활성 (활성 티어 수 2 → TANK 아이콘 2개)
+│ DPS     0/3                     │ ← 미도달 (아이콘 0개)
+│ DEBUFF  5/7   [icon][icon]      │
+│ SWARM   7+    [icon][icon][icon]│ ← Tier3 도달, 다음 임계 없음 (SWARM 아이콘 3개)
 └──────────────────────┘
 ```
+> 다이어그램의 `[icon]` 은 **해당 행 축의 아이콘 1장**(`SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png`)을 가리킨다. 행마다 자기 축 아이콘만 표시하며, 표시 개수 = 활성 티어 수 (미도달 0 / Tier1 1 / Tier2 2 / Tier3 3). 서로 다른 3종 아이콘이 아니라 동일 아이콘의 반복이다.
 
 **셀 표시 규칙**:
 - 배경: 해당 축 키 색 (§2). 미도달 알파 30%, Tier 활성 50%, **임계 도달 시 0.3s 펄스** (sin 곡선 50→100→50).
-- 텍스트: `<AXIS>  N/<다음 임계>  ■×Tier`. 7장 도달 후엔 `N+`.
+- 텍스트: `<AXIS>  N/<다음 임계>`. 7장 도달 후엔 `N+`.
+- 티어 마커: 텍스트 우측에 **해당 축 아이콘(`SynergyIcons/<AXIS>.png`)을 활성 티어 수만큼 가로 반복** (미도달 0개 / Tier1 1개 / Tier2 2개 / Tier3 3개). 아이콘 크기 24×24 px, 간격 4 px (3개 = 24×3 + 4×2 = 80 px). 동일 축 아이콘 1장의 반복이며 색 틴트 없음(아이콘 원본 색 그대로).
 - 패널 자체 배경: 반투명 검정 박스 (α 0.4).
 
 **구현** (`Assets/_Lair/Scripts/UI/BuildSynergyPanel.cs` + `BuildSynergyCell.cs`):
-- `BuildSynergyPanel.Awake` 에서 자식 4 Cell 동적 생성 — 인스펙터 참조 0건, 사용자 환경 액션 없음.
+- `BuildSynergyPanel` 은 **손-제작 프리팹** + CHPoolingScrollView 패턴(Rule 03 §3 BuildModalPopup 구조): `[SerializeField] BuildSynergyCardPoolingScrollView _scrollView` 인스펙터 참조 + 4축 아이콘 `[SerializeField] Sprite` 4개를 인스펙터에서 할당(이미 연결됨). 셀은 `HandleBuildChanged` → `_scrollView.SetItemList(...)` 로 풀링 갱신(Awake 동적 생성 아님). 4개 Sprite 는 인스펙터 사전 할당이 필요한 항목(`SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png` 4장 연결됨).
 - `BattleHud.EnsureSynergyPanel` 이 좌상단 RectTransform 자식으로 panel 자동 부착.
 - VM 측: `BattleViewModel.GetBuildCount(EBuildAxis)` + `AddPick` 시 `_buildAxisCounts` 누적. `OnBuildChanged` 이벤트 그대로 활용.
+- **티어 마커 아이콘 공급 (인스펙터 직접 Sprite 참조 — `CardData._icon` 관례)**: 아이콘 sprite 는 `CHMResource` Enum 키 로드가 아니라 패널의 `[SerializeField] Sprite _tankIcon / _dpsIcon / _debuffIcon / _swarmIcon` 4개를 인스펙터에서 직접 할당한다(이미 `SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png` 연결됨). 패널의 `AxisIcon(EBuildAxis)` 가 축→Sprite 로 매핑해 `BuildSynergyCellData.Icon` 에 전달하고, 셀 `BuildSynergyCell` 이 `Image[] _tierMarkers`(3칸)에 `data.Icon` 을 `ActiveTier` 만큼 표시한다.
+  > **Rule 03 §2 (Enum 값명 = 에셋 파일명 일치) 적용 안 됨**: 축 아이콘은 enum 키 Addressables 로드가 아니라 **인스펙터 직접 Sprite 참조**다 (카드 아이콘 `CardData._icon` 과 동일 예외). 따라서 `ESynergyIcon` 같은 별도 enum 을 두지 않으며 파일명-enum 대소문자 정합 이슈도 발생하지 않는다. `EBuildAxis → Sprite` 변환은 `AxisIcon` 분기로만 한다.
+  - 마커는 `Image` 컴포넌트 (sprite = `data.Icon`). 셀 프리팹의 `Image[] _tierMarkers` 3칸 중 `ActiveTier` 개를 좌→우 순서로 활성화(나머지는 비활성). 동적 배치 아님 — 프리팹에 정적 배치된 3칸을 켜고 끈다.
 
 **Rule 03 §3 준수**: 텍스트는 `CHText` (TMP_Text 자동 부착). 배경은 `Image`.
 
@@ -394,14 +400,15 @@
 - **테두리**: 해당 축 키 색 100% 알파, 두께 2px.
 - **텍스트** (CHText): `<축이름> N/<다음 임계>` — 예: `Tank 2/3`, `Dps 5/7`.
   - 폰트 색: 다음 임계 미달이면 검정 `#000000`, **임계 도달 직후 1픽 동안** = 해당 축 색으로 강조.
-- **임계 도달 표시**: 텍스트 옆에 작은 사각형 마커. Tier1 도달 = `■` 1개, Tier2 = `■■`, Tier3 = `■■■`. 색은 해당 축 키 색.
-  - 7장 (Tier3 도달) 시 표기: `Tank 7+ ■■■` (다음 임계 없음).
+- **임계 도달 표시**: 텍스트 옆에 **해당 축 아이콘(`SynergyIcons/<축이름>.png`)을 활성 티어 수만큼 가로 반복**. Tier1 도달 = 아이콘 1개, Tier2 = 2개, Tier3 = 3개, 미도달 = 0개. 동일 축 아이콘 1장의 반복이다(서로 다른 티어용 아이콘 아님). 아이콘 크기 20×20 px, 간격 3 px.
+  - 7장 (Tier3 도달) 시 표기: `Tank 7+` + 아이콘 3개 (다음 임계 없음).
 
 ### 8.3 카드 자체 UI
 
 - **테두리 색**: 해당 카드 축의 키 색 (§2 표) 그대로.
 - **카드 헤더 1줄** (현재 한글 이름 위에 추가): `<축이름>` 1단어 + 작은 사각형 (해당 축 색) — 카드가 어느 축인지 즉시 식별.
   - 예시: `Tank ■  끈질긴 위스프  /  모든 위스프 HP +50%`
+  > 이 사각형은 **카드의 축 태그**(어느 축 카드인지)로, §8.0/§8.2 의 **시너지 티어 마커(축 아이콘)** 와는 별개 요소다. 축 태그는 색 사각형 그대로 유지(2026-06-02 결정 범위 밖).
 - **수치 표시**: 같은 카드를 이미 K번 픽한 상태면 카드 우측 상단에 작은 `×K+1` 배지 (검정 텍스트). 픽 시 K+1 픽 → Layer 2 누적 단계 시각화.
 
 ### 8.4 임계 발화 피드백
@@ -416,6 +423,7 @@
 - 카드 버튼 = `CHButton` (기존 유지).
 - 토스트 띄움 = `CHMUI.ShowUI(EUI.<신규 토스트 UI>)` — 신규 EUI 값 `SynergyToast` 추가.
 - 펄스 애니메이션 = `CHText` 의 color tween 또는 Coroutine. 별도 인프라 불요.
+- 시너지 티어 마커 = `Image` 컴포넌트 (셀 `BuildSynergyCell._tierMarkers`) + sprite 는 패널의 `[SerializeField] Sprite` 4개를 `AxisIcon(EBuildAxis)` 로 매핑해 공급. **Addressables/`CHMResource` 로드를 쓰지 않는다** — 인스펙터 직접 Sprite 참조(`CardData._icon` 관례)이므로 Rule 03 §2(Enum 키 일치) 적용 대상 아님. 파일은 `Assets/_Lair/Art/Sprites/SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png` 를 인스펙터에 드래그 할당. §8.0/§8.2 와 동일 sprite 공급 방식.
 
 ---
 
