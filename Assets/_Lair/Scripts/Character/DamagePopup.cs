@@ -68,7 +68,9 @@ namespace Lair.Character
                 float k = t / _duration;
                 transform.position = start + Vector3.up * (_rise * k);
                 if (_cam != null)
-                    transform.rotation = Quaternion.LookRotation(transform.position - _cam.transform.position);
+                    //# 카메라 회전 복사 → 쿼드가 카메라 평면과 평행 = 화면상 항상 똑바로(스크린-정렬 빌보드).
+                    //# LookRotation(위치 방향) 은 카메라 피치를 받아 화면상 기울어진다.
+                    transform.rotation = _cam.transform.rotation;
                 if (_text != null)
                     _text.color = new Color(color.r, color.g, color.b, 1f - k);   //# 선형 페이드
                 yield return null;
