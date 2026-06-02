@@ -20,19 +20,27 @@ namespace Lair.UI
         //# Threshold (기획서 §3.1). 0.70 경계는 Warm (>= threshold).
         public const float WarmThreshold = 0.7f;
 
-        //# 셀 배경 활성 테두리 (#FBBF24 노랑) / 기본 없음.
-        public static readonly Color ActiveBorderColor   = new Color(0.984f, 0.749f, 0.141f, 1f);
+        //# 셀 배경 테두리 기본 색 — 투명 (종색은 RebindSnapshot 에서 설정).
         public static readonly Color InactiveBorderColor = new Color(0f, 0f, 0f, 0f);
 
         //# ×N 노랑 (#FBBF24).
         public static readonly Color CountTextColor = new Color(0.984f, 0.749f, 0.141f, 1f);
 
-        [SerializeField] private Image _border;          //# 활성 시 노란 테두리 표시용
-        [SerializeField] private Image _colorChip;       //# 종 색칩 (정사각형)
+        [SerializeField] private Image _border;          //# 셀 테두리 — 종 대표색 프레임 (종색 적용)
+        [SerializeField] private Image _colorChip;       //# 종 색칩 (정사각형) — v1.1 중앙 아이콘으로 역할 이관, 숨김
+        [SerializeField] private Image _icon;            //# 셀 중앙 몬스터 아이콘
         [SerializeField] private CHText _speciesText;    //# 종명 영문
         [SerializeField] private CHText _countText;      //# ×N (N≥2 일 때만 노출)
         [SerializeField] private Image _progressFill;    //# 진행 바 Fill (fillAmount)
         [SerializeField] private CHButton _button;       //# 셀 클릭 — Panel 콜백
+
+        //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
+        [SerializeField] private Sprite _wispIcon;
+        [SerializeField] private Sprite _wraithIcon;
+        [SerializeField] private Sprite _reaperIcon;
+        [SerializeField] private Sprite _hexIcon;
+        [SerializeField] private Sprite _plagueIcon;
+        [SerializeField] private Sprite _phantomIcon;
 
         //# 클릭 리스너 수명 관리 (BuildIconCell 선례 패턴).
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
@@ -48,9 +56,16 @@ namespace Lair.UI
             _disposable.Clear();
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_progressFill != null) _progressFill.fillAmount = 0f;
-            //# 색칩 기본 노출 회복 — 직전 셀이 N≥2 였다면 숨겨진 채 풀로 반환됐을 수 있음 (Rule 12).
-            if (_colorChip != null) _colorChip.gameObject.SetActive(true);
-            SetActiveBorder(false);
+            //# 중앙 아이콘 리셋 — 직전 셀 스프라이트 잔존 방지 (Rule 03 §4 풀 재사용).
+            if (_icon != null)
+            {
+                _icon.sprite = null;
+                _icon.gameObject.SetActive(false);
+            }
+            //# 색칩은 v1.1 에서 중앙 아이콘에 역할 이관 — 항상 숨김 (Rule 03 §4 잔존 방지).
+            if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+            //# 테두리 색은 RebindSnapshot 에서 종색으로 설정 — 기본 투명으로 초기화.
+            if (_border != null) _border.color = InactiveBorderColor;
         }
 
         //# Panel 이 셀 생성·바인딩 시 호출 — snapshot + progress + onClick 3 인자 (기획서 §4.6).
@@ -73,11 +88,18 @@ namespace Lair.UI
             _snapshot = snapshot;
             if (snapshot == null) return;
 
-            //# 색칩 — 종 색. v0.6.4 IconRow 삭제로 redundancy 축이 줄어 항상 노출.
-            if (_colorChip != null)
+            //# 테두리 — 종 대표색 프레임 (v1.1). 색칩 대신 셀 외곽이 종색을 담당.
+            if (_border != null) _border.color = SpeciesColor(snapshot.CurrentType);
+
+            //# 색칩 — v1.1 중앙 아이콘으로 역할 이관, 숨김 유지.
+            if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+
+            //# 중앙 아이콘 — 종 스프라이트. 누락 시 숨김 (테두리 색만으로 종 식별 fallback).
+            if (_icon != null)
             {
-                _colorChip.color = SpeciesColor(snapshot.CurrentType);
-                _colorChip.gameObject.SetActive(true);
+                Sprite sprite = SpeciesSprite(snapshot.CurrentType);
+                _icon.sprite = sprite;
+                _icon.gameObject.SetActive(sprite != null);
             }
 
             //# 종명 영문.
@@ -106,12 +128,17 @@ namespace Lair.UI
             _progressFill.color = p < WarmThreshold ? CoolColor : WarmColor;
         }
 
-        //# Panel 이 호출 — 활성 셀(툴팁 표시 중) 노란 테두리 표시.
-        public void SetActiveBorder(bool active)
+        //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.
+        private Sprite SpeciesSprite(EMonster type) => type switch
         {
-            if (_border == null) return;
-            _border.color = active ? ActiveBorderColor : InactiveBorderColor;
-        }
+            EMonster.Wisp    => _wispIcon,
+            EMonster.Wraith  => _wraithIcon,
+            EMonster.Reaper  => _reaperIcon,
+            EMonster.Hex     => _hexIcon,
+            EMonster.Plague  => _plagueIcon,
+            EMonster.Phantom => _phantomIcon,
+            _                => null,
+        };
 
         //# 종 색상 매핑 (기획서 §2.4 · 컨셉 §11.4).
         public static Color SpeciesColor(EMonster type) => type switch

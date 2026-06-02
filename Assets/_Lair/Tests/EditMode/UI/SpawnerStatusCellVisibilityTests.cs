@@ -8,8 +8,8 @@ using Lair.UI;
 
 namespace Lair.Tests.UI
 {
-    //# 스포너 상태 UI — 색칩 visibility 회귀.
-    //# v0.6.4 정책: IconRow 삭제로 redundancy 축이 줄어 색칩은 OutputCount 와 무관하게 항상 노출.
+    //# 스포너 상태 UI — 중앙 아이콘 + 종색 테두리 visibility 회귀 (v1.1).
+    //# v1.1 정책: 색칩 → 중앙 아이콘으로 역할 이관. 색칩은 항상 숨김, 종 식별은 아이콘 + 테두리 색.
     public class SpawnerStatusCellVisibilityTests
     {
         private readonly List<GameObject> _spawned = new();
@@ -22,8 +22,9 @@ namespace Lair.Tests.UI
             _spawned.Clear();
         }
 
-        //# 비활성 셀 GO + colorChip 자식만 채워둔 상태로 생성. Unity 의 OnEnable 자동 호출 회피용.
-        private (SpawnerStatusCell cell, GameObject chipGo) CreateCellWithColorChip()
+        //# 비활성 셀 GO + 자식(colorChip / icon / border) 채워둔 상태로 생성. Unity OnEnable 자동 호출 회피용.
+        //# wispSprite 가 주어지면 _wispIcon 필드에 주입 — 아이콘 표시 케이스 테스트용.
+        private (SpawnerStatusCell cell, GameObject chipGo, GameObject iconGo, Image borderImg) CreateCell(Sprite wispSprite = null)
         {
             GameObject cellGo = new GameObject("Cell_UT");
             cellGo.SetActive(false);
@@ -34,19 +35,39 @@ namespace Lair.Tests.UI
             GameObject chipGo = new GameObject("ColorChip");
             chipGo.transform.SetParent(cellGo.transform, false);
             Image chipImage = chipGo.AddComponent<Image>();
+            SetField(cell, "_colorChip", chipImage);
 
-            FieldInfo fi = typeof(SpawnerStatusCell).GetField(
-                "_colorChip", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(fi, "SpawnerStatusCell._colorChip 필드 존재 확인");
-            fi.SetValue(cell, chipImage);
+            GameObject iconGo = new GameObject("Icon");
+            iconGo.transform.SetParent(cellGo.transform, false);
+            Image iconImage = iconGo.AddComponent<Image>();
+            SetField(cell, "_icon", iconImage);
 
-            return (cell, chipGo);
+            GameObject borderGo = new GameObject("Border");
+            borderGo.transform.SetParent(cellGo.transform, false);
+            Image borderImage = borderGo.AddComponent<Image>();
+            SetField(cell, "_border", borderImage);
+
+            if (wispSprite != null) SetField(cell, "_wispIcon", wispSprite);
+
+            return (cell, chipGo, iconGo, borderImage);
+        }
+
+        private static void SetField(SpawnerStatusCell cell, string name, Object value)
+        {
+            FieldInfo fi = typeof(SpawnerStatusCell).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(fi, $"SpawnerStatusCell.{name} 필드 존재 확인");
+            fi.SetValue(cell, value);
+        }
+
+        private static Sprite MakeSprite()
+        {
+            Texture2D tex = new Texture2D(4, 4);
+            return Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
         }
 
         private static void InvokeOnEnable(SpawnerStatusCell cell)
         {
-            MethodInfo mi = typeof(SpawnerStatusCell).GetMethod(
-                "OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo mi = typeof(SpawnerStatusCell).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsNotNull(mi, "SpawnerStatusCell.OnEnable 메서드 존재 확인");
             mi.Invoke(cell, null);
         }
@@ -62,85 +83,77 @@ namespace Lair.Tests.UI
             };
         }
 
-        //# ===== N=1 / N=2 / N=3 모두 활성 (v0.6.4 항상 노출 정책) =====
+        //# ===== 정상 케이스 — 스프라이트 있으면 중앙 아이콘 활성 =====
 
         [Test]
-        public void RebindSnapshot_N1_색칩_활성()
+        public void RebindSnapshot_스프라이트_있으면_중앙아이콘_활성()
         {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
+            Sprite sprite = MakeSprite();
+            (SpawnerStatusCell cell, _, GameObject iconGo, _) = CreateCell(wispSprite: sprite);
+            InvokeOnEnable(cell);
+            cell.RebindSnapshot(MakeSnapshot(outputCount: 1, type: EMonster.Wisp));
+            Assert.IsTrue(iconGo.activeSelf, "Wisp 스프라이트 존재 → 중앙 아이콘 활성");
+        }
+
+        //# ===== 엣지 케이스 — 스프라이트 누락 시 아이콘 숨김 (테두리 색 fallback) =====
+
+        [Test]
+        public void RebindSnapshot_스프라이트_누락이면_아이콘_숨김()
+        {
+            //# wispSprite 미주입 → SpeciesSprite(Wisp) == null.
+            (SpawnerStatusCell cell, _, GameObject iconGo, _) = CreateCell(wispSprite: null);
+            InvokeOnEnable(cell);
+            cell.RebindSnapshot(MakeSnapshot(outputCount: 1, type: EMonster.Wisp));
+            Assert.IsFalse(iconGo.activeSelf, "스프라이트 누락 → 아이콘 숨김 (NRE 없이 fallback)");
+        }
+
+        //# ===== 테두리 — 종 대표색 적용 =====
+
+        [Test]
+        public void RebindSnapshot_테두리에_종대표색_적용()
+        {
+            (SpawnerStatusCell cell, _, _, Image borderImg) = CreateCell();
+            InvokeOnEnable(cell);
+            cell.RebindSnapshot(MakeSnapshot(outputCount: 1, type: EMonster.Reaper));
+            Assert.AreEqual(SpawnerStatusCell.SpeciesColor(EMonster.Reaper), borderImg.color,
+                "테두리 색 = Reaper 종 대표색");
+        }
+
+        //# ===== 색칩 — v1.1 항상 숨김 (역할 이관) =====
+
+        [Test]
+        public void RebindSnapshot_색칩_항상_숨김()
+        {
+            (SpawnerStatusCell cell, GameObject chipGo, _, _) = CreateCell();
             InvokeOnEnable(cell);
             cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
-            Assert.IsTrue(chipGo.activeSelf, "N=1 → 색칩 활성");
+            Assert.IsFalse(chipGo.activeSelf, "v1.1 — 색칩은 중앙 아이콘으로 역할 이관, 항상 숨김");
         }
 
-        [Test]
-        public void RebindSnapshot_N2_색칩_활성()
-        {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
-            InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
-            Assert.IsTrue(chipGo.activeSelf, "N=2 → 색칩 활성 (v0.6.4 정책)");
-        }
+        //# ===== 풀 재사용 — OnEnable 이 직전 아이콘 스프라이트/활성 리셋 =====
 
         [Test]
-        public void RebindSnapshot_N3_색칩_활성()
+        public void OnEnable_풀재사용시_아이콘_리셋()
         {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
-            InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 3));
-            Assert.IsTrue(chipGo.activeSelf, "N=3 → 색칩 활성 (v0.6.4 정책)");
-        }
-
-        //# ===== 전이 — 모든 단계에서 활성 유지 =====
-
-        [Test]
-        public void RebindSnapshot_N2에서_N1_전이_활성_유지()
-        {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
-            InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
-            Assert.IsTrue(chipGo.activeSelf, "N=2 → N=1 전이 후에도 활성 유지");
-        }
-
-        [Test]
-        public void RebindSnapshot_N1에서_N2_전이_활성_유지()
-        {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
-            InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 2));
-            Assert.IsTrue(chipGo.activeSelf, "N=1 → N=2 전이 후에도 활성 유지 (v0.6.4 정책)");
-        }
-
-        //# ===== 풀 재사용 — OnEnable 이 항상 활성 시작점 보장 =====
-
-        [Test]
-        public void OnEnable_풀재사용시_색칩_활성_복원()
-        {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
-            //# 직전 풀 반환 — 외부에서 강제로 비활성 만들어 둔 상황.
-            chipGo.SetActive(false);
+            (SpawnerStatusCell cell, _, GameObject iconGo, _) = CreateCell();
+            //# 직전 셀이 아이콘 표시 상태로 풀 반환된 상황 시뮬.
+            iconGo.SetActive(true);
+            iconGo.GetComponent<Image>().sprite = MakeSprite();
 
             InvokeOnEnable(cell);
 
-            Assert.IsTrue(chipGo.activeSelf,
-                "OnEnable 이 직전 visibility 와 무관하게 색칩 활성 복원 (Rule 12)");
+            Assert.IsFalse(iconGo.activeSelf, "OnEnable 이 직전 visibility 와 무관하게 아이콘 비활성 리셋 (Rule 03 §4)");
+            Assert.IsNull(iconGo.GetComponent<Image>().sprite, "OnEnable 이 직전 스프라이트 제거 (잔존 방지)");
         }
 
-        //# ===== null snapshot 방어 — 색칩 상태 유지 =====
+        //# ===== null snapshot 방어 — NRE 없음 =====
 
         [Test]
-        public void RebindSnapshot_null이면_NRE없이_색칩_상태_유지()
+        public void RebindSnapshot_null이면_NRE없음()
         {
-            (SpawnerStatusCell cell, GameObject chipGo) = CreateCellWithColorChip();
+            (SpawnerStatusCell cell, _, _, _) = CreateCell();
             InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
-            Assert.IsTrue(chipGo.activeSelf, "사전조건: 활성 상태");
-
             Assert.DoesNotThrow(() => cell.RebindSnapshot(null), "null snapshot → early return, NRE 없음");
-
-            Assert.IsTrue(chipGo.activeSelf, "null snapshot 은 색칩 visibility 를 건드리지 않음 (활성 유지)");
         }
     }
 }
