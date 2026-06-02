@@ -468,6 +468,82 @@ namespace Lair.Tests.PlayMode
             yield return null;
         }
 
+        //# 회귀 (고가치) — 스포너 한 사이클이 N마리(>1) 를 같은 exactPos 가 아니라 산개시킨다.
+        //# 버그: SpawnFromSpawner 가 count 만큼 Pop 하면서 전부 동일 좌표 배치 → 겹쳐 1마리처럼 보임.
+        //# (몬스터는 OnEnable 에서 isKinematic 이라 물리로 흩어지지 않음.) SpawnMonsterRuntime 의 산개 패턴 부재.
+        [UnityTest]
+        public IEnumerator SpawnFromSpawner_N마리_스폰시_좌표_산개_겹치지_않음()
+        {
+            CharacterRegistry.Monsters.Clear();
+            CharacterRegistry.Heroes.Clear();
+
+            yield return EnsureCHMReady();
+            yield return SceneManager.LoadSceneAsync("Battle");
+            yield return null;
+
+            BattleController bc = null;
+            float waitInit = 0f;
+            while (waitInit < 4f)
+            {
+                bc = Object.FindFirstObjectByType<BattleController>();
+                if (bc != null)
+                    break;
+                waitInit += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsNotNull(bc, "BattleController 존재");
+
+#if UNITY_EDITOR
+            bc.DebugAutoPicker = (choices, src) =>
+                (choices != null && choices.Count > 0) ? choices[0] : null;
+#endif
+
+            //# 비동기 Start 완료(영웅 스폰) 대기.
+            float elapsed = 0f;
+            while (elapsed < 4f && CharacterRegistry.Heroes.Count == 0)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(CharacterRegistry.Heroes.Count, 0, "영웅 스폰 완료 (비동기 초기화)");
+
+            int aliveBefore = AliveMonsterCount();
+
+            //# 한 사이클 5마리 모두 동일 exactPos 로 요청. 산개가 없으면 5마리 좌표가 전부 같다.
+            Vector3 exactPos = new Vector3(7f, 0f, 3f);
+            const int RequestCount = 5;
+            bc.SpawnFromSpawner(EMonster.Wisp, exactPos, RequestCount);
+
+            int target = aliveBefore + RequestCount;
+            float wait = 0f;
+            while (wait < 6f && AliveMonsterCount() < target)
+            {
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.GreaterOrEqual(AliveMonsterCount(), target,
+                $"5마리 전량 스폰 — before {aliveBefore} + {RequestCount}");
+
+            //# 본 스폰 종(Wisp) 의 살아있는 몬스터 좌표 수집 — distinct 좌표가 2개 이상이어야 산개.
+            List<Vector3> positions = new List<Vector3>();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null) continue;
+                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
+                if (tag == null || tag.Key != EMonster.Wisp) continue;
+                positions.Add(e.Transform.position);
+            }
+            Assert.GreaterOrEqual(positions.Count, RequestCount,
+                $"수집된 Wisp 좌표 {positions.Count} ≥ 요청 {RequestCount}");
+
+            //# 산개 단언 — 모든 좌표가 동일하면 distinct == 1 (버그). 산개되면 distinct > 1.
+            HashSet<Vector3> distinct = new HashSet<Vector3>(positions);
+            Assert.Greater(distinct.Count, 1,
+                $"N마리 좌표가 산개돼야 함 — distinct 좌표 {distinct.Count} (1 이면 전부 겹침 = 버그)");
+
+            yield return null;
+        }
+
         //# 살아있는 몬스터 수 — CharacterRegistry 순회.
         private static int AliveMonsterCount()
         {

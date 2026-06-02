@@ -375,7 +375,11 @@ namespace Lair.Battle
             {
                 CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
                 if (p == null) continue;
-                p.transform.position = exactPos;
+                //# 산개 — SpawnMonsterRuntime 과 동일. count 만큼 같은 exactPos 에 겹쳐 1마리처럼 보이는 문제 차단.
+                //# 몬스터는 OnEnable 에서 isKinematic 이라 물리로 흩어지지 않으므로 스폰 시 좌표를 분산한다.
+                Vector3 offset = UnityEngine.Random.insideUnitSphere * 2.5f;
+                offset.y = 0f;
+                p.transform.position = exactPos + offset;
                 ApplyMonsterStats(p.gameObject, type, resetCurrent: true);
             }
         }
