@@ -1,10 +1,9 @@
 using System;
-using Lair.Character;
 using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 출혈 — 영웅 이동 중일 때 _duration 초간 1초당 HP -_ratio%.
+    //# 출혈 — 부착 후 _duration 초간 1초당 HP -_ratio% (이동/정지 무관).
     [Serializable]
     public class BleedEffect : ICardEffect
     {
@@ -13,9 +12,7 @@ namespace Lair.Card
 
         public void Apply(IBattleContext ctx)
         {
-            IMover mover = ctx.GetHeroMover();
-            if (mover == null) return;
-            ctx.ApplyHeroAura(new BleedAura(mover, _ratio), _duration);
+            ctx.ApplyHeroAura(new BleedAura(_ratio), _duration);
         }
     }
 }

@@ -53,26 +53,23 @@ namespace Lair.Tests.Card
         }
 
         [Test]
-        public void BleedAura_이동_중에만_1초마다_데미지()
+        public void BleedAura_정지_중에도_1초마다_데미지()
         {
-            FakeMover mover = new FakeMover();
             FakeHealth hp = new FakeHealth();
             hp.SetMax(100);
-            BleedAura aura = new BleedAura(mover, 0.02f);
+            BleedAura aura = new BleedAura(0.02f);
             aura.OnAttached(hp);
 
-            //# 이동 중 — 0.6 + 0.6 = 1.2 → 1회 (Max 100 × 0.02 = 2)
-            mover.IsMoving = true;
+            //# 0.6 + 0.6 = 1.2 → 1회 (Max 100 × 0.02 = 2) — 이동 조건 없이 항상 누적.
             aura.Tick(hp, 0.6f);
             Assert.AreEqual(0, hp.DamageCallCount);
             aura.Tick(hp, 0.6f);
             Assert.AreEqual(1, hp.DamageCallCount);
             Assert.AreEqual(2, hp.LastDamage);
 
-            //# 정지 중 — 데미지 없음
-            mover.IsMoving = false;
+            //# 정지 상태로 가정해도 계속 틱 — 5초 더 → 5회 추가.
             aura.Tick(hp, 5f);
-            Assert.AreEqual(1, hp.DamageCallCount);
+            Assert.AreEqual(6, hp.DamageCallCount);
         }
     }
 }

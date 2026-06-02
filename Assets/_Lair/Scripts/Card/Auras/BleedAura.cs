@@ -5,28 +5,27 @@ using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 영웅이 이동 중일 때만 1초당 Max×_ratio 데미지.
+    //# 부착돼 있는 동안 항상 1초당 Max×_ratio 데미지 (이동/정지 무관).
     [Serializable]
     public class BleedAura : IHeroAura, IStatusVisual
     {
         public EVisual VisualKey => EVisual.BleedStatus;
         public Vector3 Offset => new Vector3(0.4f, 0.05f, 0f);
 
-        private readonly IMover _mover;
         private readonly float _ratio;   //# 0.02 = 2%
         private float _acc;
 
-        public BleedAura(IMover mover, float ratio = 0.02f)
+        public BleedAura(float ratio = 0.02f)
         {
-            _mover = mover;
             _ratio = ratio;
         }
 
         public void OnAttached(IHealth hero) { _acc = 0f; }
 
+        //# 부착 중 매 1초 Max×_ratio 데미지 — 영웅 이동 여부와 무관.
         public void Tick(IHealth hero, float dt)
         {
-            if (hero == null || _mover == null || _mover.IsMoving == false) return;
+            if (hero == null) return;
             _acc += dt;
             while (_acc >= 1f)
             {

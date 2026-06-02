@@ -189,8 +189,7 @@ namespace Lair.Tests.Character
             GameObject tgtGo = new GameObject("hero");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();   //# Max=100
 
-            FakeMover mover = new FakeMover { IsMoving = true };
-            BleedAura aura = new BleedAura(mover, ratio: 0.02f);  //# 2%/s → 100×0.02=2
+            BleedAura aura = new BleedAura(ratio: 0.02f);  //# 2%/s → 100×0.02=2
             aura.OnAttached(tgt);
 
             aura.Tick(tgt, 1f);   //# 1초 누적 → 정확히 1틱

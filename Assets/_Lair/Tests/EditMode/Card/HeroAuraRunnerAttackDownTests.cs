@@ -74,11 +74,10 @@ namespace Lair.Tests.Card
                 hp.SetMax(100, resetCurrent: true);
                 MeleeAttacker atk = heroGo.AddComponent<MeleeAttacker>();
                 atk.PowerScale = 1f;
-                SimpleMover mover = heroGo.AddComponent<SimpleMover>();
                 HeroAuraRunner runner = heroGo.AddComponent<HeroAuraRunner>();
 
                 //# Bleed 와 AttackDown 동시 부착 — 서로 다른 type 라 가드 무관.
-                runner.Attach(new BleedAura(mover, 0.02f), duration: 10f);
+                runner.Attach(new BleedAura(0.02f), duration: 10f);
                 runner.Attach(new HeroAttackDownAura(atk, 0.75f), duration: -1f);
                 runner.Attach(new HeroAttackDownAura(atk, 0.85f), duration: -1f);
 
