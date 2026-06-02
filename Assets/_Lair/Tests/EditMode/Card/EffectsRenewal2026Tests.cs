@@ -19,7 +19,6 @@ namespace Lair.Tests.Card
             public readonly List<EMonster> Spawned = new();
             public readonly List<EMonsterBuff> MonsterBuffs = new();
             public readonly List<float> SpawnerPeriods = new();
-            public readonly List<int> CapDeltas = new();
             public readonly List<int> OutputDeltas = new();
             public readonly List<(EMonster, float)> SpawnerPeriodsByType = new();
             public Transform HeroTransform;
@@ -29,7 +28,6 @@ namespace Lair.Tests.Card
             public void SpawnMonster(EMonster key, Vector3 nearHero) => Spawned.Add(key);
             public void AddMonsterBuff(EMonsterBuff type, float duration) => MonsterBuffs.Add(type);
             public void ScaleAllSpawnerPeriods(float mul) => SpawnerPeriods.Add(mul);
-            public void IncrementGlobalMonsterCap(int delta) => CapDeltas.Add(delta);
             public void IncrementAllSpawnerOutputs(int delta) => OutputDeltas.Add(delta);
             public void ScaleSpawnerPeriodForType(EMonster type, float mul) => SpawnerPeriodsByType.Add((type, mul));
             public void ApplyHeroAura(IHeroAura aura, float durationSeconds = -1f) { }

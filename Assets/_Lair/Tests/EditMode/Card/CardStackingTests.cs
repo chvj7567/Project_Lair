@@ -204,7 +204,6 @@ namespace Lair.Tests.Card
             public void ReplaceSpawnerOutput(EMonster from, EMonster to) { }
             public void RegisterCardPick(EBuildAxis axis) { }
             public int GetBuildCount(EBuildAxis axis) => 0;
-            public void IncrementGlobalMonsterCap(int delta) { }
             public void IncrementAllSpawnerOutputs(int delta) { }
             public void ScaleSpawnerPeriodForType(EMonster type, float mul) => SpawnerPeriodsByType.Add((type, mul));
         }

@@ -23,10 +23,6 @@ namespace Lair.Battle
         //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
         [SerializeField] private BalanceConfig _balance;
 
-        //# 지속 스폰 — 글로벌 필드 몬스터 하드 캡 (§4.2). 어느 스폰 경로에서든 절대값.
-        //# v7: 12 → 18. Power 차등 하향으로 DPS 여유 확보 → 캡 복귀 (continuous-spawn-round.md §6.3).
-        private int _monsterCap = 18;
-
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
@@ -366,32 +362,17 @@ namespace Lair.Battle
             _vm?.AttachSpawners(_spawners, this);
         }
 
-        //# 지속 스폰 — 현재 살아있는 필드 몬스터 수 (캡 검사용).
-        private static int AliveMonsterCount()
-        {
-            int n = 0;
-            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
-                if (e?.Health != null && e.Health.IsAlive) ++n;
-            return n;
-        }
-
-        //# ISpawnerHost — Spawner 한 사이클. 사이클 진입 가부는 사이클 단위 검사 (§4.3).
-        //# 캡(18) 이상이면 사이클 전량 skip, 미만이면 count 마리 스폰.
+        //# ISpawnerHost — Spawner 한 사이클. 종료 검사만 통과하면 count 전량 스폰 (동시 캡 제거, spec §2.A).
         public async void SpawnFromSpawner(EMonster type, Vector3 exactPos, int count)
         {
             if (_model != null && _model.Result != BattleResult.None) return;
-            //# 사이클 진입 판정 — 시작 시 1회 (§4.3 사이클 단위 검사).
-            if (AliveMonsterCount() >= _monsterCap) return;   //# 사이클 백오프 (await 전 선검사)
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
             if (prefab == null) return;
-            //# await 후 종료/캡 재검사 — 동프레임 인터리브(다른 Spawner·증식) 시에도
-            //# 캡 18 절대값 보장 (§4.2). 사이클 진입은 이미 통과했으므로 잔여만 중단한다.
+            //# await 후 종료 재검사 — 인터리브로 await 동안 전투가 끝났으면 잔여 스폰 중단.
             if (_model != null && _model.Result != BattleResult.None) return;
             for (int i = 0; i < count; ++i)
             {
-                //# 마리 단위 캡 재검사 — 사이클 잔여를 중단해 캡을 절대 넘기지 않는다.
-                if (AliveMonsterCount() >= _monsterCap) break;
                 CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
                 if (p == null) continue;
                 p.transform.position = exactPos;
@@ -525,13 +506,6 @@ namespace Lair.Battle
                 if (sp != null && sp.CurrentType == from) sp.ReplaceOutput(to);
         }
 
-        //# 카드 리뉴얼 v0.6 — Tank Tier3. 글로벌 필드 캡 +delta. 음수 입력 무시 (안전 가드).
-        public void IncrementGlobalMonsterCap(int delta)
-        {
-            if (delta <= 0) return;
-            _monsterCap += delta;
-        }
-
         //# 카드 리뉴얼 v0.6 — SpawnerHaste 카드 / Swarm Tier2. 모든 Spawner 의 _spawnPeriod ×mul (영구).
         public void ScaleAllSpawnerPeriods(float mul)
         {
@@ -556,9 +530,6 @@ namespace Lair.Battle
             foreach (Spawner sp in _spawners)
                 if (sp != null && sp.CurrentType == type) sp.ScalePeriod(mul);
         }
-
-        //# 카드 리뉴얼 v0.6 — 디버그 / 테스트용 read-only 노출. Tier3 발화 후 캡 변경 확인.
-        public int MonsterCap => _monsterCap;
 
         private async void EndBattle(BattleResult result)
         {
@@ -658,7 +629,7 @@ namespace Lair.Battle
             GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
             if (heroPrefab != null) CHMPool.Instance.CreatePool(heroPrefab, count: 1);
 
-            //# 지속 스폰 — 캡 18 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
+            //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
             foreach (EMonster key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
                                         EMonster.Hex, EMonster.Plague, EMonster.Phantom })
             {
@@ -696,17 +667,15 @@ namespace Lair.Battle
         }
 
         //# B1 — BattleContext.SpawnMonster 가 호출하는 런타임 스폰 (액티브 증식 카드 등).
-        //# 지속 스폰 — 마리 단위 캡 검사 (§4.4 truncate). 캡 이상이면 no-op.
+        //# 동시 캡 제거 (spec §2.A) — 종료 검사만 통과하면 1마리 스폰.
         public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
         {
             if (_model != null && _model.Result != BattleResult.None) return;
-            if (AliveMonsterCount() >= _monsterCap) return;   //# 빠른 선검사 (await 전)
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null) return;
-            //# await 후 재검사 — 동프레임 다중 호출(증식)이 await 로 인터리브돼도 캡 절대값 보장.
+            //# await 후 종료 재검사 — await 동안 전투가 끝났으면 스폰 중단.
             if (_model != null && _model.Result != BattleResult.None) return;
-            if (AliveMonsterCount() >= _monsterCap) return;
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null) return;
 

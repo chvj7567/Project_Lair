@@ -332,14 +332,14 @@ namespace Lair.Tests.PlayMode
                 "필드 0개여도 dict 갱신됨 — 이후 신규 위스프 300");
         }
 
-        //# ===== 3. 필드 몬스터 캡 18 — Battle 씬 통합 =====
+        //# ===== 3. 동시 몬스터 캡 제거 — Battle 씬 통합 (spec §2.A) =====
 
-        //# 통합 — Battle 씬을 진행해도 살아있는 몬스터가 캡 18 를 절대 넘지 않는다.
-        //# Spawner 자연 스폰(사이클 skip) + 증식 경로 모두 합쳐도 절대값 유지 (§4.2).
+        //# 회귀 (고가치) — 캡 제거 후 한 스폰 사이클이 구 캡(18)을 초과해도 truncate 되지 않는다.
+        //# 구 테스트 'Battle씬_지속스폰_..캡18_절대초과없음' 을 캡 제거 spec 에 맞춰 반대 단언으로 대체.
+        //# ISpawnerHost.SpawnFromSpawner(type, pos, count) 를 count=25 로 직접 호출 → 25마리 전량 등록 확인.
         [UnityTest]
-        public IEnumerator Battle씬_지속스폰_살아있는_몬스터_캡18_절대초과없음()
+        public IEnumerator 캡_제거_후_18마리_초과_스폰_truncate_없음()
         {
-            //# 정적 레지스트리 정리 — 본 테스트 전 상태 격리.
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
 
@@ -347,7 +347,6 @@ namespace Lair.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync("Battle");
             yield return null;
 
-            //# BattleController 가 씬에 잡힐 때까지 unscaledDeltaTime 으로 대기 (timeScale 무관).
             BattleController bc = null;
             float waitInit = 0f;
             while (waitInit < 4f)
@@ -361,13 +360,12 @@ namespace Lair.Tests.PlayMode
             Assert.IsNotNull(bc, "BattleController 가 씬에 존재해야 함");
 
 #if UNITY_EDITOR
-            //# 게임 진행 중 HP%/30s 트리거로 팝업이 뜨면 PauseService 가 timeScale=0 → hang.
-            //# DebugAutoPicker 로 첫 장 픽해 팝업 우회. BalanceSimulationTest 와 동일 훅 사용.
+            //# 카드 팝업 hang 우회 — 트리거 발생 시 첫 장 자동 픽.
             bc.DebugAutoPicker = (choices, src) =>
                 (choices != null && choices.Count > 0) ? choices[0] : null;
 #endif
 
-            //# 비동기 Start 완료(영웅 스폰) 대기 — unscaledDeltaTime 으로 timeScale 영향 차단.
+            //# 비동기 Start 완료(영웅 스폰) 대기.
             float elapsed = 0f;
             while (elapsed < 4f && CharacterRegistry.Heroes.Count == 0)
             {
@@ -375,53 +373,108 @@ namespace Lair.Tests.PlayMode
                 yield return null;
             }
             Assert.Greater(CharacterRegistry.Heroes.Count, 0,
-                "4초 후 영웅 미스폰 — BattleController 비동기 초기화 미완 (Addressables/씬 확인)");
+                "4초 후 영웅 미스폰 — BattleController 비동기 초기화 미완");
 
-            //# 게임 시간 70초 진행 — BalanceSimulationTest 패턴으로 가속(5x → 벽시계 ~14s).
-            Time.timeScale = 5f;
+            //# 스폰 직전 살아있는 몬스터 스냅샷.
+            int aliveBefore = AliveMonsterCount();
 
-            int maxObserved = 0;
-            float wallElapsed = 0f;
-            //# 벽시계 fail-safe: 70초 / 5x = 14초 게임시간 + 초기화 여유 → 25초 안에 완료해야 함.
-            const float WallTimeLimit = 25f;
-            //# 게임 시간 70초가 누적되거나, 영웅이 모두 죽으면 종료.
-            float gameTimeAccum = 0f;
-            while (wallElapsed < WallTimeLimit && gameTimeAccum < 70f)
+            //# 한 사이클 25마리 강제 스폰 (구 캡 18 초과). 영웅 근처 위치.
+            Vector3 spawnPos = CharacterRegistry.Heroes[0].Transform != null
+                ? CharacterRegistry.Heroes[0].Transform.position + Vector3.right * 2f
+                : Vector3.zero;
+            const int RequestCount = 25;
+            bc.SpawnFromSpawner(EMonster.Wisp, spawnPos, RequestCount);
+
+            //# async void — Addressables 로드 + 25회 Pop 완료까지 등록수 누적을 대기 (unscaledDeltaTime).
+            int target = aliveBefore + RequestCount;
+            float wait = 0f;
+            while (wait < 6f && AliveMonsterCount() < target)
             {
-                int alive = 0;
-                foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
-                    if (e?.Health != null && e.Health.IsAlive) alive++;
-                if (alive > maxObserved) maxObserved = alive;
-                //# 캡 절대값 — 매 프레임 검사. 한 번이라도 초과하면 실패.
-                Assert.LessOrEqual(alive, 18,
-                    $"살아있는 몬스터 {alive} — 캡 18 초과 금지 (게임 t={gameTimeAccum:F1}s)");
-
-                //# 영웅 전멸이면 더 이상 스폰 안 됨 — 조기 종료.
-                if (AllHeroesDead()) break;
-
-                gameTimeAccum += Time.deltaTime;  //# 게임 시간 (timeScale 반영)
-                wallElapsed += Time.unscaledDeltaTime;
+                wait += Time.unscaledDeltaTime;
                 yield return null;
             }
 
-            //# 가속 원복.
-            Time.timeScale = 1f;
-
-            //# 캡이 실제로 작동했는지 — 적어도 몇 마리는 스폰됐어야 (Spawner 가 도는지 sanity).
-            Assert.Greater(maxObserved, 0,
-                "한 마리도 안 나옴 — Spawner 가 구동되지 않음 (씬 구성 확인)");
+            int aliveAfter = AliveMonsterCount();
+            //# 캡 제거 회귀 핵심 — 18 에 막히지 않고 요청한 25마리가 전량 추가됐는지.
+            Assert.GreaterOrEqual(aliveAfter, target,
+                $"캡 제거 후 truncate 없어야 함 — before {aliveBefore} + {RequestCount} 요청, after {aliveAfter}");
+            Assert.Greater(aliveAfter, 18,
+                $"살아있는 몬스터 {aliveAfter} — 구 캡 18 을 넘겨 누적돼야 함 (캡 제거 검증)");
 
             yield return null;
         }
 
-        //# 영웅 전멸이면 스폰이 멈춤 — 캡18 테스트 조기 종료 조건.
-        private static bool AllHeroesDead()
+        //# 회귀 — 전투 종료(_model.Result != None) 후 SpawnFromSpawner 호출은 한 마리도 스폰하지 않는다 (종료검사 보존).
+        //# 캡 제거 시 enforcement 4곳을 지우면서 종료검사까지 지웠다면 이 단언이 깨진다 (가드 박제).
+        [UnityTest]
+        public IEnumerator 전투_종료_후_SpawnFromSpawner_스폰_안됨_종료검사_보존()
         {
-            List<CharacterRegistry.Entry> heroes = CharacterRegistry.Heroes;
-            if (heroes.Count == 0) return false;
-            foreach (CharacterRegistry.Entry e in heroes)
-                if (e?.Health != null && e.Health.IsAlive) return false;
-            return true;
+            CharacterRegistry.Monsters.Clear();
+            CharacterRegistry.Heroes.Clear();
+
+            yield return EnsureCHMReady();
+            yield return SceneManager.LoadSceneAsync("Battle");
+            yield return null;
+
+            BattleController bc = null;
+            float waitInit = 0f;
+            while (waitInit < 4f)
+            {
+                bc = Object.FindFirstObjectByType<BattleController>();
+                if (bc != null)
+                    break;
+                waitInit += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsNotNull(bc, "BattleController 존재");
+
+#if UNITY_EDITOR
+            bc.DebugAutoPicker = (choices, src) =>
+                (choices != null && choices.Count > 0) ? choices[0] : null;
+#endif
+
+            //# 비동기 Start 완료 대기 — _model 인스턴스화까지.
+            float elapsed = 0f;
+            while (elapsed < 4f && GetPrivate<object>(bc, "_model") == null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            object model = GetPrivate<object>(bc, "_model");
+            Assert.IsNotNull(model, "_model 인스턴스화");
+
+            //# 전투를 강제 종료 상태로 — BattleStateModel.Result(public 필드) = Win 설정 (리플렉션).
+            FieldInfo resultField = model.GetType().GetField("Result",
+                BindingFlags.Public | BindingFlags.Instance);
+            Assert.IsNotNull(resultField, "BattleStateModel.Result 필드 존재");
+            resultField.SetValue(model, BattleResult.Win);
+
+            int aliveBefore = AliveMonsterCount();
+
+            //# 종료 상태에서 한 사이클 요청 — 종료검사로 즉시 return, 스폰 0.
+            bc.SpawnFromSpawner(EMonster.Wisp, Vector3.zero, 10);
+
+            //# 혹시 비동기로 스폰될 여지를 두고 잠시 대기 후 불변 확인.
+            float wait = 0f;
+            while (wait < 1.5f)
+            {
+                wait += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            Assert.AreEqual(aliveBefore, AliveMonsterCount(),
+                "전투 종료 후에는 종료검사로 스폰 차단 — 살아있는 수 불변");
+
+            yield return null;
+        }
+
+        //# 살아있는 몬스터 수 — CharacterRegistry 순회.
+        private static int AliveMonsterCount()
+        {
+            int alive = 0;
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+                if (e?.Health != null && e.Health.IsAlive) alive++;
+            return alive;
         }
 
         //# 통합 — Battle 씬에 §5.3 스타터 프리셋대로 6개 Spawner 가 BattleController 에 배선돼 있다.

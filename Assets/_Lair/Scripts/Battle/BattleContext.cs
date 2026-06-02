@@ -114,11 +114,8 @@ namespace Lair.Battle
             return _synergy.GetCount(axis);
         }
 
-        //# 카드 리뉴얼 v0.6 — Tank Tier3 시너지 / SpawnerHaste / Swarm Tier2·3 표면.
-        //# BattleController 가 _monsterCap (필드 승격) + Spawner 컴포넌트 집합 조작을 위임.
-        public void IncrementGlobalMonsterCap(int delta)
-            => _owner.IncrementGlobalMonsterCap(delta);
-
+        //# 카드 리뉴얼 v0.6 — SpawnerHaste / Swarm Tier2·3 표면.
+        //# BattleController 가 Spawner 컴포넌트 집합 조작을 위임.
         public void ScaleAllSpawnerPeriods(float mul)
             => _owner.ScaleAllSpawnerPeriods(mul);
 

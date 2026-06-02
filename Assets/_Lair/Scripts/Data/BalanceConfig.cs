@@ -33,7 +33,7 @@ namespace Lair.Data
         [SerializeField] private float[] _passiveThresholds =
             { 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.2f, 0.1f };
         [SerializeField] private float[] _activeThresholds =
-            { 30f, 60f, 90f, 120f, 150f, 180f, 210f, 240f, 270f };
+            { 30f, 90f, 150f, 210f, 270f };
 
         public CharacterStat Hero => _hero;
         public float RunDuration => _runDuration;

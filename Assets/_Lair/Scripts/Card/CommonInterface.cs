@@ -58,10 +58,6 @@ namespace Lair.Card
         //# 카드 리뉴얼 v0.6 — 빌드 카운트 조회 (UI 카운트 바 / 시너지 카드 효과 내부 조건문에서 사용).
         int GetBuildCount(EBuildAxis axis);
 
-        //# 카드 리뉴얼 v0.6 — Tank Tier3 표면.
-        //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — TankSynergyTier3).
-        void IncrementGlobalMonsterCap(int delta);
-
         //# 카드 리뉴얼 v0.6 — Swarm Tier2 / SpawnerHaste 카드 공용 표면.
         //# TODO: Phase 2 카드 효과에서 호출. 본 구현은 다음 사이클 (Task 11 — SwarmSynergyTier2).
         void ScaleAllSpawnerPeriods(float mul);

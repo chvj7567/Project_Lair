@@ -14,14 +14,12 @@ namespace Lair.Tests.Card
         private class FakeCtx : IBattleContext
         {
             public readonly List<(EMonster, EMonsterStatKind, float)> Buffs = new();
-            public readonly List<int> CapDeltas = new();
             public readonly List<float> SpawnerPeriods = new();
             public readonly List<int> OutputDeltas = new();
             public readonly List<IHeroAura> Auras = new();
 
             public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
                 => Buffs.Add((type, stat, multiplier));
-            public void IncrementGlobalMonsterCap(int delta) => CapDeltas.Add(delta);
             public void ScaleAllSpawnerPeriods(float mul) => SpawnerPeriods.Add(mul);
             public void IncrementAllSpawnerOutputs(int delta) => OutputDeltas.Add(delta);
             public void ScaleSpawnerPeriodForType(EMonster type, float mul) { }
@@ -64,13 +62,54 @@ namespace Lair.Tests.Card
             Assert.Contains((EMonster.Wraith, EMonsterStatKind.Power, 1.2f), ctx.Buffs);
         }
 
+        //# 캡 제거 리뉴얼 — 구 IncrementGlobalMonsterCap(6) → Wisp·Wraith HP ×1.4 등록 (기획서 §2).
         [Test]
-        public void TankTier3_IncrementGlobalMonsterCap_6_호출()
+        public void TankTier3_Wisp_Wraith_Hp_1점4_등록()
         {
             FakeCtx ctx = new FakeCtx();
             new TankSynergyTier3().Apply(ctx);
-            Assert.AreEqual(1, ctx.CapDeltas.Count);
-            Assert.AreEqual(6, ctx.CapDeltas[0]);
+            Assert.AreEqual(2, ctx.Buffs.Count);
+            Assert.Contains((EMonster.Wisp,   EMonsterStatKind.Hp, 1.4f), ctx.Buffs);
+            Assert.Contains((EMonster.Wraith, EMonsterStatKind.Hp, 1.4f), ctx.Buffs);
+        }
+
+        //# 회귀 (고가치) — 구 효과 잔존 차단: Tier3 가 스포너 출력/주기 표면을 건드리지 않는다.
+        //# 구 캡 +6 이 IncrementGlobalMonsterCap → (인터페이스 삭제) 였고, 잘못 재구현 시 출력 표면을 칠 위험.
+        [Test]
+        public void TankTier3_스포너_표면_미호출_HP_표면만_사용()
+        {
+            FakeCtx ctx = new FakeCtx();
+            new TankSynergyTier3().Apply(ctx);
+            Assert.AreEqual(0, ctx.SpawnerPeriods.Count, "Tier3 는 주기 표면 미호출");
+            Assert.AreEqual(0, ctx.OutputDeltas.Count, "Tier3 는 출력 표면 미호출 (구 캡 효과 잔존 없음)");
+            Assert.AreEqual(0, ctx.Auras.Count, "Tier3 는 영웅 오라 미호출");
+        }
+
+        //# 엣지 — Tier3 는 Wisp·Wraith 외 종(Reaper 등)에 버프를 등록하지 않는다.
+        [Test]
+        public void TankTier3_Wisp_Wraith_외_종은_미등록()
+        {
+            FakeCtx ctx = new FakeCtx();
+            new TankSynergyTier3().Apply(ctx);
+            foreach ((EMonster type, EMonsterStatKind _, float _) in ctx.Buffs)
+                Assert.IsTrue(type == EMonster.Wisp || type == EMonster.Wraith,
+                    $"Tier3 가 대상 외 종 {type} 에 버프 등록 — Wisp·Wraith 만 허용");
+        }
+
+        //# 엣지 — Tier3 단독 반복 호출도 호출 표면이 일정 (멱등 호출 — 누적은 ctx 구현 책임).
+        //# 본 FakeCtx 는 호출만 기록하므로 2회 Apply 면 4건. 누적 곱연산은 PlayMode 실 _typeModifiers 가 검증.
+        [Test]
+        public void TankTier3_2회_Apply_시_각_호출이_HP_표면으로_누적_기록()
+        {
+            FakeCtx ctx = new FakeCtx();
+            new TankSynergyTier3().Apply(ctx);
+            new TankSynergyTier3().Apply(ctx);
+            Assert.AreEqual(4, ctx.Buffs.Count, "2회 Apply — Wisp·Wraith 각 2건씩 표면 호출");
+            foreach ((EMonster _, EMonsterStatKind stat, float mul) in ctx.Buffs)
+            {
+                Assert.AreEqual(EMonsterStatKind.Hp, stat, "모든 호출이 HP 스탯");
+                Assert.AreEqual(1.4f, mul, 0.0001f, "모든 호출 배율 ×1.4");
+            }
         }
 
         //# ===== Dps =====

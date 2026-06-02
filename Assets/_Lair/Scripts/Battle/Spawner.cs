@@ -103,7 +103,7 @@ namespace Lair.Battle
                 _timer -= _spawnPeriod;
             }
 
-            //# 캡 검사는 사이클 단위 (§4.3) — 호스트가 캡 이상이면 사이클 전량 skip.
+            //# 스폰 위치 산정 후 호스트에 사이클 위임 (동시 캡 제거, spec §2.A — 호스트가 count 전량 스폰).
             //# 스폰 위치 — 각 스포너 자기 위치 우선: _spawnPoint > transform.position (zone 픽 미사용).
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
             _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
