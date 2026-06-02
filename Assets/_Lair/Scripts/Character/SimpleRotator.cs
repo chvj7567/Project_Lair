@@ -13,6 +13,10 @@ namespace Lair.Character
         private bool _hasTarget;
         private float _targetYaw;
 
+        //# Rigidbody 있으면 MoveRotation 사용. transform.rotation 직접 쓰기는 같은 바디의 MovePosition 을
+        //# 덮어써(매 프레임 동기) 이동을 한 step 씩 무효화함 — 회전도 물리 경로로 통일.
+        private Rigidbody _rigidbody;
+
         public float TurnSpeedDegPerSec
         {
             get => _turnSpeedDegPerSec;
@@ -36,7 +40,12 @@ namespace Lair.Character
             _targetYaw = yaw;
             _hasTarget = true;
             //# X/Z = 0 강제. 외부에서 잘못된 회전이 들어와도 yaw 만 살림.
-            transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+            ApplyYaw(yaw);
+        }
+
+        private void Awake()
+        {
+            _rigidbody = GetComponent<Rigidbody>();
         }
 
         //# Rule 12 — 풀 재사용 시 이전 목표 잔존 방지.
@@ -53,8 +62,22 @@ namespace Lair.Character
             float currentYaw = transform.eulerAngles.y;
             float step = _turnSpeedDegPerSec * Time.deltaTime;
             float newYaw = Mathf.MoveTowardsAngle(currentYaw, _targetYaw, step);
-            //# 매 적용 시 X/Z = 0 강제 — 외부 회전 간섭 방지.
-            transform.rotation = Quaternion.Euler(0f, newYaw, 0f);
+            ApplyYaw(newYaw);
+        }
+
+        //# X/Z = 0 강제한 yaw-only 회전을 적용. Rigidbody 있으면 MoveRotation —
+        //# transform.rotation 직접 쓰기는 같은 바디의 MovePosition 을 덮어써 이동을 무효화함.
+        private void ApplyYaw(float yaw)
+        {
+            Quaternion rotation = Quaternion.Euler(0f, yaw, 0f);
+            if (_rigidbody != null)
+            {
+                _rigidbody.MoveRotation(rotation);
+            }
+            else
+            {
+                transform.rotation = rotation;
+            }
         }
     }
 }

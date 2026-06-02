@@ -65,6 +65,53 @@ namespace Lair.Tests.PlayMode
             return go;
         }
 
+        //# kinematic 몬스터 + SimpleMover/SimpleRotator 가 한 GameObject 에 공존하는 march 모사.
+        //# 회전 명령이 매 프레임 들어와도 MovePosition 이동이 무효화되지 않는지 검증용.
+        private GameObject SpawnMover(Vector3 pos, Vector3 target, float speed)
+        {
+            GameObject go = new GameObject("mover");
+            go.transform.position = pos;
+            Rigidbody rb = go.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            SimpleMover mover = go.AddComponent<SimpleMover>();
+            mover.Speed = speed;
+            mover.MoveTo(target);
+            go.AddComponent<SimpleRotator>();
+            _spawned.Add(go);
+            return go;
+        }
+
+        //# 회귀 박제 — 매 프레임 회전 명령이 들어오는 kinematic 몬스터가 정상 행군한다.
+        //# 원인: SimpleRotator 가 transform.rotation 을 직접 쓰면 같은 바디의 MovePosition 을 덮어써
+        //# 이동이 step 단위로 무효화(행군 freeze). MoveRotation 경로 통일로 해소.
+        [UnityTest]
+        public IEnumerator 매프레임_회전_중에도_kinematic_몬스터_정상_행군()
+        {
+            //# 영웅(타겟) 을 매 프레임 살짝 옮겨 회전 yaw 가 매 프레임 갱신되게 함 — 실제 추적 상황 모사.
+            Vector3 target = new Vector3(10f, 0f, 0f);
+            GameObject m = SpawnMover(Vector3.zero, target, speed: 3f);
+            SimpleRotator rotator = m.GetComponent<SimpleRotator>();
+            yield return new WaitForFixedUpdate();
+
+            Vector3 startPos = m.transform.position;
+            float movingTargetZ = 0f;
+            for (int i = 0; i < 60; ++i)
+            {
+                //# 타겟이 조금씩 측면 이동 → FaceDirection 이 매 프레임 새 yaw 명령.
+                movingTargetZ += 0.05f;
+                Vector3 movingTarget = new Vector3(10f, 0f, movingTargetZ);
+                rotator.FaceDirection(movingTarget - m.transform.position);
+                m.GetComponent<SimpleMover>().MoveTo(movingTarget);
+                yield return new WaitForFixedUpdate();
+            }
+
+            float advanced = m.transform.position.x - startPos.x;
+            //# 60 FixedUpdate × 3 speed × 0.02 dt ≈ 3.6m 직진 기대. 회전 clobber 면 ~0.3m 로 주저앉음.
+            Assert.Greater(advanced, 2.0f,
+                $"매 프레임 회전 명령 중에도 MovePosition 행군이 유지되어야 한다 (전진 {advanced:F2}m).");
+        }
+
         //# 핵심 — MonsterTag.OnEnable 이 몬스터 Rigidbody 를 kinematic 으로 강제.
         [UnityTest]
         public IEnumerator 몬스터_스폰시_Rigidbody_kinematic_으로_전환()
