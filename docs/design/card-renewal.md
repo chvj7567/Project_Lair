@@ -91,7 +91,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 1 | `WispHpBoost` | 보존 | P | 끈질긴 위스프 | 모든 위스프 HP +50% | `_hpMul=1.5` | `WispHpBoostEffect` | 곱연산 누적 (2픽=×2.25, 3픽=×3.375) |
 | 2 | `WraithDamageBoost` | 리뉴얼 (데미지→HP) | P | 망령의 압박 | 모든 레이스 HP +50% | `_hpMul=1.5` | `WraithDamageBoostEffect` | 곱연산 누적 (Wraith Hp 배율, RegisterMonsterTypeBuff) |
-| 3 | `SpawnWraith` | 보존 | P | 레이스 소환 | 레이스 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnWraithEffect` | 가산 누적 (2픽=+2, 3픽=+3, 캡 18 적용) |
+| 3 | `SpawnWraith` | 보존 | P | 더 많은 망령 | 레이스 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnWraithEffect` | 가산 누적 (2픽=+2, 3픽=+3, 캡 18 적용) |
 | 4 | `ReplaceWispsToWraith` | 리뉴얼 (교체→Power강화) | P | 공포의 군세 | 위스프·레이스 데미지 +30% (영구) | `_powerMul=1.3` | `WispWraithPowerBoostEffect` | 곱연산 누적 (Wisp·Wraith Power ×1.3, RegisterMonsterTypeBuff 종별 2회). 종 교체 아님·멱등 아님 |
 | 5 | `IronWill` | 보존 | A | 강철 의지 | 몬스터 받는 데미지 -30% (15초) | `_duration=15` (배율 ×0.7 은 `MonsterBuffService` IronWill case 내 상수) | `IronWillEffect` | 지속시간 누적 (`AddBuff` dedup — 같은 buff 재호출 시 Remain 을 더 큰 값으로 연장, 효과량 그대로) |
 | 6 | `WallOfWisps` | 리뉴얼 (소환→영구 받피감소) | A | 단단한 살갗 | 위스프·레이스 받는 데미지 -25% (영구) | SO `data` 비어있음 — `MonsterBuffService.ToughHide` case 의 `hp.DamageTakenScale *= 0.75f` 상수 (적용 종 `{Wisp, Wraith}`) | `ToughHideEffect` → `EMonsterBuff.ToughHide` 영구 등록 (`AddMonsterBuff(-1f)`) | **멱등에 가까움**: `AddBuff` dedup 으로 같은 buff 중복 등록되지 않음 (영구 1개만 유지). 가산 아님. 소환 카드 아님 |
@@ -115,9 +115,9 @@
 
 | # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `ReaperAtkSpeed` | 보존 | P | 광폭 리퍼 | 모든 리퍼 공격속도 +30% | `_cdMul=0.7` | `ReaperAtkSpeedEffect` | 곱연산 누적 |
-| 2 | `HexRangeBoost` | 보존 | P | 헥스 정밀 | 모든 헥스 사거리 +40% | `_rangeMul=1.4` | `HexRangeBoostEffect` | 곱연산 누적 |
-| 3 | `SpawnReapers` | 보존 | P | 리퍼 증원 | 리퍼 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnReapersEffect` | 가산 누적 |
+| 1 | `ReaperAtkSpeed` | 보존 | P | 신속한 사신 | 모든 리퍼 공격속도 +30% | `_cdMul=0.7` | `ReaperAtkSpeedEffect` | 곱연산 누적 |
+| 2 | `HexRangeBoost` | 보존 | P | 저주의 시야 | 모든 헥스 사거리 +40% | `_rangeMul=1.4` | `HexRangeBoostEffect` | 곱연산 누적 |
+| 3 | `SpawnReapers` | 보존 | P | 사신 떼거리 | 리퍼 Spawner 출력 +1 | `+1` (SO `data` 비어있음 — 코드 기본값) | `SpawnReapersEffect` | 가산 누적 |
 | 4 | `ReplaceReapersToHex` | 리뉴얼 (교체→Power강화) | P | 처형 명령 | 리퍼·헥스 데미지 +30% (영구) | `_powerMul=1.3` | `ReaperHexPowerBoostEffect` | 곱연산 누적 (Reaper·Hex Power ×1.3, RegisterMonsterTypeBuff 종별 2회). 종 교체 아님·멱등 아님 |
 | 5 | `Frenzy` | 보존 | A | 광폭화 | 모든 몬스터 공속 +50% (10초) | `_duration=10` (공속+50% 는 Frenzy case 상수) | `FrenzyEffect` | 지속시간 누적 (`AddBuff` dedup) |
 | 6 | `BloodThirst` | 축 이동 (Swarm→Dps) | A | 피의 갈증 | 처치 시 주변 몬스터 회복 (30초) | `_duration=30` | `BloodThirstEffect` (`ActivateBloodThirst`) | 지속시간 누적 |
@@ -131,9 +131,9 @@
 
 | # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `PlagueSlowBoost` | 보존 (Plague Spawner 활성화) | P | 독성 플레이그 | 플레이그 둔화 효과 강화 | `_slowFactor=0.75` (BaseSlowFactor 0.8 × 0.75 = 0.6 곱연산, `PlagueSlowBoostEffect.cs` 주석) | `PlagueSlowBoostEffect` | 곱연산 누적 |
-| 2 | `SpawnPlagues` | 보존 (Plague Spawner 활성화) | P | 플레이그 둥지 | 플레이그 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPlaguesEffect` | 가산 누적 |
-| 3 | `HeroPoisonAura` | 보존 | P | 독 안개 | 영웅 발 밑 독 장판 (DPS 5) | `_dps=5 _duration=5 _radius=1.25` | `HeroPoisonAuraEffect` | 지속시간 누적: 잔여+5s |
+| 1 | `PlagueSlowBoost` | 보존 (Plague Spawner 활성화) | P | 역병의 손길 | 플레이그 둔화 효과 강화 | `_slowFactor=0.75` (BaseSlowFactor 0.8 × 0.75 = 0.6 곱연산, `PlagueSlowBoostEffect.cs` 주석) | `PlagueSlowBoostEffect` | 곱연산 누적 |
+| 2 | `SpawnPlagues` | 보존 (Plague Spawner 활성화) | P | 역병 증식 | 플레이그 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPlaguesEffect` | 가산 누적 |
+| 3 | `HeroPoisonAura` | 보존 | P | 독장판 | 영웅 발 밑 독 장판 (DPS 5) | `_dps=5 _duration=5 _radius=1.25` | `HeroPoisonAuraEffect` | 지속시간 누적: 잔여+5s |
 | 4 | `HeroAttackDown` | 보존 | P | 약화의 저주 | 영웅 공격력 영구 -25% | SO `data` 비어있음 — `HeroAttackDownAura(atk)` 생성자 기본 `factor=0.75f` (`HeroAttackDownAura.cs:23`) | `HeroAttackDownEffect` → `HeroAttackDownAura` | 곱연산 누적 (`OnAttached` 가 매번 `PowerScale *= 0.75`, 2픽=×0.5625) |
 | 5 | `Fear` | 보존 | A | 공포 | 영웅 3초간 도주 | `_duration=3` | `FearEffect` | 지속시간 누적 |
 | 6 | `Bleed` | 보존 | A | 출혈 | 영웅 이동 시 HP 감소 (10초) | `_ratio=0.02 _duration=10` | `BleedEffect` | 지속시간 누적 |
@@ -147,9 +147,9 @@
 
 | # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `PhantomMoveSpeedBoost` | 보존 | P | 흡혈 팬텀 떼 | 모든 팬텀 이동속도 +50% | `_speedMul=1.5` | `PhantomMoveSpeedBoostEffect` | 곱연산 누적 |
-| 2 | `SpawnPhantoms` | 보존 | P | 팬텀 무리 | 팬텀 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPhantomsEffect` | 가산 누적 |
-| 3 | `SpawnWisps` | 축 이동 (Tank→Swarm) | P | 위스프 소환 | 위스프 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnWispsEffect` | 가산 누적 |
+| 1 | `PhantomMoveSpeedBoost` | 보존 | P | 환령의 발걸음 | 모든 팬텀 이동속도 +50% | `_speedMul=1.5` | `PhantomMoveSpeedBoostEffect` | 곱연산 누적 |
+| 2 | `SpawnPhantoms` | 보존 | P | 환령 떼 | 팬텀 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPhantomsEffect` | 가산 누적 |
+| 3 | `SpawnWisps` | 축 이동 (Tank→Swarm) | P | 위스프 떼 | 위스프 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnWispsEffect` | 가산 누적 |
 | 4 | `SpawnerHaste` | 신규 | P | 던전의 박동 | 모든 스포너 주기 -20% (영구) | `_periodMul=0.8` | `SpawnerHasteEffect` → `ScaleAllSpawnerPeriods` | 곱연산 누적 (2픽=×0.64, 3픽=×0.512). **전역 3픽 캡(2026-06-01)으로 ×0.512 가 상한** — 4픽 이상 불가 (§9.6 / `card-3pick-cap.md`) |
 | 5 | `TimeStop` | 보존 | A | 시간 정지 | 영웅 5초 멈춤 | `_duration=5` | `TimeStopEffect` | 지속시간 누적 |
 | 6 | `Multiply` | (원안: SwarmRush 대체 예정 → 현행: 미구현, Multiply 잔존) | A | 빠른 번식 | 팬텀 스포너 주기 -40% (영구) | `_periodMul=0.6` | `FastBreedingEffect` → `ScaleSpawnerPeriodForType(Phantom)` | 곱연산 누적 (Phantom 스포너만, 종 매칭) |

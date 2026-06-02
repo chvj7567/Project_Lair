@@ -186,8 +186,8 @@
 | 일시정지 + 큐 | ✅ | 핵심 UX |
 | 영웅 1명 | ✅ | 검증엔 1명이면 충분 |
 | 몬스터 6종 | ✅ | 시너지 검증 |
-| 패시브 카드 15장 | ✅ | 빌드 다양성 검증 |
-| 액티브 카드 10장 | ✅ | 빌드 다양성 검증 |
+| 패시브 카드 16장 | ✅ | 빌드 다양성 검증 (4축 × 4장, 카드 리뉴얼 v0.6) |
+| 액티브 카드 12장 | ✅ | 빌드 다양성 검증 (4축 × 3장, 카드 리뉴얼 v0.6) |
 | 메타 진행 | ❌ | v0.2 |
 | 서버 연동 | ❌ | v0.2 |
 | 톤/비주얼 | ❌ | 프리미티브로 대체 |
@@ -262,10 +262,10 @@
 | 3 | SpawnWisps | P | (v0.6 Tank→Swarm 축 이동) Wisp 스포너 동시 출력 +1 |
 | 4 | SpawnerHaste | P | (신규) 모든 스포너 스폰 주기 ×0.8 (영구) |
 | 5 | TimeStop | A | 영웅 5s 정지 |
-| 6 | Multiply → SwarmRush | A | (v0.6 효과 교체) Phantom 6마리 즉시 영웅 근처 소환 (Multiply enum 자리·SO 파일명 보존, 효과 클래스 SwarmRushEffect) |
+| 6 | Multiply | A | (원안 SwarmRush 대체 예정 → 현행 미구현, Multiply 잔존) Phantom 스포너 주기 ×0.6 (영구). 효과 클래스 `FastBreedingEffect`. 원안의 "Phantom 6마리 즉시 소환(SwarmRush)"은 미구현 — 상세 `card-renewal.md` §3.4 |
 | 7 | Slow | A | (v0.6 Debuff→Swarm + 리뉴얼) 영웅 이동속도 ×0.5 + 모든 몬스터 이동속도 ×1.3, 10s (이중 효과) |
 
-총합 검산: 4축 × 7장 = 28장 = 패시브 16 + 액티브 12. SO 파일명·Addressable 키는 `CommonEnum.cs` 의 `ECardId` 값명과 정확히 일치 (Rule 03 §2). Multiply / Berserk 는 enum 자리만 보존하고 효과 클래스·displayName 만 교체 (각각 `SwarmRushEffect` / `GuardianRageEffect`).
+총합 검산: 4축 × 7장 = 28장 = 패시브 16 + 액티브 12. SO 파일명·Addressable 키는 `CommonEnum.cs` 의 `ECardId` 값명과 정확히 일치 (Rule 03 §2). Berserk 는 enum 자리만 보존하고 효과 클래스·displayName 만 교체 (`GuardianRageEffect`, "수호자의 분노"). Multiply 는 원안에서 `SwarmRushEffect` 로 교체 예정이었으나 **현행 미구현** — `FastBreedingEffect`("빠른 번식", 팬텀 스포너 주기 ×0.6 영구) 가 잔존 (상세 `card-renewal.md` §3.4).
 
 ### 11.4 비주얼 방침
 
