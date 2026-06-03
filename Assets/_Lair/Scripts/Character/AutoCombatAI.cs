@@ -4,6 +4,8 @@ namespace Lair.Character
 {
     //# 자동전투 행동 — 인터페이스 5개 조합으로만 동작.
     //# 영웅/몬스터 공통. ITargetProvider 구현체로 진영이 결정됨.
+    //# AI 결정(MoveTo/Stop)을 같은 프레임의 애니 Tick(Driver)보다 먼저 — IsMoving 1프레임 지연 슬라이드 제거.
+    [DefaultExecutionOrder(-10)]
     [RequireComponent(typeof(SimpleMover))]
     [RequireComponent(typeof(Health))]
     [RequireComponent(typeof(MeleeAttacker))]

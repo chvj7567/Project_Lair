@@ -4,6 +4,8 @@ namespace Lair.Character
 {
     //# View 계층(Rule 02 §6) — 도메인 상태를 관찰만 하고 Animator 에 반영.
     //# 영웅/몬스터 공통 재사용 가능하게 인터페이스 의존. 결정 로직은 Controller 에 위임.
+    //# AutoCombatAI(-10) 이후 실행 — 같은 프레임의 MoveTo 결과(IsMoving)를 즉시 애니에 반영.
+    [DefaultExecutionOrder(10)]
     [RequireComponent(typeof(Health))]
     public class CharacterAnimationDriver : MonoBehaviour
     {
