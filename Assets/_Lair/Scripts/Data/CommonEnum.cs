@@ -31,6 +31,7 @@ namespace Lair.Data
         CardSelectionPopup,    //# B1 신규
         BuildModalPopup,       //# 스포너 상태 UI — BuildPanel 클릭 시 화면 중앙 모달
         SpawnerStatusTooltip,  //# (v0.6.4 폐기 — enum 자리 보존, int 직렬화 정합)
+        SynergyModalPopup,     //# 시너지 패널 클릭 시 화면 중앙 모달 — 적용된 시너지 효과 목록
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)

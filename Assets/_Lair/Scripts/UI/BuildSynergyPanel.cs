@@ -11,6 +11,9 @@ namespace Lair.UI
     {
         [SerializeField] private BuildSynergyCardPoolingScrollView _scrollView;
 
+        //# 패널 루트 클릭 → SynergyModalPopup 호출.
+        [SerializeField] private CHButton _rootButton;
+
         //# 4축 아이콘 — 직접 Sprite 참조 (CardData._icon 과 동일 관례, Addressables 키 아님).
         //# 인스펙터 순서 = EBuildAxis 순서 (Tank·Dps·Debuff·Swarm). AxisIcon 으로 매핑.
         [SerializeField] private Sprite _tankIcon;
@@ -45,20 +48,38 @@ namespace Lair.UI
         private BattleViewModel _vm;
         private readonly List<BuildSynergyCellData> _dataList = new();
         private readonly Dictionary<EBuildAxis, int> _prevCounts = new();
+        //# 루트 버튼 listener 수명 관리.
+        private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
         public void Bind(BattleViewModel vm)
         {
             _vm = vm;
             if (_vm == null) return;
             _vm.OnBuildChanged += HandleBuildChanged;
+
+            //# 루트 클릭 → SynergyModalPopup. CHMUI 가 단일 인스턴스 caching 으로 재사용.
+            if (_rootButton != null)
+            {
+                _rootButton.OnClick(() =>
+                {
+                    if (_vm == null) return;
+                    CHMUI.Instance.ShowUI(EUI.SynergyModalPopup,
+                        new SynergyModalPopupArg { ViewModel = _vm });
+                }, _disposable);
+            }
+
             HandleBuildChanged();
         }
 
         public void Unbind()
         {
-            if (_vm == null) return;
-            _vm.OnBuildChanged -= HandleBuildChanged;
+            //# _vm null 여부와 무관하게 루트 버튼 listener 는 항상 정리 (BuildPanel 동일 패턴).
+            if (_vm != null)
+            {
+                _vm.OnBuildChanged -= HandleBuildChanged;
+            }
             _vm = null;
+            _disposable.Clear();
         }
 
         private void HandleBuildChanged()
