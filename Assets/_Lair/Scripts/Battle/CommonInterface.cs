@@ -19,6 +19,9 @@ namespace Lair.Battle
     {
         //# 0~1. 초기 지연(firstSpawnDone==false) 국면에서는 0f 고정.
         float Progress { get; }
+
+        //# 다음 스폰까지 남은 초. 초기 지연 국면이면 전체 주기.
+        float RemainingSeconds { get; }
     }
 
     //# Rule 10 — Spawner 출력 종(EMonster) 변경 이벤트 + 동시 출력 수 노출 계약.

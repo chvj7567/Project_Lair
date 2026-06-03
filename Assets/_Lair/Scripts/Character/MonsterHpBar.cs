@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Lair.Character
 {
@@ -7,7 +6,7 @@ namespace Lair.Character
     //# 래퍼는 WorldSpace Canvas + 이 MonsterHpBar. 그 자식에 HpBar.prefab 인스턴스가 nest.
     public class MonsterHpBar : MonoBehaviour
     {
-        [SerializeField] private Image _fill;   //# HpBar.prefab 내부 자식
+        [SerializeField] private HpBarView _hpBar;   //# nest 된 HpBar.prefab 인스턴스의 View
 
         private IHealth _health;
         private Transform _cam;
@@ -23,6 +22,10 @@ namespace Lair.Character
         {
             Camera mainCam = Camera.main;
             _cam = mainCam != null ? mainCam.transform : null;
+
+            //# 몬스터 바는 현재/최대 텍스트를 숨긴다 (영웅 HUD 와 공유하는 prefab 이라 런타임 토글).
+            if (_hpBar != null)
+                _hpBar.SetTextVisible(false);
 
             if (_health == null) _health = GetComponentInParent<IHealth>();
             if (_health == null) return;
@@ -43,8 +46,7 @@ namespace Lair.Character
 
         private void HandleChanged(int current, int max)
         {
-            if (_fill != null)
-                _fill.fillAmount = max > 0 ? (float)current / max : 0f;
+            if (_hpBar != null) _hpBar.SetHp(current, max);
         }
     }
 }

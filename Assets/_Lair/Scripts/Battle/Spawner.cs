@@ -54,6 +54,17 @@ namespace Lair.Battle
             }
         }
 
+        //# ISpawnerProgress 구현 — 다음 스폰까지 남은 초. 초기 지연 국면이면 전체 주기.
+        public float RemainingSeconds
+        {
+            get
+            {
+                if (_firstSpawnDone == false) return _spawnPeriod;
+                if (_spawnPeriod <= 0f) return 0f;
+                return Mathf.Max(0f, _spawnPeriod - _timer);
+            }
+        }
+
         //# ISpawnerOutputProvider 구현 — SpawnerBody 가 구독.
         public event System.Action<EMonster> OnOutputTypeChanged;
 

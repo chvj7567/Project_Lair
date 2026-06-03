@@ -62,6 +62,8 @@ namespace Lair.UI
 
         public event Action<float, float> OnTimerChanged;
         public event Action<float> OnHeroHpRatioChanged;
+        //# 영웅 HP 정수값 (current, max) — HUD 의 "현재/최대" 텍스트 표기용. ratio 와 같은 지점에서 발행.
+        public event Action<int, int> OnHeroHpValuesChanged;
         public event Action<BattleResult> OnBattleEnded;
         public event Action OnBuildChanged;
 
@@ -84,6 +86,8 @@ namespace Lair.UI
             _model.HeroHp = current;
             _model.HeroMaxHp = max;
             OnHeroHpRatioChanged?.Invoke(max > 0 ? (float)current / max : 0f);
+            //# ratio 와 같은 지점에서 정수값도 발행 — 늦은 구독자/표기 desync 방지.
+            OnHeroHpValuesChanged?.Invoke(current, max);
         }
 
         public void EndBattle(BattleResult result)
@@ -122,6 +126,9 @@ namespace Lair.UI
         public float TotalSeconds   => _model.TotalSeconds;
         public float HeroHpRatio    => _model.HeroMaxHp > 0
             ? (float)_model.HeroHp / _model.HeroMaxHp : 0f;
+        //# 늦은 구독자용 현재 HP 정수값 (OnHeroHpValuesChanged 초기 동기화).
+        public int HeroHp    => _model.HeroHp;
+        public int HeroMaxHp => _model.HeroMaxHp;
         public BattleResult Result  => _model.Result;
         public IReadOnlyList<BuildEntry> Build => _build;
 

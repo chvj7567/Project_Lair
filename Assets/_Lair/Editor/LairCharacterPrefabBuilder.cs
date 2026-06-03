@@ -1,11 +1,13 @@
 using System.IO;
 using Lair.Character;
 using Lair.Data;
+using TMPro;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 using UnityEngine.UI;
+using ChvjUnityInfra;
 
 namespace Lair.EditorTools
 {
@@ -313,9 +315,26 @@ namespace Lair.EditorTools
             fillImg.color = Color.white;
             fillImg.fillAmount = 1f;
 
+            //# txtHp — "현재/최대" 표시. Rule 11 — TMP_Text + CHText 래퍼.
+            GameObject txtGo = new GameObject("txtHp", typeof(RectTransform));
+            txtGo.transform.SetParent(root.transform, false);
+            SetStretch((RectTransform)txtGo.transform);
+            TextMeshProUGUI tmp = txtGo.AddComponent<TextMeshProUGUI>();
+            tmp.text = "0/0";
+            tmp.font = TMP_Settings.defaultFontAsset;
+            tmp.fontSize = 12f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            CHText txtHp = txtGo.AddComponent<CHText>();
+
+            //# 루트에 HpBarView 부착 + 내부 위젯 와이어링 (캡슐화 — 외부는 SetHp 만).
+            HpBarView view = root.AddComponent<HpBarView>();
+            SetPrivateField(view, "_fill", fillImg);
+            SetPrivateField(view, "_txtHp", txtHp);
+
             PrefabUtility.SaveAsPrefabAsset(root, HpBarPrefabPath);
             Object.DestroyImmediate(root);
-            Debug.Log("[CharacterPrefabBuilder] HpBar.prefab 생성 (순수 비주얼 — Canvas/MonsterHpBar 없음)");
+            Debug.Log("[CharacterPrefabBuilder] HpBar.prefab 생성 (HpBarView 캡슐화 — Canvas/MonsterHpBar 없음)");
         }
 
         //# 몬스터 자식으로 래퍼(WorldSpace Canvas + MonsterHpBar)를 만들고,
@@ -357,15 +376,14 @@ namespace Lair.EditorTools
             instRt.offsetMin = Vector2.zero;
             instRt.offsetMax = Vector2.zero;
 
-            //# Fill Image — 결정론적 경로 Background/Fill 로 탐색.
-            Transform fillTf = inst.transform.Find("Background/Fill");
-            Image fillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
-            if (fillImg == null)
-                Debug.LogWarning("[CharacterPrefabBuilder] HpBar.prefab 내 Background/Fill Image 미발견");
+            //# HpBarView — nest 된 HpBar.prefab 인스턴스 루트에서 탐색 (캡슐화 — _fill 직접 X).
+            HpBarView hpBarView = inst.GetComponent<HpBarView>();
+            if (hpBarView == null)
+                Debug.LogWarning("[CharacterPrefabBuilder] HpBar.prefab 인스턴스에 HpBarView 미발견");
 
-            //# MonsterHpBar — 래퍼에 부착, _fill 주입.
+            //# MonsterHpBar — 래퍼에 부착, _hpBar 주입.
             MonsterHpBar bar = wrapper.AddComponent<MonsterHpBar>();
-            SetPrivateField(bar, "_fill", fillImg);
+            SetPrivateField(bar, "_hpBar", hpBarView);
         }
 
         private static void SetStretch(RectTransform rt)

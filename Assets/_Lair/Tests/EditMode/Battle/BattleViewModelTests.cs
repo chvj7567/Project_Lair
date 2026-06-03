@@ -50,6 +50,40 @@ namespace Lair.Tests.UI
         }
 
         [Test]
+        public void UpdateHeroHp_정수값_이벤트_current_max_발행()
+        {
+            BattleStateModel model = new BattleStateModel();
+            BattleViewModel vm = new BattleViewModel(model);
+            int capturedCurrent = -1;
+            int capturedMax = -1;
+            vm.OnHeroHpValuesChanged += (c, m) => { capturedCurrent = c; capturedMax = m; };
+
+            vm.UpdateHeroHp(250, 1000);
+
+            Assert.AreEqual(250, capturedCurrent);
+            Assert.AreEqual(1000, capturedMax);
+            Assert.AreEqual(250, vm.HeroHp);
+            Assert.AreEqual(1000, vm.HeroMaxHp);
+        }
+
+        [Test]
+        public void UpdateHeroHp_max_0_엣지에서도_정수값_이벤트_발행()
+        {
+            BattleStateModel model = new BattleStateModel();
+            BattleViewModel vm = new BattleViewModel(model);
+            int capturedCurrent = -1;
+            int capturedMax = -1;
+            bool fired = false;
+            vm.OnHeroHpValuesChanged += (c, m) => { capturedCurrent = c; capturedMax = m; fired = true; };
+
+            vm.UpdateHeroHp(0, 0);
+
+            Assert.IsTrue(fired, "max=0 엣지에서도 이벤트 발행");
+            Assert.AreEqual(0, capturedCurrent);
+            Assert.AreEqual(0, capturedMax);
+        }
+
+        [Test]
         public void EndBattle_Result_저장_이벤트_발행()
         {
             BattleStateModel model = new BattleStateModel();

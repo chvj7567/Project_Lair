@@ -387,7 +387,7 @@ namespace Lair.EditorTools
 
             //# HeroHpBar — HpBar.prefab 인스턴스를 nest. 기존 HpBg 위치·크기 유지.
             //# Rule 04 — 몬스터 머리 위와 동일 프리팹 공유.
-            Image hpFillImg = null;
+            Lair.Character.HpBarView heroHpBarView = null;
             if (hpBarPrefab != null)
             {
                 GameObject hpBarInst = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, root.transform);
@@ -402,11 +402,10 @@ namespace Lair.EditorTools
                 hpBarRt.localScale = Vector3.one;
                 hpBarRt.localRotation = Quaternion.identity;
 
-                //# Fill Image — 결정론적 경로 Background/Fill 로 탐색.
-                Transform fillTf = hpBarInst.transform.Find("Background/Fill");
-                hpFillImg = fillTf != null ? fillTf.GetComponent<Image>() : null;
-                if (hpFillImg == null)
-                    Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 내 Background/Fill Image 미발견");
+                //# HpBarView — nest 된 인스턴스 루트에서 탐색 (캡슐화 — _fill 직접 X).
+                heroHpBarView = hpBarInst.GetComponent<Lair.Character.HpBarView>();
+                if (heroHpBarView == null)
+                    Debug.LogWarning("[LairUIPrefabBuilder] HpBar.prefab 인스턴스에 HpBarView 미발견");
             }
             else
             {
@@ -460,10 +459,10 @@ namespace Lair.EditorTools
                 Debug.LogWarning("[LairUIPrefabBuilder] SpawnerStatusPanel.prefab 미발견 — 'Lair/Setup/Spawner Status UI' 먼저 실행 권장");
             }
 
-            //# SerializeField 주입 — _timerText (CHText), _heroHpFill, _buildPanel, _spawnerStatusPanel
+            //# SerializeField 주입 — _timerText (CHText), _heroHpBar, _buildPanel, _spawnerStatusPanel
             SerializedObject so = new SerializedObject(hud);
             SetObjectField(so, "_timerText",  timerText);    //# CHText 컴포넌트
-            SetObjectField(so, "_heroHpFill", hpFillImg);
+            SetObjectField(so, "_heroHpBar", heroHpBarView);
             SetObjectField(so, "_buildPanel", buildPanel);
             if (spawnerPanelInst != null)
                 SetObjectField(so, "_spawnerStatusPanel", spawnerPanelInst);

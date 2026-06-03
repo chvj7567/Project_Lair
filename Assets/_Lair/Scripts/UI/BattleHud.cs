@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Battle;
+using Lair.Character;
 using Lair.Data;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -22,7 +22,8 @@ namespace Lair.UI
     public class BattleHud : UIBase
     {
         [SerializeField] private CHText _timerText;
-        [SerializeField] private Image _heroHpFill;
+        //# 영웅 HP 바 — Fill/텍스트 내부 위젯은 HpBarView 가 캡슐화. HUD 는 SetHp 만 호출.
+        [SerializeField] private HpBarView _heroHpBar;
         [SerializeField] private BuildPanel _buildPanel;
         //# 스포너 상태 UI — 화면 하단 6셀 패널 (기획서 §2.1).
         [SerializeField] private SpawnerStatusPanel _spawnerStatusPanel;
@@ -43,14 +44,14 @@ namespace Lair.UI
         {
             BattleViewModel vm = ba.ViewModel;
             _vm = vm;
-            vm.OnTimerChanged       += HandleTimer;
-            vm.OnHeroHpRatioChanged += HandleHp;
-            vm.OnBattleEnded        += HandleEnded;
+            vm.OnTimerChanged        += HandleTimer;
+            vm.OnHeroHpValuesChanged += HandleHpValues;
+            vm.OnBattleEnded         += HandleEnded;
 
             //# Close 시 자동 해제
-            closeDisposable.Add(() => vm.OnTimerChanged       -= HandleTimer);
-            closeDisposable.Add(() => vm.OnHeroHpRatioChanged -= HandleHp);
-            closeDisposable.Add(() => vm.OnBattleEnded        -= HandleEnded);
+            closeDisposable.Add(() => vm.OnTimerChanged        -= HandleTimer);
+            closeDisposable.Add(() => vm.OnHeroHpValuesChanged -= HandleHpValues);
+            closeDisposable.Add(() => vm.OnBattleEnded         -= HandleEnded);
 
             //# 빌드 패널 바인딩 (Close 시 자동 해제)
             if (_buildPanel != null)
@@ -75,7 +76,7 @@ namespace Lair.UI
 
             //# 초기 동기화
             HandleTimer(vm.ElapsedSeconds, vm.TotalSeconds);
-            HandleHp(vm.HeroHpRatio);
+            HandleHpValues(vm.HeroHp, vm.HeroMaxHp);
         }
 
         private void HandleTimer(float elapsed, float total)
@@ -88,10 +89,9 @@ namespace Lair.UI
             _timerText.SetText($"{totalSec / 60}:{totalSec % 60:00}");
         }
 
-        private void HandleHp(float ratio)
+        private void HandleHpValues(int current, int max)
         {
-            if (_heroHpFill == null) return;
-            _heroHpFill.fillAmount = ratio;
+            if (_heroHpBar != null) _heroHpBar.SetHp(current, max);
         }
 
         private void HandleEnded(BattleResult result)

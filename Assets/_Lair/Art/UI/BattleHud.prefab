@@ -1177,7 +1177,7 @@ MonoBehaviour:
   _backgroundButton: {fileID: 0}
   _backButton: {fileID: 0}
   _timerText: {fileID: 3939981805033797968}
-  _heroHpFill: {fileID: 2423517745253073603}
+  _heroHpBar: {fileID: 4228486084129081664}
   _buildPanel: {fileID: 184247673091725691}
   _spawnerStatusPanel: {fileID: 7706981434310459549}
   _synergyPanel: {fileID: 5815535844829465473}
@@ -1710,6 +1710,18 @@ PrefabInstance:
       value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 3401983971267111315, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3401983971267111315, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3401983971267111315, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3401983971267111315, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -1761,20 +1773,24 @@ PrefabInstance:
       propertyPath: m_Name
       value: HeroHpBar
       objectReference: {fileID: 0}
+    - target: {fileID: 7466310791047773266, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
+      propertyPath: m_fontSize
+      value: 6.9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
---- !u!114 &2423517745253073603 stripped
+--- !u!114 &4228486084129081664 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5259184362490704992, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6048590950028296163, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
   m_PrefabInstance: {fileID: 7592630115178542755}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: c800c9c20e365e44aa6da0130c9b9b06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!224 &5073365148510756656 stripped

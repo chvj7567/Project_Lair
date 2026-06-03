@@ -32,6 +32,7 @@ namespace Lair.UI
         [SerializeField] private CHText _speciesText;    //# 종명 영문
         [SerializeField] private CHText _countText;      //# ×N (N≥2 일 때만 노출)
         [SerializeField] private Image _progressFill;    //# 진행 바 Fill (fillAmount)
+        [SerializeField] private CHText _periodText;     //# 다음 스폰까지 남은 초 (Ns)
         [SerializeField] private CHButton _button;       //# 셀 클릭 — Panel 콜백
 
         //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
@@ -56,6 +57,7 @@ namespace Lair.UI
             _disposable.Clear();
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_progressFill != null) _progressFill.fillAmount = 0f;
+            if (_periodText != null) _periodText.SetText("");
             //# 중앙 아이콘 리셋 — 직전 셀 스프라이트 잔존 방지 (Rule 03 §4 풀 재사용).
             if (_icon != null)
             {
@@ -126,6 +128,8 @@ namespace Lair.UI
             float p = _progressSource.Progress;
             _progressFill.fillAmount = p;
             _progressFill.color = p < WarmThreshold ? CoolColor : WarmColor;
+            if (_periodText != null)
+                _periodText.SetText($"{Mathf.CeilToInt(_progressSource.RemainingSeconds)}s");
         }
 
         //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.

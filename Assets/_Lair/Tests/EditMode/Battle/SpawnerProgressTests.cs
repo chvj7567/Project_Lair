@@ -153,6 +153,38 @@ namespace Lair.Tests.Battle
                 "spawnPeriod=0 이어도 초기 지연 국면이면 Progress=0");
         }
 
+        //# ===== ISpawnerProgress — RemainingSeconds =====
+
+        //# 주기 국면 timer=6, period=9 → 남은 초 3.
+        [Test]
+        public void RemainingSeconds_주기국면_period_빼기_timer()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            FakeSpawnerHost host = new FakeSpawnerHost();
+            sp.Bind(host, null);
+            sp.Tick(0f);     //# 첫 발사 → _firstSpawnDone=true, _timer=0
+            sp.Tick(6f);     //# _timer = 6
+            Assert.AreEqual(3f, sp.RemainingSeconds, 0.001f, "period(9) - timer(6) = 3");
+        }
+
+        //# 초기 지연 국면(firstSpawnDone==false) 이면 전체 주기 반환.
+        [Test]
+        public void RemainingSeconds_초기국면_전체주기()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            //# OnEnable 직후 _firstSpawnDone == false → 전체 주기.
+            Assert.AreEqual(9f, sp.RemainingSeconds, 0.001f, "초기 지연 국면 = 전체 주기");
+        }
+
+        //# spawnPeriod=0 + 주기 국면이면 0 (divide-by-zero 방어와 일관).
+        [Test]
+        public void RemainingSeconds_period_0이면_0()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 0f, 0f);
+            SetPrivate(sp, "_firstSpawnDone", true);
+            Assert.AreEqual(0f, sp.RemainingSeconds, 0.001f, "period=0 이면 RemainingSeconds=0");
+        }
+
         //# ===== ISpawnerOutputProvider — OnEnable 시 이벤트 발행 =====
 
         //# 이벤트를 먼저 구독한 후 OnEnable 을 호출해야 수신 가능 (Spawner.OnEnable 이 Invoke 함).
