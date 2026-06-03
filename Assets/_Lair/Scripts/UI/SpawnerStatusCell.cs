@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using ChvjUnityInfra;
 using Lair.Battle;
 using Lair.Data;
@@ -129,7 +130,12 @@ namespace Lair.UI
             _progressFill.fillAmount = p;
             _progressFill.color = p < WarmThreshold ? CoolColor : WarmColor;
             if (_periodText != null)
-                _periodText.SetText($"{Mathf.CeilToInt(_progressSource.RemainingSeconds)}s");
+            {
+                //# 남은 초 소수점 첫째자리 (예: 2.5s). RemainingSeconds 는 Spawner 에서 0 클램프됨.
+                //# 한국어 로캘에서 소수점이 콤마로 찍히지 않도록 InvariantCulture 고정.
+                string remain = _progressSource.RemainingSeconds.ToString("F1", CultureInfo.InvariantCulture);
+                _periodText.SetText($"{remain}s");
+            }
         }
 
         //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.
