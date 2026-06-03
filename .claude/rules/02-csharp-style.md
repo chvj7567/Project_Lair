@@ -104,6 +104,7 @@ if (_spawner == null) ...
 - 의존이 늘어나면 책임 분리(SRP) 또는 이벤트 기반(pub/sub) 으로 분해
 - 양방향 참조 금지 — 단방향 데이터/이벤트 흐름 유지
 - `FindObjectOfType`, `GameObject.Find` 사용 금지
+- `GetComponent` 계열(`GetComponent` / `GetComponentInChildren` / `GetComponentInParent` / `GetComponents*`) 런타임 코드에서 지양 — 의존은 `[SerializeField]` 인스펙터 참조로 미리 와이어링하거나, 불가피하면 `Awake`/`OnEnable` 에서 **1회만** 캐싱한다. `Update`·이벤트 핸들러·매 프레임/반복 경로에서 직접 호출 금지
 
 ```csharp
 //# (X) 구체 매니저 직접 참조
@@ -121,10 +122,27 @@ public class Player : MonoBehaviour
 }
 ```
 
+```csharp
+//# (X) 런타임마다 GetComponent — 매 프레임 탐색 비용 + 결합
+void Update()
+{
+    GetComponentInChildren<Image>().fillAmount = _hp / _max;
+}
+
+//# (O) SerializeField 로 미리 와이어링 (1순위)
+[SerializeField] private Image _fill;
+void Update() => _fill.fillAmount = _hp / _max;
+
+//# (O) 불가피하면 Awake 에서 1회 캐싱 (2순위) — 상위 인터페이스 참조 등(§7)
+private IInventoryHost _host;
+void Awake() => _host = GetComponentInParent<IInventoryHost>();
+```
+
 체크리스트:
 - [ ] 알아야 하는 외부 타입 0~3개 이내인가?
 - [ ] 매니저 직접 참조 대신 인터페이스/이벤트로 분리 가능한가?
 - [ ] 테스트 시 모킹이 가능한 구조인가?
+- [ ] `GetComponent*` 가 런타임 경로에 없는가? (`[SerializeField]` 또는 Awake 1회 캐싱으로 대체)
 
 ---
 
@@ -162,6 +180,37 @@ public class PlayerHud : MonoBehaviour
     }
 }
 ```
+
+### 6.1 View 위젯 캡슐화 — 내부 위젯 숨기고 의도 API 만 노출
+
+View 컴포넌트는 자신이 들고 있는 내부 UGUI 위젯(`Image` / `CHText` / `Slider` 등)을 **`[SerializeField] private` 로 소유**하고, 외부에는 **"무엇을 보여줄지" 의도 단위 메서드 API 만** 노출한다.
+
+- 내부 위젯을 `public` 필드/프로퍼티로 열지 않는다
+- 외부(상위 View·ViewModel 바인딩부)는 그 컴포넌트의 **API 만 호출** — 자식 위젯을 직접 참조하거나 `GetComponentInChildren` 으로 꺼내 만지지 않는다 (§5 GetComponent 지양과 연결)
+- View 내부 구조(어떤 위젯으로 그리는지)가 바뀌어도 호출부는 영향받지 않는다
+
+```csharp
+//# (X) 외부가 내부 위젯을 직접 참조/조작 — 결합도↑, 구조 변경이 호출부로 샘
+public class HpBar : MonoBehaviour { public Image fill; public CHText txtHp; }
+//  호출부:
+_hpBar.fill.fillAmount = (float)cur / max;
+_hpBar.txtHp.SetText($"{cur}/{max}");
+
+//# (O) 루트 View 가 위젯을 private 소유 + 의도 API 만 노출 (정석: HpBarView)
+public class HpBarView : MonoBehaviour
+{
+    [SerializeField] private Image _fill;
+    [SerializeField] private CHText _txtHp;
+    public void SetHp(int current, int max) { /* fill + 텍스트 갱신 */ }
+    public void SetTextVisible(bool visible) { /* 텍스트 토글 */ }
+}
+//  호출부 — 컴포넌트만 참조:
+_hpBarView.SetHp(cur, max);
+```
+
+체크리스트:
+- [ ] View 의 자식 위젯이 모두 `[SerializeField] private` 인가? (`public` 노출 없음)
+- [ ] 외부가 자식 위젯을 직접 만지지 않고 의도 API 로만 호출하는가?
 
 ---
 
