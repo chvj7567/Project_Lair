@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -186,6 +187,57 @@ namespace Lair.Tests.PlayMode
 
             Assert.Less(YawDelta(go.transform.rotation, 0f), YawTolerance,
                 "OnEnable 후 이전 목표(90°) 자동 추적 X — 명시 FaceDirection 없으면 회전 무");
+
+            Object.DestroyImmediate(go);
+        }
+
+        //# _snapInstant 는 SerializeField — 테스트에서 reflection 으로 설정.
+        private static void SetSnapInstant(SimpleRotator r, bool value)
+        {
+            FieldInfo field = typeof(SimpleRotator).GetField("_snapInstant",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            field.SetValue(r, value);
+        }
+
+        [UnityTest]
+        public IEnumerator SnapInstant_True_영웅_한_프레임만에_목표로_즉시_스냅()
+        {
+            //# 영웅 경로 — Rigidbody(kinematic) 로 회귀 재현. FaceDirection 즉시 ApplyYaw 후
+            //# Update 보간이 옛 yaw 기준으로 스냅을 덮어쓰지 않아야(가드). 한 프레임 만에 180° 도달.
+            SimpleRotator r = NewRotator(out GameObject go, speed: 540f, initialYaw: 0f);
+            Rigidbody rb = go.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            SetSnapInstant(r, true);
+
+            r.FaceDirection(new Vector3(0f, 0f, -1f));   //# 목표 yaw 180°
+
+            //# 물리 스텝 한 번 — 540 deg/s 보간이라면 9° 남짓만 돌아야 하지만 스냅이면 즉시 180°.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.Less(YawDelta(go.transform.rotation, 180f), YawTolerance,
+                "_snapInstant=true 면 보간 없이 한 프레임 만에 목표 yaw 도달");
+
+            Object.DestroyImmediate(go);
+        }
+
+        [UnityTest]
+        public IEnumerator SnapInstant_False_몬스터_보간_유지_한_프레임엔_미도달()
+        {
+            //# 몬스터 경로 회귀 가드 — _snapInstant=false 는 기존 540 deg/s 보간 그대로.
+            //# 같은 Rigidbody 셋업에서 한 프레임만엔 180° 에 도달하지 못해야 한다.
+            SimpleRotator r = NewRotator(out GameObject go, speed: 540f, initialYaw: 0f);
+            Rigidbody rb = go.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            SetSnapInstant(r, false);
+
+            r.FaceDirection(new Vector3(0f, 0f, -1f));   //# 목표 yaw 180°
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.Greater(YawDelta(go.transform.rotation, 180f), 90f,
+                "_snapInstant=false 면 보간 — 한 프레임에 목표(180°)에 도달하지 않음");
 
             Object.DestroyImmediate(go);
         }

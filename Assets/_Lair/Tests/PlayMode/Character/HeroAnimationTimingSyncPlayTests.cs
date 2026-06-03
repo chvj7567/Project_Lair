@@ -317,5 +317,77 @@ namespace Lair.Tests.PlayMode.Character
             Assert.AreEqual(90, targetHp.Current, "TryAttack 즉시 10 데미지 — 현행 보존");
             yield return null;
         }
+
+        //# ===== (5) 공격 애니 중 이동 잠금 회귀 (사용자 요구: 공격 중 정지 / 끝나고 이동) =====
+
+        //# 등록 헬퍼 — 사거리 밖 Engaging 몬스터 1마리. 영웅이 평소엔 MoveTo 로 추적할 대상.
+        //# AutoCombatAI 가 IsAttacking 동안엔 이 대상이 있어도 이동을 시작하지 않아야 함.
+        private GameObject AddEngagingMonster(Vector3 pos, int hp)
+        {
+            GameObject go = new GameObject("EngagingMonsterUT");
+            go.transform.position = pos;
+            Health h = go.AddComponent<Health>();
+            h.SetMax(hp);
+            _spawned.Add(go);
+            CharacterRegistry.RegisterMonster(go.transform, h);
+            CharacterRegistry.SetMonsterEngaging(go.transform, true);
+            return go;
+        }
+
+        //# 정상 케이스 — IsAttacking 동안 AutoCombatAI 가 _mover.Stop 유지(사거리 밖 타겟 있어도 이동 시작 안 함).
+        //# 사용자 증상("공격 직후 애니 없이 미끄러짐")의 게임플레이측 잠금 회귀 박제.
+        [UnityTest]
+        public IEnumerator IsAttacking_동안_AutoCombatAI_이동잠금_사거리밖타겟있어도_정지()
+        {
+            GameObject root = CreateHeroRoot(out _, out HeroAttackGate gate);
+            root.transform.position = Vector3.zero;
+            root.AddComponent<HeroTargetProvider>();
+            AutoCombatAI ai = root.AddComponent<AutoCombatAI>();
+            SimpleMover mover = root.GetComponent<SimpleMover>();
+            yield return null;   //# Awake/OnEnable.
+
+            //# 스폰 게이트 open — 스폰 모션 보류가 이동잠금 검증을 가리지 않도록.
+            ai.OpenSpawnGate();
+
+            //# 사거리(2.0) 밖 Engaging 몬스터 — 평소라면 MoveTo 추적 대상.
+            AddEngagingMonster(new Vector3(5f, 0f, 0f), 500);
+
+            //# 공격 개시 상태 강제.
+            gate.BeginAttack();
+            Assert.IsTrue(gate.IsAttacking, "공격 중 상태 진입");
+
+            //# 여러 프레임 경과 — IsAttacking 동안 이동이 시작되면 안 됨.
+            for (int i = 0; i < 5; i++)
+                yield return null;
+
+            Assert.IsFalse(mover.IsMoving, "IsAttacking 동안 사거리 밖 타겟이 있어도 이동 시작 안 함(이동 잠금)");
+        }
+
+        //# 엣지 케이스 — 공격 종료(EndAttack) 후엔 잠금 해제되어 사거리 밖 타겟으로 이동 재개.
+        //# "끝나고 움직이도록" 의 해제 시점 박제.
+        [UnityTest]
+        public IEnumerator EndAttack_후_AutoCombatAI_이동잠금해제_사거리밖타겟으로_이동재개()
+        {
+            GameObject root = CreateHeroRoot(out _, out HeroAttackGate gate);
+            root.transform.position = Vector3.zero;
+            root.AddComponent<HeroTargetProvider>();
+            AutoCombatAI ai = root.AddComponent<AutoCombatAI>();
+            SimpleMover mover = root.GetComponent<SimpleMover>();
+            yield return null;
+
+            ai.OpenSpawnGate();
+            AddEngagingMonster(new Vector3(5f, 0f, 0f), 500);
+
+            gate.BeginAttack();
+            yield return null;
+            Assert.IsFalse(mover.IsMoving, "공격 중 정지");
+
+            //# 클립 종료 신호 → 잠금 해제.
+            gate.EndAttack();
+            Assert.IsFalse(gate.IsAttacking, "EndAttack 후 공격 락 해제");
+            yield return null;
+
+            Assert.IsTrue(mover.IsMoving, "EndAttack 후 사거리 밖 타겟으로 이동 재개");
+        }
     }
 }

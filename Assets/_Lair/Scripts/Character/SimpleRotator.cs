@@ -66,6 +66,9 @@ namespace Lair.Character
         private void Update()
         {
             if (_hasTarget == false) return;
+            //# 영웅(_snapInstant) — FaceDirection 이 이미 즉시 ApplyYaw 함. 여기서 보간하면
+            //# 옛 yaw 기준 step 으로 그 스냅을 덮어써 540°/s 보간이 됨 → 보간 건너뜀.
+            if (_snapInstant) return;
             float currentYaw = transform.eulerAngles.y;
             float step = _turnSpeedDegPerSec * Time.deltaTime;
             float newYaw = Mathf.MoveTowardsAngle(currentYaw, _targetYaw, step);
