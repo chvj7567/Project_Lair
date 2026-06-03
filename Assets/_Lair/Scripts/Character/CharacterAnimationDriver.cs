@@ -19,6 +19,9 @@ namespace Lair.Character
         private AutoCombatAI _ai;
         private CharacterAnimationController _controller;
 
+        //# 영웅 공격 게이트 (hero-animation-timing-sync §2.7). 영웅만 부착 → null=몬스터(현행 OnHit→애니 경로).
+        private IAttackGate _attackGate;
+
         private int _lastKnownHp;
 
         private void Awake()
@@ -29,6 +32,7 @@ namespace Lair.Character
             _mover = GetComponent<IMover>();
             _attacker = GetComponent<IAttacker>();
             _ai = GetComponent<AutoCombatAI>();
+            _attackGate = GetComponent<IAttackGate>();
             _controller = new CharacterAnimationController(
                 new AnimatorSink(_animator), _hitReactionCooldown, _attackSuppressWindow);
         }
@@ -48,6 +52,11 @@ namespace Lair.Character
             {
                 _attacker.OnHit += HandleAttackHit;
             }
+            //# 영웅(§2.7) — 공격 애니 트리거는 OnHit(strike 후행) 이 아니라 개시 신호로. strike→windup→strike 순환 차단.
+            if (_attackGate != null)
+            {
+                _attackGate.OnAttackBegin += HandleAttackBegin;
+            }
 
             _controller.OnSpawn();
         }
@@ -63,12 +72,19 @@ namespace Lair.Character
             {
                 _attacker.OnHit -= HandleAttackHit;
             }
+            if (_attackGate != null)
+            {
+                _attackGate.OnAttackBegin -= HandleAttackBegin;
+            }
         }
 
         private void Update()
         {
             bool fleeing = _ai != null && _ai.FleeMode;
             bool moving = _mover != null && _mover.IsMoving;
+            //# 영웅 공격 모션 중 피격 리액션 억제를 controller 에 push(§3.4). 몬스터는 게이트 null → false.
+            if (_attackGate != null)
+                _controller.SetAttacking(_attackGate.IsAttacking);
             _controller.Tick(moving, fleeing, _walkSpeed, _runSpeed);
         }
 
@@ -83,6 +99,16 @@ namespace Lair.Character
 
         private void HandleDied() => _controller.OnDied();
 
-        private void HandleAttackHit(IHealth target) => _controller.OnAttack(Time.time);
+        //# OnHit 구독 — 영웅(게이트 존재)은 애니 트리거 우회(개시 경로가 담당, §2.7). OnHit 은 연출(AttackJuice/Plague) 전용.
+        //# 몬스터(게이트 null)는 현행 OnHit→OnAttack 애니 트리거 경로 보존.
+        private void HandleAttackHit(IHealth target)
+        {
+            if (_attackGate != null)
+                return;
+            _controller.OnAttack(Time.time);
+        }
+
+        //# 영웅 개시 신호(§2.7 ②) — IAttackGate.BeginAttack 이 발행. Driver(View)가 받아 TriggerAttack 출력만.
+        private void HandleAttackBegin() => _controller.OnAttack(Time.time);
     }
 }

@@ -64,5 +64,64 @@ namespace Lair.Tests.Character
             Assert.IsTrue(hit);
             Assert.AreEqual(2, target.DamageCallCount);
         }
+
+        //# ===== 영웅 흐름 역전 — TryBeginAttack / TryApplyStrike 2분할 (hero-animation-timing-sync §2.4) =====
+
+        //# 정상 케이스: 개시(begin)는 데미지 미적용, strike 가 비로소 데미지 적용.
+        [Test]
+        public void TryBeginAttack_개시는_데미지_미적용_Strike가_적용()
+        {
+            MeleeAttacker atk = NewAttacker(range: 2.0f, power: 50);
+            FakeHealth target = new FakeHealth();
+
+            bool began = atk.TryBeginAttack(target, Vector3.zero, new Vector3(1, 0, 0), now: 0f);
+
+            Assert.IsTrue(began, "사거리·쿨다운 통과 시 개시 성공");
+            Assert.AreEqual(0, target.DamageCallCount, "개시 시점엔 데미지 미적용(windup 지연)");
+
+            bool struck = atk.TryApplyStrike(now: 0.4f);
+
+            Assert.IsTrue(struck, "strike 재검사 통과 시 데미지 적용");
+            Assert.AreEqual(1, target.DamageCallCount);
+            Assert.AreEqual(50, target.LastDamage);
+        }
+
+        //# 엣지: strike 전 windup 동안 타겟이 사거리 밖으로 이탈 → 헛스윙(데미지 0).
+        //# 캐싱은 개시 시점 위치 기준이므로, 개시 시점에 사거리 밖이면 begin 자체가 실패.
+        //# 여기서는 개시는 사거리 내, strike 재검사는 범위 밖 — Configure 후 range 축소로 재현.
+        [Test]
+        public void TryApplyStrike_캐싱타겟_사거리_재검사_실패시_헛스윙()
+        {
+            MeleeAttacker atk = NewAttacker(range: 2.0f, power: 50);
+            FakeHealth target = new FakeHealth();
+
+            //# 개시 — 사거리(2.0) 내 거리 1.0 통과, 타겟·위치 캐싱.
+            bool began = atk.TryBeginAttack(target, Vector3.zero, new Vector3(1, 0, 0), now: 0f);
+            Assert.IsTrue(began);
+
+            //# windup 중 사거리 축소 → 캐싱 거리 1.0 이 새 사거리 0.5 를 초과 → strike 재검사 실패.
+            atk.Configure(range: 0.5f, cooldown: 1.0f, power: 50);
+
+            bool struck = atk.TryApplyStrike(now: 0.4f);
+
+            Assert.IsFalse(struck, "재검사 실패 시 헛스윙");
+            Assert.AreEqual(0, target.DamageCallCount, "헛스윙은 데미지 0");
+        }
+
+        //# PowerScale 은 strike 시점에 읽힌다(§2.4-a) — 개시 후 배율 변경이 strike 데미지에 반영.
+        [Test]
+        public void TryApplyStrike_PowerScale_Strike시점_배율_적용()
+        {
+            MeleeAttacker atk = NewAttacker(range: 2.0f, power: 50);
+            FakeHealth target = new FakeHealth();
+
+            atk.TryBeginAttack(target, Vector3.zero, new Vector3(1, 0, 0), now: 0f);
+            //# windup 동안 약화 카드로 PowerScale 하락 → strike 데미지에 반영(개시 시점 1.0 이 아닌 0.5).
+            atk.PowerScale = 0.5f;
+
+            atk.TryApplyStrike(now: 0.4f);
+
+            Assert.AreEqual(25, target.LastDamage, "strike 순간 PowerScale 0.5 → 50*0.5=25");
+        }
     }
 }

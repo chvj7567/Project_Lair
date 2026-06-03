@@ -15,15 +15,32 @@ namespace Lair.Tests.Helpers
         //# B3 — 무력화/약화 카드 테스트용 데미지 배율.
         public float PowerScale { get; set; } = 1f;
 
+        //# 영웅 흐름 역전 스위치 (hero-animation-timing-sync §B.2). 기본 false=즉시 경로(현행 더블 흐름 보존).
+        public bool DeferStrike { get; set; }
+
         //# B3 — 공격 적중 이벤트.
         public event Action<IHealth> OnHit;
         public void RaiseOnHit(IHealth target) => OnHit?.Invoke(target);
 
         public int TryAttackCallCount { get; private set; }
+        public int TryBeginAttackCallCount { get; private set; }
+        public int TryApplyStrikeCallCount { get; private set; }
 
         public bool TryAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now)
         {
             TryAttackCallCount++;
+            return false;
+        }
+
+        public bool TryBeginAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now)
+        {
+            TryBeginAttackCallCount++;
+            return false;
+        }
+
+        public bool TryApplyStrike(float now)
+        {
+            TryApplyStrikeCallCount++;
             return false;
         }
     }

@@ -6,8 +6,12 @@ namespace Lair.Character
     //# AutoCombatAI 가 상태별로 FaceDirection 호출 → Update 에서 MoveTowardsAngle 로 따라감.
     public class SimpleRotator : MonoBehaviour, IRotator
     {
-        //# 권장 540 deg/s — 기획서 §2.1. 180°를 0.33초.
+        //# 권장 540 deg/s — 기획서 §2.1. 180°를 0.33초. _snapInstant=true(영웅) 면 미사용.
         [SerializeField] private float _turnSpeedDegPerSec = 540f;
+
+        //# 영웅 한정 즉시 스냅 (hero-animation-timing-sync §4.2). true 면 FaceDirection 이 보간 없이 즉시 ApplyYaw.
+        //# 기본 false=현행 보간(몬스터 6종). 영웅 프리팹만 true. SerializeField 라 OnEnable 리셋 불요.
+        [SerializeField] private bool _snapInstant;
 
         //# 보간 목표 yaw 와 목표 보유 여부. 풀 재사용 시 OnEnable 에서 false 로 리셋.
         private bool _hasTarget;
@@ -30,6 +34,9 @@ namespace Lair.Character
             if (worldDir.sqrMagnitude < 0.000001f) return;   //# magnitude < 0.001 → sqrMag < 1e-6
             _targetYaw = Mathf.Atan2(worldDir.x, worldDir.z) * Mathf.Rad2Deg;
             _hasTarget = true;
+            //# 영웅(_snapInstant) — 보간 없이 즉시 적용. Update 보간 step 도 이미 도달이라 no-op.
+            if (_snapInstant)
+                ApplyYaw(_targetYaw);
         }
 
         public void SnapToDirection(Vector3 worldDir)

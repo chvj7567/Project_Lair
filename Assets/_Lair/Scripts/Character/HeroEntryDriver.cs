@@ -10,11 +10,20 @@ namespace Lair.Character
         //# 도달 임계값 (m). spec §10 — 0.5m.
         [SerializeField] private float _arriveThreshold = 0.5f;
 
+        //# 스폰 게이트 fallback (hero-animation-timing-sync §1.3·§7.6). spawn 1.33s × 1.35 마진.
+        //# OnSpawnAnimEnd 이벤트 유실 시 영구 봉인 방지 — enabled 후 이 시간 지나면 게이트 강제 open.
+        [SerializeField] private float _spawnGateFallback = 1.8f;
+
         private BattleZone _zone;
         private IMover _mover;
         private IRotator _rotator;
         private IHealth _health;
         private bool _notified;
+
+        //# march 게이트 (§1.2). 기본 닫힘 — enabled 여도 open 전엔 Stop 유지(march 안 함).
+        //# OnSpawnAnimEnd relay 또는 fallback 으로 open. 풀 재사용 대비 OnEnable 리셋.
+        private bool _marchGateOpen;
+        private float _enabledTime;
 
         public void Bind(BattleZone zone)
         {
@@ -29,6 +38,16 @@ namespace Lair.Character
             _health = GetComponent<IHealth>();
         }
 
+        //# 풀 재사용 + enabled 토글 시 게이트 잔존 방지 — 매 활성화마다 닫힘으로 리셋.
+        private void OnEnable()
+        {
+            _marchGateOpen = false;
+            _enabledTime = Time.time;
+        }
+
+        //# OnSpawnAnimEnd relay(§B4) 또는 fallback 이 호출 — march 시작 허용.
+        public void OpenMarchGate() => _marchGateOpen = true;
+
         private void Update()
         {
             if (_zone == null) return;
@@ -38,6 +57,20 @@ namespace Lair.Character
             {
                 _mover?.Stop();
                 return;
+            }
+
+            //# 게이트 닫힘 — spawn 모션 재생 중. fallback 초과 시 강제 open(이벤트 유실 안전망).
+            if (_marchGateOpen == false)
+            {
+                if (Time.time - _enabledTime >= _spawnGateFallback)
+                {
+                    _marchGateOpen = true;
+                }
+                else
+                {
+                    _mover?.Stop();
+                    return;
+                }
             }
 
             Vector3 center = _zone.Center;

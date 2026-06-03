@@ -58,11 +58,41 @@ namespace Lair.Character
         //# B3 — 데미지 배율 오버레이. 무력화/약화 카드가 IAttacker 타입으로 조작.
         float PowerScale { get; set; }
 
+        //# 영웅 한정 흐름 역전 스위치 (hero-animation-timing-sync §B.2).
+        //# true=공격 개시/strike 2분할(영웅), false=즉시 데미지(몬스터 6종 — 현행).
+        bool DeferStrike { get; }
+
         //# B3 — 공격 적중 시 target 으로 발행. 플레이그 PlagueSlowOnHit 가 구독.
         event Action<IHealth> OnHit;
 
-        //# 거리·쿨다운 만족 시 target.TakeDamage 호출 후 true.
+        //# 거리·쿨다운 만족 시 target.TakeDamage 호출 후 true. 몬스터(DeferStrike=false) 즉시 경로.
         bool TryAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now);
+
+        //# 영웅 흐름 역전 — 개시 판정만 (사거리·쿨다운[CooldownScale]·타겟 유효 검사 + 쿨다운 기록 + 타겟 캐싱).
+        //# 데미지 적용 안 함. true=공격 애니 트리거해도 됨 (§2.4).
+        bool TryBeginAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now);
+
+        //# 영웅 흐름 역전 — strike 프레임. 캐싱 타겟 사거리·생존 재검사 후 데미지[PowerScale strike시점] + OnHit (§2.4).
+        bool TryApplyStrike(float now);
+    }
+
+    //# ===== 공격 게이트 (영웅 한정) =====
+
+    //# 영웅 공격 모션 재생 중 상태(IsAttacking) 소유 + 개시 신호 중계 (hero-animation-timing-sync §3.2·§2.7).
+    //# 루트에 부착(영웅 프리팹만). 몬스터는 미부착 → AutoCombatAI 가 null 로 잡아 보류 로직 미적용.
+    //# 게임플레이 판정은 안 함 — AutoCombatAI/MeleeAttacker 가 통과시킨 개시 결과만 받아 애니 신호 발행.
+    public interface IAttackGate
+    {
+        bool IsAttacking { get; }
+
+        //# 개시 시점 호출 — IsAttacking=true + 공격 애니 트리거 개시 신호 발행(§2.7 ②).
+        void BeginAttack();
+
+        //# 클립 종료(OnAttackEnd) relay 호출 — IsAttacking=false.
+        void EndAttack();
+
+        //# 개시 신호 — Driver(View)가 구독해 TriggerAttack 출력. 게임플레이 판정 미포함.
+        event Action OnAttackBegin;
     }
 
     //# ===== 타겟 검색 =====

@@ -53,6 +53,194 @@ namespace Lair.EditorTools
         private const float VisualLocalY = 0f;
 
         // ============================================================
+        // 메뉴 4 — 애니 이벤트 베이크 + 영웅 플래그/relay (hero-animation-timing-sync §7)
+        // ============================================================
+
+        //# 애니 이벤트 functionName — CharacterAttackStrikeRelay 메서드명과 글자 그대로 일치 필수(§7.7).
+        private const string FnSpawnAnimEnd = "OnSpawnAnimEnd";
+        private const string FnAttackStrike = "OnAttackStrike";
+        private const string FnAttackEnd    = "OnAttackEnd";
+
+        //# strike 추정 normalizedTime (§2.6 — 육안 보정 대상. 메인이 플레이모드에서 조정).
+        //# 단일 진실은 클립에 박힌 AnimationEvent.time(초)이며, 베이크는 nt × 클립길이로 환산해 박는다.
+        private const float StrikeNtSlash = 0.40f;   //# slash01 / slash02 — 횡베기 중반
+        private const float StrikeNtStab  = 0.55f;   //# stab — 찌르기 후반
+        //# OnAttackEnd / OnSpawnAnimEnd 는 클립 끝 — 마지막 프레임 직전(이벤트 발화 보장).
+        private const float EndNt = 0.99f;
+
+        //# 공격 클립 ↔ strike nt 매핑 (클립명 = FBX 파일명).
+        private static readonly (string clip, float strikeNt)[] AttackClips =
+        {
+            ("Skeleton_slash01", StrikeNtSlash),
+            ("Skeleton_slash02", StrikeNtSlash),
+            ("Skeleton_stab",    StrikeNtStab),
+        };
+
+        private const string SpawnClipFile = "Skeleton_spawn";
+        private const string StrikeRelayName = VisualName;   //# relay 는 Visual(Animator) 자식에 부착(§B4).
+
+        [MenuItem("Lair/Setup/Skeleton - 4. Bake Anim Events & Hero Flags")]
+        public static void BakeAnimEventsAndHeroFlags()
+        {
+            int bakedClips = 0;
+
+            //# 1) spawn 클립 — OnSpawnAnimEnd (클립 끝). time 은 BakeClipEvents 가 nt→초 환산.
+            bakedClips += BakeClipEvents(SpawnClipFile, new[]
+            {
+                new AnimationEvent { functionName = FnSpawnAnimEnd }
+            }, new[] { EndNt });
+
+            //# 2) 공격 클립 3종 — OnAttackStrike(strike nt) + OnAttackEnd(클립 끝).
+            foreach ((string clip, float strikeNt) in AttackClips)
+            {
+                bakedClips += BakeClipEvents(clip, new[]
+                {
+                    new AnimationEvent { functionName = FnAttackStrike },
+                    new AnimationEvent { functionName = FnAttackEnd },
+                }, new[] { strikeNt, EndNt });
+            }
+
+            //# 3) Knight.prefab 후처리 — 영웅 플래그 + Visual 자식 relay 부착.
+            bool prefabOk = ApplyHeroFlagsAndRelay();
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[HeroSkeletonBuilder] 애니 이벤트 베이크 완료 — 클립 {bakedClips}건 + " +
+                      $"Knight 플래그/relay {(prefabOk ? "OK" : "실패")}. " +
+                      $"strike nt(slash {StrikeNtSlash}/stab {StrikeNtStab})는 육안 보정 대상(§2.6) — " +
+                      $"플레이모드 확인 후 본 빌더의 StrikeNt 상수 조정 후 재실행.");
+        }
+
+        //# 단일 클립의 FBX ModelImporter.clipAnimations[].events 에 이벤트 베이크 (멱등 — 같은 functionName 은 교체).
+        //# nt(0~1) × 클립길이(초) 로 AnimationEvent.time 환산. 임포트 fps 무관(시간 기준, §m1).
+        private static int BakeClipEvents(string clipFile, AnimationEvent[] events, float[] normalizedTimes)
+        {
+            string fbxPath = $"{DstAnimClipDir}/{clipFile}.fbx";
+            ModelImporter importer = AssetImporter.GetAtPath(fbxPath) as ModelImporter;
+            if (importer == null)
+            {
+                Debug.LogWarning($"[HeroSkeletonBuilder] ModelImporter 미발견 — skip: {fbxPath} (메뉴 1 이관 확인).");
+                return 0;
+            }
+
+            AnimationClip clip = LoadClip(clipFile);
+            if (clip == null)
+            {
+                Debug.LogWarning($"[HeroSkeletonBuilder] AnimationClip 미발견 — skip: {clipFile}");
+                return 0;
+            }
+            float length = clip.length;   //# 초. nt → 초 환산 기준.
+
+            ModelImporterClipAnimation[] clips = importer.clipAnimations;
+            //# clipAnimations 가 비면 defaultClipAnimations(임포트된 take)로 시드 — 그래야 events 가 보존됨.
+            if (clips == null || clips.Length == 0)
+            {
+                clips = importer.defaultClipAnimations;
+            }
+            if (clips == null || clips.Length == 0)
+            {
+                Debug.LogWarning($"[HeroSkeletonBuilder] clipAnimations 비어있음 — skip: {clipFile}");
+                return 0;
+            }
+
+            //# 이벤트 시간 환산.
+            for (int i = 0; i < events.Length; i++)
+            {
+                events[i].time = Mathf.Clamp01(normalizedTimes[i]) * length;
+            }
+
+            //# 첫 take 에 베이크 (영웅 클립은 FBX 1파일=1클립 가정). 같은 functionName 은 제거 후 재삽입(멱등).
+            ModelImporterClipAnimation target = clips[0];
+            System.Collections.Generic.List<AnimationEvent> merged =
+                new System.Collections.Generic.List<AnimationEvent>();
+            if (target.events != null)
+            {
+                foreach (AnimationEvent existing in target.events)
+                {
+                    if (IsManagedFn(existing.functionName) == false)
+                        merged.Add(existing);
+                }
+            }
+            merged.AddRange(events);
+            target.events = merged.ToArray();
+            clips[0] = target;
+            importer.clipAnimations = clips;
+
+            EditorUtility.SetDirty(importer);
+            importer.SaveAndReimport();
+            return 1;
+        }
+
+        //# 본 빌더가 관리하는 functionName 인가 — 멱등 재베이크 시 중복 방지.
+        private static bool IsManagedFn(string fn)
+        {
+            return fn == FnSpawnAnimEnd || fn == FnAttackStrike || fn == FnAttackEnd;
+        }
+
+        //# Knight.prefab 후처리 — MeleeAttacker.DeferStrike=true, SimpleRotator._snapInstant=true,
+        //# HeroAttackGate 루트 부착, Visual 자식에 CharacterAttackStrikeRelay 부착. 멱등.
+        private static bool ApplyHeroFlagsAndRelay()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(KnightPrefabPath) == null)
+            {
+                Debug.LogError("[HeroSkeletonBuilder] Knight.prefab 미발견 — 메뉴 3 을 먼저 실행하세요.");
+                return false;
+            }
+
+            GameObject root = PrefabUtility.LoadPrefabContents(KnightPrefabPath);
+
+            //# 1) MeleeAttacker.DeferStrike=true (영웅 흐름 역전 스위치 §B.2).
+            MeleeAttacker attacker = root.GetComponent<MeleeAttacker>();
+            if (attacker == null)
+            {
+                Debug.LogWarning("[HeroSkeletonBuilder] Knight 루트에 MeleeAttacker 없음 — DeferStrike 미설정.");
+            }
+            else
+            {
+                SetSerializedBool(attacker, "_deferStrike", true);
+            }
+
+            //# 2) SimpleRotator._snapInstant=true (회전 즉시 스냅 §4.2).
+            SimpleRotator rotator = root.GetComponent<SimpleRotator>();
+            if (rotator == null)
+            {
+                Debug.LogWarning("[HeroSkeletonBuilder] Knight 루트에 SimpleRotator 없음 — _snapInstant 미설정.");
+            }
+            else
+            {
+                SetSerializedBool(rotator, "_snapInstant", true);
+            }
+
+            //# 3) HeroAttackGate 루트 부착 (IsAttacking 소유 §3.2). 멱등.
+            HeroAttackGate gate = root.GetComponent<HeroAttackGate>();
+            if (gate == null)
+            {
+                root.AddComponent<HeroAttackGate>();
+            }
+
+            //# 4) Visual 자식에 CharacterAttackStrikeRelay 부착 (Animator 와 같은 GameObject §B4). 멱등.
+            Transform visual = root.transform.Find(StrikeRelayName);
+            if (visual == null)
+            {
+                Debug.LogError($"[HeroSkeletonBuilder] Visual 자식('{StrikeRelayName}') 미발견 — 메뉴 3 을 먼저 실행하세요. relay 미부착.");
+            }
+            else
+            {
+                CharacterAttackStrikeRelay relay = visual.GetComponent<CharacterAttackStrikeRelay>();
+                if (relay == null)
+                {
+                    visual.gameObject.AddComponent<CharacterAttackStrikeRelay>();
+                }
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(root, KnightPrefabPath);
+            PrefabUtility.UnloadPrefabContents(root);
+            Debug.Log("[HeroSkeletonBuilder] Knight 영웅 플래그/relay 적용 — DeferStrike=true, _snapInstant=true, " +
+                      "HeroAttackGate(루트), CharacterAttackStrikeRelay(Visual).");
+            return true;
+        }
+
+        // ============================================================
         // 메뉴 1 — 에셋 이관 (Task 5)
         // ============================================================
 
@@ -463,6 +651,19 @@ namespace Lair.EditorTools
                 return;
             }
             prop.floatValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetSerializedBool(Component target, string field, bool value)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(field);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[HeroSkeletonBuilder] 필드 미발견: {target.GetType().Name}.{field}");
+                return;
+            }
+            prop.boolValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 85b976b555a360642a5b0873d89e2f3f
+AssetOrigin:
+  serializedVersion: 1
+  productId: 306857
+  packageName: Stylized Low Poly Skeleton
+  packageVersion: 1.1
+  assetPath: Assets/SazenGames/Skeleton/Art/Animations/Skeleton_stab.fbx
+  uploadId: 792234
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -17,7 +24,8 @@ ModelImporter:
     removeConstantScaleCurves: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: 
+    animationImportWarnings: Event OnAttackEnd has a time (2.641100) outside the
+      clip's valid range (0.000000..1.633333). It will never be fired
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -54,7 +62,21 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.4939893
+        functionName: OnAttackStrike
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 1.6170001
+        functionName: OnAttackEnd
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -613,8 +635,7 @@ ModelImporter:
     - name: thigh_twist.l
       parentName: thigh_stretch.l
       position: {x: -0.00000002503395, y: 0.000000005066395, z: 0.00000016838312}
-      rotation: {x: 0.000000020489095, y: 0.00000002235174, z: -0.000000029802319,
-        w: 1}
+      rotation: {x: 0.000000020489095, y: 0.00000002235174, z: -0.000000029802319, w: 1}
       scale: {x: 1, y: 1.0000007, z: 1.0000008}
     - name: thigh_stretch.r
       parentName: root.x
@@ -639,8 +660,7 @@ ModelImporter:
     - name: leg_twist.r
       parentName: leg_stretch.r
       position: {x: 0.00000007271767, y: -0.000000023841856, z: 0.13610713}
-      rotation: {x: 0.00000009499488, y: -0.000000007450579, z: -0.00000023026945,
-        w: 1}
+      rotation: {x: 0.00000009499488, y: -0.000000007450579, z: -0.00000023026945, w: 1}
       scale: {x: 1.0000007, y: 1.0000006, z: 1.0000012}
     - name: thigh_twist.r
       parentName: thigh_stretch.r
@@ -820,8 +840,7 @@ ModelImporter:
     - name: arm_twist.r
       parentName: arm_stretch.r
       position: {x: -0.000000047683713, y: 0.000000009536743, z: 0.0000002002716}
-      rotation: {x: 0.000000022351736, y: 0.000000016763803, z: -0.0000001955777,
-        w: 1}
+      rotation: {x: 0.000000022351736, y: 0.000000016763803, z: -0.0000001955777, w: 1}
       scale: {x: 0.99999994, y: 0.9999998, z: 0.9999996}
     - name: shoulder.l
       parentName: spine_03.x
@@ -982,10 +1001,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 306857
-  packageName: Stylized Low Poly Skeleton
-  packageVersion: 1.1
-  assetPath: Assets/SazenGames/Skeleton/Art/Animations/Skeleton_stab.fbx
-  uploadId: 792234

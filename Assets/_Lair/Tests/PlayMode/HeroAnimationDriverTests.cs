@@ -25,6 +25,9 @@ namespace Lair.Tests.PlayMode
             public bool Enabled { get; set; } = true;
             public float PowerScale { get; set; } = 1f;
 
+            //# 기본 false=즉시 경로 — 게이트 미부착 더블이라 OnHit→OnAttack 현행 구독 흐름 보존(§7.4).
+            public bool DeferStrike { get; set; }
+
             public event Action<IHealth> OnHit;
 
             //# 현재 OnHit 구독자 수 — 누수 검증의 핵심 메트릭.
@@ -34,6 +37,8 @@ namespace Lair.Tests.PlayMode
             public void RaiseHit(IHealth target) => OnHit?.Invoke(target);
 
             public bool TryAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now) => false;
+            public bool TryBeginAttack(IHealth target, Vector3 selfPos, Vector3 targetPos, float now) => false;
+            public bool TryApplyStrike(float now) => false;
         }
 
         private static GameObject MakeHero(out Health health, out SubscriptionCountingAttacker attacker)

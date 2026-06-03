@@ -72,6 +72,9 @@ namespace Lair.Tests.PlayMode.Battle
             GameObject hero = CreateHero(new Vector3(2f, 0f, 0f), zone);
             HeroEntryDriver driver = hero.AddComponent<HeroEntryDriver>();
             driver.Bind(zone);
+            //# hero-animation-timing-sync §1.2 — march 게이트 기본 닫힘. 스폰 게이팅과 무관하게
+            //# march 동작만 검증하기 위해 명시적으로 게이트 open (fallback 1.8s 대기 회피).
+            driver.OpenMarchGate();
 
             int eventCount = 0;
             zone.OnHeroReachedCenter += () => eventCount++;
@@ -97,6 +100,71 @@ namespace Lair.Tests.PlayMode.Battle
                 yield return null;
             }
             Assert.AreEqual(1, eventCount, "추가 시간 진행해도 이벤트 재발행 없음");
+        }
+
+        //# 회귀 — march 게이트가 닫힌 동안(fallback 1.8s 전)엔 영웅이 행진하지 않는다.
+        //# hero-animation-timing-sync §1.2. OpenMarchGate 미호출 + 1.5s 대기(< 1.8s fallback) →
+        //# 영웅이 Stop 유지(위치 불변) → Center 미도달 → 이벤트 0회.
+        [UnityTest]
+        public IEnumerator march_게이트_닫힌동안_fallback_전엔_행진안함_이벤트_0회()
+        {
+            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+
+            //# 중심 가까이(2m) 배치 — 게이트만 열렸으면 즉시 도달할 거리. 게이트 닫힘 검증의 대조군.
+            GameObject hero = CreateHero(new Vector3(2f, 0f, 0f), zone);
+            HeroEntryDriver driver = hero.AddComponent<HeroEntryDriver>();
+            driver.Bind(zone);
+            //# OpenMarchGate 의도적으로 호출하지 않음 — 게이트 닫힘 상태 유지.
+
+            int eventCount = 0;
+            zone.OnHeroReachedCenter += () => eventCount++;
+
+            //# 1.5s 대기 — _spawnGateFallback(1.8s) 전. 게이트는 계속 닫힘.
+            float elapsed = 0f;
+            while (elapsed < 1.5f)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Assert.AreEqual(0, eventCount,
+                "fallback(1.8s) 전 게이트 닫힘 → 행진 안 함 → Center 미도달 → 이벤트 0회");
+            Assert.IsTrue(driver.enabled,
+                "도달 안 했으므로 driver 는 여전히 활성 (enabled=true)");
+            //# 영웅이 Stop 유지 — 위치 변동 없음.
+            Assert.AreEqual(2f, hero.transform.position.x, 0.01f,
+                "게이트 닫힘 동안 _mover.Stop → 위치 불변");
+        }
+
+        //# 회귀 — fallback(1.8s) 경과 후 게이트가 강제 open 되어 영웅이 행진·도달한다.
+        //# hero-animation-timing-sync §1.3 — OnSpawnAnimEnd 이벤트 유실 시 영구 봉인 방지.
+        //# 대기는 fallback(1.8s) + 행진 여유(약 0.4s) 만 — 유한·짧게 유지.
+        [UnityTest]
+        public IEnumerator march_게이트_fallback_경과후_강제open_되어_도달_이벤트_1회()
+        {
+            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+
+            //# 중심 가까이(2m) — Speed=5 면 행진 시작 후 약 0.4s 에 도달.
+            GameObject hero = CreateHero(new Vector3(2f, 0f, 0f), zone);
+            HeroEntryDriver driver = hero.AddComponent<HeroEntryDriver>();
+            driver.Bind(zone);
+            //# OpenMarchGate 미호출 — fallback 으로만 열려야 함.
+
+            int eventCount = 0;
+            zone.OnHeroReachedCenter += () => eventCount++;
+
+            //# fallback 1.8s + 행진·여유 1.0s = 2.8s 상한 대기 (도달 시 조기 break — 유한 보장).
+            float elapsed = 0f;
+            while (elapsed < 2.8f && eventCount == 0)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Assert.AreEqual(1, eventCount,
+                "fallback 경과 후 게이트 강제 open → 행진·도달 → 이벤트 정확히 1회");
+            Assert.IsFalse(driver.enabled,
+                "도달 후 driver 비활성 (enabled=false)");
         }
 
         //# 엣지 — 영웅이 entry 중 사망 → SimpleMover.Stop() 호출 + NotifyHeroReachedCenter 미호출.
