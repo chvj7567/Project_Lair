@@ -93,4 +93,18 @@ namespace Lair.Character
         //# 즉시 스냅 — OnEnable / 초기 스폰 시 사용. magnitude < 0.001f 면 no-op.
         void SnapToDirection(Vector3 worldDir);
     }
+
+    //# ===== 애니메이션 채널 =====
+
+    //# 애니메이션 구동의 Unity 의존을 격리하는 sink. 실제 구현은 Animator 래퍼,
+    //# 테스트는 Fake 로 대체 → CharacterAnimationController 를 EditMode 에서 검증 가능.
+    public interface IAnimatorSink
+    {
+        void SetSpeed(float speed);
+        //# variant 0=slash01 / 1=slash02 / 2=stab (Knight.controller AttackVariant 파라미터).
+        void TriggerAttack(int variant);
+        void TriggerHit();
+        void SetDead(bool dead);
+        void TriggerSpawn();
+    }
 }
