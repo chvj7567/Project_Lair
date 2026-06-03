@@ -1,63 +1,26 @@
-using System.Collections.Generic;
-using System.IO;
 using NUnit.Framework;
-using UnityEngine;
+using UnityEditor;
+using Lair.Data;
 
 namespace Lair.Tests.Battle
 {
-    //# 카드 리뉴얼 v0.6 본격 스위트 — Plague Spawner #4 의 세부 정합 회귀.
-    //# 기존 SpawnerConfigTests 는 Plague ≥1 / 총 6개만 검증. 본 스위트는 #4 슬롯의
+    //# Plague 스폰 주기 정합 회귀 — 스폰 주기 SoT 가 BalanceConfig.asset 로 이관된 뒤 갱신.
+    //# 씬 _spawnPeriod 는 원형 Arranger 재생성으로 기본값(9)이 되므로 더 이상 SoT 가 아니다.
+    //# 본 스위트는 in-memory config(SpawnPeriodBalanceTests/BalanceConfigTests) 와 달리
+    //# 실제 출하 asset 을 로드해 Plague=10 정합을 박제한다 (출하 데이터 회귀 감지).
     public class PlagueSpawnerConfigTests
     {
-        private const string BattleScenePath = "Assets/_Lair/Scenes/Battle.unity";
+        private const string BalanceConfigPath = "Assets/_Lair/Data/BalanceConfig.asset";
 
-        //# Battle.unity YAML 안에서 Spawner MonoBehaviour 블록의 _outputType=4 (Plague) 인 슬롯의
-        //# _spawnPeriod / _initialDelay 두 필드를 함께 추출 — 한 블록 안에서 3개 필드가 같이 떠야 정합.
+        //# 실제 BalanceConfig.asset 의 Plague 주기가 10초로 정확한지 검증 (기획서 §5.1 / §5.3).
         [Test]
-        public void Plague_Spawner_period_10초_initialDelay_1점5초_정합()
+        public void Plague_스폰주기_10초_BalanceConfig_정합()
         {
-            string fullPath = Path.Combine(Application.dataPath, "..", BattleScenePath);
-            Assert.IsTrue(File.Exists(fullPath), $"Battle.unity 부재: {fullPath}");
+            BalanceConfig config = AssetDatabase.LoadAssetAtPath<BalanceConfig>(BalanceConfigPath);
+            Assert.IsNotNull(config, $"BalanceConfig.asset 로드 실패: {BalanceConfigPath}");
 
-            string yaml = File.ReadAllText(fullPath);
-
-            //# YAML 라인 단위로 분리하고, _outputType: 4 발견 위치 주변 30줄 안에서 _spawnPeriod / _initialDelay 추출.
-            string[] lines = yaml.Split('\n');
-            List<(float period, float initialDelay)> plagueSlots = new();
-            for (int i = 0; i < lines.Length; ++i)
-            {
-                if (lines[i].TrimEnd('\r', '\n').EndsWith("_outputType: 4") == false)
-                    continue;
-                //# 동일 MonoBehaviour 블록 안 — 위·아래 50줄 윈도우 안에서 두 필드 탐색.
-                float period = -1f;
-                float initial = -1f;
-                int from = System.Math.Max(0, i - 30);
-                int to = System.Math.Min(lines.Length - 1, i + 30);
-                for (int j = from; j <= to; ++j)
-                {
-                    string ln = lines[j].TrimEnd('\r', '\n').TrimStart(' ');
-                    if (ln.StartsWith("_spawnPeriod:"))
-                    {
-                        float.TryParse(ln.Substring("_spawnPeriod:".Length).Trim(),
-                            System.Globalization.NumberStyles.Float,
-                            System.Globalization.CultureInfo.InvariantCulture, out period);
-                    }
-                    else if (ln.StartsWith("_initialDelay:"))
-                    {
-                        float.TryParse(ln.Substring("_initialDelay:".Length).Trim(),
-                            System.Globalization.NumberStyles.Float,
-                            System.Globalization.CultureInfo.InvariantCulture, out initial);
-                    }
-                }
-                plagueSlots.Add((period, initial));
-            }
-
-            Assert.AreEqual(1, plagueSlots.Count,
-                "Plague Spawner 슬롯 정확히 1개 (기획서 §5.1)");
-            Assert.AreEqual(10f, plagueSlots[0].period, 0.001f,
-                "Plague Spawner #4 의 _spawnPeriod = 10.0s (기획서 §5.1 / §5.3)");
-            Assert.AreEqual(1.5f, plagueSlots[0].initialDelay, 0.001f,
-                "Plague Spawner #4 의 _initialDelay = 1.5s (Wisp #4 자리 보존)");
+            Assert.AreEqual(10f, config.GetSpawnPeriod(EMonster.Plague), 0.001f,
+                "출하 BalanceConfig.asset 의 Plague 스폰 주기 = 10.0s (스폰 주기 SoT 이관 후)");
         }
     }
 }

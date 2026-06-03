@@ -8,7 +8,7 @@ using Lair.Tests.Helpers;
 
 namespace Lair.Tests.Battle
 {
-    //# BattleZone 본격 스위트 — IsInside / ClampInside / GetRandomSpawn / OnTriggerEnter / HeroEntryPoint.
+    //# BattleZone 본격 스위트 — IsInside / ClampInside / OnTriggerEnter / HeroEntryPoint.
     //# 시드 테스트(gameplay-programmer) 위에 엣지·회귀(test-engineer) 를 쌓는다.
     public class BattleZoneTests
     {
@@ -147,89 +147,6 @@ namespace Lair.Tests.Battle
             _spawned.Add(hep);
             SetPrivate(zone, "_heroEntryPoint", hep.transform);
             Assert.AreSame(hep.transform, zone.HeroEntryPoint);
-        }
-
-        //# ===== GetRandomSpawn =====
-
-        [Test]
-        public void GetRandomSpawn_spawnPoints_없으면_null()
-        {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            //# _spawnPoints 미할당 — null array.
-            Assert.IsNull(zone.GetRandomSpawn());
-        }
-
-        //# 엣지 — 길이 0 배열도 null 반환 (단순 null 체크가 아닌 Length 체크 회귀).
-        [Test]
-        public void GetRandomSpawn_빈_배열도_null()
-        {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            SetPrivate(zone, "_spawnPoints", new Transform[0]);
-            Assert.IsNull(zone.GetRandomSpawn(),
-                "Length 0 배열 — null array 와 동일하게 null 반환 (Length 가드 회귀)");
-        }
-
-        //# 엣지 — 단일 요소 배열은 deterministic 하게 그 요소만 반환.
-        [Test]
-        public void GetRandomSpawn_단일요소_배열이면_그_요소만_반환()
-        {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            GameObject sp1 = new GameObject("sp1"); sp1.transform.position = new Vector3(7, 0, 0);
-            _spawned.Add(sp1);
-            SetPrivate(zone, "_spawnPoints", new Transform[] { sp1.transform });
-
-            //# 다회 호출에도 같은 요소 (Range(0,1) = 항상 0).
-            for (int i = 0; i < 20; ++i)
-                Assert.AreSame(sp1.transform, zone.GetRandomSpawn());
-        }
-
-        [Test]
-        public void GetRandomSpawn_할당시_배열중_하나_반환()
-        {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            GameObject sp1 = new GameObject("sp1"); sp1.transform.position = new Vector3(7, 0, 0);
-            GameObject sp2 = new GameObject("sp2"); sp2.transform.position = new Vector3(0, 0, 7);
-            _spawned.Add(sp1); _spawned.Add(sp2);
-            SetPrivate(zone, "_spawnPoints", new Transform[] { sp1.transform, sp2.transform });
-
-            Transform picked = zone.GetRandomSpawn();
-            Assert.IsNotNull(picked);
-            Assert.IsTrue(picked == sp1.transform || picked == sp2.transform);
-        }
-
-        //# 분산 검증 — 충분한 다회 호출 시 모든 요소가 적어도 1번 등장.
-        //# 4개 요소 / 200회 호출 → 각 요소가 등장할 기댓값 50회. 분산 회귀.
-        [Test]
-        public void GetRandomSpawn_다회호출시_모든_요소_등장()
-        {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            GameObject[] sps = new GameObject[4];
-            Transform[] tfs = new Transform[4];
-            for (int i = 0; i < 4; ++i)
-            {
-                sps[i] = new GameObject($"sp{i}");
-                sps[i].transform.position = new Vector3(i, 0, 0);
-                tfs[i] = sps[i].transform;
-                _spawned.Add(sps[i]);
-            }
-            SetPrivate(zone, "_spawnPoints", tfs);
-
-            //# 고정 시드 — 결정적 검증.
-            Random.State prevState = Random.state;
-            Random.InitState(12345);
-            try
-            {
-                HashSet<Transform> seen = new HashSet<Transform>();
-                for (int i = 0; i < 200; ++i)
-                    seen.Add(zone.GetRandomSpawn());
-
-                Assert.AreEqual(4, seen.Count,
-                    "200회 호출 시 4개 spawn point 모두 등장 (분산 회귀)");
-            }
-            finally
-            {
-                Random.state = prevState;
-            }
         }
 
         //# ===== ClampInside =====

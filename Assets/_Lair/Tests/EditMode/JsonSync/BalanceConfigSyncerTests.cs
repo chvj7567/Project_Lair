@@ -286,6 +286,44 @@ namespace Lair.Tests
             Assert.AreEqual(200, wraith.Hp, "Wraith.Hp");
         }
 
+        //# round-trip — ApplyDto(SpawnPeriod) → ExportToJson 시 spawnPeriod 보존.
+        [Test]
+        public void SpawnPeriod_라운드트립_보존()
+        {
+            BalanceConfigDto dto = new BalanceConfigDto
+            {
+                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Monsters = new List<MonsterStatRowDto>
+                {
+                    new MonsterStatRowDto
+                    {
+                        Key  = "Phantom",
+                        Stat = new CharacterStatDto { Hp = 60, Power = 5, Range = 2f, Cooldown = 1f, MoveSpeed = 2f },
+                        SpawnPeriod = 6f
+                    }
+                },
+                RunDuration = 300f,
+                PassiveThresholds = new float[] { 0.9f },
+                ActiveThresholds  = new float[] { 30f }
+            };
+
+            BalanceConfigSyncer.ApplyDto(dto, _config);
+
+            //# SO 직접 조회로 Import 반영 확인.
+            Assert.AreEqual(6f, _config.GetSpawnPeriod(EMonster.Phantom), 0.001f, "Import 시 SpawnPeriod 반영");
+
+            //# Export round-trip — JSON 에 spawnPeriod 보존.
+            string json = BalanceConfigSyncer.ExportToJson(_config);
+            JObject obj = JObject.Parse(json);
+            JArray monsters = obj["monsters"] as JArray;
+            JToken phantom = null;
+            foreach (JToken row in monsters)
+                if (row["key"]?.Value<string>() == "Phantom") phantom = row;
+
+            Assert.IsNotNull(phantom, "Phantom 행 없음");
+            Assert.AreEqual(6f, phantom["spawnPeriod"].Value<float>(), 0.001f, "Export round-trip spawnPeriod 보존");
+        }
+
         //# ApplyDto → passiveThresholds null 이어도 예외 없이 처리 (경계값)
         [Test]
         public void ApplyDto_PassiveThresholdsNull_예외없음()

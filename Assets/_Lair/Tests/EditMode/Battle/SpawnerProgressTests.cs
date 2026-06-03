@@ -290,5 +290,35 @@ namespace Lair.Tests.Battle
             Assert.DoesNotThrow(() => sp.ReplaceOutput(EMonster.Wraith),
                 "구독자 없을 때 ReplaceOutput 은 예외 없이 무동작");
         }
+
+        //# ===== SetBasePeriod — base 절대 대입 =====
+
+        //# SetBasePeriod 후 SpawnPeriod 가 주입 값으로 절대 대입.
+        [Test]
+        public void SetBasePeriod_절대대입()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            sp.SetBasePeriod(12f);
+            Assert.AreEqual(12f, sp.SpawnPeriod, 0.001f, "base 12 절대 대입");
+        }
+
+        //# base 주입 → ScalePeriod 곱연산이 base 위에 적용 (base 12 → ×0.5 → 6).
+        [Test]
+        public void SetBasePeriod_후_ScalePeriod_곱연산_순서()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            sp.SetBasePeriod(12f);
+            sp.ScalePeriod(0.5f);
+            Assert.AreEqual(6f, sp.SpawnPeriod, 0.001f, "base 12 × 0.5 = 6");
+        }
+
+        //# 음수/0 입력은 무시 — 기존 값 유지 (안전 가드).
+        [Test]
+        public void SetBasePeriod_음수입력_무시()
+        {
+            Spawner sp = CreateSpawnerRaw(EMonster.Wisp, 9f, 0f);
+            sp.SetBasePeriod(-5f);
+            Assert.AreEqual(9f, sp.SpawnPeriod, 0.001f, "음수 입력은 무시 — 기존 값 유지");
+        }
     }
 }

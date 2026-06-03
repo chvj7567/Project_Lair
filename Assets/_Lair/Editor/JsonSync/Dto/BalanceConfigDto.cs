@@ -14,8 +14,9 @@ namespace Lair.EditorTools
 
     public class MonsterStatRowDto
     {
-        [JsonProperty("key")]  public string          Key;
-        [JsonProperty("stat")] public CharacterStatDto Stat;
+        [JsonProperty("key")]         public string          Key;
+        [JsonProperty("stat")]        public CharacterStatDto Stat;
+        [JsonProperty("spawnPeriod")] public float           SpawnPeriod;
     }
 
     public class BalanceConfigDto

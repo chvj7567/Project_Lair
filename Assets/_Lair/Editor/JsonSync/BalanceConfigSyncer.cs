@@ -25,8 +25,9 @@ namespace Lair.EditorTools
                     continue;
                 monsters.Add(new MonsterStatRowDto
                 {
-                    Key  = monster.ToString(),
-                    Stat = ToDto(stat)
+                    Key         = monster.ToString(),
+                    Stat        = ToDto(stat),
+                    SpawnPeriod = config.GetSpawnPeriod(monster)
                 });
             }
 
@@ -70,6 +71,7 @@ namespace Lair.EditorTools
                 SerializedProperty row = monstersProp.GetArrayElementAtIndex(i);
                 row.FindPropertyRelative("Key").enumValueIndex = (int)monsterKey;
                 ApplyStatDto(row.FindPropertyRelative("Stat"), rowDto.Stat);
+                row.FindPropertyRelative("SpawnPeriod").floatValue = rowDto.SpawnPeriod;
             }
 
             so.FindProperty("_runDuration").floatValue = dto.RunDuration;

@@ -4,15 +4,13 @@ using UnityEngine;
 
 namespace Lair.Battle
 {
-    //# 씬 단일 인스턴스. 전장 경계(BoxCollider isTrigger) + spawn point pool + hero entry 지점.
+    //# 씬 단일 인스턴스. 전장 경계(BoxCollider isTrigger) + hero entry 지점.
     //# 영웅 차단은 SimpleMover._clampZone 의 ClampInside 호출로 처리 (인비저블 벽 자동 생성 안 함 — design-reviewer B1).
     [RequireComponent(typeof(BoxCollider))]
     public class BattleZone : MonoBehaviour
     {
         //# 가시영역 안쪽 사각형. isTrigger=true. 본체 GameObject 에 직접 부착 — OnTriggerEnter 직수신.
         [SerializeField] private BoxCollider _zoneTrigger;
-        //# 4 edge 분산 spawn point. 기획서 §3.2 — 수동 배치 (zone 밖, 거리 = moveSpeed × 1.0초).
-        [SerializeField] private Transform[] _spawnPoints;
         //# 영웅이 zone 진입 전 머무는 한 고정 위치 (zone 밖).
         [SerializeField] private Transform _heroEntryPoint;
 
@@ -38,14 +36,6 @@ namespace Lair.Battle
             float x = Mathf.Clamp(worldPos.x, b.min.x, b.max.x);
             float z = Mathf.Clamp(worldPos.z, b.min.z, b.max.z);
             return new Vector3(x, worldPos.y, z);
-        }
-
-        //# _spawnPoints 가 비어있으면 null. 비-null 배열 안에서 균등 랜덤 픽.
-        public Transform GetRandomSpawn()
-        {
-            if (_spawnPoints == null || _spawnPoints.Length == 0) return null;
-            int idx = UnityEngine.Random.Range(0, _spawnPoints.Length);
-            return _spawnPoints[idx];
         }
 
         //# HeroEntryDriver 가 Center 도달 시 호출 — 이벤트 발행.

@@ -145,6 +145,15 @@ namespace Lair.Battle
             _spawnPeriod = Mathf.Max(0.05f, _spawnPeriod * mul);
         }
 
+        //# BalanceConfig 이관 — base 주기 절대 대입 (BindSpawners 시점 1회 주입용, 기획서 §3.2).
+        //# 주의: 카드 경로(ScalePeriod 곱연산)에서 호출 금지 — 누적 배율이 절대 대입으로 소실됨.
+        //# period <= 0 입력은 무시 (안전 가드). 최소 주기 0.05s 클램프 — ScalePeriod 와 동일 하한.
+        public void SetBasePeriod(float period)
+        {
+            if (period <= 0f) return;
+            _spawnPeriod = Mathf.Max(0.05f, period);
+        }
+
         //# 카드 리뉴얼 v0.6 — 디버그 / 테스트용 read-only 노출. 곱연산 누적 검증.
         public float SpawnPeriod => _spawnPeriod;
 

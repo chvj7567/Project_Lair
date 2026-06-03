@@ -420,8 +420,8 @@ namespace Lair.Tests.Battle
         //# zone 은 Bind 시그니처 보존을 위해 주입되나 스폰 위치 산정엔 더 이상 쓰이지 않는다.
         //# 스폰 위치는 항상 _spawnPoint → transform.position.
 
-        //# 회귀 (수정1) — zone 에 spawn points 가 있어도 스폰 위치는 _spawnPoint(없으면 transform).
-        //# 과거엔 zone.GetRandomSpawn() 가 우선이었으나 이제 zone 은 위치 산정에서 무시된다.
+        //# 회귀 (수정1) — zone 을 주입해도 스폰 위치는 _spawnPoint(없으면 transform).
+        //# 과거엔 zone 의 spawn point 가 우선이었으나, 그 기능이 제거되어 이제 zone 은 위치 산정에서 무시된다.
         [Test]
         public void Bind_with_zone_여도_스폰위치는_transform_position()
         {
@@ -429,7 +429,7 @@ namespace Lair.Tests.Battle
             Spawner sp = CreateSpawner(EMonster.Wisp, 9f, 0f);
             sp.transform.position = new Vector3(30f, 0f, 0f);
 
-            //# BattleZone + spawn points 준비 (이제 위치 산정에 미사용).
+            //# BattleZone 주입 (이제 위치 산정에 미사용 — zone 은 스폰 위치를 결정하지 못함).
             GameObject zoneGo = new GameObject("BattleZoneUT");
             BoxCollider col = zoneGo.AddComponent<BoxCollider>();
             col.isTrigger = true; col.size = new Vector3(10, 1, 10);
@@ -439,15 +439,11 @@ namespace Lair.Tests.Battle
                 BindingFlags.NonPublic | BindingFlags.Instance);
             awakeMi?.Invoke(zone, null);
 
-            GameObject sp1 = new GameObject("sp1"); sp1.transform.position = new Vector3(8f, 0f, 0f);
-            _spawned.Add(sp1);
-            SetPrivate(zone, "_spawnPoints", new Transform[] { sp1.transform });
-
             sp.Bind(host, zone);
             sp.Tick(0f);
 
             Assert.AreEqual(new Vector3(30f, 0f, 0f), host.Spawns[0].pos,
-                "zone spawn point(8) 무시 — _spawnPoint 미할당이라 transform.position(30) 사용");
+                "zone 주입돼도 무시 — _spawnPoint 미할당이라 transform.position(30) 사용");
         }
 
         //# 회귀 (수정1) — zone 이 있어도 _spawnPoint 가 할당되면 _spawnPoint 우선.
@@ -466,10 +462,6 @@ namespace Lair.Tests.Battle
             MethodInfo awakeMi = typeof(BattleZone).GetMethod("Awake",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             awakeMi?.Invoke(zone, null);
-            //# zone spawn point(99) — 무시돼야 함.
-            GameObject zonePt = new GameObject("zonePt"); zonePt.transform.position = new Vector3(99f, 0f, 0f);
-            _spawned.Add(zonePt);
-            SetPrivate(zone, "_spawnPoints", new Transform[] { zonePt.transform });
 
             //# Spawner._spawnPoint(8) — 우선 사용.
             GameObject spawnPointGo = new GameObject("SpawnPoint");
@@ -481,7 +473,7 @@ namespace Lair.Tests.Battle
             sp.Tick(0f);
 
             Assert.AreEqual(new Vector3(8f, 0f, 0f), host.Spawns[0].pos,
-                "_spawnPoint(8) 우선 — zone spawn point(99)/transform(30) 무시");
+                "_spawnPoint(8) 우선 — zone 주입/transform(30) 무시");
         }
 
         //# 엣지 — Bind 재호출시 host 갱신 (zone 은 위치 산정 무관).

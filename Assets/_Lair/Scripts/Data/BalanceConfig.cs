@@ -24,6 +24,8 @@ namespace Lair.Data
         {
             public EMonster Key;
             public CharacterStat Stat;
+            //# 이 종을 출력하는 스포너의 base 스폰 주기(초). Stat 이 아닌 스포너 생산 설정 (기획서 §1).
+            public float SpawnPeriod;
         }
 
         [SerializeField] private CharacterStat _hero;
@@ -52,6 +54,20 @@ namespace Lair.Data
             }
             Debug.LogWarning($"[BalanceConfig] 몬스터 스탯 미발견: {key}");
             return null;
+        }
+
+        //# EMonster 키로 base 스폰 주기 조회. 미발견 시 fallback 9f + 경고 (GetMonster 패턴 일치).
+        public float GetSpawnPeriod(EMonster key)
+        {
+            if (_monsters != null)
+            {
+                foreach (MonsterStatRow row in _monsters)
+                {
+                    if (row != null && row.Key == key) return row.SpawnPeriod;
+                }
+            }
+            Debug.LogWarning($"[BalanceConfig] 스폰 주기 미발견: {key}");
+            return 9f;
         }
     }
 }

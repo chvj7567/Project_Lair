@@ -1,6 +1,4 @@
-using System.IO;
 using Lair.Battle;
-using Lair.Data;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -11,20 +9,6 @@ namespace Lair.EditorTools
     //# 스포너 상태 UI — World-space 진행 바(CooldownBarWrapper) 빌드 스텝 제거 (기획서 §4.11).
     public static class LairSpawnerVisualBuilder
     {
-        private const string MaterialDir   = "Assets/_Lair/Art/Materials";
-        private const string UrpLitShaderName = "Universal Render Pipeline/Lit";
-
-        //# EMonster 순서(0=Wisp, 1=Wraith, 2=Reaper, 3=Hex, 4=Plague, 5=Phantom)와 1:1 대응.
-        private static readonly (EMonster Type, string ColorHex)[] SpawnerColorTable = new[]
-        {
-            (EMonster.Wisp,    "#22C55E"),
-            (EMonster.Wraith,  "#6B7280"),
-            (EMonster.Reaper,  "#EF4444"),
-            (EMonster.Hex,     "#EAB308"),
-            (EMonster.Plague,  "#A855F7"),
-            (EMonster.Phantom, "#1F2937"),
-        };
-
         [MenuItem("Lair/Setup/S1 - Attach Spawner Visuals")]
         public static void AttachSpawnerVisuals()
         {
@@ -36,8 +20,8 @@ namespace Lair.EditorTools
                 return;
             }
 
-            //# 6종 머티리얼을 미리 생성/로드해 두어 반복 참조.
-            Material[] mats = EnsureSpawnerMaterials();
+            //# 6종 머티리얼을 미리 생성/로드해 두어 반복 참조 (공유 팔레트).
+            Material[] mats = SpawnerColorPalette.EnsureSpawnerMaterials();
 
             int processed = 0;
             foreach (Spawner spawner in spawners)
@@ -68,8 +52,8 @@ namespace Lair.EditorTools
             return true;
         }
 
-        //# SpawnerBody 자식 생성 — 이미 있으면 false 반환(스킵).
-        private static bool EnsureSpawnerBody(Spawner spawner, Material[] mats)
+        //# SpawnerBody 자식 생성 — 이미 있으면 false 반환(스킵). 다른 빌더(CircularSpawnerArrangerEditor)도 재사용.
+        internal static bool EnsureSpawnerBody(Spawner spawner, Material[] mats)
         {
             if (spawner.transform.Find("SpawnerBody") != null) return false;
 
@@ -98,37 +82,6 @@ namespace Lair.EditorTools
             SetPrivateField(bodyComp, "_materials", mats);
 
             return true;
-        }
-
-        //# 6종 머티리얼 생성 또는 로드 — EMonster 순서 인덱스 배열로 반환.
-        private static Material[] EnsureSpawnerMaterials()
-        {
-            if (Directory.Exists(MaterialDir) == false)
-            {
-                Directory.CreateDirectory(MaterialDir);
-                AssetDatabase.Refresh();
-            }
-
-            Material[] mats = new Material[SpawnerColorTable.Length];
-            for (int i = 0; i < SpawnerColorTable.Length; i++)
-            {
-                (EMonster type, string hex) = SpawnerColorTable[i];
-                string matPath = $"{MaterialDir}/Mat_Spawner_{type}.mat";
-                Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-                if (mat == null)
-                {
-                    mat = new Material(Shader.Find(UrpLitShaderName));
-                    if (ColorUtility.TryParseHtmlString(hex, out Color color))
-                    {
-                        if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
-                        mat.color = color;
-                    }
-                    AssetDatabase.CreateAsset(mat, matPath);
-                    Debug.Log($"[LairSpawnerVisualBuilder] 머티리얼 생성: {matPath}");
-                }
-                mats[i] = mat;
-            }
-            return mats;
         }
 
         //# Spawner 의 직렬화 _outputType 필드를 읽어 EMonster 인덱스 반환.

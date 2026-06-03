@@ -26,6 +26,7 @@ MonoBehaviour:
       Range: 1
       Cooldown: 1
       MoveSpeed: 1.0
+    SpawnPeriod: 9
   - Key: 1
     Stat:
       Hp: 500
@@ -33,6 +34,7 @@ MonoBehaviour:
       Range: 1.3
       Cooldown: 1
       MoveSpeed: 0.8
+    SpawnPeriod: 20
   - Key: 2
     Stat:
       Hp: 100
@@ -40,6 +42,7 @@ MonoBehaviour:
       Range: 1
       Cooldown: 0.5
       MoveSpeed: 1.5
+    SpawnPeriod: 12
   - Key: 3
     Stat:
       Hp: 60
@@ -47,6 +50,7 @@ MonoBehaviour:
       Range: 5
       Cooldown: 1
       MoveSpeed: 1.4
+    SpawnPeriod: 15
   - Key: 4
     Stat:
       Hp: 50
@@ -54,6 +58,7 @@ MonoBehaviour:
       Range: 1
       Cooldown: 1
       MoveSpeed: 1.3
+    SpawnPeriod: 10
   - Key: 5
     Stat:
       Hp: 30
@@ -61,6 +66,7 @@ MonoBehaviour:
       Range: 1
       Cooldown: 0.8
       MoveSpeed: 2.4
+    SpawnPeriod: 6
   _runDuration: 300
   _passiveThresholds:
   - 0.9

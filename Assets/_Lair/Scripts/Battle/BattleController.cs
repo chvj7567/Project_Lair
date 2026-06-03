@@ -354,7 +354,13 @@ namespace Lair.Battle
         {
             if (_spawners == null) return;
             foreach (Spawner sp in _spawners)
-                if (sp != null) sp.Bind(this, _zone);
+            {
+                if (sp == null) continue;
+                sp.Bind(this, _zone);
+                //# BalanceConfig 종별 base 주기 주입 — 카드 ScalePeriod(곱연산) 보다 시간상 먼저 (기획서 §3.3).
+                if (_balance != null)
+                    sp.SetBasePeriod(_balance.GetSpawnPeriod(sp.CurrentType));
+            }
             //# 전투 시작 직후 스폰 개시 — 영웅 입장 완료를 기다리지 않고 첫 Tick 에 즉시 첫 스폰.
             //# (clock 시작·영웅 AI 활성화는 HandleHeroReachedCenter 가 별도로 처리.)
             _spawnersActive = true;
