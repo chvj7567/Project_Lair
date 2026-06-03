@@ -12,12 +12,25 @@ namespace Lair.Battle
     public class LoadingController : MonoBehaviour
     {
         [SerializeField] private LoadingHud _hud;
+        [SerializeField] private CHButton _clickArea;
+
+        private const string ReadyText = "준비 완료 - 클릭하여 시작";
+
+        private readonly CompositeDisposable _disposable = new CompositeDisposable();
+        private bool _loadComplete;
+        private bool _started;
 
         [Serializable]
         private class LoadingStringEntry { public string key; public string text; }
 
         async void Start()
         {
+            //# 배경 클릭 핸들러는 시작 시 1회 등록 — 로드 완료 전에는 가드로 무시.
+            if (_clickArea != null)
+            {
+                _clickArea.OnClick(OnClickStart, _disposable);
+            }
+
             //# 1. Addressables 카탈로그 초기화
             bool ok = await CHMResource.Instance.Init();
             if (ok == false)
@@ -88,8 +101,28 @@ namespace Lair.Battle
             }
             Debug.Log(sb.ToString());
 
-            //# 6. Battle 씬 자동 전환
+            //# 6. 로드 완료 — 안내 문구 표시 후 사용자의 배경 클릭 대기.
+            _loadComplete = true;
+            _hud.SetDescText(ReadyText);
+        }
+
+        //# 로드 완료 후 배경 클릭 시 1회만 Battle 씬으로 전환.
+        private void OnClickStart()
+        {
+            if (_loadComplete == false)
+                return;
+
+            if (_started)
+                return;
+
+            _started = true;
+            _disposable.Clear();
             SceneManager.LoadScene(EScene.Battle.ToString());
+        }
+
+        private void OnDestroy()
+        {
+            _disposable.Clear();
         }
     }
 }

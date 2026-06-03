@@ -29,5 +29,14 @@ namespace Lair.UI
                 _descText.SetText(desc);
             }
         }
+
+        //# 로드 완료 시 안내 문구만 갱신 — 전환 여부 판단은 컨트롤러 책임.
+        public void SetDescText(string desc)
+        {
+            if (_descText == null)
+                return;
+
+            _descText.SetText(desc);
+        }
     }
 }
