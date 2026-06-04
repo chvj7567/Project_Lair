@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -126,7 +127,13 @@ namespace Lair.Tests.PlayMode
             //# 비대칭 한 마리 — centroid 가 +X 쪽으로 살짝 치우쳐 -X 도주 방향 결정.
             SpawnEngagingMonster(new Vector3(2.5f, 0, 0));
 
-            hero.GetComponent<AutoCombatAI>().FleeMode = true;
+            //# 결정성 — flee threat 반경을 충분히 크게(50) 강제. 도주 1.5s 동안 hero 최대 이동 ~4.5,
+            //# 몬스터 정지 → 5마리 모두 항상 반경 안 → centroid 가 (0.5,0,0)으로 고정 → -X 도주 매 프레임 일관.
+            //# 기본 4f 면 도주로 위치가 바뀌며 반경 내 집합이 비대칭으로 변해 centroid 방향이 dt 따라 뒤집힘(flaky).
+            AutoCombatAI ai = hero.GetComponent<AutoCombatAI>();
+            SetField(ai, "_fleeThreatRadius", 50f);
+
+            ai.FleeMode = true;
             yield return null;
             Vector3 startPos = hero.transform.position;
 
@@ -167,5 +174,9 @@ namespace Lair.Tests.PlayMode
             Assert.Greater(endDist, startDist + 0.5f,
                 $"단일 적 도주 — 적과의 거리 증가. {startDist:F2} → {endDist:F2}");
         }
+
+        //# PlayMode asmdef 는 UnityEditor 미참조 → SerializedObject 불가. private SerializeField 를 reflection 주입.
+        private static void SetField(object t, string f, object v)
+            => t.GetType().GetField(f, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(t, v);
     }
 }

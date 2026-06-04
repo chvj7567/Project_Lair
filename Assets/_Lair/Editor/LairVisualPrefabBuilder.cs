@@ -66,6 +66,12 @@ namespace Lair.EditorTools
             BuildHitImpact(settings, group);
             BuildDamagePopup(settings, group);
 
+            //# 영웅 스킬 FX 3종 (형태 변경 v0.8) — Nova/Orbit 은 Sphere, Dash 는 절차 부채꼴 mesh.
+            //# 자동 풀 반환 포함. 단 궤도(지속형)는 미부착(러너 OnDeactivate 회수).
+            BuildHeroSkillFx(EVisual.HeroNovaFx,       PrimitiveType.Sphere, "#FBBF24", 0.5f, true,  settings, group);
+            BuildHeroSkillFx(EVisual.HeroOrbitBladeFx, PrimitiveType.Sphere, "#E5E7EB", 1.0f, false, settings, group);
+            BuildHeroDashFanFx(settings, group);
+
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -127,6 +133,149 @@ namespace Lair.EditorTools
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
 
             Debug.Log($"[LairVisualPrefabBuilder] {prefabName} 프리팹 생성 + Addressables 등록");
+        }
+
+        //# 영웅 스킬 FX — 단색 프리미티브 + Collider 제거 + CHPoolable (+ ReturnToPoolAfter when addAutoReturn).
+        //# 스케일/회전은 런타임(HeroSkillFx)이 덮어쓴다 — 여기선 메시·색·풀 컴포넌트만.
+        //# addAutoReturn=false 는 지속형(궤도) 전용 — 조기 회수 시 궤도가 깜빡이므로 러너 OnDeactivate 가 회수.
+        private static void BuildHeroSkillFx(EVisual key, PrimitiveType mesh, string colorHex, float alpha,
+            bool addAutoReturn, AddressableAssetSettings settings, AddressableAssetGroup group)
+        {
+            string prefabName = key.ToString();
+            GameObject go = GameObject.CreatePrimitive(mesh);
+            go.name = prefabName;
+
+            Collider col = go.GetComponent<Collider>();
+            if (col != null) Object.DestroyImmediate(col);
+
+            ColorUtility.TryParseHtmlString(colorHex, out Color c);
+            c.a = alpha;
+
+            string matPath = $"{MaterialDir}/Mat_{prefabName}.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            bool created = mat == null;
+            if (created)
+            {
+                mat = new Material(Shader.Find(UrpLitShaderName));
+                if (alpha < 1f)
+                {
+                    mat.SetFloat("_Surface", 1f);
+                    mat.SetFloat("_Blend", 0f);
+                    mat.SetOverrideTag("RenderType", "Transparent");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                }
+            }
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
+            mat.color = c;
+            if (created) AssetDatabase.CreateAsset(mat, matPath);
+            else EditorUtility.SetDirty(mat);
+            go.GetComponent<Renderer>().sharedMaterial = mat;
+
+            //# 자동 풀 반환 — 노바/돌진은 짧은 fire-and-forget(ReturnToPoolAfter). 궤도(지속형)는 미부착.
+            go.AddComponent<CHPoolable>();
+            if (addAutoReturn) go.AddComponent<ReturnToPoolAfter>();
+
+            string prefabPath = $"{PrefabDir}/{prefabName}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            Object.DestroyImmediate(go);
+            RegisterAddressable(settings, group, prefabPath, prefabName);
+            Debug.Log($"[LairVisualPrefabBuilder] {prefabName} FX 프리팹 생성 + Addressables 등록");
+        }
+
+        //# HeroDashFx — 절차 생성 평면 부채꼴 mesh (기획서 §9). Unity 프리미티브에 부채꼴이 없어 mesh-gen 필수.
+        //# (a) 안 채택: mesh 를 반각 35° 고정으로 빌드 + SO 기본 _coneHalfAngle 35 고정. mesh 는 단위 반경(1)·로컬 +Z 중심축·XZ 평면 →
+        //# 런타임(HeroSkillFx.SpawnCone)이 dir 로 회전 + length 로 균일 스케일. SO 반각이 35 와 다르면 비주얼만 근사(히트는 SO 값 기준).
+        private const float DashFanHalfAngleDeg = 35f;
+        private const int DashFanArcSegments = 16;
+
+        private static void BuildHeroDashFanFx(AddressableAssetSettings settings, AddressableAssetGroup group)
+        {
+            const string PrefabName = nameof(EVisual.HeroDashFx);
+
+            GameObject go = new GameObject(PrefabName);
+            MeshFilter mf = go.AddComponent<MeshFilter>();
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            mf.sharedMesh = LoadOrCreateFanMesh($"{PrefabDir}/{PrefabName}_Fan.mesh");
+
+            ColorUtility.TryParseHtmlString("#93C5FD", out Color c);
+            c.a = 1f;
+            string matPath = $"{MaterialDir}/Mat_{PrefabName}.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            bool created = mat == null;
+            if (created)
+                mat = new Material(Shader.Find(UrpLitShaderName));
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
+            mat.color = c;
+            if (created) AssetDatabase.CreateAsset(mat, matPath);
+            else EditorUtility.SetDirty(mat);
+            mr.sharedMaterial = mat;
+
+            //# 짧은 fire-and-forget — Collider 없음(MeshFilter 만), CHPoolable + ReturnToPoolAfter.
+            go.AddComponent<CHPoolable>();
+            go.AddComponent<ReturnToPoolAfter>();
+
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            Object.DestroyImmediate(go);
+            RegisterAddressable(settings, group, prefabPath, PrefabName);
+            Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} 부채꼴 mesh FX 프리팹 생성 + Addressables 등록");
+        }
+
+        //# 부채꼴 mesh 를 asset 으로 영속화 — 기존이 있으면 내용만 in-place 재기록(GUID 보존, Rule 04 §2 / 재실행 idempotent).
+        //# in-memory Mesh 는 SaveAsPrefabAsset 시 직렬화되지 않으므로 반드시 asset 백킹 필요.
+        private static Mesh LoadOrCreateFanMesh(string meshPath)
+        {
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            bool created = mesh == null;
+            if (created)
+                mesh = new Mesh();
+            else
+                mesh.Clear();
+            mesh.name = "HeroDashFan";
+            FillFanMesh(mesh, DashFanHalfAngleDeg, 1f, DashFanArcSegments);
+            if (created)
+                AssetDatabase.CreateAsset(mesh, meshPath);
+            else
+                EditorUtility.SetDirty(mesh);
+            return mesh;
+        }
+
+        //# 평면 부채꼴 정점/삼각형을 mesh 에 채운다 — 중심(꼭짓점) + 호 정점들로 삼각 팬. XZ 평면, 로컬 +Z 가 부채꼴 중심축, 반경 radius.
+        //# ± halfAngleDeg 를 segments 로 분할. 양면 가시(앞·뒤 winding 모두) 처리.
+        private static void FillFanMesh(Mesh mesh, float halfAngleDeg, float radius, int segments)
+        {
+            int arcVerts = segments + 1;
+            Vector3[] verts = new Vector3[1 + arcVerts];
+            verts[0] = Vector3.zero;
+            float startRad = (90f - halfAngleDeg) * Mathf.Deg2Rad;
+            float endRad = (90f + halfAngleDeg) * Mathf.Deg2Rad;
+            for (int i = 0; i < arcVerts; ++i)
+            {
+                float t = (float)i / segments;
+                float ang = Mathf.Lerp(startRad, endRad, t);
+                //# cos→x, sin→z 라 ang=90° 가 +Z(중심축). ± halfAngle 가 +Z 좌우로 벌어짐.
+                verts[1 + i] = new Vector3(Mathf.Cos(ang) * radius, 0f, Mathf.Sin(ang) * radius);
+            }
+
+            //# 삼각 팬 — 앞면 + 뒷면(양면 가시). 위에서 내려다보는 탑다운 카메라에서 보이게.
+            int[] tris = new int[segments * 6];
+            int ti = 0;
+            for (int i = 0; i < segments; ++i)
+            {
+                int a = 1 + i;
+                int b = 1 + i + 1;
+                tris[ti++] = 0; tris[ti++] = b; tris[ti++] = a;
+                tris[ti++] = 0; tris[ti++] = a; tris[ti++] = b;
+            }
+
+            mesh.vertices = verts;
+            mesh.triangles = tris;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
         }
 
         private static void BuildPoisonAura(AddressableAssetSettings settings, AddressableAssetGroup group)
