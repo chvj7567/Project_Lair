@@ -170,6 +170,9 @@ namespace Lair.EditorTools
             if (spec.IsHero)
             {
                 go.AddComponent<HeroTargetProvider>();
+                //# 영웅 스킬 러너 (2026-06-04) — 로드아웃은 BattleController 가 런타임 Bind. Health 부착 이후라 RequireComponent 충족.
+                if (go.GetComponent<HeroSkillRunner>() == null)
+                    go.AddComponent<HeroSkillRunner>();
             }
             else
             {

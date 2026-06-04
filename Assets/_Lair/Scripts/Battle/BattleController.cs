@@ -292,6 +292,17 @@ namespace Lair.Battle
                 _vm.UpdateHeroHp(_heroHealth.Current, _heroHealth.Max);
             }
 
+            //# 영웅 스킬 — 로드아웃 로드 후 러너에 주입(런타임 Bind, 풀 reference 안전).
+            HeroSkillRunner skillRunner = p.GetComponent<HeroSkillRunner>();
+            if (skillRunner != null)
+            {
+                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(EData.HeroSkillLoadout);
+                if (loadout != null)
+                    skillRunner.Bind(loadout);
+                else
+                    Debug.LogWarning("[BattleController] HeroSkillLoadout 로드 실패 — 영웅 스킬 비활성");
+            }
+
             //# 영웅 AutoCombatAI 비활성 — HeroEntryDriver 가 march 를 수행.
             foreach (AutoCombatAI ai in p.GetComponentsInChildren<AutoCombatAI>())
                 if (ai != null) ai.enabled = false;
@@ -654,6 +665,13 @@ namespace Lair.Battle
             {
                 GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
+            }
+
+            //# 영웅 스킬 FX (2026-06-04) — 동시 표시 적음. count 4 (궤도 2 + 돌진/노바 순간).
+            foreach (EVisual key in new[] { EVisual.HeroDashFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })
+            {
+                GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                if (fx != null) CHMPool.Instance.CreatePool(fx, count: 4);
             }
 
             //# 타격 피드백 FX — 동시 표시 상한 없음 → 스웜 최악 추정 floor 40 (기획서 §6).

@@ -31,6 +31,7 @@ namespace Lair.EditorTools
             DrawSection("Cards",          "cards.json",          CardDataSyncer.Export,       CardDataSyncer.Import);
             DrawSection("Card Pools",     "card_pools.json",     CardPoolSyncer.Export,       CardPoolSyncer.Import);
             DrawSection("Balance Config", "balance_config.json", BalanceConfigSyncer.Export,  BalanceConfigSyncer.Import);
+            DrawSection("Hero Skills",    "hero_skills.json",    HeroSkillSyncer.Export,      HeroSkillSyncer.Import);
         }
 
         private static void DrawSection(string label, string fileName, Action export, Action import)
@@ -66,6 +67,7 @@ namespace Lair.EditorTools
             CardDataSyncer.Export();
             CardPoolSyncer.Export();
             BalanceConfigSyncer.Export();
+            HeroSkillSyncer.Export();
         }
 
         private static void ImportAll()
@@ -81,6 +83,10 @@ namespace Lair.EditorTools
             if (File.Exists(Path.Combine(JsonDir, "balance_config.json")))
             {
                 BalanceConfigSyncer.Import();
+            }
+            if (File.Exists(Path.Combine(JsonDir, "hero_skills.json")))
+            {
+                HeroSkillSyncer.Import();
             }
         }
     }

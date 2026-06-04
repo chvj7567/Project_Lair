@@ -41,6 +41,7 @@ namespace Lair.Data
         CardPool_Active,    //# B2 신규
         Strings_Ko,         //# 게임 전체 CHText 문자열 — Art/Json/Strings_Ko.json
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Art/Json/LoadingStrings_Ko.json
+        HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
@@ -74,6 +75,10 @@ namespace Lair.Data
         //# 타격 피드백 (2026-06-01)
         HitImpact,    //# 피격 지점 프리미티브 버스트 파티클
         DamagePopup,  //# 부상+페이드 데미지 숫자 (월드스페이스 TMP+CHText)
+        //# 영웅 스킬 FX (2026-06-04) — 프리미티브, CHMPool 대상.
+        HeroDashFx,        //# 돌진 — 늘어난 큐브
+        HeroOrbitBladeFx,  //# 회전 블레이드 — 궤도 큐브
+        HeroNovaFx,        //# AOE 노바 — 팽창 반투명 실린더
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
