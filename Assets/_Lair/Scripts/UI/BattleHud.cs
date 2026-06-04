@@ -15,6 +15,8 @@ namespace Lair.UI
         public IReadOnlyList<Spawner> Spawners;
         //# 스포너 상태 UI — 툴팁이 base 스탯을 읽기 위한 단일 진실.
         public BalanceConfig Balance;
+        //# 상태 아이콘 — ECardId→Sprite 해석 dict. BattleController 가 카드 풀 1회 스캔으로 채워 주입.
+        public IReadOnlyDictionary<ECardId, Sprite> CardIcons;
     }
 
     //# CHMUI 로 띄워지는 HUD. UIArg 통해 ViewModel 주입받아 구독.
@@ -33,6 +35,8 @@ namespace Lair.UI
         [SerializeField] private BuildSynergyPanel _synergyPanel;
 
         private BattleViewModel _vm;
+        //# 상태 아이콘 — ECardId→Sprite 해석 dict (BattleHudArg 로 주입).
+        private IReadOnlyDictionary<ECardId, Sprite> _cardIcons;
 
         public override void InitUI(UIArg arg)
         {
@@ -44,14 +48,19 @@ namespace Lair.UI
         {
             BattleViewModel vm = ba.ViewModel;
             _vm = vm;
+            _cardIcons = ba.CardIcons;
             vm.OnTimerChanged        += HandleTimer;
             vm.OnHeroHpValuesChanged += HandleHpValues;
             vm.OnBattleEnded         += HandleEnded;
+            vm.OnStatusIconAdded     += HandleStatusIconAdded;
+            vm.OnStatusIconRemoved   += HandleStatusIconRemoved;
 
             //# Close 시 자동 해제
             closeDisposable.Add(() => vm.OnTimerChanged        -= HandleTimer);
             closeDisposable.Add(() => vm.OnHeroHpValuesChanged -= HandleHpValues);
             closeDisposable.Add(() => vm.OnBattleEnded         -= HandleEnded);
+            closeDisposable.Add(() => vm.OnStatusIconAdded     -= HandleStatusIconAdded);
+            closeDisposable.Add(() => vm.OnStatusIconRemoved   -= HandleStatusIconRemoved);
 
             //# 빌드 패널 바인딩 (Close 시 자동 해제)
             if (_buildPanel != null)
@@ -92,6 +101,21 @@ namespace Lair.UI
         private void HandleHpValues(int current, int max)
         {
             if (_heroHpBar != null) _heroHpBar.SetHp(current, max);
+        }
+
+        //# 상태 아이콘 — ECardId→Sprite 해석 후 영웅 HP바 아이콘 행에 추가.
+        //# dict 매핑 누락 시 icon null → HpBarView 가 슬롯 미표시(graceful).
+        private void HandleStatusIconAdded(object key, ECardId iconId)
+        {
+            if (_heroHpBar == null) return;
+            Sprite icon = null;
+            _cardIcons?.TryGetValue(iconId, out icon);
+            _heroHpBar.AddStatusIcon(key, icon);
+        }
+
+        private void HandleStatusIconRemoved(object key)
+        {
+            if (_heroHpBar != null) _heroHpBar.RemoveStatusIcon(key);
         }
 
         private void HandleEnded(BattleResult result)

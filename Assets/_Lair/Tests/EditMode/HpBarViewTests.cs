@@ -15,6 +15,8 @@ namespace Lair.Tests.EditMode
         private Image _fill;
         private CHText _txtHp;
         private TextMeshProUGUI _tmp;
+        private GameObject _iconRow;
+        private Image[] _iconSlots;
 
         [SetUp]
         public void SetUp()
@@ -38,6 +40,24 @@ namespace Lair.Tests.EditMode
             typeof(HpBarView)
                 .GetField("_txtHp", BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.SetValue(_view, _txtHp);
+
+            //# 상태 아이콘 행 위젯 — 8 슬롯 Image + 컨테이너(기본 비활성).
+            _iconRow = new GameObject("StatusIconRow");
+            _iconRow.transform.SetParent(_barGo.transform, false);
+            _iconSlots = new Image[8];
+            for (int i = 0; i < 8; i++)
+            {
+                _iconSlots[i] = new GameObject($"Slot{i}").AddComponent<Image>();
+                _iconSlots[i].transform.SetParent(_iconRow.transform, false);
+                _iconSlots[i].gameObject.SetActive(false);
+            }
+            _iconRow.SetActive(false);
+            typeof(HpBarView)
+                .GetField("_statusIconRow", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(_view, _iconRow);
+            typeof(HpBarView)
+                .GetField("_iconSlots", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(_view, _iconSlots);
         }
 
         [TearDown]
@@ -87,6 +107,39 @@ namespace Lair.Tests.EditMode
 
             Assert.AreEqual("300/1000", _tmp.text);
             Assert.IsTrue(_txtHp.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void AddStatusIcon_슬롯활성화_스프라이트세팅_컨테이너활성()
+        {
+            Sprite sp = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.one * 0.5f);
+            _view.AddStatusIcon("slow", sp);
+
+            Assert.IsTrue(_iconRow.activeSelf);
+            Assert.IsTrue(_iconSlots[0].gameObject.activeSelf);
+            Assert.AreEqual(sp, _iconSlots[0].sprite);
+        }
+
+        [Test]
+        public void RemoveStatusIcon_마지막제거시_컨테이너비활성()
+        {
+            Sprite sp = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.one * 0.5f);
+            _view.AddStatusIcon("slow", sp);
+            _view.RemoveStatusIcon("slow");
+
+            Assert.IsFalse(_iconSlots[0].gameObject.activeSelf);
+            Assert.IsFalse(_iconRow.activeSelf);
+        }
+
+        [Test]
+        public void AddStatusIcon_같은key중복_슬롯1개만사용()
+        {
+            Sprite sp = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.one * 0.5f);
+            _view.AddStatusIcon("slow", sp);
+            _view.AddStatusIcon("slow", sp);
+
+            Assert.IsTrue(_iconSlots[0].gameObject.activeSelf);
+            Assert.IsFalse(_iconSlots[1].gameObject.activeSelf);
         }
     }
 }

@@ -81,12 +81,11 @@ namespace Lair.Card
         void OnDetached(IHealth hero);
     }
 
-    //# 영웅 추적 상태 visual 을 노출하는 sibling 인터페이스 (IHeroAura 와 별개).
-    //# HeroAuraRunner 가 이 값으로 visual 을 Pop/추적/Push.
+    //# 상태 아이콘 마커 — 이 상태를 대표하는 카드(능력) ECardId 를 노출.
+    //# 렌더링(HP바 아래 아이콘)은 HeroAuraRunner→BattleViewModel→HpBarView 가 처리.
     public interface IStatusVisual
     {
-        EVisual VisualKey { get; }   //# CHMResource 로 로드할 프리팹 키
-        Vector3 Offset { get; }      //# 영웅 위치 기준 상대 오프셋
+        ECardId IconCardId { get; }
     }
 
     //# 카드 리뉴얼 v0.6 [B3] — 동일 type Aura 가드 완화 marker.

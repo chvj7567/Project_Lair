@@ -10,8 +10,8 @@ namespace Lair.Card
     [Serializable]
     public class EternalBleedAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.BleedStatus;
-        public Vector3 Offset => new Vector3(0.4f, 0.05f, 0f);
+        //# 전용 카드 없음 — 동일 "출혈" 능력 아이콘 재사용 (기획서 §2).
+        public ECardId IconCardId => ECardId.Bleed;
 
         private readonly IMover _mover;
         private readonly float _ratio;

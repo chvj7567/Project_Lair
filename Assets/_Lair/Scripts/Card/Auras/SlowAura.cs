@@ -10,8 +10,7 @@ namespace Lair.Card
     [Serializable]
     public class SlowAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.SlowStatus;
-        public Vector3 Offset => new Vector3(0f, 0.05f, 0f);
+        public ECardId IconCardId => ECardId.Slow;
 
         private readonly IMover _mover;
         private readonly float _factor;

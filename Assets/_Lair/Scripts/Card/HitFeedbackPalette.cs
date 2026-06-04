@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Lair.Card
 {
-    //# DoT(독·출혈) 데미지 숫자 색 단일 출처. FX 프리팹(PoisonAura/BleedStatus) 색과 동일 값 유지.
+    //# DoT(독·출혈) 데미지 숫자 색 단일 출처. PoisonAura FX 색과 동일 값 유지.
     //# 기획서 §8.4 확정값 — 빌더는 동일 hex(아래 주석) 를 참조해 .mat 에 적용한다.
     public static class HitFeedbackPalette
     {

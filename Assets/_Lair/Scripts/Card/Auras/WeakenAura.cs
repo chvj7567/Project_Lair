@@ -9,8 +9,7 @@ namespace Lair.Card
     [Serializable]
     public class WeakenAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.WeakenStatus;
-        public Vector3 Offset => new Vector3(-0.5f, 0.6f, 0f);
+        public ECardId IconCardId => ECardId.Weaken;
 
         private readonly IAttacker _attacker;
         private readonly float _factor;

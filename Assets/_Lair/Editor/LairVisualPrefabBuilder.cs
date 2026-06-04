@@ -20,28 +20,6 @@ namespace Lair.EditorTools
         public const string ResourceLabel = "Resource";
         public const string UrpLitShaderName = "Universal Render Pipeline/Lit";
 
-        //# 일반 visual 빌드 스펙 — 균일 스케일 부착물.
-        public class VisualSpec
-        {
-            public EVisual Key;
-            public PrimitiveType Mesh;
-            public string ColorHex;
-            public float Alpha;
-            public float Scale;
-        }
-
-        //# 영웅 디버프 상태 표시 6종 (설계서 §3 표).
-        public static readonly VisualSpec[] StatusSpecs = new[]
-        {
-            new VisualSpec { Key = EVisual.SlowStatus,       Mesh = PrimitiveType.Sphere, ColorHex = "#0EA5E9", Alpha = 0.5f, Scale = 0.4f  },
-            new VisualSpec { Key = EVisual.FearStatus,       Mesh = PrimitiveType.Cube,   ColorHex = "#A855F7", Alpha = 1.0f, Scale = 0.3f  },
-            new VisualSpec { Key = EVisual.WeakenStatus,     Mesh = PrimitiveType.Cube,   ColorHex = "#6B7280", Alpha = 1.0f, Scale = 0.3f  },
-            new VisualSpec { Key = EVisual.AttackDownStatus, Mesh = PrimitiveType.Cube,   ColorHex = "#7F1D1D", Alpha = 1.0f, Scale = 0.25f },
-            new VisualSpec { Key = EVisual.TimeStopStatus,   Mesh = PrimitiveType.Sphere, ColorHex = "#E5E7EB", Alpha = 0.3f, Scale = 1.5f  },
-            //# 출혈 — #A01346 (= HitFeedbackPalette.Bleed, 데미지 숫자색과 동일. 기획서 §1.1/§8.5).
-            new VisualSpec { Key = EVisual.BleedStatus,      Mesh = PrimitiveType.Sphere, ColorHex = "#A01346", Alpha = 1.0f, Scale = 0.25f },
-        };
-
         [MenuItem("Lair/Setup/B1 - Build Visual Prefabs")]
         public static void BuildAllVisuals()
         {
@@ -56,11 +34,8 @@ namespace Lair.EditorTools
             AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
 
             //# PoisonAura — 비균일 스케일(디스크)이라 special-case 유지.
+            //# 영웅 디버프 상태 6종은 HP바 아래 아이콘 UI 로 교체(월드 visual 제거, 2026-06-04).
             BuildPoisonAura(settings, group);
-
-            //# 상태 표시 6종 — 일반 BuildVisual.
-            foreach (VisualSpec spec in StatusSpecs)
-                BuildVisual(spec, settings, group);
 
             //# 타격 피드백 FX 2종 (2026-06-01).
             BuildHitImpact(settings, group);
@@ -75,64 +50,7 @@ namespace Lair.EditorTools
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[LairVisualPrefabBuilder] Visual 프리팹 빌드 완료 (PoisonAura + 상태 6종 + HitImpact/DamagePopup)");
-        }
-
-        //# 균일 스케일 부착물 visual 1종 생성.
-        private static void BuildVisual(VisualSpec spec, AddressableAssetSettings settings, AddressableAssetGroup group)
-        {
-            string prefabName = spec.Key.ToString();
-
-            GameObject go = GameObject.CreatePrimitive(spec.Mesh);
-            go.name = prefabName;
-            go.transform.localScale = Vector3.one * spec.Scale;
-
-            Collider col = go.GetComponent<Collider>();
-            if (col != null) Object.DestroyImmediate(col);
-
-            ColorUtility.TryParseHtmlString(spec.ColorHex, out Color c);
-            c.a = spec.Alpha;
-
-            string matPath = $"{MaterialDir}/Mat_{prefabName}.mat";
-            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-            bool created = mat == null;
-            if (created)
-            {
-                mat = new Material(Shader.Find(UrpLitShaderName));
-
-                //# 반투명이면 URP Lit Transparent Surface 셋업 (생성 시 1회).
-                if (spec.Alpha < 1f)
-                {
-                    mat.SetFloat("_Surface", 1f);   //# 0=Opaque, 1=Transparent
-                    mat.SetFloat("_Blend", 0f);     //# 0=Alpha
-                    mat.SetOverrideTag("RenderType", "Transparent");
-                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    mat.SetInt("_ZWrite", 0);
-                }
-            }
-
-            //# 색은 항상 덮어쓴다 — 기존 .mat 도 신규 hex 로 강제 갱신(기획서 §8.5 NIT).
-            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
-            mat.color = c;
-            if (created)
-                AssetDatabase.CreateAsset(mat, matPath);
-            else
-                EditorUtility.SetDirty(mat);
-            go.GetComponent<Renderer>().sharedMaterial = mat;
-
-            string prefabPath = $"{PrefabDir}/{prefabName}.prefab";
-            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
-            Object.DestroyImmediate(go);
-
-            string guid = AssetDatabase.AssetPathToGUID(prefabPath);
-            AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
-            entry.address = prefabName;
-            entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
-
-            Debug.Log($"[LairVisualPrefabBuilder] {prefabName} 프리팹 생성 + Addressables 등록");
+            Debug.Log("[LairVisualPrefabBuilder] Visual 프리팹 빌드 완료 (PoisonAura + HitImpact/DamagePopup + 영웅 스킬 FX 3종)");
         }
 
         //# 영웅 스킬 FX — 단색 프리미티브 + Collider 제거 + CHPoolable (+ ReturnToPoolAfter when addAutoReturn).

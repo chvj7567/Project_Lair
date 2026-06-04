@@ -305,6 +305,8 @@ namespace Lair.EditorTools
             Image bgImg = bgGo.AddComponent<Image>();
             bgImg.sprite = bgSprite != null ? bgSprite : LairUIPrefabBuilder.GetUISprite();
             bgImg.type = Image.Type.Simple;
+            //# 수작업 반영 (M0 reconcile) — 어두운 트랙 색. 현재 HpBar.prefab 의 Background m_Color.
+            bgImg.color = new Color(0.26415092f, 0.26415092f, 0.26415092f, 1f);
 
             //# Fill — HpBar.png, 가로 Filled (Background 의 자식)
             GameObject fillGo = new GameObject("Fill", typeof(RectTransform));
@@ -325,15 +327,61 @@ namespace Lair.EditorTools
             TextMeshProUGUI tmp = txtGo.AddComponent<TextMeshProUGUI>();
             tmp.text = "0/0";
             tmp.font = TMP_Settings.defaultFontAsset;
-            tmp.fontSize = 12f;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
+            //# 수작업 반영 (M0 reconcile) — 오토사이징 min6/max10, base 6. 현재 HpBar.prefab txtHp 설정.
+            tmp.enableAutoSizing = true;
+            tmp.fontSizeMin = 6f;
+            tmp.fontSizeMax = 10f;
+            tmp.fontSize = 6f;
+            //# 수작업 반영 (M0 reconcile) — full-stretch 후 inset 보정. sizeDelta(-20,-14)/anchoredPos(0,1).
+            RectTransform txtRt = (RectTransform)txtGo.transform;
+            txtRt.sizeDelta = new Vector2(-20f, -14f);
+            txtRt.anchoredPosition = new Vector2(0f, 1f);
             CHText txtHp = txtGo.AddComponent<CHText>();
 
             //# 루트에 HpBarView 부착 + 내부 위젯 와이어링 (캡슐화 — 외부는 SetHp 만).
             HpBarView view = root.AddComponent<HpBarView>();
             SetPrivateField(view, "_fill", fillImg);
             SetPrivateField(view, "_txtHp", txtHp);
+
+            //# 상태 아이콘 행 — HP바 바로 아래. 기본 비활성(몬스터 바 공유 — 비어있게 유지).
+            //# 수치 단일 진실 = 기획서 §3.3/§7.4: IconSize 12(plan 의 16 폐기 — 8×12+7×2=110 ≤ 폭 120).
+            const int IconSlotCount = 8;
+            const float IconSize = 12f;
+            GameObject rowGo = new GameObject("StatusIconRow", typeof(RectTransform));
+            rowGo.transform.SetParent(root.transform, false);
+            RectTransform rowRt = (RectTransform)rowGo.transform;
+            rowRt.anchorMin = new Vector2(0f, 0f);
+            rowRt.anchorMax = new Vector2(1f, 0f);
+            rowRt.pivot = new Vector2(0.5f, 1f);
+            rowRt.anchoredPosition = new Vector2(0f, -2f);   //# HP바 바로 아래
+            rowRt.sizeDelta = new Vector2(0f, IconSize);     //# 폭 stretch, 높이 = IconSize
+            HorizontalLayoutGroup hlg = rowGo.AddComponent<HorizontalLayoutGroup>();
+            hlg.spacing = 2f;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+
+            Image[] iconSlots = new Image[IconSlotCount];
+            for (int i = 0; i < IconSlotCount; i++)
+            {
+                GameObject slotGo = new GameObject($"Icon{i}", typeof(RectTransform));
+                slotGo.transform.SetParent(rowGo.transform, false);
+                RectTransform slotRt = (RectTransform)slotGo.transform;
+                slotRt.sizeDelta = new Vector2(IconSize, IconSize);
+                Image slotImg = slotGo.AddComponent<Image>();
+                slotImg.preserveAspect = true;
+                iconSlots[i] = slotImg;
+                slotGo.SetActive(false);
+            }
+            rowGo.SetActive(false);
+
+            //# HpBarView 와이어링 — 캡슐화(외부는 AddStatusIcon/RemoveStatusIcon 만).
+            SetPrivateField(view, "_statusIconRow", rowGo);
+            SetObjectArrayField(view, "_iconSlots", iconSlots);
 
             PrefabUtility.SaveAsPrefabAsset(root, HpBarPrefabPath);
             Object.DestroyImmediate(root);
@@ -420,6 +468,22 @@ namespace Lair.EditorTools
                 case string s: prop.stringValue = s; break;
                 default: prop.objectReferenceValue = value as Object; break;
             }
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        //# SerializedObject 로 private [SerializeField] Object 배열 참조 주입.
+        private static void SetObjectArrayField(Component target, string fieldName, Object[] values)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[CharacterPrefabBuilder] 필드 미발견: {target.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.arraySize = values.Length;
+            for (int i = 0; i < values.Length; i++)
+                prop.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

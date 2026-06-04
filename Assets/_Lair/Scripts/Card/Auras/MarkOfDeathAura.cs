@@ -10,9 +10,7 @@ namespace Lair.Card
     [Serializable]
     public class MarkOfDeathAura : IHeroAura, IStatusVisual
     {
-        //# 비주얼 키 — Bleed 아이콘 재사용 (전용 키 신설은 MVP 범위 외).
-        public EVisual VisualKey => EVisual.BleedStatus;
-        public Vector3 Offset => new Vector3(-0.4f, 0.05f, 0f);
+        public ECardId IconCardId => ECardId.MarkOfDeath;
 
         private readonly float _dmgTakenMul;
         private Health _heroHealth;

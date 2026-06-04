@@ -9,8 +9,7 @@ namespace Lair.Card
     [Serializable]
     public class FearAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.FearStatus;
-        public Vector3 Offset => new Vector3(0f, 1.3f, 0f);
+        public ECardId IconCardId => ECardId.Fear;
 
         private readonly AutoCombatAI _ai;
 

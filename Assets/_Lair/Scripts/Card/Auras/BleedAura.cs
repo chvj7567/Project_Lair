@@ -9,8 +9,7 @@ namespace Lair.Card
     [Serializable]
     public class BleedAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.BleedStatus;
-        public Vector3 Offset => new Vector3(0.4f, 0.05f, 0f);
+        public ECardId IconCardId => ECardId.Bleed;
 
         private readonly float _ratio;   //# 0.02 = 2%
         private float _acc;

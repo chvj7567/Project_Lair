@@ -43,6 +43,14 @@ namespace Lair.Battle
         private CHPoolable _hero;
         private Health _heroHealth;
 
+        //# 상태 아이콘 — ECardId→Sprite 해석 dict. HUD 에 reference 주입 후 카드 풀 로드 시점에 populate.
+        //# 인스턴스 1회 생성·재할당 금지 — HUD 가 stale empty reference 를 들지 않도록(주입은 reference).
+        private readonly Dictionary<ECardId, Sprite> _cardIconById = new();
+        //# 상태 아이콘 — 영웅 HeroAuraRunner 이벤트 구독 핸들러. OnDestroy 에서 정확히 -=.
+        private HeroAuraRunner _heroAuraRunner;
+        private System.Action<object, ECardId> _onStatusShownHandler;
+        private System.Action<object> _onStatusHiddenHandler;
+
         //# B1 신규
         private PauseService _pause;
         private PassiveTriggerService _passiveTriggers;
@@ -101,7 +109,7 @@ namespace Lair.Battle
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
-                new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance });
+                new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
 
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
@@ -147,6 +155,8 @@ namespace Lair.Battle
             {
                 _passiveDeck = new CardDeck(pool.Cards);
                 _allCards.AddRange(pool.Cards);
+                //# 상태 아이콘 — 패시브 풀도 스캔(HeroAttackDown=14 가 유일하게 여기 있음. 누락 시 silent-bug).
+                PopulateCardIcons(pool.Cards);
             }
 
             //# 5. 시계
@@ -178,6 +188,20 @@ namespace Lair.Battle
             {
                 _activeDeck = new CardDeck(activePool.Cards);
                 _allCards.AddRange(activePool.Cards);
+                //# 상태 아이콘 — 액티브 풀 스캔(8종 중 7종이 여기).
+                PopulateCardIcons(activePool.Cards);
+            }
+        }
+
+        //# 상태 아이콘 — ECardId→Sprite 매핑을 카드 풀에서 채운다(reference 보존 — 재할당 금지).
+        //# 인덱서 사용(중복 키 throw 회피) + null icon skip. 패시브/액티브 두 풀 모두에서 호출.
+        private void PopulateCardIcons(IReadOnlyList<CardData> cards)
+        {
+            if (cards == null) return;
+            foreach (CardData card in cards)
+            {
+                if (card == null || card.Icon == null) continue;
+                _cardIconById[card.Id] = card.Icon;
             }
         }
 
@@ -216,6 +240,37 @@ namespace Lair.Battle
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
             if (_zone != null) _zone.OnHeroReachedCenter -= HandleHeroReachedCenter;
             _vm?.DetachSpawners();
+            TeardownHeroAuraEvents();
+        }
+
+        //# 상태 아이콘 — 영웅 HeroAuraRunner 이벤트를 VM 으로 forward 구독.
+        //# 영웅은 풀 count-1 → 씬 재진입 시 같은 인스턴스 재사용. 재구독 전 기존 구독 정리(중복 방지).
+        private void SetupHeroAuraEvents(GameObject heroGo)
+        {
+            if (heroGo == null) return;
+            TeardownHeroAuraEvents();
+
+            HeroAuraRunner runner = heroGo.GetComponent<HeroAuraRunner>();
+            if (runner == null) runner = heroGo.AddComponent<HeroAuraRunner>();
+            _heroAuraRunner = runner;
+
+            _onStatusShownHandler  = (key, id) => _vm?.AddStatusIcon(key, id);
+            _onStatusHiddenHandler = key => _vm?.RemoveStatusIcon(key);
+            runner.OnStatusShown  += _onStatusShownHandler;
+            runner.OnStatusHidden += _onStatusHiddenHandler;
+        }
+
+        //# 상태 아이콘 — 구독 해제(저장 핸들러로 정확히 -=). 재구독·OnDestroy 양쪽에서 호출.
+        private void TeardownHeroAuraEvents()
+        {
+            if (_heroAuraRunner != null)
+            {
+                if (_onStatusShownHandler != null)  _heroAuraRunner.OnStatusShown  -= _onStatusShownHandler;
+                if (_onStatusHiddenHandler != null) _heroAuraRunner.OnStatusHidden -= _onStatusHiddenHandler;
+            }
+            _heroAuraRunner = null;
+            _onStatusShownHandler = null;
+            _onStatusHiddenHandler = null;
         }
 
         //# Slice C — BalanceConfig 스탯을 영웅에 적용. Pop 직후 호출.
@@ -283,6 +338,11 @@ namespace Lair.Battle
 
             _hero = p;
             _heroHealth = p.GetComponent<Health>();
+
+            //# 상태 아이콘 — HeroAuraRunner 를 셋업 시점에 확보(BattleContext/PlagueSlowOnHit 가 같은 인스턴스 사용).
+            //# 이벤트를 VM 으로 forward. 핸들러는 필드 보관 → OnDestroy 에서 정확히 -=.
+            SetupHeroAuraEvents(p.gameObject);
+
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
             if (_balance != null) ApplyStats(p.gameObject, _balance.Hero);
             if (_heroHealth != null)
@@ -658,14 +718,9 @@ namespace Lair.Battle
                 if (prefab != null) CHMPool.Instance.CreatePool(prefab, count: 10);
             }
 
-            //# 시각 이펙트 — PoisonAura + 영웅 디버프 상태 표시 6종. 동시 표시 적어 count 2.
-            foreach (EVisual key in new[] { EVisual.PoisonAura,
-                                        EVisual.SlowStatus, EVisual.FearStatus, EVisual.WeakenStatus,
-                                        EVisual.AttackDownStatus, EVisual.TimeStopStatus, EVisual.BleedStatus })
-            {
-                GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
-                if (fx != null) CHMPool.Instance.CreatePool(fx, count: 2);
-            }
+            //# 시각 이펙트 — PoisonAura(독 장판). 영웅 디버프는 HP바 아래 아이콘으로 표시(월드 visual 제거).
+            GameObject poisonFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.PoisonAura);
+            if (poisonFx != null) CHMPool.Instance.CreatePool(poisonFx, count: 2);
 
             //# 영웅 스킬 FX (2026-06-04) — 동시 표시 적음. count 4 (궤도 2 + 돌진/노바 순간).
             foreach (EVisual key in new[] { EVisual.HeroDashFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })

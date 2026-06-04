@@ -10,8 +10,7 @@ namespace Lair.Card
     [Serializable]
     public class HeroAttackDownAura : IHeroAura, IStatusVisual, IDistinctHeroAura
     {
-        public EVisual VisualKey => EVisual.AttackDownStatus;
-        public Vector3 Offset => new Vector3(0.5f, 0.6f, 0f);
+        public ECardId IconCardId => ECardId.HeroAttackDown;
 
         private readonly IAttacker _attacker;
         private readonly float _factor;

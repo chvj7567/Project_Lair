@@ -70,6 +70,10 @@ namespace Lair.UI
         //# 스포너 스냅샷 단독 갱신 — 6개 중 변경된 1개 인덱스만 알린다.
         public event Action<int> OnSpawnerSnapshotChanged;
 
+        //# 상태 아이콘 — key(aura 타입), 대표 ECardId. View(BattleHud)가 ECardId→Sprite 해석.
+        public event Action<object, ECardId> OnStatusIconAdded;
+        public event Action<object> OnStatusIconRemoved;
+
         public BattleViewModel(BattleStateModel model)
         {
             _model = model;
@@ -95,6 +99,13 @@ namespace Lair.UI
             _model.Result = result;
             OnBattleEnded?.Invoke(result);
         }
+
+        //# 상태 아이콘 — HeroAuraRunner 이벤트를 BattleController 가 forward.
+        public void AddStatusIcon(object key, ECardId iconId)
+            => OnStatusIconAdded?.Invoke(key, iconId);
+
+        public void RemoveStatusIcon(object key)
+            => OnStatusIconRemoved?.Invoke(key);
 
         //# 카드 픽 누적 — 같은 카드면 Count++, 아니면 신규 엔트리. 이후 OnBuildChanged.
         //# 카드 리뉴얼 v0.6 — _buildAxisCounts 도 함께 증가 (BuildSynergyPanel 표시용).

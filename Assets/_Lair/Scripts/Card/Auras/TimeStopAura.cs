@@ -9,8 +9,7 @@ namespace Lair.Card
     [Serializable]
     public class TimeStopAura : IHeroAura, IStatusVisual
     {
-        public EVisual VisualKey => EVisual.TimeStopStatus;
-        public Vector3 Offset => new Vector3(0f, 0.5f, 0f);
+        public ECardId IconCardId => ECardId.TimeStop;
 
         private readonly IMover _mover;
         private readonly IAttacker _attacker;

@@ -65,13 +65,7 @@ namespace Lair.Data
     public enum EVisual
     {
         PoisonAura,
-        //# 영웅 디버프 상태 표시 (영웅 추적 부착물)
-        SlowStatus,
-        FearStatus,
-        WeakenStatus,
-        AttackDownStatus,
-        TimeStopStatus,
-        BleedStatus,
+        //# 영웅 디버프 상태 표시는 HP바 아래 아이콘 UI 로 교체(월드 visual 제거, 2026-06-04).
         //# 타격 피드백 (2026-06-01)
         HitImpact,    //# 피격 지점 프리미티브 버스트 파티클
         DamagePopup,  //# 부상+페이드 데미지 숫자 (월드스페이스 TMP+CHText)
