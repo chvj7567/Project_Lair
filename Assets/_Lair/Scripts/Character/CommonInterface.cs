@@ -51,8 +51,8 @@ namespace Lair.Character
         float Cooldown { get; }
         int Power { get; }
 
-        //# 침묵/일시정지 효과용 토글. false 면 TryAttack 호출 자체가 정지하지 않더라도
-        //# MonoBehaviour 의 Update 가 호출 안 되어 공격 시도 자체가 일어나지 않음.
+        //# 침묵/일시정지 효과용 토글. false 면 AutoCombatAI.Update 가 교전/공격 개시를 보류하고
+        //# MeleeAttacker.TryApplyStrike 도 헛스윙 처리 → 공격 시도·strike 데미지 모두 차단.
         bool Enabled { get; set; }
 
         //# B3 — 데미지 배율 오버레이. 무력화/약화 카드가 IAttacker 타입으로 조작.

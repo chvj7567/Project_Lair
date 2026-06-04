@@ -20,7 +20,7 @@ namespace Lair.Character
         public bool DeferStrike => _deferStrike;
 
         //# IAttacker.Enabled — MonoBehaviour 의 enabled 와 매핑.
-        //# false 면 AutoCombatAI 의 Update 가 정지하므로 공격 시도 자체가 일어나지 않음.
+        //# false 면 AutoCombatAI.Update 가 교전을 보류(TryBeginAttack/TryAttack 미호출) + TryApplyStrike 도 헛스윙.
         public bool Enabled
         {
             get => enabled;
@@ -96,6 +96,8 @@ namespace Lair.Character
         {
             IHealth target = _pendingTarget;
             _pendingTarget = null;
+            //# disabled(TimeStop 등) 중엔 개시 후 캐싱된 strike 도 헛스윙 — 공격 도중 정지 시 1타 누수 차단.
+            if (enabled == false) return false;
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(_pendingSelfPos, _pendingTargetPos);
             if (dist > _range) return false;

@@ -87,6 +87,14 @@ namespace Lair.Character
             }
             if (_targetProvider == null) return;
 
+            //# IAttacker.Enabled=false (TimeStop 등) — 완전 정지: 교전/이동/회전 모두 보류.
+            //# AutoCombatAI 는 공격 시도(TryBeginAttack/TryAttack)의 단일 진입점 — 여기서 막아야 공격이 실제로 멈춘다.
+            if (_attacker != null && _attacker.Enabled == false)
+            {
+                _mover.Stop();
+                return;
+            }
+
             //# 영웅 스폰 게이트 — spawn 모션 재생 중엔 교전/이동/도주 모두 보류(§1.2). 몬스터는 즉시 통과.
             if (IsSpawnGatePassed() == false)
             {
