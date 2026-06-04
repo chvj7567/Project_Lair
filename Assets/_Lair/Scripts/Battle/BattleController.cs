@@ -722,6 +722,10 @@ namespace Lair.Battle
             GameObject poisonFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.PoisonAura);
             if (poisonFx != null) CHMPool.Instance.CreatePool(poisonFx, count: 2);
 
+            //# TimeStop 실드 FX — 영웅 1명 한정, 카드 중첩 가능성 대비 count 2 (2026-06-05).
+            GameObject timeStopShieldFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.TimeStopShield);
+            if (timeStopShieldFx != null) CHMPool.Instance.CreatePool(timeStopShieldFx, count: 2);
+
             //# 영웅 스킬 FX (2026-06-04) — 동시 표시 적음. count 4 (궤도 2 + 돌진/노바 순간).
             foreach (EVisual key in new[] { EVisual.HeroDashFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })
             {
@@ -732,12 +736,15 @@ namespace Lair.Battle
             //# 타격 피드백 FX — 동시 표시 상한 없음 → 스웜 최악 추정 floor 40 (기획서 §6).
             GameObject impact = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.HitImpact);
             if (impact != null) CHMPool.Instance.CreatePool(impact, count: 40);
+            //# 영웅이 몬스터를 때릴 때 전용 CFXR 임팩트 — 영웅용과 동일 워밍 floor.
+            GameObject monsterImpact = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.MonsterHitImpact);
+            if (monsterImpact != null) CHMPool.Instance.CreatePool(monsterImpact, count: 40);
             GameObject popup = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.DamagePopup);
             if (popup != null) CHMPool.Instance.CreatePool(popup, count: 40);
 
             //# HitFeedbackSpawner 보장 + 프리팹 핸들 주입 (DamageFeedback 가 동기 Pop).
             HitFeedbackSpawner spawner = FindOrCreateHitFeedbackSpawner();
-            spawner.Init(impact, popup);
+            spawner.Init(impact, monsterImpact, popup);
         }
 
         //# 씬 진입점 단일 매니저 — 런타임 스폰 풀 대상 아님 (Rule 03 §4 예외: 매니저성 단일 오브젝트).

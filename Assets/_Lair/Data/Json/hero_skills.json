@@ -4,7 +4,7 @@
       "$type": "AoeNovaSkillData",
       "fileName": "HeroSkill_AoeNova",
       "damage": 100,
-      "cooldown": 7.0,
+      "cooldown": 5.0,
       "radius": 3.5,
       "knockbackStrength": 3.0,
       "displayName": "파멸의 노바"
@@ -14,16 +14,16 @@
       "fileName": "HeroSkill_DashStrike",
       "damage": 80,
       "cooldown": 3.0,
-      "dashLength": 7.0,
-      "coneHalfAngle": 35.0,
-      "knockbackStrength": 2.0,
-      "centroidRadius": 8.0,
+      "dashLength": 3.0,
+      "coneHalfAngle": 180.0,
+      "knockbackStrength": 1.0,
+      "centroidRadius": 5.0,
       "displayName": "돌진 강타"
     },
     {
       "$type": "OrbitingBladeSkillData",
       "fileName": "HeroSkill_OrbitingBlade",
-      "damage": 15,
+      "damage": 30,
       "hitInterval": 0.3,
       "orbitRadius": 1.4,
       "bladeSphereRadius": 0.9,
@@ -38,12 +38,12 @@
       "skill": "HeroSkill_DashStrike"
     },
     {
-      "hpFraction": 0.6,
-      "skill": "HeroSkill_OrbitingBlade"
+      "hpFraction": 0.7,
+      "skill": "HeroSkill_AoeNova"
     },
     {
-      "hpFraction": 0.3,
-      "skill": "HeroSkill_AoeNova"
+      "hpFraction": 0.5,
+      "skill": "HeroSkill_OrbitingBlade"
     }
   ]
 }

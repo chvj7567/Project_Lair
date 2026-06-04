@@ -178,7 +178,7 @@ namespace Lair.Tests.PlayMode
             GameObject spawnerGo = new GameObject("spawner");
             HitFeedbackSpawner sp = spawnerGo.AddComponent<HitFeedbackSpawner>();
             yield return null;   //# Awake → Instance set.
-            sp.Init(null, fakePrefab);
+            sp.Init(null, null, fakePrefab);
 
             //# 컴포넌트 누락 분기 — Pop(idle 0) 후 DamagePopup 없으니 즉시 Push.
             Assert.DoesNotThrow(() => sp.SpawnPopup(Vector3.zero, 10, Color.red));

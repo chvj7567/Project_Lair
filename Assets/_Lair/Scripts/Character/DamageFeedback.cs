@@ -1,4 +1,5 @@
 using Lair.Battle;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Character
@@ -10,6 +11,7 @@ namespace Lair.Character
     {
         private Health _health;
         private Collider _collider;   //# 팝업 시작 높이 = bounds.max.y. 매 타격 GetComponent 회피용 캐시.
+        private HitVictimKind _victimKind = HitVictimKind.Hero;   //# 임팩트 프리팹 분기 — MonsterTag 유무로 Awake 1회 판정(Rule 02 §5).
         private int _lastHp = -1;
         private Color _nextColor = Color.white;
         private bool _hasFreshStamp;   //# 직전에 전투 데미지원이 색을 스탬프했는가. SetMax/Heal/HpMaxScale 등 비전투 감소 제외용.
@@ -19,6 +21,9 @@ namespace Lair.Character
         {
             _health = GetComponent<Health>();
             _collider = GetComponent<Collider>();
+            //# 몬스터 프리팹에만 MonsterTag 가 붙음(영웅엔 없음 — MonsterTag.cs 주석 참조). 1회 캐싱.
+            MonsterTag tag = GetComponent<MonsterTag>();
+            _victimKind = tag != null ? HitVictimKind.Monster : HitVictimKind.Hero;
         }
 
         private void OnEnable()
@@ -66,7 +71,7 @@ namespace Lair.Character
                     Vector3 impactPos = transform.position;
                     //# 숫자 팝업 시작 Y = 콜라이더 world 상단(bounds.max.y). 콜라이더 없으면 원점 폴백.
                     Vector3 popupPos = ResolvePopupPosition();
-                    sp.SpawnImpact(impactPos, _nextColor);
+                    sp.SpawnImpact(impactPos, _nextColor, _victimKind);
                     sp.SpawnPopup(popupPos, amount, _nextColor);
                 }
                 //# 스탬프 1회 소비 — 다음 비스탬프 감소가 이 색/플래그를 재사용하지 못하게.

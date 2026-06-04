@@ -5,6 +5,7 @@ using UnityEngine;
 using Lair.Battle;
 using Lair.Card;
 using Lair.Character;
+using Lair.Data;
 
 namespace Lair.Tests.Character
 {
@@ -59,12 +60,14 @@ namespace Lair.Tests.Character
             public Color LastColor;
             public Vector3 LastPopupPos;
             public Vector3 LastImpactPos;
+            public HitVictimKind LastVictim;
 
-            public void SpawnImpact(Vector3 pos, Color color)
+            public void SpawnImpact(Vector3 pos, Color color, HitVictimKind victim)
             {
                 ImpactCount++;
                 LastColor = color;
                 LastImpactPos = pos;
+                LastVictim = victim;
             }
 
             public void SpawnPopup(Vector3 pos, int amount, Color color)
@@ -567,8 +570,23 @@ namespace Lair.Tests.Character
             //# Init 호출 안 함 → _impactPrefab / _popupPrefab == null.
 
             //# null 가드로 CHMPool 접근 자체가 없어야 함 — 예외 미발생이 계약.
-            Assert.DoesNotThrow(() => sp.SpawnImpact(Vector3.zero, Color.red));
+            Assert.DoesNotThrow(() => sp.SpawnImpact(Vector3.zero, Color.red, HitVictimKind.Hero));
+            Assert.DoesNotThrow(() => sp.SpawnImpact(Vector3.zero, Color.red, HitVictimKind.Monster));
             Assert.DoesNotThrow(() => sp.SpawnPopup(Vector3.zero, 10, Color.red));
+
+            UnityEngine.Object.DestroyImmediate(go);
+        }
+
+        //# 엣지 — 몬스터 임팩트 프리팹 미주입(null) 시 영웅 victim 도 예외 없이 폴백 경로. (자체 스모크)
+        [Test]
+        public void HitFeedbackSpawner_몬스터프리팹_미주입시_Monster피격_예외없이_폴백()
+        {
+            GameObject go = new GameObject("spawner");
+            HitFeedbackSpawner sp = go.AddComponent<HitFeedbackSpawner>();
+            //# 영웅 임팩트만 null, 몬스터 임팩트도 null → 둘 다 null 이라 Pop 없이 안전 리턴.
+            sp.Init(null, null, null);
+
+            Assert.DoesNotThrow(() => sp.SpawnImpact(Vector3.zero, Color.red, HitVictimKind.Monster));
 
             UnityEngine.Object.DestroyImmediate(go);
         }

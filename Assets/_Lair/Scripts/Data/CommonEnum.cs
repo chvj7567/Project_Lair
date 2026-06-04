@@ -73,6 +73,10 @@ namespace Lair.Data
         HeroDashFx,        //# 돌진 — 늘어난 큐브
         HeroOrbitBladeFx,  //# 회전 블레이드 — 궤도 큐브
         HeroNovaFx,        //# AOE 노바 — 팽창 반투명 실린더
+        //# 가해자별 임팩트 분리 (2026-06-04) — 영웅이 몬스터를 때릴 때 전용 CFXR 임팩트. 맨 끝 추가(int 직렬화 정합).
+        MonsterHitImpact,  //# 피격자=몬스터 전용 CFXR 임팩트 (피격자=영웅은 기존 HitImpact 유지)
+        //# TimeStop 카드 발동 중 영웅을 감싸는 실드 FX (2026-06-05) — 맨 끝 추가(int 직렬화 정합).
+        TimeStopShield,    //# TimeStopAura 가 5초 부착 동안 영웅 위치에 스폰, OnDetached 시 풀 반환
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
@@ -107,5 +111,13 @@ namespace Lair.Data
         None,
         Win,
         Lose,
+    }
+
+    //# 타격 피드백 피격자 종류 — DamageFeedback(Character) → HitFeedbackSpawner(Battle) 통신 계약.
+    //# 임팩트 프리팹 분기 기준 (영웅=기존 HitImpact / 몬스터=MonsterHitImpact).
+    public enum HitVictimKind
+    {
+        Hero,
+        Monster,
     }
 }

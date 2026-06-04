@@ -284,6 +284,142 @@ namespace Lair.EditorTools
             Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} 프리팹 생성 + Addressables 등록");
         }
 
+        //# MonsterHitImpact — 영웅이 몬스터를 때릴 때 전용 CFXR 임팩트 (2026-06-04).
+        //# ⚠️ BuildAllVisuals(B1) 에 넣지 않음 — B1 은 다른 FX 를 프리미티브로 덮어쓰므로 독립 메뉴로만 둔다.
+        public const string CfxrHitPrefabPath = "Assets/JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Impacts/CFXR Hit A (Red).prefab";
+
+        [MenuItem("Lair/Setup/Build MonsterHitImpact FX")]
+        public static void BuildMonsterHitImpact()
+        {
+            EnsureDir(PrefabDir);
+
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+            {
+                Debug.LogError("[LairVisualPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
+                return;
+            }
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
+
+            const string PrefabName = nameof(EVisual.MonsterHitImpact);
+
+            GameObject cfxr = AssetDatabase.LoadAssetAtPath<GameObject>(CfxrHitPrefabPath);
+            if (cfxr == null)
+            {
+                Debug.LogError($"[LairVisualPrefabBuilder] CFXR 원본 미발견: {CfxrHitPrefabPath}");
+                return;
+            }
+
+            //# 루트 빈 GO + CFXR 프리팹 인스턴스를 자식으로 (localPosition 0).
+            GameObject root = new GameObject(PrefabName);
+            GameObject cfxrInstance = (GameObject)PrefabUtility.InstantiatePrefab(cfxr, root.transform);
+            cfxrInstance.transform.localPosition = Vector3.zero;
+
+            //# CFXR 자기파괴(clearBehavior=Destroy) 무력화 — 풀 재사용 보장. asmdef 결합 회피로 타입명 매칭.
+            DisableCfxrSelfClear(cfxrInstance);
+
+            //# 풀 컴포넌트 — 루트가 풀 단위. 짧은 fire-and-forget 자동 반환.
+            root.AddComponent<CHPoolable>();
+            root.AddComponent<ReturnToPoolAfter>();
+
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            RegisterAddressable(settings, group, prefabPath, PrefabName);
+
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} CFXR 프리팹 생성 + Addressables 등록");
+        }
+
+        //# TimeStopShield — TimeStop 카드 발동 동안 영웅을 감싸는 CFXR 실드 (2026-06-05).
+        //# ⚠️ BuildAllVisuals(B1) 에 넣지 않음 — 독립 메뉴로만. 수명은 aura 의 OnDetached(5초 뒤 Push)가 제어.
+        public const string CfxrShieldPrefabPath = "Assets/JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Nature/CFXR3 Shield Leaves A (Lit).prefab";
+
+        [MenuItem("Lair/Setup/Build TimeStopShield FX")]
+        public static void BuildTimeStopShield()
+        {
+            EnsureDir(PrefabDir);
+
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+            {
+                Debug.LogError("[LairVisualPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
+                return;
+            }
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
+
+            const string PrefabName = nameof(EVisual.TimeStopShield);
+
+            GameObject cfxr = AssetDatabase.LoadAssetAtPath<GameObject>(CfxrShieldPrefabPath);
+            if (cfxr == null)
+            {
+                Debug.LogError($"[LairVisualPrefabBuilder] CFXR 원본 미발견: {CfxrShieldPrefabPath}");
+                return;
+            }
+
+            //# 루트 빈 GO + CFXR 프리팹 인스턴스를 자식으로 (localPosition 0).
+            GameObject root = new GameObject(PrefabName);
+            GameObject cfxrInstance = (GameObject)PrefabUtility.InstantiatePrefab(cfxr, root.transform);
+            cfxrInstance.transform.localPosition = Vector3.zero;
+
+            //# CFXR 자기파괴(clearBehavior=Destroy) 무력화 — 풀 재사용 보장. asmdef 결합 회피로 타입명 매칭.
+            DisableCfxrSelfClear(cfxrInstance);
+
+            //# 5초 지속 — 자식·자손의 모든 ParticleSystem.main.loop = true (1초 만에 꺼지지 않게).
+            EnableParticleLoop(cfxrInstance);
+
+            //# 풀 컴포넌트 — 루트가 풀 단위. ReturnToPoolAfter 미부착(수명은 aura OnDetached 가 제어, PoisonAura 동일).
+            root.AddComponent<CHPoolable>();
+
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            RegisterAddressable(settings, group, prefabPath, PrefabName);
+
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} CFXR 실드 프리팹 생성 + Addressables 등록");
+        }
+
+        //# 자식(및 자손)의 모든 ParticleSystem 을 루프로 — 부착 동안(5초) 실드가 지속되게.
+        private static void EnableParticleLoop(GameObject instance)
+        {
+            ParticleSystem[] systems = instance.GetComponentsInChildren<ParticleSystem>(includeInactive: true);
+            foreach (ParticleSystem ps in systems)
+            {
+                if (ps == null)
+                    continue;
+                ParticleSystem.MainModule main = ps.main;
+                main.loop = true;
+            }
+        }
+
+        //# CFXR_Effect.clearBehavior 를 0(None) 으로 — 자식(및 자손) 전체 순회.
+        //# CartoonFX asmdef 에 직접 의존하지 않고 타입명 "CFXR_Effect" 로 찾아 SerializedObject 로 세팅.
+        private static void DisableCfxrSelfClear(GameObject instance)
+        {
+            Component[] components = instance.GetComponentsInChildren<Component>(includeInactive: true);
+            foreach (Component comp in components)
+            {
+                if (comp == null)
+                    continue;
+                if (comp.GetType().Name != "CFXR_Effect")
+                    continue;
+                SerializedObject so = new SerializedObject(comp);
+                SerializedProperty prop = so.FindProperty("clearBehavior");
+                if (prop == null)
+                {
+                    Debug.LogWarning($"[LairVisualPrefabBuilder] CFXR_Effect.clearBehavior 미발견 — CFXR 버전 변경?");
+                    continue;
+                }
+                prop.enumValueIndex = 0;   //# 0 = None (자기파괴 비활성)
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         //# DamagePopup — 월드스페이스 TMP(3D) + CHText + DamagePopup + CHPoolable (기획서 §4).
         private static void BuildDamagePopup(AddressableAssetSettings settings, AddressableAssetGroup group)
         {
