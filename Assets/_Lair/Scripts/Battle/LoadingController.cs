@@ -42,6 +42,8 @@ namespace Lair.Battle
             //# 2. 패키지 초기화
             CHMUI.Instance.Init();
             CHMPool.Instance.Init();
+            //# Bgm 키를 bgmKeys 로 넘겨 loop=true 채널 구성. clip 은 Play 시점 CHMResource 로 lazy 로드.
+            CHMSound.Instance.Init<EAudio>(EAudio.Bgm);
 
             //# 3. 로딩 설명 JSON 로드
             Dictionary<string, string> descs = new Dictionary<string, string>();

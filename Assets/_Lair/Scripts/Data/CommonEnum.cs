@@ -23,6 +23,14 @@ namespace Lair.Data
         Phantom,   //# 환령 — 스웜 (구 Bat, 5)
     }
 
+    //# CHMSound 채널 키. 값명 = 에셋 파일명(Bgm.mp3) 정확 일치(Rule 03 §2).
+    //# None=0 은 CHMSound sentinel 로 AudioSource 미생성. Init<EAudio>(EAudio.Bgm) 으로 Bgm 만 loop 채널.
+    public enum EAudio
+    {
+        None,
+        Bgm,
+    }
+
     //# CHMUI.ShowUI 로 UI 프리팹 로드.
     public enum EUI
     {

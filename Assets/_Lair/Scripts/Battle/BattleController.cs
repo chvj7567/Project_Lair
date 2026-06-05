@@ -98,6 +98,9 @@ namespace Lair.Battle
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
 
+            //# Battle 씬 진입 BGM loop 재생. BGM 채널이 이미 재생 중이면 CHMSound 가 중복 재생을 막음.
+            CHMSound.Instance.Play(EAudio.Bgm);
+
             //# 2. MVVM
             _model = new BattleStateModel();
             //# Slice C — BalanceConfig 의 런 길이 적용
