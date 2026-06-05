@@ -40,4 +40,11 @@ namespace Lair.Battle
         //# IncrementOutput 호출 시 발행. OnEnable 시점엔 발행 안 함 (VM 이 초기값을 직접 폴링).
         event System.Action<int> OnOutputCountChanged;
     }
+
+    //# 카메라 쉐이크 추상. 컷인이 BattleCamera 구체 대신 참조 → EditMode 모킹.
+    public interface ICameraShake
+    {
+        //# duration 초 동안 magnitude(월드 유닛) 세기로 카메라를 흔든다. unscaled 진행.
+        void Shake(float duration, float magnitude);
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +16,9 @@ namespace Lair.Character
 
         private readonly List<IHeroSkillRuntime> _active = new();
         private readonly List<int> _newly = new();
+
+        //# 해금 순간 발행 — BattleController 가 구독해 컷인 컨트롤러로 라우팅. 미구독 안전(null).
+        public event Action<HeroSkillData> OnSkillUnlocked;
 
         private void Awake()
         {
@@ -55,6 +59,7 @@ namespace Lair.Character
                 if (data != null)
                 {
                     _active.Add(data.CreateRuntime());
+                    OnSkillUnlocked?.Invoke(data);   //# 컷인 트리거 (정지 중에도 다음 프레임까지 무해)
                 }
             }
 

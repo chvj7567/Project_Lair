@@ -18,7 +18,7 @@
       "coneHalfAngle": 180.0,
       "knockbackStrength": 1.0,
       "centroidRadius": 5.0,
-      "displayName": "돌진 강타"
+      "displayName": "분쇄의 파동"
     },
     {
       "$type": "OrbitingBladeSkillData",
@@ -29,20 +29,20 @@
       "bladeSphereRadius": 0.9,
       "bladeCount": 3,
       "rotationSpeedDeg": 180.0,
-      "displayName": "궤도 블레이드"
+      "displayName": "수호의 칼날"
     }
   ],
   "loadout": [
     {
-      "hpFraction": 0.9,
+      "hpFraction": 0.85,
       "skill": "HeroSkill_DashStrike"
     },
     {
-      "hpFraction": 0.7,
+      "hpFraction": 0.65,
       "skill": "HeroSkill_AoeNova"
     },
     {
-      "hpFraction": 0.5,
+      "hpFraction": 0.45,
       "skill": "HeroSkill_OrbitingBlade"
     }
   ]

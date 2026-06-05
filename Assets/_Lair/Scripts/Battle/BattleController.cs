@@ -51,6 +51,12 @@ namespace Lair.Battle
         private System.Action<object, ECardId> _onStatusShownHandler;
         private System.Action<object> _onStatusHiddenHandler;
 
+        //# 스킬 해금 컷인 — 정지·쉐이크·배너 오케스트레이터 + 배너 View 핸들 + 러너 핸들.
+        //# 구독은 _cutscene 생성 후 — SpawnHero(await) 안의 Bind 시점엔 _cutscene 미생성이므로 러너만 캐싱.
+        private SkillUnlockCutsceneController _cutscene;
+        private SkillUnlockBannerView _bannerView;
+        private HeroSkillRunner _skillRunner;
+
         //# B1 신규
         private PauseService _pause;
         private PassiveTriggerService _passiveTriggers;
@@ -114,6 +120,11 @@ namespace Lair.Battle
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
             _queue = new TriggerQueue();
+
+            //# 스킬 해금 컷인 — 배너 팝업 1회 표시해 View 핸들 확보 후 구독.
+            //# fire-and-forget(콜백) — ShowUIAsync 를 await 하면 빌더 미실행(프리팹 부재) 시 Task 가 영영
+            //# 완료되지 않아 Start 부트가 그 지점에서 멈춘다(시계·트리거 진행 불가). 콜백형으로 부트와 분리.
+            SetupSkillUnlockCutscene();
             if (_heroHealth != null)
             {
                 _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance?.PassiveThresholds);
@@ -233,12 +244,46 @@ namespace Lair.Battle
         private void HandleMonsterDied(Vector3 pos)
             => _bloodThirst?.NotifyMonsterDied(pos);
 
+        //# 스킬 해금 컷인 셋업 — 배너 팝업을 콜백형으로 표시(부트 미블로킹). 프리팹 부재 시 콜백 미호출 → 컷인 비활성.
+        //# 기존 _pause(카드픽과 depth 공유) + 카메라 쉐이크 + 배너. host=this(코루틴 구동).
+        private void SetupSkillUnlockCutscene()
+        {
+            CHMUI.Instance.ShowUI(EUI.SkillUnlockBanner, new SkillUnlockBannerArg(), ui =>
+            {
+                _bannerView = ui as SkillUnlockBannerView;
+                ICameraShake cameraShake = Camera.main != null ? Camera.main.GetComponent<ICameraShake>() : null;
+                if (_bannerView == null || cameraShake == null)
+                {
+                    Debug.LogWarning("[BattleController] 스킬 해금 컷인 비활성 — 배너 View 또는 ICameraShake 미확보");
+                    return;
+                }
+
+                _bannerView.HideImmediate();
+                _cutscene = new SkillUnlockCutsceneController(_pause, cameraShake, _bannerView, this);
+
+                //# 해금 구독 — 러너가 SpawnHero 에서 캐싱됨. 재시작 이중구독 방지(-= 후 +=).
+                if (_skillRunner != null)
+                {
+                    _skillRunner.OnSkillUnlocked -= HandleSkillUnlocked;
+                    _skillRunner.OnSkillUnlocked += HandleSkillUnlocked;
+                }
+            });
+        }
+
+        //# 스킬 해금 — 러너 이벤트를 컷인 큐로 라우팅. data null/컷인 미구성 시 무해.
+        private void HandleSkillUnlocked(HeroSkillData data)
+        {
+            if (_cutscene != null && data != null)
+                _cutscene.Enqueue(data.DisplayName);
+        }
+
         //# 정적 이벤트 구독 해제 — 씬 재시작 시 누수 방지.
         //# 스포너 상태 UI — VM 이 Spawner / 본 컨트롤러 이벤트를 구독했으므로 함께 해제.
         private void OnDestroy()
         {
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
             if (_zone != null) _zone.OnHeroReachedCenter -= HandleHeroReachedCenter;
+            if (_skillRunner != null) _skillRunner.OnSkillUnlocked -= HandleSkillUnlocked;
             _vm?.DetachSpawners();
             TeardownHeroAuraEvents();
         }
@@ -353,9 +398,12 @@ namespace Lair.Battle
             }
 
             //# 영웅 스킬 — 로드아웃 로드 후 러너에 주입(런타임 Bind, 풀 reference 안전).
+            //# 컷인 구독은 여기서 하지 않는다 — _cutscene 은 SpawnHero await 종료 후(Start L115 이후) 생성됨.
+            //# 러너만 필드에 캐싱하고, 컨트롤러 생성 직후 Start 에서 구독한다(이중구독 가드 포함).
             HeroSkillRunner skillRunner = p.GetComponent<HeroSkillRunner>();
             if (skillRunner != null)
             {
+                _skillRunner = skillRunner;
                 HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(EData.HeroSkillLoadout);
                 if (loadout != null)
                     skillRunner.Bind(loadout);

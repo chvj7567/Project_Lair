@@ -5,7 +5,7 @@ namespace Lair.Battle
     //# Main Camera 에 부착. 마우스 휠로 카메라를 forward 축 방향으로 이동시켜 줌 효과를 낸다.
     //# Perspective + 하향 틸트 카메라에서 FOV 변경 대신 position translate 를 사용하는 이유:
     [RequireComponent(typeof(Camera))]
-    public class BattleCamera : MonoBehaviour
+    public class BattleCamera : MonoBehaviour, ICameraShake
     {
         //# 최소 줌 거리 (카메라가 앵커 기준 forward 로 이동하는 최솟값).
         //# 기본값 = 현재 씬 설정과 동일한 거리 → Inspector 에서 맵 크기에 맞게 조정.
@@ -30,6 +30,11 @@ namespace Lair.Battle
         private float _currentDist;
         //# 목표 줌 거리 (휠 입력으로 갱신).
         private float _targetDist;
+
+        //# 쉐이크 상태 — 남은 시간/총 시간/세기. 활성 시 매 프레임 base 위치에 랜덤 오프셋 합성.
+        private float _shakeRemain;
+        private float _shakeDuration;
+        private float _shakeMagnitude;
 
         private void Start()
         {
@@ -57,6 +62,41 @@ namespace Lair.Battle
         {
             HandleScrollInput();
             ApplyZoom();
+            ApplyShake();   //# 줌 여부와 무관하게 매 프레임 — early-return 함정 회피
+        }
+
+        //# ICameraShake — duration 동안 magnitude 세기로 흔든다. 중첩 호출 시 더 센/긴 쪽으로 갱신.
+        public void Shake(float duration, float magnitude)
+        {
+            if (duration <= 0f || magnitude <= 0f)
+                return;
+            _shakeDuration  = Mathf.Max(_shakeDuration, duration);
+            _shakeRemain    = Mathf.Max(_shakeRemain, duration);
+            _shakeMagnitude = Mathf.Max(_shakeMagnitude, magnitude);
+        }
+
+        //# base 위치(앵커 기준 줌) 위에 감쇠 랜덤 오프셋. 남은 시간 0 이면 오프셋 0 으로 복원.
+        private void ApplyShake()
+        {
+            if (_shakeRemain <= 0f)
+                return;
+
+            Vector3 basePos = _worldAnchor + (-_forward) * _currentDist;
+            _shakeRemain -= Time.unscaledDeltaTime;
+            float k = _shakeDuration > 0f ? Mathf.Clamp01(_shakeRemain / _shakeDuration) : 0f;
+            float amp = _shakeMagnitude * k;   //# 선형 감쇠
+            Vector3 offset = new Vector3(
+                (Random.value * 2f - 1f) * amp,
+                (Random.value * 2f - 1f) * amp,
+                0f);
+            transform.position = basePos + offset;
+
+            if (_shakeRemain <= 0f)
+            {
+                _shakeRemain = 0f;
+                _shakeMagnitude = 0f;
+                transform.position = basePos;   //# 복원 — 드리프트 방지
+            }
         }
 
         //# 마우스 휠 입력을 목표 거리에 반영.

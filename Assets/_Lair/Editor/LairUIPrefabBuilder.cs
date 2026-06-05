@@ -153,11 +153,12 @@ namespace Lair.EditorTools
             BuildBattleHud(settings, group);
             BuildResultPopup(settings, group);
             BuildCardSelectionPopup(settings, group);   //# B1 추가
+            BuildSkillUnlockBanner(settings, group);    //# 스킬 해금 컷인 배너
 
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[LairUIPrefabBuilder] UI 프리팹 4종 빌드 완료");
+            Debug.Log("[LairUIPrefabBuilder] UI 프리팹 5종 빌드 완료");
         }
 
         [MenuItem("Lair/Setup/M4 - Run All")]
@@ -616,6 +617,78 @@ namespace Lair.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             SaveAndRegisterPrefab(root, PrefabName, settings, group);
+        }
+
+        //# ---------- SkillUnlockBanner 프리팹 ----------
+        //# 스킬 해금 컷인 배너 — 풀폭 가로 밴드(하단 1/3 자막 위치 y=-280) + 중앙 CHText.
+        //# 기획서 §3.3/§3.4/§7.3 수치. 전체 dim 없음 — 밴드 자체가 대비 표면.
+        private static void BuildSkillUnlockBanner(AddressableAssetSettings settings, AddressableAssetGroup group)
+        {
+            const string PrefabName = "SkillUnlockBanner";
+
+            //# 루트 — full stretch 컨테이너. SkillUnlockBannerView 부착.
+            GameObject root = new GameObject(PrefabName, typeof(RectTransform));
+            SetFullStretch((RectTransform)root.transform);
+            Lair.UI.SkillUnlockBannerView view = root.AddComponent<Lair.UI.SkillUnlockBannerView>();
+
+            //# Band — 풀폭 가로 밴드. 좌우 stretch, 중심 y=0(화면 중앙), height 120.
+            //# View._root 가 이 RectTransform 의 anchoredPosition.x 만 슬라이드(y 보존) → y 는 여기서 고정.
+            GameObject bandGo = new GameObject("Band", typeof(RectTransform));
+            bandGo.transform.SetParent(root.transform, false);
+            RectTransform bandRt = (RectTransform)bandGo.transform;
+            bandRt.anchorMin = new Vector2(0f, 0.5f);
+            bandRt.anchorMax = new Vector2(1f, 0.5f);
+            bandRt.pivot     = new Vector2(0.5f, 0.5f);
+            bandRt.anchoredPosition = new Vector2(0f, 0f);   //# 화면 중앙 (사용자 지정). 임계 85/65/45 는 카드픽 10% 칸과 안 겹쳐 중앙 배치 안전
+            bandRt.sizeDelta = new Vector2(0f, 120f);           //# 좌우 stretch → width=화면폭, height 120
+            Image bandImg = bandGo.AddComponent<Image>();
+            bandImg.sprite = GetUISprite();
+            bandImg.type = Image.Type.Sliced;
+            bandImg.color = new Color(0f, 0f, 0f, 0.82f);       //# 거의 검정 불투명 — 텍스트 대비 표면
+            bandImg.raycastTarget = false;                      //# 알림 띠 — 클릭 가로채지 않음
+
+            //# 상·하 가장자리 골드 액센트 라인 2개 (height 3px, 가로 stretch). 장식 — raycastTarget false.
+            AddBandAccentLine(bandGo.transform, "AccentTop", top: true);
+            AddBandAccentLine(bandGo.transform, "AccentBottom", top: false);
+
+            //# Label — 밴드 중앙. fontSize 44 / white / Center. CHText 동반(Rule 03 §3).
+            GameObject labelGo = new GameObject("Label", typeof(RectTransform));
+            labelGo.transform.SetParent(bandGo.transform, false);
+            SetFullStretch((RectTransform)labelGo.transform);
+            TextMeshProUGUI labelTmp = labelGo.AddComponent<TextMeshProUGUI>();
+            labelTmp.text = "영웅의 '새 스킬' 스킬 해제";
+            labelTmp.font = TMP_Settings.defaultFontAsset;
+            labelTmp.fontSize = 44f;
+            labelTmp.alignment = TextAlignmentOptions.Center;
+            labelTmp.color = Color.white;
+            labelTmp.raycastTarget = false;
+            CHText labelText = labelGo.AddComponent<CHText>();
+
+            //# SerializeField 주입 — _root(Band), _label(CHText). 슬라이드 수치는 SerializeField 기본값 사용.
+            SerializedObject so = new SerializedObject(view);
+            SetObjectField(so, "_root",  bandRt);
+            SetObjectField(so, "_label", labelText);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            SaveAndRegisterPrefab(root, PrefabName, settings, group);
+        }
+
+        //# 밴드 상/하 가장자리 골드 라인 — height 3px, 가로 stretch, 장식(raycast off).
+        private static void AddBandAccentLine(Transform parent, string name, bool top)
+        {
+            GameObject lineGo = new GameObject(name, typeof(RectTransform));
+            lineGo.transform.SetParent(parent, false);
+            RectTransform lineRt = (RectTransform)lineGo.transform;
+            lineRt.anchorMin = new Vector2(0f, top ? 1f : 0f);
+            lineRt.anchorMax = new Vector2(1f, top ? 1f : 0f);
+            lineRt.pivot     = new Vector2(0.5f, top ? 1f : 0f);
+            lineRt.anchoredPosition = Vector2.zero;
+            lineRt.sizeDelta = new Vector2(0f, 3f);
+            Image lineImg = lineGo.AddComponent<Image>();
+            lineImg.sprite = GetUISprite();
+            lineImg.type = Image.Type.Sliced;
+            lineImg.color = new Color(1f, 0.85f, 0.3f, 1f);   //# 따뜻한 골드 — 위협 상승 암시
+            lineImg.raycastTarget = false;
         }
 
         private static Lair.UI.CardView BuildCardViewSlot(Transform parent, int index)
