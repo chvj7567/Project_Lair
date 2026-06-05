@@ -8,11 +8,18 @@ namespace Lair.Character
     {
         private readonly Transform _hero;
 
+        //# 영웅 공격 배율 소스 — 스킬 데미지에 PowerScale 을 입혀 근접과 일관. 생성자 1회 캐싱.
+        private readonly IAttacker _heroAttacker;
+
         //# 타겟 스냅샷 재사용 버퍼 — 데미지로 몬스터 사망 시 Monsters 리스트가 수정되므로
         //# 열거(수집)와 변형(데미지/넉백)을 분리한다. 메인스레드 전용 → 재진입 없음.
         private readonly List<CharacterRegistry.Entry> _buffer = new();
 
-        public HeroSkillContext(Transform hero) => _hero = hero;
+        public HeroSkillContext(Transform hero)
+        {
+            _hero = hero;
+            _heroAttacker = _hero != null ? _hero.GetComponent<IAttacker>() : null;
+        }
 
         public Vector3 HeroPosition => _hero != null ? _hero.position : Vector3.zero;
 
@@ -85,13 +92,17 @@ namespace Lair.Character
         //# 순회 대상은 _buffer 라 안전. 반환값 = 실제 데미지를 적용한 수.
         private int ApplyAll(Vector3 origin, int amount, float knockbackStrength)
         {
+            //# 적용 시점 live read — 부착된 디버프(HeroAttackDown/Weaken)가 자동 반영. null 이면 배율 1.
+            //# 근접(MeleeAttacker)과 동일한 RoundToInt 라운딩. 넉백은 무변경.
+            float scale = _heroAttacker != null ? _heroAttacker.PowerScale : 1f;
+            int scaledAmount = Mathf.RoundToInt(amount * scale);
             int hit = 0;
             foreach (CharacterRegistry.Entry e in _buffer)
             {
                 //# 수집~적용 사이 다른 효과로 죽었을 수 있으므로 재확인.
                 if (Valid(e) == false)
                     continue;
-                Apply(e, origin, amount, knockbackStrength);
+                Apply(e, origin, scaledAmount, knockbackStrength);
                 ++hit;
             }
             return hit;
