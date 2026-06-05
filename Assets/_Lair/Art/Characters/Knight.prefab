@@ -193,6 +193,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spawnGateFallback: 1.8
   _fleeThreatRadius: 4
+  _fleeTurnSmoothing: 5
+  _centerPullEnabled: 1
+  _centerPullInterval: 3
+  _centerPullDuration: 1
+  _centerPullDeadzone: 3
   _engageBuffer: 0.5
 --- !u!114 &6799439972955228508
 MonoBehaviour:

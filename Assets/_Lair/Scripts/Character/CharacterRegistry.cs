@@ -43,11 +43,16 @@ namespace Lair.Character
         public static bool TryFindNearestMonster(Vector3 from, out Transform t, out IHealth h)
             => TryFindNearest(Monsters, from, out t, out h, requireEngaging: true);
 
-        //# 공포 도주 centroid — TryFindNearest 와 동일한 필터(살아있음 + 몬스터 Engaging) 적용.
+        //# 공포 도주 centroid — TryFindNearest 와 동일한 필터(살아있음 + 몬스터 Engaging) 적용. 스킬용(HeroSkillContext) 유지.
         public static bool TryGetThreatCentroidHero(Vector3 from, float radius, out Vector3 centroid, out int count)
             => TryGetThreatCentroid(Heroes, from, radius, out centroid, out count, requireEngaging: false);
         public static bool TryGetThreatCentroidMonster(Vector3 from, float radius, out Vector3 centroid, out int count)
             => TryGetThreatCentroid(Monsters, from, radius, out centroid, out count, requireEngaging: true);
+
+        //# 도주 안정화(A-1) 전용 — Engaging 토글 무관, 반경 내 살아있는 몬스터 전체로 centroid 집계.
+        //# 교전 들락거림이 도주 방향을 뒤집던 진동원 제거. 타겟팅용 TryGetThreatCentroidMonster(engaging=true)는 불변.
+        public static bool TryGetFleeCentroidMonster(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => TryGetThreatCentroid(Monsters, from, radius, out centroid, out count, requireEngaging: false);
 
         private static void Add(List<Entry> list, Transform t, IHealth h)
         {

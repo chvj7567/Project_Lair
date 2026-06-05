@@ -26,5 +26,9 @@ namespace Lair.Character
 
         public bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
             => CharacterRegistry.TryGetThreatCentroidMonster(from, radius, out centroid, out count);
+
+        //# 도주 안정화(A-1) — Engaging 무관 변형. 교전 토글 진동원 제거.
+        public bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => CharacterRegistry.TryGetFleeCentroidMonster(from, radius, out centroid, out count);
     }
 }

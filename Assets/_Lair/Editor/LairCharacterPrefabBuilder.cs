@@ -185,7 +185,12 @@ namespace Lair.EditorTools
                 if (spec.Name == nameof(EMonster.Plague))
                     go.AddComponent<PlagueSlowOnHit>();
             }
-            go.AddComponent<AutoCombatAI>();
+            AutoCombatAI combatAI = go.AddComponent<AutoCombatAI>();
+            //# B 영웅 중앙 끌림 게이트 — 영웅만 true(몬스터 기본 false). 빌더 재생성 시 손-설정 영속 보장.
+            if (spec.IsHero)
+            {
+                SetPrivateField(combatAI, "_centerPullEnabled", true);
+            }
             //# 시각 피드백 + 사망 처리
             go.AddComponent<HitFlash>();
             //# 타격 피드백 (2026-06-01) — 공격자 펀치·플래시 + 피격 임팩트·숫자.

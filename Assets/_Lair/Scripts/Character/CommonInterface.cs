@@ -105,6 +105,10 @@ namespace Lair.Character
         //# B3 공포 도주 안정화 — from 반경 내 살아있는 적들의 무게중심과 개수 조회.
         //# count>0 이면 (pos - centroid) 로 무리 바깥 도주. 최근접 1마리 진동 방지.
         bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count);
+
+        //# 도주 떨림 안정화(A-1) — Engaging 토글 무관, 반경 내 적 전체 centroid. 교전 들락거림 진동원 제거.
+        //# TryGetThreatCentroid(스킬·타겟팅용 engaging 필터)와 분리. 도주 분기에서만 사용.
+        bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count);
     }
 
     //# ===== 회전 =====

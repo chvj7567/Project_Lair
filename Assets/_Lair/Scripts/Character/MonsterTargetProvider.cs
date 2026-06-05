@@ -25,5 +25,9 @@ namespace Lair.Character
 
         public bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
             => CharacterRegistry.TryGetThreatCentroidHero(from, radius, out centroid, out count);
+
+        //# 몬스터는 FleeMode 미사용(영웅 전용) — 인터페이스 구현 충족용. 도주 분기에 도달하지 않음.
+        public bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
+            => CharacterRegistry.TryGetThreatCentroidHero(from, radius, out centroid, out count);
     }
 }
