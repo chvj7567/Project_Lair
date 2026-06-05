@@ -199,34 +199,21 @@ namespace Lair.EditorTools
         private static void BuildPoisonAura(AddressableAssetSettings settings, AddressableAssetGroup group)
         {
             const string PrefabName = nameof(EVisual.PoisonAura);
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
 
-            //# Cylinder 디스크 — 직경 2.5, 두께 0.1
-            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.name = PrefabName;
+            //# 자식 구름(CFXR2 Poison Cloud)은 빌더 비생성 수작업 산출물 — 재실행이 덮어쓰면 독구름 본체가 소실된다.
+            //# 이미 프리팹이 있으면 스폰·저장을 건너뛰어 디스크/구름을 보존한다.
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (existing != null)
+            {
+                Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} 기존 프리팹 보존 — 빌드 건너뜀");
+                return;
+            }
+
+            //# 녹색 지면 디스크 미생성(2026-06-05) — 루트 scale 2.5/0.1/2.5 는 자식 구름 보정 scale 과 짝.
+            GameObject go = new GameObject(PrefabName);
             go.transform.localScale = new Vector3(2.5f, 0.1f, 2.5f);
 
-            Collider col = go.GetComponent<Collider>();
-            if (col != null) Object.DestroyImmediate(col);
-
-            //# 독 — #0B5B4A (= HitFeedbackPalette.Poison, 데미지 숫자색과 동일. 기획서 §1.1/§8.5).
-            Color c = new Color(0.043f, 0.357f, 0.290f, 1f);
-
-            string matPath = $"{MaterialDir}/Mat_PoisonAura.mat";
-            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-            bool created = mat == null;
-            if (created)
-                mat = new Material(Shader.Find(UrpLitShaderName));
-
-            //# 색은 항상 덮어쓴다 — 기존 .mat(#84CC16) 강제 교체(기획서 §8.5 NIT).
-            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
-            mat.color = c;
-            if (created)
-                AssetDatabase.CreateAsset(mat, matPath);
-            else
-                EditorUtility.SetDirty(mat);
-            go.GetComponent<Renderer>().sharedMaterial = mat;
-
-            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
             PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
             Object.DestroyImmediate(go);
 
