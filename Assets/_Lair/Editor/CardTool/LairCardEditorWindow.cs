@@ -249,10 +249,6 @@ namespace Lair.EditorTools
                     }
                 }
 
-                EditorGUILayout.HelpBox(
-                    "Icon/CardImage 는 Build UI Prefabs(LairCardPrefabBuilder) 재실행 시 " +
-                    "ECardId 이름 PNG 컨벤션으로 덮어쓰일 수 있습니다.", MessageType.Warning);
-
                 _editScroll = EditorGUILayout.BeginScrollView(_editScroll);
                 //# _id 는 정체성(파일명=ECardId) 고정값 — 편집 불가 read-only. 변경 시 loader/list/CardDataSyncer 가 desync 됨.
                 EditorGUILayout.LabelField("Id", _selected.ToString());
