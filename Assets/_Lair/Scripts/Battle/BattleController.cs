@@ -726,6 +726,13 @@ namespace Lair.Battle
             GameObject timeStopShieldFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.TimeStopShield);
             if (timeStopShieldFx != null) CHMPool.Instance.CreatePool(timeStopShieldFx, count: 2);
 
+            //# Fear 스컬 FX — 적용 순간 1회성, 영웅 1명 한정 count 2 (2026-06-05).
+            GameObject fearSkullFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.FearSkull);
+            if (fearSkullFx != null)
+            {
+                CHMPool.Instance.CreatePool(fearSkullFx, count: 2);
+            }
+
             //# 영웅 스킬 FX (2026-06-04) — 동시 표시 적음. count 4 (궤도 2 + 돌진/노바 순간).
             foreach (EVisual key in new[] { EVisual.HeroDashFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })
             {

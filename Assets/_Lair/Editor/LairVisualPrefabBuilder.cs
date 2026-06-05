@@ -371,6 +371,57 @@ namespace Lair.EditorTools
             Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} CFXR 실드 프리팹 생성 + Addressables 등록");
         }
 
+        //# FearSkull — Fear 카드 적용 순간 영웅 위에 1회성으로 띄우는 CFXR 스컬 (2026-06-05).
+        //# ⚠️ BuildAllVisuals(B1) 에 넣지 않음 — 독립 메뉴로만. fire-and-forget(ReturnToPoolAfter 자동 반환).
+        public const string CfxrSkullPrefabPath = "Assets/JMO Assets/Cartoon FX Remaster/CFXR Prefabs/Eerie/CFXR2 Skull Head Alt.prefab";
+
+        [MenuItem("Lair/Setup/Build FearSkull FX")]
+        public static void BuildFearSkull()
+        {
+            EnsureDir(PrefabDir);
+
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+            {
+                Debug.LogError("[LairVisualPrefabBuilder] Addressables 미설정 — Window > Asset Management > Addressables Groups 로 초기화 필요");
+                return;
+            }
+            AddressableAssetGroup group = settings.FindGroup(ResourceGroup);
+
+            const string PrefabName = nameof(EVisual.FearSkull);
+
+            GameObject cfxr = AssetDatabase.LoadAssetAtPath<GameObject>(CfxrSkullPrefabPath);
+            if (cfxr == null)
+            {
+                Debug.LogError($"[LairVisualPrefabBuilder] CFXR 원본 미발견: {CfxrSkullPrefabPath}");
+                return;
+            }
+
+            //# 루트 빈 GO + CFXR 프리팹 인스턴스를 자식으로 (localPosition 0).
+            GameObject root = new GameObject(PrefabName);
+            GameObject cfxrInstance = (GameObject)PrefabUtility.InstantiatePrefab(cfxr, root.transform);
+            cfxrInstance.transform.localPosition = Vector3.zero;
+
+            //# CFXR 자기파괴(clearBehavior=Destroy) 무력화 — 풀 재사용 보장. asmdef 결합 회피로 타입명 매칭.
+            DisableCfxrSelfClear(cfxrInstance);
+
+            //# 풀 컴포넌트 — 루트가 풀 단위. fire-and-forget 자동 반환.
+            root.AddComponent<CHPoolable>();
+            ReturnToPoolAfter ret = root.AddComponent<ReturnToPoolAfter>();
+            //# 스컬 수명 — 원본 startLifetime 1.5 + 여유 0.1. 기본 0.45 면 애니메이션 중간에 잘림.
+            SetFloatField(ret, "_seconds", 1.6f);
+
+            string prefabPath = $"{PrefabDir}/{PrefabName}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            RegisterAddressable(settings, group, prefabPath, PrefabName);
+
+            EditorUtility.SetDirty(settings);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"[LairVisualPrefabBuilder] {PrefabName} CFXR 스컬 프리팹 생성 + Addressables 등록");
+        }
+
         //# 자식(및 자손)의 모든 ParticleSystem 을 루프로 — 부착 동안(5초) 실드가 지속되게.
         private static void EnableParticleLoop(GameObject instance)
         {
@@ -501,6 +552,20 @@ namespace Lair.EditorTools
             AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, group, readOnly: false, postEvent: false);
             entry.address = address;
             entry.SetLabel(ResourceLabel, enable: true, force: true, postEvent: false);
+        }
+
+        //# SerializedObject 로 private [SerializeField] float 값 주입.
+        private static void SetFloatField(Component target, string fieldName, float value)
+        {
+            SerializedObject so = new SerializedObject(target);
+            SerializedProperty prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogWarning($"[LairVisualPrefabBuilder] 필드 미발견: {target.GetType().Name}.{fieldName}");
+                return;
+            }
+            prop.floatValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         //# SerializedObject 로 private [SerializeField] 참조 주입.

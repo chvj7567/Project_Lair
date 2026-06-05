@@ -53,6 +53,25 @@ namespace Lair.Character
             });
         }
 
+        //# 영웅 등 Transform 자식으로 부착해 스폰 — origin 이 이동하면 FX 도 따라간다(공포 스컬용). 핸들 반환(없으면 null).
+        //# Pop(prefab, parent) 로 부모 부착(worldPositionStays=false). 풀 반환(CHMPool.Push)은 풀 루트로 재부모화 → 분리 안전.
+        public static CHPoolable SpawnAttached(EVisual key, Transform parent, Vector3 localOffset, float scale)
+        {
+            if (CHMResource.Instance == null || CHMPool.Instance == null)
+                return null;
+            if (parent == null)
+                return null;
+            GameObject prefab = CHMPool.Instance.GetOriginal(key.ToString());
+            if (prefab == null)
+                return null;
+            CHPoolable p = CHMPool.Instance.Pop(prefab, parent);
+            if (p == null)
+                return null;
+            p.transform.localPosition = localOffset;
+            p.transform.localScale = Vector3.one * scale;
+            return p;
+        }
+
         //# 영웅 추적 궤도 비주얼 1개 Pop (회전 블레이드용). 핸들 반환(없으면 null).
         //# 동기 경로 — 사전 워밍된 풀의 원본 prefab 을 GetOriginal 로 즉시 조회(콜백 지연 없음 → 매 프레임 재요청 누수 방지).
         public static CHPoolable SpawnTracked(EVisual key)

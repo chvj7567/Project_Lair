@@ -77,6 +77,8 @@ namespace Lair.Data
         MonsterHitImpact,  //# 피격자=몬스터 전용 CFXR 임팩트 (피격자=영웅은 기존 HitImpact 유지)
         //# TimeStop 카드 발동 중 영웅을 감싸는 실드 FX (2026-06-05) — 맨 끝 추가(int 직렬화 정합).
         TimeStopShield,    //# TimeStopAura 가 5초 부착 동안 영웅 위치에 스폰, OnDetached 시 풀 반환
+        //# Fear 카드 적용 순간 영웅 위에 띄우는 스컬 FX (2026-06-05) — 맨 끝 추가(int 직렬화 정합).
+        FearSkull,         //# FearEffect 적용 시 1회성 스폰, ReturnToPoolAfter 가 자동 풀 반환
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
