@@ -39,6 +39,8 @@ namespace Lair.Character
             ctx.DamageMonstersInRing(0f, _data.Radius, _data.Damage, _data.KnockbackStrength);
             _cooldownRemain = _data.Cooldown;
             HeroSkillFx.SpawnAt(Lair.Data.EVisual.HeroNovaFx, ctx.HeroPosition, _data.Radius * 2f);
+            //# 시전음 — 매 쿨다운 발동 순간(해금 1회가 아님).
+            HeroSkillFx.PlaySound(Lair.Data.EAudio.P2Skill);
         }
 
         public void OnDeactivate() { }

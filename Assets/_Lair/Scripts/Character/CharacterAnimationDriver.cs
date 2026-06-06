@@ -35,8 +35,9 @@ namespace Lair.Character
             _attacker = GetComponent<IAttacker>();
             _ai = GetComponent<AutoCombatAI>();
             _attackGate = GetComponent<IAttackGate>();
+            //# 영웅(IAttackGate 보유)만 스윙음 재생 — 몬스터(게이트 null)는 무음. 같은 애니 경로 공유 대응.
             _controller = new CharacterAnimationController(
-                new AnimatorSink(_animator), _hitReactionCooldown, _attackSuppressWindow);
+                new AnimatorSink(_animator, _attackGate != null), _hitReactionCooldown, _attackSuppressWindow);
         }
 
         //# 풀 재사용 — 상태 리셋 + 입장 연출 + 이벤트 구독.

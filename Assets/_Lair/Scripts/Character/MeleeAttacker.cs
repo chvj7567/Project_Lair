@@ -1,4 +1,6 @@
 using System;
+using ChvjUnityInfra;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Character
@@ -116,6 +118,8 @@ namespace Lair.Character
 
             target.TakeDamage(Mathf.RoundToInt(_power * PowerScale));
             OnHit?.Invoke(target);
+            //# 데미지 임팩트 SFX — 영웅·몬스터 근접 공격 공통 경로. 5분 자동전투 동안 빈번(후속 throttle 검토 여지).
+            CHMSound.Instance?.Play(EAudio.Hit);
         }
     }
 }

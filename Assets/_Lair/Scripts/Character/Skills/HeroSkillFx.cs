@@ -12,6 +12,13 @@ namespace Lair.Character
         //# PoisonAura(0.05) 선례보다 약간 높여 확실히 맵 위, 캐릭터(캡슐)보다는 아래 → 캐릭터>범위>맵.
         private const float ConeFloorLiftY = 0.1f;
 
+        //# 스킬 시전 SFX — 순수 C# 런타임이 인프라(CHMSound)에 직접 의존하지 않게 헬퍼로 위임.
+        //# CHMSound 미가용(EditMode/부트 전)이면 무동작 — 비주얼 헬퍼와 동일한 null 가드.
+        public static void PlaySound(EAudio key)
+        {
+            CHMSound.Instance?.Play(key);
+        }
+
         //# 디스크/노바 — center 에 균일 스케일 비주얼 1개.
         public static void SpawnAt(EVisual key, Vector3 center, float scale)
         {

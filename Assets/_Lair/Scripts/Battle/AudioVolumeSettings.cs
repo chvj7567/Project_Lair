@@ -1,0 +1,55 @@
+using ChvjUnityInfra;
+using UnityEngine;
+
+namespace Lair.Battle
+{
+    //# 씬 전환에도 유지되는 영속 볼륨 컨트롤러 — 런타임 라이브 조절용.
+    //# DontDestroyOnLoad 싱글톤. 값 보관 + CHMSound 위임만 — 비즈니스 로직 없음.
+    public class AudioVolumeSettings : MonoBehaviour
+    {
+        private static AudioVolumeSettings _instance;
+
+        [SerializeField, Range(0f, 1f)] private float _masterVolume = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float _bgmVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float _effectVolume = 1f;
+
+        //# 중복 인스턴스 제거 후 단일 인스턴스를 씬 전환에도 유지.
+        private void Awake()
+        {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+                _instance = null;
+        }
+
+        //# 인스펙터 값을 CHMSound 에 적용. master 먼저 — 각 Set 이 master 곱을 즉시 반영하므로.
+        public void Apply()
+        {
+            if (CHMSound.Instance == null)
+                return;
+
+            CHMSound.Instance.SetMasterVolume(_masterVolume);
+            CHMSound.Instance.SetBGMVolume(_bgmVolume);
+            CHMSound.Instance.SetEffectVolume(_effectVolume);
+        }
+
+        //# 플레이 중 슬라이더 조절 시 즉시 반영. 에디터 정지 상태는 CHMSound 미초기화라 스킵.
+        private void OnValidate()
+        {
+            if (Application.isPlaying == false)
+                return;
+
+            Apply();
+        }
+    }
+}

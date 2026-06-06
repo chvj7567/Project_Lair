@@ -29,6 +29,15 @@ namespace Lair.Data
     {
         None,
         Bgm,
+        //# 효과음 8종 — 값명 = 에셋 파일명(확장자 제외) 정확 일치(Rule 03 §2). Init 이 값마다 PlayOneShot 채널 자동 생성.
+        Slash01,       //# 영웅 기본공격 스윙 variant 0
+        Slash02,       //# 영웅 기본공격 스윙 variant 1
+        Stab,          //# 영웅 기본공격 스윙 variant 2
+        Hit,           //# 근접 데미지 임팩트 전반
+        P1Skill,       //# 영웅 스킬 DashStrike(분쇄의 파동) 시전
+        P2Skill,       //# 영웅 스킬 AoeNova(파멸의 노바) 시전
+        AcquireSkill,  //# 영웅 스킬 해금 컷인
+        CardSelect,    //# 카드 3택1 선택 확정
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Card;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.UI
@@ -23,6 +24,9 @@ namespace Lair.UI
         public override void InitUI(UIArg arg)
         {
             if (arg is not CardSelectionArg sa) return;
+
+            //# 카드 선택창이 뜨는 순간 1회 — InitUI 호출 시점에 재생.
+            CHMSound.Instance?.Play(EAudio.CardSelect);
 
             for (int i = 0; i < _slots.Length; ++i)
             {

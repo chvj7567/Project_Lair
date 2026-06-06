@@ -51,6 +51,8 @@ namespace Lair.Character
             ctx.DamageMonstersInCone(dir, _data.DashLength, _data.ConeHalfAngle, _data.Damage, _data.KnockbackStrength);
             _cooldownRemain = _data.Cooldown;
             HeroSkillFx.SpawnCone(Lair.Data.EVisual.HeroDashFx, ctx.HeroPosition, dir, _data.DashLength);
+            //# 시전음 — 실제 발동(데미지 적용) 순간. 몬스터 없어 보류된 프레임(위 early-return)은 울리지 않음.
+            HeroSkillFx.PlaySound(Lair.Data.EAudio.P1Skill);
         }
 
         public void OnDeactivate() { }

@@ -13,6 +13,7 @@ namespace Lair.Battle
     {
         [SerializeField] private LoadingHud _hud;
         [SerializeField] private CHButton _clickArea;
+        [SerializeField] private AudioVolumeSettings _audioVolume;
 
         private const string ReadyText = "준비 완료 - 클릭하여 시작";
 
@@ -44,6 +45,8 @@ namespace Lair.Battle
             CHMPool.Instance.Init();
             //# Bgm 키를 bgmKeys 로 넘겨 loop=true 채널 구성. clip 은 Play 시점 CHMResource 로 lazy 로드.
             CHMSound.Instance.Init<EAudio>(EAudio.Bgm);
+            //# Init 으로 AudioSource 생성 직후 인스펙터 볼륨을 즉시 적용 — 타이밍 보장.
+            _audioVolume?.Apply();
 
             //# 3. 로딩 설명 JSON 로드
             Dictionary<string, string> descs = new Dictionary<string, string>();

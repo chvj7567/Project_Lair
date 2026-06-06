@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using ChvjUnityInfra;
+using Lair.Data;
 using Lair.UI;
 using UnityEngine;
 
@@ -54,7 +56,8 @@ namespace Lair.Battle
                 yield break;
             _running = true;
             _pause?.Pause();
-            //# TODO(sound): 컷인 시작 사운드 seam — 추후 CHMSound.Play(EAudio.SkillUnlock) 한 줄.
+            //# 컷인 시작 사운드 — 큐 1개 이상 확정된 진입 시점에 1회.
+            CHMSound.Instance?.Play(EAudio.AcquireSkill);
             while (_pending.Count > 0)
             {
                 string name = _pending.Dequeue();
