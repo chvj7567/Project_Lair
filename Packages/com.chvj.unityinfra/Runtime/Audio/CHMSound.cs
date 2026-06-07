@@ -24,6 +24,9 @@ namespace ChvjUnityInfra
         private HashSet<int> _bgmIndices = new HashSet<int>();
         private bool _initialize = false;
 
+        // 채널(enum int값)별 볼륨 배수. 미설정 키는 1.0 fallback. PlayerPrefs 미저장(인스펙터가 소스).
+        private Dictionary<int, float> _channelVolume = new Dictionary<int, float>();
+
         /// <summary>BGM 볼륨 (0~1). PlayerPrefs에 영구 저장.</summary>
         public float BgmVolume
         {
@@ -157,6 +160,23 @@ namespace ChvjUnityInfra
             }
         }
 
+        /// <summary>
+        /// 특정 효과음 채널의 볼륨 배수 설정(0~1). 최종 효과음 볼륨 = 배수 × EffectVolume × MasterVolume.
+        /// PlayerPrefs 미저장(메모리 보관). 다음 PlayOneShot부터 반영. BGM 채널엔 영향 없음.
+        /// </summary>
+        public void SetChannelVolume(Enum audioType, float volume)
+        {
+            int v = Convert.ToInt32(audioType);
+            _channelVolume[v] = Mathf.Clamp01(volume);
+        }
+
+        /// <summary>채널 배수 조회. 미설정 시 1.0.</summary>
+        public float GetChannelVolume(Enum audioType)
+        {
+            int v = Convert.ToInt32(audioType);
+            return _channelVolume.TryGetValue(v, out float m) ? m : 1f;
+        }
+
         /// <summary>특정 BGM 채널 정지. 효과음 채널엔 무효.</summary>
         public void Stop(Enum audioType)
         {
@@ -240,7 +260,9 @@ namespace ChvjUnityInfra
                 }
                 else
                 {
-                    source.volume = EffectVolume * Ratio;
+                    // 효과음 분기: 채널 배수 × Effect × Master. 미설정 채널은 1.0 fallback.
+                    float channelMul = _channelVolume.TryGetValue(v, out float m) ? m : 1f;
+                    source.volume = channelMul * EffectVolume * Ratio;
                     source.PlayOneShot(clip);
                 }
             }
