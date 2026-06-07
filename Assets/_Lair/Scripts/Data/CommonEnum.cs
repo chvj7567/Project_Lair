@@ -34,8 +34,9 @@ namespace Lair.Data
         Slash02,       //# 영웅 기본공격 스윙 variant 1
         Stab,          //# 영웅 기본공격 스윙 variant 2
         Hit,           //# 근접 데미지 임팩트 전반
-        P1Skill,       //# 영웅 스킬 DashStrike(분쇄의 파동) 시전
-        P2Skill,       //# 영웅 스킬 AoeNova(파멸의 노바) 시전
+        P1Skill,       //# 영웅 스킬 DashStrike(P1/HP90%) 시전 — 매 쿨다운 발동
+        P2Skill,       //# 영웅 스킬 AoeNova(쿨다운형) 시전 — 매 쿨다운 발동
+        P3Skill,       //# 영웅 스킬 OrbitingBlade(공전 블레이드, 지속형) 활성화 1회
         AcquireSkill,  //# 영웅 스킬 해금 컷인
         CardSelect,    //# 카드 3택1 선택 확정
     }

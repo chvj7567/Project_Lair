@@ -29,6 +29,8 @@ namespace Lair.Character
         private readonly OrbitingBladeSkillData _data;
         private float _accum;
         private float _angleDeg;
+        //# 지속형이라 매 틱 울리면 안 됨 — 공전 블레이드 활성화 첫 틱 1회만 P3Skill 재생.
+        private bool _played;
         private readonly ChvjUnityInfra.CHPoolable[] _blades;
         //# 구 중심 재사용 버퍼 — 매 틱 _angleDeg 로 계산(transform 비의존, 인프라 미부팅에도 정상).
         private readonly Vector3[] _centers;
@@ -43,6 +45,13 @@ namespace Lair.Character
 
         public void Tick(IHeroSkillContext ctx, float dt)
         {
+            //# 공전 블레이드 활성화(해금) 첫 틱 — 스킬 켜짐 사운드 1회.
+            if (_played == false)
+            {
+                _played = true;
+                HeroSkillFx.PlaySound(Lair.Data.EAudio.P3Skill);
+            }
+
             _angleDeg += _data.RotationSpeedDeg * dt;
 
             //# 데미지 — 인터벌 누적. 매 틱 현재 각도로 구 중심 N개 계산 후 union dedup 히트.
