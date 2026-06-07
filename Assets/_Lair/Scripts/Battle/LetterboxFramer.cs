@@ -13,6 +13,9 @@ namespace Lair.Battle
         //# 고정 종횡비 (16:9). 1280/720 과 동일.
         [SerializeField] private float _targetAspect = 16f / 9f;
 
+        //# 레터박스 띠 색 — 씬별 어두운 톤을 인스펙터로 조절. 기본값은 순수 검정 대신 던전 톤.
+        [SerializeField] private Color _letterboxColor = new Color(0.08f, 0.10f, 0.13f, 1f);
+
         //# 16:9 박스로 렌더할 게임플레이 카메라 (World + ScreenSpaceCamera UI).
         [SerializeField] private Camera _gameCamera;
         //# 16:9 박스 바깥(레터박스 띠)을 검게 채우는 배경 카메라. depth 가 _gameCamera 보다 작아야 한다.
@@ -40,9 +43,9 @@ namespace Lair.Battle
             if (_backgroundCamera == null)
                 return;
 
-            //# 표준 Camera API 만 사용 — URP/빌트인 무관하게 검은 클리어 전용으로 동작.
+            //# 표준 Camera API 만 사용 — URP/빌트인 무관하게 단색 클리어 전용으로 동작.
             _backgroundCamera.clearFlags = CameraClearFlags.SolidColor;
-            _backgroundCamera.backgroundColor = Color.black;
+            _backgroundCamera.backgroundColor = _letterboxColor;
             _backgroundCamera.cullingMask = 0;
             _backgroundCamera.rect = new Rect(0f, 0f, 1f, 1f);
 
