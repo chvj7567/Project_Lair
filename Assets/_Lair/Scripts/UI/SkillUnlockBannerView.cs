@@ -26,15 +26,23 @@ namespace Lair.UI
         [SerializeField] private float _slideInDuration = 0.35f;
         [SerializeField] private float _holdDuration = 1.2f;
         [SerializeField] private float _slideOutDuration = 0.35f;
-        [SerializeField] private float _offscreenX = 1300f;   //# 화면 밖 X — 밴드 풀폭(1280) 초과 (기획서 §3.5/§6)
+        [SerializeField] private float _offscreenX = 1300f;   //# 화면 밖 X 최소값(레퍼런스 1280 기준 floor). 실제는 밴드 실폭으로 보정 (기획서 §3.5/§6)
 
         public override void InitUI(UIArg arg) => HideImmediate();
+
+        //# 모바일 종횡비에서 캔버스 실폭이 1280 초과면 풀폭 밴드가 _offscreenX(1300) 로는 안 빠짐 → 일부 잔존.
+        //# 밴드 실폭(rect.width) 으로 보정해 해상도 무관 완전 퇴장 보장.
+        private float OffscreenX()
+        {
+            float bandWidth = _root != null ? _root.rect.width : 0f;
+            return Mathf.Max(_offscreenX, bandWidth);
+        }
 
         public void HideImmediate()
         {
             if (_root == null)
                 return;
-            _root.anchoredPosition = new Vector2(-_offscreenX, _root.anchoredPosition.y);
+            _root.anchoredPosition = new Vector2(-OffscreenX(), _root.anchoredPosition.y);
         }
 
         public IEnumerator PlayCo(string text)
@@ -43,9 +51,10 @@ namespace Lair.UI
                 _label.SetText(text);
 
             float y = _root != null ? _root.anchoredPosition.y : 0f;
+            float offscreenX = OffscreenX();
 
             //# 인 — 왼쪽밖 → 중앙
-            yield return SlideCo(new Vector2(-_offscreenX, y), new Vector2(0f, y), _slideInDuration);
+            yield return SlideCo(new Vector2(-offscreenX, y), new Vector2(0f, y), _slideInDuration);
             //# 홀드
             float t = 0f;
             while (t < _holdDuration)
@@ -54,7 +63,7 @@ namespace Lair.UI
                 yield return null;
             }
             //# 아웃 — 중앙 → 오른쪽밖
-            yield return SlideCo(new Vector2(0f, y), new Vector2(_offscreenX, y), _slideOutDuration);
+            yield return SlideCo(new Vector2(0f, y), new Vector2(offscreenX, y), _slideOutDuration);
 
             HideImmediate();
         }
