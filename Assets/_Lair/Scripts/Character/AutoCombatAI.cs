@@ -272,8 +272,8 @@ namespace Lair.Character
             }
             else
             {
-                //# Moving — 이동 목표(=타겟) 방향. 비전투 재정렬이므로 Smooth(영웅도 보간).
-                _rotator?.FaceDirection(t.position - transform.position, FacingMode.Smooth);
+                //# Moving — 이동 목표(=타겟) 방향. 즉시 스냅(AttackAligned 위임) — 히스테리시스가 등거리 깜빡임 흡수(기획서 §2).
+                _rotator?.FaceDirection(t.position - transform.position);
                 _mover.MoveTo(t.position);
             }
         }

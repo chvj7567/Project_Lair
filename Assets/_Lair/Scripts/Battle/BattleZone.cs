@@ -11,6 +11,8 @@ namespace Lair.Battle
     {
         //# 가시영역 안쪽 사각형. isTrigger=true. 본체 GameObject 에 직접 부착 — OnTriggerEnter 직수신.
         [SerializeField] private BoxCollider _zoneTrigger;
+        //# 영웅 이동 클램프 정사각 반-extent (X/Z 공통). 교전 trigger 와 분리 — 클램프만 축소(기획서 §4.2).
+        [SerializeField] private float _clampHalfExtent = 7.0f;
         //# 영웅이 zone 진입 전 머무는 한 고정 위치 (zone 밖).
         [SerializeField] private Transform _heroEntryPoint;
 
@@ -27,14 +29,13 @@ namespace Lair.Battle
             return _zoneTrigger.bounds.Contains(worldPos);
         }
 
-        //# 영웅 SimpleMover 가 매 FixedUpdate next 좌표 클램프에 사용. zone 밖이면 bounds 안쪽 가장자리로.
+        //# 영웅 SimpleMover 가 매 FixedUpdate next 좌표 클램프에 사용. 교전 trigger 와 분리된 작은 정사각(Center ± _clampHalfExtent)으로.
         //# Y 평면 (X/Z) 만 클램프 — Y 는 입력 그대로 (SimpleMover 가 어차피 0 으로 고정).
         public Vector3 ClampInside(Vector3 worldPos)
         {
-            if (_zoneTrigger == null) return worldPos;
-            Bounds b = _zoneTrigger.bounds;
-            float x = Mathf.Clamp(worldPos.x, b.min.x, b.max.x);
-            float z = Mathf.Clamp(worldPos.z, b.min.z, b.max.z);
+            Vector3 center = Center;
+            float x = Mathf.Clamp(worldPos.x, center.x - _clampHalfExtent, center.x + _clampHalfExtent);
+            float z = Mathf.Clamp(worldPos.z, center.z - _clampHalfExtent, center.z + _clampHalfExtent);
             return new Vector3(x, worldPos.y, z);
         }
 
@@ -58,6 +59,14 @@ namespace Lair.Battle
             MonsterTag tag = other.GetComponent<MonsterTag>();
             if (tag == null) return;
             CharacterRegistry.SetMonsterEngaging(other.transform, true);
+        }
+
+        //# 영웅 클램프 정사각(Center ± _clampHalfExtent)을 에디터에서 시각화 — 교전 trigger 와 구분(노란색).
+        private void OnDrawGizmosSelected()
+        {
+            Vector3 center = _zoneTrigger != null ? _zoneTrigger.bounds.center : transform.position;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireCube(center, new Vector3(_clampHalfExtent * 2f, 1f, _clampHalfExtent * 2f));
         }
     }
 }

@@ -35,7 +35,8 @@ namespace Lair.Tests.Battle
             CharacterRegistry.Monsters.Clear();
         }
 
-        //# 본체 BoxCollider 의 bounds 가 IsInside / ClampInside 의 진실. center=(0,0,0), size=(10,1,10) 기준.
+        //# 본체 BoxCollider 의 bounds 는 IsInside / 교전 trigger 의 진실. ClampInside 는 _clampHalfExtent(분리됨)를 따른다.
+        //# center=(0,0,0), size=(10,1,10) 기준.
         private BattleZone CreateZone(Vector3 center, Vector3 size)
         {
             GameObject zoneGo = new GameObject("BattleZoneUT");
@@ -47,6 +48,14 @@ namespace Lair.Tests.Battle
             //# Awake 가 _zoneTrigger 폴백 — EditMode 에서는 리플렉션 호출.
             InvokeAwake(zone);
             _spawned.Add(zoneGo);
+            return zone;
+        }
+
+        //# 클램프 테스트는 _clampHalfExtent 를 명시 주입 — 기대값을 테스트에 드러내고 production 기본값 변경에 안 깨지게.
+        private BattleZone CreateZoneWithClamp(Vector3 center, Vector3 size, float clampHalfExtent)
+        {
+            BattleZone zone = CreateZone(center, size);
+            SetPrivate(zone, "_clampHalfExtent", clampHalfExtent);
             return zone;
         }
 
@@ -149,36 +158,77 @@ namespace Lair.Tests.Battle
             Assert.AreSame(hep.transform, zone.HeroEntryPoint);
         }
 
-        //# ===== ClampInside =====
+        //# ===== ClampInside (Center ± _clampHalfExtent — 교전 trigger 와 분리) =====
+
+        //# 핵심 decoupling 시드 — collider 는 실제 교전 trigger 크기(22×15, half X 11 / Z 7.5), 클램프는 7.
+        //# X=10 입력이 trigger half(11) 안인데도 클램프(7)로 잘려야 — "클램프만 축소, trigger 불변" 박제.
+        [Test]
+        public void ClampInside_교전trigger보다_작은_clampHalfExtent로_클램프()
+        {
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(22, 1, 15), 7f);
+            //# X=10 은 trigger half(11) 안이지만 clampHalfExtent(7) 밖 → 7 로 클램프(옛 bounds 계약이면 10 유지).
+            Vector3 clamped = zone.ClampInside(new Vector3(10f, 0f, 0f));
+            Assert.AreEqual(7f, clamped.x, 0.001f, "X 는 _clampHalfExtent(7) 로 클램프 — trigger half(11) 가 아님");
+            Assert.AreEqual(0f, clamped.z, 0.001f);
+        }
+
+        //# 핵심 decouple 회귀 — 같은 zone 에서 IsInside(교전 trigger bounds) 와 ClampInside(_clampHalfExtent) 가 독립임을 한 단언에 입증.
+        //# 트리거 size 22×15(half X 11 / Z 7.5) + 클램프 extent 7. 점 (9,0,0): 트리거 안(9<11) 이지만 클램프는 7 로 당김.
+        //# = 교전 영역은 크게 유지하되 영웅 발은 7 에 갇힘 (기획서 §4.3 비등방 간극).
+        [Test]
+        public void IsInside는_trigger_기준이고_ClampInside는_clampHalfExtent_기준_독립()
+        {
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(22, 1, 15), 7f);
+            Vector3 gapPoint = new Vector3(9f, 0f, 0f);
+
+            //# IsInside — 교전 trigger half(X 11) 기준 → 9 는 안(true). 클램프 축소가 교전 인지 범위를 줄이지 않음.
+            Assert.IsTrue(zone.IsInside(gapPoint),
+                "IsInside 는 trigger bounds(half X 11) 기준 — X=9 는 교전 영역 안");
+            //# ClampInside — _clampHalfExtent(7) 기준 → 9 는 7 로 당김. 영웅 발이 닿는 범위만 축소.
+            Assert.AreEqual(7f, zone.ClampInside(gapPoint).x, 0.001f,
+                "ClampInside 는 _clampHalfExtent(7) 기준 — X=9 를 7 로 클램프 (trigger half 11 가 아님)");
+        }
+
+        //# 보강 — trigger X 경계(11) 바깥은 IsInside=false. 교전 trigger half 11 이 불변임을 핀.
+        [Test]
+        public void IsInside_trigger_X경계_밖이면_false()
+        {
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(22, 1, 15), 7f);
+            //# X=11.1 은 trigger half(11) 밖 → 교전 영역 아님.
+            Assert.IsFalse(zone.IsInside(new Vector3(11.1f, 0f, 0f)),
+                "trigger half(X 11) 밖 — IsInside false (클램프 7 과 무관하게 trigger 가 진실)");
+        }
 
         [Test]
-        public void ClampInside_zone_안의_좌표는_그대로()
+        public void ClampInside_clamp_안의_좌표는_그대로()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 inside = new Vector3(2, 0, 2);
             Vector3 clamped = zone.ClampInside(inside);
             Assert.AreEqual(inside, clamped);
         }
 
         [Test]
-        public void ClampInside_zone_밖의_좌표는_경계로()
+        public void ClampInside_clamp_밖의_좌표는_경계로()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            //# X 방향 ±5 가 zone 경계. X=10 입력 → X=5 로 클램프.
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
+            //# X 방향 ±7 이 클램프 경계. X=10 입력 → X=7 로 클램프.
             Vector3 outside = new Vector3(10, 0, 0);
             Vector3 clamped = zone.ClampInside(outside);
-            Assert.AreEqual(5f, clamped.x, 0.001f, "X 가 5 (bounds.max.x) 로 클램프");
+            Assert.AreEqual(7f, clamped.x, 0.001f, "X 가 7 (Center.x + _clampHalfExtent) 로 클램프");
             Assert.AreEqual(0f, clamped.z, 0.001f);
         }
 
+        //# 가드 — _zoneTrigger null 이면 Center 가 transform.position 폴백. clamp 는 그 중심 ± extent 로 계속 동작.
         [Test]
-        public void ClampInside_zoneTrigger_null이면_입력_그대로()
+        public void ClampInside_zoneTrigger_null이면_transform_position_중심으로_클램프()
         {
-            //# _zoneTrigger 강제 null — 안전 가드 검증.
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             SetPrivate(zone, "_zoneTrigger", null);
-            Vector3 input = new Vector3(99, 0, 99);
-            Assert.AreEqual(input, zone.ClampInside(input));
+            //# Center 폴백 = transform.position(원점). X=99 → 7 로 클램프.
+            Vector3 clamped = zone.ClampInside(new Vector3(99, 0, 99));
+            Assert.AreEqual(7f, clamped.x, 0.001f);
+            Assert.AreEqual(7f, clamped.z, 0.001f);
         }
 
         //# 엣지 — Y 축은 ClampInside 가 건드리지 않는다 (입력 Y 그대로 반환).
@@ -186,7 +236,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ClampInside_Y는_입력값_그대로_보존()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 input = new Vector3(2f, 7.5f, 2f);
             Vector3 clamped = zone.ClampInside(input);
             Assert.AreEqual(7.5f, clamped.y, 0.0001f,
@@ -197,7 +247,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void ClampInside_Y_음수도_보존()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 input = new Vector3(0f, -99f, 0f);
             Vector3 clamped = zone.ClampInside(input);
             Assert.AreEqual(-99f, clamped.y, 0.0001f);
@@ -207,44 +257,44 @@ namespace Lair.Tests.Battle
         [Test]
         public void ClampInside_X만_밖이면_X만_클램프되고_Z는_그대로()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 outside = new Vector3(20f, 0f, 2f);
             Vector3 clamped = zone.ClampInside(outside);
-            Assert.AreEqual(5f, clamped.x, 0.001f, "X 는 bounds.max.x(5) 로 클램프");
-            Assert.AreEqual(2f, clamped.z, 0.001f, "Z 는 zone 안 — 입력 그대로");
+            Assert.AreEqual(7f, clamped.x, 0.001f, "X 는 Center.x + _clampHalfExtent(7) 로 클램프");
+            Assert.AreEqual(2f, clamped.z, 0.001f, "Z 는 clamp 안 — 입력 그대로");
         }
 
         //# 엣지 분기 2 — Z 만 밖, X 는 안 (변 케이스).
         [Test]
         public void ClampInside_Z만_밖이면_Z만_클램프되고_X는_그대로()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 outside = new Vector3(2f, 0f, -20f);
             Vector3 clamped = zone.ClampInside(outside);
             Assert.AreEqual(2f, clamped.x, 0.001f);
-            Assert.AreEqual(-5f, clamped.z, 0.001f, "Z 는 bounds.min.z(-5) 로 클램프");
+            Assert.AreEqual(-7f, clamped.z, 0.001f, "Z 는 Center.z - _clampHalfExtent(-7) 로 클램프");
         }
 
         //# 엣지 분기 3 — X/Z 모두 밖 (모서리 케이스).
         [Test]
         public void ClampInside_XZ_둘다_밖이면_각각_클램프()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
             Vector3 outside = new Vector3(15f, 0f, 15f);
             Vector3 clamped = zone.ClampInside(outside);
-            Assert.AreEqual(5f, clamped.x, 0.001f, "X 는 max(5) 로 클램프");
-            Assert.AreEqual(5f, clamped.z, 0.001f, "Z 는 max(5) 로 클램프");
+            Assert.AreEqual(7f, clamped.x, 0.001f, "X 는 +extent(7) 로 클램프");
+            Assert.AreEqual(7f, clamped.z, 0.001f, "Z 는 +extent(7) 로 클램프");
         }
 
         //# 엣지 — 정확히 경계 좌표는 무변동 (Mathf.Clamp 는 양 끝 포함).
         [Test]
         public void ClampInside_정확히_경계_좌표는_그대로()
         {
-            BattleZone zone = CreateZone(Vector3.zero, new Vector3(10, 1, 10));
-            Vector3 corner = new Vector3(5f, 0f, 5f);
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(10, 1, 10), 7f);
+            Vector3 corner = new Vector3(7f, 0f, 7f);
             Vector3 clamped = zone.ClampInside(corner);
-            Assert.AreEqual(5f, clamped.x, 0.0001f);
-            Assert.AreEqual(5f, clamped.z, 0.0001f);
+            Assert.AreEqual(7f, clamped.x, 0.0001f);
+            Assert.AreEqual(7f, clamped.z, 0.0001f);
         }
 
         //# ===== OnTriggerEnter =====
