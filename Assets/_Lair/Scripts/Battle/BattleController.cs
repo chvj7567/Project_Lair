@@ -118,16 +118,20 @@ namespace Lair.Battle
             BindSpawners();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
-            await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
+            //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
+            UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
                 new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
+            if (hudUI == null)
+            {
+                Debug.LogError("[BattleController] BattleHud UI 표시 실패(프리팹 로드/캔버스 확보 불가) — HUD 없이 부팅 계속");
+            }
 
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
             _queue = new TriggerQueue();
 
             //# 스킬 해금 컷인 — 배너 팝업 1회 표시해 View 핸들 확보 후 구독.
-            //# fire-and-forget(콜백) — ShowUIAsync 를 await 하면 빌더 미실행(프리팹 부재) 시 Task 가 영영
-            //# 완료되지 않아 Start 부트가 그 지점에서 멈춘다(시계·트리거 진행 불가). 콜백형으로 부트와 분리.
+            //# 콜백형으로 부트와 분리 — 배너는 부트 진행을 막을 필요 없는 부수 표시라 fire-and-forget.
             SetupSkillUnlockCutscene();
             if (_heroHealth != null)
             {

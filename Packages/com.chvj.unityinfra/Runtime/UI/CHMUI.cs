@@ -151,8 +151,12 @@ namespace ChvjUnityInfra
 
             EnsureRootAsync(root =>
             {
+                //# 캔버스 확보 실패 — callback(null) 로 ShowUIAsync 의 Task 를 null 완료시켜 await 가 풀리게 한다.
                 if (root == null)
+                {
+                    callback?.Invoke(null);
                     return;
+                }
                 ShowUIInternal(root, uiType, arg, callback);
             });
         }
@@ -177,13 +181,18 @@ namespace ChvjUnityInfra
                 // 비동기 로드 — 콜백에서 _dicWaitCloseUI 검사 (race 처리)
                 CHMResource.Instance.Instantiate<GameObject>(uiType, (ui) =>
                 {
+                    //# 프리팹 로드/인스턴스 실패 — callback(null) 로 ShowUIAsync 의 await 가 멈추지 않게 한다.
                     if (ui == null)
+                    {
+                        callback?.Invoke(null);
                         return;
-                    // 콜백이 씬 전환 후에 도착한 경우 — root가 무효화됐으니 인스턴스 폐기.
-                    // (prefab이 활성 상태로 저장된 경우 InitUI 없이 Start가 호출돼 NullRef 위험.)
+                    }
+                    //# 콜백이 씬 전환 후에 도착한 경우 — root가 무효화됐으니 인스턴스 폐기 + callback(null).
+                    //# (prefab이 활성 상태로 저장된 경우 InitUI 없이 Start가 호출돼 NullRef 위험.)
                     if (_rootTransform == null)
                     {
                         UnityEngine.Object.Destroy(ui);
+                        callback?.Invoke(null);
                         return;
                     }
                     ui.transform.SetParent(_rootTransform, false);
@@ -201,19 +210,22 @@ namespace ChvjUnityInfra
                     rectTransform.localScale = Vector3.one;
 
                     UIBase newUI = ui.GetComponent<UIBase>();
+                    //# UIBase 컴포넌트 부재 — 표시할 수 없으니 폐기 + callback(null).
                     if (newUI == null)
                     {
                         UnityEngine.Object.Destroy(ui);
+                        callback?.Invoke(null);
                         return;
                     }
 
                     _dicCashingUI[uiType] = newUI;
 
-                    // 로딩 중에 CloseUI 요청이 들어왔다면 즉시 닫음
+                    //# 로딩 중에 CloseUI 요청이 들어왔다면 즉시 닫음 — 표시된 UI 없음이므로 callback(null).
                     if (_dicWaitCloseUI.Contains(uiType))
                     {
                         _dicWaitCloseUI.Remove(uiType);
                         newUI.gameObject.SetActive(false);
+                        callback?.Invoke(null);
                         return;
                     }
 
