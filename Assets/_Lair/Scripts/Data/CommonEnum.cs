@@ -126,6 +126,14 @@ namespace Lair.Data
 
     //# === Cross-System Communication ===
 
+    //# 회전 의도 — 로테이터가 즉시 스냅 여부를 결정하는 기준.
+    //# Smooth: 항상 보간(이동/중앙복귀/도주). AttackAligned: _snapInstant 로테이터(영웅)만 즉시 스냅(공격 정렬).
+    public enum FacingMode
+    {
+        Smooth,
+        AttackAligned,
+    }
+
     //# 전투 결과 — BattleStateModel / BattleViewModel / BattleController / ResultPopup 공용.
     public enum BattleResult
     {

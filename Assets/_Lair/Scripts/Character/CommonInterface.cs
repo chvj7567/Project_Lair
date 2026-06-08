@@ -121,8 +121,11 @@ namespace Lair.Character
         float TurnSpeedDegPerSec { get; set; }
 
         //# 목표 방향 설정 — 매 Update 호출 가능. magnitude < 0.001f 면 no-op.
-        //# Y 성분 무시 (XZ 평면 yaw 만 계산).
+        //# Y 성분 무시 (XZ 평면 yaw 만 계산). 인자 없는 버전은 AttackAligned 로 위임(기존 동작 보존).
         void FaceDirection(Vector3 worldDir);
+
+        //# 회전 의도 모드 지정. Smooth=항상 보간 / AttackAligned=_snapInstant 일 때만 즉시 스냅.
+        void FaceDirection(Vector3 worldDir, Lair.Data.FacingMode mode);
 
         //# 즉시 스냅 — OnEnable / 초기 스폰 시 사용. magnitude < 0.001f 면 no-op.
         void SnapToDirection(Vector3 worldDir);

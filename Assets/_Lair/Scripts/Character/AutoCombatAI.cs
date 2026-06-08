@@ -1,4 +1,5 @@
 using UnityEngine;
+using Lair.Data;
 
 namespace Lair.Character
 {
@@ -54,6 +55,14 @@ namespace Lair.Character
         [SerializeField] private float _engageBuffer = 0.5f;
         private bool _engaged;
 
+        //# 영웅 한정 타겟 고정 — 영웅 프리팹만 true(몬스터 기본 false → 매 프레임 최근접 유지, 동작 불변).
+        [SerializeField] private bool _targetHysteresisEnabled;
+        //# 새 후보가 현재 타겟보다 이 거리(units) 이상 가까울 때만 교체. 등거리 깜빡임 흡수 밴드(기획서 §3).
+        [SerializeField] private float _retargetMargin = 1.5f;
+        //# 현재 고정된 타겟 + HP 참조. OnEnable 리셋. 사망/소멸/멀어짐 시 교체.
+        private Transform _currentTarget;
+        private IHealth _currentTargetHealth;
+
         private void Awake()
         {
             _mover = GetComponent<IMover>();
@@ -75,6 +84,9 @@ namespace Lair.Character
             _wasFleeing = false;
             //# B 풀 재사용 시 중앙 끌림 사이클 위상 잔존 방지.
             _centerPullTimer = 0f;
+            //# 풀 재사용 시 이전 고정 타겟 잔존 방지(영웅 한정 히스테리시스).
+            _currentTarget = null;
+            _currentTargetHealth = null;
             //# 스폰 게이트 — 영웅(DeferStrike)만 닫고 시작. 몬스터는 게이트 검사 자체를 건너뛰므로 무관.
             _spawnGateOpen = false;
             _enabledTime = Time.time;
@@ -138,10 +150,25 @@ namespace Lair.Character
             }
 
             //# Idle (타겟 없음) — 마지막 yaw 유지.
-            if (_targetProvider.TryFindNearest(transform.position, out Transform t, out IHealth th) == false)
+            if (_targetProvider.TryFindNearest(transform.position, out Transform candidate, out IHealth candidateH) == false)
             {
+                _currentTarget = null;
+                _currentTargetHealth = null;
                 _mover.Stop();
                 return;
+            }
+
+            //# 영웅(히스테리시스 ON): 현재 타겟 고정 후 margin 초과 시만 교체. 몬스터(OFF): 매 프레임 최근접(불변).
+            Transform t;
+            IHealth th;
+            if (_targetHysteresisEnabled)
+            {
+                t = ResolveStickyTarget(candidate, candidateH, out th);
+            }
+            else
+            {
+                t = candidate;
+                th = candidateH;
             }
 
             //# B3 공포 (Fleeing) — 주변 위협 centroid 의 반대 방향으로 도주, 공격 X.
@@ -177,6 +204,7 @@ namespace Lair.Character
 
                 Vector3 dir = _fleeDirSmoothed.sqrMagnitude > 0.0001f ? _fleeDirSmoothed.normalized : rawDir;
                 Vector3 away = transform.position + dir * 5f;
+                //# 도주 — 방향이 이미 _fleeDirSmoothed 로 평활화됨 + A-3 재진입 스냅 계약 → 즉시 스냅 유지(현행).
                 _rotator?.FaceDirection(dir);
                 _mover.MoveTo(away);
                 return;
@@ -198,7 +226,8 @@ namespace Lair.Character
                 bool inWindow = _centerPullTimer < _centerPullDuration;
                 if (inWindow && toCenter.magnitude > _centerPullDeadzone)
                 {
-                    _rotator?.FaceDirection(toCenter);
+                    //# 중앙끌림 — 비전투 재정렬. Smooth 로 180° 홱 돌기 제거(영웅).
+                    _rotator?.FaceDirection(toCenter, FacingMode.Smooth);
                     //# MoveTo(원점) — MoveTowards 가 중앙에서 감속·정지(과주행 없음, 기획서 §3.2).
                     _mover.MoveTo(Vector3.zero);
                     return;
@@ -226,8 +255,8 @@ namespace Lair.Character
 
             if (_engaged)
             {
-                //# Attacking — 정지 + 타겟 향해 회전.
-                _rotator?.FaceDirection(t.position - transform.position);
+                //# Attacking — 정지 + 타겟 향해 회전. 교전은 AttackAligned — 영웅만 즉시 스냅(공격 정렬), 몬스터는 보간.
+                _rotator?.FaceDirection(t.position - transform.position, FacingMode.AttackAligned);
                 _mover.Stop();
 
                 //# DeferStrike 분기 (§B.2) — 몬스터: 즉시 데미지(현행). 영웅: 개시 판정 → 게이트가 strike 까지 데미지 지연.
@@ -243,10 +272,40 @@ namespace Lair.Character
             }
             else
             {
-                //# Moving — 이동 목표(=타겟) 방향.
-                _rotator?.FaceDirection(t.position - transform.position);
+                //# Moving — 이동 목표(=타겟) 방향. 비전투 재정렬이므로 Smooth(영웅도 보간).
+                _rotator?.FaceDirection(t.position - transform.position, FacingMode.Smooth);
                 _mover.MoveTo(t.position);
             }
+        }
+
+        //# 현재 타겟을 유지하되 (1)사망/소멸 또는 (2)새 후보가 margin 이상 가까울 때만 교체.
+        //# 등거리 후보 깜빡임을 흡수해 영웅이 휙휙 도는 현상을 막는다(영웅 한정).
+        private Transform ResolveStickyTarget(Transform candidate, IHealth candidateH, out IHealth resolvedHealth)
+        {
+            bool currentInvalid =
+                _currentTarget == null ||
+                _currentTargetHealth == null ||
+                _currentTargetHealth.IsAlive == false ||
+                _currentTarget.gameObject.activeInHierarchy == false;
+
+            if (currentInvalid)
+            {
+                _currentTarget = candidate;
+                _currentTargetHealth = candidateH;
+            }
+            else if (candidate != _currentTarget)
+            {
+                float curDist = Vector3.Distance(transform.position, _currentTarget.position);
+                float candDist = Vector3.Distance(transform.position, candidate.position);
+                if (curDist - candDist > _retargetMargin)
+                {
+                    _currentTarget = candidate;
+                    _currentTargetHealth = candidateH;
+                }
+            }
+
+            resolvedHealth = _currentTargetHealth;
+            return _currentTarget;
         }
     }
 }

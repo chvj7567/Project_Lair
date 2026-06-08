@@ -1,4 +1,6 @@
+#if UNITY_EDITOR
 using System;
+#endif
 using System.Collections.Generic;
 using System.IO;
 using Lair.Data;
@@ -20,8 +22,10 @@ namespace Lair.Battle
         public void RecordPick(ECardId id) => _picks.Add(id.ToString());
 
         //# 전투 종료 시 1회 호출 — RunRecord 를 jsonl 한 줄로 append.
+        //# 디바이스 빌드(UNITY_EDITOR false)에선 no-op — 읽기 전용 경로 접근으로 인한 전투 종료 흐름 중단 방지.
         public void FinishRun(BattleResult result, float deathTime, int survivingMonsters)
         {
+#if UNITY_EDITOR
             RunRecord record = new RunRecord
             {
                 FinishedAt = DateTime.Now.ToString("o"),
@@ -31,10 +35,19 @@ namespace Lair.Battle
                 SurvivingMonsters = survivingMonsters,
             };
 
-            string path = LogPath;
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.AppendAllText(path, JsonUtility.ToJson(record) + "\n");
-            Debug.Log($"[RunRecorder] 기록: {record.Result} / 사망 {record.DeathTime:0.0}s / 픽 {record.Picks.Count}");
+            //# IO 실패(파일 잠금 등)가 나도 FinishRun 밖으로 전파되지 않게 방어 — 전투 종료 흐름 보호.
+            try
+            {
+                string path = LogPath;
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.AppendAllText(path, JsonUtility.ToJson(record) + "\n");
+                Debug.Log($"[RunRecorder] 기록: {record.Result} / 사망 {record.DeathTime:0.0}s / 픽 {record.Picks.Count}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[RunRecorder] 기록 실패: {e.Message}");
+            }
+#endif
         }
     }
 }
