@@ -319,9 +319,13 @@ flowchart LR
 
 > **게임:** 5분 자동전투는 **밸런싱이 전부**입니다. 수치를 빠르게 바꾸고, 빠르게 수백 판 돌려 검증하는 도구가 콘텐츠만큼 중요했습니다.
 
-| Card Editor | JSON Sync | Balance / 시뮬레이터 |
-|---|---|---|
-| ![Card Editor — 카드 정의·효과·축·풀 소속을 GUI 로 편집, ECardId enum 생성](docs/images/tool_card_editor.png) | ![JSON Sync — 카드·카드풀·밸런스·영웅 스킬을 JSON 으로 양방향 동기화](docs/images/tool_json_sync.png) | ![Balance — 치트 트리거 + 헤드리스 수백 판 결과 히스토리(사망 시간·픽·생존)](docs/images/tool_balance_sim.png) |
+| Card Editor |
+|---|
+| ![Card Editor — 카드 정의·효과·축·풀 소속을 GUI 로 편집, ECardId enum 생성](docs/images/tool_card_editor.png) |
+
+| JSON Sync | Balance / 시뮬레이터 |
+|---|---|
+| ![JSON Sync — 카드·카드풀·밸런스·영웅 스킬을 JSON 으로 양방향 동기화](docs/images/tool_json_sync.png) | ![Balance — 치트 트리거 + 헤드리스 수백 판 결과 히스토리(사망 시간·픽·생존)](docs/images/tool_balance_sim.png) |
 
 <details>
 <summary>구조 — 무엇을 만들었나</summary>
