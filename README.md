@@ -343,7 +343,7 @@ flowchart LR
 
 1. Unity Hub 에서 프로젝트 루트를 엽니다.
 2. Addressables 가 빌드되어 있지 않으면 `Window > Asset Management > Addressables > Groups` 에서 Build (영웅·몬스터 프리팹 로드에 필요).
-3. `Assets/_Lair/Scenes/Battle.unity` 를 열고 Play — 메인 메뉴 없이 바로 전투가 시작됩니다(MVP 방침). (빌드 진입점은 `Loading.unity`(index 0) → `Battle` 순.)
+3. `Assets/_Lair/Scenes/Loading.unity` (진입점, index 0) 를 열고 Play — 로딩이 끝나면 화면을 클릭해 `Battle` 로 넘어가고, 메인 메뉴 없이 바로 전투가 시작됩니다(MVP 방침). (`Battle.unity` 를 직접 열어 Play 하면 로딩 단계 초기화를 건너뛰므로 반드시 `Loading` 에서 시작.)
 4. (선택) `Lair` 메뉴의 JSON Sync · Card Editor · Balance Window 로 데이터·시뮬레이션 도구 사용.
 
 ## B. 기술 스택 & 의존 방향
