@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using Lair.Character;
 
@@ -6,7 +5,7 @@ namespace Lair.Tests.EditMode
 {
     //# CharacterAnimationController 의 엣지·경계·상태전이 망라.
     //# 기존 CharacterAnimationControllerTests(정상 12케이스)와 중복 회피 — 경계값·시퀀스·조합만 다룬다.
-    //# 결정성: now 인자 직접 주입 + seed 고정 rng → Time.time 비의존.
+    //# 결정성: now 인자 직접 주입 + variant 순차 카운터 → Time.time 비의존.
     public class CharacterAnimationControllerEdgeTests
     {
         private const float HitCooldown = 0.4f;
@@ -28,10 +27,10 @@ namespace Lair.Tests.EditMode
             public void TriggerSpawn() => SpawnCount++;
         }
 
-        //# seed 고정 — variant 시퀀스 결정성 확보.
-        private CharacterAnimationController Make(RecordingSink sink, int seed = 12345)
+        //# variant 는 0→1→2 순차 순환 — 별도 seed 없이 결정적.
+        private CharacterAnimationController Make(RecordingSink sink)
             => new CharacterAnimationController(
-                sink, hitReactionCooldown: HitCooldown, attackSuppressWindow: AttackSuppress, rng: new Random(seed));
+                sink, hitReactionCooldown: HitCooldown, attackSuppressWindow: AttackSuppress);
 
         //# ===== 공격 억제창 경계값 (정확히 0.5s) =====
 
@@ -81,53 +80,50 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(2, sink.HitCount);
         }
 
-        //# ===== 연속 공격 variant 시퀀스 (seed 고정 결정성) =====
+        //# ===== 연속 공격 variant 시퀀스 (0→1→2 순차 순환) =====
 
         [Test]
-        public void OnAttack_연속공격_variant매번갱신_seed고정시퀀스재현()
+        public void OnAttack_연속공격_variant_0_1_2_순차순환_여러바퀴()
         {
-            //# 동일 seed 두 컨트롤러 → 같은 variant 시퀀스가 나와야 결정적(System.Random 계약).
-            RecordingSink sinkA = new RecordingSink();
-            RecordingSink sinkB = new RecordingSink();
-            CharacterAnimationController a = Make(sinkA, seed: 999);
-            CharacterAnimationController b = Make(sinkB, seed: 999);
+            //# 매 공격마다 인덱스 1 증가 + 3 순환 → 0,1,2,0,1,2… 가 정확히 재현돼야 한다.
+            RecordingSink sink = new RecordingSink();
+            CharacterAnimationController c = Make(sink);
 
-            int[] seqA = new int[20];
-            int[] seqB = new int[20];
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 21; i++)
             {
-                a.OnAttack(now: i);
-                seqA[i] = sinkA.LastAttackVariant;
-                b.OnAttack(now: i);
-                seqB[i] = sinkB.LastAttackVariant;
+                c.OnAttack(now: i);
+                Assert.AreEqual(i % 3, sink.LastAttackVariant);
             }
-
-            CollectionAssert.AreEqual(seqA, seqB);
-            Assert.AreEqual(20, sinkA.AttackCount);
-            //# variant 가 매 공격마다 0~2 범위 안에서 실제로 갱신되는지(전부 동일값 고정 아님).
-            bool anyDiffer = false;
-            for (int i = 1; i < 20; i++)
-            {
-                if (seqA[i] != seqA[i - 1])
-                {
-                    anyDiffer = true;
-                    break;
-                }
-            }
-            Assert.IsTrue(anyDiffer, "variant 가 시퀀스 내내 동일값으로 고정됨 — 랜덤 갱신 누락 의심");
+            Assert.AreEqual(21, sink.AttackCount);
         }
 
         [Test]
-        public void OnAttack_variant_항상_0_1_2_중하나()
+        public void OnAttack_세번째후_0으로_wrap()
         {
+            //# 엣지 — 2 다음(세 번째 공격 후) 인덱스가 0 으로 되돌아온다.
             RecordingSink sink = new RecordingSink();
             CharacterAnimationController c = Make(sink);
-            for (int i = 0; i < 200; i++)
-            {
-                c.OnAttack(now: i);
-                Assert.GreaterOrEqual(sink.LastAttackVariant, 0);
-                Assert.LessOrEqual(sink.LastAttackVariant, 2);
-            }
+
+            c.OnAttack(now: 0f);
+            c.OnAttack(now: 1f);
+            c.OnAttack(now: 2f);
+            Assert.AreEqual(2, sink.LastAttackVariant);   //# 세 번째 = 2
+            c.OnAttack(now: 3f);
+            Assert.AreEqual(0, sink.LastAttackVariant);   //# 네 번째 = 0 (wrap)
+        }
+
+        [Test]
+        public void OnAttack_Reset후_variant인덱스_0부터재시작()
+        {
+            //# 엣지 — 풀 재사용(Reset) 시 카운터가 0 으로 리셋돼 0,1,2… 가 처음부터.
+            RecordingSink sink = new RecordingSink();
+            CharacterAnimationController c = Make(sink);
+
+            c.OnAttack(now: 0f);
+            c.OnAttack(now: 1f);   //# 인덱스가 2 로 전진한 상태
+            c.Reset();
+            c.OnAttack(now: 2f);
+            Assert.AreEqual(0, sink.LastAttackVariant);   //# Reset 후 0 부터 다시
         }
 
         //# ===== 사망 후 Reset 전까지 모든 입력 무시 =====

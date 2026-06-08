@@ -1,5 +1,3 @@
-using System;
-
 namespace Lair.Character
 {
     //# 애니메이션 결정 로직 — Unity 비의존(순수 C#) → EditMode 테스트 대상.
@@ -11,11 +9,13 @@ namespace Lair.Character
         private readonly IAnimatorSink _sink;
         private readonly float _hitReactionCooldown;
         private readonly float _attackSuppressWindow;
-        private readonly Random _rng;
 
         private bool _dead;
         private float _lastHitTime;
         private float _lastAttackTime;
+
+        //# 공격 variant 순차 카운터 — 매 공격마다 0→1→2→0… 순환. 랜덤 대신 결정적 순서.
+        private int _attackVariantIndex;
 
         //# 영웅 공격 게이트 상태 미러 (hero-animation-timing-sync §3.4). Driver 가 IAttackGate.IsAttacking 을 push.
         //# 기본 false=현행(선행 0.5s 윈도우만 작동). 몬스터는 게이트 없어 항상 false → 동작 불변.
@@ -23,18 +23,10 @@ namespace Lair.Character
 
         public CharacterAnimationController(
             IAnimatorSink sink, float hitReactionCooldown, float attackSuppressWindow)
-            : this(sink, hitReactionCooldown, attackSuppressWindow, new Random())
-        {
-        }
-
-        //# seed 주입 오버로드 — 공격 variant 랜덤화의 테스트 결정성 확보(Task 7).
-        public CharacterAnimationController(
-            IAnimatorSink sink, float hitReactionCooldown, float attackSuppressWindow, Random rng)
         {
             _sink = sink;
             _hitReactionCooldown = hitReactionCooldown;
             _attackSuppressWindow = attackSuppressWindow;
-            _rng = rng;
             ResetState();
         }
 
@@ -50,6 +42,7 @@ namespace Lair.Character
             _dead = false;
             _lastHitTime = float.NegativeInfinity;
             _lastAttackTime = float.NegativeInfinity;
+            _attackVariantIndex = 0;
             _isAttacking = false;
         }
 
@@ -58,13 +51,14 @@ namespace Lair.Character
         //# 영웅 게이트 상태 미러 — Driver 가 IAttackGate.IsAttacking 을 push (§3.4). 몬스터는 호출 안 됨(항상 false).
         public void SetAttacking(bool attacking) => _isAttacking = attacking;
 
-        //# IAttacker.OnHit 구독 — 공격 적중 순간 스윙 재생. variant 0~2 랜덤 주입(§1.1 #5).
+        //# IAttacker.OnHit 구독 — 공격 적중 순간 스윙 재생. variant 0→1→2→0… 순차 순환.
         public void OnAttack(float now)
         {
             if (_dead)
                 return;
             _lastAttackTime = now;
-            _sink.TriggerAttack(_rng.Next(0, AttackVariantCount));
+            _sink.TriggerAttack(_attackVariantIndex);
+            _attackVariantIndex = (_attackVariantIndex + 1) % AttackVariantCount;
         }
 
         //# Health.OnChanged 감소 감지 시. 스팸 가드 — 공격 중/쿨다운 내면 억제(기획서 §2.1·§2.2).

@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using Lair.Character;
 
@@ -21,9 +20,9 @@ namespace Lair.Tests.EditMode
             public void TriggerSpawn() => SpawnCount++;
         }
 
-        //# walkSpeed=1, runSpeed=2, hitCooldown=0.4, attackSuppress=0.5 / seed 고정으로 variant 결정성 확보.
+        //# walkSpeed=1, runSpeed=2, hitCooldown=0.4, attackSuppress=0.5 / variant 는 0→1→2 순차 순환(결정적).
         private CharacterAnimationController Make(FakeSink sink)
-            => new CharacterAnimationController(sink, hitReactionCooldown: 0.4f, attackSuppressWindow: 0.5f, rng: new Random(12345));
+            => new CharacterAnimationController(sink, hitReactionCooldown: 0.4f, attackSuppressWindow: 0.5f);
 
         [Test]
         public void Tick_정지_속도0()
@@ -62,15 +61,15 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void OnAttack_variant_0에서2_범위내()
+        public void OnAttack_variant_0_1_2_순차순환()
         {
             FakeSink sink = new FakeSink();
             CharacterAnimationController c = Make(sink);
-            for (int i = 0; i < 50; i++)
+            int[] expected = new int[] { 0, 1, 2, 0, 1, 2 };
+            for (int i = 0; i < expected.Length; i++)
             {
                 c.OnAttack(now: i);
-                Assert.GreaterOrEqual(sink.LastAttackVariant, 0);
-                Assert.LessOrEqual(sink.LastAttackVariant, 2);
+                Assert.AreEqual(expected[i], sink.LastAttackVariant);
             }
         }
 

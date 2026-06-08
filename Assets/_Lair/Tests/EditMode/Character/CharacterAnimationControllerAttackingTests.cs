@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 using Lair.Character;
 
@@ -27,7 +26,7 @@ namespace Lair.Tests.Character
 
         //# hitCooldown=0.4, attackSuppress=0.5 — 기존 테스트와 동일 파라미터로 회귀 정합 보장.
         private CharacterAnimationController Make(FakeSink sink)
-            => new CharacterAnimationController(sink, hitReactionCooldown: 0.4f, attackSuppressWindow: 0.5f, rng: new Random(12345));
+            => new CharacterAnimationController(sink, hitReactionCooldown: 0.4f, attackSuppressWindow: 0.5f);
 
         //# ===== SetAttacking=true 시 피격 Hit 억제 (§3.4) =====
 
