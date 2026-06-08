@@ -7,8 +7,8 @@ using Lair.Character;
 namespace Lair.Tests.Character
 {
     //# SimpleMover._clampZone 옵션 — 영웅 한정 zone-clamp. 몬스터는 미할당 (null) 이라 무동작.
-    //# 클램프 경계는 BattleZone._clampHalfExtent(교전 trigger 와 분리, 기획서 §4.2) 로 산정 — collider size 와 무관.
-    //# 본 스위트는 _clampHalfExtent 를 명시 주입해 경계를 테스트에 드러낸다(production 기본값 7 변경에 안 깨지게).
+    //# 클램프 경계는 BattleZone._clampHalfExtentX/Z(교전 trigger 와 분리, 기획서 §4.2) 로 산정 — collider size 와 무관.
+    //# 본 스위트는 정사각 extent(X=Z)를 명시 주입해 경계를 테스트에 드러낸다(production 직사각 기본값 변경에 안 깨지게).
     public class SimpleMoverClampTests
     {
         private GameObject _zoneGo;
@@ -39,18 +39,26 @@ namespace Lair.Tests.Character
             return zone;
         }
 
-        //# 기본 헬퍼 — clampHalfExtent=5 명시. 5 는 production 기본값(7) 과 다른 값이라
-        //# 리플렉션 setter 가 잘못된 필드명으로 silent-fail 하면(기본 7 잔존) 5 단언이 깨져 즉시 잡힌다.
+        //# 기본 헬퍼 — clampHalfExtent=5 명시. 5 는 production 직사각 기본값(X10/Z6) 과 다른 값이라
+        //# 리플렉션 setter 가 잘못된 필드명으로 silent-fail 하면(기본값 잔존) 5 단언이 깨져 즉시 잡힌다.
         private BattleZone CreateZone(float clampHalfExtent = 5f)
         {
             return CreateZoneAt(Vector3.zero, clampHalfExtent, out _zoneGo);
         }
 
+        //# 단일 값을 X/Z 양쪽에 동일 주입 — 정사각 클램프로 기존 케이스 의도 보존.
+        //# (production 직사각 기본값(X10/Z6)과 다른 값을 명시 주입하므로 필드명 오타 silent-fail 도 잡힌다.)
         private static void SetClampHalfExtent(BattleZone zone, float value)
         {
-            FieldInfo fi = typeof(BattleZone).GetField("_clampHalfExtent",
+            SetClampField(zone, "_clampHalfExtentX", value);
+            SetClampField(zone, "_clampHalfExtentZ", value);
+        }
+
+        private static void SetClampField(BattleZone zone, string field, float value)
+        {
+            FieldInfo fi = typeof(BattleZone).GetField(field,
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(fi, "BattleZone._clampHalfExtent 필드가 존재해야 함");
+            Assert.IsNotNull(fi, $"BattleZone.{field} 필드가 존재해야 함");
             fi.SetValue(zone, value);
         }
 

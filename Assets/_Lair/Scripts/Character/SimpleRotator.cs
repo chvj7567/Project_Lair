@@ -18,9 +18,9 @@ namespace Lair.Character
         private bool _hasTarget;
         private float _targetYaw;
 
-        //# AttackAligned + _snapInstant 으로 이번 프레임 즉시 스냅했는지. 같은 프레임 Update 보간을 1회 건너뜀.
-        //# MoveRotation 은 물리 step 까지 지연돼 같은 프레임 transform.eulerAngles 에 미반영 → 보간이 스냅을 덮어쓰는 것 방지.
-        private bool _snappedThisFrame;
+        //# 마지막 FaceDirection 호출 모드. 영웅(_snapInstant)+AttackAligned 인 동안 Update 보간 경로를 완전히 차단하기 위해 추적.
+        //# IsAttacking 게이트로 FaceDirection 이 여러 프레임 안 불려도, stale yaw 보간이 이미 건 스냅을 덮어쓰는 것을 막는다.
+        private FacingMode _lastMode = FacingMode.Smooth;
 
         //# Rigidbody 있으면 MoveRotation 사용. transform.rotation 직접 쓰기는 같은 바디의 MovePosition 을
         //# 덮어써(매 프레임 동기) 이동을 한 step 씩 무효화함 — 회전도 물리 경로로 통일.
@@ -42,11 +42,11 @@ namespace Lair.Character
             if (worldDir.sqrMagnitude < 0.000001f) return;   //# magnitude < 0.001 → sqrMag < 1e-6
             _targetYaw = Mathf.Atan2(worldDir.x, worldDir.z) * Mathf.Rad2Deg;
             _hasTarget = true;
+            _lastMode = mode;
             //# AttackAligned + 영웅(_snapInstant) 일 때만 즉시 스냅(공격 정렬). 그 외엔 Update 에서 보간.
             if (mode == FacingMode.AttackAligned && _snapInstant)
             {
                 ApplyYaw(_targetYaw);
-                _snappedThisFrame = true;
             }
         }
 
@@ -72,17 +72,18 @@ namespace Lair.Character
         {
             _hasTarget = false;
             _targetYaw = 0f;
-            _snappedThisFrame = false;
+            _lastMode = FacingMode.Smooth;
         }
 
         private void Update()
         {
             if (_hasTarget == false) return;
-            //# 이번 프레임 AttackAligned 즉시 스냅함 — MoveRotation 은 물리 step 까지 지연돼 transform.eulerAngles 가
-            //# 옛 yaw 라, 여기서 보간하면 그 스냅을 540°/s step 으로 덮어씀. 스냅한 프레임만 보간 1회 건너뜀.
-            if (_snappedThisFrame)
+            //# 영웅(_snapInstant)+AttackAligned 인 동안엔 보간 경로를 아예 안 탄다 — 매 프레임 목표 yaw 재확정.
+            //# MoveRotation 은 물리 step 까지 지연돼 transform.eulerAngles 가 stale 이라, 보간하면 540°/s step 으로 스냅을 덮어씀.
+            //# IsAttacking 게이트로 FaceDirection 이 여러 프레임 안 불려도 이 재확정이 스냅을 유지한다(예전 if(_snapInstant)return 동작 복원).
+            if (_snapInstant && _lastMode == FacingMode.AttackAligned)
             {
-                _snappedThisFrame = false;
+                ApplyYaw(_targetYaw);
                 return;
             }
             float currentYaw = transform.eulerAngles.y;

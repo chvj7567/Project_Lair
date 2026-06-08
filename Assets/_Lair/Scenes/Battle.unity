@@ -345,7 +345,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.08, g: 0.1, b: 0.13, a: 1}
+  m_BackGroundColor: {r: 0.12, g: 0.16, b: 0.22, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1012,7 +1012,7 @@ Transform:
   m_GameObject: {fileID: 722593434}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10, y: 0, z: 0}
+  m_LocalPosition: {x: -7, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1360,9 +1360,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.094239205
+    x: 0
     y: 0
-    width: 0.8115216
+    width: 1
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -1848,7 +1848,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _zoneTrigger: {fileID: 1626859776}
-  _clampHalfExtent: 7
+  _clampHalfExtentX: 8
+  _clampHalfExtentZ: 5
   _heroEntryPoint: {fileID: 722593435}
 --- !u!65 &1626859776
 BoxCollider:

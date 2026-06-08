@@ -35,7 +35,7 @@ namespace Lair.Tests.Battle
             CharacterRegistry.Monsters.Clear();
         }
 
-        //# 본체 BoxCollider 의 bounds 는 IsInside / 교전 trigger 의 진실. ClampInside 는 _clampHalfExtent(분리됨)를 따른다.
+        //# 본체 BoxCollider 의 bounds 는 IsInside / 교전 trigger 의 진실. ClampInside 는 _clampHalfExtentX/Z(분리됨)를 따른다.
         //# center=(0,0,0), size=(10,1,10) 기준.
         private BattleZone CreateZone(Vector3 center, Vector3 size)
         {
@@ -51,11 +51,19 @@ namespace Lair.Tests.Battle
             return zone;
         }
 
-        //# 클램프 테스트는 _clampHalfExtent 를 명시 주입 — 기대값을 테스트에 드러내고 production 기본값 변경에 안 깨지게.
+        //# 클램프 테스트는 X/Z extent 를 명시 주입 — 기대값을 테스트에 드러내고 production 기본값 변경에 안 깨지게.
+        //# 단일 float 오버로드는 X=Z(정사각)로 주입 — 기존 정사각 가정 케이스 의도 보존.
         private BattleZone CreateZoneWithClamp(Vector3 center, Vector3 size, float clampHalfExtent)
         {
+            return CreateZoneWithClamp(center, size, clampHalfExtent, clampHalfExtent);
+        }
+
+        //# X/Z 분리 주입 — 직사각 클램프(비대칭) 검증용.
+        private BattleZone CreateZoneWithClamp(Vector3 center, Vector3 size, float clampHalfExtentX, float clampHalfExtentZ)
+        {
             BattleZone zone = CreateZone(center, size);
-            SetPrivate(zone, "_clampHalfExtent", clampHalfExtent);
+            SetPrivate(zone, "_clampHalfExtentX", clampHalfExtentX);
+            SetPrivate(zone, "_clampHalfExtentZ", clampHalfExtentZ);
             return zone;
         }
 
@@ -295,6 +303,18 @@ namespace Lair.Tests.Battle
             Vector3 clamped = zone.ClampInside(corner);
             Assert.AreEqual(7f, clamped.x, 0.0001f);
             Assert.AreEqual(7f, clamped.z, 0.0001f);
+        }
+
+        //# 직사각 비대칭 — X/Z extent 가 다를 때 각 축이 자기 extent 로 클램프됨을 한 점으로 입증.
+        //# X·Z 가 서로 다른 값으로 잘리므로 X/Z 축이 뒤바뀌면(스왑) 단언이 깨진다.
+        [Test]
+        public void ClampInside_X와_Z_extent가_다르면_각_축이_자기_extent로_클램프()
+        {
+            //# X extent 10 / Z extent 6 — production 직사각(20×12) 과 동일.
+            BattleZone zone = CreateZoneWithClamp(Vector3.zero, new Vector3(22, 1, 15), 10f, 6f);
+            Vector3 clamped = zone.ClampInside(new Vector3(15f, 0f, 8f));
+            Assert.AreEqual(10f, clamped.x, 0.001f, "X 는 _clampHalfExtentX(10) 로 클램프");
+            Assert.AreEqual(6f, clamped.z, 0.001f, "Z 는 _clampHalfExtentZ(6) 로 클램프 — X extent 와 다름");
         }
 
         //# ===== OnTriggerEnter =====
