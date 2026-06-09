@@ -43,6 +43,13 @@ namespace Lair.Character
         public static bool TryFindNearestMonster(Vector3 from, out Transform t, out IHealth h)
             => TryFindNearest(Monsters, from, out t, out h, requireEngaging: true);
 
+        //# 영웅 전용 — 선호 사분면(preferDirH AND preferDirV 둘 다 양의 방향)에 후보가 있으면 그중 최근접,
+        //# 없으면 전체 최근접으로 폴백. 방향 벡터가 zero 면 해당 축 선호 없음 → 사실상 전체 최근접(카메라 null 안전).
+        //# 카메라 viewport 판정은 HeroTargetProvider 가 수행해 월드 방향으로 변환 후 전달(레지스트리는 카메라 비의존).
+        public static bool TryFindNearestMonster(
+            Vector3 from, Vector3 preferDirH, Vector3 preferDirV, out Transform t, out IHealth h)
+            => TryFindNearestPreferred(Monsters, from, preferDirH, preferDirV, out t, out h, requireEngaging: true);
+
         //# 공포 도주 centroid — TryFindNearest 와 동일한 필터(살아있음 + 몬스터 Engaging) 적용. 스킬용(HeroSkillContext) 유지.
         public static bool TryGetThreatCentroidHero(Vector3 from, float radius, out Vector3 centroid, out int count)
             => TryGetThreatCentroid(Heroes, from, radius, out centroid, out count, requireEngaging: false);
@@ -87,6 +94,45 @@ namespace Lair.Character
                     t = e.Transform;
                     h = e.Health;
                 }
+            }
+            return t != null;
+        }
+
+        //# 선호 사분면 우선 최근접. 한 번의 순회로 (선호 사분면 최근접 / 전체 최근접) 동시 추적 후
+        //# 사분면 후보가 있으면 그것, 없으면 전체 최근접 폴백. rel·preferDir 의 Dot>0 으로 사분면 판정.
+        private static bool TryFindNearestPreferred(
+            List<Entry> list, Vector3 from, Vector3 preferDirH, Vector3 preferDirV,
+            out Transform t, out IHealth h, bool requireEngaging)
+        {
+            t = null; h = null;
+            Transform prefT = null; IHealth prefH = null;
+            float bestAll = float.MaxValue;
+            float bestPref = float.MaxValue;
+            foreach (Entry e in list)
+            {
+                if (e.Transform == null) continue;
+                if (e.Health == null || e.Health.IsAlive == false) continue;
+                if (requireEngaging && e.IsEngaging == false) continue;
+                Vector3 rel = e.Transform.position - from;
+                float d = rel.sqrMagnitude;
+                if (d < bestAll)
+                {
+                    bestAll = d;
+                    t = e.Transform;
+                    h = e.Health;
+                }
+                //# 선호 사분면 — 수평·수직 둘 다 양의 방향(Dot>0). zero 방향은 Dot=0 이라 자동 미충족 → 폴백.
+                if (Vector3.Dot(rel, preferDirH) > 0f && Vector3.Dot(rel, preferDirV) > 0f && d < bestPref)
+                {
+                    bestPref = d;
+                    prefT = e.Transform;
+                    prefH = e.Health;
+                }
+            }
+            if (prefT != null)
+            {
+                t = prefT;
+                h = prefH;
             }
             return t != null;
         }

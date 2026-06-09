@@ -204,5 +204,71 @@ namespace Lair.Tests.Character
 
             Object.DestroyImmediate(t.gameObject);
         }
+
+        //# 정상 — 선호 사분면(오른쪽 AND 위쪽 = +X AND +Z)에 후보가 있으면, 더 가까운 전체 최근접보다
+        //# 사분면 내 적을 우선 선택. (영웅이 화면 좌하단일 때 우상단 적 우선 케이스의 단위 검증.)
+        [Test]
+        public void TryFindNearestMonster_선호사분면_우선_전체최근접보다()
+        {
+            //# 전체 최근접은 near(반대 사분면), 선호 사분면(+X,+Z)엔 더 먼 pref.
+            Transform near = new GameObject("near").transform; near.position = new Vector3(-1, 0, -1);
+            Transform pref = new GameObject("pref").transform; pref.position = new Vector3(3, 0, 3);
+            CharacterRegistry.RegisterMonster(near, new FakeHealth());
+            CharacterRegistry.RegisterMonster(pref, new FakeHealth());
+            CharacterRegistry.SetMonsterEngaging(near, true);
+            CharacterRegistry.SetMonsterEngaging(pref, true);
+
+            bool found = CharacterRegistry.TryFindNearestMonster(
+                Vector3.zero, Vector3.right, Vector3.forward, out Transform t, out IHealth _);
+
+            Assert.IsTrue(found);
+            Assert.AreSame(pref, t, "선호 사분면(+X,+Z) 후보가 더 가까운 near 보다 우선");
+
+            Object.DestroyImmediate(near.gameObject);
+            Object.DestroyImmediate(pref.gameObject);
+        }
+
+        //# 엣지 — 선호 사분면에 후보가 0이면 전체 최근접으로 폴백.
+        [Test]
+        public void TryFindNearestMonster_선호사분면_비면_전체최근접_폴백()
+        {
+            //# 두 후보 모두 선호 사분면(+X,+Z) 밖 → 폴백으로 더 가까운 near 선택.
+            Transform near = new GameObject("near").transform; near.position = new Vector3(-1, 0, -1);
+            Transform far  = new GameObject("far").transform;  far.position  = new Vector3(-5, 0, -5);
+            CharacterRegistry.RegisterMonster(near, new FakeHealth());
+            CharacterRegistry.RegisterMonster(far, new FakeHealth());
+            CharacterRegistry.SetMonsterEngaging(near, true);
+            CharacterRegistry.SetMonsterEngaging(far, true);
+
+            bool found = CharacterRegistry.TryFindNearestMonster(
+                Vector3.zero, Vector3.right, Vector3.forward, out Transform t, out IHealth _);
+
+            Assert.IsTrue(found);
+            Assert.AreSame(near, t, "선호 사분면 비어 폴백 — 전체 최근접 near 선택");
+
+            Object.DestroyImmediate(near.gameObject);
+            Object.DestroyImmediate(far.gameObject);
+        }
+
+        //# 엣지 — 선호 방향이 zero(카메라 null 시) 면 사분면 미충족 → 항상 전체 최근접. NRE 없이 동작.
+        [Test]
+        public void TryFindNearestMonster_선호방향_zero면_전체최근접()
+        {
+            Transform near = new GameObject("near").transform; near.position = new Vector3(1, 0, 1);
+            Transform far  = new GameObject("far").transform;  far.position  = new Vector3(5, 0, 5);
+            CharacterRegistry.RegisterMonster(near, new FakeHealth());
+            CharacterRegistry.RegisterMonster(far, new FakeHealth());
+            CharacterRegistry.SetMonsterEngaging(near, true);
+            CharacterRegistry.SetMonsterEngaging(far, true);
+
+            bool found = CharacterRegistry.TryFindNearestMonster(
+                Vector3.zero, Vector3.zero, Vector3.zero, out Transform t, out IHealth _);
+
+            Assert.IsTrue(found);
+            Assert.AreSame(near, t, "선호 방향 zero → 전체 최근접 near");
+
+            Object.DestroyImmediate(near.gameObject);
+            Object.DestroyImmediate(far.gameObject);
+        }
     }
 }
