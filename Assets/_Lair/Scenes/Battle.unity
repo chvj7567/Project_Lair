@@ -1848,7 +1848,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _zoneTrigger: {fileID: 1626859776}
-  _clampHalfExtentX: 8
+  _clampHalfExtentX: 10
   _clampHalfExtentZ: 5
   _heroEntryPoint: {fileID: 722593435}
 --- !u!65 &1626859776
@@ -1870,7 +1870,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 22, y: 1, z: 15}
+  m_Size: {x: 20, y: 1, z: 10}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &1626859777
 Transform:
