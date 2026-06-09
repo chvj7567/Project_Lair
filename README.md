@@ -20,11 +20,7 @@
 
 ### ▶️ 전체 플레이 영상
 
-<!-- TODO: 풀 플레이 영상 자리 — 아래 주석을 풀고 URL 을 채운다.
-     A) mp4 를 GitHub README/이슈/PR 편집창에 드래그업로드 → 생성된
-        https://github.com/user-attachments/assets/... 링크를 그대로 붙이면 인라인 재생
-     B) docs/videos/full_play.mp4 로 커밋 후 같은 경로 링크 -->
-<!-- https://github.com/user-attachments/assets/REPLACE_ME -->
+[![Project Lair — 5분 풀 플레이 영상 (YouTube)](https://img.youtube.com/vi/5YP-RJFJDBo/maxresdefault.jpg)](https://youtu.be/5YP-RJFJDBo)
 
 > 5분 한 판 풀 플레이 — 좌상단 4축 빌드 카운터(TANK/DPS/DEBUFF/SWARM), 상단 타이머 + 영웅 HP 바, 자동 교전과 사방에서 수렴하는 몬스터 무리, HP%·시간마다 끼어드는 3택 1 카드픽.
 
