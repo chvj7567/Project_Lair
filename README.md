@@ -22,6 +22,8 @@
 
 [![Project Lair — 5분 풀 플레이 영상 (YouTube)](https://img.youtube.com/vi/5YP-RJFJDBo/maxresdefault.jpg)](https://youtu.be/5YP-RJFJDBo)
 
+> 👆 **위 썸네일을 클릭하면 YouTube 로 이동해 전체 플레이 영상을 볼 수 있습니다.**
+>
 > 5분 한 판 풀 플레이 — 좌상단 4축 빌드 카운터(TANK/DPS/DEBUFF/SWARM), 상단 타이머 + 영웅 HP 바, 자동 교전과 사방에서 수렴하는 몬스터 무리, HP%·시간마다 끼어드는 3택 1 카드픽.
 
 ---
