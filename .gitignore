@@ -65,6 +65,16 @@ crashlytics-build.properties
 #! Packed Addressables
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 
+#! Addressables 플랫폼별 빌드 스냅샷 폴더 (content_state.bin 보관용 — 내용물은 위에서 이미 제외)
+/Assets/AddressableAssetsData/Android/
+/Assets/AddressableAssetsData/Android.meta
+/Assets/AddressableAssetsData/Windows/
+/Assets/AddressableAssetsData/Windows.meta
+
+#! realvirtual MCP 도구가 상시 갱신하는 상태 파일 — 작업 트리 노이즈 방지
+/Assets/StreamingAssets/realvirtual-MCP
+/Assets/StreamingAssets/realvirtual-MCP.meta
+
 #! Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
