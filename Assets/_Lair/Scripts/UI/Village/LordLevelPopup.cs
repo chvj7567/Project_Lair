@@ -43,9 +43,13 @@ namespace Lair.UI
             }
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
 
             if (isActiveAndEnabled)
             {
@@ -74,11 +78,15 @@ namespace Lair.UI
 
             int currentLevel = LordLevelService.LevelFromXp(_arg.Profile.LordXp, _arg.Config);
             if (_lordLevelText != null)
+            {
                 _lordLevelText.SetText($"영주 Lv {currentLevel}");
+            }
 
             List<LordRewardCellData> data = BuildCellData(_arg.Profile, _arg.Config);
             if (_scrollView != null)
+            {
                 _scrollView.SetItemList(data);
+            }
         }
 
         public static List<LordRewardCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)

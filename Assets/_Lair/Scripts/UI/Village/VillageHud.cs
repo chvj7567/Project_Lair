@@ -74,11 +74,17 @@ namespace Lair.UI
             if (_vm == null)
                 return;
             if (_soulText != null)
+            {
                 _soulText.SetText($"{_vm.Souls:N0} 소울");
+            }
             if (_lordLevelText != null)
+            {
                 _lordLevelText.SetText($"영주 Lv {_vm.LordLevel}");
+            }
             if (_lordXpFill != null)
+            {
                 _lordXpFill.fillAmount = _vm.LordProgress;
+            }
         }
     }
 }

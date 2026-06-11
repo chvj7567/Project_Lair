@@ -49,9 +49,13 @@ namespace Lair.UI
             }
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
 
             //# prefab active 저장 케이스 보강 — BuildModalPopup 과 동일 (layout 산정 후 Build).
             if (isActiveAndEnabled)
@@ -82,7 +86,9 @@ namespace Lair.UI
             if (_arg == null)
                 return;
             if (_soulText != null)
+            {
                 _soulText.SetText($"{_arg.Profile.Souls:N0} 소울");
+            }
 
             List<ShopItemCellData> data = BuildCellData(_arg.Profile, _arg.Config);
             foreach (ShopItemCellData cell in data)
@@ -90,7 +96,9 @@ namespace Lair.UI
                 cell.OnBuy = HandleBuy;
             }
             if (_scrollView != null)
+            {
                 _scrollView.SetItemList(data);
+            }
         }
 
         private void HandleBuy(string itemId)

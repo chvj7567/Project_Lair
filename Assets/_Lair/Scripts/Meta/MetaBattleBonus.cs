@@ -24,7 +24,9 @@ namespace Lair.Meta
             {
                 if (item == null || string.IsNullOrEmpty(item.Id))
                     continue;
-                int level = profile.GetShopLevel(item.Id);
+                //# 세이브 변조 방어 — 저장 레벨을 MaxLevel 로 클램프 (정상 경로는 ShopService 가 만렙 구매 차단).
+                //# MaxLevel 0 이면 level 0 으로 클램프 → 아래 가드에서 skip — 항목 비활성 스위치로 동작.
+                int level = Mathf.Min(profile.GetShopLevel(item.Id), item.MaxLevel);
                 if (level <= 0)
                     continue;
 

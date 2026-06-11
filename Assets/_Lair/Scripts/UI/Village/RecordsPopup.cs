@@ -25,9 +25,13 @@ namespace Lair.UI
             }
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
         }
 
         public static string BuildBody(MetaProfile profile)

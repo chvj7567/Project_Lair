@@ -22,7 +22,9 @@ namespace Lair.UI
                 return;
 
             if (_background != null)
+            {
                 _background.color = data.IsLockedDummy ? DummyBg : NormalBg;
+            }
 
             if (_icon != null)
             {

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Lair.EditorTools
 {
     //# MetaConfig.asset 의 상점/도전과제/영주 보상 편집 윈도우. Rule 03 §3 예외 — 에디터 전용 UI (IMGUI).
-    //# 편집은 Undo.RecordObject + SetDirty, 디스크 반영은 [저장] (AssetDatabase.SaveAssets).
+    //# 편집은 Undo.RecordObject + SetDirty, 디스크 반영은 [저장] (SaveAssetIfDirty — MetaConfig 한정).
     public class LairMetaEditorWindow : EditorWindow
     {
         private const string ConfigPath = "Assets/_Lair/Data/MetaConfig.asset";
@@ -40,7 +40,7 @@ namespace Lair.EditorTools
         {
             if (_config == null)
             {
-                EditorGUILayout.HelpBox($"{ConfigPath} 를 찾지 못했습니다. 에셋 생성은 LairVillageBuilder 의 V1 메뉴.", MessageType.Error);
+                EditorGUILayout.HelpBox($"{ConfigPath} 를 찾지 못했습니다. git 저장소에서 복원하거나 CreateAssetMenu(Lair/MetaConfig)로 생성하세요.", MessageType.Error);
                 return;
             }
 
@@ -275,6 +275,8 @@ namespace Lair.EditorTools
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+                //# 진입 시 값 저장-복원 — 고정 Color.white 복원은 상위 틴트를 덮어쓴다.
+                Color prevBackground = GUI.backgroundColor;
                 GUI.backgroundColor = new Color(1f, 0.6f, 0.6f);
                 if (GUILayout.Button("삭제", GUILayout.Width(50)))
                 {
@@ -284,7 +286,7 @@ namespace Lair.EditorTools
                         _pendingDeleteIndex = index;
                     }
                 }
-                GUI.backgroundColor = Color.white;
+                GUI.backgroundColor = prevBackground;
             }
         }
 
@@ -309,7 +311,11 @@ namespace Lair.EditorTools
                 EditorGUILayout.HelpBox("Id 가 공백입니다 — MetaProfile 저장 키로 쓰여 비공백 필수.", MessageType.Error);
                 return;
             }
-            if (duplicates.Contains(id))
+            if (MetaEditorCalc.HasSurroundingWhitespace(id))
+            {
+                EditorGUILayout.HelpBox($"Id \"{id}\" 에 앞뒤 공백 포함 — 세이브 키 불일치 위험, 공백 제거 필요.", MessageType.Warning);
+            }
+            if (duplicates.Contains(id.Trim()))
             {
                 EditorGUILayout.HelpBox($"Id 중복: \"{id}\" — 같은 Id 가 2개 이상이면 첫 항목만 조회됩니다.", MessageType.Error);
             }
@@ -341,7 +347,8 @@ namespace Lair.EditorTools
             {
                 if (GUILayout.Button("저장"))
                 {
-                    AssetDatabase.SaveAssets();
+                    //# 전역 SaveAssets 대신 MetaConfig 한정 — 무관 dirty 에셋 동반 저장 방지.
+                    AssetDatabase.SaveAssetIfDirty(_config);
                     Debug.Log("[MetaEditor] MetaConfig.asset 저장 완료");
                 }
             }

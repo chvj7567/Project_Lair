@@ -36,16 +36,15 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 만렙초과_비정상_레벨도_저장된_레벨_그대로_거듭제곱된다()
+        public void 만렙초과_비정상_레벨은_MaxLevel로_클램프되어_적용된다()
         {
-            //# 현행 동작 박제 — From 은 MaxLevel 클램프 없음 (정상 경로는 ShopService 가 만렙 구매를 차단).
-            //# 세이브 수동 변조 시 과적용 허용이 의도인지 gameplay-programmer 판단 필요 (보고서 참조).
+            //# 세이브 수동 변조 방어 — From 은 저장 레벨을 MaxLevel 로 클램프 (정상 경로는 ShopService 가 만렙 구매 차단).
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterHpUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, PerLevelMul = 1.1f, MaxLevel = 5 });
             MetaProfile p = new MetaProfile();
             p.SetShopLevel("MonsterHpUp", 7);
 
             MetaBattleBonus bonus = MetaBattleBonus.From(p, _cfg);
-            Assert.AreEqual(Mathf.Pow(1.1f, 7), bonus.GetStatMul(EMonsterStatKind.Hp), 0.001f);
+            Assert.AreEqual(Mathf.Pow(1.1f, 5), bonus.GetStatMul(EMonsterStatKind.Hp), 0.001f);
         }
 
         [Test]

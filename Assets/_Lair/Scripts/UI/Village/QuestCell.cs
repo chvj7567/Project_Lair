@@ -24,13 +24,21 @@ namespace Lair.UI
                 return;
 
             if (_background != null)
+            {
                 _background.color = data.Achieved ? AchievedBg : NormalBg;
+            }
             if (_nameText != null)
+            {
                 _nameText.SetText(data.DisplayName);
+            }
             if (_descText != null)
+            {
                 _descText.SetText(data.Description);
+            }
             if (_rewardText != null)
+            {
                 _rewardText.SetText(data.RewardText);
+            }
             if (_achievedBadge != null)
             {
                 _achievedBadge.gameObject.SetActive(data.Achieved);

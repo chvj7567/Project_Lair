@@ -78,6 +78,7 @@ namespace Lair.EditorTools
         }
 
         //# 비공백 Id 중복 검출 — 공백/빈 Id 는 별도 "공백 경고" 대상이라 제외. 발견 순서 유지.
+        //# Trim 비교 — Id 는 세이브 키라 "A"/"A " 패딩 차이도 중복으로 보고 (목록에는 Trim 값 수록).
         public static List<string> FindDuplicateIds(IReadOnlyList<string> ids)
         {
             List<string> duplicates = new List<string>();
@@ -86,12 +87,21 @@ namespace Lair.EditorTools
             {
                 if (string.IsNullOrWhiteSpace(id))
                     continue;
-                if (seen.Add(id) == false && duplicates.Contains(id) == false)
+                string trimmed = id.Trim();
+                if (seen.Add(trimmed) == false && duplicates.Contains(trimmed) == false)
                 {
-                    duplicates.Add(id);
+                    duplicates.Add(trimmed);
                 }
             }
             return duplicates;
+        }
+
+        //# 앞뒤 공백 포함 Id 검출 — 세이브 키 불일치 위험이라 자체 경고 대상.
+        public static bool HasSurroundingWhitespace(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return false;
+            return id.Trim() != id;
         }
 
         //# Condition 별 Threshold 단위 안내 (기획서 §5.2 / CommonEnum EAchievementCondition 판정 의미).
@@ -114,12 +124,13 @@ namespace Lair.EditorTools
             }
         }
 
-        //# 영주 트랙 레벨 검증 — 중복 레벨 + 역순(앞 항목보다 낮거나 같은 레벨) 경고 메시지 목록.
+        //# 영주 트랙 레벨 검증 — 중복 레벨 + 역순 경고 메시지 목록.
+        //# 역순은 running max 비교 — [5,3,4] 에서 3·4 둘 다 검출 (인접 비교는 4 를 놓침).
         public static List<string> LordLevelWarnings(IReadOnlyList<LordRewardDef> rewards)
         {
             List<string> warnings = new List<string>();
             HashSet<int> seen = new HashSet<int>();
-            int prevLevel = int.MinValue;
+            int maxLevel = int.MinValue;
             for (int i = 0; i < rewards.Count; ++i)
             {
                 LordRewardDef def = rewards[i];
@@ -129,11 +140,11 @@ namespace Lair.EditorTools
                 {
                     warnings.Add($"#{i + 1}: Lv {def.Level} 중복");
                 }
-                else if (def.Level < prevLevel)
+                else if (def.Level < maxLevel)
                 {
-                    warnings.Add($"#{i + 1}: Lv {def.Level} 가 앞 항목(Lv {prevLevel})보다 낮음 — 역순");
+                    warnings.Add($"#{i + 1}: Lv {def.Level} 가 앞 최고 레벨(Lv {maxLevel})보다 낮음 — 역순");
                 }
-                prevLevel = def.Level;
+                maxLevel = Mathf.Max(maxLevel, def.Level);
             }
             return warnings;
         }

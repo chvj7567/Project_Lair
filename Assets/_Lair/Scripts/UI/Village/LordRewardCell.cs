@@ -30,7 +30,9 @@ namespace Lair.UI
                 _background.color = bg;
             }
             if (_levelText != null)
+            {
                 _levelText.SetText(data.LevelText);
+            }
             if (_nameText != null)
             {
                 _nameText.SetText(data.DisplayName);
@@ -41,7 +43,9 @@ namespace Lair.UI
                 bool show = string.IsNullOrEmpty(data.RewardText) == false;
                 _rewardText.gameObject.SetActive(show);
                 if (show)
+                {
                     _rewardText.SetText(data.RewardText);
+                }
             }
             if (_reachedBadge != null)
             {

@@ -28,19 +28,32 @@ namespace Lair.UI
             _data = data;
             WireOnce();
 
-            if (_nameText != null) _nameText.SetText(data.DisplayName);
-            if (_levelText != null) _levelText.SetText(data.LevelText);
-            if (_descText != null) _descText.SetText(data.Description);
+            if (_nameText != null)
+            {
+                _nameText.SetText(data.DisplayName);
+            }
+            if (_levelText != null)
+            {
+                _levelText.SetText(data.LevelText);
+            }
+            if (_descText != null)
+            {
+                _descText.SetText(data.Description);
+            }
 
             if (_priceText != null)
             {
                 _priceText.gameObject.SetActive(data.IsMax == false);
                 if (data.IsMax == false)
+                {
                     _priceText.SetText($"{data.Price:N0} 소울");
+                }
             }
 
             if (_buyButton != null)
+            {
                 _buyButton.Interactable = data.CanBuy;
+            }
             if (_buyLabel != null)
             {
                 //# 버튼 문구 치환 — 구매 / 만렙 / 소울 부족 (기획서 §7). 프리팹 _buyLabel 은 stringID 미사용 전제.

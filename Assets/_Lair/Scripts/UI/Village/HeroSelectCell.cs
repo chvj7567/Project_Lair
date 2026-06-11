@@ -30,9 +30,13 @@ namespace Lair.UI
             WireOnce();
 
             if (_background != null)
+            {
                 _background.color = data.IsLocked ? DummyBg : NormalBg;
+            }
             if (_border != null)
+            {
                 _border.color = data.IsSelected ? SelectedBorder : HiddenBorder;
+            }
             if (_portrait != null)
             {
                 //# 풀 재사용 셀 — 매 Bind 마다 표시/숨김 갱신 (이전 데이터 잔존 방지).
@@ -49,7 +53,9 @@ namespace Lair.UI
                 _nameText.SetColor(data.IsLocked ? DummyTextColor : Color.white);
             }
             if (_selectButton != null)
+            {
                 _selectButton.Interactable = data.IsLocked == false;
+            }
         }
 
         //# CHButton.OnClick 은 listener 누적 — 풀 재사용 셀은 1회만 등록.

@@ -59,16 +59,24 @@ namespace Lair.UI
             _showCards = false;
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
 
             WireTab(_monsterTab, showCards: false);
             WireTab(_cardTab, showCards: true);
             if (_monsterTab != null)
+            {
                 _monsterTab.SetIsOnWithoutNotify(true);
+            }
             if (_cardTab != null)
+            {
                 _cardTab.SetIsOnWithoutNotify(false);
+            }
 
             if (isActiveAndEnabled)
             {
@@ -91,7 +99,9 @@ namespace Lair.UI
             closeDisposable.Add(() =>
             {
                 if (tab != null)
+                {
                     tab.onValueChanged.RemoveListener(handler);
+                }
             });
         }
 
@@ -109,9 +119,13 @@ namespace Lair.UI
 
             //# 활성 토글 — SetItemList 는 Awake(origin 비활성/ScrollRect 캐싱) 이후여야 하므로 활성화 먼저.
             if (_monsterScrollView != null)
+            {
                 _monsterScrollView.gameObject.SetActive(_showCards == false);
+            }
             if (_cardScrollView != null)
+            {
                 _cardScrollView.gameObject.SetActive(_showCards);
+            }
 
             RectTransform rt = transform as RectTransform;
             if (rt != null)
@@ -122,12 +136,16 @@ namespace Lair.UI
             if (_showCards)
             {
                 if (_cardScrollView != null)
+                {
                     _cardScrollView.SetItemList(BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards));
+                }
             }
             else
             {
                 if (_monsterScrollView != null)
+                {
                     _monsterScrollView.SetItemList(BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon));
+                }
             }
         }
 

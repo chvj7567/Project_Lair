@@ -104,8 +104,10 @@ namespace Lair.UI
                 int shown = 0;
                 foreach (AchievementDef def in arg.NewlyAchieved)
                 {
-                    if (def == null) continue;
-                    if (shown >= MaxAchievedLines) break;
+                    if (def == null)
+                        continue;
+                    if (shown >= MaxAchievedLines)
+                        break;
                     sb.Append($"\n도전과제 달성!  {def.DisplayName}  +{def.RewardSouls} 소울");
                     shown++;
                 }
@@ -123,7 +125,10 @@ namespace Lair.UI
             int count = 0;
             foreach (AchievementDef def in list)
             {
-                if (def != null) count++;
+                if (def != null)
+                {
+                    count++;
+                }
             }
             return count;
         }

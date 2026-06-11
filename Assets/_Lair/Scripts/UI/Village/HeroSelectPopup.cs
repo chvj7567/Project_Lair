@@ -48,9 +48,13 @@ namespace Lair.UI
             }
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
 
             if (isActiveAndEnabled)
             {
@@ -86,7 +90,9 @@ namespace Lair.UI
                 cell.OnSelect = HandleSelect;
             }
             if (_scrollView != null)
+            {
                 _scrollView.SetItemList(data);
+            }
         }
 
         private void HandleSelect(EHero hero)

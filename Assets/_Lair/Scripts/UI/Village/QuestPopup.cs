@@ -41,9 +41,13 @@ namespace Lair.UI
             }
 
             if (_dimButton != null)
+            {
                 _dimButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
             if (_closeButton != null)
+            {
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
+            }
 
             if (isActiveAndEnabled)
             {
@@ -72,7 +76,9 @@ namespace Lair.UI
 
             List<QuestCellData> data = BuildCellData(_arg.Profile, _arg.Config);
             if (_scrollView != null)
+            {
                 _scrollView.SetItemList(data);
+            }
         }
 
         public static List<QuestCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)

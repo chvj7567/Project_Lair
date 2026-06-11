@@ -37,5 +37,34 @@ namespace Lair.Tests.EditMode
             CollectionAssert.AreEqual(new List<string> { "A" }, duplicates,
                 "공백/빈 Id 는 '공백 경고' 전용 — 중복 목록에 섞이면 안 됨");
         }
+
+        [Test]
+        public void 앞뒤_공백만_다른_Id는_Trim_비교로_중복_검출된다()
+        {
+            //# Id 는 MetaProfile 세이브 키 — "A" 와 "A " 는 사실상 같은 키 의도라 중복으로 보고.
+            List<string> ids = new List<string> { "A", "A " };
+
+            List<string> duplicates = MetaEditorCalc.FindDuplicateIds(ids);
+
+            CollectionAssert.AreEqual(new List<string> { "A" }, duplicates,
+                "Trim 비교 — 공백 패딩 차이는 중복으로 검출돼야 함");
+        }
+
+        [Test]
+        public void 역순_레벨은_최고치_기준으로_뒤따르는_항목_전부_검출된다()
+        {
+            //# [5,3,4] — 3·4 둘 다 running max(5)보다 낮음. 인접 비교면 4 를 놓친다.
+            List<LordRewardDef> rewards = new List<LordRewardDef>
+            {
+                new LordRewardDef { Level = 5 },
+                new LordRewardDef { Level = 3 },
+                new LordRewardDef { Level = 4 },
+            };
+
+            List<string> warnings = MetaEditorCalc.LordLevelWarnings(rewards);
+
+            Assert.AreEqual(2, warnings.Count,
+                "running max 비교 — #2(Lv3)·#3(Lv4) 둘 다 역순 경고");
+        }
     }
 }
