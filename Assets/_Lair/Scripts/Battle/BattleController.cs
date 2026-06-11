@@ -108,12 +108,12 @@ namespace Lair.Battle
 
         async void Start()
         {
+            //# 매 Battle 진입(재시작 포함)마다 전투 BGM 을 0초부터 재생 — 프리웜 await 전에 정지해 마을 BGM 잔존 차단.
+            CHMSound.Instance.StopAllBGM();
+            CHMSound.Instance.Play(EAudio.Bgm);
+
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
-
-            //# 매 Battle 진입(재시작 포함)마다 BGM 을 0초부터 재생 — Stop 후 Play. loop=true 는 채널 설정이라 유지.
-            CHMSound.Instance.Stop(EAudio.Bgm);
-            CHMSound.Instance.Play(EAudio.Bgm);
 
             //# 2. MVVM
             _model = new BattleStateModel();

@@ -26,6 +26,10 @@ namespace Lair.EditorTools
         private const string LoadingScenePath = "Assets/_Lair/Scenes/Loading.unity";
         private const string BattleScenePath = "Assets/_Lair/Scenes/Battle.unity";
         private const string GroundMaterialPath = "Assets/_Lair/Art/Materials/Mat_VillageGround.mat";
+        private const string WallMaterialPath = "Assets/_Lair/Art/Materials/Mat_VillageWall.mat";
+        private const string FloorTexturePath = "Assets/_Lair/Art/Sprites/Village_Floor.png";
+        private const string WallTexturePath = "Assets/_Lair/Art/Sprites/Village_Wall.png";
+        private const string ResultBackgroundSpritePath = "Assets/_Lair/Art/Sprites/Result_Screen.png";
         private const string ResourceGroup = "Resource";
         private const string ResourceLabel = "Resource";
         private const string UICanvasTag = "UICanvas";
@@ -626,6 +630,9 @@ namespace Lair.EditorTools
                     return;
                 }
 
+                //# 배경 — Result_Screen 스프라이트 full-stretch (Dim 위·콘텐츠 아래). 멱등.
+                EnsureResultPopupBackground(contents.transform);
+
                 Transform existing = contents.transform.Find("RewardText");
                 CHText rewardText;
                 if (existing != null)
@@ -662,6 +669,35 @@ namespace Lair.EditorTools
             {
                 PrefabUtility.UnloadPrefabContents(contents);
             }
+        }
+
+        //# 기존 Background 노드가 있으면 재사용 (멱등) — sibling 1(Dim 위·콘텐츠 아래) 고정 + 스프라이트 재주입.
+        private static void EnsureResultPopupBackground(Transform root)
+        {
+            Transform found = root.Find("Background");
+            Image image;
+            if (found != null)
+            {
+                image = found.GetComponent<Image>();
+            }
+            else
+            {
+                GameObject backgroundGo = new GameObject("Background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                backgroundGo.transform.SetParent(root, false);
+                FullStretch(backgroundGo.transform);
+                image = backgroundGo.GetComponent<Image>();
+                image.raycastTarget = false;
+            }
+
+            image.transform.SetSiblingIndex(1);
+
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ResultBackgroundSpritePath);
+            if (sprite == null)
+            {
+                Debug.LogWarning($"[LairVillageBuilder] 배경 스프라이트 미발견: {ResultBackgroundSpritePath}");
+                return;
+            }
+            image.sprite = sprite;
         }
 
         //# 기존 노드가 있으면 그대로 재사용 (멱등) — 없을 때만 흰 배경 + 검정 라벨(구 RestartButton 시각 동일) 생성.
@@ -727,11 +763,14 @@ namespace Lair.EditorTools
             pointLight.range = 6f;
             pointLightGo.transform.position = new Vector3(0f, 2.5f, -1.5f);
 
-            //# 더미 바닥 — Plane 10×10, 단색 #23232B (기획서 §8.3 — 추가 소품 배치 금지).
+            //# 바닥 — Plane 10×10 + Village_Floor 텍스처 (미발견 시 구 단색 #23232B fallback).
             GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
             ground.name = "Ground";
             ground.transform.position = Vector3.zero;
             ground.GetComponent<MeshRenderer>().sharedMaterial = EnsureGroundMaterial();
+
+            //# 마을 외벽 — Village_Wall 텍스처 Quad 3면 (후/좌/우).
+            BuildVillageWalls();
 
             //# 영웅 앵커 (기획서 §8.1 — 위치 0,0,0 / 회전은 VillageController 가 Y180 적용).
             GameObject anchor = new GameObject("HeroAnchor");
@@ -771,21 +810,84 @@ namespace Lair.EditorTools
 
         private static Material EnsureGroundMaterial()
         {
-            Material mat = AssetDatabase.LoadAssetAtPath<Material>(GroundMaterialPath);
-            if (mat == null)
+            Material mat = LoadOrCreateMaterial(GroundMaterialPath);
+            Texture2D floorTex = AssetDatabase.LoadAssetAtPath<Texture2D>(FloorTexturePath);
+            if (floorTex != null)
             {
-                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-                if (shader == null)
-                {
-                    shader = Shader.Find("Standard");
-                }
-                mat = new Material(shader);
-                AssetDatabase.CreateAsset(mat, GroundMaterialPath);
+                //# 중앙 포탈 1장 디자인 — 반복 타일링 부적합. 정사각 Plane 에 종횡비 보존 중앙 크롭 매핑.
+                float cropU = Mathf.Min(1f, (float)floorTex.height / floorTex.width);
+                mat.SetTexture("_BaseMap", floorTex);
+                mat.SetTextureScale("_BaseMap", new Vector2(cropU, 1f));
+                mat.SetTextureOffset("_BaseMap", new Vector2((1f - cropU) * 0.5f, 0f));
+                mat.SetColor("_BaseColor", Color.white);
             }
-            //# #23232B — Battle 바닥보다 한 톤 밝게 (기획서 §8.3).
-            mat.SetColor("_BaseColor", new Color(0.137f, 0.137f, 0.169f, 1f));
+            else
+            {
+                //# 텍스처 미발견 fallback — #23232B 단색 (구 기획서 §8.3 더미 바닥).
+                mat.SetColor("_BaseColor", new Color(0.137f, 0.137f, 0.169f, 1f));
+            }
             EditorUtility.SetDirty(mat);
             return mat;
+        }
+
+        private static Material EnsureWallMaterial()
+        {
+            Material mat = LoadOrCreateMaterial(WallMaterialPath);
+            Texture2D wallTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WallTexturePath);
+            if (wallTex != null)
+            {
+                mat.SetTexture("_BaseMap", wallTex);
+                mat.SetColor("_BaseColor", Color.white);
+            }
+            //# 성문 외곽 알파 투과 — URP Lit Transparent 전환.
+            mat.SetFloat("_Surface", 1f);
+            mat.SetOverrideTag("RenderType", "Transparent");
+            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(mat);
+            return mat;
+        }
+
+        private static Material LoadOrCreateMaterial(string path)
+        {
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat != null)
+                return mat;
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+            {
+                shader = Shader.Find("Standard");
+            }
+            mat = new Material(shader);
+            AssetDatabase.CreateAsset(mat, path);
+            return mat;
+        }
+
+        //# 바닥(10×10) 가장자리 3면 외벽 — 텍스처 종횡비 보존 높이, 그림자 캐스팅 차단(투명 Quad 전면 그림자 방지).
+        private static void BuildVillageWalls()
+        {
+            Material wallMat = EnsureWallMaterial();
+            Texture2D wallTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WallTexturePath);
+            float height = wallTex != null ? 10f * wallTex.height / wallTex.width : 3f;
+
+            CreateWallQuad("Wall_Back", new Vector3(0f, height * 0.5f, 5f), Quaternion.identity, wallMat, height);
+            CreateWallQuad("Wall_Left", new Vector3(-5f, height * 0.5f, 0f), Quaternion.Euler(0f, -90f, 0f), wallMat, height);
+            CreateWallQuad("Wall_Right", new Vector3(5f, height * 0.5f, 0f), Quaternion.Euler(0f, 90f, 0f), wallMat, height);
+        }
+
+        private static void CreateWallQuad(string name, Vector3 position, Quaternion rotation, Material mat, float height)
+        {
+            GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            wall.name = name;
+            wall.transform.SetPositionAndRotation(position, rotation);
+            wall.transform.localScale = new Vector3(10f, height, 1f);
+            MeshRenderer renderer = wall.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = mat;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
         private static void BuildUICanvas()

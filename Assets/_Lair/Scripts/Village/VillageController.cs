@@ -22,6 +22,10 @@ namespace Lair.Village
 
         private async void Start()
         {
+            //# 씬 진입점 BGM 전환 일원화 — 이전 씬 BGM(전투 Bgm 등) 정지 후 마을 루프 BGM 0초부터 재생.
+            CHMSound.Instance.StopAllBGM();
+            CHMSound.Instance.Play(EAudio.VillageBgm);
+
             MetaProfile profile = MetaSession.GetOrLoad();
             _vm = new VillageViewModel(profile, _metaConfig);
 

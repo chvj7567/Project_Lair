@@ -43,10 +43,15 @@ namespace Lair.Battle
             //# 2. 패키지 초기화
             CHMUI.Instance.Init();
             CHMPool.Instance.Init();
-            //# Bgm 키를 bgmKeys 로 넘겨 loop=true 채널 구성. clip 은 Play 시점 CHMResource 로 lazy 로드.
-            CHMSound.Instance.Init<EAudio>(EAudio.Bgm);
+            //# BGM 키 2종을 bgmKeys 로 넘겨 loop=true 채널 구성.
+            CHMSound.Instance.Init<EAudio>(EAudio.Bgm, EAudio.VillageBgm);
             //# Init 으로 AudioSource 생성 직후 인스펙터 볼륨을 즉시 적용 — 타이밍 보장.
             _audioVolume?.Apply();
+
+            //# BGM clip 프리로드 — CHMResource 캐시가 차면 CHMSound.Play 의 clip 로드 콜백이 동기 호출되어
+            //# Play 가 source.Play() 까지 동기 경로가 됨 → 씬 전환 StopAllBGM 과의 레이스 구조적 제거.
+            await CHMResource.Instance.LoadAsync<AudioClip>(EAudio.Bgm);
+            await CHMResource.Instance.LoadAsync<AudioClip>(EAudio.VillageBgm);
 
             //# 3. 로딩 설명 JSON 로드
             Dictionary<string, string> descs = new Dictionary<string, string>();

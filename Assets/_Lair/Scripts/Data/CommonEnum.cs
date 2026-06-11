@@ -24,7 +24,7 @@ namespace Lair.Data
     }
 
     //# CHMSound 채널 키. 값명 = 에셋 파일명(Bgm.mp3) 정확 일치(Rule 03 §2).
-    //# None=0 은 CHMSound sentinel 로 AudioSource 미생성. Init<EAudio>(EAudio.Bgm) 으로 Bgm 만 loop 채널.
+    //# None=0 은 CHMSound sentinel 로 AudioSource 미생성. Init bgmKeys(Bgm·VillageBgm) 만 loop 채널.
     public enum EAudio
     {
         None,
@@ -39,6 +39,7 @@ namespace Lair.Data
         P3Skill,       //# 영웅 스킬 OrbitingBlade(공전 블레이드, 지속형) 활성화 1회
         AcquireSkill,  //# 영웅 스킬 해금 컷인
         CardSelect,    //# 카드 3택1 선택 확정
+        VillageBgm,    //# 마을(Village) 씬 루프 BGM — append-only (int 직렬화 정합)
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.
