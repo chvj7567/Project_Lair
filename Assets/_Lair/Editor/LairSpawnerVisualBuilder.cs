@@ -1,58 +1,14 @@
 using Lair.Battle;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Lair.EditorTools
 {
-    //# 씬에 배치된 Spawner(6개)에 SpawnerBody 자식(Cylinder 디스크)을 부착.
-    //# 스포너 상태 UI — World-space 진행 바(CooldownBarWrapper) 빌드 스텝 제거 (기획서 §4.11).
+    //# Spawner 에 SpawnerBody 자식(Cylinder 디스크)을 부착하는 공유 헬퍼.
+    //# 1회성 Setup 메뉴(S1)는 제거 — 호출자는 CircularSpawnerArrangerEditor 인스펙터 Rebuild 뿐.
     public static class LairSpawnerVisualBuilder
     {
-        [MenuItem("Lair/Setup/S1 - Attach Spawner Visuals")]
-        public static void AttachSpawnerVisuals()
-        {
-            //# 씬의 모든 Spawner (disabled 포함) 탐색.
-            Spawner[] spawners = Object.FindObjectsOfType<Spawner>(includeInactive: true);
-            if (spawners.Length == 0)
-            {
-                Debug.LogWarning("[LairSpawnerVisualBuilder] 씬에 Spawner 를 찾을 수 없음");
-                return;
-            }
-
-            //# 6종 머티리얼을 미리 생성/로드해 두어 반복 참조 (공유 팔레트).
-            Material[] mats = SpawnerColorPalette.EnsureSpawnerMaterials();
-
-            int processed = 0;
-            foreach (Spawner spawner in spawners)
-            {
-                bool changed = false;
-                changed |= EnsureSpawnerBody(spawner, mats);
-                //# 스포너 상태 UI — 기존 CooldownBarWrapper 자식이 있다면 제거 (씬 마이그레이션, 기획서 §4.11).
-                changed |= RemoveCooldownBarWrapperIfExists(spawner);
-
-                if (changed)
-                {
-                    EditorUtility.SetDirty(spawner.gameObject);
-                    EditorSceneManager.MarkSceneDirty(spawner.gameObject.scene);
-                    processed++;
-                }
-            }
-
-            AssetDatabase.SaveAssets();
-            Debug.Log($"[LairSpawnerVisualBuilder] {spawners.Length}개 Spawner 중 {processed}개 수정 완료");
-        }
-
-        //# 씬에 잔존하는 CooldownBarWrapper 자식 제거 (idempotent). 신규 진행 바는 BattleHud 6셀.
-        private static bool RemoveCooldownBarWrapperIfExists(Spawner spawner)
-        {
-            Transform wrapper = spawner.transform.Find("CooldownBarWrapper");
-            if (wrapper == null) return false;
-            Object.DestroyImmediate(wrapper.gameObject);
-            return true;
-        }
-
-        //# SpawnerBody 자식 생성 — 이미 있으면 false 반환(스킵). 다른 빌더(CircularSpawnerArrangerEditor)도 재사용.
+        //# SpawnerBody 자식 생성 — 이미 있으면 false 반환(스킵). CircularSpawnerArrangerEditor 가 사용.
         internal static bool EnsureSpawnerBody(Spawner spawner, Material[] mats)
         {
             if (spawner.transform.Find("SpawnerBody") != null) return false;

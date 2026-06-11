@@ -26,26 +26,8 @@ namespace Lair.EditorTools
                 RebuildArranger(arranger);
         }
 
-        //# 씬의 Arranger 를 찾아 Rebuild — 인스펙터 버튼 없이 메뉴/MCP 에서 실행 가능하게 한다.
-        [MenuItem("Lair/Setup/Rebuild Circular Spawners")]
-        public static void RebuildFromMenu()
-        {
-            CircularSpawnerArranger arranger = Object.FindFirstObjectByType<CircularSpawnerArranger>();
-            if (arranger == null)
-            {
-                Debug.LogWarning("[CircularSpawnerArrangerEditor] 씬에 CircularSpawnerArranger 없음 — Rebuild 생략");
-                return;
-            }
-
-            CircularSpawnerArranger[] all = Object.FindObjectsByType<CircularSpawnerArranger>(FindObjectsSortMode.InstanceID);
-            if (all.Length > 1)
-                Debug.LogWarning($"[CircularSpawnerArrangerEditor] CircularSpawnerArranger {all.Length}개 발견 — 첫 번째 사용");
-
-            RebuildArranger(arranger);
-        }
-
         //# 관리 스포너 전면 교체 → 몬스터별 Spawner 생성·배치·색상 → BattleController 재와이어링 → 씬 저장.
-        //# 인스펙터 버튼·메뉴가 공유하는 단일 진실 (중복 로직 0건).
+        //# 1회성 Setup 메뉴는 제거 — 인스펙터 Rebuild 버튼만 진입점 (실수 실행 방지).
         public static void RebuildArranger(CircularSpawnerArranger arranger)
         {
             //# 1) 이전 관리 스포너 자식 전부 제거 (전면 교체, idempotent).

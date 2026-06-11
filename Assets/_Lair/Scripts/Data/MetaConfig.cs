@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Lair.Data
 {
     //# 메타 진행 수치 단일 진실 — 기획서 docs/design/village-meta-hub.md 값으로 채움 (BalanceConfig 패턴).
-    //# 에셋 생성/값 주입은 LairVillageBuilder 의 V1 메뉴 (Gate G4 — 기획서 §2.1/§3.2/§4/§5.2/§6).
+    //# 에셋은 git 관리 — 값 편집은 Lair Meta Editor 윈도우, 신규 생성은 CreateAssetMenu(Lair/MetaConfig).
     [CreateAssetMenu(menuName = "Lair/MetaConfig", fileName = "MetaConfig")]
     public class MetaConfig : ScriptableObject
     {
