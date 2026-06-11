@@ -39,6 +39,12 @@
 [![콘텐츠](https://img.shields.io/badge/콘텐츠-영웅_1_·_몬스터_6_·_카드_28-22C55E)]()
 [![의사결정](https://img.shields.io/badge/한_판_선택-최대_14회_(HP10%25_·_60초)-EAB308)]()
 
+### 📦 다운로드
+
+[![Download APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?logo=android&logoColor=white)](https://github.com/chvj7567/Project_Lair/releases/latest/download/Project_Lair.apk)
+
+> 👆 **위 뱃지를 클릭하면 최신 버전 Android APK 가 바로 다운로드됩니다.** 전체 릴리스 목록은 [Releases](https://github.com/chvj7567/Project_Lair/releases) 페이지 참조.
+
 ### ▶️ 전체 플레이 영상
 
 [![Project Lair — 5분 풀 플레이 영상 (YouTube)](https://img.youtube.com/vi/d5eN9vIT9EU/maxresdefault.jpg)](https://youtu.be/d5eN9vIT9EU)
