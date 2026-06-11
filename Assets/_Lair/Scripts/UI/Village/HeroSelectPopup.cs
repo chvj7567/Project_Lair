@@ -23,6 +23,7 @@ namespace Lair.UI
         public bool IsLocked;
         public bool IsSelected;
         public EHero Hero;
+        public Sprite Portrait;        //# 영웅 초상 (잠금 더미는 null → 기존 표시 유지)
         public Action<EHero> OnSelect;
     }
 
@@ -32,6 +33,9 @@ namespace Lair.UI
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private HeroSelectPoolingScrollView _scrollView;
+
+        //# 영웅 → 초상 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹 "Knight" 주소와 충돌 방지).
+        [SerializeField] private Sprite _knightPortrait;
 
         private HeroSelectPopupArg _arg;
 
@@ -76,7 +80,7 @@ namespace Lair.UI
             if (_arg == null)
                 return;
 
-            List<HeroSelectCellData> data = BuildCellData(_arg.Profile, _arg.Config);
+            List<HeroSelectCellData> data = BuildCellData(_arg.Profile, _arg.Config, HeroPortrait);
             foreach (HeroSelectCellData cell in data)
             {
                 cell.OnSelect = HandleSelect;
@@ -93,7 +97,14 @@ namespace Lair.UI
             Rebuild();   //# 선택 강조 갱신
         }
 
-        public static List<HeroSelectCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)
+        //# 영웅 → 초상 매핑 (인스펙터 직접 참조). 미할당이면 null → 셀이 초상 숨김.
+        private Sprite HeroPortrait(EHero hero) => hero switch
+        {
+            EHero.Knight => _knightPortrait,
+            _            => null,
+        };
+
+        public static List<HeroSelectCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, Func<EHero, Sprite> portraitResolver)
         {
             List<HeroSelectCellData> list = new List<HeroSelectCellData>();
             if (profile == null || cfg == null)
@@ -108,6 +119,7 @@ namespace Lair.UI
                     IsLocked = false,
                     IsSelected = profile.SelectedHero == hero.ToString(),
                     Hero = hero,
+                    Portrait = portraitResolver != null ? portraitResolver(hero) : null,
                 });
             }
             for (int i = 0; i < cfg.HeroLockedSlots; ++i)

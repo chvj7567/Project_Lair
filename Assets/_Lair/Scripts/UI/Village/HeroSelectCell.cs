@@ -9,6 +9,7 @@ namespace Lair.UI
     {
         [SerializeField] private Image _background;
         [SerializeField] private Image _border;          //# 선택 강조 테두리
+        [SerializeField] private Image _portrait;        //# 영웅 초상 — 잠금 더미/초상 미할당 시 숨김 (기존 표시 유지)
         [SerializeField] private CHText _nameText;
         [SerializeField] private CHButton _selectButton;
 
@@ -32,6 +33,16 @@ namespace Lair.UI
                 _background.color = data.IsLocked ? DummyBg : NormalBg;
             if (_border != null)
                 _border.color = data.IsSelected ? SelectedBorder : HiddenBorder;
+            if (_portrait != null)
+            {
+                //# 풀 재사용 셀 — 매 Bind 마다 표시/숨김 갱신 (이전 데이터 잔존 방지).
+                bool showPortrait = data.IsLocked == false && data.Portrait != null;
+                _portrait.gameObject.SetActive(showPortrait);
+                if (showPortrait)
+                {
+                    _portrait.sprite = data.Portrait;
+                }
+            }
             if (_nameText != null)
             {
                 _nameText.SetText(data.DisplayName);

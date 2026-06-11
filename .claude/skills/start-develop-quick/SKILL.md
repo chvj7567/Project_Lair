@@ -29,6 +29,7 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
 2. **code-reviewer** 위임 → 코딩 룰(Rule 00~04)(`CLAUDE.md §5`) 준수 + 사용자 의도와의 부합 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
+   - **에셋 한정 게이트** — 1단계 변경이 순수 에셋 등록/적용(코드 변경 0건)이면 code-reviewer spawn 전에 사용자에게 "리뷰 진행 / 생략하고 커밋 메시지" 선택지를 먼저 제시한다 (Rule 00 "에셋 한정 사이클 — 리뷰 생략 선택지 게이트" 참조). 코드 변경이 1건이라도 있으면 게이트 없이 직진.
 3. **마무리** — 변경사항 요약 + 한글 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 변경 파일 `git add` 까지만.
 
 ## 사후 안전망 — 에스컬레이션 출구

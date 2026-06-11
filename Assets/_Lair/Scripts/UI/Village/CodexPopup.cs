@@ -23,8 +23,8 @@ namespace Lair.UI
         public string DisplayName;
         public bool Unlocked;
         public bool IsLockedDummy;
-        public Sprite Icon;          //# 카드 일러스트 (몬스터는 null → 색칩)
-        public Color TintColor;      //# 몬스터 종 색 (해금 시)
+        public Sprite Icon;          //# 카드 일러스트 또는 몬스터 아이콘 (null → 색칩 fallback)
+        public Color TintColor;      //# 몬스터 종 색 (아이콘 미할당 시 색칩)
     }
 
     //# 도감 — 몬스터/카드 탭 + 각 탭 말미 잠금 더미 (기획서 §6).
@@ -37,6 +37,14 @@ namespace Lair.UI
         [SerializeField] private Toggle _cardTab;
         [SerializeField] private CodexPoolingScrollView _monsterScrollView;   //# 4열 (기획서 §6)
         [SerializeField] private CodexPoolingScrollView _cardScrollView;      //# 6열
+
+        //# 종 → 도감 아이콘 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹과 주소 충돌 방지).
+        [SerializeField] private Sprite _wispIcon;
+        [SerializeField] private Sprite _wraithIcon;
+        [SerializeField] private Sprite _reaperIcon;
+        [SerializeField] private Sprite _hexIcon;
+        [SerializeField] private Sprite _plagueIcon;
+        [SerializeField] private Sprite _phantomIcon;
 
         private CodexPopupArg _arg;
         private bool _showCards;
@@ -119,12 +127,25 @@ namespace Lair.UI
             else
             {
                 if (_monsterScrollView != null)
-                    _monsterScrollView.SetItemList(BuildMonsterCellData(_arg.Profile, _arg.Config));
+                    _monsterScrollView.SetItemList(BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon));
             }
         }
 
+        //# 종 → 도감 아이콘 매핑 (인스펙터 직접 참조). 미할당이면 null → 색칩 fallback.
+        private Sprite SpeciesIcon(EMonster type) => type switch
+        {
+            EMonster.Wisp    => _wispIcon,
+            EMonster.Wraith  => _wraithIcon,
+            EMonster.Reaper  => _reaperIcon,
+            EMonster.Hex     => _hexIcon,
+            EMonster.Plague  => _plagueIcon,
+            EMonster.Phantom => _phantomIcon,
+            _                => null,
+        };
+
         //# 몬스터 탭 — 6종 + 잠금 더미 (해금 = SeenMonsters 포함, 기획서 §6).
-        public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg)
+        //# 미조우도 아이콘은 싣는다 — CodexCell 이 SilhouetteColor 틴트로 실루엣 처리.
+        public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg, Func<EMonster, Sprite> iconResolver)
         {
             List<CodexCellData> list = new List<CodexCellData>();
             if (profile == null || cfg == null)
@@ -137,6 +158,7 @@ namespace Lair.UI
                 {
                     DisplayName = seen ? SpawnerStatusCell.SpeciesName(type) : "???",
                     Unlocked = seen,
+                    Icon = iconResolver != null ? iconResolver(type) : null,
                     TintColor = SpawnerStatusCell.SpeciesColor(type),
                 });
             }
