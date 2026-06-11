@@ -122,7 +122,8 @@ namespace Lair.Battle
 
             _started = true;
             _disposable.Clear();
-            SceneManager.LoadScene(EScene.Battle.ToString());
+            //# v0.2 — 시작 흐름은 마을 허브로 (Loading → Village → 출격 → Battle).
+            SceneManager.LoadScene(EScene.Village.ToString());
         }
 
         private void OnDestroy()

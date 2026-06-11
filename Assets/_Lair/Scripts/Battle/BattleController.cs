@@ -4,6 +4,7 @@ using ChvjUnityInfra;
 using Lair.Card;
 using Lair.Character;
 using Lair.Data;
+using Lair.Meta;
 using Lair.UI;
 using UnityEngine;
 
@@ -22,6 +23,9 @@ namespace Lair.Battle
         [SerializeField] private Spawner[] _spawners;
         //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
         [SerializeField] private BalanceConfig _balance;
+
+        //# v0.2 메타 — 상점 보너스/보상 정산 수치 (씬 인스펙터 할당). null 이면 메타 로직 전부 skip (기존 테스트/씬 무영향).
+        [SerializeField] private MetaConfig _metaConfig;
 
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
@@ -90,6 +94,10 @@ namespace Lair.Battle
         //# Slice C — 한 판 결과 측정
         private readonly RunRecorder _recorder = new RunRecorder();
 
+        //# v0.2 메타 — 도감 기록용 이번 판 등장 종 / 픽 카드 (EndBattle 정산에서 프로필로 이관).
+        private readonly HashSet<EMonster> _seenMonsters = new();
+        private readonly List<ECardId> _runPicks = new();
+
         //# Slice C-M4 — 디버그 카드픽용 전체 카드 (패시브 15 + 액티브 10)
         private readonly List<CardData> _allCards = new();
 
@@ -116,6 +124,9 @@ namespace Lair.Battle
             await SpawnHero();
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
+
+            //# v0.2 메타 — 상점 영구 업그레이드를 전투 시작 배율로 적용 (BindSpawners 의 base 주기 주입 뒤, 첫 스폰 전).
+            ApplyMetaBonuses();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
@@ -150,18 +161,18 @@ namespace Lair.Battle
             _pickCounter = new CardPickCounter();
             _pickCounter.Reset();
             //# Phase 2 Task 11 — 12개 Tier 바인딩 (4축 × 3Tier). 기획서 §4.2 표.
-            _synergy.BindTier(EBuildAxis.Tank,   3, new TankSynergyTier1());
-            _synergy.BindTier(EBuildAxis.Tank,   5, new TankSynergyTier2());
-            _synergy.BindTier(EBuildAxis.Tank,   7, new TankSynergyTier3());
-            _synergy.BindTier(EBuildAxis.Dps,    3, new DpsSynergyTier1());
-            _synergy.BindTier(EBuildAxis.Dps,    5, new DpsSynergyTier2());
-            _synergy.BindTier(EBuildAxis.Dps,    7, new DpsSynergyTier3());
-            _synergy.BindTier(EBuildAxis.Debuff, 3, new DebuffSynergyTier1());
-            _synergy.BindTier(EBuildAxis.Debuff, 5, new DebuffSynergyTier2());
-            _synergy.BindTier(EBuildAxis.Debuff, 7, new DebuffSynergyTier3());
-            _synergy.BindTier(EBuildAxis.Swarm,  3, new SwarmSynergyTier1());
-            _synergy.BindTier(EBuildAxis.Swarm,  5, new SwarmSynergyTier2());
-            _synergy.BindTier(EBuildAxis.Swarm,  7, new SwarmSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier1Threshold, new TankSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier2Threshold, new TankSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier3Threshold, new TankSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier1Threshold, new DpsSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier2Threshold, new DpsSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier3Threshold, new DpsSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier1Threshold, new DebuffSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier2Threshold, new DebuffSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier3Threshold, new DebuffSynergyTier3());
+            _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier1Threshold, new SwarmSynergyTier1());
+            _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier2Threshold, new SwarmSynergyTier2());
+            _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier3Threshold, new SwarmSynergyTier3());
             _ctx = new BattleContext(this, _synergy);
 
             //# B3 — 몬스터 글로벌 버프 / 피의 갈증 서비스
@@ -495,10 +506,51 @@ namespace Lair.Battle
             _vm?.AttachSpawners(_spawners, this);
         }
 
+        //# v0.2 메타 — 상점 레벨 → 종 스탯 배율(_typeModifiers) + 스포너 주기 일괄 적용 (기획서 §3.2 / plan Task 3.1).
+        //# _metaConfig 미할당이면 전부 skip — 기존 씬/테스트 호환 (plan G2).
+        private void ApplyMetaBonuses()
+        {
+            if (_metaConfig == null) return;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            MetaBattleBonus bonus = MetaBattleBonus.From(profile, _metaConfig);
+
+            //# 몬스터 전종 글로벌 — 카드 RegisterMonsterTypeBuff 와 동일 표면(StatMultiplier)에서 곱연산 누적.
+            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            {
+                foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
+                {
+                    float mul = bonus.GetStatMul(kind);
+                    if (Mathf.Approximately(mul, 1f)) continue;
+
+                    if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
+                    {
+                        m = new StatMultiplier();
+                        _typeModifiers[type] = m;
+                    }
+                    m.Multiply(kind, mul);
+                }
+            }
+
+            //# 스포너 주기 — BindSpawners 의 SetBasePeriod(절대 대입) 이후라 곱연산 안전.
+            if (Mathf.Approximately(bonus.SpawnerPeriodMul, 1f) == false && _spawners != null)
+            {
+                foreach (Spawner sp in _spawners)
+                {
+                    if (sp != null)
+                    {
+                        sp.ScalePeriod(bonus.SpawnerPeriodMul);
+                    }
+                }
+            }
+        }
+
         //# ISpawnerHost — Spawner 한 사이클. 종료 검사만 통과하면 count 전량 스폰 (동시 캡 제거, spec §2.A).
         public async void SpawnFromSpawner(EMonster type, Vector3 exactPos, int count)
         {
             if (_model != null && _model.Result != BattleResult.None) return;
+            //# v0.2 메타 — 도감 등장 종 기록 (HashSet — 중복 무해).
+            _seenMonsters.Add(type);
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
             if (prefab == null) return;
@@ -679,6 +731,50 @@ namespace Lair.Battle
                 if (e?.Health != null && e.Health.IsAlive) aliveMonsters++;
             _recorder.FinishRun(result, _clock.Elapsed, aliveMonsters);
 
+            //# v0.2 메타 — 보상 정산. RunRecorder(에디터 한정)와 별개로 빌드에서도 동작.
+            //# 순서 계약 (기획서 §11.4): 런 보상 → 프로필 가산 → 영주 보상 자동 수령 → 도전과제 → 저장 → Arg 구성.
+            int soulsGained = 0;
+            int xpGained = 0;
+            int lordLevelUp = 0;
+            int lordRewardSouls = 0;
+            List<AchievementDef> newlyAchieved = new List<AchievementDef>();
+            if (_metaConfig != null)
+            {
+                MetaProfile profile = MetaSession.GetOrLoad();
+                SoulReward reward = SoulRewardCalculator.Calculate(
+                    result, _clock.Elapsed, _model.TotalSeconds, GetHeroDamagedRatio(), _metaConfig);
+
+                int levelBefore = LordLevelService.LevelFromXp(profile.LordXp, _metaConfig);
+                profile.Souls += reward.Souls;
+                profile.LordXp += reward.Xp;
+                profile.TotalRuns++;
+                if (result == BattleResult.Win)
+                {
+                    profile.TotalWins++;
+                    if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
+                        profile.BestClearTime = _clock.Elapsed;
+                }
+
+                //# 도감 — 이번 판 등장 종 + 픽 카드 누적 (distinct).
+                foreach (EMonster seen in _seenMonsters)
+                    profile.AddDistinct(profile.SeenMonsters, seen.ToString());
+                foreach (ECardId pick in _runPicks)
+                    profile.AddDistinct(profile.PickedCards, pick.ToString());
+
+                //# 영주 보상 자동 수령 — 멱등 가드 (기획서 §4.4). LordLevel=0 이면 결과 팝업 영주 줄 생략 (§9.2).
+                int levelAfter = LordLevelService.LevelFromXp(profile.LordXp, _metaConfig);
+                lordRewardSouls = LordLevelService.ClaimRewards(profile, _metaConfig);
+                if (levelAfter > levelBefore)
+                    lordLevelUp = levelAfter;
+
+                //# 도전과제 — 프로필 누적 갱신 "후" 판정 (기획서 §5.3).
+                newlyAchieved = AchievementService.Evaluate(profile, BuildRunSummary(result), _metaConfig);
+
+                soulsGained = reward.Souls;
+                xpGained = reward.Xp;
+                MetaSession.Store?.Save(profile);
+            }
+
             //# B2 — 트리거 서비스 구독 해제 (BattleClock.OnTick / Health.OnChanged 누수 방지)
             _activeTriggers?.Dispose();
             _passiveTriggers?.Dispose();
@@ -689,8 +785,55 @@ namespace Lair.Battle
 
             _vm.EndBattle(result);
 
-            await CHMUI.Instance.ShowUIAsync(EUI.ResultPopup,
-                new ResultPopupArg { Result = result });
+            await CHMUI.Instance.ShowUIAsync(EUI.ResultPopup, new ResultPopupArg
+            {
+                Result = result,
+                HasMeta = _metaConfig != null,
+                SoulsGained = soulsGained,
+                XpGained = xpGained,
+                LordLevel = lordLevelUp,
+                LordRewardSouls = lordRewardSouls,
+                NewlyAchieved = newlyAchieved,
+            });
+        }
+
+        //# v0.2 메타 — 영웅 최대 HP 대비 깎은 비율 0~1 (패배 부분 보상 입력).
+        private float GetHeroDamagedRatio()
+        {
+            if (_heroHealth == null || _heroHealth.Max <= 0)
+                return 0f;
+            return Mathf.Clamp01(1f - (float)_heroHealth.Current / _heroHealth.Max);
+        }
+
+        //# v0.2 메타 — 도전과제 판정 입력 (기획서 §5.3). MaxSynergyTier 는 축별 픽 카운트에서 환산.
+        private RunSummary BuildRunSummary(BattleResult result)
+        {
+            RunSummary summary = new RunSummary
+            {
+                Result = result,
+                DeathTime = _clock.Elapsed,
+                HeroDamagedRatio = GetHeroDamagedRatio(),
+                MaxSynergyTier = GetMaxSynergyTier(),
+            };
+            foreach (ECardId pick in _runPicks)
+                summary.Picks.Add(pick.ToString());
+            return summary;
+        }
+
+        //# 시너지 임계 3/5/7장 = Tier 1/2/3 (card-renewal §4) — 4축 최고값.
+        private int GetMaxSynergyTier()
+        {
+            if (_synergy == null) return 0;
+            int max = 0;
+            foreach (EBuildAxis axis in (EBuildAxis[])System.Enum.GetValues(typeof(EBuildAxis)))
+            {
+                int count = _synergy.GetCount(axis);
+                int tier = count >= BuildSynergyService.Tier3Threshold ? 3
+                    : count >= BuildSynergyService.Tier2Threshold ? 2
+                    : count >= BuildSynergyService.Tier1Threshold ? 1 : 0;
+                if (tier > max) max = tier;
+            }
+            return max;
         }
 
         //# B1+B2 — 큐 비울 때까지 카드 선택 팝업 순차 처리
@@ -719,6 +862,7 @@ namespace Lair.Battle
                     if (picked != null)
                     {
                         _recorder.RecordPick(picked.Id);
+                        _runPicks.Add(picked.Id);             //# v0.2 메타 — 도감 픽 기록
                         _pickCounter.RecordPick(picked.Id);   //# 3픽 캡 누적
                         _vm.AddPick(picked, entry.SourceType == TriggerQueue.Source.Passive);
                         //# 스포너 상태 UI — source 추적용 단일 진입점 (기획서 §4.2).
@@ -742,6 +886,7 @@ namespace Lair.Battle
                         if (card != null)
                         {
                             _recorder.RecordPick(card.Id);
+                            _runPicks.Add(card.Id);             //# v0.2 메타 — 도감 픽 기록
                             _pickCounter.RecordPick(card.Id);   //# 3픽 캡 누적
                             //# 빌드 패널 — VM 에 픽 누적
                             _vm.AddPick(card, entry.SourceType == TriggerQueue.Source.Passive);
@@ -824,6 +969,8 @@ namespace Lair.Battle
         public async void SpawnMonsterRuntime(Lair.Data.EMonster key, Vector3 nearHero)
         {
             if (_model != null && _model.Result != BattleResult.None) return;
+            //# v0.2 메타 — 도감 등장 종 기록 (카드 소환 경로 포함).
+            _seenMonsters.Add(key);
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null) return;

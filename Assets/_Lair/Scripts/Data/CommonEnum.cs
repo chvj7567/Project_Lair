@@ -42,6 +42,7 @@ namespace Lair.Data
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.
+    //# 순서 절대 변경 금지 — 신규 값은 반드시 맨 끝 append (int 직렬화 정합).
     public enum EUI
     {
         BattleHud,
@@ -51,6 +52,14 @@ namespace Lair.Data
         SpawnerStatusTooltip,  //# (v0.6.4 폐기 — enum 자리 보존, int 직렬화 정합)
         SynergyModalPopup,     //# 시너지 패널 클릭 시 화면 중앙 모달 — 적용된 시너지 효과 목록
         SkillUnlockBanner,     //# 스킬 해금 컷인 배너 — 독립 팝업(빌더 생성)
+        //# v0.2 마을 허브 — 7종 (기획서 village-meta-hub.md §11.1). 값명 = 프리팹 파일명 (Rule 03 §2).
+        VillageHud,            //# 마을 상단바/좌우 메뉴/출격
+        ShopPopup,             //# 소울 상점
+        QuestPopup,            //# 고정 도전과제
+        CodexPopup,            //# 도감 (몬스터/카드 탭)
+        RecordsPopup,          //# 전적 기록
+        HeroSelectPopup,       //# 영웅 선택
+        LordLevelPopup,        //# 영주 레벨 보상 트랙
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -74,10 +83,12 @@ namespace Lair.Data
     }
 
     //# SceneManager.LoadScene(EScene.X.ToString()).
+    //# 순서 절대 변경 금지 — 신규 값은 맨 끝 append (int 직렬화 정합). 빌드 인덱스와 enum 순서는 무관.
     public enum EScene
     {
         Loading,   //# Build Settings index 0
-        Battle,
+        Battle,    //# Build Settings index 2
+        Village,   //# Build Settings index 1 — v0.2 마을 허브 (Loading → Village → Battle)
     }
 
     //# B1 신규 — 시각 이펙트 프리팹 키 (Rule 12 — CHMPool 사용).
@@ -122,6 +133,23 @@ namespace Lair.Data
         Range,
         MoveSpeed,
         SlowFactor,
+    }
+
+    //# v0.2 마을 — 상점 영구 업그레이드 효과 종류 (기획서 §11.1, v0.2 는 2종 한정 — YAGNI).
+    public enum EShopEffectKind
+    {
+        MonsterStat,    //# 몬스터 전종 글로벌 스탯 배율 (StatKind 지정)
+        SpawnerPeriod,  //# 모든 스포너 주기 배율
+    }
+
+    //# v0.2 마을 — 고정 도전과제 판정 조건 종류 (기획서 §5, RunSummary 데이터만으로 판정).
+    public enum EAchievementCondition
+    {
+        FirstWin,           //# 첫 승리 (TotalWins >= 1)
+        WinUnderSeconds,    //# 승리 && 사망시각 < Threshold
+        TotalWins,          //# 누적 승수 >= Threshold
+        TotalRuns,          //# 누적 출격 >= Threshold
+        SynergyTierReached, //# 한 런 최고 시너지 Tier >= Threshold
     }
 
     //# === Cross-System Communication ===

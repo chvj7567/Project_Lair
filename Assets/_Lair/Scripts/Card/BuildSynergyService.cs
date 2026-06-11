@@ -7,6 +7,11 @@ namespace Lair.Card
     //# Layer 1: 한 라운드의 축별 픽 카운트를 누적하고, BindTier 로 등록된 임계(3/5/7)
     public class BuildSynergyService
     {
+        //# 시너지 Tier 임계 — 3/5/7장 = Tier 1/2/3 (card-renewal §4). 바인딩/판정 공용 단일 진실.
+        public const int Tier1Threshold = 3;
+        public const int Tier2Threshold = 5;
+        public const int Tier3Threshold = 7;
+
         //# 축별 누적 픽 카운트. 같은 카드를 K번 픽하면 K번 누적 (기획서 §9.2).
         private readonly Dictionary<EBuildAxis, int> _counts = new Dictionary<EBuildAxis, int>();
 

@@ -16,8 +16,8 @@
 ## 컨셉 / 단계
 
 - **concept_doc**: `docs/design/project_lair_concept.md`
-- **stage**: MVP
-- **stage_goal**: 5분 자동전투 + HP%/시간 트리거 선택지가 재미있는가
+- **stage**: v0.2
+- **stage_goal**: 런 사이 메타 성장이 재방문 동기를 만드는가
 - **concept_sections** — 컨셉서 § 단축키
   - **stage_scope**: 11 (단계 범위)
   - **balancing**: 8 (밸런싱 기준)

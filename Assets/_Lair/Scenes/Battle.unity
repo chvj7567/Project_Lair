@@ -1263,9 +1263,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0
+    y: 0.125
     width: 1
-    height: 1
+    height: 0.75
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -2083,6 +2083,7 @@ MonoBehaviour:
   - {fileID: 1060007895}
   - {fileID: 236489738}
   _balance: {fileID: 11400000, guid: f37d9d9829bfbdf4198bbf1e4215d0ca, type: 2}
+  _metaConfig: {fileID: 11400000, guid: c667348905314e24f96b1b3e1f099b96, type: 2}
 --- !u!1 &1856319499
 GameObject:
   m_ObjectHideFlags: 0

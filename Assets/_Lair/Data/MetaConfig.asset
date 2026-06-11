@@ -1,0 +1,203 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfad520a261536247bfdb6aa777a07f3, type: 3}
+  m_Name: MetaConfig
+  m_EditorClassIdentifier: 
+  WinBaseSouls: 100
+  WinTimeBonusPerSec: 0.5
+  LoseMaxSouls: 60
+  WinXp: 100
+  LoseXp: 40
+  XpPerLevelBase: 100
+  XpGrowth: 1.25
+  ShopItems:
+  - Id: MonsterHpUp
+    DisplayName: "\uAC15\uACE8 \uAD70\uC138"
+    Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 HP +2%/Lv"
+    EffectKind: 0
+    StatKind: 0
+    PerLevelMul: 1.02
+    MaxLevel: 5
+    BasePrice: 80
+    PriceGrowth: 1.6
+  - Id: MonsterPowerUp
+    DisplayName: "\uD749\uD3EC\uD55C \uBC1C\uD1B1"
+    Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uACF5\uACA9\uB825 +1.5%/Lv"
+    EffectKind: 0
+    StatKind: 1
+    PerLevelMul: 1.015
+    MaxLevel: 5
+    BasePrice: 100
+    PriceGrowth: 1.6
+  - Id: MonsterAtkSpeedUp
+    DisplayName: "\uC2E0\uC18D\uD55C \uC190\uB180\uB9BC"
+    Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uACF5\uACA9\uC18D\uB3C4 +1%/Lv"
+    EffectKind: 0
+    StatKind: 2
+    PerLevelMul: 0.99
+    MaxLevel: 5
+    BasePrice: 100
+    PriceGrowth: 1.6
+  - Id: MonsterMoveSpeedUp
+    DisplayName: "\uC720\uB839 \uAC78\uC74C"
+    Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uC774\uB3D9\uC18D\uB3C4 +1.5%/Lv"
+    EffectKind: 0
+    StatKind: 4
+    PerLevelMul: 1.015
+    MaxLevel: 5
+    BasePrice: 80
+    PriceGrowth: 1.6
+  - Id: MonsterRangeUp
+    DisplayName: "\uAE34 \uC190\uC544\uADC0"
+    Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uC0AC\uAC70\uB9AC +1.5%/Lv"
+    EffectKind: 0
+    StatKind: 3
+    PerLevelMul: 1.015
+    MaxLevel: 5
+    BasePrice: 120
+    PriceGrowth: 1.6
+  - Id: PlagueVenomUp
+    DisplayName: "\uC9D9\uC740 \uC5ED\uBCD1"
+    Description: "\uC5ED\uBCD1\uADC0 \uB454\uD654 +2%/Lv \uAC15\uD654"
+    EffectKind: 0
+    StatKind: 5
+    PerLevelMul: 0.98
+    MaxLevel: 5
+    BasePrice: 120
+    PriceGrowth: 1.6
+  - Id: SpawnerHasteUp
+    DisplayName: "\uAE68\uC5B4\uB098\uB294 \uB465\uC9C0"
+    Description: "\uBAA8\uB4E0 \uC2A4\uD3EC\uB108 \uC8FC\uAE30 -1.5%/Lv"
+    EffectKind: 1
+    StatKind: 0
+    PerLevelMul: 0.985
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  LordRewards:
+  - Level: 2
+    IsLockedDummy: 0
+    RewardSouls: 50
+    DisplayName: "\uC601\uC8FC\uC758 \uCCAB \uBD09\uAE09"
+  - Level: 3
+    IsLockedDummy: 0
+    RewardSouls: 80
+    DisplayName: "\uB358\uC804 \uC6B4\uC601\uBE44"
+  - Level: 4
+    IsLockedDummy: 1
+    RewardSouls: 0
+    DisplayName: ???
+  - Level: 5
+    IsLockedDummy: 0
+    RewardSouls: 120
+    DisplayName: "\uC601\uD63C \uACF3\uAC04"
+  - Level: 6
+    IsLockedDummy: 1
+    RewardSouls: 0
+    DisplayName: ???
+  - Level: 7
+    IsLockedDummy: 0
+    RewardSouls: 150
+    DisplayName: "\uAE4A\uC5B4\uC9C4 \uAE08\uACE0"
+  - Level: 8
+    IsLockedDummy: 1
+    RewardSouls: 0
+    DisplayName: ???
+  - Level: 9
+    IsLockedDummy: 0
+    RewardSouls: 200
+    DisplayName: "\uC601\uC8FC\uC758 \uC704\uC5C4"
+  - Level: 10
+    IsLockedDummy: 1
+    RewardSouls: 0
+    DisplayName: ???
+  Achievements:
+  - Id: FirstRun
+    DisplayName: "\uB358\uC804 \uAC1C\uC7A5"
+    Description: "\uCCAB \uCD9C\uACA9\uC744 \uB9C8\uCE5C\uB2E4"
+    Condition: 3
+    Threshold: 1
+    RewardSouls: 20
+  - Id: FirstWin
+    DisplayName: "\uCCAB \uC0AC\uB0E5\uAC10"
+    Description: "\uC601\uC6C5\uC744 \uCC98\uC74C\uC73C\uB85C \uCC98\uCE58\uD55C\uB2E4"
+    Condition: 0
+    Threshold: 1
+    RewardSouls: 30
+  - Id: Win120
+    DisplayName: "\uC2E0\uC18D\uD55C \uCC98\uD615"
+    Description: "2\uBD84 \uC548\uC5D0 \uC601\uC6C5\uC744 \uCC98\uCE58\uD55C\uB2E4"
+    Condition: 1
+    Threshold: 120
+    RewardSouls: 40
+  - Id: Win90
+    DisplayName: "\uC804\uAD11\uC11D\uD654"
+    Description: "90\uCD08 \uC548\uC5D0 \uC601\uC6C5\uC744 \uCC98\uCE58\uD55C\uB2E4"
+    Condition: 1
+    Threshold: 90
+    RewardSouls: 60
+  - Id: Win60
+    DisplayName: "\uCC30\uB098\uC758 \uC8FD\uC74C"
+    Description: "60\uCD08 \uC548\uC5D0 \uC601\uC6C5\uC744 \uCC98\uCE58\uD55C\uB2E4"
+    Condition: 1
+    Threshold: 60
+    RewardSouls: 100
+  - Id: Wins5
+    DisplayName: "\uB2E4\uC12F \uC601\uD63C"
+    Description: "\uB204\uC801 5\uC2B9\uC744 \uB2EC\uC131\uD55C\uB2E4"
+    Condition: 2
+    Threshold: 5
+    RewardSouls: 40
+  - Id: Wins10
+    DisplayName: "\uC5F4 \uAC1C\uC758 \uBB34\uB364"
+    Description: "\uB204\uC801 10\uC2B9\uC744 \uB2EC\uC131\uD55C\uB2E4"
+    Condition: 2
+    Threshold: 10
+    RewardSouls: 60
+  - Id: Wins25
+    DisplayName: "\uC601\uC6C5 \uD559\uC0B4\uC790"
+    Description: "\uB204\uC801 25\uC2B9\uC744 \uB2EC\uC131\uD55C\uB2E4"
+    Condition: 2
+    Threshold: 25
+    RewardSouls: 100
+  - Id: Wins50
+    DisplayName: "\uB358\uC804\uC758 \uC804\uC124"
+    Description: "\uB204\uC801 50\uC2B9\uC744 \uB2EC\uC131\uD55C\uB2E4"
+    Condition: 2
+    Threshold: 50
+    RewardSouls: 150
+  - Id: Runs10
+    DisplayName: "\uC131\uC2E4\uD55C \uC601\uC8FC"
+    Description: "\uB204\uC801 10\uD68C \uCD9C\uACA9\uD55C\uB2E4"
+    Condition: 3
+    Threshold: 10
+    RewardSouls: 50
+  - Id: Runs30
+    DisplayName: "\uB048\uC9C8\uAE34 \uC601\uC8FC"
+    Description: "\uB204\uC801 30\uD68C \uCD9C\uACA9\uD55C\uB2E4"
+    Condition: 3
+    Threshold: 30
+    RewardSouls: 100
+  - Id: SynergyTier2
+    DisplayName: "\uBE4C\uB4DC\uC758 \uB9DB"
+    Description: "\uD55C \uB7F0\uC5D0\uC11C \uD55C \uCD95 Tier2(5\uC7A5)\uC5D0 \uB3C4\uB2EC\uD55C\uB2E4"
+    Condition: 4
+    Threshold: 2
+    RewardSouls: 50
+  - Id: SynergyTier3
+    DisplayName: "\uC9C4\uC131 \uBE4C\uB4DC"
+    Description: "\uD55C \uB7F0\uC5D0\uC11C \uD55C \uCD95 Tier3(7\uC7A5)\uC5D0 \uB3C4\uB2EC\uD55C\uB2E4"
+    Condition: 4
+    Threshold: 3
+    RewardSouls: 80
+  HeroLockedSlots: 3
+  CodexLockedSlots: 2
