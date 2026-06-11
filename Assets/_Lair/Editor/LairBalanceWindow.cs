@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Lair.Battle;
+using Lair.Card;
 using Lair.Data;
 using UnityEditor;
 using UnityEngine;
@@ -38,6 +39,9 @@ namespace Lair.EditorTools
         {
             EditorGUILayout.LabelField("치트", EditorStyles.boldLabel);
 
+            //# 지정 카드 강제 등장 — 1픽이 런 초반이라 플레이 전 토글 가능해야 함 → isPlaying 게이트 앞 배치.
+            DrawForcedCardDrawToggle();
+
             if (Application.isPlaying == false)
             {
                 EditorGUILayout.HelpBox("플레이 모드에서만 사용 가능", MessageType.Info);
@@ -74,6 +78,24 @@ namespace Lair.EditorTools
             {
                 if (GUILayout.Button("전투 종료 — 승리")) bc.DebugEndBattle(BattleResult.Win);
                 if (GUILayout.Button("전투 종료 — 패배")) bc.DebugEndBattle(BattleResult.Lose);
+            }
+        }
+
+        //# 지정 카드 강제 등장 토글 — 선택지 포함만 (자동 적용 아님). 기본 OFF, 에디터 재시작 시 OFF 복귀.
+        private void DrawForcedCardDrawToggle()
+        {
+            bool enabled = ForcedCardDraw.Enabled;
+            bool next = EditorGUILayout.ToggleLeft("지정 카드 강제 등장 (테스트)", enabled);
+            if (next != enabled)
+            {
+                ForcedCardDraw.Enabled = next;
+            }
+
+            if (next)
+            {
+                EditorGUILayout.HelpBox(
+                    $"{ForcedCardDraw.DescribeScript()}\n선택지에 포함만 — 직접 골라야 적용. 그 외 픽은 정상 랜덤.",
+                    MessageType.Info);
             }
         }
 

@@ -91,6 +91,11 @@ namespace Lair.Battle
         private BuildSynergyService _synergy;
         private CardPickCounter _pickCounter;   //# 카드 3픽 캡 (전역)
 
+#if UNITY_EDITOR
+        //# 디버그 — 지정 카드 강제 등장 (LairBalanceWindow 토글, 기본 OFF). 팝업 드로우 경로 한정.
+        private ForcedCardDraw _forcedCardDraw;
+#endif
+
         //# Slice C — 한 판 결과 측정
         private readonly RunRecorder _recorder = new RunRecorder();
 
@@ -160,6 +165,10 @@ namespace Lair.Battle
             //# 카드 3픽 캡 — 시너지와 동일 시점 초기화 (Restart 패턴 대비).
             _pickCounter = new CardPickCounter();
             _pickCounter.Reset();
+#if UNITY_EDITOR
+            //# 디버그 강제 등장 — 픽 순번 카운터를 _pickCounter 와 동일 시점에 새로 시작 (Restart 패턴 대비).
+            _forcedCardDraw = new ForcedCardDraw();
+#endif
             //# Phase 2 Task 11 — 12개 Tier 바인딩 (4축 × 3Tier). 기획서 §4.2 표.
             _synergy.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier1Threshold, new TankSynergyTier1());
             _synergy.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier2Threshold, new TankSynergyTier2());
@@ -874,6 +883,12 @@ namespace Lair.Battle
 
                 _pause.Pause();
                 IReadOnlyList<CardData> choices = deck.Draw(3, id => _pickCounter.IsCapped(id));
+#if UNITY_EDITOR
+                //# 디버그 — 지정 카드 강제 등장. 팝업 경로 한정 (시뮬 DebugAutoPicker 경로 비간섭) — 토글 OFF 면 내부 no-op.
+                if (_forcedCardDraw != null)
+                    choices = _forcedCardDraw.Apply(choices, entry.SourceType == TriggerQueue.Source.Passive,
+                        _allCards, id => _pickCounter.IsCapped(id));
+#endif
                 System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
                 CardSelectionArg arg = new CardSelectionArg
