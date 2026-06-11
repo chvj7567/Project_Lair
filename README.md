@@ -41,7 +41,7 @@
 
 ### ▶️ 전체 플레이 영상
 
-[![Project Lair — 5분 풀 플레이 영상 (YouTube)](https://img.youtube.com/vi/5YP-RJFJDBo/maxresdefault.jpg)](https://youtu.be/5YP-RJFJDBo)
+[![Project Lair — 5분 풀 플레이 영상 (YouTube)](https://img.youtube.com/vi/d5eN9vIT9EU/maxresdefault.jpg)](https://youtu.be/d5eN9vIT9EU)
 
 > 👆 **위 썸네일을 클릭하면 YouTube 로 이동해 전체 플레이 영상을 볼 수 있습니다.**
 >
