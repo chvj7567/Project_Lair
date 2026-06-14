@@ -1,4 +1,4 @@
-# Project Lair — 게임 설명서 (2026-06-07 KST)
+# Project Lair — 게임 설명서 (2026-06-14 KST)
 
 > 자동 생성 (매주 월 07:01 KST) — Rule 01 자동화 예외 루틴이 생성/갱신.
 > 생성 기준: spec/design 문서 + UI 코드 종합. 코드 ↔ spec 모순 시 코드 진실.
@@ -9,13 +9,19 @@
 
 5분짜리 역방향 보스전 로그라이크. 플레이어는 던전 주인. 영웅 한 명이 자동으로 던전을 돌파해오고, 반지름 14유닛 원에 배치된 Spawner 6개에서 몬스터가 끊임없이 흘러나와 자동 전투한다. 영웅 HP 10%마다 패시브 카드(3택 1), 30초마다 액티브 카드(3택 1)를 골라 **4가지 빌드 축(Tank/Dps/Debuff/Swarm)** 을 쌓아 5분 안에 영웅을 처치하면 승리.
 
+**v0.2 추가**: 런 사이 **마을(허브) 씬**에서 소울로 상점 업그레이드, 영주 레벨 보상 트랙, 13개 도전과제, 도감·기록을 관리한다.
+
 ---
 
-## 1. 게임 시작 — Battle 씬 진입
+## 1. 게임 시작 — 씬 흐름
 
-앱 실행 → 메인 메뉴 없이 **Battle.unity** 씬이 즉시 로드된다 (MVP 정책: 메인 메뉴·세팅 화면 없음).
+**씬 순서 (Build Settings)**: Loading (0) → Village (1) → Battle (2)
 
-씬 로드 직후 `BattleController.Start()` 가 다음 순서로 초기화를 수행한다:
+앱 실행 → Loading 씬 초기화 → **Village.unity** (마을 허브) 진입. 마을에서 업그레이드·도전과제 확인 후 「방어하기」 버튼 → **Battle.unity** 로 씬 전환.
+
+### 1.1 Battle 씬 초기화 순서
+
+Village 에서 방어하기 클릭 → `BattleController.Start()` 가 다음 순서로 초기화:
 
 1. Addressables 리소스 초기화 (`CHMResource.Init`)
 2. UI 초기화 (`CHMUI.Init`, `CHMPool.Init`)
@@ -24,7 +30,7 @@
 5. Spawner 6개 작동 시작 — 각자 초기 지연 후 고정 주기로 몬스터 흘려보내기 시작
 6. 5분 카운트다운 타이머 시작
 
-### 1.1 카메라
+### 1.2 Battle 씬 카메라
 
 | 속성 | 값 |
 |---|---|
@@ -33,7 +39,7 @@
 | Projection | Perspective, FOV 60 |
 | 배경색 | `#1F2937` (짙은 회색) |
 
-### 1.2 영웅 (기사 Knight)
+### 1.3 영웅 (기사 Knight)
 
 | 항목 | 값 |
 |---|---|
@@ -46,7 +52,7 @@
 | 비주얼 | 파랑 Capsule `#3B82F6` 스케일 1.0 |
 | AI 행동 | 가장 가까운 살아있는 몬스터로 자동 이동 → 사거리 내 정지 → 자동 공격 반복 |
 
-### 1.3 Spawner 6개 — Ring 배치 (v0.6 기준)
+### 1.4 Spawner 6개 — Ring 배치 (v0.6 기준)
 
 반지름 **14.0 유닛** 원에 60° 간격 균등 배치.
 
@@ -59,11 +65,11 @@
 | 5 | 240° | (-7.0, -12.124) | Wraith | 20.0s | 2.0s |
 | 6 | 300° | (7.0, -12.124) | Hex | 15.0s | 2.5s |
 
-> Spawner #4 (180°) 는 v0.6에서 Wisp → **Plague** 로 전환됐다 (`card-renewal.md §5`). Debuff 빌드 축 작동의 전제 조건 — 둔화(Plague 공격) + PlagueSlowBoost 카드 시너지.
+> Spawner #4 (180°) 는 v0.6에서 Wisp → **Plague** 로 전환됐다. Debuff 빌드 축 작동의 전제 조건 — 둔화(Plague 공격) + PlagueSlowBoost 카드 시너지.
 
 **필드 글로벌 캡**: 동시 존재 몬스터 최대 **18마리**. 캡 초과 시 해당 Spawner 는 해당 주기를 skip.
 
-### 1.4 몬스터 6종 기본 스탯 (BalanceConfig.asset 기준)
+### 1.5 몬스터 6종 기본 스탯 (BalanceConfig.asset 기준)
 
 | 종 | HP | Power | MoveSpeed | Cooldown | Range | 비주얼 |
 |---|---|---|---|---|---|---|
@@ -339,7 +345,7 @@ PauseService.Resume() → timeScale=1
 | 아이콘 간격 | 2 px |
 | 최대 슬롯 수 | 8 |
 | 슬롯 배정 | 최초 빈 슬롯 (lowest-free-slot 정책) |
-| 재정렬 | 아이콘 만료 시 HLG 자동 reflflow |
+| 재정렬 | 아이콘 만료 시 HLG 자동 reflow |
 
 ### 5.2 상태 아이콘 8종
 
@@ -419,22 +425,155 @@ HUD 하단 가로 6셀 (인덱스 0→5, 왼쪽→오른쪽 = ring 0°→300° �
 
 ## 7. 결과 화면 — ResultPopup
 
-`EndBattle` 호출 시 `CHMUI.ShowUIAsync(EUI.ResultPopup, arg)` 로 표시.
+`EndBattle` 호출 시 정산 순서: 런 보상 계산 → 프로필 가산 → 영주 보상 자동 수령 → 도전과제 판정 → 저장 → `CHMUI.ShowUIAsync(EUI.ResultPopup, arg)`.
+
+### 7.1 UI 구성
 
 | 요소 | 동작 |
 |---|---|
 | `_resultText` (CHText) | 승리 시 "승리", 패배 시 "패배" |
-| `_restartButton` (CHButton) | 클릭 시 `SceneManager.LoadScene("Battle")` — 전체 재초기화 |
+| `_rewardText` (CHText) | 보상 블록 (HasMeta=false 시 숨김) |
+| `_retryButton` (CHButton) | 「다시 도전」 — `SceneManager.LoadScene("Battle")` 즉시 재시작 |
+| `_villageButton` (CHButton) | 「마을로」 — `SceneManager.LoadScene("Village")` 마을 복귀 |
 
-재시작 후: BalanceConfig 수치로 스탯 재적용, 픽 이력 초기화, 타이머 0:00 재시작.
+**연타 가드**: `TryBeginSceneLoad()` — 첫 요청만 통과 (LoadScene 다음 프레임 적용 사이 중복 클릭 방지).
+
+### 7.2 보상 블록 포맷 (`BuildRewardText` — `ResultPopup.cs`)
+
+```
+[1줄] 보상  소울 +212 · XP +100
+[2줄] 영주 레벨 업!  Lv 3  +80 소울          ← LordLevel==0 이면 줄 생략
+[3줄~] 도전과제 달성!  첫 사냥감  +30 소울    ← 달성 건당 1줄, 최대 3줄
+[마지막] 외 2건 달성                          ← 4건 이상일 때만
+```
+
+| 줄 | 생략 조건 |
+|---|---|
+| 영주 줄 | `LordLevel == 0` (이번 정산 레벨 업 없음) |
+| `+N 소울` 부분 | 영주 줄은 유지하되 `LordRewardSouls == 0` 이면 소울 수치만 생략 |
+
+재시작(「다시 도전」) 후: BalanceConfig 수치로 스탯 재적용, 픽 이력 초기화, 타이머 0:00 재시작. MetaSession 은 static 홀더라 프로필이 메모리에 유지된다.
 
 ---
 
-## 8. (에디터 전용) LairBalanceWindow 디버그 윈도우
+## 8. 마을 허브 (v0.2 Village 씬)
+
+### 8.1 씬 구성
+
+**씬 파일**: `Village.unity` (`EScene.Village`)
+
+| 항목 | 값 |
+|---|---|
+| 카메라 위치 | (0, 2.6, −3.8) |
+| 카메라 회전 | X 22°, Y 0°, Z 0° |
+| FOV | 40° (vertical) |
+| 배경 | Solid Color `#15151C` |
+| 바닥 | Plane 10×10, `#23232B` |
+| Directional Light | 회전 (45°, −30°, 0), intensity 0.85, `#FFFFFF` |
+| Point Light | 위치 (0, 2.5, −1.5), `#8A7BFF` (보라), intensity 12, range 6 |
+| 중앙 모델 | `Skeleton_Model_110.fbx` (`EHero.Knight`), 위치 (0,0,0), Y 180°, `Skeleton_idle` 루프 |
+
+Battle 의 45° 탑다운 부감과 달리 **22° 로우앵글** — "내 영웅을 관찰하는 쇼케이스" 연출.
+
+### 8.2 VillageHud 레이아웃
+
+| 영역 | 내용 |
+|---|---|
+| 상단 바 좌 | 소울 잔액 `N 소울` (천 단위 콤마) |
+| 상단 바 중앙 | `영주의 둥지` (id 7) |
+| 상단 바 우 | `영주 Lv N` + XP 게이지 (`LordLevelService.ProgressInLevel`) |
+| 좌측 메뉴 3버튼 | `상점`(id 8) · `도감`(id 9) · `기록`(id 10) |
+| 우측 메뉴 3버튼 | `영웅`(id 11) · `퀘스트`(id 12) · `영주성`(id 13) |
+| 하단 중앙 | **`방어하기`** (id 14) — 가장 큰 단일 버튼 → Battle 씬 진입 |
+
+### 8.3 팝업 6종
+
+| EUI | 타이틀 | 주요 내용 |
+|---|---|---|
+| `ShopPopup` | `상점` (id 8) | 7품목 레벨제 영구 업그레이드 셀 목록 |
+| `QuestPopup` | `도전과제` (id 16) | 13개 도전과제 달성/미달성 목록 |
+| `CodexPopup` | `도감` (id 9) | 몬스터/카드 탭 토글. 미해금 = 실루엣 + "???" |
+| `RecordsPopup` | `기록` (id 10) | 총 출격 · 승리 · 승률 · 최단 클리어 (기록 없으면 `-`) |
+| `HeroSelectPopup` | `영웅 선택` (id 15) | Knight 1슬롯 + 잠금 3슬롯 (`HeroLockedSlots = 3`) |
+| `LordLevelPopup` | `영주성` (id 13) | 영주 레벨 보상 트랙 Lv1~10 표시 전용 |
+
+### 8.4 소울 경제
+
+| 구분 | 공식 | 예시 |
+|---|---|---|
+| 승리 | `100 + floor((300 − 사망시각) × 0.5)` | 76s 처치 → 212 소울 |
+| 패배 | `floor(60 × heroHPDamagedRatio)` | HP 80% 깎음 → 48 소울 |
+
+패배 무피해 = 0 소울. XP 는 항상 지급되므로 완전 빈손은 없다.
+
+### 8.5 상점 7품목
+
+`EShopEffectKind.MonsterStat` 은 전종(6종) 글로벌 적용. 레벨당 가격 = `floor(BasePrice × 1.6^현재레벨)`, `MaxLevel = 5`.
+
+| # | Id | 표시명 | StatKind | PerLevelMul | 만렙 배율 | BasePrice |
+|---|---|---|---|---|---|---|
+| 1 | `MonsterHpUp` | 강골 군세 | Hp | ×1.02 | ×1.104 | 80 |
+| 2 | `MonsterPowerUp` | 흉포한 발톱 | Power | ×1.015 | ×1.077 | 100 |
+| 3 | `MonsterAtkSpeedUp` | 신속한 손놀림 | Cooldown | ×0.99 | ×0.951 (공속+5.2%) | 100 |
+| 4 | `MonsterMoveSpeedUp` | 유령 걸음 | MoveSpeed | ×1.015 | ×1.077 | 80 |
+| 5 | `MonsterRangeUp` | 긴 손아귀 | Range | ×1.015 | ×1.077 | 120 |
+| 6 | `PlagueVenomUp` | 짙은 역병 | SlowFactor | ×0.98 | ×0.904 (둔화+10.6%) | 120 |
+| 7 | `SpawnerHasteUp` | 깨어나는 둥지 | SpawnerPeriod | ×0.985 | ×0.927 (스폰률+7.8%) | 150 |
+
+구매 버튼 상태: `구매` / `만렙` / `소울 부족` (소울 부족은 회색).
+
+### 8.6 던전 영주 레벨
+
+| 필드 | 값 |
+|---|---|
+| 승리 XP | 100 |
+| 패배 XP | 40 |
+| Lv1→2 필요 XP | 100 |
+| XP 증가율 | ×1.25 / 레벨 (`floor(100 × 1.25^(Lv−1))`) |
+
+**Lv1~10 보상 트랙 (자동 수령):**
+
+| Level | RewardSouls | DisplayName |
+|---|---|---|
+| 2 | 50 | 영주의 첫 봉급 |
+| 3 | 80 | 던전 운영비 |
+| 4 | 0 | ??? (잠금 더미) |
+| 5 | 120 | 영혼 곳간 |
+| 6 | 0 | ??? (잠금 더미) |
+| 7 | 150 | 깊어진 금고 |
+| 8 | 0 | ??? (잠금 더미) |
+| 9 | 200 | 영주의 위엄 |
+| 10 | 0 | ??? (잠금 더미) |
+
+보상은 EndBattle 정산 시 **자동 수령** (클레임 버튼 없음). 이중 지급 방지: `MetaProfile.LordRewardGrantedLevel` 필드로 멱등 보장.
+
+### 8.7 도전과제 13개
+
+| # | Id | 표시명 | 조건 | Threshold | 보상 |
+|---|---|---|---|---|---|
+| 1 | `FirstRun` | 던전 개장 | TotalRuns | 1 | 20 소울 |
+| 2 | `FirstWin` | 첫 사냥감 | FirstWin | 1 | 30 소울 |
+| 3 | `Win120` | 신속한 처형 | WinUnderSeconds | 120 | 40 소울 |
+| 4 | `Win90` | 전광석화 | WinUnderSeconds | 90 | 60 소울 |
+| 5 | `Win60` | 찰나의 죽음 | WinUnderSeconds | 60 | 100 소울 |
+| 6 | `Wins5` | 다섯 영혼 | TotalWins | 5 | 40 소울 |
+| 7 | `Wins10` | 열 개의 무덤 | TotalWins | 10 | 60 소울 |
+| 8 | `Wins25` | 영웅 학살자 | TotalWins | 25 | 100 소울 |
+| 9 | `Wins50` | 던전의 전설 | TotalWins | 50 | 150 소울 |
+| 10 | `Runs10` | 성실한 영주 | TotalRuns | 10 | 50 소울 |
+| 11 | `Runs30` | 끈질긴 영주 | TotalRuns | 30 | 100 소울 |
+| 12 | `SynergyTier2` | 빌드의 맛 | SynergyTierReached | 2 | 50 소울 |
+| 13 | `SynergyTier3` | 진성 빌드 | SynergyTierReached | 3 | 80 소울 |
+
+한 런에 여러 도전과제 동시 달성 가능. ResultPopup 에 최대 3줄 + 초과분 "외 N건 달성".
+
+---
+
+## 9. (에디터 전용) LairBalanceWindow 디버그 윈도우
 
 메뉴 `Lair/Balance Window` 로 열기. 플레이 모드에서만 치트 패널 활성. 비플레이 시 히스토리 패널만 표시.
 
-### 8.1 치트 패널 (플레이 모드 한정)
+### 9.1 치트 패널 (플레이 모드 한정)
 
 | 버튼 / 컨트롤 | 동작 |
 |---|---|
@@ -446,43 +585,63 @@ HUD 하단 가로 6셀 (인덱스 0→5, 왼쪽→오른쪽 = ring 0°→300° �
 | [전투 종료 — 승리] | `DebugEndBattle(Win)` |
 | [전투 종료 — 패배] | `DebugEndBattle(Lose)` |
 
-### 8.2 결과 히스토리 패널
+### 9.2 결과 히스토리 패널
 
 전체 누적 판 목록 스크롤 뷰. 로그 파일: `Logs/lair_runs.jsonl` (`.gitignore` 대상).
 
 ---
 
-## 9. UI 인터랙션 매트릭스
+## 10. UI 인터랙션 매트릭스
+
+### 10.1 Battle 씬
 
 | # | UI 요소 | 컴포넌트 | 트리거 | 동작 | timeScale 변화 |
 |---|---|---|---|---|---|
 | 1 | 카드 선택 팝업 — 카드 1 | `CardView._pickButton` (CHButton) | 클릭 | 카드 효과 Apply + 팝업 Close(reuse:false) + 게임 재개 | 0 → 1 |
 | 2 | 카드 선택 팝업 — 카드 2 | `CardView._pickButton` (CHButton) | 클릭 | 동일 | 0 → 1 |
 | 3 | 카드 선택 팝업 — 카드 3 | `CardView._pickButton` (CHButton) | 클릭 | 동일 | 0 → 1 |
-| 4 | 결과 팝업 — 재시작 | `ResultPopup._restartButton` (CHButton) | 클릭 | `SceneManager.LoadScene("Battle")` | — |
-| 5 | 빌드 패널 루트 | `BuildPanel._rootButton` (CHButton) | 클릭 | `CHMUI.ShowUI(EUI.BuildModalPopup)` | 변화 없음 |
-| 6 | 빌드 모달 — 배경 dim | `BuildModalPopup._dimButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
-| 7 | 빌드 모달 — X 버튼 | `BuildModalPopup._closeButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
-| 8 | 시너지 패널 루트 | `BuildSynergyPanel._rootButton` (CHButton) | 클릭 | `CHMUI.ShowUI(EUI.SynergyModalPopup)` | 변화 없음 |
-| 9 | 시너지 모달 — dim | `SynergyModalPopup._dimButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
-| 10 | 시너지 모달 — 닫기 | `SynergyModalPopup._closeButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
-| 11 | [에디터] 강제 패시브 트리거 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugForcePassiveTrigger()` | 0 (큐 처리) |
-| 12 | [에디터] 강제 액티브 트리거 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugForceActiveTrigger()` | 0 (큐 처리) |
-| 13 | [에디터] 카드 즉시 적용 | `LairBalanceWindow` EnumPopup + Button | 드롭다운+클릭 | `bc.DebugApplyCard(ECardId)` | 변화 없음 |
-| 14 | [에디터] 영웅 HP 설정 | `LairBalanceWindow` IntField + Button | 값 입력+클릭 | `bc.DebugSetHeroHp(int)` | 변화 없음 |
-| 15 | [에디터] 영웅 즉사 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugKillHero()` | — |
-| 16 | [에디터] 전투 종료 승리 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugEndBattle(Win)` | — |
-| 17 | [에디터] 전투 종료 패배 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugEndBattle(Lose)` | — |
-| 18 | [에디터] 히스토리 새로고침 | `LairBalanceWindow` GUILayout.Button | 클릭 | `ReloadHistory()` | 변화 없음 |
-| 19 | [에디터] 히스토리 초기화 | `LairBalanceWindow` GUILayout.Button | 클릭 | `ClearHistory()` (파일 삭제) | 변화 없음 |
+| 4 | 결과 팝업 — 다시 도전 | `ResultPopup._retryButton` (CHButton) | 클릭 | `SceneManager.LoadScene("Battle")` | — |
+| 5 | 결과 팝업 — 마을로 | `ResultPopup._villageButton` (CHButton) | 클릭 | `SceneManager.LoadScene("Village")` | — |
+| 6 | 빌드 패널 루트 | `BuildPanel._rootButton` (CHButton) | 클릭 | `CHMUI.ShowUI(EUI.BuildModalPopup)` | 변화 없음 |
+| 7 | 빌드 모달 — 배경 dim | `BuildModalPopup._dimButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
+| 8 | 빌드 모달 — X 버튼 | `BuildModalPopup._closeButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
+| 9 | 시너지 패널 루트 | `BuildSynergyPanel._rootButton` (CHButton) | 클릭 | `CHMUI.ShowUI(EUI.SynergyModalPopup)` | 변화 없음 |
+| 10 | 시너지 모달 — dim | `SynergyModalPopup._dimButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
+| 11 | 시너지 모달 — 닫기 | `SynergyModalPopup._closeButton` (CHButton) | 클릭 | `Close(reuse:true)` | 변화 없음 |
+| 12 | [에디터] 강제 패시브 트리거 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugForcePassiveTrigger()` | 0 (큐 처리) |
+| 13 | [에디터] 강제 액티브 트리거 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugForceActiveTrigger()` | 0 (큐 처리) |
+| 14 | [에디터] 카드 즉시 적용 | `LairBalanceWindow` EnumPopup + Button | 드롭다운+클릭 | `bc.DebugApplyCard(ECardId)` | 변화 없음 |
+| 15 | [에디터] 영웅 HP 설정 | `LairBalanceWindow` IntField + Button | 값 입력+클릭 | `bc.DebugSetHeroHp(int)` | 변화 없음 |
+| 16 | [에디터] 영웅 즉사 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugKillHero()` | — |
+| 17 | [에디터] 전투 종료 승리 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugEndBattle(Win)` | — |
+| 18 | [에디터] 전투 종료 패배 | `LairBalanceWindow` GUILayout.Button | 클릭 | `bc.DebugEndBattle(Lose)` | — |
+| 19 | [에디터] 히스토리 새로고침 | `LairBalanceWindow` GUILayout.Button | 클릭 | `ReloadHistory()` | 변화 없음 |
+| 20 | [에디터] 히스토리 초기화 | `LairBalanceWindow` GUILayout.Button | 클릭 | `ClearHistory()` (파일 삭제) | 변화 없음 |
 
 **비인터랙션 요소 (표시 전용)**: BattleHud 타이머, 영웅 HP 바, 상태 아이콘 8종, BuildSynergyPanel 4행, SpawnerStatusPanel 6셀 (v0.6.4 툴팁 제거 후 클릭 없음).
 
+### 10.2 Village 씬
+
+| # | UI 요소 | 컴포넌트 | 트리거 | 동작 |
+|---|---|---|---|---|
+| 21 | VillageHud — 방어하기 | `VillageHud` CHButton (id 14) | 클릭 | `SceneManager.LoadScene("Battle")` |
+| 22 | VillageHud — 상점 버튼 | `VillageHud` CHButton (id 8) | 클릭 | `CHMUI.ShowUI(EUI.ShopPopup)` |
+| 23 | VillageHud — 도감 버튼 | `VillageHud` CHButton (id 9) | 클릭 | `CHMUI.ShowUI(EUI.CodexPopup)` |
+| 24 | VillageHud — 기록 버튼 | `VillageHud` CHButton (id 10) | 클릭 | `CHMUI.ShowUI(EUI.RecordsPopup)` |
+| 25 | VillageHud — 영웅 버튼 | `VillageHud` CHButton (id 11) | 클릭 | `CHMUI.ShowUI(EUI.HeroSelectPopup)` |
+| 26 | VillageHud — 퀘스트 버튼 | `VillageHud` CHButton (id 12) | 클릭 | `CHMUI.ShowUI(EUI.QuestPopup)` |
+| 27 | VillageHud — 영주성 버튼 | `VillageHud` CHButton (id 13) | 클릭 | `CHMUI.ShowUI(EUI.LordLevelPopup)` |
+| 28 | ShopPopup — 품목 구매 | `ShopItemCell` CHButton | 클릭 | 소울 차감 + 레벨 +1 + 영구 효과 등록 |
+| 29 | CodexPopup — 몬스터 탭 | `CodexPopup` CHToggle | 클릭 | 몬스터 도감 표시 |
+| 30 | CodexPopup — 카드 탭 | `CodexPopup` CHToggle | 클릭 | 카드 도감 표시 |
+
+**비인터랙션 요소 (표시 전용)**: VillageHud 소울 잔액, VillageHud XP 게이지, LordLevelPopup 보상 트랙, RecordsPopup 통계, 잠금 슬롯 셀 (클릭 무반응).
+
 ---
 
-## 10. 자동 정지 / 재개 흐름
+## 11. 자동 정지 / 재개 흐름
 
-### 10.1 PauseService — 중첩 depth 카운터
+### 11.1 PauseService — 중첩 depth 카운터
 
 | 상태 | Time.timeScale | 발생 원인 |
 |---|---|---|
@@ -498,11 +657,11 @@ Pause()  → depth++; if (depth == 1) timeScale = 0
 Resume() → depth--; if (depth == 0) timeScale = 1
 ```
 
-### 10.2 TriggerQueue — 직렬 처리
+### 11.2 TriggerQueue — 직렬 처리
 
 패시브·액티브 트리거가 동시에 발생하면 `TriggerQueue` 에 순차 enqueue → 하나 완료 후 다음 처리.
 
-### 10.3 정지 발생 시나리오 전체
+### 11.3 정지 발생 시나리오 전체
 
 | 시나리오 | timeScale | 정지 주체 | 총 정지 시간 |
 |---|---|---|---|
@@ -511,17 +670,18 @@ Resume() → depth--; if (depth == 0) timeScale = 1
 | 영웅 스킬 해금 컷신 (×3) | 0 | PauseService | 1.9s/회 (카메라셰이크 0.4s 포함) |
 | BuildModalPopup 열람 | 1 유지 | — (정지 없음) | — |
 | SynergyModalPopup 열람 | 1 유지 | — (정지 없음) | — |
+| Village 씬 마을 체류 | — (씬 전환) | — | 런 사이 (전투 외) |
 
 ---
 
-## 11. 쉬운 설명 (비개발자 요약)
+## 12. 쉬운 설명 (비개발자 요약)
 
 Project Lair는 "내가 던전 주인이 되어 침입하는 영웅을 막는" 게임이다. 영웅은 혼자서 알아서 싸우고, 나는 5분 동안 카드를 골라 몬스터들을 점점 강하게 만들면 된다. 영웅의 HP가 10% 줄어들 때마다 카드 3장 중 하나를 고를 수 있고, 30초마다도 한 번씩 카드를 고를 수 있어서 총 최대 18번의 선택 기회가 생긴다.
 
-**이번 주 주요 변경점:**
-1. **상태 표시 방식이 바뀌었다** — 영웅 주변에 3D 오브젝트가 붙던 방식에서, HP 바 바로 아래에 작은 카드 아이콘 8개가 뜨는 방식으로 교체됐다.
-2. **카드 효과 일부 수정** — "단단한 살갗"(WallOfWisps)이 위스프 소환 카드에서 위스프/레이스가 피를 덜 맞는 카드로 바뀌었고, "공포의 군세"와 "처형 명령"은 몬스터를 교체하는 게 아니라 공격력을 30% 올려주는 카드로 정정됐다.
-3. **스포너 #4(180°)가 위스프에서 플레이그로 전환** — 보라색 납작 몬스터가 영웅을 느리게 하는 역할을 맡는다.
-4. **영웅 스킬 해금 타이밍이 85%/65%/45%** — 기존 기획 초안(90%/60%/30%)과 다른 실제 적용값. 스킬이 해금될 때마다 화면이 잠깐 멈추고 배너가 슬라이드된다.
+**이번 주 주요 변경점 (v0.2 마을 허브 추가):**
+1. **마을 씬이 시작 화면이 됐다** — 앱을 켜면 이제 "영주의 둥지" 마을 허브가 뜬다. 여기서 상점·도감·기록·도전과제를 확인하고 「방어하기」를 눌러야 전투에 진입한다.
+2. **소울 경제와 영구 업그레이드 상점이 생겼다** — 전투 결과(승리: 기본 100+잔여초×0.5, 패배: 깎은 HP 비율×60)로 소울을 얻고, 상점 7품목(몬스터 스탯·스포너 주기)을 레벨당 구매해 다음 런에 영구 적용한다.
+3. **결과 팝업에 2개 버튼이 생겼다** — 전투 끝나면 「다시 도전」(Battle 즉시 재시작)과 「마을로」(마을 복귀) 중 선택할 수 있다.
+4. **영주 레벨 트랙(Lv1~10)과 도전과제 13개가 추가됐다** — 승리마다 XP 100, 패배도 XP 40이 자동 지급된다. 도전과제 달성·영주 레벨업 보상 소울은 전투 결과 화면에 자동 표기된다.
 
-즉, 이번 매뉴얼의 포인트는: 카드 효과·상태 표시·스포너 구성이 코드 기준으로 갱신됐으며, 영웅이 HP 85%/65%/45%에서 자동 스킬을 해금하므로 초반에 카드를 잘 골라 몬스터 군단을 키워야 5분 안에 이긴다.
+즉, 이번 매뉴얼의 포인트는: v0.2 로 마을 씬이 시작점이 됐고, 런마다 소울을 벌어 상점에서 몬스터를 강화하는 메타 성장 루프가 추가됐으며, 13개 도전과제와 영주 레벨 보상이 장기 플레이 동기를 제공한다.
