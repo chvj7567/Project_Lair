@@ -12,6 +12,9 @@ namespace Lair.UI
         [SerializeField] private CHText _descText;
         [SerializeField] private CHText _rewardText;
         [SerializeField] private CHText _achievedBadge;   //# "달성"
+        [SerializeField] private GameObject _progressRoot;   //# 진행 바 컨테이너 — 표시/숨김 토글 (기획서 §3.3)
+        [SerializeField] private Image _progressFill;         //# fillAmount = Current/Target (Image type=Filled/Horizontal)
+        [SerializeField] private CHText _progressText;        //# "12/25"
 
         //# 달성 강조 (#FBBF24 톤 배경) / 미달성 기본 (#1F2937).
         private static readonly Color AchievedBg = new Color(0.30f, 0.25f, 0.10f, 0.95f);
@@ -46,6 +49,22 @@ namespace Lair.UI
                 {
                     _achievedBadge.SetText("달성");
                     _achievedBadge.SetColor(BadgeColor);
+                }
+            }
+            //# 진행 바 — HasProgress 일 때만 표시 (달성 뱃지와 상호 배타, 기획서 §3.3).
+            if (_progressRoot != null)
+            {
+                _progressRoot.SetActive(data.HasProgress);
+            }
+            if (data.HasProgress)
+            {
+                if (_progressFill != null)
+                {
+                    _progressFill.fillAmount = data.Target > 0 ? (float)data.Current / data.Target : 0f;
+                }
+                if (_progressText != null)
+                {
+                    _progressText.SetText($"{data.Current}/{data.Target}");
                 }
             }
         }

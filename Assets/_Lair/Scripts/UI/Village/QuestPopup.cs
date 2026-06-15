@@ -21,6 +21,9 @@ namespace Lair.UI
         public string Description;
         public string RewardText;   //# "+30 소울"
         public bool Achieved;
+        public bool HasProgress;    //# 누적형(Threshold≥2) 미달성일 때만 true (기획서 §3.1)
+        public int Current;         //# 현재 누적값 (Target 으로 클램프)
+        public int Target;          //# 달성 임계
     }
 
     //# 고정 도전과제 13개 목록 (기획서 §5).
@@ -91,12 +94,25 @@ namespace Lair.UI
             {
                 if (def == null)
                     continue;
+
+                bool achieved = profile.AchievedIds.Contains(def.Id);
+                //# 진행 바 3조건 AND (기획서 §3.1) — 누적형 + 장기(Threshold≥2, FirstRun carve-out) + 미달성.
+                bool cumulative = def.Condition == EAchievementCondition.TotalWins
+                               || def.Condition == EAchievementCondition.TotalRuns;
+                int target = cumulative ? Mathf.Max(0, (int)def.Threshold) : 0;
+                int raw = def.Condition == EAchievementCondition.TotalWins ? profile.TotalWins
+                        : def.Condition == EAchievementCondition.TotalRuns ? profile.TotalRuns : 0;
+                int current = cumulative ? Mathf.Min(raw, target) : 0;   //# §3.2 현재값은 목표로 클램프 (세이브 변조 방어)
+
                 list.Add(new QuestCellData
                 {
                     DisplayName = def.DisplayName,
                     Description = def.Description,
                     RewardText = $"+{def.RewardSouls} 소울",
-                    Achieved = profile.AchievedIds.Contains(def.Id),
+                    Achieved = achieved,
+                    HasProgress = cumulative && target >= 2 && achieved == false,
+                    Current = current,
+                    Target = target,
                 });
             }
             return list;
