@@ -291,25 +291,33 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
         InitItem();
     }
 
-    private bool ExistCurrentIndex(int index)
+    private IEnumerator LerpAnchorPos(RectTransform rt, Vector2 target, float duration, Action onComplete)
     {
-        foreach (var item in liPoolItem)
+        Vector2 start = rt.anchoredPosition;
+        float elapsed = 0f;
+        while (elapsed < duration)
         {
-            if (item.index == index)
-                return true;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            rt.anchoredPosition = Vector2.Lerp(start, target, t);
+            yield return null;
         }
-
-        return false;
+        rt.anchoredPosition = target;
+        onComplete?.Invoke();
     }
 
-    private void SetScrollPosition(int index, int destIndex, Action completeCallback = null, float duration = .1f)
+    public void SetScrollPosition(int index, Action completeCallback = null, float duration = 0f)
     {
-        var pos = GetItemPosition(index);
+        //# 빈 풀 가드 — 데이터/풀 미구성 시 위치 계산·rebind 모두 무의미하므로 즉시 종료.
+        if (liPoolItem.Count == 0)
+            return;
+
+        Vector2 pos = GetItemPosition(index);
 
         float x = _contentRectTransform.anchoredPosition.x;
         float y = _contentRectTransform.anchoredPosition.y;
 
-        //# 최대 스크롤 위치 값 계산
+        //# 현재 위치에서 목표 인덱스 위치로 단일 이동 (lastIndex 경유 2단계 점프 제거).
         switch (_scrollDirection)
         {
             case PoolingScrollViewDirection.Vertical:
@@ -328,45 +336,13 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
                 break;
         }
 
+        //# 이동 완료 후 InitItem() 으로 도착 지점 셀을 강제 rebind — 증분 OnScroll 의존을 끊는다.
+        //# duration 0 이면 LerpAnchorPos 는 yield 없이 동기 완료라 onComplete 도 동기 발화한다.
         StartCoroutine(LerpAnchorPos(_contentRectTransform, new Vector2(x, y), duration, () =>
         {
-            if (index == destIndex)
-            {
-                completeCallback?.Invoke();
-            }
-            else
-            {
-                SetScrollPosition(destIndex, completeCallback);
-            }
+            InitItem();
+            completeCallback?.Invoke();
         }));
-    }
-
-    private IEnumerator LerpAnchorPos(RectTransform rt, Vector2 target, float duration, Action onComplete)
-    {
-        Vector2 start = rt.anchoredPosition;
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            rt.anchoredPosition = Vector2.Lerp(start, target, t);
-            yield return null;
-        }
-        rt.anchoredPosition = target;
-        onComplete?.Invoke();
-    }
-
-    public void SetScrollPosition(int index, Action completeCallback = null, float duration = .1f)
-    {
-        if (ExistCurrentIndex(index))
-        {
-            SetScrollPosition(index, index, completeCallback, duration);
-        }
-        else
-        {
-            int lastIndex = liPoolItem.Last().index;
-            SetScrollPosition(lastIndex, index, completeCallback, duration);
-        }
     }
 
     public void Refresh()
