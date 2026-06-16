@@ -61,6 +61,11 @@ namespace Lair.Data
         RecordsPopup,          //# 전적 기록
         HeroSelectPopup,       //# 영웅 선택
         LordLevelPopup,        //# 영주 레벨 보상 트랙
+        //# v0.3 서버 연동 — 맨 끝 append (int 직렬화 정합, 순서 변경 금지). (2026-06-15)
+        RankingPopup,          //# 최단클리어 랭킹 조회
+        CloudPopup,            //# 클라우드 — 복원·표시명·충돌 권유 통합
+        ConfirmPopup,          //# 공용 2버튼 확인 다이얼로그 (복원·충돌 재사용)
+        ToastView,             //# 공용 토스트 (하단중앙 1.8초 페이드, 입력통과)
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -71,6 +76,7 @@ namespace Lair.Data
         Strings_Ko,         //# 게임 전체 CHText 문자열 — Art/Json/Strings_Ko.json
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Art/Json/LoadingStrings_Ko.json
         HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
+        NetworkConfig,      //# 서버 접속 설정 SO — Art/Net/NetworkConfig.asset (2026-06-15)
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.

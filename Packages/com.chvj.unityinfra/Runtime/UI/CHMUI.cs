@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -38,16 +37,34 @@ namespace ChvjUnityInfra
         }
 
         /// <summary>
-        /// 활성 UI 스택의 최상위 UI 한 개를 닫는다. ESC 핸들러가 호출하는 메서드와 동일.
-        /// Input System Only 프로젝트에서는 ESC 자동 처리가 안 되므로
-        /// 게임 측 InputAction 콜백에서 직접 호출하면 동일한 동작을 얻을 수 있다.
+        /// 활성 UI 중 ESC로 닫을 수 있는(CanCloseByEsc) 최상위 UI 한 개를 닫는다. ESC 핸들러가 호출.
+        /// 닫을 수 있는 UI가 없으면(예: 베이스 HUD만 떠 있음) 아무것도 닫지 않는다.
+        /// Input System Only 프로젝트에서는 게임 측 InputAction 콜백에서 직접 호출하면 동일 동작.
         /// </summary>
         public void CloseTopUI()
         {
-            if (_dicCurrentUI.Count > 0)
+            //# Dictionary 열거 순서는 제거 후 신뢰 불가 → 시각적 최상위는 sibling index 로 판정(ActivateUI 가 SetAsLastSibling 호출).
+            UIBase target = null;
+            int topSibling = -1;
+            foreach (UIBase ui in _dicCurrentUI.Values)
             {
-                CloseUI(_dicCurrentUI.Last().Value);
+                if (ui == null)
+                    continue;
+                if (ui.CanCloseByEsc == false)
+                    continue;
+
+                int sibling = ui.transform.GetSiblingIndex();
+                if (sibling > topSibling)
+                {
+                    topSibling = sibling;
+                    target = ui;
+                }
             }
+
+            if (target == null)
+                return;
+
+            CloseUI(target);
         }
 
         public void Init()

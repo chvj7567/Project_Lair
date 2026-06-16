@@ -11,6 +11,9 @@ namespace ChvjUnityInfra
     {
         [HideInInspector] public Enum UIType { get; private set; }
 
+        //# ESC(뒤로가기)로 닫을 수 있는지 여부. 기본 true(기존 동작 유지). 베이스 HUD 등은 override 로 false.
+        public virtual bool CanCloseByEsc => true;
+
         [SerializeField] private Button _backgroundButton;
         [SerializeField] private Button _backButton;
 

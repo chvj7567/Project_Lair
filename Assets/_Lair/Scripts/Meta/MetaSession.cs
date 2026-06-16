@@ -1,7 +1,8 @@
 namespace Lair.Meta
 {
     //# 씬 전환 간 프로필 공유 static 홀더. Village 진입 시 Load, Battle 은 null 이면 직접 Load (에디터 Battle 직행 안전).
-    public static class MetaSession
+    //# 연동 핸들·플래그는 MetaSession.Net.cs (partial) 참조.
+    public static partial class MetaSession
     {
         public static MetaProfile Profile;
         public static MetaProfileStore Store;

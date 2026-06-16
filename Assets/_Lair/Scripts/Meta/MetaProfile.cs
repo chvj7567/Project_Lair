@@ -21,6 +21,8 @@ namespace Lair.Meta
         public int TotalWins;
         public float BestClearTime = -1f;                        //# 승리 최단 시간(초). 없으면 -1
         public string SelectedHero = "Knight";                   //# EHero.ToString()
+        //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
+        public string DisplayName;
 
         //# 리스트 탐색 — 없으면 0 (미구매).
         public int GetShopLevel(string itemId)
@@ -45,6 +47,37 @@ namespace Lair.Meta
                 }
             }
             ShopLevels.Add(new ShopLevelEntry { ItemId = itemId, Level = level });
+        }
+
+        //# 클라우드 복원 — 서버 프로필 값을 이 인스턴스에 in-place 복사(참조 유지 → VM/View 가 보던 객체 그대로).
+        //# DisplayName 은 로컬 전용이라 복원으로 덮지 않는다(기획서 §1 — 새 기기는 기본명 시작).
+        public void CopyFrom(MetaProfile other)
+        {
+            if (other == null)
+                return;
+            Version = other.Version;
+            Souls = other.Souls;
+            LordXp = other.LordXp;
+            LordRewardGrantedLevel = other.LordRewardGrantedLevel;
+            ShopLevels = other.ShopLevels ?? new List<ShopLevelEntry>();
+            AchievedIds = other.AchievedIds ?? new List<string>();
+            SeenMonsters = other.SeenMonsters ?? new List<string>();
+            PickedCards = other.PickedCards ?? new List<string>();
+            TotalRuns = other.TotalRuns;
+            TotalWins = other.TotalWins;
+            BestClearTime = other.BestClearTime;
+            SelectedHero = other.SelectedHero;
+        }
+
+        //# 랭킹 제출 표시명 결정(기획서 §1) — DisplayName 우선, 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자).
+        //# static 헬퍼라 PlayerPrefs 의존 없이 단위 테스트 가능(deviceId 는 호출부 주입).
+        public static string ResolveDisplayName(string displayName, string deviceId)
+        {
+            if (string.IsNullOrEmpty(displayName) == false)
+                return displayName;
+            string prefix = string.IsNullOrEmpty(deviceId) ? string.Empty
+                : deviceId.Substring(0, Math.Min(4, deviceId.Length)).ToUpperInvariant();
+            return "영주 #" + prefix;
         }
 
         //# 도감 누적용 — 중복 없이 추가.

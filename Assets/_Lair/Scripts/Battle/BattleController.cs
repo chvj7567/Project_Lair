@@ -5,6 +5,7 @@ using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
+using Lair.Net;
 using Lair.UI;
 using UnityEngine;
 
@@ -922,6 +923,8 @@ namespace Lair.Battle
                     {
                         profile.BestClearTime = _clock.Elapsed;
                     }
+                    //# 최단 클리어 랭킹 제출(best-effort) — 클리어타임 = 영웅 처치까지 경과(낮을수록 상위).
+                    SubmitRanking(profile);
                 }
 
                 //# 도감 — 이번 판 등장 종 + 픽 카드 누적 (distinct).
@@ -966,6 +969,22 @@ namespace Lair.Battle
                 LordRewardSouls = lordRewardSouls,
                 NewlyAchieved = newlyAchieved,
             });
+        }
+
+        //# 승리 시 랭킹 제출 — fire-and-forget. 실패해도 결과창 흐름 차단 안 함(기획서 §6 무음 로그).
+        //# 표시명: MetaProfile.DisplayName 우선, 없으면 "영주 #"+deviceId 앞4자 대문자(Delta 1 / 기획서 §1).
+        private async void SubmitRanking(MetaProfile profile)
+        {
+            if (MetaSession.Ranking == null)
+                return;
+            int clearMs = Mathf.RoundToInt(_clock.Elapsed * 1000f);
+            string hero = profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false
+                ? profile.SelectedHero
+                : EHero.Knight.ToString();
+            string name = MetaProfile.ResolveDisplayName(
+                profile != null ? profile.DisplayName : null,
+                AuthTokenStore.GetOrCreateDeviceId());
+            await MetaSession.Ranking.SubmitAsync(clearMs, hero, name);
         }
 
         //# v0.2 메타 — 영웅 최대 HP 대비 깎은 비율 0~1 (패배 부분 보상 입력).

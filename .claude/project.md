@@ -16,8 +16,8 @@
 ## 컨셉 / 단계
 
 - **concept_doc**: `docs/design/project_lair_concept.md`
-- **stage**: v0.2
-- **stage_goal**: 런 사이 메타 성장이 재방문 동기를 만드는가
+- **stage**: v0.3
+- **stage_goal**: 클라우드 계정·세이브·리더보드(서버 연동)가 재방문·기기이전·경쟁 동기를 강화하는가
 - **concept_sections** — 컨셉서 § 단축키
   - **stage_scope**: 11 (단계 범위)
   - **balancing**: 8 (밸런싱 기준)

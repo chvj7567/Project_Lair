@@ -5,6 +5,7 @@ using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
+using Lair.Net;
 using Lair.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -28,6 +29,9 @@ namespace Lair.Village
 
             MetaProfile profile = MetaSession.GetOrLoad();
             _vm = new VillageViewModel(profile, _metaConfig);
+
+            //# 클라우드 연동 보장(best-effort) — 실패해도 마을은 정상 동작(기획서 §6 무음).
+            await MetaSession.EnsureNetworkAsync();
 
             await SpawnIdleHero();
 
@@ -146,7 +150,95 @@ namespace Lair.Village
                         Config = _metaConfig,
                     });
                     break;
+
+                case EUI.RankingPopup:
+                    await CHMUI.Instance.ShowUIAsync(EUI.RankingPopup, new RankingPopupArg
+                    {
+                        Ranking = MetaSession.Ranking,
+                        MyAccountId = AuthTokenStore.AccountId,
+                        MyBestClearTime = profile.BestClearTime,
+                    });
+                    break;
+
+                case EUI.CloudPopup:
+                    await OpenCloud(profile);
+                    break;
             }
+        }
+
+        //# 클라우드 팝업 — 연결상태/표시명/복원/충돌 권유를 콜백으로 주입(기획서 §5).
+        private async Task OpenCloud(MetaProfile profile)
+        {
+            //# 충돌 권유는 세션당 1회만 노출(기획서 §3) — 게이트 판정·플래그 set 은 MetaSession 으로 추출.
+            bool showConflict = MetaSession.TryConsumeConflictPrompt();
+
+            await CHMUI.Instance.ShowUIAsync(EUI.CloudPopup, new CloudPopupArg
+            {
+                IsConnected = MetaSession.IsCloudConnected,
+                DisplayName = profile.DisplayName,
+                ConflictPending = showConflict,
+                OnRestore = RestoreFromCloud,
+                OnChangeName = ChangeDisplayName,
+                OnConflictRestore = RestoreFromCloud,
+                OnConflictLater = () => { },   //# 로컬 유지·배지 유지(기획서 §3)
+            });
+        }
+
+        //# 표시명 변경(기획서 §1) — 1~12자(trim 후), 빈값이면 거부 토스트.
+        private void ChangeDisplayName(string name)
+        {
+            string trimmed = name != null ? name.Trim() : string.Empty;
+            if (string.IsNullOrEmpty(trimmed))
+            {
+                ToastView.Show("표시명을 입력해 주세요.");
+                return;
+            }
+            if (trimmed.Length > 12)
+                trimmed = trimmed.Substring(0, 12);
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            profile.DisplayName = trimmed;
+            HandleProfileChanged();
+            ToastView.Show("표시명을 변경했습니다.");
+        }
+
+        //# 수동 복원(기획서 §2) — 먼저 GET /save 존재 확인 → 없으면 토스트만, 있으면 확인 다이얼로그 후 덮어쓰기.
+        private async void RestoreFromCloud()
+        {
+            if (MetaSession.Cloud == null)
+            {
+                ToastView.Show("오프라인 상태입니다. 클라우드 기능을 사용할 수 없습니다.");
+                return;
+            }
+
+            MetaProfile cloud = await MetaSession.Cloud.RestoreAsync();
+            if (cloud == null)
+            {
+                //# 헛경고 방지 — 데이터 없으면 확인 다이얼로그 생략(기획서 §2·§7).
+                ToastView.Show("클라우드에 저장된 데이터가 없습니다.");
+                return;
+            }
+
+            await CHMUI.Instance.ShowUIAsync(EUI.ConfirmPopup, new ConfirmPopupArg
+            {
+                Title = "클라우드에서 복원",
+                Message = "클라우드 저장 데이터로 현재 진행을 덮어씁니다. 지금 기기의 진행이 사라질 수 있습니다. 복원할까요?",
+                ConfirmLabel = "복원",
+                CancelLabel = "취소",
+                OnConfirm = () => ApplyRestoredProfile(cloud),
+            });
+        }
+
+        //# 복원 적용 — 참조 유지 위해 in-place 복사(VM/HUD 가 보던 객체 그대로) + 저장 + VM 갱신.
+        private void ApplyRestoredProfile(MetaProfile cloud)
+        {
+            MetaProfile profile = MetaSession.GetOrLoad();
+            profile.CopyFrom(cloud);
+            MetaSession.Store?.Save(profile);
+            //# 복원 성공 — 충돌 해소.
+            MetaSession.CloudConflictPending = false;
+            _vm?.NotifyProfileChanged();
+            ToastView.Show("클라우드에서 복원했습니다.");
         }
 
         //# 도감 — 카드 풀 2종을 로드해 전체 카드 목록을 Arg 로 전달 (조우/픽 판정은 프로필).
@@ -168,11 +260,24 @@ namespace Lair.Village
             });
         }
 
-        //# 상점 구매 등 프로필 변경 시 — 즉시 저장 (spec §5.7) + 상단바 갱신.
+        //# 상점 구매 등 프로필 변경 시 — 즉시 저장 (spec §5.7) + 상단바 갱신 + 클라우드 백업(best-effort).
         private void HandleProfileChanged()
         {
             MetaSession.Store?.Save(MetaSession.Profile);
             _vm?.NotifyProfileChanged();
+            BackupToCloud();
+        }
+
+        //# fire-and-forget 백업 — 실패/충돌은 무음(게임 흐름 차단 금지, 기획서 §6). 409 는 배지 플래그 set(§3).
+        private async void BackupToCloud()
+        {
+            if (MetaSession.Cloud == null)
+                return;
+            CloudSaveResult result = await MetaSession.Cloud.BackupAsync(MetaSession.Profile);
+            if (result == CloudSaveResult.Conflict)
+            {
+                MetaSession.CloudConflictPending = true;
+            }
         }
 
         private void HandleHeroSelected(EHero hero)

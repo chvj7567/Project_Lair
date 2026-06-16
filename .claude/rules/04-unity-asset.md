@@ -58,3 +58,27 @@ Assets/_Lair/Art/Cards/Items/SlimeHpBoost.asset
 에셋 파일명 = Enum 값명 (대소문자 일치) — Rule 03 §2 참조.
 
 **비대상** (Art 밖): `Scripts/`, `Scenes/`, `Editor/`, `Tests/`, `Data/Fonts/`
+
+---
+
+## 3. 프리팹 생성 에디터 툴 — 생성 후 삭제 (일회용)
+
+프리팹을 **코드로 찍어내는 에디터 툴**(예: `*PrefabBuilder` / `Lair/Build/...` 메뉴)은 **프리팹을 생성한 직후 삭제**한다. 레포에 영구 보존하지 않는다.
+
+- **단일 진실은 생성된 프리팹(.prefab + .meta)** 이다 — 빌더가 아니다. 생성 후 프리팹을 직접 수정/관리한다.
+- 빌더를 남겨두면 (a) 실수로 재실행 시 손-편집한 프리팹을 덮어쓰고(clobber), (b) "빌더 vs 프리팹" 두 진실이 갈린다. 그래서 일회용으로 쓰고 지운다.
+- 프리팹 구조를 다시 찍어야 하면 그때 빌더를 재작성해 한 번 돌리고 다시 삭제한다.
+- 삭제 대상은 **프리팹 *생성*(authoring) 툴 한정.** 빌드/파이프라인 상시 툴(예: `LairPlayerBuilder` APK 빌드, `LairAddressableBuilder` Addressables 빌드)은 반복 사용하므로 **보존**한다.
+
+```
+//# (O) 생성 → 커밋엔 프리팹만, 빌더는 삭제
+LairServerUIPrefabBuilder.cs 실행 → ConfirmPopup/ToastView/... .prefab 생성
+→ 프리팹 5종 + .meta 커밋, LairServerUIPrefabBuilder.cs 는 삭제
+
+//# (X) 빌더를 레포에 영구 보존 → 재실행 clobber 위험 + 이중 진실
+```
+
+체크리스트:
+- [ ] 이 에디터 툴이 프리팹을 *생성*하는 일회용 authoring 툴인가? → 생성 후 삭제
+- [ ] 생성된 프리팹·.meta 가 커밋되고 Addressable 등록까지 끝났는가? (Rule 03 §2)
+- [ ] 상시 빌드/파이프라인 툴(APK·Addressables 빌드 등)은 아닌가? → 그건 보존
