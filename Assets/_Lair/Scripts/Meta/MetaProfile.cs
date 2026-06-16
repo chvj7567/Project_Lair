@@ -80,6 +80,20 @@ namespace Lair.Meta
             return "영주 #" + prefix;
         }
 
+        //# 표시명 입력 검증/절삭(기획서 §1) — null/빈값(trim 후)=거부(null 반환). 그 외 trim + 12자 절삭한 확정 표시명 반환. 부수효과 0(순수).
+        //# ResolveDisplayName 과 구분 — 저쪽은 랭킹 제출용 기본명 폴백, 이쪽은 사용자 입력 검증.
+        public static string NormalizeDisplayName(string raw)
+        {
+            string trimmed = raw != null ? raw.Trim() : string.Empty;
+            if (string.IsNullOrEmpty(trimmed))
+                return null;
+            if (trimmed.Length > 12)
+            {
+                trimmed = trimmed.Substring(0, 12);
+            }
+            return trimmed;
+        }
+
         //# 도감 누적용 — 중복 없이 추가.
         public void AddDistinct(List<string> list, string value)
         {

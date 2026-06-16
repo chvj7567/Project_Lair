@@ -184,22 +184,22 @@ namespace Lair.Village
             });
         }
 
-        //# 표시명 변경(기획서 §1) — 1~12자(trim 후), 빈값이면 거부 토스트.
-        private void ChangeDisplayName(string name)
+        //# 표시명 변경(기획서 §1) — 검증/절삭은 MetaProfile.NormalizeDisplayName 에 위임, 컨트롤러는 결과로 분기만.
+        //# 확정 표시명 반환(거부 시 null) → 팝업 라벨 갱신.
+        private string ChangeDisplayName(string name)
         {
-            string trimmed = name != null ? name.Trim() : string.Empty;
-            if (string.IsNullOrEmpty(trimmed))
+            string normalized = MetaProfile.NormalizeDisplayName(name);
+            if (string.IsNullOrEmpty(normalized))
             {
                 ToastView.Show("표시명을 입력해 주세요.");
-                return;
+                return null;
             }
-            if (trimmed.Length > 12)
-                trimmed = trimmed.Substring(0, 12);
 
             MetaProfile profile = MetaSession.GetOrLoad();
-            profile.DisplayName = trimmed;
+            profile.DisplayName = normalized;
             HandleProfileChanged();
             ToastView.Show("표시명을 변경했습니다.");
+            return normalized;
         }
 
         //# 수동 복원(기획서 §2) — 먼저 GET /save 존재 확인 → 없으면 토스트만, 있으면 확인 다이얼로그 후 덮어쓰기.

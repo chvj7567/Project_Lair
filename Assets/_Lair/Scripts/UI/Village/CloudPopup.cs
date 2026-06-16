@@ -13,7 +13,7 @@ namespace Lair.UI
         public string DisplayName;        //# 현재 표시명(빈 값이면 기본명 표기)
         public bool ConflictPending;      //# 충돌 권유 영역 노출 여부(기획서 §3)
         public Action OnRestore;          //# "복원" 클릭 — VillageController 가 §2 플로우 수행
-        public Action<string> OnChangeName;  //# 표시명 변경 확정(trim 된 값 또는 빈문자)
+        public Func<string, string> OnChangeName;  //# 표시명 변경 확정 — 컨트롤러가 확정값 반환(거부 시 null/빈문자)
         public Action OnConflictRestore;  //# 충돌 권유 "클라우드로 복원" 클릭
         public Action OnConflictLater;    //# 충돌 권유 "나중에" 클릭
     }
@@ -55,11 +55,15 @@ namespace Lair.UI
 
             if (_nameConfirmButton != null)
             {
-                Action<string> onChange = cloudArg.OnChangeName;
+                Func<string, string> onChange = cloudArg.OnChangeName;
                 _nameConfirmButton.OnClick(() =>
                 {
                     string typed = _nameInput != null ? _nameInput.text : string.Empty;
-                    onChange?.Invoke(typed != null ? typed.Trim() : string.Empty);
+                    //# 컨트롤러가 확정값 반환 — 빈값/null 은 거부. 거부면 라벨 불변·편집창 유지.
+                    string accepted = onChange?.Invoke(typed != null ? typed.Trim() : string.Empty);
+                    if (string.IsNullOrEmpty(accepted))
+                        return;
+                    RefreshDisplayName(accepted);
                     SetNameEditActive(false);
                 }, closeDisposable);
             }
@@ -84,6 +88,9 @@ namespace Lair.UI
 
         private void SetNameEditActive(bool active)
         {
+            //# 열 때 인풋 클리어 — 이전 입력값 잔류 방지(placeholder 는 그대로 노출).
+            if (active && _nameInput != null)
+                _nameInput.text = string.Empty;
             if (_nameEditGroup != null)
                 _nameEditGroup.SetActive(active);
         }
