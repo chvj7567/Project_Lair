@@ -18,6 +18,7 @@ namespace Lair.UI
     //# 마을 상단바(소울/이름/영주 Lv+게이지) + 좌우 메뉴 6종 + 하단 출격. 표시·입력만 (Rule 02 §6).
     public class VillageHud : UIBase
     {
+        [SerializeField] private CHText _displayNameText; //# 상단 — 플레이어 닉네임(표시명)
         [SerializeField] private CHText _soulText;        //# 좌 — "1,234 소울"
         [SerializeField] private CHText _lordLevelText;   //# 우 — "영주 Lv 3"
         [SerializeField] private Image _lordXpFill;       //# 우 — XP 게이지 fill
@@ -90,6 +91,10 @@ namespace Lair.UI
         {
             if (_vm == null)
                 return;
+            if (_displayNameText != null)
+            {
+                _displayNameText.SetText(_vm.DisplayName);
+            }
             if (_soulText != null)
             {
                 _soulText.SetText($"{_vm.Souls:N0} 소울");

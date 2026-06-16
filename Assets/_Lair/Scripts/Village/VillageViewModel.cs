@@ -19,6 +19,9 @@ namespace Lair.Village
             _config = config;
         }
 
+        //# 상단바 표시명(기획서 §1) — DisplayName 우선, 빈 값이면 기본명. 해석은 헬퍼에 위임(View 는 표시만, Rule 02 §6).
+        public string DisplayName => MetaProfile.ResolveDisplayName(_profile != null ? _profile.DisplayName : null, Lair.Net.AuthTokenStore.GetOrCreateDeviceId());
+
         public int Souls => _profile != null ? _profile.Souls : 0;
         public int LordLevel => LordLevelService.LevelFromXp(_profile != null ? _profile.LordXp : 0, _config);
         public float LordProgress => LordLevelService.ProgressInLevel(_profile != null ? _profile.LordXp : 0, _config);
