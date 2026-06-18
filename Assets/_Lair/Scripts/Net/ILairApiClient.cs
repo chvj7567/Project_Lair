@@ -19,6 +19,8 @@ namespace Lair.Net
         Task<List<RankingRowDto>> GetTopAsync(int top);
         //# 내 순위 ±주변 — 실패면 빈 리스트.
         Task<List<RankingRowDto>> GetMyRankAsync();
+        //# 표시명 변경 — 서버 권위 중복 체크. 결과(성공/중복/유효하지않음/오프라인)와 확정 이름 반환.
+        Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName);
     }
 
     //# PutSave 결과 — 409(서버가 더 최신)를 호출부가 구분하도록.
@@ -27,5 +29,29 @@ namespace Lair.Net
         Success,
         Conflict,
         Failed,
+    }
+
+    //# 표시명 변경 결과 코드 — 200/409/400/오프라인(네트워크오류·미인증)을 호출부가 분기.
+    public enum DisplayNameStatus
+    {
+        Success,   //# 200 — Name 에 서버 정규화 이름
+        Taken,     //# 409 name_taken
+        Invalid,   //# 400 invalid_name
+        Offline,   //# 네트워크 오류/미인증/오프라인
+    }
+
+    //# 표시명 변경 결과 — 상태 + 성공 시 서버가 돌려준 확정 이름. JsonUtility 비경유라 record 안전.
+    public readonly struct DisplayNameResult
+    {
+        public readonly DisplayNameStatus Status;
+        public readonly string Name;
+
+        public DisplayNameResult(DisplayNameStatus status, string name)
+        {
+            Status = status;
+            Name = name;
+        }
+
+        public static DisplayNameResult Of(DisplayNameStatus status) => new DisplayNameResult(status, null);
     }
 }

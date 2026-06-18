@@ -16,6 +16,8 @@ namespace Lair.Tests.EditMode
         public int LastSubmittedMs = -1;
         public string LastSubmittedName;
         public List<RankingRowDto> TopToReturn = new List<RankingRowDto>();
+        public DisplayNameResult ChangeNameResultToReturn = new DisplayNameResult(DisplayNameStatus.Success, "영주");
+        public string LastChangeNameArg;
 
         public Task<bool> AuthenticateAsync() => Task.FromResult(AuthResult);
         public Task<SaveResponseBody> GetSaveAsync() => Task.FromResult(SaveToReturn);
@@ -32,5 +34,10 @@ namespace Lair.Tests.EditMode
         }
         public Task<List<RankingRowDto>> GetTopAsync(int top) => Task.FromResult(TopToReturn);
         public Task<List<RankingRowDto>> GetMyRankAsync() => Task.FromResult(TopToReturn);
+        public Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName)
+        {
+            LastChangeNameArg = displayName;
+            return Task.FromResult(ChangeNameResultToReturn);
+        }
     }
 }

@@ -80,6 +80,46 @@ namespace Lair.Net
             return ParseRows(res);
         }
 
+        //# 표시명 변경 — authed POST(기존 /leaderboard/submit 와 동일 패턴). 상태코드로 권위 판정 분기.
+        public async Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName)
+        {
+            DisplayNameRequestBody body = new DisplayNameRequestBody { displayName = displayName };
+            CHHttpResult res = await CHMHttpNetwork.PostAsync(Url("/account/displayname"), JsonUtility.ToJson(body), AuthTokenStore.Token, Timeout);
+
+            if (res.IsSuccess)
+                return ParseDisplayName(res);
+
+            if (res.IsConflict)
+                return DisplayNameResult.Of(DisplayNameStatus.Taken);
+            if (res.StatusCode == 400)
+                return DisplayNameResult.Of(DisplayNameStatus.Invalid);
+
+            //# 네트워크 오류(StatusCode 0)·401 미인증·5xx 등 — 오프라인 버킷으로 통합(흐름 차단 금지).
+            Debug.LogWarning($"[LairApiClient] 표시명 변경 실패: {res.StatusCode} {res.Error}");
+            return DisplayNameResult.Of(DisplayNameStatus.Offline);
+        }
+
+        //# 200 응답 본문 파싱. 빈/malformed 본문은 JsonUtility 가 예외를 던지므로 try/catch 로 감싸 Offline fallback(ParseRows 와 동일 패턴).
+        //# "200 인데 본문 비정상" 은 라벨 불변·편집창 유지가 되도록 Offline 버킷.
+        public static DisplayNameResult ParseDisplayName(CHHttpResult res)
+        {
+            try
+            {
+                DisplayNameResponseBody parsed = JsonUtility.FromJson<DisplayNameResponseBody>(res.Body);
+                if (parsed == null || string.IsNullOrEmpty(parsed.displayName))
+                {
+                    Debug.LogWarning("[LairApiClient] 표시명 변경 200 응답 본문 파싱 실패");
+                    return DisplayNameResult.Of(DisplayNameStatus.Offline);
+                }
+                return new DisplayNameResult(DisplayNameStatus.Success, parsed.displayName);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[LairApiClient] 표시명 변경 200 응답 본문 파싱 예외 — 오프라인 취급: {e.Message}");
+                return DisplayNameResult.Of(DisplayNameStatus.Offline);
+            }
+        }
+
         //# 서버가 최상위 JSON 배열을 반환하므로 래퍼로 감싸 JsonUtility 파싱.
         //# malformed body 는 JsonUtility 가 예외를 던지므로 try/catch 로 감싸 빈 리스트 fallback(기획서 §6 흐름 차단 금지).
         private static List<RankingRowDto> ParseRows(CHHttpResult res)

@@ -1,5 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using ChvjUnityInfra;
+using Lair.Net;
 using TMPro;
 using UnityEngine;
 
@@ -13,7 +15,8 @@ namespace Lair.UI
         public string DisplayName;        //# 현재 표시명(빈 값이면 기본명 표기)
         public bool ConflictPending;      //# 충돌 권유 영역 노출 여부(기획서 §3)
         public Action OnRestore;          //# "복원" 클릭 — VillageController 가 §2 플로우 수행
-        public Func<string, string> OnChangeName;  //# 표시명 변경 확정 — 컨트롤러가 확정값 반환(거부 시 null/빈문자)
+        //# 표시명 변경 — 서버 왕복(async). 컨트롤러가 권위 판정 후 결과 반환(Success 면 Name 에 서버 정규화 이름).
+        public Func<string, Task<DisplayNameResult>> OnChangeName;
         public Action OnConflictRestore;  //# 충돌 권유 "클라우드로 복원" 클릭
         public Action OnConflictLater;    //# 충돌 권유 "나중에" 클릭
     }
@@ -35,6 +38,9 @@ namespace Lair.UI
         [SerializeField] private CHButton _conflictLaterButton;
         [SerializeField] private GameObject _conflictDot;    //# 빨간 dot 배지
 
+        //# 표시명 변경 서버 왕복 중 중복 클릭 차단(재진입 가드).
+        private bool _isChangingName;
+
         public override void InitUI(UIArg arg)
         {
             CloudPopupArg cloudArg = arg as CloudPopupArg;
@@ -55,17 +61,8 @@ namespace Lair.UI
 
             if (_nameConfirmButton != null)
             {
-                Func<string, string> onChange = cloudArg.OnChangeName;
-                _nameConfirmButton.OnClick(() =>
-                {
-                    string typed = _nameInput != null ? _nameInput.text : string.Empty;
-                    //# 컨트롤러가 확정값 반환 — 빈값/null 은 거부. 거부면 라벨 불변·편집창 유지.
-                    string accepted = onChange?.Invoke(typed != null ? typed.Trim() : string.Empty);
-                    if (string.IsNullOrEmpty(accepted))
-                        return;
-                    RefreshDisplayName(accepted);
-                    SetNameEditActive(false);
-                }, closeDisposable);
+                Func<string, Task<DisplayNameResult>> onChange = cloudArg.OnChangeName;
+                _nameConfirmButton.OnClick(() => OnClickConfirmName(onChange), closeDisposable);
             }
 
             if (_restoreButton != null)
@@ -75,6 +72,38 @@ namespace Lair.UI
             }
 
             SetupConflict(cloudArg);
+        }
+
+        //# 표시명 변경 확정 클릭 — 서버 왕복(async). 입력·분기만 담당(검증·토스트·상태변경은 컨트롤러).
+        //# Success 면 서버 확정 이름으로 라벨 갱신 + 편집창 닫기, 그 외(중복/유효하지않음/오프라인)는 편집창 유지.
+        private async void OnClickConfirmName(Func<string, Task<DisplayNameResult>> onChange)
+        {
+            if (onChange == null || _isChangingName)
+                return;
+
+            _isChangingName = true;
+            SetConfirmInteractable(false);
+
+            string typed = _nameInput != null ? _nameInput.text : string.Empty;
+            DisplayNameResult result = await onChange.Invoke(typed != null ? typed.Trim() : string.Empty);
+
+            //# 왕복 중 팝업이 닫혀 Destroy 됐을 수 있다 — Unity 의 destroyed 체크(this == null) 후 위젯 접근 금지.
+            if (this == null)
+                return;
+
+            _isChangingName = false;
+            SetConfirmInteractable(true);
+            if (result.Status != DisplayNameStatus.Success)
+                return;
+            RefreshDisplayName(result.Name);
+            SetNameEditActive(false);
+        }
+
+        private void SetConfirmInteractable(bool interactable)
+        {
+            if (_nameConfirmButton == null)
+                return;
+            _nameConfirmButton.Interactable = interactable;
         }
 
         //# 표시명 라벨 갱신 — 빈 값이면 안내(기본명 자체는 제출 시 결정, 여기선 미설정 표기).

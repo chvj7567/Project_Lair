@@ -184,22 +184,46 @@ namespace Lair.Village
             });
         }
 
-        //# 표시명 변경(기획서 §1) — 검증/절삭은 MetaProfile.NormalizeDisplayName 에 위임, 컨트롤러는 결과로 분기만.
-        //# 확정 표시명 반환(거부 시 null) → 팝업 라벨 갱신.
-        private string ChangeDisplayName(string name)
+        //# 표시명 변경(기획서 §1) — 1차 로컬 가드(NormalizeDisplayName)로 빈값 거부 후, 서버 권위 중복 체크 호출.
+        //# 200 만 로컬 DisplayName 반영 + 성공 토스트. 409/400/오프라인은 실패 통지(라벨 불변·편집창 유지).
+        private async Task<DisplayNameResult> ChangeDisplayName(string name)
         {
+            //# 1차 가드 — 빈/공백은 왕복 없이 거부(서버 400 과 동일 UX).
             string normalized = MetaProfile.NormalizeDisplayName(name);
             if (string.IsNullOrEmpty(normalized))
             {
-                ToastView.Show("표시명을 입력해 주세요.");
-                return null;
+                ToastView.Show("표시명을 확인해 주세요.");
+                return DisplayNameResult.Of(DisplayNameStatus.Invalid);
             }
 
-            MetaProfile profile = MetaSession.GetOrLoad();
-            profile.DisplayName = normalized;
-            HandleProfileChanged();
-            ToastView.Show("표시명을 변경했습니다.");
-            return normalized;
+            //# 오프라인 단축 — Api 미구성이면 doomed 요청 없이 즉시 오프라인 통지(RestoreFromCloud 와 동일 가드 패턴).
+            if (MetaSession.Api == null)
+            {
+                ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                return DisplayNameResult.Of(DisplayNameStatus.Offline);
+            }
+
+            DisplayNameResult result = await MetaSession.Api.ChangeDisplayNameAsync(normalized);
+            switch (result.Status)
+            {
+                case DisplayNameStatus.Success:
+                    MetaProfile profile = MetaSession.GetOrLoad();
+                    //# 서버가 돌려준 정규화 이름을 권위값으로 반영(로컬 normalized 가 아님).
+                    profile.DisplayName = result.Name;
+                    HandleProfileChanged();
+                    ToastView.Show("표시명을 변경했습니다.");
+                    break;
+                case DisplayNameStatus.Taken:
+                    ToastView.Show("이미 사용 중인 이름입니다.");
+                    break;
+                case DisplayNameStatus.Invalid:
+                    ToastView.Show("표시명을 확인해 주세요.");
+                    break;
+                default:
+                    ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                    break;
+            }
+            return result;
         }
 
         //# 수동 복원(기획서 §2) — 먼저 GET /save 존재 확인 → 없으면 토스트만, 있으면 확인 다이얼로그 후 덮어쓰기.

@@ -9,8 +9,8 @@ namespace Lair.UI
     public class RankingPopupArg : UIArg
     {
         public RankingClient Ranking;
-        //# "내 행" 1차 식별 키(기획서 §4·§8). 현 서버 DTO(RankingRowDto)에 accountId 가 없어 매칭에 아직 못 쓴다 —
-        //# DTO 에 accountId 가 추가되면 1차 키로 사용. 그 전까지는 아래 BestClearTime fallback 만 동작.
+        //# "내 행" 1차 식별 키(기획서 §4·§8). 서버 DTO 의 accountId 와 일치하는 행이 내 행.
+        //# 미로그인(0) 이거나 구서버 응답(accountId 0)이면 아래 BestClearTime 시간 폴백 사용.
         public long MyAccountId;
         public float MyBestClearTime;   //# accountId 미식별 시 fallback(초). 없으면 -1(MetaProfile.BestClearTime).
     }
@@ -48,10 +48,11 @@ namespace Lair.UI
             //# Top 100 행 매핑 — "내 행" 표시(기획서 §4: accountId 1차, 없으면 BestClearTime 일치 fallback).
             List<RankingRowEntry> entries = new List<RankingRowEntry>();
             bool foundMineInTop = false;
+            long myAccountId = arg.MyAccountId;
             int myClearMs = arg.MyBestClearTime > 0f ? Mathf.RoundToInt(arg.MyBestClearTime * 1000f) : -1;
             foreach (RankingRowDto row in top)
             {
-                bool isMine = IsMyRow(row, myClearMs, foundMineInTop);
+                bool isMine = IsMyRow(row, myAccountId, myClearMs, foundMineInTop);
                 if (isMine)
                     foundMineInTop = true;
                 entries.Add(new RankingRowEntry { Row = row, IsMine = isMine });
@@ -61,7 +62,7 @@ namespace Lair.UI
             if (foundMineInTop == false)
             {
                 List<RankingRowDto> mine = await arg.Ranking.GetMyRankAsync();
-                RankingRowDto myRow = PickMyRow(mine, myClearMs);
+                RankingRowDto myRow = PickMyRow(mine, myAccountId, myClearMs);
                 if (myRow != null)
                     entries.Add(new RankingRowEntry { Row = myRow, IsMine = true });
             }
@@ -69,20 +70,32 @@ namespace Lair.UI
             _scrollView.SetItemList(entries);
         }
 
-        //# accountId 가 DTO 에 없으므로(현 계약) clearTimeMs 일치로 내 행 식별 — 내 기록은 1건뿐이라 유일.
-        //# 동률 시 첫 매칭만 내 행으로(중복 강조 방지).
-        private static bool IsMyRow(RankingRowDto row, int myClearMs, bool alreadyFound)
+        //# "내 행" 식별 — accountId 1차(양쪽 식별 시 권위 키, 유일 매칭). 동률 시 첫 매칭만(중복 강조 방지).
+        //# myAccountId 0(미로그인) 또는 row.accountId 0(구서버)이면 clearTimeMs 시간 폴백 — 하위호환.
+        private static bool IsMyRow(RankingRowDto row, long myAccountId, int myClearMs, bool alreadyFound)
         {
-            if (alreadyFound || myClearMs < 0 || row == null)
+            if (alreadyFound || row == null)
+                return false;
+            if (myAccountId > 0 && row.accountId > 0)
+                return row.accountId == myAccountId;
+            if (myClearMs < 0)
                 return false;
             return row.clearTimeMs == myClearMs;
         }
 
-        //# /me 응답에서 내 행 1개 선택 — 시간 일치 우선, 없으면 첫 행.
-        private static RankingRowDto PickMyRow(List<RankingRowDto> rows, int myClearMs)
+        //# /me 응답에서 내 행 1개 선택 — accountId 일치 우선, 없으면 시간 일치, 그래도 없으면 첫 행.
+        private static RankingRowDto PickMyRow(List<RankingRowDto> rows, long myAccountId, int myClearMs)
         {
             if (rows == null || rows.Count == 0)
                 return null;
+            if (myAccountId > 0)
+            {
+                foreach (RankingRowDto row in rows)
+                {
+                    if (row != null && row.accountId == myAccountId)
+                        return row;
+                }
+            }
             if (myClearMs >= 0)
             {
                 foreach (RankingRowDto row in rows)
