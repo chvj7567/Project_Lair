@@ -615,7 +615,7 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 - `SwarmSynergyTier2` — ctx.ScaleAllSpawnerPeriods(0.85f)
 - `SwarmSynergyTier3` — ctx.IncrementAllSpawnerOutputs(1)
 
-> `EternalBleedAura` 는 `BleedAura` 의 *ratio 0.01 / duration -1 (무제한)* 변형. **디자인 결정**: ratio 0.01 / 무제한 지속 / 영웅 이동 시 발동 조건은 본 기획이 단정. **시스템 구현 결정 영역**: 기존 `BleedAura` 의 ratio 필드 파라미터화로 재사용할지 신규 `EternalBleedAura` 클래스를 만들지의 선택.
+> `EternalBleedAura` 는 `BleedAura` 의 *ratio 0.01 / duration -1 (무제한)* 변형. **디자인 결정**: ratio 0.01 / 무제한 지속 / 영웅 이동 시 발동 조건은 본 기획이 단정. **구현 결과**: 신규 `EternalBleedAura` 클래스로 구현 완료 (`Assets/_Lair/Scripts/Card/Auras/EternalBleedAura.cs` — `DebuffSynergyTier3` 가 부착).
 
 ### 10.4 카드 효과 클래스 — 신규/리뉴얼 5개
 
@@ -822,7 +822,7 @@ private static readonly Dictionary<EBuildAxis, Color> AxisBorderColor = new Dict
 - **두 갈래 위임**:
   - `MonsterBuffService` 구현 옵션 (i)/(ii) — *system 구현 결정* 으로 명시 (디자인 결정 영역 아님). 디자인 결정 (Wisp·Wraith 한정) 은 단정.
   - `MarkOfDeath` IHealth 표면 구현 옵션 (i)/(ii) — *system 구현 결정* 으로 명시. 디자인 결정 (×1.5 + Mark 부착 중 적용) 은 단정.
-  - `EternalBleedAura` 기존 BleedAura 재사용 여부 — *system 구현 결정* 으로 명시 (효과 ratio 0.01 / 무제한 은 단정).
+  - `EternalBleedAura` 기존 BleedAura 재사용 여부 — *system 구현 결정* 으로 명시 (효과 ratio 0.01 / 무제한 은 단정). → **현행: 신규 `EternalBleedAura` 클래스로 구현 완료.**
   - 씬 Spawner #4 GameObject 정확 경로 — *씬 검수 시 확정* (디자인 결정은 위치 (-14.0, 0.0) 단정).
   - → 디자인 결정 영역에서 두 갈래 위임 0건.
 - **본문 비움 참조**: 0건. 모든 § 가 결정값 본문 작성.

@@ -11,8 +11,8 @@ tools: Read, Glob, Grep, Write, Edit
 이 에이전트는 **프로젝트별 게임 컨텍스트**를 외부 메타 파일에서 읽어 적용한다 (Rule 00). 작업 시작 시:
 
 1. `.claude/project.md` 을 읽는다 — 프로젝트 메타(이름·단계·컨셉서 경로·인프라·폴더 구조 등)
-2. `concept_doc` 키가 가리키는 **프로젝트 컨셉서** 를 읽는다 — 핵심 메커니즘 · 밸런싱 기준 · 페이싱 · 단계별 범위
-3. (필요 시) `concept_sections.<name>` § 번호로 컨셉서의 해당 섹션을 빠르게 점프 (예: `stage_scope` · `balancing` · `synergy_visibility`)
+2. `concept_doc` 키가 가리키는 **프로젝트 컨셉서** 를 읽는다 (있을 때만 — 없으면 사용자 요구·`one_liner` 를 직접 입력으로) — 핵심 메커니즘 · 기준 · 단계별 범위
+3. (`concept_sections` 키가 있을 때만) § 번호로 컨셉서의 해당 섹션을 빠르게 점프
 
 ## 역할
 
