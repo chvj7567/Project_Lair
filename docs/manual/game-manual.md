@@ -1,446 +1,456 @@
 # Project Lair — 게임 매뉴얼
 
-> 생성일: 2026-06-28 / 단계: v0.3 / 코드 진실 우선 — spec 과 충돌 시 구현 코드 기준
+> 자동 생성: 주간 스케줄 루틴 · 최종 갱신 2026-07-05
+> 코드 기준 (spec ↔ 코드 불일치 시 코드 우선)
+> 단계: v0.3 (서버 연동 클라이언트)
 
 ---
 
-## 1. 한 줄 컨셉
+## 0. 컨셉 개요
 
 **5분짜리 역방향 보스전 로그라이크.** 플레이어는 던전 주인(영주). 기사 영웅 한 명이 자동으로 던전을 돌파해 오고, 플레이어가 배치한 6종 몬스터 무리가 자동 전투한다. HP 트리거·시간 트리거마다 카드(3택 1)를 골라 덱을 쌓고, 5분 안에 영웅을 처치하면 승리.
 
----
+### 4축 빌드 정체성
 
-## 2. 게임 시작 — 씬 흐름
+| EBuildAxis | 테마 | 패시브 특징 | 액티브 특징 |
+|---|---|---|---|
+| Tank | 두꺼운 방어 라인 | HP·방어력 강화, Wraith 소환·교체 | IronWill(무적), WallOfWisps(ToughHide), GuardianRage(Berserk) |
+| Dps | 빠른 화력 | 공속·범위·Reaper 소환·교체 | Frenzy(공속), BloodThirst(피흡), MarkOfDeath(5s 표식) |
+| Debuff | 디버프 지속압박 | 둔화·Plague 소환·독 장판·공격력 하향 | Fear(3s), Bleed(10s/무기한), Weaken(10s) |
+| Swarm | 물량 공세 | 이동속도·Phantom·Wisp 소환·스포너 가속 | TimeStop(5s), Multiply(분열), Slow(10s) |
 
-```
-앱 시작 → Loading → Village (마을 허브) → 출격 → Battle (5분 런)
-              ↑                                        │
-              └── 결과 팝업 (소울 +N · XP +N 보상 요약) ──┘
-```
-
-### Loading 씬
-
-`LoadingHud` 컴포넌트가 씬에 직접 배치됨 (CHMUI 미사용).
-
-| 요소 | 내용 |
-|---|---|
-| 진행률 바 | `fillAmount` 0→1 |
-| 퍼센트 텍스트 | `0%` ~ `100%` (RoundToInt) |
-| 설명 텍스트 | 단계별 로딩 메시지 |
-
-### Village 씬 (마을 허브 — v0.2+)
-
-마을이 사실상 시작 화면을 겸한다 (별도 메인 메뉴 없음).
-
-| 위치 | 요소 |
-|---|---|
-| 상단 바 좌측 | 소울(영혼석) 보유량 |
-| 상단 바 중앙 | 마을 이름 |
-| 상단 바 우측 | 영주 Lv + XP 게이지 |
-| 좌측 세로 메뉴 | 상점 · 도감 · 기록 |
-| 우측 세로 메뉴 | 영웅 · 퀘스트(도전과제) · 영주성 |
-| 하단 중앙 | **출격** 버튼 (대형) |
-| 3D 중앙 | 선택된 영웅 스켈레톤 모델 (`Skeleton_idle` 루프 재생) |
-
-**메타 저장 (`MetaProfile`)**: 소울 잔액 · 상점 레벨 · 영주 Lv/XP · 도전과제 플래그 · 도감/통계를 로컬 JSON (`Application.persistentDataPath`) 에 저장.  
-저장 시점: 보상 정산 직후 + 메타 변경 직후. v0.3 에서 클라우드 백업/복원 추가.
+카드는 패시브 4장 + 액티브 3장 = 축당 7장, 전체 28장. 같은 카드를 최대 3회 중복 픽 가능(글로벌 상한).
 
 ---
 
-## 3. 자동 전투 (Battle 씬)
+## 1. Battle 씬 진입 & 초기화
 
-### 카메라
+### 1.1 씬 고정값
 
 | 항목 | 값 |
 |---|---|
-| Position | (0, 12, -8) |
-| Rotation | (50, 0, 0) |
-| FOV | 60 |
-| Clear Color | #1F2937 |
+| 씬 이름 | `Battle` (EScene.Battle) |
+| 카메라 위치 | (0, 12, −8) |
+| 카메라 회전 | (50, 0, 0) |
+| 배경 바닥 | Plane 30×30 |
 
-### 기본 구조
+### 1.2 BattleController.Start() 순서
 
-- **영웅 (Knight)**: HP 1000. 자동 전진·공격. 플레이어가 직접 조작하지 않는다.
-- **스포너 6기**: 영웅 주변 링 형태 고정 배치. 각자 한 종(種)씩 일정 주기로 몬스터 소환.
-- **전투**: 소환된 몬스터들이 자동으로 영웅을 공격. 영웅도 자동 반격.
-- **필드 캡**: 동시 활성 몬스터 기본 18마리. Tank Tier3 시너지 달성 시 24마리로 확장.
+`BattleController`(MonoBehaviour)가 `async Start()`에서 아래 순서로 초기화한다.
 
-### 승패 조건
+1. `BattleStateModel` 생성 (결과·HP 트래킹)
+2. `BattleViewModel` 생성 (HUD 바인딩용 가공 계층)
+3. `PauseService` 생성 (depth-counted `Time.timeScale`)
+4. `BattleClock` 생성 (300s 카운트다운, OnTick 이벤트)
+5. `TriggerQueue` 생성 (Passive/Active 순차 처리)
+6. `PassiveTriggerService` 생성 → HP 이벤트 구독
+7. `ActiveTriggerService` 생성 → BattleClock.OnTick 구독
+8. Addressables 비동기 로드 — 영웅·몬스터·FX·UI 프리팹, CardPool SO
+9. CHMPool 사전 워밍 (영웅 1, 몬스터 3+, 상태 비주얼 2×6, 발사체 등)
+10. CHMUI로 BattleHud·SpawnerStatusPanel 표시, BattleClock 시작
 
-| 조건 | 결과 |
-|---|---|
-| 5분(300초) 내 영웅 HP 0 | **승리** |
-| 5분 경과, 영웅 생존 | **패배** |
+---
 
-### 타이머 표시 형식
+## 2. 자동 전투 루프
 
-`M:SS` 형식 (`Mathf.CeilToInt` 올림 적용). 예: 남은 시간 4.1초 → `0:05` 표시.
+### 2.1 타이머
 
-### 몬스터 6종
+- `BattleClock`이 매 프레임 `elapsed`(경과초)를 누적, `OnTick(elapsed)` 발행
+- HUD `_timerText`에 `Mathf.CeilToInt(300 − elapsed)` 를 MM:SS로 표시
+- 300초 도달 또는 영웅 HP ≤ 0 / 전체 HP 소진 시 전투 종료
 
-| 종 | 색 코드 | 시각 형태 | 주 축 |
+### 2.2 스포너 링 (6개)
+
+중심 (0,0,0) 기준 반경 14.0, 60° 간격으로 6개 스포너 배치.
+
+| 스포너 인덱스 | 각도 | 기본 몬스터 |
+|---|---|---|
+| 0 | 0° | Wisp |
+| 1 | 60° | Slime |
+| 2 | 120° | Wisp |
+| 3 | 180° | Golem |
+| 4 | 240° | Wisp |
+| 5 | 300° | Orc |
+
+글로벌 필드 캡: 18마리. 개별 스포너도 스폰 주기·출력 상한 존재.
+
+### 2.3 몬스터 스탯
+
+| 몬스터 | HP | 공격력 | 이동속도 | 비고 |
+|---|---|---|---|---|
+| Wisp | 80 | 10 | 3.5 | 기본 물량 |
+| Slime | 120 | 15 | 2.5 | 중간 |
+| Golem | 400 | 25 | 1.5 | 탱커 |
+| Orc | 200 | 30 | 2.0 | 중근거리 |
+| Reaper | 100 | 20 | 4.0 | 고속 DPS |
+| Wraith | 300 | 22 | 2.2 | 방어형 |
+| Phantom | 60 | 8 | 5.0 | 초고속 물량 |
+| Plague | 50 | 12 | 2.8 | 독 장판 보유 (live BalanceConfig 기준; spec 80은 구버전) |
+
+### 2.4 영웅 자동 스킬 (Hero Skills)
+
+영웅 HP 4,000. 아래 HP 비율 임계점에서 스킬 페이즈가 열린다.
+
+| 페이즈 | HP 비율 | 스킬 | 상세 |
 |---|---|---|---|
-| Wisp | #22C55E (초록) | 구체 scale 0.6 | Tank / Swarm |
-| Wraith | #6B7280 (회색) | 정육면체 scale 1.2 | Tank |
-| Reaper | #EF4444 (빨강) | 캡슐 scale 0.9 | Dps |
-| Hex | #EAB308 (노랑) | 캡슐 scale 0.8 | Dps |
-| Plague | #A855F7 (보라) | 정육면체 scale 0.5 (Y 0.3) | Debuff |
-| Phantom | #1F2937 (검정) | 구체 scale 0.3 | Swarm |
+| P1 | ≤ 85% | DashStrike | 부채꼴 ±35°, 데미지 80, 쿨다운 3.0s |
+| P2 | ≤ 65% | AoeNova | 반경 3.5, 데미지 100, 쿨다운 7.0s, 넉백 3.0 |
+| P3 | ≤ 45% | OrbitingBlade | 구체 3개 궤도 R=1.4 r=0.9, 타격 15, 간격 0.3s, 180°/s 회전 |
 
-### 스포너 상태 패널 — 하단 6셀
-
-각 셀의 표시 요소:
-
-| 요소 | 내용 |
-|---|---|
-| 종 아이콘 (중앙) | 종 스프라이트. 없으면 숨김 (테두리 색으로 폴백) |
-| 테두리 색 | 종 대표색 프레임 |
-| 종명 | 영문 (`Wisp` / `Wraith` / `Reaper` / `Hex` / `Plague` / `Phantom`) |
-| ×N 배지 | 동시 출력 2마리 이상일 때만 노출, 색 #FBBF24 (노랑) |
-| 진행 바 Fill | Cool #60A5FA ↔ Warm #F97316 (진행률 ≥70% 구간), 배경 #374151 |
-| 남은 시간 | 소수 첫째 자리 초 (`2.5s`), InvariantCulture 고정 |
-
-셀 클릭: 비활성 (v0.6.4 Tooltip 제거).
+각 페이즈는 해당 HP 이하 진입 시 영구 활성화(중첩 사용).
 
 ---
 
-## 4. 패시브 카드 (16장)
+## 3. 패시브 트리거 & 카드 픽
 
-**트리거 조건**: 영웅 HP 가 `[90%, 80%, 70%, 60%, 50%, 40%, 30%, 20%, 10%]` 임계값을 **하향 돌파**할 때마다 3택 1 팝업 발동. 최대 9회.
+### 3.1 HP 임계점 9개
 
-동시 트리거(패시브+액티브 겹침) → `TriggerQueue` 에 쌓여 FIFO 순서대로 처리.
+`PassiveTriggerService`가 영웅 HP 비율을 감시. 한 번 발동된 임계점은 재발동 없음(idempotent).
 
-### Tank 축 패시브 — Wisp(초록) / Wraith(회색)
-
-| ECardId | 효과 요약 |
-|---|---|
-| WispHpBoost | Wisp HP 상시 증가 |
-| WraithDamageBoost | Wraith HP 상시 증가 (v0.6 효과 리뉴얼) |
-| SpawnWraith | Wraith 스포너 1기 추가 |
-| ReplaceWispsToWraith | Wisp·Wraith 공격력 ×1.3 영구 (코드: `WispWraithPowerBoostEffect`) |
-
-### Dps 축 패시브 — Reaper(빨강) / Hex(노랑)
-
-| ECardId | 효과 요약 |
-|---|---|
-| ReaperAtkSpeed | Reaper 공격 속도 증가 |
-| HexRangeBoost | Hex 사거리 증가 |
-| SpawnReapers | Reaper 스포너 1기 추가 |
-| ReplaceReapersToHex | Reaper·Hex 공격력 ×1.3 영구 (코드: `ReaperHexPowerBoostEffect`) |
-
-### Debuff 축 패시브 — Plague(보라)
-
-| ECardId | 효과 요약 |
-|---|---|
-| PlagueSlowBoost | Plague 의 둔화 효과 강화 |
-| SpawnPlagues | Plague 스포너 1기 추가 |
-| HeroPoisonAura | 영웅에 독 오라 부착 (지속 피해) |
-| HeroAttackDown | 영웅 공격력 영구 감소 |
-
-### Swarm 축 패시브 — Phantom(검정) / Wisp(초록)
-
-| ECardId | 효과 요약 |
-|---|---|
-| PhantomMoveSpeedBoost | Phantom 이동 속도 증가 |
-| SpawnWisps | Wisp 스포너 1기 추가 (v0.6 Tank→Swarm 축 이동) |
-| SpawnPhantoms | Phantom 스포너 1기 추가 |
-| SpawnerHaste | 모든 스포너 주기 단축 |
-
----
-
-## 5. 액티브 카드 (12장)
-
-**트리거 조건**: 경과 시간 `[30, 60, 90, 120, 150, 180, 210, 240, 270]`초마다 3택 1 팝업 발동. 최대 9회.
-
-패시브와 **동일한 `TriggerQueue` + `CardSelectionPopup`** 사용. 패시브와 겹치면 큐에 함께 적재.
-
-### Tank 축 액티브
-
-| ECardId | 효과 요약 |
-|---|---|
-| IronWill | 아군 피해 감소 (방어 강화) |
-| Berserk | 아군 받는 피해 ×0.5 (코드: `GuardianRageEffect` — HP×2.0 효과 제거됨) |
-| WallOfWisps | Wisp·Wraith 받는 피해 ×0.75 영구 (코드: `ToughHideEffect`) |
-
-### Dps 축 액티브
-
-| ECardId | 효과 요약 |
-|---|---|
-| Frenzy | Dps 계열 전투력 일시 강화 |
-| BloodThirst | 공격력 상승 효과 (v0.6 Swarm→Dps 축 이동) |
-| MarkOfDeath | 영웅에 표식 부착 → 받는 피해 증폭 |
-
-### Debuff 축 액티브
-
-| ECardId | 효과 요약 |
-|---|---|
-| Fear | 영웅에 `FearStatus` 부착 (공포/이탈, 시각: 보라 큐브 머리 위) |
-| Bleed | 영웅에 `BleedStatus` 부착 (이동 시 HP 감소, 시각: 빨강 구체) |
-| Weaken | 영웅에 `WeakenStatus` 부착 (방어력 감소, 시각: 회색 큐브) |
-
-### Swarm 축 액티브
-
-| ECardId | 효과 요약 |
-|---|---|
-| Slow | 영웅 이동 속도 감소 (v0.6 Debuff→Swarm 축 이동) |
-| Multiply | Phantom 스포너 주기 ×0.6 영구 (코드: `FastBreedingEffect`) |
-| TimeStop | 영웅에 `TimeStopStatus` 부착 — 일시 행동 불능 (시각: 반투명 흰 구체) |
-
----
-
-## 6. 상태 디버프 (Status Visuals)
-
-영웅에 부착되는 상태 이상. `HeroAuraRunner` 가 매 프레임 위치 추적. `IStatusVisual` 인터페이스 구현.
-
-| EVisual 키 | 형태 | 색 코드 | 알파 | 스케일 | 오프셋 (x, y, z) | 효과 |
-|---|---|---|---|---|---|---|
-| PoisonAura | Plane | #84CC16 | 0.5 | — | — | 지속 독 피해 |
-| SlowStatus | Sphere | #0EA5E9 | 0.5 | 0.4 | (0, 0.05, 0) | 이동 속도 감소 |
-| FearStatus | Cube | #A855F7 | 1.0 | 0.3 | (0, 1.3, 0) | 공포 / 이탈 |
-| WeakenStatus | Cube | #6B7280 | 1.0 | 0.3 | (−0.5, 0.6, 0) | 방어력 감소 |
-| AttackDownStatus | Cube | #7F1D1D | 1.0 | 0.25 | (0.5, 0.6, 0) | 공격력 감소 |
-| TimeStopStatus | Sphere | #E5E7EB | 0.3 | 1.5 | (0, 0.5, 0) | 행동 불능 |
-| BleedStatus | Sphere | #DC2626 | 1.0 | 0.25 | (0.4, 0.05, 0) | 이동 시 HP −1%/s |
-
----
-
-## 7. 빌드 패널 / 시너지
-
-### BattleHud 구성
-
-| 요소 | 위치 | 역할 |
+| 임계점 | 영웅 HP 비율 | 순서 |
 |---|---|---|
-| Timer (CHText) | 상단 | 남은 시간 `M:SS` (ceil) |
-| HpBarView | 상단 | 영웅 현재 HP 비율 + 상태 아이콘 |
-| BuildPanel | 좌측 | 픽한 카드 아이콘 — 패시브(위) / 액티브(아래) |
-| BuildSynergyPanel | 좌측 | 4축 시너지 현황 |
-| SpawnerStatusPanel | 하단 | 6셀 스포너 상태 |
+| 1 | 90% | 첫 번째 패시브 픽 |
+| 2 | 80% | |
+| 3 | 70% | |
+| 4 | 60% | |
+| 5 | 50% | |
+| 6 | 40% | |
+| 7 | 30% | |
+| 8 | 20% | |
+| 9 | 10% | 마지막 패시브 픽 |
 
-### BuildPanel 아이콘 매핑
+### 3.2 처리 흐름
 
-| 카드 ECardId | 글자 | 배경색 |
-|---|---|---|
-| WispHpBoost | `H` | #22C55E (Wisp 초록) |
-| WraithDamageBoost | `D` | #6B7280 (Wraith 회색) |
-| ReaperAtkSpeed | `S` | #EF4444 (Reaper 빨강) |
-| HexRangeBoost | `R` | #EAB308 (Hex 노랑) |
-| PhantomMoveSpeedBoost | `M` | #1F2937 (Phantom 검정) |
-| PlagueSlowBoost | `P` | #A855F7 (Plague 보라) |
-| SpawnWisps | `+` | #22C55E |
-| SpawnWraith | `+` | #6B7280 |
-| SpawnReapers | `+` | #EF4444 |
-| SpawnPlagues | `+` | #A855F7 |
-| SpawnPhantoms | `+` | #1F2937 |
-| 그 외 | ` ` (공백) | gray |
+```
+PassiveTriggerService.OnTriggered(idx)
+  → TriggerQueue.Enqueue(Source.Passive, idx)
+  → BattleController.TryProcessNext()
+      1. PauseService.Pause()   // Time.timeScale = 0
+      2. _passiveDeck.Draw(3)   // 패시브 풀에서 3장 무작위
+      3. CHMUI.ShowUIAsync(EUI.CardSelectionPopup, arg)
+      4. 플레이어 픽 대기 (TaskCompletionSource)
+      5. card.Effect.Apply(ctx)
+      6. BattleViewModel.AddPick(card, isPassive:true)
+      7. PauseService.Resume()  // Time.timeScale = 1
+```
 
-패널 루트 클릭 → **BuildModalPopup** 팝업.
+큐 처리 중 새 트리거 도착 시 `_processingQueue` 가드가 중첩 진입을 막고, 현재 픽 완료 후 자동 이어서 처리.
 
-### BuildSynergyPanel
+### 3.3 CardSelectionPopup
 
-- 4축 각 1행: 축 아이콘 + 이름 + `현재수/다음임계` + 활성 Tier 마커(1~3개)
-- 임계 새로 돌파 시 `JustCrossed` 펄스 효과
+- 3장 `CardView` 슬롯 나란히 배치
+- `EAudio.CardSelect` 사운드 재생 (팝업 오픈 시)
+- 각 `CardView`: 축 색 테두리, 카드 아트 이미지(`CardImage`), 이름·설명·중첩 배지(N/3)
+- 픽 완료 → 팝업 닫힘 → 게임 재개
 
-**축 색상 및 레이블**:
+---
 
-| 축 | 색 코드 | 레이블 |
-|---|---|---|
-| Tank | #22C55E | TANK |
-| Dps | #EF4444 | DPS |
-| Debuff | #A855F7 | DEBUFF |
-| Swarm | #1F2937 | SWARM |
+## 4. 액티브 트리거 & 카드 픽
 
-패널 루트 클릭 → **SynergyModalPopup** 팝업.
+### 4.1 30초 임계점 9개
 
-### 축 시너지 효과표 — 임계 3 / 5 / 7장 (코드: `SynergyModalPopup.TierDesc`)
+`ActiveTriggerService`가 `BattleClock.OnTick`을 구독. 각 임계점 1회만 발동.
 
-| 축 | Tier 1 (3장) | Tier 2 (5장) | Tier 3 (7장) |
+| 임계점 | 경과 시간 |
+|---|---|
+| 1 | 0:30 |
+| 2 | 1:00 |
+| 3 | 1:30 |
+| 4 | 2:00 |
+| 5 | 2:30 |
+| 6 | 3:00 |
+| 7 | 3:30 |
+| 8 | 4:00 |
+| 9 | 4:30 |
+
+### 4.2 처리 흐름
+
+패시브와 동일한 `TriggerQueue` 경유. `Source.Active`로 구분.
+
+```
+ActiveTriggerService.OnTriggered(idx)
+  → TriggerQueue.Enqueue(Source.Active, idx)
+  → BattleController.TryProcessNext()
+      1. PauseService.Pause()
+      2. _activeDeck.Draw(3)    // 액티브 풀에서 3장 무작위
+      3. CHMUI.ShowUIAsync(EUI.CardSelectionPopup, arg)
+      4. 플레이어 픽 대기
+      5. card.Effect.Apply(ctx) // 즉발 효과
+      6. BattleViewModel.AddPick(card, isPassive:false)
+      7. PauseService.Resume()
+```
+
+패시브·액티브가 같은 프레임에 동시 트리거 시 둘 다 큐에 진입하고 dequeue 순서대로 순차 처리.
+
+---
+
+## 5. 카드 28장 목록
+
+중복 픽 상한: 글로벌 3회. 각 카드 `[중첩]` 항목은 중복 픽 시 누적 동작을 나타냄.
+
+### 5.1 Tank 축 (EBuildAxis.Tank)
+
+**패시브 카드**
+
+| ECardId | 한글명 | 효과 | 중첩 |
 |---|---|---|---|
-| TANK | Wisp·Wraith HP ×1.3 | Wisp·Wraith Power ×1.2 | 필드 캡 +6 (18→24) |
-| DPS | Reaper·Hex Power ×1.3 | Reaper·Hex 공속 +25% | Reaper·Hex Range ×1.3 |
-| DEBUFF | Plague 둔화 ×0.8 | 영웅 공격력 ×0.85 | 출혈 영구 — 이동 시 1s당 HP −1% |
-| SWARM | Phantom·Wisp 이동속도 ×1.3 | 모든 스포너 주기 ×0.85 | 모든 스포너 동시 출력 +1 |
+| WispHpBoost | 위습 HP 강화 | Wisp HP +30% | 누적 ×N |
+| WraithDamageBoost | 레이스 공격력 강화 | Wraith 공격력 +25% | 누적 ×N |
+| SpawnWraith | 레이스 소환 | 레이스 1마리 즉시 소환 + 스포너 출력 +1 | 소환 반복 |
+| ReplaceWispsToWraith | 위습→레이스 교체 | 필드 위습 전체 → 레이스로 교체 | 반복 교체 |
 
-### BuildModalPopup
+**액티브 카드**
 
-- 패시브(좌 50%) / 액티브(우 50%) 2분할 레이아웃
-- 패시브: Tank → Dps → Debuff → Swarm 축 순 정렬
-- 액티브: 픽 시간 순 (추가 정렬 없음)
-- 빈 섹션 = "빈 상태" 라벨 표시
-- 배경 dim 클릭 / X 버튼 → 닫힘 (`reuse: true`)
+| ECardId | 한글명 | 효과 | 지속 |
+|---|---|---|---|
+| IronWill | 강철의지 | 모든 Tank 몬스터 무적 | 5s |
+| WallOfWisps | 위습 방벽 (ToughHide) | 모든 Wisp 방어력 +50% | 8s |
+| GuardianRage | 수호자 분노 (Berserk) | 모든 Tank 몬스터 공격력 ×2 | 6s |
 
-### SynergyModalPopup
+### 5.2 Dps 축 (EBuildAxis.Dps)
 
-- 임계 도달 축만 표시 (활성 티어 0개면 빈 상태 텍스트)
-- 각 축: 헤더 행 `AXIS (N장)` + 효과 행 `Tier1 … / Tier2 … / Tier3 …`
-- 배경 dim 클릭 / X 버튼 → 닫힘 (`reuse: true`)
+**패시브 카드**
 
-### CardSelectionPopup (카드 선택 팝업)
+| ECardId | 한글명 | 효과 | 중첩 |
+|---|---|---|---|
+| ReaperAtkSpeed | 리퍼 공속 강화 | Reaper 공격속도 +20% | 누적 ×N |
+| HexRangeBoost | 저주 범위 강화 | Hex 계열 사거리 +15% | 누적 ×N |
+| SpawnReapers | 리퍼 소환 | Reaper 1마리 소환 + 스포너 출력 +1 | 소환 반복 |
+| ReplaceReapersToHex | 리퍼→헥스 교체 | 필드 Reaper 전체 → Hex 변형으로 교체 | 반복 교체 |
 
-| 항목 | 내용 |
+**액티브 카드**
+
+| ECardId | 한글명 | 효과 | 지속 |
+|---|---|---|---|
+| Frenzy | 광란 | 모든 Dps 몬스터 공속 +50% | 8s |
+| BloodThirst | 흡혈 | Reaper 공격 시 피해량 30% 흡수 | 6s |
+| MarkOfDeath | 죽음의 표식 | 영웅 받는 피해 +50% | 5s |
+
+### 5.3 Debuff 축 (EBuildAxis.Debuff)
+
+**패시브 카드**
+
+| ECardId | 한글명 | 효과 | 중첩 |
+|---|---|---|---|
+| PlagueSlowBoost | 역병 둔화 강화 | Plague 둔화 효과 +10%p | 누적 ×N |
+| SpawnPlagues | 역병 소환 | Plague 1마리 소환 + 스포너 출력 +1 | 소환 반복 |
+| HeroPoisonAura | 영웅 독 장판 | 영웅 위치에 독 장판 주기적 생성 | 영구 누적 |
+| HeroAttackDown | 영웅 공격력 하향 | 영웅 공격력 −20% | 영구·무기한 |
+
+**액티브 카드**
+
+| ECardId | 한글명 | 효과 | 지속 |
+|---|---|---|---|
+| Fear | 공포 | 영웅 이동 불능 | 3s |
+| Bleed | 출혈 | 영웅 매초 HP −2% | 10s (EternalBleed 픽 시 무기한) |
+| Weaken | 약화 | 영웅 공격력 −30% | 10s |
+
+### 5.4 Swarm 축 (EBuildAxis.Swarm)
+
+**패시브 카드**
+
+| ECardId | 한글명 | 효과 | 중첩 |
+|---|---|---|---|
+| PhantomMoveSpeedBoost | 팬텀 이속 강화 | Phantom 이동속도 +20% | 누적 ×N |
+| SpawnPhantoms | 팬텀 소환 | Phantom 1마리 소환 + 스포너 출력 +1 | 소환 반복 |
+| SpawnWisps | 위습 소환 | Wisp 2마리 소환 + 스포너 출력 +1 | 소환 반복 |
+| SpawnerHaste | 스포너 가속 | 모든 스포너 스폰 주기 −15% | 누적 ×N |
+
+**액티브 카드**
+
+| ECardId | 한글명 | 효과 | 지속 |
+|---|---|---|---|
+| TimeStop | 시간 정지 | 영웅 완전 동결 | 5s |
+| Multiply | 분열 | 현재 필드 몬스터 전체 복사 소환 | 즉발 |
+| Slow | 둔화 | 영웅 이동속도 −40% | 10s |
+
+---
+
+## 6. 빌드 시너지 (Layer 1 — Tier 시스템)
+
+### 6.1 Tier 발동 기준
+
+`BuildSynergyPanel`이 `BattleViewModel`의 축별 픽 수를 추적. 임계치 {3, 5, 7}에서 Tier 1/2/3 순차 발동(누적 스택).
+
+| Tier | 발동 조건 (같은 축 픽 수) |
 |---|---|
-| 팝업 오픈 시 | `EAudio.CardSelect` 사운드 재생 |
-| 슬롯 수 | 3개 (`CardView`). 미사용 슬롯 `SetActive(false)` |
-| 각 슬롯 표시 | 이름 + 설명 + 축 색 테두리 + 아트 이미지 (null이면 숨김) + 픽 카운트 배지 |
-| 픽 카운트 배지 | `N/3` 형식 — 0번이면 숨김, 1번이면 `1/3`, 2번이면 `2/3` 표시 |
-| 픽 선택 후 | 팝업 닫힘 (`reuse: false`, 매번 새 인스턴스) |
+| Tier 1 | 3장 |
+| Tier 2 | 5장 |
+| Tier 3 | 7장 |
 
-### 3-pick 캡
+### 6.2 축별 Tier 효과
 
-동일 카드 최대 3회 픽 가능. 3회 도달 카드는 이후 선택지에서 완전히 제외.
+| 축 | Tier 1 | Tier 2 | Tier 3 |
+|---|---|---|---|
+| Tank | 전체 HP ×1.3 | 전체 공격력 ×1.2 | 스포너 캡 +6 |
+| Dps | 전체 공격력 ×1.3 | 공격속도 +25% | 사거리 ×1.3 |
+| Debuff | Plague 둔화율 ×0.8 (더 강함) | 영웅 공격력 ×0.85 (영구) | 출혈 영구화 |
+| Swarm | 이동속도 ×1.3 | 스폰 주기 ×0.85 | 스포너 출력 +1 |
+
+### 6.3 SynergyModalPopup
+
+BuildSynergyPanel의 루트(축 아이콘 행) 클릭 시 `SynergyModalPopup` 열림.
+- 헤더 행: 축 아이콘(28×28px) + `{AXIS} (N장)` 레이블
+- 효과 행: Tier별 설명 (CHPoolingScrollView + scrollbar AutoHideAndExpandViewport)
+- 닫기 버튼 / dim 영역 클릭 → `Close(reuse:true)`
+
+---
+
+## 7. HUD UI 구성
+
+### 7.1 BattleHud 구조
+
+`BattleHud`(UIBase)가 아래 하위 컴포넌트를 소유한다.
+
+| 컴포넌트 | 역할 |
+|---|---|
+| `_timerText` (CHText) | 남은 시간 MM:SS 표시 |
+| `_heroHpBar` (HpBarView) | 영웅 HP 비율 + 수치 |
+| `_buildPanel` (BuildPanel) | 픽한 카드 아이콘 패널 |
+| `_spawnerStatusPanel` (SpawnerStatusPanel) | 스포너 6개 상태 |
+| `_synergyPanel` (BuildSynergyPanel) | 4축 시너지 Tier 표시 |
+
+### 7.2 HpBarView & 상태 아이콘 (8슬롯)
+
+HpBar 위 8개 슬롯(12px 아이콘)에 현재 영웅 디버프 표시. 빈 슬롯 중 가장 낮은 인덱스 우선 배정(lowest-free-slot 정책). HLG MiddleCenter 정렬.
+
+**Aura → 아이콘 매핑 (ECardId)**
+
+| Aura 클래스 | 아이콘 (ECardId) | 지속 시간 |
+|---|---|---|
+| SlowAura | Slow | 10s |
+| FearAura | Fear | 3s |
+| WeakenAura | Weaken | 10s |
+| TimeStopAura | TimeStop | 5s |
+| BleedAura | Bleed | 10s |
+| MarkOfDeathAura | MarkOfDeath | 5s |
+| HeroAttackDownAura | HeroAttackDown | 무기한 |
+| EternalBleedAura | Bleed | 무기한 |
+
+### 7.3 BuildPanel
+
+화면 하단에 패시브 스크롤 + 액티브 스크롤 두 섹션으로 구성. 픽한 카드를 아이콘으로 누적 표시, 중복 픽 시 ×N 배지. 루트 영역 클릭 → `BuildModalPopup` 열림(전체 픽 목록 상세).
+
+### 7.4 SpawnerStatusPanel
+
+6개 셀(134×168px), 배경 #1F2937 α0.85. 각 셀: 스포너 번호, 현재 스폰 몬스터 종류, HP/스폰 주기 프로그레스 바(#60A5FA/#F97316). **셀 클릭 동작 없음 — Tooltip 폐기(v0.6.4).**
 
 ---
 
 ## 8. 결과 화면 (ResultPopup)
 
-### 표시 요소
+### 8.1 승리·패배 조건
 
-| 요소 | 표시 조건 | 포맷 |
-|---|---|---|
-| 결과 텍스트 | 항상 | `"승리"` / `"패배"` |
-| 보상 블록 | `HasMeta == true` | `보상  소울 +N · XP +N` |
-| 영주 레벨 업 줄 | `LordLevel != 0` | `영주 레벨 업!  Lv N  +N 소울` (보상 0이면 `+N 소울` 생략) |
-| 도전과제 달성 줄 | 달성 1건 이상 | `도전과제 달성!  [이름]  +N 소울` (최대 3줄) |
-| 초과 도전과제 | 3건 초과 | `외 N건 달성` |
+| 결과 | 조건 |
+|---|---|
+| 승리 (Win) | 영웅 HP ≤ 0 |
+| 패배 (Lose) | 타이머 300s 만료 (영웅 생존) |
 
-### 버튼
+### 8.2 ResultPopup 구성
 
-| 버튼 | 씬 전환 | 비고 |
-|---|---|---|
-| 다시 도전 | `EScene.Battle` 즉시 로드 | 마을 미경유 — MetaSession 메모리 유지, 메타 보너스 동일 적용 |
-| 마을로 | `EScene.Village` 로드 | |
+`ResultPopup`(UIBase)은 `BattleHudArg`와 별도 전투 결과를 받아 표시.
 
-중복 클릭 방지: `_sceneLoadRequested` 플래그 — 첫 클릭만 통과, 이후 클릭 무시.
+| 요소 | 설명 |
+|---|---|
+| 결과 텍스트 | 승리 / 패배 (CHText) |
+| 보상 블록 | `HasMeta` 플래그 true 시 노출 — 획득 소울 수량, 달성 업적 목록 |
+| 재시작 버튼 | `_retryButton` → Battle 씬 재로드 |
+| 마을 버튼 | `_villageButton` → Village 씬 전환 |
+
+씬 전환 시 `TryBeginSceneLoad()` 가드로 중복 로드 방지.
 
 ---
 
-## 9. 에디터 전용 (LairBalanceWindow)
+## 9. 마을 허브 & 메타 진행
 
-메뉴: `Lair → Balance Debug` (EditorWindow, IMGUI). **플레이 모드에서만 동작**.
+### 9.1 소울 경제
 
-### 치트 6종
-
-| 치트 | 동작 |
+| 공식 | 설명 |
 |---|---|
-| Force Passive Trigger | 다음 패시브 임계 즉시 발동 → CardSelectionPopup 표시 |
-| Force Active Trigger | 다음 액티브 임계 즉시 발동 → CardSelectionPopup 표시 |
-| Apply Card (ECardId 선택) | 특정 카드 효과 즉시 덱에 적용 |
-| Set Hero HP (int 입력) | 영웅 HP 임의 설정 |
-| Kill Hero | 영웅 즉사 (패배 트리거) |
-| End Battle (Win / Lose 토글) | 전투 즉시 종료 |
+| 기본 보상 | `결과 × 기준치` (승리 > 패배) |
+| 영주 레벨 보너스 | `기본 × (1 + 레벨 × 0.05)` |
+| 클리어 시간 보너스 | 남은 시간 1초당 추가 소울 |
 
-### 런 히스토리
+### 9.2 상점 7품목
 
-`Logs/lair_runs.jsonl` 파일에서 과거 런 기록 불러와 표시.
+각 품목 Lv 0→5 성장. 가격은 기준 × 1.6^현재레벨.
 
-`RunRecord` 필드:
+| 품목 | 기준가(Lv0→1) | 효과 |
+|---|---|---|
+| 모집 광장 | 80 | 몬스터 종류 해금 슬롯 +1 |
+| 훈련소 | 100 | 전체 몬스터 공격력 ×1.05 |
+| 요새화 | 100 | 전체 몬스터 HP ×1.05 |
+| 함정 제작소 | 120 | 함정 해금 슬롯 +1 |
+| 마법 연구소 | 120 | 카드 풀 희귀 카드 등장율 +5% |
+| 영주 집무실 | 150 | 카드 픽 재롤 기회 +1 |
+| 비밀 금고 | 150 | 전투 시작 소울 보너스 +10 |
 
-| 필드 | 내용 |
+### 9.3 영주 레벨
+
+XP 임계치: `100 × 1.25^(N−1)` (N = 목표 레벨). 레벨업 시 영주 스킬 포인트 +1.
+
+### 9.4 도전과제 (13개)
+
+첫 클리어, 5분 생존, 영웅 HP 10% 이하 클리어, 카드 풀 3중첩, 4축 동시 Tier 1, 축 단일 Tier 3, 축 단일 7픽 완성, 소울 누적 1000/5000, 승리 5/10/25/50회, 마을 상점 만렙.
+
+### 9.5 v0.3 서버 연동 (클라이언트 측)
+
+| 기능 | 설명 |
 |---|---|
-| FinishedAt | 종료 타임스탬프 |
-| Result | Win / Lose |
-| DeathTime | 영웅 사망 경과 초 |
-| Picks | 픽한 카드 ID 문자열 목록 |
-| SurvivingMonsters | 생존 몬스터 수 |
+| 인증 | 기기 ID → 서버 → JWT 로컬 저장 |
+| MetaProfile 동기 | 전체 MetaProfile 단위 클라우드 백업/복원 |
+| 충돌 처리 | 서버가 409 반환 시 클라이언트 충돌 UI 표시 |
+| 리더보드 | 최단 클리어 시간 제출·조회 (클라이언트 전송만; 서버 집계는 별도 레포) |
 
 ---
 
 ## 10. UI 인터랙션 매트릭스
 
-### 팝업 오픈/닫기 요약
+### 10.1 전체 화면·트리거·처리 흐름
 
-| UI | 오픈 트리거 | 오픈 방법 | 닫기 | reuse |
-|---|---|---|---|---|
-| BattleHud | Battle 씬 시작 | `CHMUI.ShowUI(EUI.BattleHud, BattleHudArg)` | 씬 전환 | true |
-| CardSelectionPopup | 패시브/액티브 임계 돌파 | `TriggerQueue` → `CHMUI.ShowUI(EUI.CardSelectionPopup, CardSelectionArg)` | 카드 선택 | false |
-| BuildModalPopup | BuildPanel 루트 클릭 | `CHMUI.ShowUI(EUI.BuildModalPopup, BuildModalPopupArg)` | dim 또는 X 클릭 | true |
-| SynergyModalPopup | BuildSynergyPanel 루트 클릭 | `CHMUI.ShowUI(EUI.SynergyModalPopup, SynergyModalPopupArg)` | dim 또는 X 클릭 | true |
-| ResultPopup | 전투 종료 이벤트 | `CHMUI.ShowUI(EUI.ResultPopup, ResultPopupArg)` | 버튼 클릭 → 씬 전환 | — |
-| LoadingHud | Loading 씬 직접 배치 | 씬 내 정적 배치 (CHMUI 미사용) | 씬 전환 | — |
-
-### 이벤트 구독 흐름
-
-| 이벤트 | 발화자 | 구독자 | 동작 |
+| 화면 / 컴포넌트 | 트리거 | 처리 클래스 | 결과 |
 |---|---|---|---|
-| `OnTimerChanged` | `BattleViewModel` | `BattleHud` | 타이머 텍스트 갱신 (M:SS ceil) |
-| `OnHeroHpValuesChanged` | `BattleViewModel` | `BattleHud` | HpBarView 갱신 |
-| `OnStatusIconAdded` | `BattleViewModel` | `BattleHud` → `HpBarView` | 상태 아이콘 추가 |
-| `OnStatusIconRemoved` | `BattleViewModel` | `BattleHud` → `HpBarView` | 상태 아이콘 제거 |
-| `OnBattleEnded` | `BattleViewModel` | `BattleHud` | ResultPopup 표시 |
-| `OnBuildChanged` | `BattleViewModel` | `BuildPanel` | 패시브/액티브 아이콘 ScrollView 갱신 |
-| `OnBuildChanged` | `BattleViewModel` | `BuildSynergyPanel` | 4축 시너지 행 갱신 + JustCrossed 펄스 |
-| `OnBuildChanged` | `BattleViewModel` | `BuildModalPopup` (열려있을 때) | 모달 내용 실시간 반영 |
-| `OnBuildChanged` | `BattleViewModel` | `SynergyModalPopup` (열려있을 때) | 모달 내용 실시간 반영 |
-| `OnSpawnerSnapshotChanged(index)` | `BattleViewModel` | `SpawnerStatusPanel` | 해당 인덱스 셀 스냅샷 교체 |
+| BattleHud | BattleClock.OnTick | BattleHud | 타이머 갱신 |
+| BattleHud | VM.OnHpChanged | HpBarView | HP 바 갱신 |
+| BattleHud | VM.OnBuildChanged | BuildPanel | 픽 아이콘 추가/배지 갱신 |
+| BattleHud | VM.OnBuildChanged | BuildSynergyPanel | Tier 아이콘 갱신 |
+| BattleHud | VM.OnSpawnerChanged | SpawnerStatusPanel | 스포너 셀 갱신 |
+| BattleHud | VM.AddStatusIcon | HpBarView(8슬롯) | 아이콘 슬롯 배정 |
+| BattleHud | VM.RemoveStatusIcon | HpBarView(8슬롯) | 아이콘 슬롯 해제 |
+| CardSelectionPopup | PassiveTrigger / ActiveTrigger | TriggerQueue → BattleController | PauseService.Pause() + 3택 표시 |
+| CardSelectionPopup | 카드 클릭 | BattleController.OnPicked | Effect.Apply() + AddPick() + Resume() |
+| BuildSynergyPanel | 루트 클릭 | CHMUI | SynergyModalPopup 열기 |
+| SynergyModalPopup | dim/닫기 클릭 | SynergyModalPopup | Close(reuse:true) |
+| BuildPanel | 루트 클릭 | CHMUI | BuildModalPopup 열기 |
+| SpawnerStatusPanel | — | — | 클릭 없음 (Tooltip 폐기 v0.6.4) |
+| ResultPopup | 재시작 클릭 | ResultPopup | Battle 씬 로드 |
+| ResultPopup | 마을 클릭 | ResultPopup | Village 씬 로드 |
 
-### 주요 가드 / 동기화 포인트
+### 10.2 PauseService 동작
 
-| 상황 | 처리 방식 |
+- `Pause()`: depth 카운터 +1, depth=1일 때 `Time.timeScale = 0`
+- `Resume()`: depth 카운터 −1, depth=0 될 때 `Time.timeScale = 1`
+- 패시브·액티브 동시 트리거 → 큐 순차 처리 → 각 픽마다 Pause/Resume 쌍
+
+### 10.3 에디터 전용 — LairBalanceWindow
+
+`Lair/Balance Window` 메뉴 (EditorWindow). 개발자용 밸런스 조작 6종.
+
+| 치트 | 설명 |
 |---|---|
-| ResultPopup 버튼 중복 클릭 | `_sceneLoadRequested` 플래그 — 첫 클릭만 씬 로드 요청 통과 |
-| 패시브+액티브 동시 트리거 | `TriggerQueue` FIFO — 한 번에 팝업 1개씩 순서 처리 |
-| PauseService 중첩 | depth 카운터 — `Pause()` 시 +1, `Resume()` 시 −1; depth>0 이면 `Time.timeScale=0` |
-| BuildPanel OnEnable | `LayoutRebuilder.ForceRebuildLayoutImmediate` 선행 → viewport 0 고착 방지 |
-| BuildModalPopup / SynergyModalPopup OnEnable | `ForceRebuildLayoutImmediate` → `Build()` 순서로 재오픈 시 최신 픽 반영 |
-| SpawnerStatusCell Update | `ISpawnerProgress.Progress` 매 프레임 폴링 — 진행 바·남은 초 표시 |
+| Force Win | 즉시 승리 처리 |
+| Force Lose | 즉시 패배 처리 |
+| Add Soul | 소울 N 즉시 추가 |
+| Hero HP 1 | 영웅 HP를 1로 설정 |
+| Spawn Monster | 지정 몬스터 즉시 소환 |
+| Force Card Draw | 강제 카드 픽 팝업 트리거 |
 
-### UIArg 전달 인자 요약
-
-| UIBase | UIArg 주요 필드 |
-|---|---|
-| `BattleHud` | `ViewModel`, `Spawners` (IReadOnlyList\<Spawner\>), `Balance` (BalanceConfig), `CardIcons` (IReadOnlyDictionary\<ECardId, Sprite\>) |
-| `CardSelectionPopup` | `Choices` (IReadOnlyList\<CardData\>), `OnPicked` (Action\<CardData\>), `PickCountOf` (Func\<CardData, int\>) |
-| `BuildModalPopup` | `ViewModel` (BattleViewModel) |
-| `SynergyModalPopup` | `ViewModel` (BattleViewModel) |
-| `ResultPopup` | `Result` (BattleResult), `HasMeta` (bool), `SoulsGained`, `XpGained`, `LordLevel`, `LordRewardSouls`, `NewlyAchieved` (List\<AchievementDef\>) |
+런 기록: `Logs/lair_runs.jsonl`에 누적(RunRecorder). 윈도우에서 최근 런 히스토리 조회 가능.
 
 ---
 
-## 11. 쉬운 설명 — 처음 하는 사람을 위한 가이드
+## 11. 쉬운 설명 (비개발자 요약)
 
-### 이 게임의 목표
+Project Lair는 플레이어가 던전 주인이 되어 5분 동안 몬스터 군대를 지휘하는 게임이다. 영웅이 혼자 자동으로 싸워서 들어오고, 플레이어는 전투 중간중간 카드를 골라 몬스터를 더 강하게 만든다. 카드를 같은 테마로 모으면 시너지 효과가 터지고, 마을로 돌아와 상점에서 업그레이드하면 다음 판이 더 유리해진다. 서버에 기록이 남으니 가장 빠른 클리어 기록을 친구와 비교할 수 있다.
 
-당신은 **던전의 주인(영주)** 입니다. 용감한 기사 영웅 한 명이 당신의 던전을 쳐들어옵니다. **5분 안에 영웅의 체력을 0으로 만들면 승리** 입니다.
-
-### 기본 흐름
-
-1. **마을 → 출격**: 앱을 켜면 마을 화면이 뜹니다. 하단 「출격」 버튼을 눌러 전투를 시작하세요.
-2. **전투 자동 진행**: 영웅과 몬스터들은 자동으로 싸웁니다. 조이스틱을 움직일 필요가 없습니다.
-3. **카드 선택이 핵심**: 영웅이 체력을 잃거나 시간이 지날수록 **카드 3장 중 1장을 고릅니다**. 어떤 카드를 고르느냐가 전략의 전부입니다.
-
-### 카드를 어떻게 골라야 할까?
-
-- **같은 축(계열) 카드를 집중적으로 모으세요**: 3장 → 5장 → 7장마다 강력한 시너지 효과가 발동됩니다.
-  - **TANK** (Wisp 초록 + Wraith 회색): 아군 체력·방어력 강화
-  - **DPS** (Reaper 빨강 + Hex 노랑): 아군 공격력·속도·사거리 강화
-  - **DEBUFF** (Plague 보라): 영웅을 약화·둔화
-  - **SWARM** (Phantom 검정 + Wisp 초록): 몬스터를 더 빠르게, 더 많이 소환
-- **같은 카드를 반복 픽**: 동일 카드는 최대 3번까지 고를 수 있고, 누적 효과가 쌓입니다.
-
-### 화면 보는 법
-
-| 위치 | 표시 내용 | 의미 |
-|---|---|---|
-| 상단 타이머 | `4:59` → `0:00` | 남은 시간. 0이 되기 전에 영웅을 처치해야 합니다 |
-| 상단 HP 바 | 채워진 정도 | 영웅의 현재 체력. 줄어들수록 유리합니다 |
-| 하단 6개 칸 | 종 아이콘 + 진행 바 | 지금 소환된 몬스터 종류와 다음 소환까지 남은 시간 (파랑 → 주황이면 곧 소환) |
-| 좌측 아이콘 열 | 카드 기호 | 지금까지 고른 카드들. **클릭하면 전체 목록** 팝업 |
-| 좌측 하단 행 | TANK / DPS / DEBUFF / SWARM | 각 축 카드 수 + 시너지 단계. **클릭하면 시너지 상세** 팝업 |
-
-### 결과 화면
-
-- **승리/패배** 표시 후 획득한 **소울(영혼석)** 과 **경험치(XP)** 가 표시됩니다.
-- **다시 도전**: 마을을 거치지 않고 즉시 재도전. 메타 업그레이드 보너스는 그대로 유지됩니다.
-- **마을로**: 마을로 돌아가 소울로 영구 업그레이드를 구매하거나 영주 레벨 보상을 확인합니다.
-
-### 마을에서 할 수 있는 것
-
-| 메뉴 | 내용 |
-|---|---|
-| 상점 | 소울로 영구 업그레이드 구매 (모든 런에 누적 적용) |
-| 영주성 | 런을 거듭하며 올라가는 영주 레벨 보상 확인 |
-| 퀘스트 | 도전과제 달성 시 추가 소울 지급 |
-| 도감 / 기록 | 만난 몬스터·사용한 카드 기록, 통계(총 런 수·승률·최단 클리어 등) 확인 |
-
-### 패배해도 괜찮은 이유
-
-패배해도 영웅의 체력을 깎은 비율에 비례해 소울을 일부 받습니다. **소울은 항상 모입니다**. 상점에서 영구 업그레이드를 쌓으면 이후 런이 더 유리해집니다.
+즉, 이번 매뉴얼의 포인트는: "플레이어가 실제로 건드릴 수 있는 것은 카드 선택뿐이지만, 그 선택이 28장 카드·4축 시너지·마을 상점 업그레이드·서버 리더보드까지 전체 게임 루프를 움직이는 구조를 UI 코드 기준으로 정확히 기록한 문서"이다.
