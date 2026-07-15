@@ -42,9 +42,12 @@ namespace Lair.Character
         }
 
         //# [B2] 풀 재사용 시 SpeedScale 잔존 방지.
+        //# 풀 재사용 시 _moving 잔존 방지(Rule 03 §4) — 직전 배틀에서 이동 중 Push 되면
+        //# 재사용처가 Mover 를 곧바로 비활성화할 때(마을 쇼케이스 등) walk 애니가 고착된다.
         private void OnEnable()
         {
             SpeedScale = 1f;
+            _moving = false;
         }
 
         public void MoveTo(Vector3 target)

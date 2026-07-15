@@ -84,6 +84,16 @@ namespace Lair.Tests.Character
             mi.Invoke(mover, null);
         }
 
+        //# EditMode 의 AddComponent 는 OnEnable 미발화라 SetActive 토글로도 OnEnable 이 안 뜬다
+        //# (HeroAuraRunnerStatusIconTests 와 동일 사유). 결정적 트리거를 위해 리플렉션으로 직접 호출.
+        private static void InvokeOnEnable(SimpleMover mover)
+        {
+            MethodInfo mi = typeof(SimpleMover).GetMethod("OnEnable",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(mi, "SimpleMover.OnEnable 메서드 존재");
+            mi.Invoke(mover, null);
+        }
+
         private static BattleZone GetClampZone(SimpleMover mover)
         {
             FieldInfo fi = typeof(SimpleMover).GetField("_clampZone",
@@ -224,6 +234,42 @@ namespace Lair.Tests.Character
 
             Assert.AreEqual(5f, _moverGo.transform.position.x, 0.001f, "X 모서리 클램프 (extent 5)");
             Assert.AreEqual(5f, _moverGo.transform.position.z, 0.001f, "Z 모서리 클램프 (extent 5)");
+        }
+
+        //# ===== 풀 재사용 State Reset (Rule 03 §4) =====
+
+        //# 정상 케이스 — CHMPool.Push/Pop 은 SetActive(false)/(true) 로 OnDisable/OnEnable 을 발생시킨다(§4).
+        //# 직전 배틀에서 이동 중(_moving=true) 이었던 오브젝트가 재활성화되면 이동 상태가 리셋되어야
+        //# 마을 쇼케이스처럼 Mover 를 즉시 비활성화하는 재사용처에서 walk 애니가 고착되지 않는다.
+        [Test]
+        public void 재활성화시_이전_이동상태가_리셋된다()
+        {
+            SimpleMover mover = CreateMover(Vector3.zero, clampZone: null);
+            mover.MoveTo(new Vector3(10f, 0f, 0f));
+            Assert.IsTrue(mover.IsMoving, "MoveTo 직후 IsMoving true (사전조건)");
+
+            //# 풀 재사용(CHMPool Pop) 시뮬레이션 — OnEnable 직접 호출(EditMode SetActive 미발화 회피).
+            InvokeOnEnable(mover);
+
+            Assert.IsFalse(mover.IsMoving,
+                "재활성화(OnEnable) 시 이전 배틀의 이동 상태(_moving)가 리셋되어야 walk 애니 고착 없음");
+        }
+
+        //# 엣지 — 재활성화 후 새로 MoveTo 를 호출하면 리셋과 무관하게 정상적으로 다시 이동한다(리셋이 과도하지 않음).
+        [Test]
+        public void 재활성화_후_새_MoveTo는_정상_동작()
+        {
+            SimpleMover mover = CreateMover(Vector3.zero, clampZone: null);
+            mover.MoveTo(new Vector3(10f, 0f, 0f));
+
+            InvokeOnEnable(mover);
+
+            mover.MoveTo(new Vector3(20f, 0f, 0f));
+            InvokeFixedUpdate(mover);
+
+            Assert.IsTrue(mover.IsMoving, "재활성화 후 새 MoveTo 호출 시 다시 이동 상태가 되어야 함");
+            Assert.AreEqual(20f, _moverGo.transform.position.x, 0.5f,
+                "재활성화 후에도 MoveTo 로 정상 이동");
         }
     }
 }
