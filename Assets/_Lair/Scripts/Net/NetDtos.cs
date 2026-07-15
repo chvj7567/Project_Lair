@@ -59,6 +59,8 @@ namespace Lair.Net
         public string hero;
         //# 서버가 행마다 내려주는 계정 식별자 — "내 행" 1차 매칭 키. 구서버 응답엔 없어 0 으로 역직렬화됨(시간 폴백).
         public long accountId;
+        //# Firebase 계정 식별자 — "내 행" 매칭 키(2026-07-14). 사문화된 accountId 보다 우선.
+        public string uid;
     }
 
     //# POST /account/displayname 요청 본문 — 서버 계약 { "displayName": "<문자열>" }.

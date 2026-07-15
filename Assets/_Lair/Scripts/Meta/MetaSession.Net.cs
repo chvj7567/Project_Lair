@@ -42,7 +42,7 @@ namespace Lair.Meta
                 Debug.LogWarning("[MetaSession] NetworkConfig 로드 실패 — 클라우드 비활성");
                 return;
             }
-            Api = new LairApiClient(config);
+            Api = new FirebaseApiClient(config);
             Cloud = new CloudSaveService(Api);
             Ranking = new RankingClient(Api);
             bool authed = await Api.AuthenticateAsync();

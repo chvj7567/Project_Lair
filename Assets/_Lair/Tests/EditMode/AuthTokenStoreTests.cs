@@ -12,6 +12,8 @@ namespace Lair.Tests.EditMode
             PlayerPrefs.DeleteKey("Lair.Net.DeviceId");
             PlayerPrefs.DeleteKey("Lair.Net.Token");
             PlayerPrefs.DeleteKey("Lair.Net.AccountId");
+            PlayerPrefs.DeleteKey("Lair.Net.Uid");
+            PlayerPrefs.DeleteKey("Lair.Net.RefreshToken");
         }
 
         [Test]
@@ -44,6 +46,28 @@ namespace Lair.Tests.EditMode
         {
             Assert.AreEqual(0, AuthTokenStore.AccountId);
             Assert.IsFalse(AuthTokenStore.HasAccountId);
+        }
+
+        [Test]
+        public void Uid_저장후_조회된다()
+        {
+            AuthTokenStore.SaveUid("kZ9xAbC");
+            Assert.AreEqual("kZ9xAbC", AuthTokenStore.Uid);
+            Assert.IsTrue(AuthTokenStore.HasUid);
+        }
+
+        [Test]
+        public void RefreshToken_저장후_조회된다()
+        {
+            AuthTokenStore.SaveRefreshToken("r-token-123");
+            Assert.AreEqual("r-token-123", AuthTokenStore.RefreshToken);
+        }
+
+        [Test]
+        public void 미설정_Uid_는_빈문자열이고_HasUid_false()
+        {
+            Assert.AreEqual(string.Empty, AuthTokenStore.Uid);
+            Assert.IsFalse(AuthTokenStore.HasUid);
         }
     }
 }

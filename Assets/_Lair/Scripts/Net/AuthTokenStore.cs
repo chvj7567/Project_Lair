@@ -4,11 +4,14 @@ using UnityEngine;
 namespace Lair.Net
 {
     //# deviceId(GUID 1회 생성)와 JWT, accountId 를 PlayerPrefs 에 저장. Application.dataPath 쓰기 금지(과거 사고 회피).
+    //# (2026-07-14 Firebase: idToken/uid/refreshToken 추가, AccountId 사문화)
     public static class AuthTokenStore
     {
         private const string DeviceIdKey = "Lair.Net.DeviceId";
         private const string TokenKey = "Lair.Net.Token";
         private const string AccountIdKey = "Lair.Net.AccountId";
+        private const string RefreshTokenKey = "Lair.Net.RefreshToken";
+        private const string UidKey = "Lair.Net.Uid";               //# Firebase localId
 
         public static string GetOrCreateDeviceId()
         {
@@ -46,6 +49,24 @@ namespace Lair.Net
         public static void SaveAccountId(long accountId)
         {
             PlayerPrefs.SetString(AccountIdKey, accountId.ToString());
+            PlayerPrefs.Save();
+        }
+
+        public static string RefreshToken => PlayerPrefs.GetString(RefreshTokenKey, string.Empty);
+
+        public static void SaveRefreshToken(string t)
+        {
+            PlayerPrefs.SetString(RefreshTokenKey, t ?? string.Empty);
+            PlayerPrefs.Save();
+        }
+
+        public static string Uid => PlayerPrefs.GetString(UidKey, string.Empty);
+
+        public static bool HasUid => string.IsNullOrEmpty(Uid) == false;
+
+        public static void SaveUid(string uid)
+        {
+            PlayerPrefs.SetString(UidKey, uid ?? string.Empty);
             PlayerPrefs.Save();
         }
     }

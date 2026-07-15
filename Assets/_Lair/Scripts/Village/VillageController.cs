@@ -155,6 +155,7 @@ namespace Lair.Village
                     await CHMUI.Instance.ShowUIAsync(EUI.RankingPopup, new RankingPopupArg
                     {
                         Ranking = MetaSession.Ranking,
+                        MyUid = AuthTokenStore.Uid,
                         MyAccountId = AuthTokenStore.AccountId,
                         MyBestClearTime = profile.BestClearTime,
                     });

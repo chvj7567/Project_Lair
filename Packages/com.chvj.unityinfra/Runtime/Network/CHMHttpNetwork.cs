@@ -25,15 +25,16 @@ namespace ChvjUnityInfra
         public static int DefaultTimeoutSec = 10;
 
         public static Task<CHHttpResult> GetAsync(string url, string bearer = null, int? timeoutSec = null)
-            => SendAsync(UnityWebRequest.kHttpVerbGET, url, null, bearer, timeoutSec);
+            => SendAsync(UnityWebRequest.kHttpVerbGET, url, null, bearer, timeoutSec, "application/json");
 
-        public static Task<CHHttpResult> PostAsync(string url, string jsonBody, string bearer = null, int? timeoutSec = null)
-            => SendAsync(UnityWebRequest.kHttpVerbPOST, url, jsonBody, bearer, timeoutSec);
+        //# contentType 기본값은 JSON. Google OAuth2 계열 토큰 엔드포인트처럼 form-urlencoded 를 요구하는 호출부는 override.
+        public static Task<CHHttpResult> PostAsync(string url, string jsonBody, string bearer = null, int? timeoutSec = null, string contentType = "application/json")
+            => SendAsync(UnityWebRequest.kHttpVerbPOST, url, jsonBody, bearer, timeoutSec, contentType);
 
-        public static Task<CHHttpResult> PutAsync(string url, string jsonBody, string bearer = null, int? timeoutSec = null)
-            => SendAsync(UnityWebRequest.kHttpVerbPUT, url, jsonBody, bearer, timeoutSec);
+        public static Task<CHHttpResult> PutAsync(string url, string jsonBody, string bearer = null, int? timeoutSec = null, string contentType = "application/json")
+            => SendAsync(UnityWebRequest.kHttpVerbPUT, url, jsonBody, bearer, timeoutSec, contentType);
 
-        private static Task<CHHttpResult> SendAsync(string verb, string url, string jsonBody, string bearer, int? timeoutSec)
+        private static Task<CHHttpResult> SendAsync(string verb, string url, string jsonBody, string bearer, int? timeoutSec, string contentType)
         {
             TaskCompletionSource<CHHttpResult> tcs = new TaskCompletionSource<CHHttpResult>();
 
@@ -44,7 +45,7 @@ namespace ChvjUnityInfra
                 request.uploadHandler = new UploadHandlerRaw(payload);
             }
             request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("Content-Type", contentType);
             if (string.IsNullOrEmpty(bearer) == false)
                 request.SetRequestHeader("Authorization", $"Bearer {bearer}");
             request.timeout = timeoutSec ?? DefaultTimeoutSec;
