@@ -11,6 +11,7 @@ namespace Lair.Battle
     //# Attach(aura, duration) — duration < 0 이면 무제한.
     //# IStatusVisual 인 aura 는 시작/종료 이벤트(OnStatusShown/OnStatusHidden)를 발행 —
     //# HP바 아래 상태 아이콘 표시는 BattleViewModel→HpBarView 가 처리(월드 visual 제거).
+    [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(Health))]
     public class HeroAuraRunner : MonoBehaviour
     {
@@ -28,7 +29,11 @@ namespace Lair.Battle
         public event Action<object, ECardId> OnStatusShown;
         public event Action<object> OnStatusHidden;
 
-        private void Awake() => _hero = GetComponent<IHealth>();
+        private void Awake()
+        {
+            LairCharacter character = GetComponent<LairCharacter>();
+            _hero = character.Get<IHealth>();
+        }
 
         public void Attach(IHeroAura aura, float duration)
         {

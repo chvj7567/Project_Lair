@@ -18,7 +18,7 @@ namespace Lair.Character
         public HeroSkillContext(Transform hero)
         {
             _hero = hero;
-            _heroAttacker = _hero != null ? _hero.GetComponent<IAttacker>() : null;
+            _heroAttacker = _hero != null ? _hero.GetComponent<LairCharacter>()?.Get<IAttacker>() : null;
         }
 
         public Vector3 HeroPosition => _hero != null ? _hero.position : Vector3.zero;
@@ -115,7 +115,7 @@ namespace Lair.Character
         {
             //# 데미지색 스탬프 — TakeDamage 가 OnChanged 를 동기 발행하기 전에 찍어야 DamageFeedback 이 팝업/임팩트를 띄운다(스킬=영웅 흰색, 근접과 일관).
             //# Valid(e) 가 Transform 비null 보장. GetComponent 는 스킬 발동(쿨다운 게이트) 시점·대상가변이라 캐싱 불가 → 1회성 허용(MeleeAttacker 와 동일).
-            e.Transform.GetComponent<IDamageColorSink>()?.StampDamageColor(Color.white);
+            e.Transform.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(Color.white);
             e.Health.TakeDamage(amount);
             if (knockback > 0f)
             {

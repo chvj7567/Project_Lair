@@ -11,10 +11,11 @@ namespace Lair.Character
         private IHealth _health;
         private Transform _cam;
 
-        //# Rule 06 — 상위 캐릭터의 HP 를 인터페이스로 탐색 (구체 클래스 비참조).
+        //# Rule 06 — 상위 캐릭터의 HP 를 루트 Character 로케이터 경유로 탐색 (구체 클래스 비참조).
         private void Awake()
         {
-            _health = GetComponentInParent<IHealth>();
+            LairCharacter character = GetComponentInParent<LairCharacter>();
+            _health = character != null ? character.Get<IHealth>() : null;
         }
 
         //# 풀 재사용 시 재구독 + 카메라 재캐시 + 현재 HP 반영.
@@ -27,7 +28,11 @@ namespace Lair.Character
             if (_hpBar != null)
                 _hpBar.SetTextVisible(false);
 
-            if (_health == null) _health = GetComponentInParent<IHealth>();
+            if (_health == null)
+            {
+                LairCharacter character = GetComponentInParent<LairCharacter>();
+                _health = character != null ? character.Get<IHealth>() : null;
+            }
             if (_health == null) return;
             _health.OnChanged += HandleChanged;
             HandleChanged(_health.Current, _health.Max);

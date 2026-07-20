@@ -89,6 +89,7 @@ namespace Lair.Tests.Character
 
             GameObject tgtGo = new GameObject("target");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();
+            tgtGo.AddComponent<LairCharacter>();   //# 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
 
             bool hit = atk.TryAttack(tgt, Vector3.zero, Vector3.zero, now: 1f);
 
@@ -191,6 +192,7 @@ namespace Lair.Tests.Character
         {
             GameObject tgtGo = new GameObject("hero");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();   //# Max=100
+            tgtGo.AddComponent<LairCharacter>();      //# DoT 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
 
             BleedAura aura = new BleedAura(ratio: 0.02f);  //# 2%/s → 100×0.02=2
             aura.OnAttached(tgt);
@@ -211,6 +213,7 @@ namespace Lair.Tests.Character
         {
             GameObject tgtGo = new GameObject("hero");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();
+            tgtGo.AddComponent<LairCharacter>();      //# DoT 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
 
             FakeMover mover = new FakeMover { IsMoving = true };
             EternalBleedAura aura = new EternalBleedAura(mover, ratio: 0.01f);  //# 1%/s → 1
@@ -231,6 +234,7 @@ namespace Lair.Tests.Character
         {
             GameObject tgtGo = new GameObject("hero");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();
+            tgtGo.AddComponent<LairCharacter>();      //# DoT 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
             tgtGo.transform.position = Vector3.zero;
 
             //# 독장판 visual 의 CHPoolable 더미 — Push 안 부르고 Tick 의 영역판정용 위치만 필요.
@@ -603,6 +607,7 @@ namespace Lair.Tests.Character
 
             GameObject tgtGo = new GameObject("target");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();   //# Current=100
+            tgtGo.AddComponent<LairCharacter>();      //# 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
 
             bool hit = atk.TryAttack(tgt, Vector3.zero, Vector3.zero, now: 1f);
 

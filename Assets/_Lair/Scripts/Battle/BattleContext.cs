@@ -56,7 +56,7 @@ namespace Lair.Battle
         public IMover GetHeroMover()
         {
             foreach (CharacterRegistry.Entry e in CharacterRegistry.Heroes)
-                if (e?.Transform != null) return e.Transform.GetComponent<IMover>();
+                if (e?.Transform != null) return e.Transform.GetComponent<LairCharacter>()?.Get<IMover>();
             return null;
         }
 

@@ -6,6 +6,7 @@ namespace Lair.Character
 {
     //# 플레이그(역병귀) 전용 — 공격 적중 시 영웅에게 짧은 둔화 부착. IAttacker.OnHit 구독.
     //# 플레이그가 계속 때리면 HeroAuraRunner 의 재부착 연장으로 둔화 지속.
+    [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(MeleeAttacker))]
     public class PlagueSlowOnHit : MonoBehaviour
     {
@@ -19,7 +20,7 @@ namespace Lair.Character
 
         private IAttacker _attacker;
 
-        private void Awake() => _attacker = GetComponent<IAttacker>();
+        private void Awake() => _attacker = GetComponent<LairCharacter>().Get<IAttacker>();
 
         //# 풀 재사용 시 구독 누수 방지 — OnEnable 구독 / OnDisable 해제.
         private void OnEnable()
@@ -41,7 +42,7 @@ namespace Lair.Character
             if (target is not MonoBehaviour mb || mb == null) return;
             HeroAuraRunner runner = mb.GetComponent<HeroAuraRunner>();
             if (runner == null) return;
-            runner.Attach(new SlowAura(mb.GetComponent<IMover>(), _slowFactor), _duration);
+            runner.Attach(new SlowAura(mb.GetComponent<LairCharacter>()?.Get<IMover>(), _slowFactor), _duration);
         }
     }
 }

@@ -27,6 +27,8 @@ namespace Lair.Tests.Character
         public void SetUp()
         {
             _hero = new GameObject("Hero");
+            //# 스킬 컨텍스트가 영웅 IAttacker 를 Character 로케이터 경유로 해석 → 로케이터 부착 필요.
+            _hero.AddComponent<LairCharacter>();
             _attacker = _hero.AddComponent<MeleeAttacker>();
             //# MeleeAttacker.OnEnable 이 PowerScale=1 로 리셋한 뒤 시작 — 명시적으로 한 번 더 고정.
             _attacker.PowerScale = 1f;

@@ -16,7 +16,9 @@ namespace Lair.Character
         private void Awake()
         {
             _attacker = GetComponentInParent<MeleeAttacker>();
-            _gate = GetComponentInParent<IAttackGate>();
+            //# 게이트만 루트 Character 로케이터 경유(인터페이스 서비스). 나머지는 구체 클래스라 직접 참조 유지.
+            LairCharacter character = GetComponentInParent<LairCharacter>();
+            _gate = character != null ? character.Get<IAttackGate>() : null;
             _entryDriver = GetComponentInParent<HeroEntryDriver>();
             _ai = GetComponentInParent<AutoCombatAI>();
         }

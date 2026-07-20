@@ -5,6 +5,7 @@ namespace Lair.Character
 {
     //# 영웅 zone 진입 단계 드라이버. AutoCombatAI 가 비활성화된 동안 영웅을 BattleZone.Center 로 이동시킨다.
     //# 도달 시 BattleZone.NotifyHeroReachedCenter() 호출 후 자기 비활성화. AutoCombatAI 활성화는 BattleController 가 담당.
+    [RequireComponent(typeof(LairCharacter))]
     public class HeroEntryDriver : MonoBehaviour
     {
         //# 도달 임계값 (m). spec §10 — 0.5m.
@@ -33,9 +34,10 @@ namespace Lair.Character
 
         private void Awake()
         {
-            _mover = GetComponent<IMover>();
-            _rotator = GetComponent<IRotator>();
-            _health = GetComponent<IHealth>();
+            LairCharacter character = GetComponent<LairCharacter>();
+            _mover = character.Get<IMover>();
+            _rotator = character.Get<IRotator>();
+            _health = character.Get<IHealth>();
         }
 
         //# 풀 재사용 + enabled 토글 시 게이트 잔존 방지 — 매 활성화마다 닫힘으로 리셋.

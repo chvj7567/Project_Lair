@@ -14,6 +14,8 @@ namespace Lair.Tests.Character
         public void SetUp()
         {
             _hero = new GameObject("Hero");
+            //# 스킬 컨텍스트가 영웅 IAttacker 를 Character 로케이터 경유로 해석 → 로케이터 부착 필요.
+            _hero.AddComponent<LairCharacter>();
             _monster = new GameObject("Monster");
             _monster.transform.position = new Vector3(2f, 0f, 0f);   //# 반경 3 안
             Health h = _monster.AddComponent<Health>();

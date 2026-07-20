@@ -13,7 +13,8 @@ namespace Lair.Card
         {
             Transform heroT = ctx.GetHeroTransform();
             if (heroT == null) return;
-            IAttacker atk = heroT.GetComponent<IAttacker>();
+            LairCharacter character = heroT.GetComponent<LairCharacter>();
+            IAttacker atk = character != null ? character.Get<IAttacker>() : null;
             if (atk == null) return;
             ctx.ApplyHeroAura(new HeroAttackDownAura(atk, Factor), durationSeconds: -1f);
         }

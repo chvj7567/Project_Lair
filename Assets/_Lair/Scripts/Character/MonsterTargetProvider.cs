@@ -3,11 +3,12 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# 몬스터용 — Heroes 레지스트리에서 영웅 검색.
+    [RequireComponent(typeof(LairCharacter))]
     public class MonsterTargetProvider : MonoBehaviour, ITargetProvider
     {
         private IHealth _selfHealth;
 
-        private void Awake() => _selfHealth = GetComponent<IHealth>();
+        private void Awake() => _selfHealth = GetComponent<LairCharacter>().Get<IHealth>();
 
         private void OnEnable()
         {

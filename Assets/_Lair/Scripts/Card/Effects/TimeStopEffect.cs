@@ -14,8 +14,9 @@ namespace Lair.Card
         {
             Transform heroT = ctx.GetHeroTransform();
             if (heroT == null) return;
-            IMover mover = heroT.GetComponent<IMover>();
-            IAttacker atk = heroT.GetComponent<IAttacker>();
+            LairCharacter character = heroT.GetComponent<LairCharacter>();
+            IMover mover = character != null ? character.Get<IMover>() : null;
+            IAttacker atk = character != null ? character.Get<IAttacker>() : null;
             ctx.ApplyHeroAura(new TimeStopAura(mover, atk), _duration);
         }
     }

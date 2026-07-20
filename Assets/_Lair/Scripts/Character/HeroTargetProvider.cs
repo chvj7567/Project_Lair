@@ -4,6 +4,7 @@ namespace Lair.Character
 {
     //# 영웅용 — Monsters 레지스트리에서 최근접 살아있는 적 검색.
     //# OnEnable 시 자기 자신을 Heroes 레지스트리에 등록.
+    [RequireComponent(typeof(LairCharacter))]
     public class HeroTargetProvider : MonoBehaviour, ITargetProvider
     {
         private IHealth _selfHealth;
@@ -12,7 +13,7 @@ namespace Lair.Character
 
         private void Awake()
         {
-            _selfHealth = GetComponent<IHealth>();
+            _selfHealth = GetComponent<LairCharacter>().Get<IHealth>();
             _camera = Camera.main;
         }
 

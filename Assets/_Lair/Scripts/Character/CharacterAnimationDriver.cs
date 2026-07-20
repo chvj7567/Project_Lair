@@ -6,6 +6,7 @@ namespace Lair.Character
     //# 영웅/몬스터 공통 재사용 가능하게 인터페이스 의존. 결정 로직은 Controller 에 위임.
     //# AutoCombatAI(-10) 이후 실행 — 같은 프레임의 MoveTo 결과(IsMoving)를 즉시 애니에 반영.
     [DefaultExecutionOrder(10)]
+    [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(Health))]
     public class CharacterAnimationDriver : MonoBehaviour
     {
@@ -30,11 +31,12 @@ namespace Lair.Character
         {
             if (_animator == null)
                 _animator = GetComponentInChildren<Animator>();
-            _health = GetComponent<IHealth>();
-            _mover = GetComponent<IMover>();
-            _attacker = GetComponent<IAttacker>();
+            LairCharacter character = GetComponent<LairCharacter>();
+            _health = character.Get<IHealth>();
+            _mover = character.Get<IMover>();
+            _attacker = character.Get<IAttacker>();
             _ai = GetComponent<AutoCombatAI>();
-            _attackGate = GetComponent<IAttackGate>();
+            _attackGate = character.Get<IAttackGate>();
             //# 영웅(IAttackGate 보유)만 스윙음 재생 — 몬스터(게이트 null)는 무음. 같은 애니 경로 공유 대응.
             _controller = new CharacterAnimationController(
                 new AnimatorSink(_animator, _attackGate != null), _hitReactionCooldown, _attackSuppressWindow);

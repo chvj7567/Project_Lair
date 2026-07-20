@@ -42,6 +42,9 @@ namespace Lair.Tests.PlayMode.Character
         private GameObject CreateHeroRoot(out MeleeAttacker attacker, out HeroAttackGate gate)
         {
             GameObject root = new GameObject("HeroRootUT");
+            //# 프로덕션 영웅 루트와 동형 — relay 가 부모 Character 로케이터로 IAttackGate 를 해석하므로 부착 필수.
+            //# (AutoCombatAI 등 RequireComponent(Character) 소비자를 붙이지 않는 케이스도 커버.)
+            root.AddComponent<LairCharacter>();
             Health hp = root.AddComponent<Health>();
             hp.SetMax(10000);
             root.AddComponent<SimpleMover>();

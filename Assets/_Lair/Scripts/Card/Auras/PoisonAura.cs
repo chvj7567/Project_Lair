@@ -85,7 +85,7 @@ namespace Lair.Card
         private static void StampColor(IHealth hero, Color c)
         {
             if (hero is Component comp && comp != null)
-                comp.GetComponent<IDamageColorSink>()?.StampDamageColor(c);
+                comp.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(c);
         }
 
         //# CHMResource 캐시 hit 시 즉시 callback (사전 워밍 후 즉시 처리).

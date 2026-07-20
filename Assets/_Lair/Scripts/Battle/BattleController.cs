@@ -22,8 +22,8 @@ namespace Lair.Battle
         [SerializeField] private Transform _heroSpawn;
         //# 지속 스폰 — 씬에 배치된 Spawner 들. Rule 03 — FindObjectsOfType 대신 인스펙터 직렬 할당.
         [SerializeField] private Spawner[] _spawners;
-        //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
-        [SerializeField] private BalanceConfig _balance;
+        //# 캐릭터 스탯 + 전투 상수. Start 에서 CreateDefault()(코드 기본값) → JSON 오버레이로 채운다. 인스펙터 할당 없음.
+        private BalanceConfig _balance;
 
         //# v0.2 메타 — 상점 보너스/보상 정산 수치 (씬 인스펙터 할당). null 이면 메타 로직 전부 skip (기존 테스트/씬 무영향).
         [SerializeField] private MetaConfig _metaConfig;
@@ -118,15 +118,22 @@ namespace Lair.Battle
 
             //# 2. MVVM
             _model = new BattleStateModel();
-            //# Slice C — BalanceConfig 의 런 길이 적용
-            if (_balance == null)
+
+            //# 런타임 스탯 — JSON(StreamingAssets) 이 유일 정본. 코드 기본값(CreateDefault) 위에 JSON 을 오버레이.
+            //# 순수 클래스라 클로버링 없음(복제/정리 불필요). JSON 없음/깨짐 시 코드 기본값으로 진행.
+            _balance = BalanceConfig.CreateDefault();
+            BalanceConfigDto dto = await BalanceJsonLoader.LoadAsync();
+            if (dto != null)
             {
-                Debug.LogError("[BattleController] BalanceConfig(_balance) 미할당 — 프리팹 기본 스탯으로 진행");
+                _balance.OverlayFromDto(dto);
             }
             else
             {
-                _model.TotalSeconds = _balance.RunDuration;
+                Debug.LogWarning("[BattleController] 밸런스 JSON 없음/실패 — 코드 기본값으로 진행");
             }
+
+            //# Slice C — 런 길이 적용
+            _model.TotalSeconds = _balance.RunDuration;
             _vm = new BattleViewModel(_model);
 
             //# 3. 영웅 스폰 + Spawner 바인딩.

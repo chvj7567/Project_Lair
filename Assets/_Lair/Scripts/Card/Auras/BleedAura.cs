@@ -42,7 +42,7 @@ namespace Lair.Card
         private static void StampColor(IHealth hero, Color c)
         {
             if (hero is Component comp && comp != null)
-                comp.GetComponent<IDamageColorSink>()?.StampDamageColor(c);
+                comp.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(c);
         }
     }
 }

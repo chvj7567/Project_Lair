@@ -7,6 +7,7 @@ namespace Lair.Character
     //# 영웅/몬스터 공통. ITargetProvider 구현체로 진영이 결정됨.
     //# AI 결정(MoveTo/Stop)을 같은 프레임의 애니 Tick(Driver)보다 먼저 — IsMoving 1프레임 지연 슬라이드 제거.
     [DefaultExecutionOrder(-10)]
+    [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(SimpleMover))]
     [RequireComponent(typeof(Health))]
     [RequireComponent(typeof(MeleeAttacker))]
@@ -65,12 +66,13 @@ namespace Lair.Character
 
         private void Awake()
         {
-            _mover = GetComponent<IMover>();
-            _health = GetComponent<IHealth>();
-            _attacker = GetComponent<IAttacker>();
-            _targetProvider = GetComponent<ITargetProvider>();
-            _rotator = GetComponent<IRotator>();
-            _attackGate = GetComponent<IAttackGate>();   //# null=몬스터(보류 로직 미적용)
+            LairCharacter character = GetComponent<LairCharacter>();
+            _mover = character.Get<IMover>();
+            _health = character.Get<IHealth>();
+            _attacker = character.Get<IAttacker>();
+            _targetProvider = character.Get<ITargetProvider>();
+            _rotator = character.Get<IRotator>();
+            _attackGate = character.Get<IAttackGate>();   //# null=몬스터(보류 로직 미적용)
         }
 
         //# 풀 재사용 시 도주 상태 잔존 방지 + 초기 방향 스냅.

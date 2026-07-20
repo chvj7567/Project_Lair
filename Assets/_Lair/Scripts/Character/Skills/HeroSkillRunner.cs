@@ -6,6 +6,7 @@ namespace Lair.Character
 {
     //# 영웅 부착 — 로드아웃 페이즈를 HP% 게이트로 활성화하고 활성 스킬을 매 프레임 Tick.
     //# 영웅은 풀 객체(count 1) → OnEnable/OnDisable 에서 활성 상태 리셋(HeroAuraRunner 패턴).
+    [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(Health))]
     public class HeroSkillRunner : MonoBehaviour
     {
@@ -23,7 +24,8 @@ namespace Lair.Character
         private void Awake()
         {
             //# Rule 02 §5 — Awake 1회 캐싱 (런타임 경로 GetComponent 아님).
-            _health = GetComponent<IHealth>();
+            LairCharacter character = GetComponent<LairCharacter>();
+            _health = character.Get<IHealth>();
             _ctx = new HeroSkillContext(transform);
         }
 

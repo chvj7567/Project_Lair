@@ -25,8 +25,8 @@ namespace Lair.Tests.PlayMode
             //# CharacterRegistry 는 정적 — 테스트 간 잔존 방지 위해 비운다.
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
-            //# 런타임 BalanceConfig SO — 위스프 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
-            _balance = ScriptableObject.CreateInstance<BalanceConfig>();
+            //# 런타임 BalanceConfig(순수 클래스) — 위스프 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
+            _balance = new BalanceConfig();
             SetPrivate(_balance, "_monsters", new[]
             {
                 MakeRow(EMonster.Wisp,  hp: 200, power: 10, range: 1.5f, cooldown: 1.0f, move: 2.0f),
@@ -43,7 +43,7 @@ namespace Lair.Tests.PlayMode
             _spawned.Clear();
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
-            if (_balance != null) Object.Destroy(_balance);
+            //# _balance 는 순수 클래스 — GC 대상, 명시 파괴 불필요.
             //# 캡18 테스트가 timeScale 가속을 쓰므로 원복 — 후속 테스트 영향 차단.
             Time.timeScale = 1f;
         }

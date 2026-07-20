@@ -114,7 +114,7 @@ namespace Lair.Character
         {
             //# 데미지 숫자 색 스탬프 — TakeDamage 가 OnChanged 를 동기 발행하기 전에 찍어야 한다.
             if (target is Component tc && tc != null)
-                tc.GetComponent<IDamageColorSink>()?.StampDamageColor(DamageColor);
+                tc.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(DamageColor);
 
             target.TakeDamage(Mathf.RoundToInt(_power * PowerScale));
             OnHit?.Invoke(target);

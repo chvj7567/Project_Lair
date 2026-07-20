@@ -26,26 +26,33 @@ namespace Lair.Tests.Battle
             (EMonster.Phantom, 5,  6f),
         };
 
-        //# 6종 전수 행을 가진 BalanceConfig 를 JsonUtility 로 구성 (UnityEditor 비의존, BalanceConfigTests 패턴).
+        //# 6종 전수 행을 가진 BalanceConfig 를 리플렉션으로 구성 (UnityEditor/JsonUtility 비의존, 순수 클래스).
         //# EMonster int 순서대로 _monsters 배열을 채운다.
         private static BalanceConfig CreateFullConfig()
         {
-            BalanceConfig config = ScriptableObject.CreateInstance<BalanceConfig>();
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"_monsters\":[");
+            BalanceConfig config = new BalanceConfig();
+            BalanceConfig.MonsterStatRow[] rows = new BalanceConfig.MonsterStatRow[_expected.Length];
             for (int i = 0; i < _expected.Length; ++i)
             {
-                if (i > 0) sb.Append(",");
-                sb.Append($"{{\"Key\":{_expected[i].enumIndex},\"Stat\":{{\"Hp\":100}},\"SpawnPeriod\":{_expected[i].period}}}");
+                rows[i] = MakeRow(_expected[i].key, _expected[i].period);
             }
-            sb.Append("]}");
-            JsonUtility.FromJsonOverwrite(sb.ToString(), config);
+            SetPrivate(config, "_monsters", rows);
             return config;
         }
 
-        private readonly List<Object> _created = new();
+        //# 스폰 주기 테스트용 최소 행 — Hp 만 채우고(조회는 검증 없음) SpawnPeriod 지정.
+        private static BalanceConfig.MonsterStatRow MakeRow(EMonster key, float spawnPeriod)
+        {
+            return new BalanceConfig.MonsterStatRow
+            {
+                Key = key,
+                Stat = new BalanceConfig.CharacterStat { Hp = 100 },
+                SpawnPeriod = spawnPeriod,
+            };
+        }
 
-        private BalanceConfig TrackConfig(BalanceConfig c) { _created.Add(c); return c; }
+        //# 씬 GameObject 추적(TearDown 파괴). BalanceConfig 는 순수 클래스라 추적 불필요.
+        private readonly List<Object> _created = new();
 
         [TearDown]
         public void TearDown()
@@ -87,7 +94,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void GetSpawnPeriod_6종전수_정확값()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             foreach ((EMonster key, int _, float period) in _expected)
                 Assert.AreEqual(period, config.GetSpawnPeriod(key), 0.001f, $"{key} 주기 = {period}");
         }
@@ -95,42 +102,42 @@ namespace Lair.Tests.Battle
         [Test]
         public void GetSpawnPeriod_Wisp_9초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(9f, config.GetSpawnPeriod(EMonster.Wisp), 0.001f);
         }
 
         [Test]
         public void GetSpawnPeriod_Reaper_12초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(12f, config.GetSpawnPeriod(EMonster.Reaper), 0.001f);
         }
 
         [Test]
         public void GetSpawnPeriod_Phantom_6초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(6f, config.GetSpawnPeriod(EMonster.Phantom), 0.001f);
         }
 
         [Test]
         public void GetSpawnPeriod_Plague_10초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(10f, config.GetSpawnPeriod(EMonster.Plague), 0.001f);
         }
 
         [Test]
         public void GetSpawnPeriod_Wraith_20초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(20f, config.GetSpawnPeriod(EMonster.Wraith), 0.001f);
         }
 
         [Test]
         public void GetSpawnPeriod_Hex_15초()
         {
-            BalanceConfig config = TrackConfig(CreateFullConfig());
+            BalanceConfig config = CreateFullConfig();
             Assert.AreEqual(15f, config.GetSpawnPeriod(EMonster.Hex), 0.001f);
         }
 
@@ -141,11 +148,9 @@ namespace Lair.Tests.Battle
             UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
                 new System.Text.RegularExpressions.Regex("스폰 주기 미발견"));
 
-            BalanceConfig config = TrackConfig(ScriptableObject.CreateInstance<BalanceConfig>());
+            BalanceConfig config = new BalanceConfig();
             //# Wisp(0) 행만 등록. Phantom(5) 은 미등록.
-            JsonUtility.FromJsonOverwrite(
-                "{\"_monsters\":[{\"Key\":0,\"Stat\":{\"Hp\":100},\"SpawnPeriod\":9.0}]}",
-                config);
+            SetPrivate(config, "_monsters", new[] { MakeRow(EMonster.Wisp, 9f) });
 
             Assert.AreEqual(9f, config.GetSpawnPeriod(EMonster.Phantom), 0.001f);
         }
@@ -157,8 +162,8 @@ namespace Lair.Tests.Battle
             UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
                 new System.Text.RegularExpressions.Regex("스폰 주기 미발견"));
 
-            BalanceConfig config = TrackConfig(ScriptableObject.CreateInstance<BalanceConfig>());
-            //# CreateInstance 직후 _monsters == null.
+            BalanceConfig config = new BalanceConfig();
+            //# new 직후 _monsters == null.
             Assert.AreEqual(9f, config.GetSpawnPeriod(EMonster.Wisp), 0.001f);
         }
 
@@ -169,8 +174,8 @@ namespace Lair.Tests.Battle
             UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
                 new System.Text.RegularExpressions.Regex("스폰 주기 미발견"));
 
-            BalanceConfig config = TrackConfig(ScriptableObject.CreateInstance<BalanceConfig>());
-            JsonUtility.FromJsonOverwrite("{\"_monsters\":[]}", config);
+            BalanceConfig config = new BalanceConfig();
+            SetPrivate(config, "_monsters", new BalanceConfig.MonsterStatRow[0]);
 
             Assert.AreEqual(9f, config.GetSpawnPeriod(EMonster.Reaper), 0.001f);
         }
@@ -358,7 +363,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void BindSpawners주입_CurrentType별_종별주기적용()
         {
-            BalanceConfig balance = TrackConfig(CreateFullConfig());
+            BalanceConfig balance = CreateFullConfig();
             Spawner wisp    = CreateSpawner(EMonster.Wisp, 9f);
             Spawner phantom = CreateSpawner(EMonster.Phantom, 9f);
             Spawner wraith  = CreateSpawner(EMonster.Wraith, 9f);
@@ -378,7 +383,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void BindSpawners주입_변경된CurrentType으로_조회()
         {
-            BalanceConfig balance = TrackConfig(CreateFullConfig());
+            BalanceConfig balance = CreateFullConfig();
             Spawner sp = CreateSpawner(EMonster.Wisp, 9f);
             sp.ReplaceOutput(EMonster.Hex);     //# CurrentType = Hex(15)
 
@@ -409,11 +414,9 @@ namespace Lair.Tests.Battle
             UnityEngine.TestTools.LogAssert.Expect(LogType.Warning,
                 new System.Text.RegularExpressions.Regex("스폰 주기 미발견"));
 
-            BalanceConfig balance = TrackConfig(ScriptableObject.CreateInstance<BalanceConfig>());
+            BalanceConfig balance = new BalanceConfig();
             //# Wisp(0) 행만 등록 — Wraith 미등록.
-            JsonUtility.FromJsonOverwrite(
-                "{\"_monsters\":[{\"Key\":0,\"Stat\":{\"Hp\":100},\"SpawnPeriod\":9.0}]}",
-                balance);
+            SetPrivate(balance, "_monsters", new[] { MakeRow(EMonster.Wisp, 9f) });
             Spawner sp = CreateSpawner(EMonster.Wraith, 5f);
 
             sp.SetBasePeriod(balance.GetSpawnPeriod(sp.CurrentType));

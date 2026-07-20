@@ -60,8 +60,8 @@ namespace Lair.Tests.PlayMode
         }
 
         //# StampDamageColor 호출만 기록하는 경량 스파이 — DamageFeedback(RequireComponent 등) 없이
-        //# 스킬 데미지가 데미지색을 스탬프하는지 검증. Apply 가 e.Transform.GetComponent<IDamageColorSink> 로
-        //# 찾으므로 몬스터 GameObject 에 직접 붙는다.
+        //# 스킬 데미지가 데미지색을 스탬프하는지 검증. Apply 가 e.Transform 의 Character 로케이터 경유로
+        //# IDamageColorSink 를 찾으므로, 몬스터 GameObject 에 스파이 + Character 를 함께 붙인다.
         private class DamageColorSinkSpy : MonoBehaviour, IDamageColorSink
         {
             public int CallCount { get; private set; }
@@ -82,6 +82,8 @@ namespace Lair.Tests.PlayMode
             Health h = go.AddComponent<Health>();
             h.SetMax(1000, true);
             spy = go.AddComponent<DamageColorSinkSpy>();
+            //# 스킬 데미지색 스탬프는 대상 Character 로케이터 경유로 IDamageColorSink 를 해석 → 부착 필수.
+            go.AddComponent<LairCharacter>();
             CharacterRegistry.RegisterMonster(go.transform, h);
             CharacterRegistry.SetMonsterEngaging(go.transform, true);
             return go;
