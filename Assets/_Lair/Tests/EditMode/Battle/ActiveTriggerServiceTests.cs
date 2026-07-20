@@ -176,17 +176,21 @@ namespace Lair.Tests.Battle
         [Test]
         public void BalanceConfig_기본_ActiveThresholds_가_신_집합_5개와_일치()
         {
-            //# BalanceConfig 는 순수 클래스 — new 로 코드 기본값 인스턴스(teardown 불필요).
-            BalanceConfig cfg = new BalanceConfig();
-            float[] thresholds = cfg.ActiveThresholds;
-            Assert.IsNotNull(thresholds, "ActiveThresholds null 아님");
-            CollectionAssert.AreEqual(ExpectedThresholds, thresholds,
-                "BalanceConfig 기본 _activeThresholds 가 {30,90,150,210,270} 와 일치");
-            //# 제거된 분단위가 코드 기본값에 잔존하지 않는지 명시 박제.
-            foreach (float removed in RemovedMinuteThresholds)
+            BalanceConfig cfg = ScriptableObject.CreateInstance<BalanceConfig>();
+            try
             {
-                CollectionAssert.DoesNotContain(thresholds, removed,
-                    $"분단위 {removed} 가 코드 기본값에 잔존 (회귀)");
+                float[] thresholds = cfg.ActiveThresholds;
+                Assert.IsNotNull(thresholds, "ActiveThresholds null 아님");
+                CollectionAssert.AreEqual(ExpectedThresholds, thresholds,
+                    "BalanceConfig 기본 _activeThresholds 가 {30,90,150,210,270} 와 일치");
+                //# 제거된 분단위가 코드 기본값에 잔존하지 않는지 명시 박제.
+                foreach (float removed in RemovedMinuteThresholds)
+                    CollectionAssert.DoesNotContain(thresholds, removed,
+                        $"분단위 {removed} 가 코드 기본값에 잔존 (회귀)");
+            }
+            finally
+            {
+                Object.DestroyImmediate(cfg);
             }
         }
 

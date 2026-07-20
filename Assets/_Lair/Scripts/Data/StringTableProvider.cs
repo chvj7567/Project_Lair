@@ -13,7 +13,7 @@ namespace Lair.Data
     }
 
     //# CHText.StringProvider 에 등록하는 구현체.
-    //# Art/Json/Strings_Ko.json (Addressable) 을 JsonArrayUtility 로 파싱해 id → text 테이블 구축.
+    //# Data/Json/Strings_Ko.json (Addressable) 을 JsonArrayUtility 로 파싱해 id → text 테이블 구축.
     public class StringTableProvider : IStringProvider
     {
         private readonly Dictionary<int, string> _table = new();
