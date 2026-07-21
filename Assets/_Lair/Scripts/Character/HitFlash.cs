@@ -103,6 +103,20 @@ namespace Lair.Character
             }
         }
 
+        //# 스테이지 variant 틴트를 "원본" 색으로 (재)설정 — 이후 모든 원복(피격/공격 flash 종료·풀 재사용 OnEnable)이
+        //# 이 색으로 되돌아가 틴트가 유지된다(spec §5.1 색 채널 단일화). HeroStageVariantApplier 가 마지막에 호출.
+        public void SetBaselineColor(Color baseline)
+        {
+            for (int i = 0; i < _originalColors.Count; i++)
+            {
+                _originalColors[i] = baseline;
+            }
+            //# 진행 중 flash 정리 후 새 원본으로 즉시 원복.
+            if (_co != null) { StopCoroutine(_co); _co = null; }
+            if (_attackCo != null) { StopCoroutine(_attackCo); _attackCo = null; }
+            RestoreOriginalColors();
+        }
+
         //# 자식의 모든 Renderer 를 수집해 .material 로 인스턴스화하고 원본 색 캐시.
         //# 이름이 ExcludeNamePrefixes 로 시작하는 Renderer 는 제외 (Aura 등 색이 정체성).
         private void CacheRenderers()

@@ -8,8 +8,12 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 1;
+        public int Version = 2;
         public int Souls;
+        //# 스테이지 진행(hero-stage-variant 기획서 §3) — SelectedStage=마지막 선택(1~5, 기본 1),
+        //# ClearedStage=클리어한 최고 스테이지(0~5, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
+        public int SelectedStage = 1;
+        public int ClearedStage = 0;
         public int LordXp;                                       //# 누적 XP — 레벨은 LordLevelService 가 계산
         //# 영주 보상 자동 수령의 멱등 가드 — 지급 완료된 최고 레벨 (기획서 §4.4, 초기값 1).
         public int LordRewardGrantedLevel = 1;
@@ -57,6 +61,9 @@ namespace Lair.Meta
                 return;
             Version = other.Version;
             Souls = other.Souls;
+            //# 진행 데이터 — 클라우드 복원 대상. SelectedStage 는 로컬 preference 이나 일관성 위해 함께 복사(plan Task 1).
+            SelectedStage = other.SelectedStage;
+            ClearedStage = other.ClearedStage;
             LordXp = other.LordXp;
             LordRewardGrantedLevel = other.LordRewardGrantedLevel;
             ShopLevels = other.ShopLevels ?? new List<ShopLevelEntry>();

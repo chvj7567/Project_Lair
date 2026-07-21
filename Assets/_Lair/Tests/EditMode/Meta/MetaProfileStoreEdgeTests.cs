@@ -39,7 +39,8 @@ namespace Lair.Tests.EditMode
             MetaProfile p = new MetaProfileStore(_dir).Load();
 
             Assert.AreEqual(42, p.Souls);
-            Assert.AreEqual(1, p.Version);
+            //# JSON 에 Version 필드 부재 → 생성자 기본값(현 스키마 2) 채움. 명시 Version=1 이 아니므로 마이그레이션 무관.
+            Assert.AreEqual(2, p.Version);
             Assert.AreEqual(1, p.LordRewardGrantedLevel);
             Assert.AreEqual("Knight", p.SelectedHero);
             Assert.AreEqual(-1f, p.BestClearTime, 0.0001f);

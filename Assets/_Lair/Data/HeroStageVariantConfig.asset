@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8ed883f9b99a4c47b04d54429a7227f, type: 3}
+  m_Name: HeroStageVariantConfig
+  m_EditorClassIdentifier: 
+  _stages:
+  - TintColor: {r: 0.9098039, g: 0.8784314, b: 0.78431374, a: 1}
+    UseOutline: 0
+    OutlineColor: {r: 0, g: 0, b: 0, a: 0}
+    UseEmission: 0
+    EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    EmissionIntensity: 0
+    ScaleMultiplier: 1
+    HpMultiplier: 1
+    PowerMultiplier: 1
+  - TintColor: {r: 0.2901961, g: 0.87058824, b: 0.5019608, a: 1}
+    UseOutline: 1
+    OutlineColor: {r: 0.972549, g: 0.98039216, b: 0.9882353, a: 1}
+    UseEmission: 0
+    EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    EmissionIntensity: 0
+    ScaleMultiplier: 1
+    HpMultiplier: 1.25
+    PowerMultiplier: 1.1
+  - TintColor: {r: 0.21960784, g: 0.7411765, b: 0.972549, a: 1}
+    UseOutline: 0
+    OutlineColor: {r: 0, g: 0, b: 0, a: 0}
+    UseEmission: 1
+    EmissionColor: {r: 0.21960784, g: 0.7411765, b: 0.972549, a: 1}
+    EmissionIntensity: 1.5
+    ScaleMultiplier: 1
+    HpMultiplier: 1.55
+    PowerMultiplier: 1.2
+  - TintColor: {r: 0.65882355, g: 0.33333334, b: 0.96862745, a: 1}
+    UseOutline: 1
+    OutlineColor: {r: 0.9098039, g: 0.4745098, b: 0.9764706, a: 1}
+    UseEmission: 1
+    EmissionColor: {r: 0.65882355, g: 0.33333334, b: 0.96862745, a: 1}
+    EmissionIntensity: 2.2
+    ScaleMultiplier: 1
+    HpMultiplier: 1.9
+    PowerMultiplier: 1.35
+  - TintColor: {r: 0.9372549, g: 0.26666668, b: 0.26666668, a: 1}
+    UseOutline: 1
+    OutlineColor: {r: 0.99215686, g: 0.8784314, b: 0.2784314, a: 1}
+    UseEmission: 1
+    EmissionColor: {r: 1, g: 0.34117648, b: 0.13333334, a: 1}
+    EmissionIntensity: 3.2
+    ScaleMultiplier: 1.4
+    HpMultiplier: 2.3
+    PowerMultiplier: 1.5

@@ -47,7 +47,8 @@ namespace Lair.Tests.EditMode
             MetaProfile p = new MetaProfile { LordRewardGrantedLevel = 5 };
             MetaProfile r = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
 
-            Assert.AreEqual(1, r.Version);
+            //# 현 스키마 버전 2 가 왕복 직렬화로 보존되는지(hero-stage-variant plan Task 1 승격).
+            Assert.AreEqual(2, r.Version);
             Assert.AreEqual(5, r.LordRewardGrantedLevel);
         }
 

@@ -18,8 +18,12 @@ namespace Lair.Village
     {
         [SerializeField] private MetaConfig _metaConfig;
         [SerializeField] private Transform _heroAnchor;    //# 중앙 해골 배치 지점 (씬 정적 배치)
+        //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
+        [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
 
         private VillageViewModel _vm;
+        //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
+        private HeroStageVariantApplier _showcaseApplier;
 
         private async void Start()
         {
@@ -34,6 +38,9 @@ namespace Lair.Village
             await MetaSession.EnsureNetworkAsync();
 
             await SpawnIdleHero();
+
+            //# 캐러셀 — VM 스테이지 이동 시 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
+            _vm.OnStageChanged += HandleStageChanged;
 
             UIBase hud = await CHMUI.Instance.ShowUIAsync(EUI.VillageHud,
                 new VillageHudArg { Vm = _vm, OnOpenMenu = OpenMenu, OnSortie = Sortie });
@@ -62,6 +69,37 @@ namespace Lair.Village
             //# Y 180° — 카메라 정면 응시 (기획서 §8.1).
             poolable.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
             DisableBattleComponents(poolable.gameObject);
+
+            //# 캐러셀 — 쇼케이스 applier 캐싱 후 현재 SelectedStage 외형 즉시 반영(기획서 §4.1). 전투 컴포넌트 off 여도 재스킨은 성립(§6).
+            _showcaseApplier = poolable.gameObject.GetComponent<HeroStageVariantApplier>();
+            ApplyShowcaseVariant();
+        }
+
+        //# 현재 VM.SelectedStage 의 variant 를 쇼케이스 영웅에 적용. config/applier 미비 시 무동작(가드).
+        private void ApplyShowcaseVariant()
+        {
+            if (_showcaseApplier == null || _stageVariantConfig == null || _vm == null)
+                return;
+            _showcaseApplier.Apply(_stageVariantConfig.GetStage(_vm.SelectedStage));
+        }
+
+        //# 캐러셀 스테이지 이동 — 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
+        private void HandleStageChanged()
+        {
+            ApplyShowcaseVariant();
+            if (_vm == null)
+                return;
+            MetaProfile profile = MetaSession.GetOrLoad();
+            profile.SelectedStage = _vm.SelectedStage;
+            MetaSession.Store?.Save(profile);
+        }
+
+        private void OnDestroy()
+        {
+            if (_vm != null)
+            {
+                _vm.OnStageChanged -= HandleStageChanged;
+            }
         }
 
         //# 전투 전용 컴포넌트만 끈다 — Animator/CharacterAnimationDriver 는 유지 (idle 루프).
@@ -313,8 +351,12 @@ namespace Lair.Village
             //# v0.2 는 Knight 1종 — 중앙 모델 교체는 사실상 표시 유지 (spec §3).
         }
 
+        //# 출격 — 현재 스테이지가 해금이면 그 스테이지로 Battle 입장(SelectedStage 는 이동 시 이미 저장됨, 기획서 §4.5).
+        //# 잠금이면 방어적 차단(출격 버튼 비활성이 1차 가드, §4.5).
         private void Sortie()
         {
+            if (_vm == null || _vm.IsCurrentStageUnlocked == false)
+                return;
             SceneManager.LoadScene(EScene.Battle.ToString());
         }
     }

@@ -28,6 +28,9 @@ namespace Lair.Battle
         //# v0.2 메타 — 상점 보너스/보상 정산 수치 (씬 인스펙터 할당). null 이면 메타 로직 전부 skip (기존 테스트/씬 무영향).
         [SerializeField] private MetaConfig _metaConfig;
 
+        //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
+        [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
+
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
@@ -399,6 +402,37 @@ namespace Lair.Battle
             }
         }
 
+        //# hero-stage-variant — 선택 스테이지의 외형 variant 적용 + HP/공격력 배수(baseline × mul, 풀 재사용 복리 없음).
+        //# ApplyStats(baseline) 직후 1회. Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
+        private void ApplyStageVariant(GameObject hero)
+        {
+            if (hero == null || _stageVariantConfig == null || _balance == null || _balance.Hero == null)
+                return;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            HeroStageVariant variant = _stageVariantConfig.GetStage(profile.SelectedStage);
+            if (variant == null)
+                return;
+
+            HeroStageVariantApplier applier = hero.GetComponent<HeroStageVariantApplier>();
+            if (applier != null)
+            {
+                applier.Apply(variant);
+            }
+
+            Health health = hero.GetComponent<Health>();
+            if (health != null)
+            {
+                health.SetMax(StageProgress.ScaleStat(_balance.Hero.Hp, variant.HpMultiplier), resetCurrent: true);
+            }
+            MeleeAttacker attacker = hero.GetComponent<MeleeAttacker>();
+            if (attacker != null)
+            {
+                attacker.Configure(_balance.Hero.Range, _balance.Hero.Cooldown,
+                    StageProgress.ScaleStat(_balance.Hero.Power, variant.PowerMultiplier));
+            }
+        }
+
         //# 지속 스폰 — 몬스터에 raw 스탯 × 글로벌 타입 모디파이어 배율 적용 (§7.5.2).
         //# 모든 몬스터 스폰·소급 경로가 이 한 메서드를 거친다. 영웅은 절대 거치지 않는다.
         public void ApplyMonsterStats(GameObject character, EMonster key, bool resetCurrent)
@@ -478,6 +512,8 @@ namespace Lair.Battle
             if (_balance != null)
             {
                 ApplyStats(p.gameObject, _balance.Hero);
+                //# hero-stage-variant — ApplyStats(baseline) 직후 스테이지 외형 + 스탯 배수 반영.
+                ApplyStageVariant(p.gameObject);
             }
             if (_heroHealth != null)
             {
@@ -919,6 +955,8 @@ namespace Lair.Battle
                 if (result == BattleResult.Win)
                 {
                     profile.TotalWins++;
+                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(5 종점, spec §6.1). 저장은 아래 Save.
+                    profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
                     if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
                     {
                         profile.BestClearTime = _clock.Elapsed;
