@@ -867,6 +867,8 @@ namespace Lair.Village
 - [ ] **Step 3: HeroSelectPopup** — Arg `{ MetaProfile; MetaConfig; Action<EHero> OnSelected; }`. 셀: Knight(선택 가능, 현재 선택 강조) + `HeroLockedSlots` 만큼 잠금 더미 셀. 선택 시 `Profile.SelectedHero` 갱신 + 저장 + 마을 중앙 모델 교체(v0.2 는 Knight 뿐이라 사실상 표시만)
 - [ ] **Step 4: 컴파일 확인 + 스테이징 + 커밋 메시지(안)** — `# [feat] - 도전과제·영주성·영웅 선택 팝업 — 미래 콘텐츠는 잠금 슬롯으로 표시`
 
+> **delta 각주 (2026-07-22)**: 위 **Step 3(HeroSelectPopup)** 의 명세(`EHero` 선택 + `HeroLockedSlots` 잠금 더미 + 중앙 모델 교체)는 **폐기**되었다. 현행 정본은 `docs/design/village-meta-hub.md` **rev 7 §6.1 — 스테이지 1~5 표시 전용 목록**(선택 없음, 실제 스테이지 선택은 마을 캐러셀 전담)이다. 본 plan 은 이력 문서로 본문을 수정하지 않는다.
+
 ### Task 5.3: CodexPopup + RecordsPopup
 
 **Files:**

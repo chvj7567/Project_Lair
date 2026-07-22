@@ -154,9 +154,8 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 잠금슬롯_수가_기획서_6절과_일치한다()
+        public void 도감_잠금슬롯_수가_기획서_6_2절과_일치한다()
         {
-            Assert.AreEqual(3, _cfg.HeroLockedSlots);
             Assert.AreEqual(2, _cfg.CodexLockedSlots);
         }
     }
