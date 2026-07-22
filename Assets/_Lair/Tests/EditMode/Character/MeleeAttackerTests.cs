@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using Lair.Character;
@@ -5,11 +6,31 @@ using Lair.Tests.Helpers;
 
 namespace Lair.Tests.Character
 {
+    //# MeleeAttacker 는 MonoBehaviour — GameObject 에 AddComponent 로 붙여야 enabled 등 네이티브 멤버가 유효하다.
     public class MeleeAttackerTests
     {
-        private static MeleeAttacker NewAttacker(float range = 1.5f, float cd = 1.0f, int power = 50)
+        private readonly List<GameObject> _spawned = new List<GameObject>();
+
+        [TearDown]
+        public void TearDown()
         {
-            MeleeAttacker a = new MeleeAttacker();
+            foreach (GameObject go in _spawned)
+            {
+                if (go != null)
+                {
+                    Object.DestroyImmediate(go);
+                }
+            }
+            _spawned.Clear();
+        }
+
+        private MeleeAttacker NewAttacker(float range = 1.5f, float cd = 1.0f, int power = 50)
+        {
+            GameObject go = new GameObject("MeleeAttackerHost");
+            _spawned.Add(go);
+            //# EditMode 의 AddComponent 는 OnEnable 을 발화시키지 않는다(ExecuteAlways 아님).
+            //# 쿨다운·배율 초기값은 필드 초기자가 보장하므로 발화 여부와 무관하게 동일하다.
+            MeleeAttacker a = go.AddComponent<MeleeAttacker>();
             a.Configure(range, cd, power);
             return a;
         }

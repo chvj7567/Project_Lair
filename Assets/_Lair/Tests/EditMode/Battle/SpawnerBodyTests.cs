@@ -231,15 +231,15 @@ namespace Lair.Tests.Battle
         [Test]
         public void _materials_범위초과_인덱스_교체안함_예외없음()
         {
-            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
+            //# setupBody: true — renderer 를 실제로 만들어 주입받는다(false 면 renderer 가 null 로 돌아와 역참조 불가).
+            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp);
 
             //# Sentinel 머티리얼 — 교체가 안 일어나야 이 머티리얼이 그대로여야 함.
             Material sentinel = new Material(Shader.Find("Standard"));
             _assets.Add(sentinel);
             renderer.sharedMaterial = sentinel;
 
-            SetPrivate(body, "_renderer", renderer);
-            //# 3개 배열 — index 5(Phantom) 는 범위 초과.
+            //# _renderer 는 CreateSetup 이 이미 주입 — 여기선 3개 배열로 덮어써 index 5(Phantom) 범위 초과를 만든다.
             SetPrivate(body, "_materials", MakeMaterials(3));
 
             Assert.DoesNotThrow(() => InvokeHandleTypeChanged(body, EMonster.Phantom),
@@ -252,16 +252,16 @@ namespace Lair.Tests.Battle
         [Test]
         public void _materials_항목_null_교체안함_예외없음()
         {
-            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp, setupBody: false);
+            //# setupBody: true — renderer 를 실제로 만들어 주입받는다(false 면 renderer 가 null 로 돌아와 역참조 불가).
+            (Spawner _, SpawnerBody body, MeshRenderer renderer, Material[] _2) = CreateSetup(EMonster.Wisp);
 
             Material sentinel = new Material(Shader.Find("Standard"));
             _assets.Add(sentinel);
             renderer.sharedMaterial = sentinel;
 
-            //# Wisp(0) 항목을 null 로.
+            //# Wisp(0) 항목을 null 로 — _renderer 는 CreateSetup 주입분을 그대로 쓰고 _materials 만 덮어쓴다.
             Material[] mats = MakeMaterials(6);
             mats[(int)EMonster.Wisp] = null;
-            SetPrivate(body, "_renderer", renderer);
             SetPrivate(body, "_materials", mats);
 
             Assert.DoesNotThrow(() => InvokeHandleTypeChanged(body, EMonster.Wisp),

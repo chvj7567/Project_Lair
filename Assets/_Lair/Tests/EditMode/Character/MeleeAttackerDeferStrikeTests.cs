@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using Lair.Character;
@@ -7,13 +8,32 @@ namespace Lair.Tests.Character
 {
     //# 영웅 흐름 역전(hero-animation-timing-sync §2·§B) 본격 엣지/회귀 — gameplay-programmer 신규 3건 너머 망라.
     //# 대상: MeleeAttacker.DeferStrike 분기 / 헛스윙 경계값 / 배율 시점(CooldownScale=begin, PowerScale=strike) / 쿨다운.
-    //# MeleeAttacker 는 MonoBehaviour 지만 순수 메서드(검사·데미지)는 OnEnable 없이 new 로 검증 가능(기존 MeleeAttackerTests 패턴).
-    //# now 는 직접 주입 — Time.time 비의존, 결정적.
+    //# MeleeAttacker 는 MonoBehaviour 라 반드시 GameObject 에 AddComponent 로 붙인다 — new 로 만들면 네이티브 객체가 없어
+    //# TryApplyStrike 의 enabled 게이트(§2.5 TimeStop)에서 NRE. now 는 직접 주입 — Time.time 비의존, 결정적.
     public class MeleeAttackerDeferStrikeTests
     {
-        private static MeleeAttacker NewAttacker(float range = 1.5f, float cd = 1.0f, int power = 50)
+        private readonly List<GameObject> _spawned = new List<GameObject>();
+
+        [TearDown]
+        public void TearDown()
         {
-            MeleeAttacker a = new MeleeAttacker();
+            foreach (GameObject go in _spawned)
+            {
+                if (go != null)
+                {
+                    Object.DestroyImmediate(go);
+                }
+            }
+            _spawned.Clear();
+        }
+
+        private MeleeAttacker NewAttacker(float range = 1.5f, float cd = 1.0f, int power = 50)
+        {
+            GameObject go = new GameObject("MeleeAttackerHost");
+            _spawned.Add(go);
+            //# EditMode 의 AddComponent 는 OnEnable 을 발화시키지 않는다(ExecuteAlways 아님).
+            //# 쿨다운·배율 초기값은 필드 초기자가 보장하므로 발화 여부와 무관하게 동일하다.
+            MeleeAttacker a = go.AddComponent<MeleeAttacker>();
             a.Configure(range, cd, power);
             return a;
         }
