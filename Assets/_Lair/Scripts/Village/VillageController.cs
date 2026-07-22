@@ -173,11 +173,11 @@ namespace Lair.Village
                     break;
 
                 case EUI.HeroSelectPopup:
+                    //# 표시 전용 — 스테이지 1~5 영웅 외형 나열. 실제 스테이지 선택은 마을 캐러셀 담당(기획서 §4).
                     await CHMUI.Instance.ShowUIAsync(EUI.HeroSelectPopup, new HeroSelectPopupArg
                     {
                         Profile = profile,
-                        Config = _metaConfig,
-                        OnSelected = HandleHeroSelected,
+                        VariantConfig = _stageVariantConfig,
                     });
                     break;
 
@@ -341,14 +341,6 @@ namespace Lair.Village
             {
                 MetaSession.CloudConflictPending = true;
             }
-        }
-
-        private void HandleHeroSelected(EHero hero)
-        {
-            MetaProfile profile = MetaSession.GetOrLoad();
-            profile.SelectedHero = hero.ToString();
-            HandleProfileChanged();
-            //# v0.2 는 Knight 1종 — 중앙 모델 교체는 사실상 표시 유지 (spec §3).
         }
 
         //# 출격 — 현재 스테이지가 해금이면 그 스테이지로 Battle 입장(SelectedStage 는 이동 시 이미 저장됨, 기획서 §4.5).

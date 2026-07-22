@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
+using Lair.Battle;
 using Lair.Data;
 using Lair.Meta;
 using UnityEngine;
@@ -12,30 +12,31 @@ namespace Lair.UI
     public class HeroSelectPopupArg : UIArg
     {
         public MetaProfile Profile;
-        public MetaConfig Config;
-        public Action<EHero> OnSelected;
+        public HeroStageVariantConfig VariantConfig;
     }
 
-    //# 셀 표시 데이터 — Knight 1종 + HeroLockedSlots 잠금 더미 (기획서 §6).
+    //# 셀 표시 데이터 — 스테이지 1~5 영웅 외형 (초상 + 스테이지 틴트). 표시 전용 (선택은 마을 캐러셀 담당).
     public class HeroSelectCellData
     {
-        public string DisplayName;     //# 잠금 더미면 "??? — 추후 해금"
+        public string DisplayName;     //# 해금 "스테이지 N" / 잠금 "스테이지 N — 잠금"
         public bool IsLocked;
-        public bool IsSelected;
-        public EHero Hero;
-        public Sprite Portrait;        //# 영웅 초상 (잠금 더미는 null → 기존 표시 유지)
-        public Action<EHero> OnSelect;
+        public Sprite Portrait;        //# 영웅 초상 (잠금이어도 어둡게 표시)
+        public Color PortraitTint;     //# 스테이지 틴트, 잠금이면 어둠 반영
     }
 
-    //# 영웅 선택 — 선택 영웅이 마을 중앙 모델·다음 런 상대로 반영 (spec §5.4).
+    //# 영웅 목록 — 스테이지 1~5 의 영웅 외형을 나열하는 표시 전용 팝업 (hero-stage-variant 기획서 §1.2/§4.3).
     public class HeroSelectPopup : UIBase
     {
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private HeroSelectPoolingScrollView _scrollView;
 
-        //# 영웅 → 초상 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹 "Knight" 주소와 충돌 방지).
+        //# 영웅 초상 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹 "Knight" 주소와 충돌 방지).
+        //# 스켈레톤 1모델 재스킨이므로 5스테이지가 같은 초상을 스테이지 틴트만 달리해 공유한다.
         [SerializeField] private Sprite _knightPortrait;
+
+        //# 잠금 스테이지 어둠 비율 — 캐러셀 잠금 오버레이(검정 α0.55, 기획서 §4.3) 와 동일 톤.
+        public const float LockedDimRatio = 0.55f;
 
         private HeroSelectPopupArg _arg;
 
@@ -84,56 +85,31 @@ namespace Lair.UI
             if (_arg == null)
                 return;
 
-            List<HeroSelectCellData> data = BuildCellData(_arg.Profile, _arg.Config, HeroPortrait);
-            foreach (HeroSelectCellData cell in data)
-            {
-                cell.OnSelect = HandleSelect;
-            }
+            List<HeroSelectCellData> data = BuildCellData(_arg.Profile, _arg.VariantConfig, _knightPortrait);
             if (_scrollView != null)
             {
                 _scrollView.SetItemList(data);
             }
         }
 
-        private void HandleSelect(EHero hero)
-        {
-            if (_arg == null)
-                return;
-            _arg.OnSelected?.Invoke(hero);
-            Rebuild();   //# 선택 강조 갱신
-        }
-
-        //# 영웅 → 초상 매핑 (인스펙터 직접 참조). 미할당이면 null → 셀이 초상 숨김.
-        private Sprite HeroPortrait(EHero hero) => hero switch
-        {
-            EHero.Knight => _knightPortrait,
-            _            => null,
-        };
-
-        public static List<HeroSelectCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, Func<EHero, Sprite> portraitResolver)
+        //# 스테이지 1~5 셀 — 해금은 스테이지 틴트 초상, 잠금은 같은 초상을 어둡게 + 잠금 표기.
+        //# profile null 이면 진행도 0, variantConfig null 이면 틴트 없음(흰색)으로 폴백.
+        public static List<HeroSelectCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig, Sprite portrait)
         {
             List<HeroSelectCellData> list = new List<HeroSelectCellData>();
-            if (profile == null || cfg == null)
-                return list;
+            int cleared = profile != null ? profile.ClearedStage : 0;
 
-            //# v0.2 — 선택 가능 영웅은 Knight 1종 (spec §5.4).
-            foreach (EHero hero in (EHero[])Enum.GetValues(typeof(EHero)))
+            for (int stage = 1; stage <= StageProgress.MaxStage; ++stage)
             {
+                //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼 (기획서 §4.6).
+                bool unlocked = StageProgress.IsUnlocked(stage, cleared);
+                Color tint = variantConfig != null ? variantConfig.GetStage(stage).TintColor : Color.white;
                 list.Add(new HeroSelectCellData
                 {
-                    DisplayName = hero.ToString(),
-                    IsLocked = false,
-                    IsSelected = profile.SelectedHero == hero.ToString(),
-                    Hero = hero,
-                    Portrait = portraitResolver != null ? portraitResolver(hero) : null,
-                });
-            }
-            for (int i = 0; i < cfg.HeroLockedSlots; ++i)
-            {
-                list.Add(new HeroSelectCellData
-                {
-                    DisplayName = "??? — 추후 해금",
-                    IsLocked = true,
+                    DisplayName = unlocked ? $"스테이지 {stage}" : $"스테이지 {stage} — 잠금",
+                    IsLocked = unlocked == false,
+                    Portrait = portrait,
+                    PortraitTint = unlocked ? tint : Color.Lerp(tint, Color.black, LockedDimRatio),
                 });
             }
             return list;

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
-    //# 도감 몬스터 아이콘 + 영웅 초상 — 셀 데이터 경로 검증 (gameplay-programmer 자체 스모크).
+    //# 도감 몬스터 아이콘 — 해금/미해금 셀 데이터 경로 검증 (영웅 셀은 HeroSelectCellDataTests).
     public class CodexHeroIconTests
     {
         private readonly List<UnityEngine.Object> _spawned = new List<UnityEngine.Object>();
@@ -76,23 +76,5 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("???", list[0].DisplayName);
         }
 
-        [Test]
-        public void 영웅선택_Knight_셀은_초상을_싣고_잠금더미는_초상이_없다()
-        {
-            MetaProfile profile = new MetaProfile();
-            MetaConfig cfg = NewConfig();
-            Sprite portrait = NewSprite();
-
-            List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(
-                profile, cfg, hero => hero == EHero.Knight ? portrait : null);
-
-            Assert.AreSame(portrait, list[0].Portrait);
-            Assert.IsFalse(list[0].IsLocked);
-            for (int i = 1; i < list.Count; ++i)
-            {
-                Assert.IsNull(list[i].Portrait, $"{i}번 잠금 더미에 초상이 실림");
-                Assert.IsTrue(list[i].IsLocked);
-            }
-        }
     }
 }
