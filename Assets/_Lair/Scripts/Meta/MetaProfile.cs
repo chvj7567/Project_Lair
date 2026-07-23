@@ -8,7 +8,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 2;
+        public int Version = 3;
         public int Souls;
         //# 스테이지 진행(hero-stage-variant 기획서 §3) — SelectedStage=마지막 선택(1~5, 기본 1),
         //# ClearedStage=클리어한 최고 스테이지(0~5, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -18,6 +18,9 @@ namespace Lair.Meta
         //# 영주 보상 자동 수령의 멱등 가드 — 지급 완료된 최고 레벨 (기획서 §4.4, 초기값 1).
         public int LordRewardGrantedLevel = 1;
         public List<ShopLevelEntry> ShopLevels = new List<ShopLevelEntry>();
+        //# 스테이지별 전적(spec §4) — JsonUtility 가 Dictionary 를 못 다뤄 ShopLevels 와 같은 엔트리-리스트.
+        //# 구버전 세이브엔 이 키가 없어 빈 리스트로 로드된다 = 기존 유저는 전 스테이지 0부터.
+        public List<StageRecordEntry> StageRecords = new List<StageRecordEntry>();
         public List<string> AchievedIds = new List<string>();    //# 달성한 도전과제 Id
         public List<string> SeenMonsters = new List<string>();   //# 도감 — EMonster.ToString()
         public List<string> PickedCards = new List<string>();    //# 도감 — ECardId.ToString() (distinct)
@@ -53,6 +56,46 @@ namespace Lair.Meta
             ShopLevels.Add(new ShopLevelEntry { ItemId = itemId, Level = level });
         }
 
+        //# 스테이지 전적 조회 — 없으면 기본값(0/0/-1) 엔트리를 반환하되 리스트에 넣지 않는다(조회는 부수효과 0).
+        public StageRecordEntry GetStageRecord(int stage)
+        {
+            foreach (StageRecordEntry entry in StageRecords)
+            {
+                if (entry != null && entry.Stage == stage)
+                    return entry;
+            }
+            return new StageRecordEntry { Stage = stage };
+        }
+
+        //# 한 판 결과를 스테이지 전적에 반영 — 엔트리 없으면 생성. 최단은 승리 시에만, 더 빠를 때만 갱신.
+        public void RecordStageRun(int stage, bool win, float clearTime)
+        {
+            StageRecordEntry entry = null;
+            foreach (StageRecordEntry e in StageRecords)
+            {
+                if (e != null && e.Stage == stage)
+                {
+                    entry = e;
+                    break;
+                }
+            }
+            if (entry == null)
+            {
+                entry = new StageRecordEntry { Stage = stage };
+                StageRecords.Add(entry);
+            }
+
+            entry.Runs++;
+            if (win == false)
+                return;
+
+            entry.Wins++;
+            if (entry.BestClearTime < 0f || clearTime < entry.BestClearTime)
+            {
+                entry.BestClearTime = clearTime;
+            }
+        }
+
         //# 클라우드 복원 — 서버 프로필 값을 이 인스턴스에 in-place 복사(참조 유지 → VM/View 가 보던 객체 그대로).
         //# DisplayName 은 로컬 전용이라 복원으로 덮지 않는다(기획서 §1 — 새 기기는 기본명 시작).
         public void CopyFrom(MetaProfile other)
@@ -67,6 +110,8 @@ namespace Lair.Meta
             LordXp = other.LordXp;
             LordRewardGrantedLevel = other.LordRewardGrantedLevel;
             ShopLevels = other.ShopLevels ?? new List<ShopLevelEntry>();
+            //# 스테이지 전적도 클라우드 복원 대상 — 빠뜨리면 복원 시 이 기록만 유실된다(spec §8).
+            StageRecords = other.StageRecords ?? new List<StageRecordEntry>();
             AchievedIds = other.AchievedIds ?? new List<string>();
             SeenMonsters = other.SeenMonsters ?? new List<string>();
             PickedCards = other.PickedCards ?? new List<string>();
@@ -117,5 +162,15 @@ namespace Lair.Meta
     {
         public string ItemId;
         public int Level;
+    }
+
+    //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.
+    [Serializable]
+    public class StageRecordEntry
+    {
+        public int Stage;                    //# 1~5
+        public int Runs;
+        public int Wins;
+        public float BestClearTime = -1f;    //# 승리 기록 없으면 -1 (MetaProfile.BestClearTime 과 같은 규약)
     }
 }

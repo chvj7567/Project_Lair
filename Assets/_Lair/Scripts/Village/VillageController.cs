@@ -169,6 +169,7 @@ namespace Lair.Village
                     await CHMUI.Instance.ShowUIAsync(EUI.RecordsPopup, new RecordsPopupArg
                     {
                         Profile = profile,
+                        VariantConfig = _stageVariantConfig,
                     });
                     break;
 

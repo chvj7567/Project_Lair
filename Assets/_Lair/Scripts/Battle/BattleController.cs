@@ -952,6 +952,8 @@ namespace Lair.Battle
                 profile.Souls += reward.Souls;
                 profile.LordXp += reward.Xp;
                 profile.TotalRuns++;
+                //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
+                profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 if (result == BattleResult.Win)
                 {
                     profile.TotalWins++;

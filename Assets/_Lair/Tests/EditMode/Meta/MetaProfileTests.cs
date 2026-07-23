@@ -7,11 +7,11 @@ namespace Lair.Tests.EditMode
     public class MetaProfileTests
     {
         [Test]
-        public void 새_프로필은_버전2_소울0으로_시작한다()
+        public void 새_프로필은_버전3_소울0으로_시작한다()
         {
             MetaProfile p = new MetaProfile();
-            //# 스키마 버전은 스테이지 진행 필드 추가로 2 로 승격(hero-stage-variant plan Task 1).
-            Assert.AreEqual(2, p.Version);
+            //# 스키마 버전은 스테이지 전적(StageRecords) 필드 추가로 3 으로 승격(spec §4).
+            Assert.AreEqual(3, p.Version);
             Assert.AreEqual(0, p.Souls);
             Assert.AreEqual(0, p.LordXp);
             //# 영주 보상 멱등 가드 초기값 1 (기획서 §4.4 / §11.3 [추가 1]).
