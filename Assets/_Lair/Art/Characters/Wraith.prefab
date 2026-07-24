@@ -183,6 +183,7 @@ GameObject:
   - component: {fileID: 2102278440824054758}
   - component: {fileID: 5974855633169413346}
   - component: {fileID: 4172776548586001766}
+  - component: {fileID: 133207673890385847}
   m_Layer: 0
   m_Name: Wraith
   m_TagString: Untagged
@@ -355,7 +356,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spawnGateFallback: 1.8
   _fleeThreatRadius: 4
+  _fleeTurnSmoothing: 5
+  _centerPullEnabled: 0
+  _centerPullInterval: 3
+  _centerPullDuration: 1
+  _centerPullDeadzone: 3
   _engageBuffer: 0.5
+  _targetHysteresisEnabled: 0
+  _retargetMargin: 1.5
 --- !u!114 &1260455406174791708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -410,6 +418,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _delay: 0
+--- !u!114 &4172776548586001766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77505003fecc456088dcc96c1e4038b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &133207673890385847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1bc64ae5cdcd15439eaefda7acb9743, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _renderers:
+  - {fileID: 5068045650121247578}
+  - {fileID: 5068045649053219255}
+  - {fileID: 5068045650779032735}
+  - {fileID: 5068045649288611057}
+  - {fileID: 5068045650788482538}
+  - {fileID: 5068045650770989522}
+  _emissionByLevel:
+  - 1.5
+  - 1.9
+  - 2.3
+  - 2.7
+  - 3.2
 --- !u!1001 &1515632410747367170
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -469,9 +514,39 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+--- !u!23 &5068045649053219255 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180744171820725, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5068045649288611057 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180744003529715, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5068045649615753934 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6007180743642840524, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5068045650121247578 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180745219155032, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &5068045650770989522 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180744659664592, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &5068045650779032735 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180744551539613, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
+  m_PrefabInstance: {fileID: 1515632410747367170}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &5068045650788482538 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6007180744544195304, guid: 5a796ed211b2cec468ecadad11acb207, type: 3}
   m_PrefabInstance: {fileID: 1515632410747367170}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5742229614982760781
@@ -587,15 +662,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3401983971267111315, guid: 2a35858f5ad26384687a4525b4845c47, type: 3}
   m_PrefabInstance: {fileID: 5742229614982760781}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4172776548586001766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5128659971640815157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77505003fecc456088dcc96c1e4038b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

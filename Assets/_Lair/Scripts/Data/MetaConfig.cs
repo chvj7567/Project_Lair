@@ -47,6 +47,7 @@ namespace Lair.Data
         public string Description;         //# 효과 설명문 (셀 표기) — 기획서 §3.2 / §11.3 [추가 3]
         public EShopEffectKind EffectKind;
         public EMonsterStatKind StatKind;  //# EffectKind == MonsterStat 일 때만 사용
+        public EMonster Species;           //# EffectKind == MonsterSpecies 일 때만 사용 — 강화 대상 종족
         public float PerLevelMul = 1f;     //# 레벨당 곱연산 배율 (SpawnerPeriod/Cooldown/SlowFactor 는 1 미만이 강화)
         public int MaxLevel = 5;
         public int BasePrice = 50;

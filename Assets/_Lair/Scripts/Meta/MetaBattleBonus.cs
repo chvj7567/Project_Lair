@@ -8,11 +8,17 @@ namespace Lair.Meta
     public class MetaBattleBonus
     {
         private readonly Dictionary<EMonsterStatKind, float> _statMuls = new Dictionary<EMonsterStatKind, float>();
+        //# 종족 개별 강화 배수 — HP·공격력 공용 단일 배수 (monster-species-enhancement §2.1).
+        private readonly Dictionary<EMonster, float> _speciesMuls = new Dictionary<EMonster, float>();
 
         public float SpawnerPeriodMul { get; private set; } = 1f;
 
         public float GetStatMul(EMonsterStatKind kind)
             => _statMuls.TryGetValue(kind, out float mul) ? mul : 1f;
+
+        //# 미등록/Lv0 종족은 1.0 배수.
+        public float GetSpeciesMul(EMonster species)
+            => _speciesMuls.TryGetValue(species, out float mul) ? mul : 1f;
 
         public static MetaBattleBonus From(MetaProfile profile, MetaConfig cfg)
         {
@@ -38,6 +44,9 @@ namespace Lair.Meta
                         break;
                     case EShopEffectKind.SpawnerPeriod:
                         bonus.SpawnerPeriodMul *= mul;
+                        break;
+                    case EShopEffectKind.MonsterSpecies:
+                        bonus._speciesMuls[item.Species] = bonus.GetSpeciesMul(item.Species) * mul;
                         break;
                 }
             }

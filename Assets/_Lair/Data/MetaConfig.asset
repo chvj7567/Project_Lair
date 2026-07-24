@@ -25,6 +25,7 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 HP +2%/Lv"
     EffectKind: 0
     StatKind: 0
+    Species: 0
     PerLevelMul: 1.02
     MaxLevel: 5
     BasePrice: 80
@@ -34,6 +35,7 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uACF5\uACA9\uB825 +1.5%/Lv"
     EffectKind: 0
     StatKind: 1
+    Species: 0
     PerLevelMul: 1.015
     MaxLevel: 5
     BasePrice: 100
@@ -43,6 +45,7 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uACF5\uACA9\uC18D\uB3C4 +1%/Lv"
     EffectKind: 0
     StatKind: 2
+    Species: 0
     PerLevelMul: 0.99
     MaxLevel: 5
     BasePrice: 100
@@ -52,6 +55,7 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uC774\uB3D9\uC18D\uB3C4 +1.5%/Lv"
     EffectKind: 0
     StatKind: 4
+    Species: 0
     PerLevelMul: 1.015
     MaxLevel: 5
     BasePrice: 80
@@ -61,6 +65,7 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uBAAC\uC2A4\uD130 \uC0AC\uAC70\uB9AC +1.5%/Lv"
     EffectKind: 0
     StatKind: 3
+    Species: 0
     PerLevelMul: 1.015
     MaxLevel: 5
     BasePrice: 120
@@ -70,6 +75,7 @@ MonoBehaviour:
     Description: "\uC5ED\uBCD1\uADC0 \uB454\uD654 +2%/Lv \uAC15\uD654"
     EffectKind: 0
     StatKind: 5
+    Species: 0
     PerLevelMul: 0.98
     MaxLevel: 5
     BasePrice: 120
@@ -79,7 +85,68 @@ MonoBehaviour:
     Description: "\uBAA8\uB4E0 \uC2A4\uD3EC\uB108 \uC8FC\uAE30 -1.5%/Lv"
     EffectKind: 1
     StatKind: 0
+    Species: 0
     PerLevelMul: 0.985
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Wisp
+    DisplayName: "\uB3C4\uAE68\uBE44\uBD88 \uAC01\uC131"
+    Description: "\uB3C4\uAE68\uBE44\uBD88 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 0
+    PerLevelMul: 1.18
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Wraith
+    DisplayName: "\uB9DD\uB839 \uAC01\uC131"
+    Description: "\uB9DD\uB839 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 1
+    PerLevelMul: 1.18
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Reaper
+    DisplayName: "\uC0AC\uC2E0 \uAC01\uC131"
+    Description: "\uC0AC\uC2E0 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 2
+    PerLevelMul: 1.18
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Hex
+    DisplayName: "\uC800\uC8FC\uC220\uC0AC \uAC01\uC131"
+    Description: "\uC800\uC8FC\uC220\uC0AC HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 3
+    PerLevelMul: 1.18
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Plague
+    DisplayName: "\uC5ED\uBCD1\uADC0 \uAC01\uC131"
+    Description: "\uC5ED\uBCD1\uADC0 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 4
+    PerLevelMul: 1.18
+    MaxLevel: 5
+    BasePrice: 150
+    PriceGrowth: 1.6
+  - Id: Enhance_Phantom
+    DisplayName: "\uD658\uB839 \uAC01\uC131"
+    Description: "\uD658\uB839 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    EffectKind: 2
+    StatKind: 0
+    Species: 5
+    PerLevelMul: 1.18
     MaxLevel: 5
     BasePrice: 150
     PriceGrowth: 1.6

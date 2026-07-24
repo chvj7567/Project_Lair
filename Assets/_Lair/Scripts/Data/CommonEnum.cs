@@ -142,11 +142,12 @@ namespace Lair.Data
         SlowFactor,
     }
 
-    //# v0.2 마을 — 상점 영구 업그레이드 효과 종류 (기획서 §11.1, v0.2 는 2종 한정 — YAGNI).
+    //# v0.2 마을 — 상점 영구 업그레이드 효과 종류 (기획서 §11.1). v0.3 — 종족 개별 강화 MonsterSpecies 추가.
     public enum EShopEffectKind
     {
-        MonsterStat,    //# 몬스터 전종 글로벌 스탯 배율 (StatKind 지정)
-        SpawnerPeriod,  //# 모든 스포너 주기 배율
+        MonsterStat,     //# 몬스터 전종 글로벌 스탯 배율 (StatKind 지정)
+        SpawnerPeriod,   //# 모든 스포너 주기 배율
+        MonsterSpecies,  //# 종족(Species) 개별 HP·공격력 배율 (monster-species-enhancement §2)
     }
 
     //# v0.2 마을 — 고정 도전과제 판정 조건 종류 (기획서 §5, RunSummary 데이터만으로 판정).

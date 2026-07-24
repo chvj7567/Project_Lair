@@ -35,23 +35,31 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 상점_7품목_구성이_기획서_3_2절_마스터표와_일치한다()
+        public void 상점_13품목_구성이_기획서_3_2절_및_종족강화_마스터표와_일치한다()
         {
-            Assert.AreEqual(7, _cfg.ShopItems.Count);
+            //# 글로벌 7 + 종족 강화 6 (monster-species-enhancement §7·§9 — Enhance_Wisp~Enhance_Phantom 추가).
+            Assert.AreEqual(13, _cfg.ShopItems.Count);
 
-            //# (Id, EffectKind, StatKind, PerLevelMul, BasePrice) — 기획서 §3.2 마스터 표 그대로.
-            (string id, EShopEffectKind kind, EMonsterStatKind stat, float mul, int price)[] expected =
+            //# (Id, EffectKind, StatKind, Species, PerLevelMul, BasePrice) — 기획서 §3.2 글로벌 7 + monster-species-enhancement §7·§9 종족 6.
+            //# stat 은 MonsterStat 일 때만, species 는 MonsterSpecies 일 때만 검증 — 나머지 자리값은 placeholder.
+            (string id, EShopEffectKind kind, EMonsterStatKind stat, EMonster species, float mul, int price)[] expected =
             {
-                ("MonsterHpUp",        EShopEffectKind.MonsterStat,   EMonsterStatKind.Hp,         1.02f,  80),
-                ("MonsterPowerUp",     EShopEffectKind.MonsterStat,   EMonsterStatKind.Power,      1.015f, 100),
-                ("MonsterAtkSpeedUp",  EShopEffectKind.MonsterStat,   EMonsterStatKind.Cooldown,   0.99f,  100),
-                ("MonsterMoveSpeedUp", EShopEffectKind.MonsterStat,   EMonsterStatKind.MoveSpeed,  1.015f, 80),
-                ("MonsterRangeUp",     EShopEffectKind.MonsterStat,   EMonsterStatKind.Range,      1.015f, 120),
-                ("PlagueVenomUp",      EShopEffectKind.MonsterStat,   EMonsterStatKind.SlowFactor, 0.98f,  120),
-                ("SpawnerHasteUp",     EShopEffectKind.SpawnerPeriod, EMonsterStatKind.Hp,         0.985f, 150),
+                ("MonsterHpUp",        EShopEffectKind.MonsterStat,    EMonsterStatKind.Hp,         EMonster.Wisp,    1.02f,  80),
+                ("MonsterPowerUp",     EShopEffectKind.MonsterStat,    EMonsterStatKind.Power,      EMonster.Wisp,    1.015f, 100),
+                ("MonsterAtkSpeedUp",  EShopEffectKind.MonsterStat,    EMonsterStatKind.Cooldown,   EMonster.Wisp,    0.99f,  100),
+                ("MonsterMoveSpeedUp", EShopEffectKind.MonsterStat,    EMonsterStatKind.MoveSpeed,  EMonster.Wisp,    1.015f, 80),
+                ("MonsterRangeUp",     EShopEffectKind.MonsterStat,    EMonsterStatKind.Range,      EMonster.Wisp,    1.015f, 120),
+                ("PlagueVenomUp",      EShopEffectKind.MonsterStat,    EMonsterStatKind.SlowFactor, EMonster.Wisp,    0.98f,  120),
+                ("SpawnerHasteUp",     EShopEffectKind.SpawnerPeriod,  EMonsterStatKind.Hp,         EMonster.Wisp,    0.985f, 150),
+                ("Enhance_Wisp",       EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Wisp,    1.18f,  150),
+                ("Enhance_Wraith",     EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Wraith,  1.18f,  150),
+                ("Enhance_Reaper",     EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Reaper,  1.18f,  150),
+                ("Enhance_Hex",        EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Hex,     1.18f,  150),
+                ("Enhance_Plague",     EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Plague,  1.18f,  150),
+                ("Enhance_Phantom",    EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Phantom, 1.18f,  150),
             };
 
-            foreach ((string id, EShopEffectKind kind, EMonsterStatKind stat, float mul, int price) e in expected)
+            foreach ((string id, EShopEffectKind kind, EMonsterStatKind stat, EMonster species, float mul, int price) e in expected)
             {
                 ShopItemDef def = _cfg.FindShopItem(e.id);
                 Assert.IsNotNull(def, $"품목 {e.id} 누락");
@@ -60,9 +68,13 @@ namespace Lair.Tests.EditMode
                 {
                     Assert.AreEqual(e.stat, def.StatKind, $"{e.id} StatKind");
                 }
+                if (e.kind == EShopEffectKind.MonsterSpecies)
+                {
+                    Assert.AreEqual(e.species, def.Species, $"{e.id} Species");
+                }
                 Assert.AreEqual(e.mul, def.PerLevelMul, 0.0001f, $"{e.id} PerLevelMul");
                 Assert.AreEqual(e.price, def.BasePrice, $"{e.id} BasePrice");
-                Assert.AreEqual(5, def.MaxLevel, $"{e.id} MaxLevel — 전 품목 5 (기획서 §3.2)");
+                Assert.AreEqual(5, def.MaxLevel, $"{e.id} MaxLevel — 전 품목 5 (기획서 §3.2 / §9)");
                 Assert.AreEqual(1.6f, def.PriceGrowth, 0.0001f, $"{e.id} PriceGrowth — 전 품목 1.6");
                 Assert.IsFalse(string.IsNullOrEmpty(def.DisplayName), $"{e.id} DisplayName 비어있음");
                 Assert.IsFalse(string.IsNullOrEmpty(def.Description), $"{e.id} Description 비어있음 (§11.3 [추가 3])");
@@ -70,8 +82,9 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 상점_전품목_만렙_누적비용이_기획서_3_5절_검산_11849와_일치한다()
+        public void 상점_전품목_만렙_누적비용이_검산_26075와_일치한다()
         {
+            //# 글로벌 7항목 11849 (기획서 §3.5) + 종족 6항목 14226 (monster-species-enhancement §3.1: 만렙 누계 2371 × 6) = 26075.
             int total = 0;
             foreach (ShopItemDef def in _cfg.ShopItems)
             {
@@ -80,7 +93,7 @@ namespace Lair.Tests.EditMode
                     total += ShopService.PriceOf(def, level);
                 }
             }
-            Assert.AreEqual(11849, total);
+            Assert.AreEqual(26075, total);
         }
 
         [Test]

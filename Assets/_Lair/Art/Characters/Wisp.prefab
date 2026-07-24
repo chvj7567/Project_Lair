@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 7601198101170296883}
   - component: {fileID: 5943683239150279958}
   - component: {fileID: 3920321758007987453}
+  - component: {fileID: 1075002273630455223}
   m_Layer: 0
   m_Name: Wisp
   m_TagString: Untagged
@@ -195,7 +196,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spawnGateFallback: 1.8
   _fleeThreatRadius: 4
+  _fleeTurnSmoothing: 5
+  _centerPullEnabled: 0
+  _centerPullInterval: 3
+  _centerPullDuration: 1
+  _centerPullDeadzone: 3
   _engageBuffer: 0.5
+  _targetHysteresisEnabled: 0
+  _retargetMargin: 1.5
 --- !u!114 &3418358130653599916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -250,6 +258,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _delay: 0
+--- !u!114 &3920321758007987453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77505003fecc456088dcc96c1e4038b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1075002273630455223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1bc64ae5cdcd15439eaefda7acb9743, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _renderers:
+  - {fileID: 1997445272538354428}
+  - {fileID: 1997445271368567887}
+  - {fileID: 1997445271434999019}
+  - {fileID: 1997445272510919933}
+  - {fileID: 1997445272171954752}
+  - {fileID: 1997445270876195665}
+  _emissionByLevel:
+  - 1.5
+  - 1.9
+  - 2.3
+  - 2.7
+  - 3.2
 --- !u!1 &2936127519744827137
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,20 +627,38 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+--- !u!137 &1997445270876195665 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253721392136720, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1997445270967504874 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 498253721416304299, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
   m_PrefabInstance: {fileID: 2112890790404704577}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3920321758007987453
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+--- !u!23 &1997445271368567887 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253720752047374, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2757506939628045199}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77505003fecc456088dcc96c1e4038b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+--- !u!23 &1997445271434999019 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253720819006890, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &1997445272171954752 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253722092276481, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1997445272510919933 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253721886506428, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1997445272538354428 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 498253721879894973, guid: f6ab88624626d1249bd73bcb4a1c7d59, type: 3}
+  m_PrefabInstance: {fileID: 2112890790404704577}
+  m_PrefabAsset: {fileID: 0}

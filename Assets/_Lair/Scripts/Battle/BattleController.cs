@@ -34,6 +34,9 @@ namespace Lair.Battle
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
+        //# 종족 강화 레벨 캐시 — ApplyMetaBonuses 에서 1회 채움, 스폰 시 발광 적용에 사용 (monster-species-enhancement §4.3).
+        private readonly Dictionary<EMonster, int> _speciesLevels = new();
+
         //# 스포너 상태 UI — 종별 적용된 강화 카드 픽 누적 (툴팁 본문 + 셀 상단 아이콘 row 의 source).
         //# Source 추적은 ApplyCardEffect(card) 가 _currentCardScope 에 카드를 저장한 동안
         private readonly Dictionary<EMonster, List<BattleViewModel.AppliedBuff>> _typeModifierPicks = new();
@@ -471,6 +474,14 @@ namespace Lair.Battle
             {
                 slow.SetSlowFactor(PlagueSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
             }
+
+            //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
+            Lair.Character.MonsterEnhancementVisual visual = character.GetComponent<Lair.Character.MonsterEnhancementVisual>();
+            if (visual != null)
+            {
+                int level = _speciesLevels.TryGetValue(key, out int lv) ? lv : 0;
+                visual.ApplyLevel(level, key);
+            }
         }
 
         private async Task SpawnHero()
@@ -671,6 +682,32 @@ namespace Lair.Battle
                     }
                     m.Multiply(kind, mul);
                 }
+            }
+
+            //# 종족별 강화 — 전종 글로벌과 같은 _typeModifiers 표면의 Hp·Power 축에 곱연산 접기(monster-species-enhancement §2).
+            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            {
+                float speciesMul = bonus.GetSpeciesMul(type);
+                if (Mathf.Approximately(speciesMul, 1f))
+                    continue;
+
+                if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
+                {
+                    m = new StatMultiplier();
+                    _typeModifiers[type] = m;
+                }
+                m.Multiply(EMonsterStatKind.Hp, speciesMul);
+                m.Multiply(EMonsterStatKind.Power, speciesMul);
+            }
+
+            //# 종족 강화 레벨 캐시 — 스폰 시 발광 세기 적용용. Id 문자열 파싱 없이 config 항목 순회로 Species→레벨 매핑.
+            _speciesLevels.Clear();
+            foreach (ShopItemDef item in _metaConfig.ShopItems)
+            {
+                if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies)
+                    continue;
+                int level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
+                _speciesLevels[item.Species] = level;
             }
 
             //# 스포너 주기 — BindSpawners 의 SetBasePeriod(절대 대입) 이후라 곱연산 안전.
