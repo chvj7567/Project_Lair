@@ -99,11 +99,14 @@ namespace Lair.Tests.PlayMode
             }
 
             float avgDeath = deathTimeSum / n;
+            float medianDeath = MedianDeathTime(records);
             float clearRate = (float)wins / n * 100f;
             float avgSurvivors = (float)survivorSum / n;
 
             sb.AppendLine($"표본(N): {n}판");
             sb.AppendLine($"평균 영웅 사망 시각: {FormatTime(avgDeath)} ({avgDeath:0.0}s) — 목표 2~4분");
+            //# 게이트 판정선(monster-species-enhancement §8.2)은 중앙값 기준 — DeathTime 은 타임오버(패배) 판을 ~300s 로 포함.
+            sb.AppendLine($"중앙값 영웅 사망 시각: {FormatTime(medianDeath)} ({medianDeath:0.0}s) — 게이트 §8.2 판정선(타임오버 포함)");
             sb.AppendLine($"클리어율(승리): {clearRate:0.0}% ({wins}/{n})");
             sb.AppendLine($"평균 종료 시 생존 몬스터: {avgSurvivors:0.0}마리");
             sb.AppendLine($"빌드 다양성(서로 다른 픽 카드 종): {pickCount.Count}종");
@@ -116,6 +119,24 @@ namespace Lair.Tests.PlayMode
             }
 
             return sb.ToString();
+        }
+
+        //# 영웅 사망 시각 중앙값(초) — 게이트 §8.2 판정선. avgDeath 와 동일 모집단(전 records, 타임오버 판 포함) 위에서 계산.
+        //# 짝수 표본은 가운데 두 값의 평균. 표본 0 이면 0.
+        public static float MedianDeathTime(IReadOnlyList<RunRecord> records)
+        {
+            if (records == null || records.Count == 0)
+                return 0f;
+            List<float> times = new List<float>(records.Count);
+            foreach (RunRecord r in records)
+            {
+                times.Add(r.DeathTime);
+            }
+            times.Sort();
+            int mid = times.Count / 2;
+            if (times.Count % 2 == 1)
+                return times[mid];
+            return (times[mid - 1] + times[mid]) * 0.5f;
         }
 
         private static string FormatTime(float sec)

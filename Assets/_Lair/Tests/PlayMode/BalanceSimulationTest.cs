@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,6 +8,7 @@ using UnityEngine.TestTools;
 using Lair.Battle;
 using Lair.Character;
 using Lair.Data;
+using Lair.Meta;
 using Lair.UI;
 
 namespace Lair.Tests.PlayMode
@@ -39,6 +41,12 @@ namespace Lair.Tests.PlayMode
         //# 가속 아티팩트 검증판 표본 수. 15x 와 평균 사망시각을 비교만 하면 되므로 소표본.
         private const int ValidationGames = 3;
 
+        //# 종족 강화 밸런스 게이트(monster-species-enhancement §8.2) 시나리오당 표본 수 — 중앙값 안정성 위해 N≥30.
+        private const int GateGamesPerScenario = 30;
+
+        //# 게이트 시드 대상 6종 — Enhance_<EMonster> Id 로 MetaSession.Profile 에 강화 레벨 주입.
+        private static readonly EMonster[] AllSpecies = (EMonster[])System.Enum.GetValues(typeof(EMonster));
+
         //# LairTestRunner.KeyExcludeSim 과 동일 문자열 — Editor 어셈블리 참조를 끌어오지 않으려 리터럴로 미러.
         //# 값이 바뀌면 LairTestRunner 와 이 상수를 함께 갱신해야 한다.
         private const string KeyExcludeSim = "lair.testrunner.excludeSim";
@@ -61,6 +69,17 @@ namespace Lair.Tests.PlayMode
         {
             //# 가속 배율이 캠페인 도중 예외로 남지 않도록 항상 원복.
             Time.timeScale = 1f;
+        }
+
+        //# 종족 강화 게이트 시나리오가 시드한 강화 레벨을 매 테스트 후 0 으로 원복 — 후속(기존) 캠페인이 항등 프로필로 시작하도록 격리.
+        //# MetaProfilePlayModeIsolation 은 세션 1회(OneTimeSetUp)만 클린하므로, 메서드 간 격리는 이 TearDown 이 책임진다.
+        [TearDown]
+        public void 종족강화_레벨_원복()
+        {
+            if (MetaSession.Profile != null)
+            {
+                CleanSpeciesLevels();
+            }
         }
 
         //# ===== 스모크 =====
@@ -120,6 +139,139 @@ namespace Lair.Tests.PlayMode
         {
             yield return RunCampaign(ESimStrategy.Random, ValidationGames, ValidationTimeScale,
                 WallTimeFailSafe5xSeconds, "검증 / Random / 5x");
+        }
+
+        //# ===== 종족 강화 밸런스 게이트 (monster-species-enhancement §8.2 — 영웅 사망 시간 중앙값) =====
+        //# 실행: Lair/Tests/Run PlayMode Simulation (일반 PlayMode 런은 [SetUp] KeyExcludeSim 가드로 자동 제외).
+        //# 각 시나리오는 런 루프 前 MetaSession.Profile 에 Enhance_<종족> 레벨을 시드 → ApplyMetaBonuses 가 전투에 반영.
+        //# jsonl 슬라이스는 [SPECIES-GATE] 로그의 jsonlFrom/jsonlCount 로 시나리오별 분리 집계(qa-simulator).
+
+        //# 배선 검증(필수 선행) — Phantom Lv5 시드가 실제 전투 BattleController._speciesLevels 까지 도달하는지.
+        //# 이게 통과해야 아래 게이트들의 시드가 baseline 과 다른 전투를 만든다는 게 증명된다(count 일치만으론 불충분).
+        [UnityTest]
+        public IEnumerator 배선검증_Phantom_Lv5_시드가_전투_speciesLevels에_반영된다()
+        {
+            SeedSpeciesLevels((EMonster.Phantom, 5));
+
+            yield return EnsureCHMReady();
+            yield return SceneManager.LoadSceneAsync(EScene.Battle.ToString());
+            yield return null;
+
+            BattleController bc = null;
+            float initElapsed = 0f;
+            while (initElapsed < InitTimeoutSeconds)
+            {
+                if (bc == null) bc = Object.FindFirstObjectByType<BattleController>();
+                if (bc != null && CharacterRegistry.Heroes.Count > 0) break;
+                initElapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsNotNull(bc, "BattleController 가 씬에 있어야 함 (초기화 타임아웃 의심)");
+
+            Dictionary<EMonster, int> speciesLevels = ReadSpeciesLevels(bc);
+            speciesLevels.TryGetValue(EMonster.Phantom, out int phantomLv);
+            Assert.AreEqual(5, phantomLv,
+                "시드한 Phantom Lv5 가 GetOrLoad→ApplyMetaBonuses 를 거쳐 _speciesLevels 에 반영돼야 함 (주입 배선 검증)");
+            //# 미시드 종족은 0 — baseline 과 시드 시나리오가 실제로 다름을 보장하는 판별자.
+            speciesLevels.TryGetValue(EMonster.Wisp, out int wispLv);
+            Assert.AreEqual(0, wispLv, "미시드 종족(Wisp)은 0 이어야 함 (시드 누수 없음)");
+        }
+
+        //# 기준 — 강화0(전종 Lv0). 게이트 판정: 중앙값 2:00~4:00 (§8 튜닝 창). 강화와 무관한 기존 밸런스 회귀 신호이기도.
+        //# [Timeout] — NUnit 기본 180s 로는 30판(한 판 ~15초)이 못 끝난다. 실측 ~450s + init 여유 → 900s(NUnit.Framework.Timeout).
+        [UnityTest]
+        [Timeout(900000)]
+        public IEnumerator 게이트기준_강화0_Random_30판()
+        {
+            yield return RunSpeciesGateCampaign("기준_강화0", System.Array.Empty<(EMonster, int)>(), GateGamesPerScenario);
+        }
+
+        //# A — 단일 종족 Lv5(나머지 Lv0). 대표 2종(Phantom: 스웜 다수 / Wraith: 소수 탱커)로 종족 편차 확인. 판정: 중앙값 ≥ 2:00.
+        [UnityTest]
+        [Timeout(900000)]
+        public IEnumerator 게이트A_Phantom_Lv5_Random_30판()
+        {
+            yield return RunSpeciesGateCampaign("A_Phantom_Lv5", new[] { (EMonster.Phantom, 5) }, GateGamesPerScenario);
+        }
+
+        [UnityTest]
+        [Timeout(900000)]
+        public IEnumerator 게이트A_Wraith_Lv5_Random_30판()
+        {
+            yield return RunSpeciesGateCampaign("A_Wraith_Lv5", new[] { (EMonster.Wraith, 5) }, GateGamesPerScenario);
+        }
+
+        //# B — 전 6종 Lv5. 최대 파워 상한. 판정: 중앙값 ≥ 1:30 (최소 반격 여지).
+        [UnityTest]
+        [Timeout(900000)]
+        public IEnumerator 게이트B_전6종_Lv5_Random_30판()
+        {
+            (EMonster, int)[] allMax =
+            {
+                (EMonster.Wisp, 5), (EMonster.Wraith, 5), (EMonster.Reaper, 5),
+                (EMonster.Hex, 5), (EMonster.Plague, 5), (EMonster.Phantom, 5),
+            };
+            yield return RunSpeciesGateCampaign("B_전6종_Lv5", allMax, GateGamesPerScenario);
+        }
+
+        //# 한 게이트 시나리오 — 레벨 시드 → N판 Random @15x → 자기 슬라이스 median 집계 + 머신 파서블 태그 로그.
+        private IEnumerator RunSpeciesGateCampaign(string scenarioTag, (EMonster species, int level)[] seed, int gameCount)
+        {
+            //# 시드는 반드시 런 루프(첫 LoadSceneAsync) 前 — ApplyMetaBonuses 는 BattleController.Start 에서 MetaSession.Profile 을 읽는다.
+            SeedSpeciesLevels(seed);
+
+            int baseline = SimMetrics.CountExistingLines();
+
+            for (int i = 0; i < gameCount; ++i)
+            {
+                yield return RunOneGame(ESimStrategy.Random, SimTimeScale, WallTimeFailSafeSeconds);
+            }
+
+            yield return null;
+            yield return null;
+
+            List<RunRecord> records = SimMetrics.ReadSince(baseline);
+            float median = SimMetrics.MedianDeathTime(records);
+
+            //# 사람용 요약(median 포함) + 머신 파서블 태그 — qa 가 jsonl[jsonlFrom, jsonlFrom+jsonlCount) 를 시나리오로 매핑.
+            Debug.Log(SimMetrics.Summarize(records, $"종족강화 게이트 / {scenarioTag} / Random / 15x / {gameCount}판 목표"));
+            Debug.Log($"[SPECIES-GATE] scenario={scenarioTag} strategy=Random timeScale=15 " +
+                $"jsonlFrom={baseline} jsonlCount={records.Count} medianDeathSec={median:0.0}");
+
+            Assert.AreEqual(gameCount, records.Count,
+                $"종족강화 게이트 [{scenarioTag}]: {gameCount}판을 돌렸으니 RunRecord 도 {gameCount}개여야 함");
+        }
+
+        //# 6종 강화 레벨을 전부 0 으로 클린 후, 지정 종족만 레벨 시드. 소울/전적 등 다른 프로필 필드는 건드리지 않는다.
+        private static void SeedSpeciesLevels(params (EMonster species, int level)[] levels)
+        {
+            CleanSpeciesLevels();
+            MetaProfile p = MetaSession.GetOrLoad();
+            foreach ((EMonster species, int level) in levels)
+            {
+                p.SetShopLevel(SpeciesShopId(species), level);
+            }
+        }
+
+        //# 6종 강화 레벨을 전부 0 으로 — MetaBattleBonus 는 level<=0 을 스킵하므로 항등(미강화)과 동치.
+        private static void CleanSpeciesLevels()
+        {
+            MetaProfile p = MetaSession.GetOrLoad();
+            foreach (EMonster s in AllSpecies)
+            {
+                p.SetShopLevel(SpeciesShopId(s), 0);
+            }
+        }
+
+        private static string SpeciesShopId(EMonster species) => "Enhance_" + species;
+
+        //# BattleController 의 private 종족 레벨 캐시 열람 — 시드 배선 검증 전용(테스트 리플렉션).
+        private static Dictionary<EMonster, int> ReadSpeciesLevels(BattleController bc)
+        {
+            FieldInfo f = typeof(BattleController).GetField("_speciesLevels",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(f, "_speciesLevels 필드 접근 실패 — 프로덕션 필드명 변경 의심");
+            return (Dictionary<EMonster, int>)f.GetValue(bc);
         }
 
         //# ===== 공통 캠페인 루프 =====
@@ -195,6 +347,13 @@ namespace Lair.Tests.PlayMode
             bool ended = false;
             while (wallElapsed < wallTimeFailSafe)
             {
+                //# 가속 배율 재적용 — PauseService 언포즈(Pop depth0)가 Time.timeScale=1 을 하드코딩 복원하므로,
+                //# 카드 트리거(액티브 30초/패시브 HP)마다 포즈→언포즈되며 15x 가 1 로 덮인다. 진짜 포즈(0)면 존중하고
+                //# 언포즈로 1 이 된 순간만 다시 가속(DebugAutoPicker 픽은 즉시라 포즈는 1~수 프레임 — 픽 타이밍 무영향).
+                if (Time.timeScale != 0f && Mathf.Approximately(Time.timeScale, timeScale) == false)
+                {
+                    Time.timeScale = timeScale;
+                }
                 if (Object.FindFirstObjectByType<ResultPopup>() != null) { ended = true; break; }
                 if (AllHeroesDead()) { ended = true; break; }
                 wallElapsed += Time.unscaledDeltaTime;
