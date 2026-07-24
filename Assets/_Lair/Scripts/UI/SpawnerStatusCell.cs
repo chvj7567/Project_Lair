@@ -30,7 +30,7 @@ namespace Lair.UI
         [SerializeField] private Image _border;          //# 셀 테두리 — 종 대표색 프레임 (종색 적용)
         [SerializeField] private Image _colorChip;       //# 종 색칩 (정사각형) — v1.1 중앙 아이콘으로 역할 이관, 숨김
         [SerializeField] private Image _icon;            //# 셀 중앙 몬스터 아이콘
-        [SerializeField] private CHText _speciesText;    //# 종명 영문
+        [SerializeField] private CHText _speciesText;    //# 종명 한글 (SpeciesVisual.SpeciesName SoT)
         [SerializeField] private CHText _countText;      //# ×N (N≥2 일 때만 노출)
         [SerializeField] private Image _progressFill;    //# 진행 바 Fill (fillAmount)
         [SerializeField] private CHText _periodText;     //# 다음 스폰까지 남은 초 (Ns)
@@ -105,8 +105,11 @@ namespace Lair.UI
                 _icon.gameObject.SetActive(sprite != null);
             }
 
-            //# 종명 영문.
-            if (_speciesText != null) _speciesText.SetText(SpeciesName(snapshot.CurrentType));
+            //# 종명 한글 — SpeciesVisual 단일 SoT (인게임 표기 통일).
+            if (_speciesText != null)
+            {
+                _speciesText.SetText(SpeciesVisual.SpeciesName(snapshot.CurrentType));
+            }
 
             //# ×N — N≥2 일 때만 노출.
             if (_countText != null)
@@ -160,18 +163,6 @@ namespace Lair.UI
             EMonster.Plague  => new Color(0.659f, 0.333f, 0.969f, 1f),   //# #A855F7
             EMonster.Phantom => new Color(0.122f, 0.161f, 0.216f, 1f),   //# #1F2937
             _                => Color.white,
-        };
-
-        //# 종 영문 풀네임 (기획서 §2.2.3).
-        public static string SpeciesName(EMonster type) => type switch
-        {
-            EMonster.Wisp    => "Wisp",
-            EMonster.Wraith  => "Wraith",
-            EMonster.Reaper  => "Reaper",
-            EMonster.Hex     => "Hex",
-            EMonster.Plague  => "Plague",
-            EMonster.Phantom => "Phantom",
-            _                => "?",
         };
 
         //# 카드 ID → 아이콘 글자·배경·글자색 매핑 (기획서 §2.3.3).

@@ -3,7 +3,7 @@
     "id": "Berserk",
     "axis": "Tank",
     "displayName": "수호자의 분노",
-    "description": "위스프·레이스 받는 데미지 -50% (15초)",
+    "description": "도깨비불·망령 받는 데미지 -50% (15초)",
     "effect": {
       "$type": "GuardianRageEffect",
       "duration": 15.0
@@ -75,7 +75,7 @@
     "id": "HexRangeBoost",
     "axis": "Dps",
     "displayName": "저주의 시야",
-    "description": "모든 헥스 사거리 +40%",
+    "description": "모든 저주술사 사거리 +40%",
     "effect": {
       "$type": "HexRangeBoostEffect",
       "rangeMul": 1.4
@@ -106,7 +106,7 @@
     "id": "Multiply",
     "axis": "Swarm",
     "displayName": "빠른 번식",
-    "description": "팬텀 스포너 주기 -40% (영구)",
+    "description": "환령 스포너 주기 -40% (영구)",
     "effect": {
       "$type": "FastBreedingEffect",
       "periodMul": 0.6
@@ -116,7 +116,7 @@
     "id": "PhantomMoveSpeedBoost",
     "axis": "Swarm",
     "displayName": "환령의 발걸음",
-    "description": "모든 팬텀 이동속도 +50%",
+    "description": "모든 환령 이동속도 +50%",
     "effect": {
       "$type": "PhantomMoveSpeedBoostEffect",
       "speedMul": 1.5
@@ -126,7 +126,7 @@
     "id": "PlagueSlowBoost",
     "axis": "Debuff",
     "displayName": "역병의 손길",
-    "description": "플레이그 둔화 효과 강화",
+    "description": "역병귀 둔화 효과 강화",
     "effect": {
       "$type": "PlagueSlowBoostEffect",
       "slowFactor": 0.75
@@ -136,7 +136,7 @@
     "id": "ReaperAtkSpeed",
     "axis": "Dps",
     "displayName": "신속한 사신",
-    "description": "모든 리퍼 공격속도 +30%",
+    "description": "모든 사신 공격속도 +30%",
     "effect": {
       "$type": "ReaperAtkSpeedEffect",
       "cdMul": 0.7
@@ -146,7 +146,7 @@
     "id": "ReplaceReapersToHex",
     "axis": "Dps",
     "displayName": "처형 명령",
-    "description": "리퍼·헥스 데미지 +30% (영구)",
+    "description": "사신·저주술사 데미지 +30% (영구)",
     "effect": {
       "$type": "ReaperHexPowerBoostEffect",
       "powerMul": 1.3
@@ -156,7 +156,7 @@
     "id": "ReplaceWispsToWraith",
     "axis": "Tank",
     "displayName": "공포의 군세",
-    "description": "위스프·레이스 데미지 +30% (영구)",
+    "description": "도깨비불·망령 데미지 +30% (영구)",
     "effect": {
       "$type": "WispWraithPowerBoostEffect",
       "powerMul": 1.3
@@ -178,7 +178,7 @@
     "id": "SpawnPhantoms",
     "axis": "Swarm",
     "displayName": "환령 떼",
-    "description": "팬텀 Spawner 출력 +1",
+    "description": "환령 스포너 출력 +1",
     "effect": {
       "$type": "SpawnPhantomsEffect"
     }
@@ -187,7 +187,7 @@
     "id": "SpawnPlagues",
     "axis": "Debuff",
     "displayName": "역병 증식",
-    "description": "플레이그 Spawner 출력 +1",
+    "description": "역병귀 스포너 출력 +1",
     "effect": {
       "$type": "SpawnPlaguesEffect"
     }
@@ -196,7 +196,7 @@
     "id": "SpawnReapers",
     "axis": "Dps",
     "displayName": "사신 떼거리",
-    "description": "리퍼 Spawner 출력 +1",
+    "description": "사신 스포너 출력 +1",
     "effect": {
       "$type": "SpawnReapersEffect"
     }
@@ -204,8 +204,8 @@
   {
     "id": "SpawnWisps",
     "axis": "Swarm",
-    "displayName": "위스프 떼",
-    "description": "위스프 Spawner 출력 +1",
+    "displayName": "도깨비불 떼",
+    "description": "도깨비불 스포너 출력 +1",
     "effect": {
       "$type": "SpawnWispsEffect"
     }
@@ -214,7 +214,7 @@
     "id": "SpawnWraith",
     "axis": "Tank",
     "displayName": "더 많은 망령",
-    "description": "레이스 Spawner 출력 +1",
+    "description": "망령 스포너 출력 +1",
     "effect": {
       "$type": "SpawnWraithEffect"
     }
@@ -243,7 +243,7 @@
     "id": "WallOfWisps",
     "axis": "Tank",
     "displayName": "단단한 살갗",
-    "description": "위스프·레이스 받는 데미지 -25% (영구)",
+    "description": "도깨비불·망령 받는 데미지 -25% (영구)",
     "effect": {
       "$type": "ToughHideEffect"
     }
@@ -262,8 +262,8 @@
   {
     "id": "WispHpBoost",
     "axis": "Tank",
-    "displayName": "끈질긴 위스프",
-    "description": "모든 위스프 HP +50%",
+    "displayName": "끈질긴 도깨비불",
+    "description": "모든 도깨비불 HP +50%",
     "effect": {
       "$type": "WispHpBoostEffect",
       "hpMul": 1.5
@@ -273,7 +273,7 @@
     "id": "WraithDamageBoost",
     "axis": "Tank",
     "displayName": "망령의 압박",
-    "description": "모든 레이스 HP +50%",
+    "description": "모든 망령 HP +50%",
     "effect": {
       "$type": "WraithDamageBoostEffect",
       "hpMul": 1.5

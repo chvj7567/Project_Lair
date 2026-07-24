@@ -15,15 +15,15 @@ MonoBehaviour:
   _id: 1
   _axis: 0
   _displayName: "\uB9DD\uB839\uC758 \uC555\uBC15"
-  _description: "\uBAA8\uB4E0 \uB808\uC774\uC2A4 HP +50%"
+  _description: "\uBAA8\uB4E0 \uB9DD\uB839 HP +50%"
   _icon: {fileID: 21300000, guid: 39a64536d084aa8478de54766b5e556e, type: 3}
   _cardImage: {fileID: 21300000, guid: 2af5b48e7a4eb774c8ba0016db0f5073, type: 3}
   _effect:
-    rid: 2530925571701473365
+    rid: 1236005548309872800
   references:
     version: 2
     RefIds:
-    - rid: 2530925571701473365
+    - rid: 1236005548309872800
       type: {class: WraithDamageBoostEffect, ns: Lair.Card, asm: Lair}
       data:
         _hpMul: 1.5

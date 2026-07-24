@@ -9,16 +9,16 @@ namespace Lair.Tests.UI
     //# UI 컴포넌트 라이프사이클은 PlayMode + test-engineer 영역. 본 테스트는 매핑 정확성만 정상+엣지 1.
     public class SpawnerStatusCellTests
     {
-        //# 정상 — 6종 종명 영문 풀네임이 기획서 §2.2.3 매핑과 정확히 일치.
+        //# 정상 — 6종 종명이 한글 표기(상점 §7 철자)와 정확히 일치. SoT = SpeciesVisual.SpeciesName.
         [Test]
-        public void SpeciesName_6종_영문풀네임_매핑()
+        public void SpeciesName_6종_한글표기_매핑()
         {
-            Assert.AreEqual("Wisp",    SpawnerStatusCell.SpeciesName(EMonster.Wisp));
-            Assert.AreEqual("Wraith",  SpawnerStatusCell.SpeciesName(EMonster.Wraith));
-            Assert.AreEqual("Reaper",  SpawnerStatusCell.SpeciesName(EMonster.Reaper));
-            Assert.AreEqual("Hex",     SpawnerStatusCell.SpeciesName(EMonster.Hex));
-            Assert.AreEqual("Plague",  SpawnerStatusCell.SpeciesName(EMonster.Plague));
-            Assert.AreEqual("Phantom", SpawnerStatusCell.SpeciesName(EMonster.Phantom));
+            Assert.AreEqual("도깨비불", SpeciesVisual.SpeciesName(EMonster.Wisp));
+            Assert.AreEqual("망령",     SpeciesVisual.SpeciesName(EMonster.Wraith));
+            Assert.AreEqual("사신",     SpeciesVisual.SpeciesName(EMonster.Reaper));
+            Assert.AreEqual("저주술사", SpeciesVisual.SpeciesName(EMonster.Hex));
+            Assert.AreEqual("역병귀",   SpeciesVisual.SpeciesName(EMonster.Plague));
+            Assert.AreEqual("환령",     SpeciesVisual.SpeciesName(EMonster.Phantom));
         }
 
         //# 정상 — 강화 카드 6종 아이콘 글자 매핑 (H/D/S/R/M/P, 기획서 §2.3.3).

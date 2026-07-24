@@ -174,7 +174,7 @@ namespace Lair.UI
                 bool seen = profile.SeenMonsters.Contains(type.ToString());
                 list.Add(new CodexCellData
                 {
-                    DisplayName = seen ? SpawnerStatusCell.SpeciesName(type) : "???",
+                    DisplayName = seen ? SpeciesVisual.SpeciesName(type) : "???",
                     Unlocked = seen,
                     Icon = iconResolver != null ? iconResolver(type) : null,
                     TintColor = SpawnerStatusCell.SpeciesColor(type),

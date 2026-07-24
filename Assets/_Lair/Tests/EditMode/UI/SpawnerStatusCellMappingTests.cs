@@ -74,12 +74,12 @@ namespace Lair.Tests.UI
 
         //# ===== SpeciesName fallback =====
 
-        //# 정의 외 EMonster 값(캐스팅)은 "?" fallback.
+        //# 정의 외 EMonster 값(캐스팅)은 "?" fallback. SoT = SpeciesVisual.SpeciesName.
         [Test]
         public void SpeciesName_정의외_값은_물음표_fallback()
         {
             //# 캐스팅으로 정의 외 값 주입 — switch default 분기.
-            Assert.AreEqual("?", SpawnerStatusCell.SpeciesName((EMonster)999));
+            Assert.AreEqual("?", SpeciesVisual.SpeciesName((EMonster)999));
         }
 
         //# ===== 진행 바 임계값 상수 =====
