@@ -21,6 +21,8 @@ namespace Lair.UI
     //# 셀 표시 데이터 — BuildCellData 가 가공 (EditMode 테스트 대상).
     public class ShopItemCellData
     {
+        public ShopPopup.ShopRowKind RowKind;   //# 기본 Item — 섹션 헤더 행이면 SectionHeader (기획서 §7).
+        public string HeaderText;               //# 헤더 행일 때 섹션 제목 ("스탯 강화"/"몬스터 강화").
         public string Id;
         public string DisplayName;
         public string Description;
@@ -37,24 +39,17 @@ namespace Lair.UI
         public Sprite Icon;               //# 종족 아이콘 — ShopPopup.Rebuild 가 인스펙터 스프라이트 주입 (BuildCellData 는 미설정)
     }
 
-    //# 소울 상점 — 레벨제 영구 업그레이드 목록 (기획서 §3) + 종족 강화 2탭 (monster-species-enhancement §5).
+    //# 소울 상점 — 레벨제 영구 업그레이드 단일 스크롤 + 섹션 헤더 (기획서 §1). 탭 제거.
     public class ShopPopup : UIBase
     {
-        //# 상점 탭 — 단일 시스템(ShopPopup) 내부 enum (Rule 02 §8 예외 — 파일 내 정의).
-        public enum ShopTab { Stat, Species }
+        //# 행 종류 — 단일 시스템(ShopPopup) 내부 enum (Rule 02 §8 예외). Item 을 0(기본값)으로 두어 MakeCell 미설정 항목이 항목 행이 되게 한다.
+        public enum ShopRowKind { Item, SectionHeader }
 
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private CHText _soulText;     //# 잔액 "N 소울"
         [SerializeField] private CHText _bonusSummaryText;   //# 상단 요약줄 — "현재 강화  HP +10% · 공속 +5%"
         [SerializeField] private ShopItemPoolingScrollView _scrollView;
-
-        //# 탭 버튼 2개 — 「스탯 강화」 / 「몬스터 강화」 (monster-species-enhancement §9).
-        [SerializeField] private CHButton _statTabButton;
-        [SerializeField] private CHButton _speciesTabButton;
-        //# 선택 탭 강조용 배경 이미지 — CHButton 은 image 를 노출하지 않으므로 별도 참조로 tint.
-        [SerializeField] private Image _statTabBg;
-        [SerializeField] private Image _speciesTabBg;
 
         //# 종족 → 강화 셀 아이콘 — 인스펙터 직접 참조 (CodexPopup.SpeciesIcon 관례, Addressables 키 아님).
         [SerializeField] private Sprite _wispIcon;
@@ -64,12 +59,7 @@ namespace Lair.UI
         [SerializeField] private Sprite _plagueIcon;
         [SerializeField] private Sprite _phantomIcon;
 
-        //# 선택 탭 강조 색 — 활성 노랑 (#FBBF24) / 비활성 회색 (#9CA3AF).
-        private static readonly Color TabActiveColor = new Color(0.984f, 0.749f, 0.141f, 1f);
-        private static readonly Color TabInactiveColor = new Color(0.612f, 0.639f, 0.686f, 1f);
-
         private ShopPopupArg _arg;
-        private ShopTab _tab = ShopTab.Stat;
 
         public override void InitUI(UIArg arg)
         {
@@ -88,45 +78,10 @@ namespace Lair.UI
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
             }
 
-            //# 탭 — 열 때 기본 스탯 탭. 클릭 시 필터 교체 후 재빌드.
-            _tab = ShopTab.Stat;
-            if (_statTabButton != null)
-            {
-                _statTabButton.OnClick(() => SelectTab(ShopTab.Stat), closeDisposable);
-            }
-            if (_speciesTabButton != null)
-            {
-                _speciesTabButton.OnClick(() => SelectTab(ShopTab.Species), closeDisposable);
-            }
-            UpdateTabHighlight();
-
             //# prefab active 저장 케이스 보강 — BuildModalPopup 과 동일 (layout 산정 후 Build).
             if (isActiveAndEnabled)
             {
                 BuildAndLayout();
-            }
-        }
-
-        //# 탭 전환 — 같은 스크롤뷰·셀을 공유하고 필터 데이터만 교체 (monster-species-enhancement §5.1).
-        private void SelectTab(ShopTab tab)
-        {
-            if (_tab == tab)
-                return;
-            _tab = tab;
-            UpdateTabHighlight();
-            Rebuild();
-        }
-
-        //# 선택 탭 강조 — 활성 노랑 / 비활성 회색 (§9). 배경 이미지 tint (미배선이면 skip).
-        private void UpdateTabHighlight()
-        {
-            if (_statTabBg != null)
-            {
-                _statTabBg.color = _tab == ShopTab.Stat ? TabActiveColor : TabInactiveColor;
-            }
-            if (_speciesTabBg != null)
-            {
-                _speciesTabBg.color = _tab == ShopTab.Species ? TabActiveColor : TabInactiveColor;
             }
         }
 
@@ -160,7 +115,7 @@ namespace Lair.UI
                 _bonusSummaryText.SetText(BuildSummaryText(_arg.Profile, _arg.Config));
             }
 
-            List<ShopItemCellData> data = BuildCellData(_arg.Profile, _arg.Config, _tab);
+            List<ShopItemCellData> data = BuildCellData(_arg.Profile, _arg.Config);
             foreach (ShopItemCellData cell in data)
             {
                 cell.OnBuy = HandleBuy;
@@ -223,46 +178,40 @@ namespace Lair.UI
             return sb.ToString();
         }
 
-        //# 데이터 가공 — 전 항목(무탭). 하위호환 유지 (기존 테스트/호출부). Icon 은 미설정(Rebuild 가 주입).
+        //# 데이터 가공 — 단일 스크롤 통합 리스트: [스탯 헤더 + 스탯 항목 + 몬스터 헤더 + 종족 항목] (기획서 §1·7).
+        //# 빈 섹션은 헤더도 제외(§5). Icon 은 미설정(Rebuild 가 주입).
         public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)
         {
             List<ShopItemCellData> list = new List<ShopItemCellData>();
             if (profile == null || cfg == null)
                 return list;
 
-            foreach (ShopItemDef def in cfg.ShopItems)
-            {
-                if (def == null || string.IsNullOrEmpty(def.Id))
-                    continue;
-                list.Add(MakeCell(def, profile));
-            }
+            //# 스탯 강화 섹션 (전종 글로벌: MonsterStat/SpawnerPeriod) → 몬스터 강화 섹션 (MonsterSpecies).
+            AppendSection(list, cfg, profile, "스탯 강화", isSpecies: false);
+            AppendSection(list, cfg, profile, "몬스터 강화", isSpecies: true);
             return list;
         }
 
-        //# 탭 필터 오버로드 — 스탯 탭은 글로벌(MonsterStat/SpawnerPeriod)만, 몬스터 탭은 MonsterSpecies 만 (monster-species-enhancement §5).
-        public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, ShopTab tab)
+        //# 섹션 항목을 먼저 모아 1개 이상일 때만 [헤더 + 항목들] append — 빈 섹션 헤더 제외 (기획서 §5).
+        private static void AppendSection(List<ShopItemCellData> list, MetaConfig cfg, MetaProfile profile, string headerText, bool isSpecies)
         {
-            List<ShopItemCellData> list = new List<ShopItemCellData>();
-            if (profile == null || cfg == null)
-                return list;
-
+            List<ShopItemCellData> items = new List<ShopItemCellData>();
             foreach (ShopItemDef def in cfg.ShopItems)
             {
                 if (def == null || string.IsNullOrEmpty(def.Id))
                     continue;
-                if (MatchesTab(def.EffectKind, tab) == false)
+                bool species = def.EffectKind == EShopEffectKind.MonsterSpecies;
+                if (species != isSpecies)
                     continue;
-                list.Add(MakeCell(def, profile));
+                items.Add(MakeCell(def, profile));
             }
-            return list;
+            if (items.Count == 0)
+                return;
+            list.Add(new ShopItemCellData { RowKind = ShopRowKind.SectionHeader, HeaderText = headerText });
+            list.AddRange(items);
         }
 
-        private static bool MatchesTab(EShopEffectKind kind, ShopTab tab)
-            => tab == ShopTab.Species
-                ? kind == EShopEffectKind.MonsterSpecies
-                : kind == EShopEffectKind.MonsterStat || kind == EShopEffectKind.SpawnerPeriod;
-
-        //# 셀 표시 데이터 조립 단일 진실 — 두 오버로드가 공유. Species/Level/MaxLevel 은 채우되 Icon 은 Rebuild 가 주입(§5.3).
+        //# 셀 표시 데이터 조립 단일 진실. Species/Level/MaxLevel 은 채우되 Icon 은 Rebuild 가 주입(§5.3).
         private static ShopItemCellData MakeCell(ShopItemDef def, MetaProfile profile)
         {
             int level = profile.GetShopLevel(def.Id);
@@ -270,6 +219,7 @@ namespace Lair.UI
             int price = isMax ? 0 : ShopService.PriceOf(def, level);
             return new ShopItemCellData
             {
+                RowKind = ShopRowKind.Item,
                 Id = def.Id,
                 DisplayName = def.DisplayName,
                 Description = def.Description,

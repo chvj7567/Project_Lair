@@ -39,13 +39,16 @@ namespace Lair.Tests.EditMode
             MetaProfile profile = new MetaProfile { Souls = 200 };
             profile.SetShopLevel("MonsterHpUp", 2);
 
+            //# 통합 리스트 = [스탯 섹션 헤더, MonsterHpUp 항목] — 항목은 헤더 다음 list[1] (기획서 §1·7).
             List<ShopItemCellData> list = ShopPopup.BuildCellData(profile, _cfg);
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual("강골 군세", list[0].DisplayName);
-            Assert.AreEqual("Lv 2/5", list[0].LevelText);
-            Assert.AreEqual(204, list[0].Price);   //# floor(80×1.6^2)
-            Assert.IsFalse(list[0].IsMax);
-            Assert.IsFalse(list[0].CanBuy);        //# 200 < 204 — 소울 부족
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual(ShopPopup.ShopRowKind.SectionHeader, list[0].RowKind);
+            ShopItemCellData item = list[1];
+            Assert.AreEqual("강골 군세", item.DisplayName);
+            Assert.AreEqual("Lv 2/5", item.LevelText);
+            Assert.AreEqual(204, item.Price);      //# floor(80×1.6^2)
+            Assert.IsFalse(item.IsMax);
+            Assert.IsFalse(item.CanBuy);           //# 200 < 204 — 소울 부족
         }
 
         [Test]
@@ -54,10 +57,12 @@ namespace Lair.Tests.EditMode
             MetaProfile profile = new MetaProfile { Souls = 99999 };
             profile.SetShopLevel("MonsterHpUp", 5);
 
+            //# 항목은 스탯 헤더 다음 list[1].
             List<ShopItemCellData> list = ShopPopup.BuildCellData(profile, _cfg);
-            Assert.IsTrue(list[0].IsMax);
-            Assert.IsFalse(list[0].CanBuy);
-            Assert.AreEqual("Lv 5/5", list[0].LevelText);
+            ShopItemCellData item = list[1];
+            Assert.IsTrue(item.IsMax);
+            Assert.IsFalse(item.CanBuy);
+            Assert.AreEqual("Lv 5/5", item.LevelText);
         }
     }
 }
