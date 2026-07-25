@@ -9,25 +9,33 @@ namespace Lair.Tests.EditMode
     //# MetaConfig 는 소울/영주 게이지 전용 — 캐러셀 API 는 미사용이므로 null 주입.
     public class VillageStageCarouselTests
     {
-        private static VillageViewModel MakeVm(int selectedStage, int clearedStage)
+        //# 캐러셀을 원하는 시작 스테이지에 위치시킨다 — 초기값(최대 플레이 가능)에서 MoveStage(1~5 클램프)로 이동.
+        //# 초기 파생 로직과 무관하게 시작 위치를 고정하므로 이동/경계 테스트는 초기값 변경에 영향받지 않는다.
+        private static VillageViewModel MakeVm(int startStage, int clearedStage)
         {
-            MetaProfile profile = new MetaProfile { SelectedStage = selectedStage, ClearedStage = clearedStage };
-            return new VillageViewModel(profile, null);
+            MetaProfile profile = new MetaProfile { ClearedStage = clearedStage };
+            VillageViewModel vm = new VillageViewModel(profile, null);
+            vm.MoveStage(startStage - vm.SelectedStage);
+            return vm;
         }
 
+        //# 진입 초기 = 최대 플레이 가능 스테이지 = min(ClearedStage+1, 5) (기획: 마지막 선택이 아니라 최고 도전 지점부터).
         [Test]
-        public void 초기_SelectedStage는_profile값으로_초기화된다()
+        public void 초기_SelectedStage는_최대_플레이가능_스테이지다()
         {
-            VillageViewModel vm = MakeVm(3, 4);
-            Assert.AreEqual(3, vm.SelectedStage);
+            Assert.AreEqual(1, new VillageViewModel(new MetaProfile { ClearedStage = 0 }, null).SelectedStage);   //# 신규 유저
+            Assert.AreEqual(3, new VillageViewModel(new MetaProfile { ClearedStage = 2 }, null).SelectedStage);   //# 2 클리어 → 3
+            Assert.AreEqual(5, new VillageViewModel(new MetaProfile { ClearedStage = 4 }, null).SelectedStage);   //# 4 클리어 → 5(상한)
+            Assert.AreEqual(5, new VillageViewModel(new MetaProfile { ClearedStage = 5 }, null).SelectedStage);   //# 전 클리어 → 5
         }
 
+        //# 저장된 SelectedStage 는 무시된다 — 진입은 항상 최대 플레이 가능으로 시작(출격 desync 방지 계약의 근거).
         [Test]
-        public void 초기_SelectedStage는_범위밖_profile값을_1_5로_클램프한다()
+        public void 초기_SelectedStage는_저장된_SelectedStage를_무시한다()
         {
-            Assert.AreEqual(5, MakeVm(9, 5).SelectedStage);  //# 상한 클램프
-            Assert.AreEqual(1, MakeVm(0, 0).SelectedStage);  //# 하한 클램프
-            Assert.AreEqual(1, MakeVm(-3, 0).SelectedStage); //# 음수 클램프
+            MetaProfile profile = new MetaProfile { SelectedStage = 1, ClearedStage = 3 };
+            VillageViewModel vm = new VillageViewModel(profile, null);
+            Assert.AreEqual(4, vm.SelectedStage);   //# 저장값 1 이 아니라 min(3+1,5)=4
         }
 
         [Test]

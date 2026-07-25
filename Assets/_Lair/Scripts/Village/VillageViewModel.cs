@@ -15,7 +15,7 @@ namespace Lair.Village
         private readonly MetaProfile _profile;
         private readonly MetaConfig _config;
 
-        //# 캐러셀 현재 위치 — profile.SelectedStage 로 초기화하되 이후 이동은 in-memory 만(저장은 VillageController).
+        //# 캐러셀 현재 위치 — 진입 시 최대 플레이 가능 스테이지로 초기화(마지막 선택이 아님), 이후 이동은 in-memory 만(저장은 VillageController).
         private int _selectedStage;
 
         public event Action<int> OnSoulsChanged;
@@ -27,8 +27,9 @@ namespace Lair.Village
         {
             _profile = profile;
             _config = config;
-            int initial = profile != null ? profile.SelectedStage : MinStage;
-            _selectedStage = Math.Min(MaxStage, Math.Max(MinStage, initial));
+            //# 진입 초기 위치 = 최대 플레이 가능 스테이지(min(ClearedStage+1, 5)). 저장된 SelectedStage 는 무시(기획: 항상 최고 도전 지점부터).
+            int cleared = profile != null ? profile.ClearedStage : 0;
+            _selectedStage = StageProgress.MaxPlayableStage(cleared);
         }
 
         //# 캐러셀 — 현재 선택 스테이지(1~5).

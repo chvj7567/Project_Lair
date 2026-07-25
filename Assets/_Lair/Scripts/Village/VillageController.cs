@@ -34,6 +34,14 @@ namespace Lair.Village
             MetaProfile profile = MetaSession.GetOrLoad();
             _vm = new VillageViewModel(profile, _metaConfig);
 
+            //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
+            //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
+            if (profile.SelectedStage != _vm.SelectedStage)
+            {
+                profile.SelectedStage = _vm.SelectedStage;
+                MetaSession.Store?.Save(profile);
+            }
+
             //# 클라우드 연동 보장(best-effort) — 실패해도 마을은 정상 동작(기획서 §6 무음).
             await MetaSession.EnsureNetworkAsync();
 

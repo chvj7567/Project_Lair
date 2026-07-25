@@ -19,6 +19,12 @@ namespace Lair.Battle
             return stage <= clearedStage + 1;
         }
 
+        //# 진입 시 캐러셀 초기 위치 = 최대 플레이 가능 스테이지 = clearedStage+1 (1 하한·5 상한). IsUnlocked 의 cleared+1 경계와 동일 소유.
+        public static int MaxPlayableStage(int clearedStage)
+        {
+            return Math.Max(1, Math.Min(MaxStage, clearedStage + 1));
+        }
+
         //# baseline × 배수를 round-half-up 정수화 (기획서 §2.1 — 예: Power 50×1.35=67.5 → 68). 최소 1.
         public static int ScaleStat(int baseValue, float multiplier)
         {
