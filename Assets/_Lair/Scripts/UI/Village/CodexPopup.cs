@@ -25,6 +25,8 @@ namespace Lair.UI
         public bool IsLockedDummy;
         public Sprite Icon;          //# 카드 일러스트 또는 몬스터 아이콘 (null → 색칩 fallback)
         public Color TintColor;      //# 몬스터 종 색 (아이콘 미할당 시 색칩)
+        public EMonster? Species;    //# 몬스터 셀만 지정 (카드/더미는 null) — 강화 발광색 SoT 조회 키
+        public int EnhanceLevel;     //# Enhance_<종족> 상점 레벨 0~5 (카드/더미는 기본값 0)
     }
 
     //# 도감 — 몬스터/카드 탭 + 각 탭 말미 잠금 더미 (기획서 §6).
@@ -178,6 +180,8 @@ namespace Lair.UI
                     Unlocked = seen,
                     Icon = iconResolver != null ? iconResolver(type) : null,
                     TintColor = SpawnerStatusCell.SpeciesColor(type),
+                    Species = type,
+                    EnhanceLevel = profile.GetShopLevel("Enhance_" + type),
                 });
             }
             AddLockedDummies(list, cfg.CodexLockedSlots);
