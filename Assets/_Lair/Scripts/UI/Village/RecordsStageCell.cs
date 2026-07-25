@@ -16,19 +16,9 @@ namespace Lair.UI
         [SerializeField] private CHText _lockHintText;
         [SerializeField] private GameObject _selectedBadge;
 
-        //# 풀 재사용 리셋 — 이전 행의 잠금/배지 상태가 새 행에 새지 않게 (Rule 03 §4).
-        private void OnEnable()
-        {
-            if (_selectedBadge != null)
-            {
-                _selectedBadge.SetActive(false);
-            }
-            if (_lockHintText != null)
-            {
-                _lockHintText.gameObject.SetActive(false);
-            }
-        }
-
+        //# 풀 재사용/재오픈 리셋은 Bind 이 전담한다 (다른 셀 관례 — CodexCell·ShopItemCell 등).
+        //# OnEnable 리셋 금지: 재오픈 시 팝업 재활성화가 셀 OnEnable 을 Bind 뒤에 발화시켜(부모→자식 순서)
+        //# 잠금 힌트·선택 배지를 도로 꺼버린다. Bind 이 잠금/배지 상태를 매번 전부 재설정하므로 별도 리셋 불필요.
         public void Bind(RecordsStageCellData data)
         {
             if (data == null)
