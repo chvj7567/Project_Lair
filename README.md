@@ -268,7 +268,7 @@ public class WispHpBoostEffect : ICardEffect
 
 > **게임:** 카드를 무작위로 줍는 게 아니라 **방향**을 만들고 싶었습니다. 모든 카드는 4개 빌드 축(탱커/딜러/디버프/스웜) 중 하나에 속하고, 같은 축을 **3·5·7장** 모으면 그때마다 강력한 시너지가 한 번씩 터집니다. "이번 판은 스웜으로 밀어볼까" 같은 목표가 생깁니다.
 
-![활동 중인 시너지 — 축별로 발동된 Tier 목록(예: Tank Wisp HP · Reaper Hex Power)](docs/images/synergy_active.png)
+![활동 중인 시너지 — 축별로 발동된 Tier 목록(예: 탱커 도깨비불 HP · 딜러 사신·저주술사 공격력)](docs/images/synergy_active.png)
 
 <details>
 <summary>구조 — 어떻게 구성했나</summary>

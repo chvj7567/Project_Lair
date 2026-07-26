@@ -123,16 +123,16 @@ namespace Lair.UI
         //# 기획서 §2 마스터 표. (축, 티어) → 효과 설명.
         private static readonly Dictionary<(EBuildAxis, int), string> TierDesc = new()
         {
-            { (EBuildAxis.Tank,   1), "Wisp·Wraith HP ×1.3" },
-            { (EBuildAxis.Tank,   2), "Wisp·Wraith Power ×1.2" },
+            { (EBuildAxis.Tank,   1), "도깨비불·망령 HP ×1.3" },
+            { (EBuildAxis.Tank,   2), "도깨비불·망령 공격력 ×1.2" },
             { (EBuildAxis.Tank,   3), "필드 캡 +6 (18→24)" },
-            { (EBuildAxis.Dps,    1), "Reaper·Hex Power ×1.3" },
-            { (EBuildAxis.Dps,    2), "Reaper·Hex 공속 +25%" },
-            { (EBuildAxis.Dps,    3), "Reaper·Hex Range ×1.3" },
-            { (EBuildAxis.Debuff, 1), "Plague 둔화 ×0.8" },
+            { (EBuildAxis.Dps,    1), "사신·저주술사 공격력 ×1.3" },
+            { (EBuildAxis.Dps,    2), "사신·저주술사 공속 +25%" },
+            { (EBuildAxis.Dps,    3), "사신·저주술사 사거리 ×1.3" },
+            { (EBuildAxis.Debuff, 1), "역병귀 둔화 ×0.8" },
             { (EBuildAxis.Debuff, 2), "영웅 공격력 ×0.85" },
             { (EBuildAxis.Debuff, 3), "출혈 영구 — 이동 시 1s당 HP -1%" },
-            { (EBuildAxis.Swarm,  1), "Phantom·Wisp 이동속도 ×1.3" },
+            { (EBuildAxis.Swarm,  1), "환령·도깨비불 이동속도 ×1.3" },
             { (EBuildAxis.Swarm,  2), "모든 스포너 주기 ×0.85" },
             { (EBuildAxis.Swarm,  3), "모든 스포너 동시 출력 +1" },
         };
