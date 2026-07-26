@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using ChvjUnityInfra;
+using Lair.Card;
 using Lair.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -87,7 +89,9 @@ namespace Lair.UI
         {
             if (_vm == null)
                 return;
-            List<SynergyModalCellData> rows = BuildRows(_vm.GetBuildCount, AxisIcon);
+            //# 설명 수치는 tier(_vm.GetTier)·표시 문자열은 스트링 테이블(CHText.StringProvider) 단일 소스.
+            List<SynergyModalCellData> rows =
+                BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider, AxisIcon);
 
             //# 활성 티어 0개면 빈 상태 라벨, 그 외엔 리스트.
             if (_emptyText != null)
@@ -120,23 +124,6 @@ namespace Lair.UI
         private static readonly EBuildAxis[] AllAxes =
             { EBuildAxis.Tank, EBuildAxis.Dps, EBuildAxis.Debuff, EBuildAxis.Swarm };
 
-        //# 기획서 §2 마스터 표. (축, 티어) → 효과 설명.
-        private static readonly Dictionary<(EBuildAxis, int), string> TierDesc = new()
-        {
-            { (EBuildAxis.Tank,   1), "도깨비불·망령 HP ×1.3" },
-            { (EBuildAxis.Tank,   2), "도깨비불·망령 공격력 ×1.2" },
-            { (EBuildAxis.Tank,   3), "필드 캡 +6 (18→24)" },
-            { (EBuildAxis.Dps,    1), "사신·저주술사 공격력 ×1.3" },
-            { (EBuildAxis.Dps,    2), "사신·저주술사 공속 +25%" },
-            { (EBuildAxis.Dps,    3), "사신·저주술사 사거리 ×1.3" },
-            { (EBuildAxis.Debuff, 1), "역병귀 둔화 ×0.8" },
-            { (EBuildAxis.Debuff, 2), "영웅 공격력 ×0.85" },
-            { (EBuildAxis.Debuff, 3), "출혈 영구 — 이동 시 1s당 HP -1%" },
-            { (EBuildAxis.Swarm,  1), "환령·도깨비불 이동속도 ×1.3" },
-            { (EBuildAxis.Swarm,  2), "모든 스포너 주기 ×0.85" },
-            { (EBuildAxis.Swarm,  3), "모든 스포너 동시 출력 +1" },
-        };
-
         //# 활성 티어 수 (count 가 넘은 임계 개수).
         private static int ActiveTier(int count)
         {
@@ -148,8 +135,11 @@ namespace Lair.UI
 
         //# 축 카운트 조회 함수를 받아 행 리스트로 평탄화. 활성 티어 0 인 축은 스킵.
         //# 축 순서(AllAxes) × 티어 1→ActiveTier. 각 축 헤더 1행 + 효과 N행.
-        //# iconOf 는 optional — 미지정(null)이면 헤더 Icon=null (기존 1-arg 호출부 무회귀, 기획서 §8).
+        //# 효과 설명 = 스트링 템플릿(strings.GetString(tier.DescriptionStringId)) + tier 유래 수치(tier.DescriptionArgs).
+        //# strings null / tier 미바인딩이면 설명은 빈 문자열 (예외 없이 가드).
+        //# iconOf 는 optional — 미지정(null)이면 헤더 Icon=null (기존 iconOf 무주입 호출부 무회귀, 기획서 §8).
         public static List<SynergyModalCellData> BuildRows(Func<EBuildAxis, int> countOf,
+            Func<EBuildAxis, int, IBuildSynergyTier> tierOf, IStringProvider strings,
             Func<EBuildAxis, Sprite> iconOf = null)
         {
             List<SynergyModalCellData> rows = new List<SynergyModalCellData>();
@@ -172,17 +162,30 @@ namespace Lair.UI
                 });
                 for (int tier = 1; tier <= tiers; ++tier)
                 {
-                    string desc;
-                    TierDesc.TryGetValue((axis, tier), out desc);
                     rows.Add(new SynergyModalCellData
                     {
                         RowKind   = SynergyModalCellData.Kind.Effect,
                         AxisColor = color,
-                        Label     = $"Tier{tier}  {desc}",
+                        Label     = $"Tier{tier}  {DescribeTier(tierOf, axis, tier, strings)}",
                     });
                 }
             }
             return rows;
+        }
+
+        //# 티어 설명 조립 — 템플릿(스트링 id) + 수치(tier const 유래). provider·tier 가드로 빈 문자열 안전.
+        private static string DescribeTier(Func<EBuildAxis, int, IBuildSynergyTier> tierOf,
+            EBuildAxis axis, int tier, IStringProvider strings)
+        {
+            if (tierOf == null || strings == null)
+                return "";
+            IBuildSynergyTier bound = tierOf(axis, Thresholds[tier - 1]);
+            if (bound == null)
+                return "";
+            string template = strings.GetString(bound.DescriptionStringId);
+            if (string.IsNullOrEmpty(template))
+                return "";
+            return string.Format(CultureInfo.InvariantCulture, template, bound.DescriptionArgs);
         }
     }
 }

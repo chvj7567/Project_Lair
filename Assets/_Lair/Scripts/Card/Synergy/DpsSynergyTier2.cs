@@ -1,4 +1,6 @@
+using System.Globalization;
 using Lair.Data;
+using UnityEngine;
 
 namespace Lair.Card
 {
@@ -7,6 +9,15 @@ namespace Lair.Card
     public class DpsSynergyTier2 : IBuildSynergyTier
     {
         private const float CooldownMul = 0.8f;
+
+        //# 스트링 204 = "사신·저주술사 공속 +{0}%". 쿨다운 배율 → 공속% 파생: (1/mul - 1)*100.
+        public int DescriptionStringId => 204;
+        public string[] DescriptionArgs
+            => new[]
+            {
+                Mathf.RoundToInt((1f / CooldownMul - 1f) * 100f)
+                    .ToString(CultureInfo.InvariantCulture),
+            };
 
         public void Apply(IBattleContext ctx)
         {

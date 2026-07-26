@@ -76,7 +76,7 @@ namespace Lair.Tests.UI
         {
             Sprite icon = Track(NewSprite());
             List<SynergyModalCellData> rows =
-                SynergyModalPopup.BuildRows(Only(axis, count), a => a == axis ? icon : null);
+                SynergyModalTestFakes.BuildRows(Only(axis, count), a => a == axis ? icon : null);
 
             Assert.AreEqual(SynergyModalCellData.Kind.Header, rows[0].RowKind);
             Assert.AreSame(icon, rows[0].Icon, "헤더 Icon 은 iconOf(axis) 결과");
@@ -99,7 +99,7 @@ namespace Lair.Tests.UI
                 { EBuildAxis.Swarm, Track(NewSprite()) },
             };
             List<SynergyModalCellData> rows =
-                SynergyModalPopup.BuildRows(Counts(7, 7, 7, 7), a => map[a]);
+                SynergyModalTestFakes.BuildRows(Counts(7, 7, 7, 7), a => map[a]);
 
             int headerWithIcon = 0;
             int effectNull = 0;
@@ -136,7 +136,7 @@ namespace Lair.Tests.UI
             Func<EBuildAxis, Sprite> iconOf = a => map[a];
 
             List<SynergyModalCellData> headers =
-                HeadersOf(SynergyModalPopup.BuildRows(Counts(3, 3, 3, 3), iconOf));
+                HeadersOf(SynergyModalTestFakes.BuildRows(Counts(3, 3, 3, 3), iconOf));
 
             //# 헤더 순서 = 축 순서 Tank→Dps→Debuff→Swarm.
             Assert.AreEqual(4, headers.Count);
@@ -173,7 +173,7 @@ namespace Lair.Tests.UI
             };
 
             List<SynergyModalCellData> headers =
-                HeadersOf(SynergyModalPopup.BuildRows(Counts(3, 3, 3, 3), iconOf));
+                HeadersOf(SynergyModalTestFakes.BuildRows(Counts(3, 3, 3, 3), iconOf));
 
             Assert.AreEqual(4, headers.Count, "4축 모두 활성 — 헤더 수는 아이콘 유무와 무관");
             Assert.AreSame(tankIcon, headers[0].Icon, "Tank 헤더 Icon set");
@@ -189,7 +189,7 @@ namespace Lair.Tests.UI
             Func<EBuildAxis, Sprite> allNull = a => null;
             List<SynergyModalCellData> rows = null;
 
-            Assert.DoesNotThrow(() => rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 7), allNull));
+            Assert.DoesNotThrow(() => rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 7), allNull));
             Assert.AreEqual(4, rows.Count, "헤더1 + 효과3 — 행 수는 불변");
             Assert.IsNull(rows[0].Icon, "iconOf 가 null 반환 시 헤더 Icon 도 null");
         }
@@ -212,7 +212,7 @@ namespace Lair.Tests.UI
             };
 
             //# Tank 7(헤더1+효과3), Dps 3(헤더1+효과1) 활성 / Debuff 2, Swarm 0 스킵.
-            SynergyModalPopup.BuildRows(Counts(7, 3, 2, 0), iconOf);
+            SynergyModalTestFakes.BuildRows(Counts(7, 3, 2, 0), iconOf);
 
             Assert.AreEqual(1, calls[EBuildAxis.Tank], "Tank 활성 — 헤더 1회 (효과 3행엔 미호출)");
             Assert.AreEqual(1, calls[EBuildAxis.Dps], "Dps 활성 — 헤더 1회");
@@ -230,7 +230,7 @@ namespace Lair.Tests.UI
                 ++callCount;
                 return null;
             };
-            SynergyModalPopup.BuildRows(Counts(2, 2, 2, 2), iconOf);
+            SynergyModalTestFakes.BuildRows(Counts(2, 2, 2, 2), iconOf);
             Assert.AreEqual(0, callCount, "활성 티어 0 → 헤더 0 → iconOf 미호출");
         }
 
@@ -242,9 +242,9 @@ namespace Lair.Tests.UI
         {
             Func<EBuildAxis, int> counts = Counts(5, 3, 7, 4);
 
-            List<SynergyModalCellData> without = SynergyModalPopup.BuildRows(counts);
+            List<SynergyModalCellData> without = SynergyModalTestFakes.BuildRows(counts);
             List<SynergyModalCellData> with =
-                SynergyModalPopup.BuildRows(counts, a => Track(NewSprite()));
+                SynergyModalTestFakes.BuildRows(counts, a => Track(NewSprite()));
 
             Assert.AreEqual(without.Count, with.Count, "iconOf 유무로 행 수 불변");
             for (int i = 0; i < without.Count; ++i)
@@ -260,7 +260,7 @@ namespace Lair.Tests.UI
         public void one_arg_경로는_모든_헤더_Icon_null()
         {
             List<SynergyModalCellData> headers =
-                HeadersOf(SynergyModalPopup.BuildRows(Counts(7, 7, 7, 7)));
+                HeadersOf(SynergyModalTestFakes.BuildRows(Counts(7, 7, 7, 7)));
 
             Assert.AreEqual(4, headers.Count);
             foreach (SynergyModalCellData h in headers)
@@ -273,7 +273,7 @@ namespace Lair.Tests.UI
         {
             Sprite icon = Track(NewSprite());
             List<SynergyModalCellData> rows =
-                SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 5), a => icon);
+                SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 5), a => icon);
 
             Assert.AreEqual("TANK (5장)", rows[0].Label, "아이콘 추가가 헤더 라벨 포맷을 바꾸지 않음");
             Assert.AreSame(icon, rows[0].Icon);

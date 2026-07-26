@@ -205,6 +205,8 @@ namespace Lair.Tests.Card
         private class FakeTier : IBuildSynergyTier
         {
             public int AppliedCount { get; private set; }
+            public int DescriptionStringId => 0;
+            public string[] DescriptionArgs => System.Array.Empty<string>();
             public void Apply(IBattleContext ctx) { ++AppliedCount; }
         }
 

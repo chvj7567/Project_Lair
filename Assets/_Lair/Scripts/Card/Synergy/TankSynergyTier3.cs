@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Data;
 
 namespace Lair.Card
@@ -7,6 +8,11 @@ namespace Lair.Card
     public class TankSynergyTier3 : IBuildSynergyTier
     {
         private const float HpMul = 1.4f;
+
+        //# 스트링 202 = "도깨비불·망령 HP ×{0}". 자기 상수(1.4)에서 뽑아 구 "필드 캡 +6" stale 표시를 자동 교정.
+        public int DescriptionStringId => 202;
+        public string[] DescriptionArgs
+            => new[] { HpMul.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

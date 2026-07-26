@@ -22,7 +22,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 활성_티어_0개면_빈_리스트()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(2, 0, 1, 0));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(2, 0, 1, 0));
             Assert.AreEqual(0, rows.Count);
         }
 
@@ -30,7 +30,7 @@ namespace Lair.Tests.UI
         public void Tank5_Dps3_헤더와_효과행_수_검증()
         {
             //# Tank 5 → 헤더1 + 효과2(Tier1,2), Dps 3 → 헤더1 + 효과1(Tier1) = 5행
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(5, 3, 0, 0));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(5, 3, 0, 0));
             Assert.AreEqual(5, rows.Count);
             Assert.AreEqual(SynergyModalCellData.Kind.Header, rows[0].RowKind);
             Assert.AreEqual("TANK (5장)", rows[0].Label);
@@ -43,7 +43,7 @@ namespace Lair.Tests.UI
         [Test]
         public void Tank7_이상이면_Tier3까지_3행()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(7, 0, 0, 0));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(7, 0, 0, 0));
             //# 헤더1 + 효과3
             Assert.AreEqual(4, rows.Count);
             Assert.IsTrue(rows[3].Label.StartsWith("Tier3"));
@@ -52,7 +52,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 축_순서는_Tank_Dps_Debuff_Swarm()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(3, 3, 3, 3));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(3, 3, 3, 3));
             //# 각 축 헤더1+효과1 = 8행, 헤더 라벨 순서 확인
             Assert.AreEqual("TANK (3장)", rows[0].Label);
             Assert.AreEqual("DPS (3장)", rows[2].Label);
@@ -63,10 +63,36 @@ namespace Lair.Tests.UI
         [Test]
         public void TierDesc_12개_키_전부_채워짐()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(7, 7, 7, 7));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(7, 7, 7, 7));
             foreach (SynergyModalCellData r in rows)
                 if (r.RowKind == SynergyModalCellData.Kind.Effect)
                     Assert.IsFalse(r.Label.EndsWith("  "), $"빈 설명: {r.Label}");
+        }
+
+        //# 엣지 — provider null 이면 예외 없이 설명 빈 문자열 (효과 라벨은 "Tier{n}  " 로 끝남).
+        [Test]
+        public void provider_null이면_예외없이_빈_설명()
+        {
+            List<SynergyModalCellData> rows = null;
+            Assert.DoesNotThrow(() =>
+                rows = SynergyModalPopup.BuildRows(Counts(3, 0, 0, 0),
+                    SynergyModalTestFakes.TierOf, null));
+            foreach (SynergyModalCellData r in rows)
+                if (r.RowKind == SynergyModalCellData.Kind.Effect)
+                    Assert.IsTrue(r.Label.EndsWith("  "), $"빈 설명이어야 함: '{r.Label}'");
+        }
+
+        //# 엣지 — tierOf 가 미바인딩(null) 반환해도 예외 없이 설명 빈 문자열.
+        [Test]
+        public void 미바인딩_tier면_예외없이_빈_설명()
+        {
+            List<SynergyModalCellData> rows = null;
+            Assert.DoesNotThrow(() =>
+                rows = SynergyModalPopup.BuildRows(Counts(3, 0, 0, 0),
+                    (a, t) => null, SynergyModalTestFakes.Strings));
+            foreach (SynergyModalCellData r in rows)
+                if (r.RowKind == SynergyModalCellData.Kind.Effect)
+                    Assert.IsTrue(r.Label.EndsWith("  "), $"빈 설명이어야 함: '{r.Label}'");
         }
     }
 }

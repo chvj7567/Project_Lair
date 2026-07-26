@@ -1,4 +1,6 @@
+using System.Globalization;
 using Lair.Character;
+using UnityEngine;
 
 namespace Lair.Card
 {
@@ -7,6 +9,11 @@ namespace Lair.Card
     public class DebuffSynergyTier3 : IBuildSynergyTier
     {
         private const float Ratio = 0.01f;
+
+        //# 스트링 208 = "출혈 영구 — 이동 시 1s당 HP -{0}%". 비율 → %/s 파생: ratio*100.
+        public int DescriptionStringId => 208;
+        public string[] DescriptionArgs
+            => new[] { Mathf.RoundToInt(Ratio * 100f).ToString(CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

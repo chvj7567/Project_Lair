@@ -46,7 +46,7 @@ namespace Lair.Tests.UI
         [TestCase(2)]
         public void 단일축_미달_0_1_2장_행_0개(int count)
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, count));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, count));
             Assert.AreEqual(0, rows.Count, $"{count}장 — 임계 3 미달 → 행 없음");
         }
 
@@ -62,7 +62,7 @@ namespace Lair.Tests.UI
         [TestCase(100, 3)]
         public void 단일축_count별_효과행_수_경계(int count, int expectedEffectRows)
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, count));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, count));
 
             Assert.AreEqual(1 + expectedEffectRows, rows.Count,
                 $"{count}장 — 헤더1 + 효과{expectedEffectRows}");
@@ -77,7 +77,7 @@ namespace Lair.Tests.UI
         [TestCase(100, "TANK (100장)")]
         public void 헤더_카운트는_원값_표기(int count, string expectedLabel)
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, count));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, count));
             Assert.AreEqual(expectedLabel, rows[0].Label);
         }
 
@@ -85,7 +85,7 @@ namespace Lair.Tests.UI
         [Test]
         public void count_100장이어도_효과행_최대_3_Tier4_없음()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Dps, 100));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Dps, 100));
             List<SynergyModalCellData> effects = EffectsOf(rows);
 
             Assert.AreEqual(3, effects.Count, "임계 3개 상한 → 효과행 최대 3");
@@ -102,7 +102,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 전부_미달이면_빈_리스트()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(2, 2, 2, 2));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(2, 2, 2, 2));
             Assert.AreEqual(0, rows.Count);
         }
 
@@ -110,7 +110,7 @@ namespace Lair.Tests.UI
         [Test]
         public void four축_동시_7이상_16행_상한()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(7, 7, 7, 7));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(7, 7, 7, 7));
 
             Assert.AreEqual(16, rows.Count, "4축 × (헤더1 + 효과3) = 16행 (산술 상한)");
 
@@ -130,7 +130,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 일부축만_활성_미달축은_완전_스킵()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(2, 3, 0, 5));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(2, 3, 0, 5));
 
             //# Dps 헤더1+효과1=2 , Swarm 헤더1+효과2=3 , 총 5행. Tank/Debuff 등장 X.
             Assert.AreEqual(5, rows.Count);
@@ -149,7 +149,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 축_순서는_count_크기와_무관하게_고정()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(3, 5, 7, 9));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(3, 5, 7, 9));
 
             List<string> headerLabels = new List<string>();
             foreach (SynergyModalCellData r in rows)
@@ -167,7 +167,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 축_내_효과는_Tier1_2_3_오름차순()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Debuff, 7));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Debuff, 7));
             List<SynergyModalCellData> effects = EffectsOf(rows);
 
             Assert.AreEqual(3, effects.Count);
@@ -182,15 +182,15 @@ namespace Lair.Tests.UI
         [Test]
         public void 효과_라벨_Tier뒤_공백_정확히_2칸()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 3));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 3));
             SynergyModalCellData effect = EffectsOf(rows)[0];
 
-            //# 정본: "Tier1  Wisp·Wraith HP ×1.3" — Tier1 다음 정확히 2 space.
-            Assert.AreEqual("Tier1  Wisp·Wraith HP ×1.3", effect.Label);
+            //# 정본: "Tier1  도깨비불·망령 HP ×1.3" — Tier1 다음 정확히 2 space.
+            Assert.AreEqual("Tier1  도깨비불·망령 HP ×1.3", effect.Label);
             Assert.IsTrue(effect.Label.StartsWith("Tier1  "), "Tier1 + 공백 2칸");
             Assert.IsFalse(effect.Label.StartsWith("Tier1   "), "공백 3칸 아님");
             //# Tier 토큰과 문구 사이가 정확히 2 space 인지 직접 검증.
-            int idx = effect.Label.IndexOf("Wisp");
+            int idx = effect.Label.IndexOf("도깨비불");
             Assert.AreEqual("Tier1".Length + 2, idx, "Tier1 과 문구 사이 공백 2칸");
         }
 
@@ -201,25 +201,26 @@ namespace Lair.Tests.UI
         [TestCase(EBuildAxis.Swarm,  "SWARM (3장)")]
         public void 헤더_라벨_포맷_전수(EBuildAxis axis, string expected)
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(axis, 3));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(axis, 3));
             Assert.AreEqual(expected, rows[0].Label);
         }
 
         //# ===== 4. TierDesc 12건 문구 정본 일치 (기획서 §2 표) =====
 
-        //# (axis, tier) → 기대 문구. 기획서 §2 마스터 표 정본 그대로.
+        //# (axis, tier) → 기대 문구. spec §6 표 = Strings_Ko.json id 200~211 템플릿 + tier const 유래 수치.
+        //# 스트링 테이블화로 몬스터명이 한글 baked (도깨비불·망령 등). Tank3 는 stale "필드 캡 +6" → 상수 1.4 로 교정.
         private static readonly Dictionary<(EBuildAxis, int), string> Expected = new()
         {
-            { (EBuildAxis.Tank,   1), "Wisp·Wraith HP ×1.3" },
-            { (EBuildAxis.Tank,   2), "Wisp·Wraith Power ×1.2" },
-            { (EBuildAxis.Tank,   3), "필드 캡 +6 (18→24)" },
-            { (EBuildAxis.Dps,    1), "Reaper·Hex Power ×1.3" },
-            { (EBuildAxis.Dps,    2), "Reaper·Hex 공속 +25%" },
-            { (EBuildAxis.Dps,    3), "Reaper·Hex Range ×1.3" },
-            { (EBuildAxis.Debuff, 1), "Plague 둔화 ×0.8" },
+            { (EBuildAxis.Tank,   1), "도깨비불·망령 HP ×1.3" },
+            { (EBuildAxis.Tank,   2), "도깨비불·망령 공격력 ×1.2" },
+            { (EBuildAxis.Tank,   3), "도깨비불·망령 HP ×1.4" },
+            { (EBuildAxis.Dps,    1), "사신·저주술사 공격력 ×1.3" },
+            { (EBuildAxis.Dps,    2), "사신·저주술사 공속 +25%" },
+            { (EBuildAxis.Dps,    3), "사신·저주술사 사거리 ×1.3" },
+            { (EBuildAxis.Debuff, 1), "역병귀 둔화 ×0.8" },
             { (EBuildAxis.Debuff, 2), "영웅 공격력 ×0.85" },
             { (EBuildAxis.Debuff, 3), "출혈 영구 — 이동 시 1s당 HP -1%" },
-            { (EBuildAxis.Swarm,  1), "Phantom·Wisp 이동속도 ×1.3" },
+            { (EBuildAxis.Swarm,  1), "환령·도깨비불 이동속도 ×1.3" },
             { (EBuildAxis.Swarm,  2), "모든 스포너 주기 ×0.85" },
             { (EBuildAxis.Swarm,  3), "모든 스포너 동시 출력 +1" },
         };
@@ -231,7 +232,7 @@ namespace Lair.Tests.UI
         [TestCase(EBuildAxis.Swarm)]
         public void TierDesc_정본_문구_축별_전수_일치(EBuildAxis axis)
         {
-            List<SynergyModalCellData> effects = EffectsOf(SynergyModalPopup.BuildRows(Only(axis, 7)));
+            List<SynergyModalCellData> effects = EffectsOf(SynergyModalTestFakes.BuildRows(Only(axis, 7)));
             Assert.AreEqual(3, effects.Count);
 
             for (int tier = 1; tier <= 3; ++tier)
@@ -247,9 +248,9 @@ namespace Lair.Tests.UI
         [Test]
         public void 한글화_토큰_3건_플레이어_표기_채택()
         {
-            string dps2    = EffectsOf(SynergyModalPopup.BuildRows(Only(EBuildAxis.Dps, 5)))[1].Label;
-            string debuff1 = EffectsOf(SynergyModalPopup.BuildRows(Only(EBuildAxis.Debuff, 3)))[0].Label;
-            string swarm1  = EffectsOf(SynergyModalPopup.BuildRows(Only(EBuildAxis.Swarm, 3)))[0].Label;
+            string dps2    = EffectsOf(SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Dps, 5)))[1].Label;
+            string debuff1 = EffectsOf(SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Debuff, 3)))[0].Label;
+            string swarm1  = EffectsOf(SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Swarm, 3)))[0].Label;
 
             Assert.IsTrue(dps2.Contains("공속 +25%"), "Dps Tier2 — 플레이어 표기 '공속 +25%'");
             Assert.IsFalse(dps2.Contains("Cooldown"), "Dps Tier2 — 시스템 표기 'Cooldown' 미사용");
@@ -265,7 +266,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 효과_문구_절대_비어있지_않음_4축7장()
         {
-            List<SynergyModalCellData> effects = EffectsOf(SynergyModalPopup.BuildRows(Counts(7, 7, 7, 7)));
+            List<SynergyModalCellData> effects = EffectsOf(SynergyModalTestFakes.BuildRows(Counts(7, 7, 7, 7)));
             Assert.AreEqual(12, effects.Count, "4축 × 효과3 = 12건 전수 확인");
             foreach (SynergyModalCellData e in effects)
             {
@@ -285,7 +286,7 @@ namespace Lair.Tests.UI
         public void 행_AxisColor가_BuildSynergyPanel_AxisColor와_동일(EBuildAxis axis)
         {
             Color expected = BuildSynergyPanel.AxisColor[axis];
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(axis, 7));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(axis, 7));
 
             foreach (SynergyModalCellData r in rows)
                 Assert.AreEqual(expected, r.AxisColor,
@@ -296,7 +297,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 헤더와_효과행_색이_같은_축이면_동일()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Swarm, 7));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Swarm, 7));
             Color headerColor = rows[0].AxisColor;
             foreach (SynergyModalCellData r in rows)
                 Assert.AreEqual(headerColor, r.AxisColor, "같은 축 헤더·효과 색 동일");
@@ -310,7 +311,7 @@ namespace Lair.Tests.UI
         public void 헤더_축토큰이_AxisLabel과_동일(EBuildAxis axis)
         {
             string expectedLabel = BuildSynergyPanel.AxisLabel[axis];
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(axis, 3));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(axis, 3));
             Assert.IsTrue(rows[0].Label.StartsWith($"{expectedLabel} ("),
                 $"헤더가 '{expectedLabel} (' 로 시작해야 함 — AxisLabel 재사용");
         }
@@ -322,7 +323,7 @@ namespace Lair.Tests.UI
         public void countOf_null이면_예외없이_빈_리스트()
         {
             List<SynergyModalCellData> rows = null;
-            Assert.DoesNotThrow(() => rows = SynergyModalPopup.BuildRows(null));
+            Assert.DoesNotThrow(() => rows = SynergyModalTestFakes.BuildRows(null));
             Assert.IsNotNull(rows);
             Assert.AreEqual(0, rows.Count);
         }
@@ -331,7 +332,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 음수_카운트는_빈_리스트()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, -5));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, -5));
             Assert.AreEqual(0, rows.Count, "음수 count 는 임계 미달 취급");
         }
 
@@ -339,8 +340,8 @@ namespace Lair.Tests.UI
         [Test]
         public void 매_호출마다_새_리스트_인스턴스_반환()
         {
-            List<SynergyModalCellData> a = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 7));
-            List<SynergyModalCellData> b = SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 7));
+            List<SynergyModalCellData> a = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 7));
+            List<SynergyModalCellData> b = SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 7));
             Assert.AreNotSame(a, b, "호출마다 새 List 반환 (정적 캐시 공유 금지)");
             Assert.AreEqual(a.Count, b.Count);
         }
@@ -349,7 +350,7 @@ namespace Lair.Tests.UI
         [Test]
         public void 모든_행은_Header_또는_Effect()
         {
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(Counts(3, 5, 7, 4));
+            List<SynergyModalCellData> rows = SynergyModalTestFakes.BuildRows(Counts(3, 5, 7, 4));
             foreach (SynergyModalCellData r in rows)
                 Assert.IsTrue(r.RowKind == SynergyModalCellData.Kind.Header
                            || r.RowKind == SynergyModalCellData.Kind.Effect,

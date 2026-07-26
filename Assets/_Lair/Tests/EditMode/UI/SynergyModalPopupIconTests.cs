@@ -34,7 +34,7 @@ namespace Lair.Tests.UI
 
             //# Tank 7장 → 헤더1 + 효과3.
             List<SynergyModalCellData> rows =
-                SynergyModalPopup.BuildRows(Only(EBuildAxis.Tank, 7), IconMap(map));
+                SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Tank, 7), IconMap(map));
 
             Assert.AreEqual(SynergyModalCellData.Kind.Header, rows[0].RowKind);
             Assert.AreSame(tankSprite, rows[0].Icon, "헤더 Icon 은 iconOf(axis) 결과");
@@ -50,7 +50,7 @@ namespace Lair.Tests.UI
         public void iconOf_미지정시_헤더_Icon도_null()
         {
             List<SynergyModalCellData> rows =
-                SynergyModalPopup.BuildRows(Only(EBuildAxis.Dps, 3));
+                SynergyModalTestFakes.BuildRows(Only(EBuildAxis.Dps, 3));
 
             Assert.AreEqual(SynergyModalCellData.Kind.Header, rows[0].RowKind);
             Assert.IsNull(rows[0].Icon, "iconOf 미지정 시 헤더 Icon 은 null");

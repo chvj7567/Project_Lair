@@ -56,6 +56,12 @@ namespace Lair.Card
             _tiers[(axis, threshold)] = tier;
         }
 
+        //# (축, 임계) 로 바인딩된 Tier 인스턴스 조회. 미바인딩이면 null (UI 설명 조립용 — 발화 아님).
+        public IBuildSynergyTier GetTier(EBuildAxis axis, int threshold)
+        {
+            return _tiers.TryGetValue((axis, threshold), out IBuildSynergyTier tier) ? tier : null;
+        }
+
         //# 라운드 시작 / Restart 시 호출. 픽 카운트만 0 으로. Tier 바인딩은 영구 유지.
         public void Reset()
         {

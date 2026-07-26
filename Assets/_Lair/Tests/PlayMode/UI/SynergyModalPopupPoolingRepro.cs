@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using ChvjUnityInfra;
+using Lair.Card;
 using Lair.Data;
 using Lair.UI;
 using NUnit.Framework;
@@ -25,6 +26,7 @@ namespace Lair.Tests.PlayMode.UI
         private GameObject _canvasGo;
         private SynergyModalPopup _popup;
         private BattleViewModel _vm;
+        private IStringProvider _prevStringProvider;
 
         //# CHMUI 가 ShowUI 시 UI 를 붙이는 Canvas 를 모사 — Battle 씬 없이 독립 실행.
         [SetUp]
@@ -36,15 +38,57 @@ namespace Lair.Tests.PlayMode.UI
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
             _vm = new BattleViewModel(new BattleStateModel());
+            //# 시너지 설명 조립 경로 재현 — BattleController 와 동일하게 12 Tier 바인딩 서비스 주입.
+            _vm.BindSynergyService(BuildBoundSynergyService());
+
+            //# 실 스트링 테이블(Strings_Ko.json) 을 CHText.StringProvider 로 세팅 (설명 문자열 소스).
+            _prevStringProvider = CHText.StringProvider;
+            CHText.StringProvider = LoadStringProvider();
         }
 
         [TearDown]
         public void TearDown()
         {
+            //# 정적 global 복원 — 테스트 간 오염 방지.
+            CHText.StringProvider = _prevStringProvider;
             if (_popup != null)
                 Object.Destroy(_popup.gameObject);
             if (_canvasGo != null)
                 Object.Destroy(_canvasGo);
+        }
+
+        //# BattleController.Start 의 12 BindTier 매핑과 동일 — 설명 조립 tierOf 소스.
+        private static BuildSynergyService BuildBoundSynergyService()
+        {
+            BuildSynergyService svc = new BuildSynergyService();
+            svc.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier1Threshold, new TankSynergyTier1());
+            svc.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier2Threshold, new TankSynergyTier2());
+            svc.BindTier(EBuildAxis.Tank,   BuildSynergyService.Tier3Threshold, new TankSynergyTier3());
+            svc.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier1Threshold, new DpsSynergyTier1());
+            svc.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier2Threshold, new DpsSynergyTier2());
+            svc.BindTier(EBuildAxis.Dps,    BuildSynergyService.Tier3Threshold, new DpsSynergyTier3());
+            svc.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier1Threshold, new DebuffSynergyTier1());
+            svc.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier2Threshold, new DebuffSynergyTier2());
+            svc.BindTier(EBuildAxis.Debuff, BuildSynergyService.Tier3Threshold, new DebuffSynergyTier3());
+            svc.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier1Threshold, new SwarmSynergyTier1());
+            svc.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier2Threshold, new SwarmSynergyTier2());
+            svc.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier3Threshold, new SwarmSynergyTier3());
+            return svc;
+        }
+
+        //# 실제 Strings_Ko.json 을 AssetDatabase 로 로드해 StringTableProvider 구축 (in-editor 전용).
+        private static IStringProvider LoadStringProvider()
+        {
+#if UNITY_EDITOR
+            TextAsset json = UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset>(
+                "Assets/_Lair/Data/Json/Strings_Ko.json");
+            Assert.IsNotNull(json, "Strings_Ko.json 로드 실패");
+            StringTableProvider provider = new StringTableProvider();
+            provider.Load(json);
+            return provider;
+#else
+            return null;
+#endif
         }
 
         //# _buildAxisCounts dict 에 직접 seed — CardData SO 없이 GetBuildCount 결과를 제어.
@@ -223,7 +267,7 @@ namespace Lair.Tests.PlayMode.UI
             yield return null;
 
             List<SynergyModalCellData> expected =
-                SynergyModalPopup.BuildRows(_vm.GetBuildCount);
+                SynergyModalPopup.BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider);
             //# 기대 행 수는 BuildRows 결과로부터 산출 — 하드코딩 16 제거.
             int rowCount = expected.Count;
             Assert.Greater(rowCount, 0, "사전 조건 — 4축 최대는 행이 생성되어야 함");
@@ -281,7 +325,7 @@ namespace Lair.Tests.PlayMode.UI
 
             //# 마지막 행 라벨은 BuildRows 결과의 마지막 Effect 행에서 동적 산출 (기획 문구 변경 무회귀).
             //# 4축최대 기준 마지막은 Swarm Tier3 = "Tier3  모든 스포너 동시 출력 +1".
-            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(_vm.GetBuildCount);
+            List<SynergyModalCellData> rows = SynergyModalPopup.BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider);
             string lastLabel = rows[rows.Count - 1].Label;
             Assert.AreEqual("Tier3  모든 스포너 동시 출력 +1", lastLabel,
                 "사전 조건 — 4축최대 마지막 행은 Swarm Tier3 효과");
@@ -302,7 +346,7 @@ namespace Lair.Tests.PlayMode.UI
             yield return null;
 
             List<SynergyModalCellData> expected =
-                SynergyModalPopup.BuildRows(_vm.GetBuildCount);
+                SynergyModalPopup.BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider);
             Assert.AreEqual(3, expected.Count, "사전 조건 — Tank 5장은 헤더1+효과2=3행");
 
             SynergyModalCardPoolingScrollView sv = GetScrollView(_popup);
@@ -406,7 +450,7 @@ namespace Lair.Tests.PlayMode.UI
             yield return null;
 
             List<SynergyModalCellData> expected =
-                SynergyModalPopup.BuildRows(_vm.GetBuildCount);
+                SynergyModalPopup.BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider);
             Assert.Greater(expected.Count, 0, "사전 조건 — 4축 최대는 행이 생성됨");
 
             SynergyModalCardPoolingScrollView sv = GetScrollView(_popup);

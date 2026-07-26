@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Data;
 
 namespace Lair.Card
@@ -7,6 +8,11 @@ namespace Lair.Card
     public class DpsSynergyTier1 : IBuildSynergyTier
     {
         private const float PowerMul = 1.3f;
+
+        //# 스트링 203 = "사신·저주술사 공격력 ×{0}".
+        public int DescriptionStringId => 203;
+        public string[] DescriptionArgs
+            => new[] { PowerMul.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

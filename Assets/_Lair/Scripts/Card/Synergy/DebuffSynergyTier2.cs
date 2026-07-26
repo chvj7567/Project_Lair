@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Character;
 using UnityEngine;
 
@@ -8,6 +9,11 @@ namespace Lair.Card
     public class DebuffSynergyTier2 : IBuildSynergyTier
     {
         private const float Factor = 0.85f;
+
+        //# 스트링 207 = "영웅 공격력 ×{0}".
+        public int DescriptionStringId => 207;
+        public string[] DescriptionArgs
+            => new[] { Factor.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

@@ -132,6 +132,20 @@ namespace Lair.UI
             return _buildAxisCounts.TryGetValue(axis, out int v) ? v : 0;
         }
 
+        //# 시너지 모달 설명 조립용 — BattleController 가 부팅 시 바인딩한 서비스를 주입.
+        private BuildSynergyService _synergy;
+
+        public void BindSynergyService(BuildSynergyService synergy)
+        {
+            _synergy = synergy;
+        }
+
+        //# (축, 임계) → 바인딩된 Tier 인스턴스. 서비스 미주입/미바인딩이면 null (SynergyModalPopup 가드).
+        public IBuildSynergyTier GetTier(EBuildAxis axis, int threshold)
+        {
+            return _synergy?.GetTier(axis, threshold);
+        }
+
         //# 늦은 구독자용 현재값
         public float ElapsedSeconds => _model.ElapsedSeconds;
         public float TotalSeconds   => _model.TotalSeconds;

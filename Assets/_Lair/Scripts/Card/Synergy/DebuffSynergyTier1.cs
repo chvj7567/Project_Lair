@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Data;
 
 namespace Lair.Card
@@ -7,6 +8,11 @@ namespace Lair.Card
     public class DebuffSynergyTier1 : IBuildSynergyTier
     {
         private const float SlowMul = 0.8f;
+
+        //# 스트링 206 = "역병귀 둔화 ×{0}".
+        public int DescriptionStringId => 206;
+        public string[] DescriptionArgs
+            => new[] { SlowMul.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

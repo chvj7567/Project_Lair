@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Data;
 
 namespace Lair.Card
@@ -7,6 +8,11 @@ namespace Lair.Card
     public class SwarmSynergyTier1 : IBuildSynergyTier
     {
         private const float MoveMul = 1.3f;
+
+        //# 스트링 209 = "환령·도깨비불 이동속도 ×{0}".
+        public int DescriptionStringId => 209;
+        public string[] DescriptionArgs
+            => new[] { MoveMul.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {

@@ -193,6 +193,8 @@ namespace Lair.Battle
             _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier1Threshold, new SwarmSynergyTier1());
             _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier2Threshold, new SwarmSynergyTier2());
             _synergy.BindTier(EBuildAxis.Swarm,  BuildSynergyService.Tier3Threshold, new SwarmSynergyTier3());
+            //# 시너지 모달이 _vm.GetTier 로 설명을 조립하도록 바인딩된 서비스 주입.
+            _vm.BindSynergyService(_synergy);
             _ctx = new BattleContext(this, _synergy);
 
             //# B3 — 몬스터 글로벌 버프 / 피의 갈증 서비스

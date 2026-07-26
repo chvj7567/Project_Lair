@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lair.Data;
 
 namespace Lair.Card
@@ -7,6 +8,11 @@ namespace Lair.Card
     public class TankSynergyTier1 : IBuildSynergyTier
     {
         private const float HpMul = 1.3f;
+
+        //# 스트링 200 = "도깨비불·망령 HP ×{0}". 수치는 자기 const 유래(단일 소스).
+        public int DescriptionStringId => 200;
+        public string[] DescriptionArgs
+            => new[] { HpMul.ToString("0.##", CultureInfo.InvariantCulture) };
 
         public void Apply(IBattleContext ctx)
         {
