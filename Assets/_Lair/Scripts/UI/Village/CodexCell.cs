@@ -17,13 +17,7 @@ namespace Lair.UI
         [SerializeField] private Image _glowOverlay;        //# 아이콘 뒤 종족색 발광 아우라 (§3)
         [SerializeField] private RectTransform _iconRect;   //# 스케일 대상 = _icon 의 RectTransform (§4)
 
-        //# 레벨(0~5) → 시각 매핑 상수 — 기획서 §9 SoT. index = 강화 레벨.
-        //# public static: 테스트(별도 어셈블리)에서 배열 핀 검증 + 런타임 Mathf.Pow 불필요.
-        public static readonly float[] IconTintByLevel        = { 0.00f, 0.16f, 0.28f, 0.40f, 0.52f, 0.64f };
-        public static readonly float[] GlowOverlayAlphaByLevel = { 0.00f, 0.25f, 0.42f, 0.58f, 0.74f, 0.90f };
-        public static readonly float[] ScaleByLevel           = { 1.00f, 1.015f, 1.03f, 1.05f, 1.07f, 1.10f };
-
-        private const int MaxLevel = 5;
+        //# 레벨→시각 매핑·4채널 적용은 공유 SoT EnhanceLevelVisual 로 이관 (기획서 §2 — 도감·상태 셀 drift 방지).
 
         private static readonly Color NormalBg = new Color(0.122f, 0.161f, 0.216f, 0.95f);
         private static readonly Color DummyBg = new Color(0.08f, 0.09f, 0.12f, 0.95f);
@@ -46,18 +40,8 @@ namespace Lair.UI
                 _icon.gameObject.SetActive(showIcon);
                 if (showIcon)
                 {
-                    if (data.Icon != null)
-                    {
-                        _icon.sprite = data.Icon;
-                        //# 미해금 카드 — 검정 실루엣 (기획서 §6 미조우 실루엣 규칙).
-                        _icon.color = data.Unlocked ? Color.white : SilhouetteColor;
-                    }
-                    else
-                    {
-                        //# 몬스터 — 종 색칩. 미조우면 실루엣 톤.
-                        _icon.sprite = null;
-                        _icon.color = data.Unlocked ? data.TintColor : SilhouetteColor;
-                    }
+                    //# 카드 일러스트가 있으면 스프라이트, 없으면 몬스터 색칩(sprite=null). 색은 ApplyEnhancement 소유.
+                    _icon.sprite = data.Icon;
                 }
             }
 
@@ -68,47 +52,25 @@ namespace Lair.UI
             }
 
             //# 강화 4채널 — 매 재사용마다 전부 재설정(풀 재사용 잔상 방지, §9).
-            ApplyEnhancement(data, showIcon);
+            ApplyEnhancement(data);
         }
 
-        //# 해금된 몬스터 셀만 강화 4채널 적용. 그 외(카드·더미·미해금)는 전부 리셋 = "담백한 원본"(§6).
-        private void ApplyEnhancement(CodexCellData data, bool showIcon)
+        //# 해금된 몬스터 셀만 강화 4채널 적용. 그 외(카드·더미·미해금)는 lv0 → "담백한 원본"(§6).
+        //# 매핑·적용은 공유 SoT EnhanceLevelVisual.Apply — baseIconColor(쉬는 색)만 도감 규칙으로 계산해 전달.
+        private void ApplyEnhancement(CodexCellData data)
         {
             bool enhanced = data.Species.HasValue && data.Unlocked;
-            int lv = enhanced ? Mathf.Clamp(data.EnhanceLevel, 0, MaxLevel) : 0;
-            bool lit = enhanced && lv > 0;
+            int level = enhanced ? data.EnhanceLevel : 0;
+            EMonster species = enhanced ? data.Species.Value : default;
+            EnhanceLevelVisual.Apply(level, species, _icon, _glowOverlay, _levelBadge, _iconRect, BaseIconColor(data));
+        }
 
-            if (_levelBadge != null)
-            {
-                _levelBadge.gameObject.SetActive(lit);
-                if (lit)
-                {
-                    _levelBadge.SetText($"Lv {lv}");
-                }
-            }
-
-            if (_glowOverlay != null)
-            {
-                _glowOverlay.gameObject.SetActive(lit);
-                if (lit)
-                {
-                    Color glow = SpeciesVisual.SpeciesGlowColor(data.Species.Value);
-                    glow.a = GlowOverlayAlphaByLevel[lv];
-                    _glowOverlay.color = glow;
-                }
-            }
-
-            //# 아이콘 틴트(hue wash) — lv>0 일 때만 종족색으로 Lerp. 그 외는 위 기본 색 규칙 유지.
-            if (lit && showIcon && _icon != null)
-            {
-                Color glow = SpeciesVisual.SpeciesGlowColor(data.Species.Value);
-                _icon.color = Color.Lerp(Color.white, glow, IconTintByLevel[lv]);
-            }
-
-            if (_iconRect != null)
-            {
-                _iconRect.localScale = Vector3.one * (enhanced ? ScaleByLevel[lv] : 1f);
-            }
+        //# lv0/미강화 아이콘의 쉬는 색 — 미조우=실루엣, 해금 카드=흰색(원본), 해금 색칩=종색(기획서 §6).
+        private Color BaseIconColor(CodexCellData data)
+        {
+            if (data.Unlocked == false)
+                return SilhouetteColor;
+            return data.Icon != null ? Color.white : data.TintColor;
         }
     }
 }

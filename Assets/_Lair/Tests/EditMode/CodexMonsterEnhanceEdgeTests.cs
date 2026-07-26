@@ -195,35 +195,35 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 세_매핑배열은_모두_길이6이다()
         {
-            Assert.AreEqual(ExpectedLen, CodexCell.IconTintByLevel.Length);
-            Assert.AreEqual(ExpectedLen, CodexCell.GlowOverlayAlphaByLevel.Length);
-            Assert.AreEqual(ExpectedLen, CodexCell.ScaleByLevel.Length);
+            Assert.AreEqual(ExpectedLen, EnhanceLevelVisual.IconTintByLevel.Length);
+            Assert.AreEqual(ExpectedLen, EnhanceLevelVisual.GlowOverlayAlphaByLevel.Length);
+            Assert.AreEqual(ExpectedLen, EnhanceLevelVisual.ScaleByLevel.Length);
         }
 
         [Test]
         public void 세_매핑배열은_레벨에_따라_단조_비감소한다()
         {
-            AssertMonotonicNonDecreasing(CodexCell.IconTintByLevel, "IconTint");
-            AssertMonotonicNonDecreasing(CodexCell.GlowOverlayAlphaByLevel, "GlowAlpha");
-            AssertMonotonicNonDecreasing(CodexCell.ScaleByLevel, "Scale");
+            AssertMonotonicNonDecreasing(EnhanceLevelVisual.IconTintByLevel, "IconTint");
+            AssertMonotonicNonDecreasing(EnhanceLevelVisual.GlowOverlayAlphaByLevel, "GlowAlpha");
+            AssertMonotonicNonDecreasing(EnhanceLevelVisual.ScaleByLevel, "Scale");
         }
 
         //# Lv0 = 강화 없음 항등: 틴트 0(원본색), 발광 0(불투명 오버레이 없음), 스케일 1(원본 크기).
         [Test]
         public void Lv0은_강화없음_항등값이다()
         {
-            Assert.AreEqual(0f, CodexCell.IconTintByLevel[0], 1e-4f, "Lv0 틴트=0(원본색)");
-            Assert.AreEqual(0f, CodexCell.GlowOverlayAlphaByLevel[0], 1e-4f, "Lv0 발광α=0");
-            Assert.AreEqual(1f, CodexCell.ScaleByLevel[0], 1e-4f, "Lv0 스케일=1(원본)");
+            Assert.AreEqual(0f, EnhanceLevelVisual.IconTintByLevel[0], 1e-4f, "Lv0 틴트=0(원본색)");
+            Assert.AreEqual(0f, EnhanceLevelVisual.GlowOverlayAlphaByLevel[0], 1e-4f, "Lv0 발광α=0");
+            Assert.AreEqual(1f, EnhanceLevelVisual.ScaleByLevel[0], 1e-4f, "Lv0 스케일=1(원본)");
         }
 
         //# Lv5 = 상한: 각 배열의 마지막 원소가 곧 최댓값(만렙이 가장 강한 표현).
         [Test]
         public void Lv5는_각_배열의_상한_최댓값이다()
         {
-            AssertLastIsMax(CodexCell.IconTintByLevel, "IconTint");
-            AssertLastIsMax(CodexCell.GlowOverlayAlphaByLevel, "GlowAlpha");
-            AssertLastIsMax(CodexCell.ScaleByLevel, "Scale");
+            AssertLastIsMax(EnhanceLevelVisual.IconTintByLevel, "IconTint");
+            AssertLastIsMax(EnhanceLevelVisual.GlowOverlayAlphaByLevel, "GlowAlpha");
+            AssertLastIsMax(EnhanceLevelVisual.ScaleByLevel, "Scale");
         }
 
         private static void AssertLastIsMax(float[] arr, string name)
@@ -283,7 +283,7 @@ namespace Lair.Tests.EditMode
                 EnhanceLevel = 99,
             }));
 
-            Assert.AreEqual(CodexCell.ScaleByLevel[5], iconRect.localScale.x, 1e-4f, "Lv99 → Clamp→5 스케일 상한");
+            Assert.AreEqual(EnhanceLevelVisual.ScaleByLevel[5], iconRect.localScale.x, 1e-4f, "Lv99 → Clamp→5 스케일 상한");
         }
 
         //# 음수 레벨 → Clamp→0 → 스케일 항등 1.0, throw 없음.
@@ -301,7 +301,7 @@ namespace Lair.Tests.EditMode
                 EnhanceLevel = -3,
             }));
 
-            Assert.AreEqual(CodexCell.ScaleByLevel[0], iconRect.localScale.x, 1e-4f, "음수 → Clamp→0 항등 스케일");
+            Assert.AreEqual(EnhanceLevelVisual.ScaleByLevel[0], iconRect.localScale.x, 1e-4f, "음수 → Clamp→0 항등 스케일");
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Globalization;
 using ChvjUnityInfra;
 using Lair.Battle;
 using Lair.Data;
+using Lair.Meta;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,6 +37,14 @@ namespace Lair.UI
         [SerializeField] private CHText _periodText;     //# 다음 스폰까지 남은 초 (Ns)
         [SerializeField] private CHButton _button;       //# 셀 클릭 — Panel 콜백
 
+        //# 강화 4채널 표현 위젯 (도감과 동일, EnhanceLevelVisual 공유 SoT). 프리팹 배선 Task 3. 미배선이어도 null 가드.
+        [SerializeField] private Image _glowOverlay;      //# 아이콘 뒤 종족색 발광 아우라 (기획서 §3, UISoftGlow)
+        [SerializeField] private CHText _levelBadge;      //# 우상단 "Lv N" 배지 텍스트 (기획서 §4)
+        //# 배지 칩 루트(다크 칩 Image = 텍스트의 부모). Apply 는 _levelBadge(자식 텍스트)만 토글하므로
+        //# lv0 에서 칩까지 통째로 숨기려면 이 부모를 셀이 직접 토글한다(기획서 §10 "칩 배경 + 자식 CHText").
+        [SerializeField] private GameObject _levelBadgeRoot;
+        [SerializeField] private RectTransform _iconRect; //# 스케일 대상 = 중앙 Icon 의 RectTransform (기획서 §5)
+
         //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
         [SerializeField] private Sprite _wispIcon;
         [SerializeField] private Sprite _wraithIcon;
@@ -59,16 +68,31 @@ namespace Lair.UI
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_progressFill != null) _progressFill.fillAmount = 0f;
             if (_periodText != null) _periodText.SetText("");
-            //# 중앙 아이콘 리셋 — 직전 셀 스프라이트 잔존 방지 (Rule 03 §4 풀 재사용).
+            //# 중앙 아이콘 리셋 — 직전 셀 스프라이트/틴트 잔존 방지 (Rule 03 §4 풀 재사용).
             if (_icon != null)
             {
                 _icon.sprite = null;
+                _icon.color = Color.white;
                 _icon.gameObject.SetActive(false);
             }
             //# 색칩은 v1.1 에서 중앙 아이콘에 역할 이관 — 항상 숨김 (Rule 03 §4 잔존 방지).
             if (_colorChip != null) _colorChip.gameObject.SetActive(false);
             //# 테두리 색은 RebindSnapshot 에서 종색으로 설정 — 기본 투명으로 초기화.
             if (_border != null) _border.color = InactiveBorderColor;
+
+            //# 강화 4채널 방어적 리셋 — 실제 재설정 소유권은 RebindSnapshot 의 Apply (기획서 §9), 여기선 바인드 전 잔상만 차단.
+            if (_glowOverlay != null)
+            {
+                _glowOverlay.gameObject.SetActive(false);
+            }
+            if (_levelBadgeRoot != null)
+            {
+                _levelBadgeRoot.SetActive(false);
+            }
+            if (_iconRect != null)
+            {
+                _iconRect.localScale = Vector3.one;
+            }
         }
 
         //# Panel 이 셀 생성·바인딩 시 호출 — snapshot + progress + onClick 3 인자 (기획서 §4.6).
@@ -98,11 +122,11 @@ namespace Lair.UI
             if (_colorChip != null) _colorChip.gameObject.SetActive(false);
 
             //# 중앙 아이콘 — 종 스프라이트. 누락 시 숨김 (테두리 색만으로 종 식별 fallback).
+            Sprite iconSprite = SpeciesSprite(snapshot.CurrentType);
             if (_icon != null)
             {
-                Sprite sprite = SpeciesSprite(snapshot.CurrentType);
-                _icon.sprite = sprite;
-                _icon.gameObject.SetActive(sprite != null);
+                _icon.sprite = iconSprite;
+                _icon.gameObject.SetActive(iconSprite != null);
             }
 
             //# 종명 한글 — SpeciesVisual 단일 SoT (인게임 표기 통일).
@@ -123,6 +147,19 @@ namespace Lair.UI
                 }
             }
 
+            //# 강화 4채널 — 도감과 동일 표현(EnhanceLevelVisual 공유 SoT). 매 바인드마다 전부 재설정(잔상 방지 §9).
+            //# 아이콘 스프라이트 미해결이면 강화 표현도 off(§9·§10 가드) — lv0 취급해 발광/배지만 뜨는 상태 방지.
+            int lv = 0;
+            if (iconSprite != null)
+            {
+                lv = Mathf.Clamp(MetaSession.GetOrLoad().GetShopLevel("Enhance_" + snapshot.CurrentType), 0, EnhanceLevelVisual.MaxLevel);
+            }
+            EnhanceLevelVisual.Apply(lv, snapshot.CurrentType, _icon, _glowOverlay, _levelBadge, _iconRect, Color.white);
+            //# Apply 는 _levelBadge(자식 텍스트)만 토글 — 다크 칩 부모까지 lv0 에 통째 숨기려 셀이 부모를 토글(§10).
+            if (_levelBadgeRoot != null)
+            {
+                _levelBadgeRoot.SetActive(lv > 0);
+            }
         }
 
         //# 매 프레임 Progress 폴링 — VM 이벤트 우회 (기획서 §4.3·§4.6).

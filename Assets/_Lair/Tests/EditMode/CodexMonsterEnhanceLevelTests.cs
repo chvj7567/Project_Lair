@@ -70,13 +70,13 @@ namespace Lair.Tests.EditMode
         {
             CollectionAssert.AreEqual(
                 new[] { 0.00f, 0.16f, 0.28f, 0.40f, 0.52f, 0.64f },
-                CodexCell.IconTintByLevel);
+                EnhanceLevelVisual.IconTintByLevel);
             CollectionAssert.AreEqual(
                 new[] { 0.00f, 0.25f, 0.42f, 0.58f, 0.74f, 0.90f },
-                CodexCell.GlowOverlayAlphaByLevel);
+                EnhanceLevelVisual.GlowOverlayAlphaByLevel);
             CollectionAssert.AreEqual(
                 new[] { 1.00f, 1.015f, 1.03f, 1.05f, 1.07f, 1.10f },
-                CodexCell.ScaleByLevel);
+                EnhanceLevelVisual.ScaleByLevel);
         }
     }
 }
