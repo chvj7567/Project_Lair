@@ -38,7 +38,7 @@ REST 는 Spec 1 범위(익명 + 컬렉션 3개)에선 합리적이었으나, 비
 | Q2 | `AuthTokenStore` 정리 범위 | **소비자 없는 것 전부 제거** — `RankingRowDto.accountId` · `RankingPopup` accountId 폴백 포함 | 사문화 0 원칙 일관. 항상 0인 값을 비교하는 분기를 남기지 않는다 |
 | Q3 | SDK 설치 가능성 검증 시점 | **plan Task 1 = 설치·스모크 게이트** | spec·plan 작성과 설치를 병행. 막히면 그 지점에서 멈추고 REST 유지 롤백 판단 |
 | Q4 | SDK 를 어디서 감싸는가 | **하이브리드 — 초기화만 인프라 모듈, 도메인 구현체는 게임** | 세이브 문서 구조·랭킹 쿼리는 Lair 도메인이지 공통 인프라가 아니다. `CHMGPGS` 가 패키지에 있는 건 GPGS 가 범용 플랫폼 서비스이기 때문 |
-| Q5 | SDK 설치 형식 | **UPM(`.tgz`)** | 패키지 모듈이 의존하는 SDK 가 `Packages/` 에 함께 있는 편이 배치·버전 관리가 깨끗하다. (`.unitypackage` 로 `Assets/Firebase/Plugins/` 에 깔아도 **Rule 03 §1 위반은 아니다** — 그 룰은 게임 코드↔패키지 방향에 대한 것이고 서드파티 precompiled DLL 참조는 별개다. UPM 선택은 위생 문제이지 룰 강제가 아니다) |
+| Q5 | SDK 설치 형식 | 결정 시점엔 **UPM(`.tgz`)** 선호 → **2026-07-28 실제 진행은 `.unitypackage`**(`Assets/Firebase/`, SDK 13.14.0) | 패키지 모듈이 의존하는 SDK 가 `Packages/` 에 함께 있는 편이 배치·버전 관리가 깨끗하다는 이유로 UPM 을 선호했다. (`.unitypackage` 로 `Assets/Firebase/Plugins/` 에 깔아도 **Rule 03 §1 위반은 아니다** — 그 룰은 게임 코드↔패키지 방향에 대한 것이고 서드파티 precompiled DLL 참조는 별개다. UPM 선택은 위생 문제이지 룰 강제가 아니었다 — 실제 설치 방식이 달라져도 결정 자체는 무효화되지 않는다. plan §2 line 67 정정 배너 참조) |
 
 ---
 
@@ -201,7 +201,7 @@ EditMode 스위트가 전부 통과하더라도 PlayMode 가 멈추거나 예외
 
 **사용자가 수행** (에디터 GUI 작업):
 
-1. Firebase Unity SDK **UPM(`.tgz`) 설치** — Auth + Firestore
+1. Firebase Unity SDK 설치 — Auth + Firestore (계획은 UPM(`.tgz`) 을 전제했으나 **실제로는 `.unitypackage` 로 설치됨**, `Assets/Firebase/`, SDK 13.14.0 — §2 Q5 참조)
 2. `google-services.json`(`lair-970fa`, `com.chvj.lair`) → `Assets/` 배치
 3. `ProjectSettings` — 패키지명 `com.UnityTechnologies.com.unity.template.urpblank` → `com.chvj.lair`, companyName `DefaultCompany` → `chvj`
 4. `Tools/ChvjUnityInfra/Settings` → Firebase 탭 → **Use Firebase 체크**

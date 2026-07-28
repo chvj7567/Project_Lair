@@ -6,7 +6,7 @@
 
 **Architecture:** 초기화만 인프라 패키지의 신규 `Firebase` 모듈(`CHMFirebase`, define 게이트 `UNITY_INFRA_FIREBASE`)로 올리고, 도메인 구현체 `FirebaseSdkApiClient : ILairApiClient` 는 게임 코드에 둔다. `Firebase.*` 타입은 이 두 곳 밖으로 새지 않는다 — `Lair.Tests.EditMode` asmdef 이 Firebase DLL 을 보지 못하므로 누출 시 기존 테스트 전체가 컴파일 실패하며, 이것이 회귀 방어선이다. 세이브 충돌은 `updateTime` precondition 에서 `RunTransactionAsync` + `DocumentSnapshot.UpdateTime` 비교로 재매핑하되 `CloudSaveResult` 계약은 유지한다.
 
-**Tech Stack:** Unity 6 (6000.0.68f1) / URP 17.0.4 / C# / ChvjPackage(`com.chvj.unityinfra`) / Firebase Unity SDK — Auth + Firestore (UPM `.tgz`) / EDM4U / Unity Test Framework (NUnit, EditMode·PlayMode)
+**Tech Stack:** Unity 6 (6000.0.68f1) / URP 17.0.4 / C# / ChvjPackage(`com.chvj.unityinfra`) / Firebase Unity SDK — Auth + Firestore (계획은 UPM `.tgz` 선호, **실제 설치는 `.unitypackage`**, SDK 13.14.0, `Assets/Firebase/` — 위생 선택이었을 뿐 룰 강제가 아니라 그대로 진행. §2 line 67 참조) / EDM4U / Unity Test Framework (NUnit, EditMode·PlayMode)
 
 ## Global Constraints
 
@@ -1342,7 +1342,7 @@ git add CLAUDE.md .claude/rules/03-chvjpackage.md docs/design/firebase-security-
 | §2 Q2 AuthTokenStore + accountId 정리 | T7 Step 3·5·6·7·8 ✓ |
 | §2 Q3 설치 검증 게이트 | T1 (게이트 A) · T6 Step 5 (게이트 B) ✓ |
 | §2 Q4 하이브리드 배치 | T2(인프라 초기화) · T3(게임 도메인) ✓ |
-| §2 Q5 UPM 설치 | T1 Step 1 ✓ |
+| §2 Q5 UPM 설치 | T1 Step 1 — **결정과 다르게 진행됨**(사유: 실제 설치가 `.unitypackage`. UPM 은 위생 선택이었을 뿐 룰 강제가 아니었음. §2 line 67 정정 배너 참조) |
 | §3.1 Firebase 타입 격리 | T3 Step 3 · T4 Step 3 · T5 Step 4 의 EditMode 회귀가 컴파일로 검증 ✓ |
 | §3.2 모듈 게이트 `#if` | T2 Step 4(토글 확인) · T3 Step 1·2 ✓ |
 | §4.1 충돌 재매핑 | T4 Step 2 ✓ |
