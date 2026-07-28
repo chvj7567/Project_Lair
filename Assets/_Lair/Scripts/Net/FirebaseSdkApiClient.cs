@@ -246,11 +246,156 @@ namespace Lair.Net
             }
         }
 
-        //# --- 이하 Task 5 에서 구현. 스텁으로 컴파일 유지. ---
-        public Task<bool> SubmitScoreAsync(int clearTimeMs, string hero, string displayName) => Task.FromResult(false);
-        public Task<List<RankingRowDto>> GetTopAsync(int top) => Task.FromResult(new List<RankingRowDto>());
-        public Task<List<RankingRowDto>> GetMyRankAsync() => Task.FromResult(new List<RankingRowDto>());
-        public Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName) => Task.FromResult(DisplayNameResult.Of(DisplayNameStatus.Offline));
+        public async Task<bool> SubmitScoreAsync(int clearTimeMs, string hero, string displayName)
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid))
+                return false;
+            Dictionary<string, object> fields = new Dictionary<string, object>
+            {
+                { "uid", uid },
+                { "displayName", displayName ?? string.Empty },
+                { "clearTimeMs", clearTimeMs },
+                { "hero", hero ?? string.Empty },
+            };
+            try
+            {
+                await Db.Collection(LeaderboardCollection).Document(uid).SetAsync(fields);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 랭킹 제출 실패: {e.Message}");
+                return false;
+            }
+        }
+
+        public async Task<List<RankingRowDto>> GetTopAsync(int top)
+        {
+            List<RankingRowDto> rows = new List<RankingRowDto>();
+            try
+            {
+                QuerySnapshot snap = await Db.Collection(LeaderboardCollection)
+                    .OrderBy("clearTimeMs")
+                    .Limit(top)
+                    .GetSnapshotAsync();
+                int rank = 1;
+                foreach (DocumentSnapshot doc in snap.Documents)
+                {
+                    RankingRowDto row = ToRow(doc);
+                    if (row == null)
+                        continue;
+                    //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
+                    if (IsRankedClearTime(row.clearTimeMs) == false)
+                        continue;
+                    //# 쿼리가 rank 를 내려주지 않는다 — clearTimeMs 오름차순 순서 = 순위(1부터).
+                    row.rank = rank;
+                    rank++;
+                    rows.Add(row);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 랭킹 조회 실패: {e.Message}");
+            }
+            return rows;
+        }
+
+        //# 리더보드 문서 → 행 DTO. 필드 누락은 기본값으로 흡수(흐름을 막지 않는다).
+        private static RankingRowDto ToRow(DocumentSnapshot doc)
+        {
+            if (doc == null || doc.Exists == false)
+                return null;
+            return new RankingRowDto
+            {
+                uid = doc.ContainsField("uid") ? doc.GetValue<string>("uid") : null,
+                displayName = doc.ContainsField("displayName") ? doc.GetValue<string>("displayName") : null,
+                clearTimeMs = doc.ContainsField("clearTimeMs") ? (int)doc.GetValue<long>("clearTimeMs") : 0,
+                hero = doc.ContainsField("hero") ? doc.GetValue<string>("hero") : null,
+            };
+        }
+
+        public async Task<List<RankingRowDto>> GetMyRankAsync()
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid))
+                return new List<RankingRowDto>();
+            try
+            {
+                DocumentSnapshot mine = await Db.Collection(LeaderboardCollection).Document(uid).GetSnapshotAsync();
+                RankingRowDto myRow = ToRow(mine);
+                //# clearTimeMs<=0 은 유효한 클리어 기록이 아님(유령 문서) — 거짓 "1위 00:00" 방지.
+                if (myRow == null || IsRankedClearTime(myRow.clearTimeMs) == false)
+                    return new List<RankingRowDto>();
+
+                AggregateQuerySnapshot agg = await Db.Collection(LeaderboardCollection)
+                    .WhereLessThan("clearTimeMs", myRow.clearTimeMs)
+                    .Count
+                    .GetSnapshotAsync(AggregateSource.Server);
+                myRow.rank = agg.Count + 1;
+                return new List<RankingRowDto> { myRow };
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 내 순위 조회 실패: {e.Message}");
+                return new List<RankingRowDto>();
+            }
+        }
+
+        //# 유효 클리어 시간 판정 — clearTimeMs 는 소요시간(ms)이라 0/음수는 실제 클리어일 수 없다.
+        public static bool IsRankedClearTime(long ms) => ms > 0;
+
+        public async Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName)
+        {
+            string norm = displayName == null ? string.Empty : displayName.Trim();
+            if (string.IsNullOrEmpty(norm))
+                return DisplayNameResult.Of(DisplayNameStatus.Invalid);
+            //# 문서ID 파손 문자 차단 — / 는 경로 분리자. 제품 charset 정책이 아니라 기술 제약.
+            if (norm.IndexOf('/') >= 0)
+                return DisplayNameResult.Of(DisplayNameStatus.Invalid);
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid))
+                return DisplayNameResult.Of(DisplayNameStatus.Offline);
+
+            DocumentReference lockDoc = Db.Collection(DisplayNamesCollection).Document(norm);
+            DocumentReference lbDoc = Db.Collection(LeaderboardCollection).Document(uid);
+
+            try
+            {
+                bool taken = false;
+                await Db.RunTransactionAsync(async transaction =>
+                {
+                    //# Firestore 트랜잭션은 모든 read 가 write 보다 먼저 와야 한다 — lock/leaderboard 두 문서를 먼저 다 읽는다.
+                    DocumentSnapshot lockSnap = await transaction.GetSnapshotAsync(lockDoc);
+                    DocumentSnapshot lbSnap = await transaction.GetSnapshotAsync(lbDoc);
+                    //# 이미 존재하고 소유자가 내가 아니면 중복. 내 것이면 재점유 허용(멱등).
+                    if (lockSnap.Exists)
+                    {
+                        string owner = lockSnap.ContainsField("uid") ? lockSnap.GetValue<string>("uid") : null;
+                        if (owner != uid)
+                        {
+                            taken = true;
+                            return;
+                        }
+                    }
+                    transaction.Set(lockDoc, new Dictionary<string, object> { { "uid", uid } });
+                    //# 리더보드는 displayName 만 병합 — Set 전체 치환이면 clearTimeMs/hero 가 증발한다.
+                    //# 단, 문서가 아직 없으면(클리어 기록 전) MergeAll 이 그대로 신규 생성해 clearTimeMs=0 유령 문서를
+                    //# 만든다 — GetTopAsync 가 IsRankedClearTime 으로 걸러내지만, 애초에 만들지 않는 편이 안전하다.
+                    if (lbSnap.Exists)
+                        transaction.Set(lbDoc, new Dictionary<string, object> { { "displayName", norm } }, SetOptions.MergeAll);
+                });
+
+                if (taken)
+                    return DisplayNameResult.Of(DisplayNameStatus.Taken);
+                return new DisplayNameResult(DisplayNameStatus.Success, norm);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 표시명 변경 실패: {e.Message}");
+                return DisplayNameResult.Of(DisplayNameStatus.Offline);
+            }
+        }
     }
 }
 #endif
