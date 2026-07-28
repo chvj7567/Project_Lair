@@ -28,6 +28,30 @@ namespace Lair.Net
 
         private static FirebaseFirestore Db => FirebaseFirestore.DefaultInstance;
 
+        //# 내부 조회 3상태 — "문서 없음"과 "조회 실패(통신 오류 등)"를 구분한다. spec §6 에러 매핑상
+        //# 통신 실패는 Failed 여야지 PutSave 의 "최초 생성 기대" 판정(Conflict 오탐)으로 새면 안 된다.
+        private enum SaveFetchStatus
+        {
+            Found,
+            NotFound,
+            Failed,
+        }
+
+        //# GetSaveAsync(public)와 PutSaveAsync 시딩이 공유하는 내부 조회 결과 — 로직 중복 방지.
+        private readonly struct SaveFetchResult
+        {
+            public readonly SaveFetchStatus Status;
+            public readonly SaveResponseBody Body;
+
+            public SaveFetchResult(SaveFetchStatus status, SaveResponseBody body)
+            {
+                Status = status;
+                Body = body;
+            }
+
+            public static SaveFetchResult Of(SaveFetchStatus status) => new SaveFetchResult(status, null);
+        }
+
         public async Task<bool> AuthenticateAsync()
         {
             bool ready = await CHMFirebase.Instance.EnsureReadyAsync();
@@ -67,13 +91,21 @@ namespace Lair.Net
             }
         }
 
-        //# 클라우드 세이브 조회 — 없으면 null, 통신 실패면 null. serverVersion 캐시를 함께 갱신(PutSave 충돌 판정 기준).
-        //# GetValue<T> 두번째 인자(ServerTimestampBehavior)는 이 SDK 시그니처상 필수 — 일반 필드엔 의미 없어 Estimate 고정.
+        //# 클라우드 세이브 조회 — 없으면 null, 통신 실패면 null(ILairApiClient 계약 — 둘을 구분하지 않는다).
+        //# 내부적으로는 FetchSaveAsync 의 3상태를 구분해서 쓴다(PutSave 시딩이 그 구분을 필요로 함 — 아래 참조).
         public async Task<SaveResponseBody> GetSaveAsync()
+        {
+            SaveFetchResult result = await FetchSaveAsync();
+            return result.Status == SaveFetchStatus.Found ? result.Body : null;
+        }
+
+        //# GetSaveAsync/PutSaveAsync 시딩이 공유하는 실제 조회 로직. serverVersion 캐시를 함께 갱신(PutSave 충돌 판정 기준).
+        //# GetValue<T> 두번째 인자(ServerTimestampBehavior)는 이 SDK 시그니처상 필수 — 일반 필드엔 의미 없어 Estimate 고정.
+        private async Task<SaveFetchResult> FetchSaveAsync()
         {
             string uid = Uid;
             if (string.IsNullOrEmpty(uid))
-                return null;
+                return SaveFetchResult.Of(SaveFetchStatus.Failed);
             try
             {
                 //# 트랜잭션 밖 조회는 캐시가 아니라 서버 원본을 봐야 baseline 이 어긋나지 않는다.
@@ -83,7 +115,7 @@ namespace Lair.Net
                     //# 문서 없음 = "세이브 없음". 최초 생성 경로를 위해 캐시를 비운다.
                     _saveUpdateTime = null;
                     _saveDocExists = false;
-                    return null;
+                    return SaveFetchResult.Of(SaveFetchStatus.NotFound);
                 }
                 _saveDocExists = true;
                 //# serverVersion 필드가 없으면(REST 시절 문서) baseline 미확보 — PutSave 가 존재여부만으로 판정하는 경로로 빠진다.
@@ -92,23 +124,24 @@ namespace Lair.Net
                     : (Timestamp?)null;
                 string profileJson = snap.ContainsField("profile") ? snap.GetValue<string>("profile", ServerTimestampBehavior.Estimate) : null;
                 if (string.IsNullOrEmpty(profileJson))
-                    return null;
+                    return SaveFetchResult.Of(SaveFetchStatus.Found);
                 MetaProfile profile = JsonUtility.FromJson<MetaProfile>(profileJson);
                 if (profile == null)
-                    return null;
-                return new SaveResponseBody
+                    return SaveFetchResult.Of(SaveFetchStatus.Found);
+                SaveResponseBody body = new SaveResponseBody
                 {
                     profile = profile,
                     schemaVersion = snap.ContainsField("schemaVersion") ? (int)snap.GetValue<long>("schemaVersion", ServerTimestampBehavior.Estimate) : 0,
                     updatedAt = snap.ContainsField("updatedAt") ? snap.GetValue<string>("updatedAt", ServerTimestampBehavior.Estimate) : null,
                 };
+                return new SaveFetchResult(SaveFetchStatus.Found, body);
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[FirebaseSdkApiClient] 세이브 조회 실패: {e.Message}");
                 _saveUpdateTime = null;
                 _saveDocExists = false;
-                return null;
+                return SaveFetchResult.Of(SaveFetchStatus.Failed);
             }
         }
 
@@ -124,9 +157,13 @@ namespace Lair.Net
 
             //# 첫 백업 전 서버 기준시각(base version)을 시딩 — 복귀 유저의 오충돌 방지.
             //# 이번 세션에서 한 번도 조회한 적 없을 때만(둘 다 비확보) — 문서가 없으면 캐시는 null 로 남아 "최초 생성" 경로가 된다.
+            //# 시딩 조회 자체가 실패(통신 오류 등)하면 트랜잭션에 들어가지 않고 즉시 Failed — "문서 없음"과 혼동해
+            //# 정상 문서를 "최초 생성 기대" 판정으로 오인, 거짓 Conflict 를 내면 안 된다(spec §6 에러 매핑).
             if (_saveUpdateTime.HasValue == false && _saveDocExists == false)
             {
-                await GetSaveAsync();
+                SaveFetchResult seed = await FetchSaveAsync();
+                if (seed.Status == SaveFetchStatus.Failed)
+                    return CloudSaveResult.Failed;
             }
 
             Timestamp? expected = _saveUpdateTime;
