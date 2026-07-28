@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using ChvjUnityInfra;
-using Lair.Data;
 using Lair.Net;
 using UnityEngine;
 
@@ -31,28 +29,26 @@ namespace Lair.Meta
             return true;
         }
 
-        //# NetworkConfig 로드 후 client/서비스 구성 + 익명 인증 보장. best-effort.
+        //# client/서비스 구성 + 익명 인증 보장. best-effort. 설정은 google-services.json.
         public static async Task EnsureNetworkAsync()
         {
             if (Api != null)
                 return;
-            NetworkConfig config = await CHMResource.Instance.LoadAsync<NetworkConfig>(EData.NetworkConfig);
-            if (config == null)
-            {
-                Debug.LogWarning("[MetaSession] NetworkConfig 로드 실패 — 클라우드 비활성");
-                return;
-            }
-            Api = new FirebaseApiClient(config);
-            Cloud = new CloudSaveService(Api);
-            Ranking = new RankingClient(Api);
-            bool authed = await Api.AuthenticateAsync();
+#if UNITY_INFRA_FIREBASE
+            FirebaseSdkApiClient client = new FirebaseSdkApiClient();
+            bool authed = await client.AuthenticateAsync();
             if (authed == false)
             {
                 Debug.LogWarning("[MetaSession] 익명 인증 실패 — 클라우드 비활성");
-                Api = null;
-                Cloud = null;
-                Ranking = null;
+                return;
             }
+            Api = client;
+            Cloud = new CloudSaveService(Api);
+            Ranking = new RankingClient(Api);
+#else
+            Debug.LogWarning("[MetaSession] Firebase 모듈 꺼짐 — 클라우드 비활성");
+            await Task.CompletedTask;
+#endif
         }
     }
 }
