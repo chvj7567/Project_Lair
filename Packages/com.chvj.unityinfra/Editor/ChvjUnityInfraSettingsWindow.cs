@@ -16,11 +16,12 @@ namespace ChvjUnityInfra.Editor
         private const string ADS_DEFINE = "UNITY_INFRA_ADS";
         private const string IAP_DEFINE = "UNITY_INFRA_IAP";
         private const string SOCIAL_DEFINE = "UNITY_INFRA_SOCIAL";
+        private const string FIREBASE_DEFINE = "UNITY_INFRA_FIREBASE";
 
         private const string AD_CONFIG_PATH = "Assets/Resources/ChvjUnityInfra/AdConfig.asset";
         private const string IAP_CONFIG_PATH = "Assets/Resources/ChvjUnityInfra/IAPProductConfig.asset";
 
-        private static readonly string[] TabLabels = { "Ads", "IAP", "Social" };
+        private static readonly string[] TabLabels = { "Ads", "IAP", "Social", "Firebase" };
 
         private const string TabIndexKey = "ChvjUnityInfra.SettingsWindow.TabIndex";
 
@@ -57,6 +58,7 @@ namespace ChvjUnityInfra.Editor
                 case 0: DrawAdsTab(); break;
                 case 1: DrawIapTab(); break;
                 case 2: DrawSocialTab(); break;
+                case 3: DrawFirebaseTab(); break;
             }
             EditorGUILayout.EndScrollView();
         }
@@ -188,6 +190,44 @@ namespace ChvjUnityInfra.Editor
                 "GPGS 모듈이 꺼져 있습니다.\n" +
                 "'Use GPGS' 체크 → 컴파일 완료 후 사용 가이드가 표시됩니다.\n" +
                 "전제: Google Play Games Plugin for Unity 임포트 필요 + Android 플랫폼 빌드.",
+                MessageType.Warning);
+#endif
+        }
+
+        // ────────── Firebase ──────────
+
+        private void DrawFirebaseTab()
+        {
+            EditorGUILayout.LabelField("Firebase (Auth + Firestore)", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+
+            DrawToggle("Use Firebase", FIREBASE_DEFINE);
+
+            EditorGUILayout.Space();
+
+#if UNITY_INFRA_FIREBASE
+            EditorGUILayout.HelpBox(
+                "사용 스텝:\n" +
+                "1. 'Use Firebase' 체크 (이미 켜져 있음)\n" +
+                "2. Firebase 콘솔에서 앱 등록 후 google-services.json 을 Assets/ 에 배치\n" +
+                "   (Android 는 Player Settings 의 Package Name 과 일치해야 함)\n" +
+                "3. 게임 부팅 코드에 추가:\n" +
+                "   #if UNITY_INFRA_FIREBASE\n" +
+                "   bool ready = await CHMFirebase.Instance.EnsureReadyAsync();\n" +
+                "   #endif\n" +
+                "4. 준비 확인 후 Auth/Firestore SDK 직접 사용:\n" +
+                "   FirebaseAuth.DefaultInstance.SignInAnonymouslyAsync();\n" +
+                "   FirebaseFirestore.DefaultInstance.Collection(\"...\");\n" +
+                "\n" +
+                "범위: 이 모듈은 초기화만 담당한다.\n" +
+                "컬렉션 구조·쿼리 등 도메인 로직은 게임 코드에 둔다.\n" +
+                "보안 규칙은 Firebase 콘솔 소관 — 레포에 넣지 않는다.",
+                MessageType.Info);
+#else
+            EditorGUILayout.HelpBox(
+                "Firebase 모듈이 꺼져 있습니다.\n" +
+                "'Use Firebase' 체크 → 컴파일 완료 후 사용 가이드가 표시됩니다.\n" +
+                "전제: Firebase Unity SDK(Auth + Firestore) UPM 설치 필요.",
                 MessageType.Warning);
 #endif
         }
