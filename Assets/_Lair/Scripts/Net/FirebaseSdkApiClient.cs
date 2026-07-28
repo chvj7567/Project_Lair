@@ -100,7 +100,8 @@ namespace Lair.Net
         }
 
         //# GetSaveAsync/PutSaveAsync 시딩이 공유하는 실제 조회 로직. serverVersion 캐시를 함께 갱신(PutSave 충돌 판정 기준).
-        //# GetValue<T> 두번째 인자(ServerTimestampBehavior)는 이 SDK 시그니처상 필수 — 일반 필드엔 의미 없어 Estimate 고정.
+        //# serverVersion 은 ServerTimestamp 필드라 커밋 전엔 pending 값일 수 있다 — Estimate 로 그 값을 확정값처럼 읽어 baseline 을 끊기지 않게 한다.
+        //# (일반 필드엔 Estimate 가 의미 없지만 호출 폼을 통일해 아래 GetValue 들에도 그대로 쓴다.)
         private async Task<SaveFetchResult> FetchSaveAsync()
         {
             string uid = Uid;
@@ -168,7 +169,6 @@ namespace Lair.Net
 
             Timestamp? expected = _saveUpdateTime;
             bool expectedDocExists = _saveDocExists;
-            DocumentReference doc = Db.Collection(SavesCollection).Document(uid);
             Dictionary<string, object> fields = new Dictionary<string, object>
             {
                 { "profile", JsonUtility.ToJson(profile) },
@@ -180,40 +180,20 @@ namespace Lair.Net
 
             try
             {
+                DocumentReference doc = Db.Collection(SavesCollection).Document(uid);
                 bool conflict = false;
                 await Db.RunTransactionAsync(async transaction =>
                 {
                     DocumentSnapshot snap = await transaction.GetSnapshotAsync(doc);
-                    //# 충돌 판정 — "내가 마지막으로 본 버전 이후에 누가 썼는가".
-                    if (expected.HasValue)
+                    //# 충돌 판정 순수 함수(Lair.Net.CloudSaveConflict, Firebase 타입 비의존) 로 위임 — 로직은 원래와 동일.
+                    bool snapHasServerVersion = snap.Exists && snap.ContainsField(ServerVersionField);
+                    //# expected.HasValue 가 false 면 단락평가로 GetValue 미실행(트랜잭션 예외 금지 보존).
+                    bool versionsEqual = expected.HasValue && snapHasServerVersion
+                        && snap.GetValue<Timestamp>(ServerVersionField, ServerTimestampBehavior.Estimate).Equals(expected.Value);
+                    if (CloudSaveConflict.IsConflict(expected.HasValue, expectedDocExists, snap.Exists, snapHasServerVersion, versionsEqual))
                     {
-                        //# 기대: 문서가 존재하고 serverVersion 이 캐시와 같다.
-                        bool sameVersion = snap.Exists && snap.ContainsField(ServerVersionField)
-                            && snap.GetValue<Timestamp>(ServerVersionField, ServerTimestampBehavior.Estimate).Equals(expected.Value);
-                        if (sameVersion == false)
-                        {
-                            conflict = true;
-                            return;
-                        }
-                    }
-                    else if (expectedDocExists)
-                    {
-                        //# 레거시(REST) 문서 — serverVersion 필드가 없어 baseline 비교 불가. 존재 여부만 확인하고 통과,
-                        //# 이 쓰기로 serverVersion 필드가 신설되며 이후 백업부터는 정상 버전 비교 경로를 탄다.
-                        if (snap.Exists == false)
-                        {
-                            conflict = true;
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        //# 기대: 최초 생성 — 문서가 없어야 한다.
-                        if (snap.Exists)
-                        {
-                            conflict = true;
-                            return;
-                        }
+                        conflict = true;
+                        return;
                     }
                     transaction.Set(doc, fields);
                 });
@@ -272,9 +252,9 @@ namespace Lair.Net
 
         public async Task<List<RankingRowDto>> GetTopAsync(int top)
         {
-            List<RankingRowDto> rows = new List<RankingRowDto>();
             try
             {
+                List<RankingRowDto> rows = new List<RankingRowDto>();
                 //# 유령 문서(clearTimeMs 없음/0)를 쿼리 단계에서 배제 — Limit 이 필터보다 먼저 걸리면
                 //# 유령이 top 개 이상일 때 진짜 기록이 통째로 잘려나간다(표시 단계 가드만으론 못 막음).
                 QuerySnapshot snap = await Db.Collection(LeaderboardCollection)
@@ -289,19 +269,21 @@ namespace Lair.Net
                     if (row == null)
                         continue;
                     //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
-                    if (IsRankedClearTime(row.clearTimeMs) == false)
+                    if (CloudSaveConflict.IsRankedClearTime(row.clearTimeMs) == false)
                         continue;
                     //# 쿼리가 rank 를 내려주지 않는다 — clearTimeMs 오름차순 순서 = 순위(1부터).
                     row.rank = rank;
                     rank++;
                     rows.Add(row);
                 }
+                return rows;
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[FirebaseSdkApiClient] 랭킹 조회 실패: {e.Message}");
+                //# 계약(ILairApiClient) — 실패 시 빈 리스트. 열거 도중 예외가 나도 부분 리스트를 흘리지 않는다.
+                return new List<RankingRowDto>();
             }
-            return rows;
         }
 
         //# 리더보드 문서 → 행 DTO. 필드 누락은 기본값으로 흡수(흐름을 막지 않는다).
@@ -328,7 +310,7 @@ namespace Lair.Net
                 DocumentSnapshot mine = await Db.Collection(LeaderboardCollection).Document(uid).GetSnapshotAsync();
                 RankingRowDto myRow = ToRow(mine);
                 //# clearTimeMs<=0 은 유효한 클리어 기록이 아님(유령 문서) — 거짓 "1위 00:00" 방지.
-                if (myRow == null || IsRankedClearTime(myRow.clearTimeMs) == false)
+                if (myRow == null || CloudSaveConflict.IsRankedClearTime(myRow.clearTimeMs) == false)
                     return new List<RankingRowDto>();
 
                 //# 유령 문서는 clearTimeMs=0 이라 항상 "나보다 빠름"으로 잡혀 순위를 부풀린다 — 집계에서도 배제.
@@ -347,9 +329,6 @@ namespace Lair.Net
             }
         }
 
-        //# 유효 클리어 시간 판정 — clearTimeMs 는 소요시간(ms)이라 0/음수는 실제 클리어일 수 없다.
-        public static bool IsRankedClearTime(long ms) => ms > 0;
-
         public async Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName)
         {
             string norm = displayName == null ? string.Empty : displayName.Trim();
@@ -362,11 +341,10 @@ namespace Lair.Net
             if (string.IsNullOrEmpty(uid))
                 return DisplayNameResult.Of(DisplayNameStatus.Offline);
 
-            DocumentReference lockDoc = Db.Collection(DisplayNamesCollection).Document(norm);
-            DocumentReference lbDoc = Db.Collection(LeaderboardCollection).Document(uid);
-
             try
             {
+                DocumentReference lockDoc = Db.Collection(DisplayNamesCollection).Document(norm);
+                DocumentReference lbDoc = Db.Collection(LeaderboardCollection).Document(uid);
                 bool taken = false;
                 await Db.RunTransactionAsync(async transaction =>
                 {
