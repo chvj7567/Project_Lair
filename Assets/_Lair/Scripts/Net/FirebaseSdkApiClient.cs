@@ -275,7 +275,10 @@ namespace Lair.Net
             List<RankingRowDto> rows = new List<RankingRowDto>();
             try
             {
+                //# 유령 문서(clearTimeMs 없음/0)를 쿼리 단계에서 배제 — Limit 이 필터보다 먼저 걸리면
+                //# 유령이 top 개 이상일 때 진짜 기록이 통째로 잘려나간다(표시 단계 가드만으론 못 막음).
                 QuerySnapshot snap = await Db.Collection(LeaderboardCollection)
+                    .WhereGreaterThan("clearTimeMs", 0)
                     .OrderBy("clearTimeMs")
                     .Limit(top)
                     .GetSnapshotAsync();
@@ -328,7 +331,9 @@ namespace Lair.Net
                 if (myRow == null || IsRankedClearTime(myRow.clearTimeMs) == false)
                     return new List<RankingRowDto>();
 
+                //# 유령 문서는 clearTimeMs=0 이라 항상 "나보다 빠름"으로 잡혀 순위를 부풀린다 — 집계에서도 배제.
                 AggregateQuerySnapshot agg = await Db.Collection(LeaderboardCollection)
+                    .WhereGreaterThan("clearTimeMs", 0)
                     .WhereLessThan("clearTimeMs", myRow.clearTimeMs)
                     .Count
                     .GetSnapshotAsync(AggregateSource.Server);
@@ -379,11 +384,12 @@ namespace Lair.Net
                         }
                     }
                     transaction.Set(lockDoc, new Dictionary<string, object> { { "uid", uid } });
-                    //# 리더보드는 displayName 만 병합 — Set 전체 치환이면 clearTimeMs/hero 가 증발한다.
-                    //# 단, 문서가 아직 없으면(클리어 기록 전) MergeAll 이 그대로 신규 생성해 clearTimeMs=0 유령 문서를
-                    //# 만든다 — GetTopAsync 가 IsRankedClearTime 으로 걸러내지만, 애초에 만들지 않는 편이 안전하다.
+                    //# displayName 만 병합(MergeAll) — 문서가 없으면 새로 만들지 않는다(유령 문서 방지).
+                    //# 존재할 때만 병합하므로 clearTimeMs/hero 는 그대로 보존된다.
                     if (lbSnap.Exists)
+                    {
                         transaction.Set(lbDoc, new Dictionary<string, object> { { "displayName", norm } }, SetOptions.MergeAll);
+                    }
                 });
 
                 if (taken)
