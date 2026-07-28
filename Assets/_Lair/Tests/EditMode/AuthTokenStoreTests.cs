@@ -10,10 +10,7 @@ namespace Lair.Tests.EditMode
         public void 정리()
         {
             PlayerPrefs.DeleteKey("Lair.Net.DeviceId");
-            PlayerPrefs.DeleteKey("Lair.Net.Token");
-            PlayerPrefs.DeleteKey("Lair.Net.AccountId");
             PlayerPrefs.DeleteKey("Lair.Net.Uid");
-            PlayerPrefs.DeleteKey("Lair.Net.RefreshToken");
         }
 
         [Test]
@@ -26,41 +23,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 토큰_저장후_읽으면_같은값이다()
-        {
-            AuthTokenStore.SaveToken("abc.def.ghi");
-            Assert.AreEqual("abc.def.ghi", AuthTokenStore.Token);
-            Assert.IsTrue(AuthTokenStore.HasToken);
-        }
-
-        [Test]
-        public void AccountId_저장후_읽으면_같은값이다()
-        {
-            AuthTokenStore.SaveAccountId(12345);
-            Assert.AreEqual(12345, AuthTokenStore.AccountId);
-            Assert.IsTrue(AuthTokenStore.HasAccountId);
-        }
-
-        [Test]
-        public void AccountId_미설정이면_0이고_HasAccountId는_false다()
-        {
-            Assert.AreEqual(0, AuthTokenStore.AccountId);
-            Assert.IsFalse(AuthTokenStore.HasAccountId);
-        }
-
-        [Test]
         public void Uid_저장후_조회된다()
         {
             AuthTokenStore.SaveUid("kZ9xAbC");
             Assert.AreEqual("kZ9xAbC", AuthTokenStore.Uid);
             Assert.IsTrue(AuthTokenStore.HasUid);
-        }
-
-        [Test]
-        public void RefreshToken_저장후_조회된다()
-        {
-            AuthTokenStore.SaveRefreshToken("r-token-123");
-            Assert.AreEqual("r-token-123", AuthTokenStore.RefreshToken);
         }
 
         [Test]

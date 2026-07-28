@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Lair.UI
 {
-    //# 셀에 넘기는 표시 단위 — 서버 DTO + "내 행" 여부(accountId/시간 매칭은 Popup 이 판정, 기획서 §4·§8).
+    //# 셀에 넘기는 표시 단위 — 서버 DTO + "내 행" 여부(uid/시간 매칭은 Popup 이 판정, 기획서 §4·§8).
     public class RankingRowEntry
     {
         public RankingRowDto Row;

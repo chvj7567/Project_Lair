@@ -11,10 +11,7 @@ namespace Lair.UI
         public RankingClient Ranking;
         //# "내 행" 최우선 식별 키(2026-07-14 Firebase 피벗) — 양쪽 uid 존재 시 이걸로만 매칭.
         public string MyUid;
-        //# "내 행" 2차 식별 키(기획서 §4·§8, 사문화 — 구서버 하위호환). 서버 DTO 의 accountId 와 일치하는 행이 내 행.
-        //# 미로그인(0) 이거나 구서버 응답(accountId 0)이면 아래 BestClearTime 시간 폴백 사용.
-        public long MyAccountId;
-        public float MyBestClearTime;   //# accountId 미식별 시 fallback(초). 없으면 -1(MetaProfile.BestClearTime).
+        public float MyBestClearTime;   //# uid 미식별 시 fallback(초). 없으면 -1(MetaProfile.BestClearTime).
     }
 
     //# 최단클리어 랭킹 조회 — Top N + 내 순위. 통신 실패 시 빈 목록 + 안내(기획서 §4).
@@ -47,15 +44,14 @@ namespace Lair.UI
                 return;
             }
 
-            //# Top 100 행 매핑 — "내 행" 표시(uid 1차 → accountId 2차 → BestClearTime 시간 fallback).
+            //# Top 100 행 매핑 — "내 행" 표시(uid 1차 → BestClearTime 시간 fallback).
             List<RankingRowEntry> entries = new List<RankingRowEntry>();
             bool foundMineInTop = false;
             string myUid = arg.MyUid;
-            long myAccountId = arg.MyAccountId;
             int myClearMs = arg.MyBestClearTime > 0f ? Mathf.RoundToInt(arg.MyBestClearTime * 1000f) : -1;
             foreach (RankingRowDto row in top)
             {
-                bool isMine = IsMyRowByUid(row, myUid, myAccountId, myClearMs, foundMineInTop);
+                bool isMine = IsMyRow(row, myUid, myClearMs, foundMineInTop);
                 if (isMine)
                     foundMineInTop = true;
                 entries.Add(new RankingRowEntry { Row = row, IsMine = isMine });
@@ -65,7 +61,7 @@ namespace Lair.UI
             if (foundMineInTop == false)
             {
                 List<RankingRowDto> mine = await arg.Ranking.GetMyRankAsync();
-                RankingRowDto myRow = PickMyRowByUid(mine, myUid, myAccountId, myClearMs);
+                RankingRowDto myRow = PickMyRow(mine, myUid, myClearMs);
                 if (myRow != null)
                     entries.Add(new RankingRowEntry { Row = myRow, IsMine = true });
             }
@@ -73,19 +69,21 @@ namespace Lair.UI
             _scrollView.SetItemList(entries);
         }
 
-        //# "내 행" 식별 — uid 최우선(2026-07-14 Firebase 피벗, 양쪽 uid 존재 시 이걸로 유일 매칭).
-        //# uid 미식별이면 기존 IsMyRow(accountId → 시간) 폴백 순서 그대로 위임(하위호환 보존).
-        private static bool IsMyRowByUid(RankingRowDto row, string myUid, long myAccountId, int myClearMs, bool alreadyFound)
+        //# "내 행" 식별 — uid 1차(양쪽 존재 시 권위 키, 유일 매칭). 동률 시 첫 매칭만(중복 강조 방지).
+        //# uid 미식별(내 uid 없음 또는 행에 uid 없음)이면 clearTimeMs 시간 폴백.
+        private static bool IsMyRow(RankingRowDto row, string myUid, int myClearMs, bool alreadyFound)
         {
             if (alreadyFound || row == null)
                 return false;
             if (string.IsNullOrEmpty(myUid) == false && string.IsNullOrEmpty(row.uid) == false)
                 return row.uid == myUid;
-            return IsMyRow(row, myAccountId, myClearMs, alreadyFound);
+            if (myClearMs < 0)
+                return false;
+            return row.clearTimeMs == myClearMs;
         }
 
-        //# /me 응답에서 내 행 1개 선택 — uid 최우선(2026-07-14). 미식별이면 기존 PickMyRow(accountId → 시간 → 첫행) 위임.
-        private static RankingRowDto PickMyRowByUid(List<RankingRowDto> rows, string myUid, long myAccountId, int myClearMs)
+        //# 내 순위 응답에서 내 행 1개 선택 — uid 일치 우선, 없으면 시간 일치, 그래도 없으면 첫 행.
+        private static RankingRowDto PickMyRow(List<RankingRowDto> rows, string myUid, int myClearMs)
         {
             if (rows == null || rows.Count == 0)
                 return null;
@@ -94,35 +92,6 @@ namespace Lair.UI
                 foreach (RankingRowDto row in rows)
                 {
                     if (row != null && string.IsNullOrEmpty(row.uid) == false && row.uid == myUid)
-                        return row;
-                }
-            }
-            return PickMyRow(rows, myAccountId, myClearMs);
-        }
-
-        //# "내 행" 식별 — accountId 1차(양쪽 식별 시 권위 키, 유일 매칭). 동률 시 첫 매칭만(중복 강조 방지).
-        //# myAccountId 0(미로그인) 또는 row.accountId 0(구서버)이면 clearTimeMs 시간 폴백 — 하위호환.
-        private static bool IsMyRow(RankingRowDto row, long myAccountId, int myClearMs, bool alreadyFound)
-        {
-            if (alreadyFound || row == null)
-                return false;
-            if (myAccountId > 0 && row.accountId > 0)
-                return row.accountId == myAccountId;
-            if (myClearMs < 0)
-                return false;
-            return row.clearTimeMs == myClearMs;
-        }
-
-        //# /me 응답에서 내 행 1개 선택 — accountId 일치 우선, 없으면 시간 일치, 그래도 없으면 첫 행.
-        private static RankingRowDto PickMyRow(List<RankingRowDto> rows, long myAccountId, int myClearMs)
-        {
-            if (rows == null || rows.Count == 0)
-                return null;
-            if (myAccountId > 0)
-            {
-                foreach (RankingRowDto row in rows)
-                {
-                    if (row != null && row.accountId == myAccountId)
                         return row;
                 }
             }

@@ -7,7 +7,7 @@ namespace Lair.Net
     //# 서버 엔드포인트 추상화 — 서비스가 이 인터페이스에만 의존(테스트 시 가짜 주입, Rule 02 §5).
     public interface ILairApiClient
     {
-        //# 인증 — deviceId 로 계정 보장 + 토큰/accountId 저장. 성공 여부 반환.
+        //# 인증 — Firebase 익명 로그인으로 계정 보장 + uid 저장. 성공 여부 반환.
         Task<bool> AuthenticateAsync();
         //# 클라우드 세이브 조회 — 없으면 null, 통신 실패면 null.
         Task<SaveResponseBody> GetSaveAsync();

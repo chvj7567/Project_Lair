@@ -203,7 +203,6 @@ namespace Lair.Village
                     {
                         Ranking = MetaSession.Ranking,
                         MyUid = AuthTokenStore.Uid,
-                        MyAccountId = AuthTokenStore.AccountId,
                         MyBestClearTime = profile.BestClearTime,
                     });
                     break;

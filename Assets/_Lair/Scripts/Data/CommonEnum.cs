@@ -76,7 +76,6 @@ namespace Lair.Data
         Strings_Ko,         //# 게임 전체 CHText 문자열 — Data/Json/Strings_Ko.json
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Data/Json/LoadingStrings_Ko.json
         HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
-        NetworkConfig,      //# 서버 접속 설정 SO — Art/Net/NetworkConfig.asset (2026-06-15)
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
