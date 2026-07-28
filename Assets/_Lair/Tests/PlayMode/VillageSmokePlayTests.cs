@@ -1,5 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Lair.Meta;
+using Lair.Net;
 using Lair.UI;
 using Lair.Village;
 using NUnit.Framework;
@@ -13,6 +16,22 @@ namespace Lair.Tests.PlayMode
     //# 프로필은 MetaProfilePlayModeIsolation 이 주입한 임시 스토어 — 실제 persistentDataPath 비접촉.
     public class VillageSmokePlayTests : BattlePlayTestBase
     {
+        //# 마을 진입은 MetaSession.EnsureNetworkAsync 를 await 한다(VillageController.cs:46).
+        //# Api 를 미리 채워 두면 조기 반환하므로 Firebase 초기화가 돌지 않는다 — 스모크를 네트워크에서 격리.
+        [SetUp]
+        public void 클라우드_격리()
+        {
+            MetaSession.Api = new PlayModeStubApiClient();
+        }
+
+        [TearDown]
+        public void 클라우드_격리_해제()
+        {
+            MetaSession.Api = null;
+            MetaSession.Cloud = null;
+            MetaSession.Ranking = null;
+        }
+
         [TearDown]
         public void 정리()
         {
@@ -62,5 +81,17 @@ namespace Lair.Tests.PlayMode
 
             yield return null;
         }
+    }
+
+    //# PlayMode 스모크 전용 — 모든 op 가 즉시 "아무것도 없음" 을 반환한다(네트워크 미사용).
+    public class PlayModeStubApiClient : ILairApiClient
+    {
+        public Task<bool> AuthenticateAsync() => Task.FromResult(true);
+        public Task<SaveResponseBody> GetSaveAsync() => Task.FromResult<SaveResponseBody>(null);
+        public Task<CloudSaveResult> PutSaveAsync(MetaProfile profile, string clientUpdatedAt) => Task.FromResult(CloudSaveResult.Success);
+        public Task<bool> SubmitScoreAsync(int clearTimeMs, string hero, string displayName) => Task.FromResult(true);
+        public Task<List<RankingRowDto>> GetTopAsync(int top) => Task.FromResult(new List<RankingRowDto>());
+        public Task<List<RankingRowDto>> GetMyRankAsync() => Task.FromResult(new List<RankingRowDto>());
+        public Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName) => Task.FromResult(new DisplayNameResult(DisplayNameStatus.Success, displayName));
     }
 }
