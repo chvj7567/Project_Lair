@@ -29,15 +29,24 @@ namespace ChvjUnityInfra
 
         private async Task<bool> InitAsync()
         {
-            DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
-            if (status != DependencyStatus.Available)
+            try
             {
+                DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
+                if (status == DependencyStatus.Available)
+                {
+                    IsReady = true;
+                    return true;
+                }
                 Debug.LogWarning($"[CHMFirebase] 의존성 사용 불가: {status}");
-                IsReady = false;
-                return false;
             }
-            IsReady = true;
-            return true;
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[CHMFirebase] 초기화 실패: {e.Message}");
+            }
+            IsReady = false;
+            //# 실패는 캐싱하지 않는다 — 일시적 실패 뒤 다음 호출이 재시도할 수 있어야 한다.
+            _initTask = null;
+            return false;
         }
     }
 }

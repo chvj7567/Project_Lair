@@ -9,7 +9,7 @@ namespace ChvjUnityInfra.Editor
     /// <summary>
     /// ChvjUnityInfra 패키지의 모듈 설정 윈도우.
     /// Tools/ChvjUnityInfra/Settings 메뉴로 열림.
-    /// 탭: Ads / IAP / Social — 각 탭에서 모듈 토글 + Config 편집 + 사용 가이드.
+    /// 탭: Ads / IAP / Social / Firebase — 각 탭에서 모듈 토글 + Config 편집 + 사용 가이드.
     /// </summary>
     public class ChvjUnityInfraSettingsWindow : EditorWindow
     {
