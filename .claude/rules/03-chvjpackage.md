@@ -10,7 +10,7 @@
 
 **위치**: `Packages/com.chvj.unityinfra/`
 
-**모듈**: `Runtime/Core` · `Resource` · `Pool` · `Audio` · `UI` · `Ads` · `Iap` · `Social` / `Editor/` / `Tests/`
+**모듈**: `Runtime/Core` · `Resource` · `Pool` · `Audio` · `UI` · `Ads` · `Iap` · `Social` · `Firebase` / `Editor/` / `Tests/`
 
 **가이드**:
 - 신규 기능 작성 전 패키지 내 동일/유사 기능 존재 여부 먼저 확인

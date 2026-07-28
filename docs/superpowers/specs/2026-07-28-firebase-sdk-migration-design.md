@@ -13,7 +13,7 @@ Firebase 연동 방식을 **REST(`CHMHttpNetwork`) → Firebase Unity SDK(Auth +
 
 **범위 내**
 - Firebase Unity SDK 도입 + ChvjPackage 에 `Firebase` 모듈 신설(툴 토글 포함)
-- `ILairApiClient` 8개 메서드를 SDK 로 재구현 (`FirebaseSdkApiClient`)
+- `ILairApiClient` 7개 메서드를 SDK 로 재구현 (`FirebaseSdkApiClient`)
 - REST 구현체 및 그 부산물 일괄 삭제
 - 실제 Firebase 프로젝트에 붙어 **익명 인증으로 동작하는 것까지** 확인
 
@@ -49,7 +49,7 @@ REST 는 Spec 1 범위(익명 + 컬렉션 3개)에선 합리적이었으나, 비
 | `CHMFirebase.cs` | `Packages/com.chvj.unityinfra/Runtime/Firebase/` | `FirebaseApp` 초기화 · `CheckAndFixDependenciesAsync` · 준비 상태 노출. **도메인 무지** | 생성 |
 | `com.chvj.unityinfra.firebase.asmdef` | 위와 동일 | `defineConstraints: ["UNITY_INFRA_FIREBASE"]` — Social 모듈과 동일 구조 | 생성 |
 | `ChvjUnityInfraSettingsWindow.cs` | `Packages/.../Editor/` | **"Firebase" 탭 추가** — `DrawToggle("Use Firebase", FIREBASE_DEFINE)` + 사용 스텝 HelpBox | 수정 |
-| `FirebaseSdkApiClient.cs` | `Assets/_Lair/Scripts/Net/` | `ILairApiClient` 8개 메서드를 Auth + Firestore SDK 로 구현 | 생성 |
+| `FirebaseSdkApiClient.cs` | `Assets/_Lair/Scripts/Net/` | `ILairApiClient` 7개 메서드를 Auth + Firestore SDK 로 구현 | 생성 |
 | `AuthTokenStore.cs` | 기존 | `GetOrCreateDeviceId` + `Uid` 만 잔존 | 수정 |
 | `MetaSession.Net.cs` | 기존 | 초기화 대기 + 조립 교체 | 수정 |
 
@@ -91,12 +91,21 @@ GetSave  → 문서 updateTime 캐시
 PutSave  → commit 에 currentDocument.updateTime precondition
          → 400 FAILED_PRECONDITION / 409 → Conflict
 
-[SDK 전환]
-GetSave  → DocumentSnapshot.UpdateTime 캐시
+[SDK 전환 — 2026-07-28 구현 중 정정]
+GetSave  → 문서의 serverVersion 필드 + 존재 여부 캐시
 PutSave  → RunTransactionAsync 안에서 문서 재조회
-         → UpdateTime 이 캐시값과 다르면 abort → Conflict
+         → serverVersion 이 캐시값과 다르면 플래그 → Conflict
          → 최초 생성은 snapshot.Exists == false 로 판정
+         → 쓰기 시 serverVersion 을 FieldValue.ServerTimestamp 로 갱신
 ```
+
+> **정정 사유**: 초안은 `DocumentSnapshot.UpdateTime` 비교를 전제했으나 **Firebase Unity SDK 13.14.0 에는 그 프로퍼티가 없다**(`UpdateTime`·`CreateTime`·`ReadTime` 모두 부재. REST API 에 있는 필드라 SDK 에도 있으리라 가정한 것이 오류). 대신 문서가 `serverVersion` 필드로 자기 버전을 들고 다니게 한다. 캐시 타입(`Timestamp?`)과 의미론은 동일하다.
+>
+> **레거시 문서 3-way 분기**: 기존 REST 경로가 쓴 문서에는 `serverVersion` 이 없어, 구분하지 않으면 기존 유저의 첫 SDK 백업이 영구 거짓 충돌을 낸다. (1) 문서 없음 = 최초 생성 (2) `serverVersion` 없음 = 레거시, 충돌 아님 (3) 있음 = 비교.
+>
+> **범위 축소**: `serverVersion` 을 건드리지 않는 외부 편집은 충돌로 잡히지 않는다. 실사용 쓰기는 전부 `PutSaveAsync` 를 거치므로 **기기 간 실제 충돌 감지는 유지**되며, 축소분은 수동 테스트 절차에만 영향을 준다.
+>
+> **데이터 모델**: `saves/{uid}` 에 `serverVersion`(timestamp) 추가 → §9 문서 갱신 대상에 포함.
 
 의미론이 동일하다 — "내가 마지막으로 본 버전 이후에 누가 썼으면 실패". 반환 타입 `CloudSaveResult` 계약이 그대로라 **배지·복원 권유 UX(계승 기획서 §3)는 코드 한 줄 바뀌지 않는다.**
 

@@ -29,7 +29,8 @@
 | `Packages/com.chvj.unityinfra/Runtime/Firebase/CHMFirebase.cs` | `FirebaseApp` 초기화 · 의존성 체크 · 준비 상태 노출. 도메인 무지 | 생성 | 2 |
 | `Packages/com.chvj.unityinfra/Runtime/Firebase/com.chvj.unityinfra.firebase.asmdef` | define 게이트 `UNITY_INFRA_FIREBASE` | 생성 | 2 |
 | `Packages/com.chvj.unityinfra/Editor/ChvjUnityInfraSettingsWindow.cs` | Firebase 탭 추가 (토글 + 가이드) | 수정 | 2 |
-| `Assets/_Lair/Scripts/Net/FirebaseSdkApiClient.cs` | `ILairApiClient` 8개 메서드 SDK 구현 | 생성 | 3·4·5 |
+| `Assets/_Lair/Scripts/Net/FirebaseSdkApiClient.cs` | `ILairApiClient` 7개 메서드 SDK 구현 | 생성 | 3·4·5 |
+| `Assets/_Lair/Scripts/Lair.asmdef` | `references` 에 `com.chvj.unityinfra.firebase` 추가 (asmdef 어셈블리는 자동 참조되지 않음 — Task 3 에서 발견) | 수정 | 3 |
 | `Assets/_Lair/Scripts/Meta/MetaSession.Net.cs` | 초기화 대기 + 조립 교체 | 수정 | 3 |
 | `Assets/_Lair/Scripts/Village/VillageController.cs` | PlayMode 가드 · `MyAccountId` 제거 | 수정 | 6·7 |
 | `Assets/_Lair/Tests/PlayMode/VillageSmokePlayTests.cs` | Firebase 초기화 우회 가드 | 수정 | 6 |
@@ -219,12 +220,15 @@ git add ProjectSettings/ProjectSettings.asset Assets/google-services.json Assets
 
 > **Task 1 Step 3 판정 결과 (2026-07-28 확정)**: SDK 13.14.0 이 `.unitypackage` 로 `Assets/Firebase/` 에 설치됐고, `Firebase.App.dll` · `Firebase.Auth.dll` 은 **asmdef 없는 순수 precompiled DLL**(유일한 asmdef 은 내부용 `Firebase.App.Internal.asmdef`). → **자동 참조 방식**이므로 위 asmdef 을 그대로 쓰고 `Lair.asmdef` 는 수정하지 않는다.
 >
-> **단 미검증 리스크 1건**: `Assets/` 의 자동 참조 플러그인을 `Packages/` 의 asmdef 이 자동으로 참조하는지는 확인되지 않았다. Step 4 컴파일에서 `Firebase` 네임스페이스를 못 찾으면(CS0246) **폴백**한다 —
-> ```json
-> "overrideReferences": true,
-> "precompiledReferences": ["Firebase.App.dll", "Firebase.Auth.dll", "Firebase.Firestore.dll"]
-> ```
-> 이 폴백은 DLL 위치와 무관하게 동작한다. 폴백을 쓰게 되면 이 plan 의 해당 줄을 확정 값으로 갱신한다.
+> **미검증 리스크 — 해소됨 (2026-07-28, Task 2 실측)**: `Assets/` 의 자동 참조 플러그인을 `Packages/` 의 asmdef 이 자동으로 참조하는지가 미확인이었으나, **자동 참조가 동작함을 확인했다.** 근거는 에러 부재가 아니라 양성 증거 — `UNITY_INFRA_FIREBASE` 를 켠 뒤 `Library/ScriptAssemblies/com.chvj.unityinfra.firebase.dll` 이 실제로 산출됐다. **폴백 불필요**, 위 asmdef 을 그대로 쓴다.
+>
+> **⚠ 정정 (Task 3 에서 발견)**: 위 증거로 "`Lair.asmdef` 수정 불요" 라고 결론지었던 것은 **틀렸다.** 두 가지가 별개다 —
+> - *자동 참조 DLL*(`Firebase.App.dll` 등)은 `overrideReferences: false` 인 어셈블리가 자동으로 본다 → 위 asmdef 에 명시 참조 불요. **이 부분은 맞다.**
+> - *asmdef 으로 정의된 어셈블리*(`com.chvj.unityinfra.firebase`)는 **자동 참조되지 않는다.** 이를 쓰려는 어셈블리가 `references` 에 이름을 명시해야 한다.
+>
+> 따라서 **`Assets/_Lair/Scripts/Lair.asmdef` 의 `references` 에 `"com.chvj.unityinfra.firebase"` 를 추가해야 한다** (Task 3 에서 반영 완료). define 이 꺼져 어셈블리가 사라져도 참조는 깨끗하게 무시되는 것이 확인됐다.
+>
+> (참고 — 폴백이 필요했다면 `"overrideReferences": true` + `"precompiledReferences": ["Firebase.App.dll", "Firebase.Auth.dll", ...]` 였다. DLL 위치와 무관하게 동작하므로, 향후 Firestore 추가 후 참조가 깨지면 이 경로로 되돌아갈 수 있다.)
 >
 > `includePlatforms` 는 비워 둔다 — Social 과 달리 Firebase 는 에디터 플레이에서도 동작해야 한다.
 
@@ -262,15 +266,24 @@ namespace ChvjUnityInfra
 
         private async Task<bool> InitAsync()
         {
-            DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
-            if (status != DependencyStatus.Available)
+            try
             {
+                DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
+                if (status == DependencyStatus.Available)
+                {
+                    IsReady = true;
+                    return true;
+                }
                 Debug.LogWarning($"[CHMFirebase] 의존성 사용 불가: {status}");
-                IsReady = false;
-                return false;
             }
-            IsReady = true;
-            return true;
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[CHMFirebase] 초기화 실패: {e.Message}");
+            }
+            IsReady = false;
+            //# 실패는 캐싱하지 않는다 — 일시적 실패 뒤 다음 호출이 재시도할 수 있어야 한다.
+            _initTask = null;
+            return false;
         }
     }
 }
@@ -513,6 +526,28 @@ git add Assets/_Lair/Scripts/Net/FirebaseSdkApiClient.cs Assets/_Lair/Scripts/Ne
 
 ### Task 4: 세이브 — 조회 + 백업 + 트랜잭션 충돌 감지
 
+> ## ⚠ 설계 정정 (2026-07-28, 구현 중 실측) — 아래 코드 블록은 초안이며 실제 구현과 다르다
+>
+> **`Firebase.Firestore.dll` 13.14.0 의 `DocumentSnapshot` 에는 `UpdateTime` 이 존재하지 않는다.** `CreateTime`·`ReadTime` 도 없다(심볼 조사 결과 `get_Exists`·`get_Metadata` 는 있으나 시간 프로퍼티는 전무). REST API 에 있는 필드라 Unity SDK 에도 있으리라 가정한 것이 초안의 오류다. 따라서 아래 Step 1·2 코드의 `snap.UpdateTime` 참조는 **컴파일되지 않는다.**
+>
+> **채택된 대체 설계 — 문서가 스스로 버전을 들고 다닌다**:
+> - `saves/{uid}` 에 `serverVersion` 필드를 두고, 매 `PutSaveAsync` 가 `FieldValue.ServerTimestamp` 로 갱신한다
+> - 캐시 타입은 초안과 동일한 `Timestamp?` 라 `_saveUpdateTime` 필드를 그대로 재사용한다
+> - **의미론 동일** — "내가 마지막으로 본 버전 이후에 누가 썼으면 실패". `CloudSaveResult` 계약도 불변
+>
+> **3-way 분기가 필수인 이유**: 기존 REST 경로(`FirebaseApiClient`)가 쓴 문서에는 `serverVersion` 이 없다. 구분하지 않으면 **기존 유저의 첫 SDK 백업이 영구히 거짓 충돌**을 낸다.
+> 1. 문서 없음 → 최초 생성
+> 2. 문서 있고 `serverVersion` 없음 → 레거시 문서, 충돌 아님
+> 3. 문서 있고 `serverVersion` 있음 → 캐시와 비교
+>
+> `_saveDocExists` bool 이 이 분기를 보조한다. `GetSnapshotAsync`·`GetValue<T>` 도 `Source`·`ServerTimestampBehavior` 인자를 명시해야 한다.
+>
+> **알려진 범위 축소**: `serverVersion` 을 건드리지 않는 외부 편집(콘솔에서 `profile` 만 수정 등)은 충돌로 잡히지 않는다. 실사용 경로의 모든 쓰기는 `PutSaveAsync` 를 거쳐 `serverVersion` 을 스탬프하므로 **기기 간 실제 충돌은 정상 감지된다.** 이 축소는 수동 테스트 절차에만 영향을 주며 Task 6 게이트 B 절차를 정정했다.
+>
+> **데이터 모델 변경** → Task 8 의 `firebase-security-rules.md` 데이터 모델에 `serverVersion`(timestamp) 추가 필요.
+>
+> 아래 초안 코드는 **설계 의도의 기록으로만** 남긴다. 실제 구현은 커밋 `23e57ab` 을 보라.
+
 **Files:**
 - Modify: `Assets/_Lair/Scripts/Net/FirebaseSdkApiClient.cs` (`GetSaveAsync` · `PutSaveAsync` 실구현)
 
@@ -644,7 +679,8 @@ Expected:
 - Firebase 콘솔 Firestore 에 `saves/{uid}` 문서 생성
 - 필드 3종(`profile` 문자열 · `schemaVersion` 정수 · `updatedAt` 문자열) 확인
 - 한 번 더 백업 → **거짓 충돌 없이 성공** (재캐시 동작 확인)
-- 콘솔에서 문서를 직접 수정 후 백업 → **충돌 배지 노출** (충돌 감지 동작 확인)
+- 충돌 감지 확인 — **콘솔에서 `serverVersion` 필드를 수정**한 뒤 백업 → **충돌 배지 노출**
+  > 위 설계 정정 반영: `profile` 만 고치면 충돌로 잡히지 않는다(그 필드가 버전 기준이 아니므로). 더 실전에 가까운 대안은 **두 번째 클라이언트로 백업한 뒤 첫 클라이언트에서 백업**하는 것 — 이쪽이 실사용 충돌 경로와 동일하다.
 
 - [ ] **Step 5: 커밋(안)**
 
@@ -737,7 +773,11 @@ git add Assets/_Lair/Scripts/Net/FirebaseSdkApiClient.cs
 
 - [ ] **Step 2: `GetMyRankAsync` 구현 — Task 1 Step 4 판정에 따라 분기**
 
-> **Task 1 Step 4 판정이 "집계 가용" 이면 아래 (A) 를, "미가용" 이면 (B) 를 쓴다. 판정 없이 진행하지 않는다.**
+> **판정 완료 (2026-07-28) — (A) 집계 가용 경로를 쓴다.** Firestore 임포트 후 `Assets/Firebase/Plugins/Firebase.Firestore.dll`(184KB) 을 조사해 `AggregateQuery` · `AggregateQuerySnapshot` · `AggregateSource` · `get_Count` 심볼 존재를 확인했다. plan 이 쓰는 `WhereLessThan` · `RunTransactionAsync` · `SetOptions`/`MergeAll` 도 모두 존재한다. (`AggregateField` 는 없으나 sum/average 용이라 불필요.)
+>
+> 단 이는 어셈블리 심볼 증거이며 **API 형태(`query.Count.GetSnapshotAsync(AggregateSource.Server)`)까지 보증하지는 않는다.** 형태가 다르면 컴파일에서 즉시 드러나므로, 그때는 실제 시그니처에 맞춰 조정하되 **(B) 폴백으로 넘어가지 말고 보고하라** — 집계 자체는 존재하는 것이 확인됐다.
+>
+> **아래 (B) 는 실행하지 않는다.** 기록으로만 남긴다.
 
 **(A) 집계 가용 — 절대 등수**
 
@@ -1329,7 +1369,7 @@ git add CLAUDE.md .claude/rules/03-chvjpackage.md docs/design/firebase-security-
 - `IsRankedClearTime(long)` — T5 Step 2(A) 에서 정의·사용. (B) 분기를 타면 이 헬퍼도 그쪽에서 정의해야 함을 (B) 서술이 포함
 - `IsMyRow(row, myUid, myClearMs, alreadyFound)` 4-arg / `PickMyRow(rows, myUid, myClearMs)` 3-arg — T7 Step 1 테스트가 리플렉션으로 기대하는 시그니처와 Step 3 구현이 정확히 일치
 - `_saveUpdateTime` 타입 `Timestamp?` — T3 선언, T4 두 메서드에서 일관 사용
-- `PlayModeStubApiClient` — T6 에서만 정의·사용, `ILairApiClient` 8개 메서드 전부 구현
+- `PlayModeStubApiClient` — T6 에서만 정의·사용, `ILairApiClient` 7개 메서드 전부 구현
 
 **4. 순서 제약 검증**: spec §8 의 `게이트 A → 인프라 → 클라이언트 → 게이트 B → 삭제 → 문서` 가 T1~T8 순서와 일치한다. 삭제(T7)가 게이트 B(T6 Step 5) 뒤에 있어 롤백 가능 구간이 보존된다. T7 Step 1·2 가 테스트를 먼저 실패시키고 Step 3 이 구현을 맞추는 TDD 순서다.
 
