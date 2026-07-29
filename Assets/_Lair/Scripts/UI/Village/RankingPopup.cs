@@ -19,6 +19,8 @@ namespace Lair.UI
     {
         [SerializeField] private RankingPoolingScrollView _scrollView;
         [SerializeField] private CHText _emptyText;   //# 빈 목록/실패/오프라인 안내
+        [SerializeField] private GameObject _myRankContainer;   //# 스크롤 밖 고정 "내 순위" 영역
+        [SerializeField] private RankingCell _myRankCell;       //# 고정 영역 셀(풀링 대상 아님)
 
         public override void InitUI(UIArg arg)
         {
@@ -30,6 +32,8 @@ namespace Lair.UI
         {
             if (_emptyText != null)
                 _emptyText.gameObject.SetActive(false);
+            if (_myRankContainer != null)
+                _myRankContainer.SetActive(false);
 
             if (arg.Ranking == null)
             {
@@ -57,16 +61,20 @@ namespace Lair.UI
                 entries.Add(new RankingRowEntry { Row = row, IsMine = isMine });
             }
 
-            //# Top 100 밖이면 내 순위 행을 맨 아래에 붙여 항상 "내가 몇 등인지" 보이게(기획서 §4).
-            if (foundMineInTop == false)
-            {
-                List<RankingRowDto> mine = await arg.Ranking.GetMyRankAsync();
-                RankingRowDto myRow = PickMyRow(mine, myUid, myClearMs);
-                if (myRow != null)
-                    entries.Add(new RankingRowEntry { Row = myRow, IsMine = true });
-            }
-
             _scrollView.SetItemList(entries);
+
+            //# 내 순위는 Top 100 안팎 상관없이 스크롤 밖 고정 영역에 항상 표시(사용자 결정).
+            List<RankingRowDto> mine = await arg.Ranking.GetMyRankAsync();
+            //# 왕복 중 팝업이 닫혀 Destroy 됐을 수 있다 — Unity 의 destroyed 체크(this == null) 후 위젯 접근 금지.
+            if (this == null)
+                return;
+
+            RankingRowDto myRow = PickMyRow(mine, myUid, myClearMs);
+            if (myRow != null && _myRankContainer != null && _myRankCell != null)
+            {
+                _myRankContainer.SetActive(true);
+                _myRankCell.Bind(new RankingRowEntry { Row = myRow, IsMine = true });
+            }
         }
 
         //# "내 행" 식별 — uid 1차(양쪽 존재 시 권위 키, 유일 매칭). 동률 시 첫 매칭만(중복 강조 방지).
@@ -109,6 +117,8 @@ namespace Lair.UI
         private void ShowEmpty(string message)
         {
             _scrollView.SetItemList(new List<RankingRowEntry>());
+            if (_myRankContainer != null)
+                _myRankContainer.SetActive(false);
             if (_emptyText != null)
             {
                 _emptyText.gameObject.SetActive(true);
