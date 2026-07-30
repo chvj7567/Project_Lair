@@ -56,44 +56,6 @@
 
 ---
 
-## 🧩 한눈에 보는 구조
-
-게임 한 판은 **하나의 오케스트레이터(`BattleController`)가 작은 서비스·시스템들을 조립**하는 형태로 돌아갑니다. 트리거가 "언제 고를지"를 정하고, 플레이어의 픽이 데이터(카드)로 표현된 효과가 되어, 인터페이스 seam 을 통해서만 전투에 개입합니다.
-
-```mermaid
-flowchart TB
-    subgraph TRIG["① 트리거 — 언제 고르나"]
-      HP["영웅 HP 10% 하락"] --> PT[PassiveTrigger]
-      T30["60초 주기 (30·90·150·210·270초)"] --> AT[ActiveTrigger]
-    end
-    PT & AT --> Q["TriggerQueue + Pause<br/>(겹치면 한 장씩 순차)"]
-    Q --> PICK["3택 1 카드 선택"]
-
-    PICK --> BC{{"BattleController<br/>오케스트레이터"}}
-    BC -->|"카드 효과 적용"| CTX["IBattleContext<br/>전투 seam"]
-    CTX --> EFF["ICardEffect 28장<br/>(데이터 · 전투 코드 모름)"]
-    CTX --> SYN["4축 빌드 시너지 Tier"]
-
-    BC -->|"스폰 운영"| SPW["Spawner ring → 풀링(CHMPool)"]
-    BC -->|"상태 변화"| VM["BattleViewModel"]
-    VM -->|"이벤트(단방향)"| VIEW["HUD · View (MVVM)"]
-
-    HERO["영웅 HeroSkillRunner"] -->|"HP 페이즈 게이트"| HCTX["IHeroSkillContext<br/>스킬 seam"]
-    HCTX --> SPW
-```
-
-### 설계 원칙 — 왜 이렇게 짰는가
-
-| 원칙 | 무엇을 | 왜 (포트폴리오 관점) |
-|---|---|---|
-| **오케스트레이터 + 서비스 분리** | 라이프사이클은 `BattleController` 하나가 조율하고, 트리거·일시정지·큐·몬스터 버프·시너지 등은 각각 작은 POCO 서비스로 분리 | 로직이 한 거대 클래스에 뭉치지 않음. 각 규칙을 독립적으로 이해·교체·테스트 |
-| **인터페이스 seam 으로 의존성 역전** | 카드 효과는 `IBattleContext` 만, 영웅 스킬은 `IHeroSkillContext` 만 본다. 구체 전투 클래스를 전혀 모름 | ① 콘텐츠(카드/스킬)가 엔진 코드에 안 묶임 ② 가짜(fake) 컨텍스트로 "무엇을 했는가"를 Unity 없이 단위 테스트 |
-| **데이터 주도** | 카드·밸런스·영웅 스킬을 ScriptableObject 로, 카드 효과를 다형 직렬화로 저장. JSON 과 양방향 동기화 | 밸런싱·카드 추가가 코드 재컴파일 없이 데이터 편집으로 끝남 |
-| **MVVM 단방향** | 전투 상태(Model) → 가공(ViewModel) → 표시(View) 한 방향. ViewModel 은 화면을 모름 | 화면을 바꿔도 전투 로직이 안 흔들리고, ViewModel 단위 테스트 가능 |
-| **인프라 단방향 의존** | 게임 코드 → 공용 인프라 패키지(ChvjPackage) → Unity. 역참조 금지 | 리소스 로딩·풀링·UI 가 게임과 분리되어 재사용 가능한 토대 |
-
----
-
 ## ✨ 핵심 시스템 (게임 + 구조)
 
 각 시스템은 **무엇을 위한 것인지(게임)** 와 **어떻게/왜 그렇게 구성했는지(구조)** 로 설명합니다. 코드 디테일은 접은 블록 안에 둡니다.
@@ -439,6 +401,44 @@ graph LR
 ```
 
 </details>
+
+---
+
+## 🧩 한눈에 보는 구조
+
+게임 한 판은 **하나의 오케스트레이터(`BattleController`)가 작은 서비스·시스템들을 조립**하는 형태로 돌아갑니다. 트리거가 "언제 고를지"를 정하고, 플레이어의 픽이 데이터(카드)로 표현된 효과가 되어, 인터페이스 seam 을 통해서만 전투에 개입합니다.
+
+```mermaid
+flowchart TB
+    subgraph TRIG["① 트리거 — 언제 고르나"]
+      HP["영웅 HP 10% 하락"] --> PT[PassiveTrigger]
+      T30["60초 주기 (30·90·150·210·270초)"] --> AT[ActiveTrigger]
+    end
+    PT & AT --> Q["TriggerQueue + Pause<br/>(겹치면 한 장씩 순차)"]
+    Q --> PICK["3택 1 카드 선택"]
+
+    PICK --> BC{{"BattleController<br/>오케스트레이터"}}
+    BC -->|"카드 효과 적용"| CTX["IBattleContext<br/>전투 seam"]
+    CTX --> EFF["ICardEffect 28장<br/>(데이터 · 전투 코드 모름)"]
+    CTX --> SYN["4축 빌드 시너지 Tier"]
+
+    BC -->|"스폰 운영"| SPW["Spawner ring → 풀링(CHMPool)"]
+    BC -->|"상태 변화"| VM["BattleViewModel"]
+    VM -->|"이벤트(단방향)"| VIEW["HUD · View (MVVM)"]
+
+    HERO["영웅 HeroSkillRunner"] -->|"HP 페이즈 게이트"| HCTX["IHeroSkillContext<br/>스킬 seam"]
+    HCTX --> SPW
+```
+
+### 설계 원칙 — 왜 이렇게 짰는가
+
+| 원칙 | 무엇을 | 왜 (포트폴리오 관점) |
+|---|---|---|
+| **오케스트레이터 + 서비스 분리** | 라이프사이클은 `BattleController` 하나가 조율하고, 트리거·일시정지·큐·몬스터 버프·시너지 등은 각각 작은 POCO 서비스로 분리 | 로직이 한 거대 클래스에 뭉치지 않음. 각 규칙을 독립적으로 이해·교체·테스트 |
+| **인터페이스 seam 으로 의존성 역전** | 카드 효과는 `IBattleContext` 만, 영웅 스킬은 `IHeroSkillContext` 만 본다. 구체 전투 클래스를 전혀 모름 | ① 콘텐츠(카드/스킬)가 엔진 코드에 안 묶임 ② 가짜(fake) 컨텍스트로 "무엇을 했는가"를 Unity 없이 단위 테스트 |
+| **데이터 주도** | 카드·밸런스·영웅 스킬을 ScriptableObject 로, 카드 효과를 다형 직렬화로 저장. JSON 과 양방향 동기화 | 밸런싱·카드 추가가 코드 재컴파일 없이 데이터 편집으로 끝남 |
+| **MVVM 단방향** | 전투 상태(Model) → 가공(ViewModel) → 표시(View) 한 방향. ViewModel 은 화면을 모름 | 화면을 바꿔도 전투 로직이 안 흔들리고, ViewModel 단위 테스트 가능 |
+| **인프라 단방향 의존** | 게임 코드 → 공용 인프라 패키지(ChvjPackage) → Unity. 역참조 금지 | 리소스 로딩·풀링·UI 가 게임과 분리되어 재사용 가능한 토대 |
 
 ---
 
