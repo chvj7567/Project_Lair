@@ -30,14 +30,14 @@
 
 ```
 //# (X) 기획 변화가 있는데 코드 관점으로 나열
-- HeroSkillContext 스냅샷 버퍼로 열거-중-수정 분리
-- IHeroSkillContext.DamageMonstersInCone 추가, SkillGeometry.InCone radial 판정
+- EnemyStateContext 스냅샷 버퍼로 열거-중-수정 분리
+- IEnemyStateContext.ApplyAreaDamage 추가, AreaGeometry.InRadius 판정
 
 //# (O) 기획 변화가 있으면 — 게임이 어떻게 바뀌는지
-- 영웅 HP 90%부터 부채꼴 돌진, 60% 회전 블레이드, 30% 광역 노바를 자동 시전
+- 적이 체력 70%/40% 구간에서 패턴을 바꿔, 같은 거리에서 계속 싸우면 불리해진다
 
 //# (O) 순수 코드 변경이면 — 코드 사실 그대로 (예외)
-# [refactor] - ECardId enum 값명을 LittleGhost 테마로 일괄 변경
+# [refactor] - EEnemy enum 값명을 신규 네이밍 규칙으로 일괄 변경
 # [refactor] - CHText 래퍼 필드명 _txt → _label 리네임
 ```
 
@@ -91,11 +91,11 @@ git add <code_root>Scripts/Baz.cs <code_root>Scripts/Baz.cs.meta
 
 ## 예시 (기획 관점)
 ```
-# [feat] - 영웅이 HP 단계별로 자동 스킬을 쓰는 역서바이버 전투
+# [feat] - 적이 체력 구간마다 패턴을 바꾸는 단계형 전투
 
-- 영웅 HP 90%부터 부채꼴 돌진, 60% 회전 블레이드, 30% 광역 노바 자동 시전
-- 몰려오는 몬스터 무리를 쓸어담아 플레이어가 더 강한 빌드로 압도해야 하는 새 긴장축
-- 스킬 수치는 인스펙터/JSON 으로 튜닝 가능
+- 체력 70%/40% 구간에서 공격 패턴이 전환돼 한 자리에서 계속 싸울 수 없게 됨
+- 플레이어가 거리·타이밍을 다시 잡아야 하는 새 긴장축
+- 구간 수치는 인스펙터/SO 로 튜닝 가능
 ```
 
 ```
@@ -103,7 +103,7 @@ git add <code_root>Scripts/Baz.cs <code_root>Scripts/Baz.cs.meta
 ```
 
 ```
-# [asset] - 영웅 돌진 범위 이펙트가 맵에 가려 안 보이던 문제 수정
+# [asset] - 공격 범위 이펙트가 지형에 가려 안 보이던 문제 수정
 ```
 
 ## 금지 예시
@@ -112,5 +112,5 @@ feat: add pooling          //# (X) 영문 + 콜론 포맷
 [feat] add pooling         //# (X) # 누락
 # feat - add pooling       //# (X) 대괄호 누락
 # [feat] 풀링 추가          //# (X) ` - ` 구분자 누락
-# [fix] - HeroSkillContext NRE 수정   //# (X) 클래스명 등 코드 관점 — 기획 관점으로
+# [fix] - EnemyStateContext NRE 수정   //# (X) 클래스명 등 코드 관점 — 기획 관점으로
 ```

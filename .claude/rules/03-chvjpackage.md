@@ -38,8 +38,8 @@ Assets/ (게임 코드)  →  인프라 패키지 (infrastructure.path)  →  Un
 `CHMResource` / `CHMUI` 는 `Enum.ToString()` 을 키로 에셋을 로드한다. **Enum 값 이름 = 에셋 파일명(확장자 제외)** 이 정확히 일치해야 한다.
 
 **규칙**:
-1. **대소문자 정확히 일치** — `EUI.BattleHud` ↔ `BattleHud.prefab` (`BattleHUD` X)
-2. **Enum 은 카테고리별로 분리** — `EUI`, `EMonster`, `EHero` 등. 한 Enum 에 섞지 않음
+1. **대소문자 정확히 일치** — `EUI.MainHud` ↔ `MainHud.prefab` (`MainHUD` X)
+2. **Enum 은 카테고리별로 분리** — `EUI`, `EEnemy`, `EScene` 등. 한 Enum 에 섞지 않음
 3. **Enum 은 게임 코드의 `CommonEnum.cs` 에 정의** (Rule 02 §8)
 4. **Addressables 주소 = 파일명** 으로 등록
 5. **변경 시 Enum 과 파일명을 동시에 갱신** — 한쪽만 바뀌면 런타임 Load 실패
@@ -47,14 +47,14 @@ Assets/ (게임 코드)  →  인프라 패키지 (infrastructure.path)  →  Un
 
 ```csharp
 //# (X) 하드코딩 문자열 키
-CHMResource.Instance.Load<GameObject>("Slime", cb);
+CHMResource.Instance.Load<GameObject>("Grunt", cb);
 
 //# (X) Enum 값명과 파일명 불일치
-public enum EMonster { Slime }  //# 파일은 slime.prefab → 로드 실패
+public enum EEnemy { Grunt }  //# 파일은 grunt.prefab → 로드 실패
 
 //# (O)
-CHMResource.Instance.LoadAsync<GameObject>(EMonster.Slime);
-CHMUI.Instance.ShowUI(EUI.BattleHud);
+CHMResource.Instance.LoadAsync<GameObject>(EEnemy.Grunt);
+CHMUI.Instance.ShowUI(EUI.MainHud);
 ```
 
 에셋 명명 체크리스트:
@@ -137,7 +137,7 @@ Cell.prefab                      (Item 컴포넌트 — 재사용 가능한 단�
 | 클래스 | 책임 |
 |---|---|
 | `XxxPanel : MonoBehaviour` (또는 `UIBase`) | 컨테이너 — `[SerializeField] _scrollView` 인스펙터 참조. `Bind(vm)` 시 데이터 가공 → `_scrollView.SetItemList(data)` 호출 |
-| `XxxCardPoolingScrollView : CHPoolingScrollView<TItem, TData>` | ScrollView 컴포넌트 — `InitItem(item, data, index)` / `InitPoolingObject(item)` 만 오버라이드. `_origin` 은 인스펙터 |
+| `XxxPoolingScrollView : CHPoolingScrollView<TItem, TData>` | ScrollView 컴포넌트 — `InitItem(item, data, index)` / `InitPoolingObject(item)` 만 오버라이드. `_origin` 은 인스펙터 |
 | `XxxCell : MonoBehaviour` | Item — `[SerializeField]` 로 자식 컴포넌트 참조. `Bind(data)` / `OnEnable` 풀 재사용 리셋 |
 
 **금지 패턴**:
@@ -160,16 +160,16 @@ if (_panel == null) _panel = Instantiate(_panelPrefab, transform);
 //# (O) Panel — 인스펙터 ScrollView 참조 + SetItemList 호출만
 public class XxxPanel : MonoBehaviour
 {
-    [SerializeField] private XxxCardPoolingScrollView _scrollView;
+    [SerializeField] private XxxPoolingScrollView _scrollView;
 
-    public void Bind(BattleViewModel vm)
+    public void Bind(XxxViewModel vm)
     {
         vm.OnChanged += () => _scrollView.SetItemList(BuildData(vm));
     }
 }
 
 //# (O) ScrollView — InitItem 만
-public class XxxCardPoolingScrollView : CHPoolingScrollView<XxxCell, XxxCellData>
+public class XxxPoolingScrollView : CHPoolingScrollView<XxxCell, XxxCellData>
 {
     public override void InitItem(XxxCell item, XxxCellData data, int index)
         => item.Bind(data);
@@ -192,7 +192,7 @@ public class XxxCell : MonoBehaviour
 - [ ] `Cell.prefab` 은 별도 파일 — 재사용 가능
 - [ ] `Panel.prefab` 안에 ScrollView/Viewport/Content/origin Cell 정적 배치 (PrefabInstance 형태)
 - [ ] `Panel._scrollView` 인스펙터에 자식 ScrollView GameObject 드래그
-- [ ] `XxxCardPoolingScrollView._origin` 인스펙터에 origin Cell 인스턴스 드래그
+- [ ] `XxxPoolingScrollView._origin` 인스펙터에 origin Cell 인스턴스 드래그
 - [ ] Cell 의 `[SerializeField]` 자식 (`_background` / `_text` 등) 모두 인스펙터 참조 연결
 - [ ] origin Cell 인스턴스에서 컴포넌트 제거(`m_RemovedComponents`) 금지 — `_background` reference null 되어 시각 깨짐
 
@@ -207,8 +207,8 @@ public class XxxCell : MonoBehaviour
 **워크플로**:
 
 ```csharp
-//# 1) 사전 워밍 (권장) — BattleController.Start 등 진입점에서
-GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EMonster.Slime);
+//# 1) 사전 워밍 (권장) — 스테이지 진입점(Start) 등에서
+GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EEnemy.Grunt);
 if (prefab != null)
 {
     CHMPool.Instance.CreatePool(prefab, count: 5);
@@ -250,19 +250,19 @@ else
 
 ```csharp
 //# (X) 별도 파일
-//  CardSelectionPopup.cs + CardSelectionArg.cs
+//  SelectionPopup.cs + SelectionPopupArg.cs
 
 //# (O) 한 파일에 통합
 namespace <namespace>.UI
 {
     //# UIArg 는 UIBase 클래스 위에 정의
-    public class CardSelectionArg : UIArg
+    public class SelectionPopupArg : UIArg
     {
-        public IReadOnlyList<CardData> Choices;
-        public Action<CardData> OnPicked;
+        public IReadOnlyList<ItemData> Choices;
+        public Action<ItemData> OnPicked;
     }
 
-    public class CardSelectionPopup : UIBase { ... }
+    public class SelectionPopup : UIBase { ... }
 }
 ```
 

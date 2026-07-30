@@ -49,9 +49,10 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 - 5개 룰(00~04) 전부 준수. 특히 위 매핑표의 필독 룰을 전문으로 읽고 반영한다.
 - **MVVM** (Rule 02 §6): View 는 표시·입력만, 로직은 ViewModel. View ↔ VM ↔ Model 단방향.
 - **종속성 최소화** (Rule 02 §5): 인터페이스/주입 우선 — test-engineer 가 테스트 더블로 모킹할 수 있는 구조로 짠다. 이것이 test-engineer 의 작업 전제다.
+- **루트 파사드** (Rule 02 §10): 여러 컴포넌트로 쪼개지는 도메인은 루트 클래스 하나를 외부 진입점으로 두고, 하위는 `[SerializeField] private` 로 숨긴다. 루트가 `Awake` 에서 하위끼리 주입하고 `Update` 에서 갱신 순서를 쥔다. **루트의 대응 인터페이스는 소비자가 없어도 미리 정의한다.**
 - 본인이 짜는 테스트는 **"최소 정상 케이스 + 엣지 케이스 1개"** 수준만. 엣지 망라·회귀·통합은 test-engineer.
 - 풀 재사용 안전 (Rule 03 §4): 풀링 대상은 `OnEnable`/`OnDisable` 에서 상태를 리셋한다.
-- 불필요한 추상화·미래 대비 코드를 넣지 않는다 (YAGNI).
+- 불필요한 추상화·미래 대비 코드를 넣지 않는다 (YAGNI). **단 Rule 02 §10 이 요구하는 루트 인터페이스는 예외** — 소비자가 아직 없어도 정의한다.
 
 ### TDD 흐름 (자체 테스트 작성 시)
 
@@ -108,7 +109,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 
 코드 작성 후 code-reviewer 호출 *전* 본인이 다음을 점검한다:
 
-- **룰 위반 스캔** — 위 매핑표의 룰 전부 통과. 특히 자주 빠뜨리는 항목: `//` 일반 주석·`var`·`!` 부정 연산자·가드 절 외 중괄호 누락 (Rule 02), `Object.Instantiate`/`CreatePrimitive` 직접 호출 (Rule 03 §4), Legacy `Text`/`Button`/`Toggle` 직접 사용 (Rule 03 §3), 하드코딩 문자열 에셋 키 (Rule 03 §2), `Resources/` 사용 (Rule 04 §2).
+- **룰 위반 스캔** — 위 매핑표의 룰 전부 통과. 특히 자주 빠뜨리는 항목: `//` 일반 주석·`var`·`!` 부정 연산자·가드 절 외 중괄호 누락 (Rule 02), 하위 컴포넌트를 `public` 으로 노출·하위가 `GetComponent*` 로 부모/형제 탐색 (Rule 02 §10), `Object.Instantiate`/`CreatePrimitive` 직접 호출 (Rule 03 §4), Legacy `Text`/`Button`/`Toggle` 직접 사용 (Rule 03 §3), 하드코딩 문자열 에셋 키 (Rule 03 §2), `Resources/` 사용 (Rule 04 §2).
 - **타입/시그니처 일관성** — 메서드 시그니처가 호출부와 일치. 인터페이스의 메서드 이름이 구현 클래스 / 테스트 더블 / 사용처에서 동일. `MoveTo()` 와 `MoveToPosition()` 같이 한쪽만 바뀐 호출이 없는가.
 - **기획서 정합** — 기획서 "구현 요청사항" 의 Enum / Interface / 에셋 키 / SO 스키마 가 누락 없이 구현됐나. 추가로 넣은 것이 있다면 기획 범위 밖이 아닌가.
 - **풀 안전** (Rule 03 §4) — 풀링 대상 컴포넌트는 `OnEnable` / `OnDisable` 에서 상태 리셋. `Push` 후 재 `Pop` 시 이전 상태가 남지 않는가.

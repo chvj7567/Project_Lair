@@ -70,11 +70,11 @@ if (isAlive == false)
 ```csharp
 //# (X)
 var poolable = CHMPool.Instance.Pop(prefab, parent);
-var cards = new List<CardData>();
+var items = new List<ItemData>();
 
 //# (O)
 CHPoolable poolable = CHMPool.Instance.Pop(prefab, parent);
-List<CardData> cards = new List<CardData>();
+List<ItemData> items = new List<ItemData>();
 ```
 
 ---
@@ -144,6 +144,8 @@ void Awake() => _host = GetComponentInParent<IInventoryHost>();
 - [ ] 테스트 시 모킹이 가능한 구조인가?
 - [ ] `GetComponent*` 가 런타임 경로에 없는가? (`[SerializeField]` 또는 Awake 1회 캐싱으로 대체)
 
+> 여러 컴포넌트로 쪼개진 도메인 객체는 **§10 루트 파사드** 를 함께 본다 — 하위끼리의 상호 참조를 루트 주입으로 없애는 게 이 절의 실전 적용이다.
+
 ---
 
 ## 6. MVVM 패턴
@@ -212,6 +214,8 @@ _hpBarView.SetHp(cur, max);
 - [ ] View 의 자식 위젯이 모두 `[SerializeField] private` 인가? (`public` 노출 없음)
 - [ ] 외부가 자식 위젯을 직접 만지지 않고 의도 API 로만 호출하는가?
 
+> UI 가 아닌 도메인 객체(캐릭터·적·차량 등)에 같은 원칙을 적용한 것이 **§10 루트 파사드** 다.
+
 ---
 
 ## 7. 상위 스크립트는 인터페이스로 참조
@@ -241,7 +245,7 @@ public class ItemSlot : MonoBehaviour
 여러 시스템에서 참조되는 공용 Enum 은 `CommonEnum.cs` 에 모아 정의한다.
 
 **공용 Enum 기준** (하나라도 해당하면 CommonEnum.cs):
-1. 에셋 키 역할 — `EUI`, `EMonster`, `EHero`, `EScene`, `EStats`
+1. 에셋 키 역할 — `EUI`, `EEnemy`, `EScene`, `EAudio`
 2. 2개 이상 시스템/namespace 에서 참조
 3. 시스템 간 통신 계약
 
@@ -251,20 +255,19 @@ public class ItemSlot : MonoBehaviour
 //# 아래 <code_root> · <namespace> 는 project.md 의 해당 키 값으로 치환한다
 
 //# (X) 카테고리별 한 파일씩
-//  <code_root>Scripts/Data/EHero.cs, EMonster.cs, EUI.cs ...
+//  <code_root>Scripts/Data/EEnemy.cs, EUI.cs, EScene.cs ...
 
 //# (O) 한 파일에 카테고리별 Enum 정의
 namespace <namespace>.Data
 {
-    public enum EHero   { Knight }
-    public enum EMonster { Slime, Golem, Orc }
-    public enum EUI     { BattleHud, ResultPopup }
-    public enum EScene  { Battle }
-    public enum BattleResult { None, Win, Lose }
+    public enum EEnemy  { Grunt, Brute }
+    public enum EUI     { MainHud, ResultPopup }
+    public enum EScene  { Stage }
+    public enum EResult { None, Win, Lose }
 }
 ```
 
-파일이 200줄 초과 or Enum 카테고리 6개 이상이면 `CommonEnum.Asset.cs`, `CommonEnum.Battle.cs` 등 prefix 통일로 분할.
+파일이 200줄 초과 or Enum 카테고리 6개 이상이면 `CommonEnum.Asset.cs`, `CommonEnum.Play.cs` 등 prefix 통일로 분할.
 
 ---
 
@@ -296,6 +299,79 @@ namespace <namespace>.Character
 
 ---
 
+## 10. 루트 파사드 — 도메인 하나에 진입 클래스 하나
+
+여러 컴포넌트로 쪼개지는 도메인 객체(캐릭터·차량·적·건물 등)는 **루트 클래스 하나가 그 도메인의 유일한 외부 진입점**이 된다. 상세 기능은 하위 컴포넌트로 나누되, 전부 루트가 `[SerializeField] private` 로 소유하고 외부에 노출하지 않는다.
+
+§6.1(View 위젯 캡슐화) 의 게임플레이 판이다. UI 든 캐릭터든 원칙은 같다 — **내부 구성은 숨기고 의도 API 만 연다.**
+
+### 루트의 책임 3가지
+
+1. **조립점** — `Awake` 에서 하위 컴포넌트끼리 서로 주입한다. 하위가 부모나 형제를 `GetComponentInParent` / `GetComponentInChildren` 으로 거슬러 찾지 않는다 (§5).
+2. **프레임 순서 소유** — 하위 갱신 순서에 의존이 있으면 루트의 `Update` 가 순서를 쥔다. Script Execution Order 설정에 의존하지 않는다.
+3. **의도 API 노출** — 외부는 하위 컴포넌트가 아니라 루트에게 묻는다.
+
+### 인터페이스는 미리 뺀다
+
+루트 클래스는 **대응 인터페이스를 함께 정의한다 — 외부 소비자가 아직 없어도 미리 뺀다.** 인터페이스는 `CommonInterface.cs` (§9) 에 둔다.
+
+소비자가 생긴 뒤에 승격하면 이미 구체 클래스로 물린 호출부를 전부 고쳐야 한다. 처음부터 인터페이스로 열어두면 그 비용이 0 이고, test-engineer 가 테스트 더블을 붙일 자리도 함께 생긴다.
+
+```csharp
+//# (X) 하위 컴포넌트를 외부에 공개 — 결합도↑, 내부 구조 변경이 호출부로 샘
+public class XxxRoot : MonoBehaviour
+{
+    public XxxMover mover;
+    public XxxSensor sensor;
+}
+//  호출부:
+_xxx.mover.MoveTo(target);
+_xxx.sensor.transform.forward;
+
+//# (O) 루트가 private 소유 + 인터페이스로 의도 API 만 노출
+public interface IXxx
+{
+    Vector3 Position { get; }
+    void SetControlEnabled(bool enabled);
+}
+
+public class XxxRoot : MonoBehaviour, IXxx
+{
+    [SerializeField] private XxxMover _mover;
+    [SerializeField] private XxxSensor _sensor;
+
+    //# 조립점 — 하위끼리 직접 찾아가지 않게 루트가 주입 (Mover 는 ISensor 만 안다)
+    private void Awake() => _mover.Inject(_sensor);
+
+    //# 프레임 순서 소유 — 감지 결과가 이동의 입력이라 순서에 의존이 있다
+    private void Update()
+    {
+        _sensor.Tick();
+        _mover.Tick();
+    }
+
+    public Vector3 Position => transform.position;
+    public void SetControlEnabled(bool enabled) { /* 하위에 전파 */ }
+}
+//  호출부 — 루트(또는 IXxx)만 참조:
+_xxx.SetControlEnabled(false);
+```
+
+### 금지
+
+- 하위 컴포넌트를 `public` 필드/프로퍼티로 노출
+- 외부가 하위 컴포넌트를 직접 참조·조작 (`GetComponentInChildren` 으로 꺼내 만지는 것 포함)
+- 하위끼리 서로를 구체 클래스로 직접 찾아가기 — 루트가 인터페이스로 주입한다
+
+### 체크리스트
+
+- [ ] 이 도메인의 외부 진입 클래스가 **하나**인가?
+- [ ] 하위 컴포넌트가 모두 `[SerializeField] private` 인가?
+- [ ] 루트에 대응 인터페이스가 정의돼 있는가? (소비자 유무와 무관)
+- [ ] 하위가 부모/형제를 `GetComponent*` 로 찾지 않고 루트에게 주입받는가?
+
+---
+
 ## 적용 범위
 
 - 신규 작성 코드 전체
@@ -304,4 +380,4 @@ namespace <namespace>.Character
 ## 예외
 
 §1~4(문법 스타일): 예외 없음.
-§5~9(설계 원칙): 가벼운 화면은 MVP/MVC 허용(§6), 단일 구현체 internal 인터페이스 분리 유지(§9).
+§5~10(설계 원칙): 가벼운 화면은 MVP/MVC 허용(§6), 단일 구현체 internal 인터페이스 분리 유지(§9), 하위 컴포넌트가 1개뿐이면 루트 파사드 생략 가능(§10).

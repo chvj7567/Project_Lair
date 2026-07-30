@@ -47,12 +47,12 @@ Addressable 로 로드되는 모든 게임 에셋은 `<code_root>Art/` 하위에
 
 ```
 //# (X) 프리팹과 머티리얼이 같은 폴더에 섞임
-<code_root>Art/Characters/Slime.prefab
-<code_root>Art/Characters/Mat_Slime.mat  ← Materials/ 로
+<code_root>Art/Characters/Grunt.prefab
+<code_root>Art/Characters/Mat_Grunt.mat  ← Materials/ 로
 
 //# (O)
-<code_root>Art/Characters/Slime.prefab
-<code_root>Art/Materials/Mat_Slime.mat
+<code_root>Art/Characters/Grunt.prefab
+<code_root>Art/Materials/Mat_Grunt.mat
 ```
 
 에셋 파일명 = Enum 값명 (대소문자 일치) — Rule 03 §2 참조.
@@ -81,4 +81,4 @@ XxxUIPrefabBuilder.cs 실행 → ConfirmPopup/ToastView/... .prefab 생성
 체크리스트:
 - [ ] 이 에디터 툴이 프리팹을 *생성*하는 일회용 authoring 툴인가? → 생성 후 삭제
 - [ ] 생성된 프리팹·.meta 가 커밋되고 Addressable 등록까지 끝났는가? (Rule 03 §2)
-- [ ] 상시 빌드/파이프라인 툴(APK·Addressables 빌드 등)은 아닌가? → 그건 보존
+- [ ] 상시 빌드/파이프라인 툴(플레이어 빌드·Addressables 빌드 등)은 아닌가? → 그건 보존
