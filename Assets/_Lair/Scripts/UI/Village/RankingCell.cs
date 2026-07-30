@@ -10,6 +10,10 @@ namespace Lair.UI
     {
         public RankingRowDto Row;
         public bool IsMine;
+        //# 조회 성공 + 내 서버 행 없음 — 순위/시간 자리에 미등재 표기. 판정은 Popup 이 하고 셀은 표시만(Rule 02 §6).
+        public bool Unranked;
+        //# Unranked 일 때 표시할 내 닉네임 — 서버 행이 없어 DTO 가 없다.
+        public string UnrankedName;
     }
 
     //# 랭킹 한 행 — 순위/이름/시간/영웅. 풀 재사용 셀(Rule 03 §3 CHText).
@@ -29,6 +33,11 @@ namespace Lair.UI
         //# 내 행 배경 강조(반투명 청록 #2FB6A8 alpha 0.25) / 일반 행 투명.
         private static readonly Color MineBg = new Color(0.184f, 0.714f, 0.659f, 0.25f);
         private static readonly Color NormalBg = new Color(0f, 0f, 0f, 0f);
+        //# 미등재 표기 — 시간/영웅은 "00:00" 같은 가짜 기록으로 보이면 안 되므로 빈 값 기호.
+        //# 순위 칸은 83px/NoWrap/Ellipsis — 이 라벨(78px)보다 길어지면 경고 없이 "랭킹 없…" 로 잘린다.
+        private const string UnrankedRankLabel = "랭킹 없음";
+        private const string UnrankedValueLabel = "-";
+        private const string MineSuffix = " (나)";
 
         //# 풀 재사용 리셋 — 이전 행의 강조 잔존 방지(Rule 03 §4).
         private void OnEnable()
@@ -41,7 +50,14 @@ namespace Lair.UI
 
         public void Bind(RankingRowEntry entry)
         {
-            if (entry == null || entry.Row == null)
+            if (entry == null)
+                return;
+            if (entry.Unranked)
+            {
+                BindUnranked(entry);
+                return;
+            }
+            if (entry.Row == null)
                 return;
             RankingRowDto data = entry.Row;
 
@@ -52,13 +68,34 @@ namespace Lair.UI
             }
             if (_nameText != null)
             {
-                string suffix = entry.IsMine ? " (나)" : string.Empty;
+                string suffix = entry.IsMine ? MineSuffix : string.Empty;
                 _nameText.SetText(Truncate(data.displayName, 12) + suffix);
             }
             if (_timeText != null)
                 _timeText.SetText(FormatMs(data.clearTimeMs));
             if (_heroText != null)
                 _heroText.SetText(data.hero);
+            if (_background != null)
+                _background.color = entry.IsMine ? MineBg : NormalBg;
+        }
+
+        //# 미등재 표시 — 정상 경로가 건드리는 위젯 전부를 덮는다(프리팹 authoring 잔상/가짜 기록 방지).
+        private void BindUnranked(RankingRowEntry entry)
+        {
+            if (_rankText != null)
+            {
+                _rankText.SetText(UnrankedRankLabel);
+                _rankText.SetColor(RankDefault);
+            }
+            if (_nameText != null)
+            {
+                string suffix = entry.IsMine ? MineSuffix : string.Empty;
+                _nameText.SetText(Truncate(entry.UnrankedName, 12) + suffix);
+            }
+            if (_timeText != null)
+                _timeText.SetText(UnrankedValueLabel);
+            if (_heroText != null)
+                _heroText.SetText(UnrankedValueLabel);
             if (_background != null)
                 _background.color = entry.IsMine ? MineBg : NormalBg;
         }

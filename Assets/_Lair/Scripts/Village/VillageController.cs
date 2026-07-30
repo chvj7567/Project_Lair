@@ -204,6 +204,8 @@ namespace Lair.Village
                         Ranking = MetaSession.Ranking,
                         MyUid = AuthTokenStore.Uid,
                         MyBestClearTime = profile.BestClearTime,
+                        //# 미등재 표기용 닉네임 — 상단 HUD 와 같은 해석 경로(VM) 재사용, 두 곳이 다른 이름을 보이면 안 된다.
+                        MyDisplayName = _vm.DisplayName,
                     });
                     break;
 

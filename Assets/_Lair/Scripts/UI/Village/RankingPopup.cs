@@ -12,6 +12,8 @@ namespace Lair.UI
         //# "내 행" 최우선 식별 키(2026-07-14 Firebase 피벗) — 양쪽 uid 존재 시 이걸로만 매칭.
         public string MyUid;
         public float MyBestClearTime;   //# uid 미식별 시 fallback(초). 없으면 -1(MetaProfile.BestClearTime).
+        //# 미등재("랭킹 없음") 표시용 내 닉네임 — HUD 와 같은 해석 경로(VillageViewModel.DisplayName)로 주입.
+        public string MyDisplayName;
     }
 
     //# 최단클리어 랭킹 조회 — Top N + 내 순위. 통신 실패 시 빈 목록 + 안내(기획서 §4).
@@ -50,14 +52,15 @@ namespace Lair.UI
 
             //# Top 100 행 매핑 — "내 행" 표시(uid 1차 → BestClearTime 시간 fallback).
             List<RankingRowEntry> entries = new List<RankingRowEntry>();
-            bool foundMineInTop = false;
+            //# 목록에서 하이라이트한 내 행 — 고정 영역 폴백에 재사용. null 여부가 "이미 찾음" 판정을 겸한다.
+            RankingRowDto mineInTop = null;
             string myUid = arg.MyUid;
             int myClearMs = arg.MyBestClearTime > 0f ? Mathf.RoundToInt(arg.MyBestClearTime * 1000f) : -1;
             foreach (RankingRowDto row in top)
             {
-                bool isMine = IsMyRow(row, myUid, myClearMs, foundMineInTop);
+                bool isMine = IsMyRow(row, myUid, myClearMs, mineInTop != null);
                 if (isMine)
-                    foundMineInTop = true;
+                    mineInTop = row;
                 entries.Add(new RankingRowEntry { Row = row, IsMine = isMine });
             }
 
@@ -70,11 +73,23 @@ namespace Lair.UI
                 return;
 
             RankingRowDto myRow = PickMyRow(mine, myUid, myClearMs);
-            if (myRow != null && _myRankContainer != null && _myRankCell != null)
-            {
-                _myRankContainer.SetActive(true);
-                _myRankCell.Bind(new RankingRowEntry { Row = myRow, IsMine = true });
-            }
+            if (_myRankContainer == null || _myRankCell == null)
+                return;
+
+            //# 여기까지 왔으면 Top 조회 성공 = 연결 확인 — 내 행이 없어도 "랭킹 없음"으로 표시한다.
+            //# 오프라인/실패는 위 ShowEmpty 에서 컨테이너를 숨긴 채 종료하므로 이 경로에 오지 않는다.
+            _myRankContainer.SetActive(true);
+            _myRankCell.Bind(BuildMyEntry(myRow, mineInTop, arg.MyDisplayName));
+        }
+
+        //# 고정 "내 순위" 표시 데이터 — 내 순위 조회 행 우선, 없으면 Top 안의 내 행(조회 실패 시 목록과 모순 방지).
+        //# 둘 다 없으면 미등재 표기 + 내 닉네임. Top 밖 유저의 조회 실패는 계약상 구분 불가라 남는다.
+        private static RankingRowEntry BuildMyEntry(RankingRowDto myRow, RankingRowDto mineInTop, string myDisplayName)
+        {
+            RankingRowDto row = myRow ?? mineInTop;
+            if (row != null)
+                return new RankingRowEntry { Row = row, IsMine = true };
+            return new RankingRowEntry { Unranked = true, UnrankedName = myDisplayName, IsMine = true };
         }
 
         //# "내 행" 식별 — uid 1차(양쪽 존재 시 권위 키, 유일 매칭). 동률 시 첫 매칭만(중복 강조 방지).

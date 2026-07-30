@@ -24,6 +24,9 @@ namespace Lair.UI
     //# 클라우드 — 복원·표시명·충돌 권유 통합 팝업(기획서 §5). 표시·입력만(Rule 02 §6).
     public class CloudPopup : UIBase
     {
+        //# 수동 복원은 당분간 닫아둔다 — 충돌 감지 시 권유(배지)로만 복원한다. true 로 바꾸면 되살아난다.
+        private const bool ShowRestoreButton = false;
+
         [SerializeField] private CHText _connectionText;     //# 연결됨/오프라인
         [SerializeField] private CHText _displayNameText;    //# "표시명: 영주 #A3F9"
         [SerializeField] private CHButton _changeNameButton; //# [변경]
@@ -68,6 +71,7 @@ namespace Lair.UI
             if (_restoreButton != null)
             {
                 Action onRestore = cloudArg.OnRestore;
+                _restoreButton.gameObject.SetActive(ShowRestoreButton);
                 _restoreButton.OnClick(() => onRestore?.Invoke(), closeDisposable);
             }
 

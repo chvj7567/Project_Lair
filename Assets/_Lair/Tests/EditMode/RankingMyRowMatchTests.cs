@@ -117,5 +117,54 @@ namespace Lair.Tests.EditMode
         {
             Assert.IsNull(PickMyRow(new List<RankingRowDto>(), "u1", 123018));
         }
+
+        private static RankingRowEntry BuildMyEntry(RankingRowDto myRow, RankingRowDto mineInTop, string myDisplayName)
+        {
+            MethodInfo m = typeof(RankingPopup).GetMethod("BuildMyEntry", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(m, "RankingPopup.BuildMyEntry(3-arg) 를 찾을 수 없다");
+            return (RankingRowEntry)m.Invoke(null, new object[] { myRow, mineInTop, myDisplayName });
+        }
+
+        //# 정상 — 내 행이 있으면 서버 행 그대로(미등재 표기 없음).
+        [Test]
+        public void BuildMyEntry_내행이있으면_서버행을_그대로_표시한다()
+        {
+            RankingRowDto row = new RankingRowDto { uid = "u1", rank = 7, displayName = "영주", clearTimeMs = 123018 };
+            RankingRowEntry entry = BuildMyEntry(row, null, "무시될이름");
+            Assert.AreSame(row, entry.Row);
+            Assert.IsTrue(entry.IsMine);
+            Assert.IsFalse(entry.Unranked, "내 행이 있는데 미등재로 표시하면 안 된다");
+        }
+
+        //# 우선순위 — 내 순위 조회 행이 Top 폴백보다 앞선다(집계 순위가 권위).
+        [Test]
+        public void BuildMyEntry_내순위조회행이_Top폴백보다_우선한다()
+        {
+            RankingRowDto fromMyRank = new RankingRowDto { uid = "u1", rank = 7, clearTimeMs = 123018 };
+            RankingRowDto fromTop = new RankingRowDto { uid = "u1", rank = 3, clearTimeMs = 123018 };
+            RankingRowEntry entry = BuildMyEntry(fromMyRank, fromTop, "영주 #A3F9");
+            Assert.AreSame(fromMyRank, entry.Row);
+        }
+
+        //# 폴백 — 내 순위 조회가 비었어도 Top 안에서 찾았으면 그 행을 쓴다(목록/고정행 모순 방지).
+        [Test]
+        public void BuildMyEntry_내순위조회가비면_Top에서찾은_내행을_쓴다()
+        {
+            RankingRowDto fromTop = new RankingRowDto { uid = "u1", rank = 3, clearTimeMs = 123018 };
+            RankingRowEntry entry = BuildMyEntry(null, fromTop, "영주 #A3F9");
+            Assert.AreSame(fromTop, entry.Row);
+            Assert.IsFalse(entry.Unranked, "목록에 내 행이 있는데 미등재로 표시하면 화면이 자기모순이다");
+        }
+
+        //# 엣지 — 조회 성공 + 어디에도 내 행 없음: 미등재 표기 + 내 닉네임(가짜 기록 금지).
+        [Test]
+        public void BuildMyEntry_내행이없으면_미등재표기와_내닉네임을_넘긴다()
+        {
+            RankingRowEntry entry = BuildMyEntry(null, null, "영주 #A3F9");
+            Assert.IsNull(entry.Row, "서버 행이 없는데 가짜 행을 만들면 안 된다");
+            Assert.IsTrue(entry.Unranked);
+            Assert.IsTrue(entry.IsMine);
+            Assert.AreEqual("영주 #A3F9", entry.UnrankedName);
+        }
     }
 }
