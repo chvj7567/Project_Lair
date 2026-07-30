@@ -1,15 +1,15 @@
 ---
 name: start-develop
-description: Use ONLY when the user explicitly invokes this skill by name. Runs Project Lair's feature-development pipeline (game-designer through test-engineer) with a user-approval gate after the design doc. Do not auto-trigger from an ordinary feature request — explicit invocation required.
+description: Use ONLY when the user explicitly invokes this skill by name. Runs the project's feature-development pipeline (game-designer through test-engineer) with a user-approval gate after the design doc. Do not auto-trigger from an ordinary feature request — explicit invocation required.
 ---
 
 # start-develop — 기획→구현→테스트 파이프라인 (승인 게이트 버전)
 
 ## 개요
 
-사용자가 **명시적으로 호출했을 때만**, Project Lair 의 표준 협업 흐름(CLAUDE.md §7 "새 기능 개발")을 한 번에 오케스트레이션한다. 기획서 단계에서 **멈춰 사용자 승인을 받은 뒤** 구현으로 넘어간다.
+사용자가 **명시적으로 호출했을 때만**, 이 프로젝트의 표준 협업 흐름(`project.md` "협업 흐름 (Workflow)")을 한 번에 오케스트레이션한다. 기획서 단계에서 **멈춰 사용자 승인을 받은 뒤** 구현으로 넘어간다.
 
-메인 오케스트레이터는 **직접 코드를 짜지 않는다** (CLAUDE.md §6). 각 단계를 해당 서브에이전트에 위임한다.
+메인 오케스트레이터는 **직접 코드를 짜지 않는다** (Rule 00 "메인 오케스트레이터 행동 규칙"). 각 단계를 해당 서브에이전트에 위임한다.
 
 ## 호출 시 입력
 
@@ -43,7 +43,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 - qa-simulator(밸런스 시뮬)는 이 파이프라인에 포함하지 않는다. 게임플레이 영향이 커서 밸런스 검증이 필요하면 마무리 후 사용자에게 별도 호출을 제안한다.
 - 각 서브에이전트의 산출물·보고를 사용자에게 단계별로 간결히 전달한다.
-- 룰·위임 기준은 CLAUDE.md §5 / §6 / §7 을 따른다.
+- 룰은 `.claude/rules/01~04`, 위임·게이트 기준은 Rule 00 "메인 오케스트레이터 행동 규칙", 단계 순서는 `project.md` "협업 흐름 (Workflow)" 를 따른다.
 
 ## 에이전트 세션 관리
 

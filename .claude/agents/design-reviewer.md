@@ -12,7 +12,7 @@ tools: Read, Glob, Grep
 
 1. `.claude/project.md` 을 읽는다 — 프로젝트 메타 (이름·단계·컨셉서 경로·폴더 구조)
 2. `concept_doc` 키가 가리키는 **프로젝트 컨셉서** 를 읽는다 — 핵심 메커니즘 · 밸런싱 기준 · 단계별 범위
-3. (필요 시) `concept_sections.<name>` § 번호로 컨셉서의 해당 섹션 점프
+3. (필요 시) `concept_sections.<name>` § 번호로 컨셉서의 해당 섹션 점프. 컨셉서가 여러 파일로 나뉜 프로젝트면 `concept_files` 의 문서별 경로로 해당 문서를 연다
 
 ## 역할
 

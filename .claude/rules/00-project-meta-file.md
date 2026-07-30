@@ -39,16 +39,23 @@ Markdown. `## 섹션 ` 으로 그룹, `- **key**: value` 로 키-값. 중첩은 
 
 ## 선택 키
 - `concept_sections.<name>` — 컨셉서 안의 § 번호 단축키. agent 가 자주 점프하는 섹션 (예: `stage_scope: 11`)
-- `namespace` · `architecture` · `engine` · `language` · `test_framework` · `test_method_naming`
-- `balance_config_asset` · `card_data_folder` 같은 프로젝트 도메인 데이터 경로
+- `concept_files.<name>` — 컨셉서가 여러 파일로 나뉜 경우의 문서별 경로. `concept_sections` 와 택일
+- `namespace` · `architecture` · `engine` · `language` · `build_target` · `test_framework` · `test_method_naming`
+- `test_asmdef.production` · `edit_mode` · `play_mode` — 테스트 asmdef 이름
+- `editor_menu.<name>` — 검증 게이트로 쓰는 에디터 메뉴 경로 (예: `run_edit_mode_tests`). agent 가 UnityMCP `editor_execute_menu` 로 호출
+- `test_result_json` — EditMode 테스트 결과 JSON 경로. `editor_menu.*` 와 짝. PlayMode 결과가 별도 파일이면 `test_result_json_play_mode` 를 추가
+- `balance_config_asset` 등 프로젝트 도메인 데이터 경로 (도메인마다 키 이름이 다름)
 
 선택 키가 없으면 agent 는 해당 정보를 건너뛰거나 사용자에게 묻는다.
 
+**미구현 표시 규약** — 키가 가리키는 대상이 아직 없으면 값 뒤에 `⚠️ 미구현` 을 붙인다. agent 는 미구현 키를 근거로 검증 결과를 주장하지 않고 "검증 게이트 미구현 — 실행 불가" 로 보고한다. 이 표시가 없는데 대상이 없으면 agent 가 없는 실행 결과를 지어낼 수 있으므로, 대상 생성 시점에 표시를 제거하는 것까지가 규약이다.
+
 ## 갱신 규칙
 - **다른 프로젝트로 이전 시** — 이 파일만 새 프로젝트 값으로 갱신. agent / 룰은 그대로 둔다.
-- **단계 변경 시** (예: MVP → Alpha) — `stage` · `stage_goal` · `concept_sections` 를 갱신
+- **단계 변경 시** (예: MVP → Alpha) — `stage` · `stage_goal` · `concept_sections`(또는 `concept_files`) 를 갱신
 - **폴더 구조 변경 시** — `code_root` · `test_paths` · `docs.*` 를 갱신
-- **인프라 패키지 변경 시** — `infrastructure.*` 와 룰 07/11/12 (인프라 종속 룰) 을 함께 검토
+- **인프라 패키지 변경 시** — `infrastructure.*` 와 인프라 종속 룰(Rule 03) 을 함께 검토
+- **검증 게이트 구현 시** — `editor_menu.*` · `test_result_json` 의 `⚠️ 미구현` 표시 제거
 
 ## 읽기 패턴 (agent 측)
 agent 본문은 다음 패턴으로 메타 파일을 읽는다:

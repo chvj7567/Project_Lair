@@ -79,12 +79,14 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 
 | 주장 | 필수 evidence |
 |---|---|
-| "신규 EditMode 케이스 PASS" | UnityMCP `editor_execute_menu("Lair/Tests/Run EditMode Tests")` + `Library/lair-test-result.json` 의 `"done": true` + 신규 케이스명 PASS 라인 인용 |
-| "PlayMode 케이스 PASS" | 동등 PlayMode 메뉴 실행 + 결과 JSON 의 신규 케이스 PASS 인용 |
+| "신규 EditMode 케이스 PASS" | UnityMCP `editor_execute_menu(project.md `editor_menu.run_edit_mode_tests`)` + `test_result_json` 의 `"done": true` + 신규 케이스명 PASS 라인 인용 |
+| "PlayMode 케이스 PASS" | `editor_menu.run_play_mode_tests` 실행 + 결과 JSON 의 신규 케이스 PASS 인용 |
 | "기존 회귀 0건" | 전체 스위트 FAIL 카운트 0 |
 | "FAIL 1건 진단 완료" | 위 systematic-debugging 의 root cause + 기각 가설 보고 |
 
 환경상 실행 불가하면 "검증 보류 — 사용자 환경에서 확인 필요" 로 처리한다. 추측으로 "통과할 것" 이라 적지 않는다.
+
+**`editor_menu.*` / `test_result_json` 키가 `⚠️ 미구현` 이거나 없으면** 그 메뉴는 아직 존재하지 않는다. 테스트 코드는 작성하되 결과는 **"검증 게이트 미구현 — 실행 불가"** 로 보고하고, 러너 메뉴 신설이 필요하다는 점을 함께 알린다.
 
 ## 산출물 Self-Review
 
@@ -119,8 +121,8 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 **테스트 결과**: PASS N / FAIL 0
 
 **검증 evidence**:
-- 실행 커맨드: (예: `editor_execute_menu("Lair/Tests/Run EditMode Tests")`)
-- 결과 출처: `Library/lair-test-result.json` `"done": true`
+- 실행 커맨드: (`editor_execute_menu(<editor_menu.run_edit_mode_tests>)`)
+- 결과 출처: `<test_result_json>` `"done": true`
 - 신규 케이스 PASS 라인: (이름 인용)
 - (실행 불가했으면 "검증 보류 — 사유" 명시)
 

@@ -77,14 +77,16 @@ Unity `.meta` 파일은 **신규 추가(A)·삭제(D) 파일의 것만** 함께 
 수정(M) 파일의 `.meta` 는 포함하지 않는다.
 
 ```
+#  경로의 <code_root> 는 project.md 의 code_root 키 값으로 치환한다
+
 # (O) 새 파일 추가 시
-git add Assets/_Lair/Scripts/Foo.cs Assets/_Lair/Scripts/Foo.cs.meta
+git add <code_root>Scripts/Foo.cs <code_root>Scripts/Foo.cs.meta
 
 # (O) 파일 삭제 시
-git add Assets/_Lair/Scripts/Bar.cs Assets/_Lair/Scripts/Bar.cs.meta
+git add <code_root>Scripts/Bar.cs <code_root>Scripts/Bar.cs.meta
 
 # (X) 수정 파일의 meta 포함 금지
-git add Assets/_Lair/Scripts/Baz.cs Assets/_Lair/Scripts/Baz.cs.meta
+git add <code_root>Scripts/Baz.cs <code_root>Scripts/Baz.cs.meta
 ```
 
 ## 예시 (기획 관점)

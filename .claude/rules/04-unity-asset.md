@@ -25,17 +25,18 @@
 
 ## 2. 에셋 폴더 구조
 
-Addressable 로 로드되는 모든 게임 에셋은 `Assets/_Lair/Art/` 하위에 에셋 타입별로 정리한다.
+Addressable 로 로드되는 모든 게임 에셋은 `<code_root>Art/` 하위에 에셋 타입별로 정리한다. `<code_root>` 는 `project.md` 의 `code_root` 키 값이다.
 
 ```
-Assets/_Lair/Art/
-  ├ Characters/  — 캐릭터 프리팹 (영웅/몬스터)
+<code_root>Art/
+  ├ Characters/  — 캐릭터 프리팹 (플레이어/적)
   ├ FX/          — 이펙트/시각효과 프리팹
-  ├ UI/          — UI 프리팹 (BattleHud, ResultPopup 등)
-  ├ Cards/       — CardPool SO + Items/ 하위에 카드 데이터 SO
+  ├ UI/          — UI 프리팹
   ├ Materials/   — 모든 머티리얼
   └ Sprites/     — 모든 이미지/스프라이트
 ```
+
+위 5개는 어느 프로젝트에나 있는 공통 타입이다. **도메인 고유 에셋 타입은 프로젝트마다 폴더를 신설**하고 `project.md` 의 도메인 데이터 키에 경로를 등록한다 (예: 장비 SO → `Gear/`, 맵 SO → `Maps/`).
 
 각 폴더엔 그 타입만 둔다. 예: `UI/` 엔 UI 프리팹만 (이미지는 `Sprites/`, 머티리얼은 `Materials/`).
 
@@ -46,13 +47,12 @@ Assets/_Lair/Art/
 
 ```
 //# (X) 프리팹과 머티리얼이 같은 폴더에 섞임
-Assets/_Lair/Art/Characters/Slime.prefab
-Assets/_Lair/Art/Characters/Mat_Slime.mat  ← Materials/ 로
+<code_root>Art/Characters/Slime.prefab
+<code_root>Art/Characters/Mat_Slime.mat  ← Materials/ 로
 
 //# (O)
-Assets/_Lair/Art/Characters/Slime.prefab
-Assets/_Lair/Art/Materials/Mat_Slime.mat
-Assets/_Lair/Art/Cards/Items/SlimeHpBoost.asset
+<code_root>Art/Characters/Slime.prefab
+<code_root>Art/Materials/Mat_Slime.mat
 ```
 
 에셋 파일명 = Enum 값명 (대소문자 일치) — Rule 03 §2 참조.
@@ -63,17 +63,17 @@ Assets/_Lair/Art/Cards/Items/SlimeHpBoost.asset
 
 ## 3. 프리팹 생성 에디터 툴 — 생성 후 삭제 (일회용)
 
-프리팹을 **코드로 찍어내는 에디터 툴**(예: `*PrefabBuilder` / `Lair/Build/...` 메뉴)은 **프리팹을 생성한 직후 삭제**한다. 레포에 영구 보존하지 않는다.
+프리팹을 **코드로 찍어내는 에디터 툴**(예: `*PrefabBuilder` / `<Project>/Build/...` 메뉴)은 **프리팹을 생성한 직후 삭제**한다. 레포에 영구 보존하지 않는다.
 
 - **단일 진실은 생성된 프리팹(.prefab + .meta)** 이다 — 빌더가 아니다. 생성 후 프리팹을 직접 수정/관리한다.
 - 빌더를 남겨두면 (a) 실수로 재실행 시 손-편집한 프리팹을 덮어쓰고(clobber), (b) "빌더 vs 프리팹" 두 진실이 갈린다. 그래서 일회용으로 쓰고 지운다.
 - 프리팹 구조를 다시 찍어야 하면 그때 빌더를 재작성해 한 번 돌리고 다시 삭제한다.
-- 삭제 대상은 **프리팹 *생성*(authoring) 툴 한정.** 빌드/파이프라인 상시 툴(예: `LairPlayerBuilder` APK 빌드, `LairAddressableBuilder` Addressables 빌드)은 반복 사용하므로 **보존**한다.
+- 삭제 대상은 **프리팹 *생성*(authoring) 툴 한정.** 빌드/파이프라인 상시 툴(예: 플레이어 빌드 툴, Addressables 빌드 툴)은 반복 사용하므로 **보존**한다.
 
 ```
 //# (O) 생성 → 커밋엔 프리팹만, 빌더는 삭제
-LairServerUIPrefabBuilder.cs 실행 → ConfirmPopup/ToastView/... .prefab 생성
-→ 프리팹 5종 + .meta 커밋, LairServerUIPrefabBuilder.cs 는 삭제
+XxxUIPrefabBuilder.cs 실행 → ConfirmPopup/ToastView/... .prefab 생성
+→ 프리팹 5종 + .meta 커밋, XxxUIPrefabBuilder.cs 는 삭제
 
 //# (X) 빌더를 레포에 영구 보존 → 재실행 clobber 위험 + 이중 진실
 ```

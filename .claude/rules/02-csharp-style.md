@@ -248,11 +248,13 @@ public class ItemSlot : MonoBehaviour
 단일 시스템 내부 Enum(private·nested·impl detail) 은 해당 파일에 둔다.
 
 ```csharp
+//# 아래 <code_root> · <namespace> 는 project.md 의 해당 키 값으로 치환한다
+
 //# (X) 카테고리별 한 파일씩
-//  Assets/_Lair/Scripts/Data/EHero.cs, EMonster.cs, EUI.cs ...
+//  <code_root>Scripts/Data/EHero.cs, EMonster.cs, EUI.cs ...
 
 //# (O) 한 파일에 카테고리별 Enum 정의
-namespace Lair.Data
+namespace <namespace>.Data
 {
     public enum EHero   { Knight }
     public enum EMonster { Slime, Golem, Orc }
@@ -282,7 +284,7 @@ namespace Lair.Data
 //  IMover.cs, IHealth.cs, IAttacker.cs ...
 
 //# (O) 도메인 단일 파일
-namespace Lair.Character
+namespace <namespace>.Character
 {
     public interface IMover   { void MoveTo(Vector3 target); void Stop(); }
     public interface IHealth  { int Current { get; } bool IsAlive { get; } void TakeDamage(int amount); }

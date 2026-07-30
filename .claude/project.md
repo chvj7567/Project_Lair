@@ -41,6 +41,12 @@
   - **play_mode**: Lair.Tests.PlayMode
 - **test_framework**: Unity Test Framework (NUnit)
 - **test_method_naming**: korean
+- **editor_menu** — UnityMCP `editor_execute_menu` 로 호출하는 검증 게이트 메뉴 (정의: `Assets/_Lair/Editor/LairTestRunner.cs`)
+  - **run_edit_mode_tests**: `Lair/Tests/Run EditMode Tests`
+  - **run_play_mode_tests**: `Lair/Tests/Run PlayMode Tests`
+  - **run_sim_batch**: `Lair/Tests/Run PlayMode Simulation`
+- **test_result_json**: `Library/lair-test-result.json` — EditMode 결과
+- **test_result_json_play_mode**: `Library/lair-test-result-playmode.json` — PlayMode 결과 (EditMode 와 별도 파일)
 - **infrastructure**
   - **package_id**: com.chvj.unityinfra
   - **alias**: ChvjPackage

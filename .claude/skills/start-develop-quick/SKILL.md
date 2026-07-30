@@ -1,17 +1,17 @@
 ---
 name: start-develop-quick
-description: Use ONLY when the user explicitly invokes this skill by name, or when the user selects it from the main orchestrator's pipeline-choice prompt. Runs Project Lair's lightest path — gameplay-programmer → code-reviewer only — for small bug fixes / renames / minor edits with no design or test work. Skips game-designer, design-reviewer, user-approval gate, test-engineer, qa-simulator, and superpowers 0·1 stages. Do not auto-trigger from an ordinary feature request.
+description: Use ONLY when the user explicitly invokes this skill by name, or when the user selects it from the main orchestrator's pipeline-choice prompt. Runs the project's lightest path — gameplay-programmer → code-reviewer only — for small bug fixes / renames / minor edits with no design or test work. Skips game-designer, design-reviewer, user-approval gate, test-engineer, qa-simulator, and superpowers 0·1 stages. Do not auto-trigger from an ordinary feature request.
 ---
 
 # start-develop-quick — 간단 수정 전용 파이프라인 (최경량 버전)
 
 ## 개요
 
-사용자가 **명시적으로 호출했거나, 메인 오케스트레이터가 제시한 후보 중 사용자가 선택한 경우에만** 발동한다. Project Lair 의 협업 흐름 4종 중 가장 가볍다 — `gameplay-programmer` 와 `code-reviewer` 만 돌린다.
+사용자가 **명시적으로 호출했거나, 메인 오케스트레이터가 제시한 후보 중 사용자가 선택한 경우에만** 발동한다. 이 프로젝트의 협업 흐름 4종 중 가장 가볍다 — `gameplay-programmer` 와 `code-reviewer` 만 돌린다.
 
 오타 · 리네임 · 문구·색상값 변경 · 단일 함수 안의 소규모 버그 수정 같은 **사소한 수정** 전용. 본격 기능 · 머지 대상 · 회귀 위험 있는 변경은 `start-develop` 또는 `start-develop-auto` / `start-develop-simple` 을 쓴다.
 
-메인 오케스트레이터는 **직접 코드를 짜지 않는다** (CLAUDE.md §6). 각 단계를 해당 서브에이전트에 위임한다.
+메인 오케스트레이터는 **직접 코드를 짜지 않는다** (Rule 00 "메인 오케스트레이터 행동 규칙"). 각 단계를 해당 서브에이전트에 위임한다.
 
 ## 호출 시 입력
 
@@ -27,7 +27,7 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 
 1. **gameplay-programmer** 위임 → 수정 구현.
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
-2. **code-reviewer** 위임 → 코딩 룰(Rule 00~04)(`CLAUDE.md §5`) 준수 + 사용자 의도와의 부합 검토.
+2. **code-reviewer** 위임 → 코딩 룰(`.claude/rules/00~04`) 준수 + 사용자 의도와의 부합 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
    - **에셋 한정 게이트** — 1단계 변경이 순수 에셋 등록/적용(코드 변경 0건)이면 code-reviewer spawn 전에 사용자에게 "리뷰 진행 / 생략하고 커밋 메시지" 선택지를 먼저 제시한다 (Rule 00 "에셋 한정 사이클 — 리뷰 생략 선택지 게이트" 참조). 코드 변경이 1건이라도 있으면 게이트 없이 직진.
 3. **마무리** — 변경사항 요약 + 한글 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 변경 파일 `git add` 까지만.
@@ -43,7 +43,7 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 
 ## 규칙
 
-- 코딩 룰(Rule 00~04)(CLAUDE.md §5) · MVP 범위(§8) · 금지 사항(§9) 은 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
+- 코딩 룰(`.claude/rules/00~04`) 과 `project.md` 의 현재 단계 범위(`stage` · `stage_goal` · `concept_doc`) 는 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
 - `test-engineer` 를 스킵한다. 회귀 위험은 gameplay-programmer 의 자체 스모크 확인에 의존하며, 본격 회귀 테스트가 필요한 작업이면 본 스킬 대신 `start-develop-simple` 이상을 사용한다.
 - `qa-simulator` 도 포함하지 않는다. 밸런스 의심이 생기면 마무리 후 사용자에게 별도 호출을 제안한다.
 - 최종 커밋 — **절대 자동 커밋하지 않는다** (Rule 01). `git add` + 커밋 메시지(안) 까지만.

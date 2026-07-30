@@ -96,11 +96,13 @@ code-reviewer 가 BLOCKER/권장수정/의견을 보내오면 **무비판 동의
 | 주장 | 필수 evidence |
 |---|---|
 | "컴파일 0 에러" | UnityMCP `editor_recompile` 후 `editor_read_log` 의 에러 카운트 0 (또는 동등 커맨드 출력) |
-| "자체 테스트 통과" | UnityMCP `editor_execute_menu("Lair/Tests/Run EditMode Tests")` 실행 + `Library/lair-test-result.json` 의 `"done": true` + 신규 케이스 PASS 라인 |
+| "자체 테스트 통과" | UnityMCP `editor_execute_menu(project.md `editor_menu.run_edit_mode_tests`)` 실행 + `test_result_json` 의 `"done": true` + 신규 케이스 PASS 라인 |
 | "기획서 변경사항 반영" | 변경 파일 diff 의 핵심 라인 인용 |
 | "기존 회귀 0건" | 위 테스트 결과의 FAIL 카운트 0 |
 
 evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 불가능하면 그 사실을 명시하고 "검증 보류 — test-engineer / 사용자 환경에서 확인 필요" 로 처리한다.
+
+**`editor_menu.*` / `test_result_json` 키가 `⚠️ 미구현` 이거나 없으면** 해당 메뉴는 존재하지 않는다. 실행을 시도하지 말고 **"검증 게이트 미구현 — 테스트 실행 불가"** 로 보고한다. 없는 메뉴를 근거로 통과를 주장하는 것이 가장 큰 사고다.
 
 ## 산출물 Self-Review
 

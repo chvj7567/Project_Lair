@@ -8,9 +8,11 @@
 
 모든 작업은 `com.chvj.unityinfra` 패키지를 기준 인프라로 두고 진행한다.
 
-**위치**: `Packages/com.chvj.unityinfra/`
+**위치**: `project.md` 의 `infrastructure.path` (기본 `Packages/com.chvj.unityinfra/`)
 
-**모듈**: `Runtime/Core` · `Resource` · `Pool` · `Audio` · `UI` · `Ads` · `Iap` · `Social` · `Firebase` / `Editor/` / `Tests/`
+**모듈**: `Runtime/Core` · `Resource` · `Pool` · `Audio` · `UI` · `Network` · `Ads` · `Iap` · `Social` · `Firebase` / `Editor/` / `Tests/`
+
+> 실제 설치된 버전·모듈 구성은 `project.md` 의 `infrastructure.*` 가 단일 진실이다. 위 목록과 다르면 `project.md` 를 따른다.
 
 **가이드**:
 - 신규 기능 작성 전 패키지 내 동일/유사 기능 존재 여부 먼저 확인
@@ -21,7 +23,7 @@
 
 **의존성 방향** (역방향 참조 금지):
 ```
-Assets/ (게임 코드)  →  Packages/com.chvj.unityinfra  →  Unity 표준 패키지
+Assets/ (게임 코드)  →  인프라 패키지 (infrastructure.path)  →  Unity 표준 패키지
 ```
 
 체크리스트:
@@ -194,7 +196,7 @@ public class XxxCell : MonoBehaviour
 - [ ] Cell 의 `[SerializeField]` 자식 (`_background` / `_text` 등) 모두 인스펙터 참조 연결
 - [ ] origin Cell 인스턴스에서 컴포넌트 제거(`m_RemovedComponents`) 금지 — `_background` reference null 되어 시각 깨짐
 
-**참고**: `BuildModalPopup.prefab` + `BuildModalCardCell.prefab` + `BuildModalCardPoolingScrollView` 가 단일 진실의 예시.
+**참고**: `XxxPopup.prefab` + `XxxCell.prefab` + `XxxPoolingScrollView` 3종 세트가 이 구조의 형태다. 프로젝트에 이미 구현된 예시가 있으면 그것을 참조하고, 없으면 위 스켈레톤을 그대로 따른다.
 
 ---
 
@@ -235,8 +237,8 @@ else
 워밍 권장 count:
 | 대상 | count |
 |---|---|
-| 영웅 | 1 |
-| 자연 스폰 몬스터 | 3 + α |
+| 플레이어 캐릭터 | 1 |
+| 상시 스폰 적 유닛 | 3 + α |
 | 시각 이펙트 | 1~2 |
 | 발사체 | 10~20 |
 
@@ -251,7 +253,7 @@ else
 //  CardSelectionPopup.cs + CardSelectionArg.cs
 
 //# (O) 한 파일에 통합
-namespace Lair.UI
+namespace <namespace>.UI
 {
     //# UIArg 는 UIBase 클래스 위에 정의
     public class CardSelectionArg : UIArg
