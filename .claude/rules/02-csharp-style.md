@@ -372,6 +372,58 @@ _xxx.SetControlEnabled(false);
 
 ---
 
+## 11. 게임 데이터 저작 — JSON 우선, ScriptableObject 는 정적 설정 전용
+
+**콘텐츠·밸런스 데이터**(무기·장비·적 스탯 등 플레이 밸런싱으로 자주 바뀌는 값)는 **JSON** 으로 저작한다. **ScriptableObject 는 거의 바뀌지 않는 정적 설정**(서버 주소, 빌드 타깃 값, 인프라 참조처럼 코드 배선에 가까운 값)에 한정한다.
+
+이 구분은 특정 인프라 패키지에 종속되지 않는다 — 어떤 리소스 로더를 쓰든 "자주 바뀌는 콘텐츠는 텍스트로, 거의 안 바뀌는 배선은 직렬화 객체로" 원칙은 유지된다.
+
+**판단 기준**:
+- **JSON 대상**: 반복 로우가 있는 데이터(무기 여러 종·적 스탯 테이블), 밸런스 수치, 자주 튜닝되는 값. 단일 인스턴스라도 "콘텐츠 밸런싱"이면 JSON — 로우 개수가 아니라 **자주 바뀌는가**가 기준이다.
+- **SO 대상**: 서버 주소·API 엔드포인트, 인프라 참조, 빌드/배포 설정. **`UnityEngine.Object` 참조(프리팹·머티리얼·컴포넌트 등)를 담아야 하는 데이터**도 SO 유지 — JSON 은 에셋 레퍼런스를 담지 못한다.
+
+**로드 패턴** — 인프라의 Enum 키 로드 규약(Rule 03 §2)을 텍스트 에셋에 그대로 적용한다:
+
+```csharp
+//# 1) 로드 — 리소스 로더로 TextAsset 을 Enum 키로 가져온다 (Rule 03 §2 파일명=Enum값명 그대로 적용)
+TextAsset json = await CHMResource.Instance.LoadAsync<TextAsset>(EWeaponData.AssaultRifle);
+
+//# 2) 파싱 — 배열이면 JsonArrayUtility, 단일 객체면 JsonUtility.FromJson 그대로
+WeaponRow[] rows = JsonArrayUtility.FromJsonArray<WeaponRow>(json.text);
+```
+
+```csharp
+//# (X) 콘텐츠 밸런스 값을 SO 필드로
+[CreateAssetMenu(...)]
+public class WeaponData : ScriptableObject
+{
+    [SerializeField] private int _damage = 10;
+    [SerializeField] private float _roundsPerMinute = 600f;
+}
+
+//# (O) 순수 데이터는 JSON 직렬화 클래스로만 (MonoBehaviour/ScriptableObject 아님)
+[Serializable]
+public class WeaponRow
+{
+    public string id;
+    public int damage;
+    public float roundsPerMinute;
+    public Vector2[] recoilKicks;
+}
+```
+
+**예외** — SO 로 남기는 경우:
+- 프리팹·머티리얼·AudioClip 등 `UnityEngine.Object` 참조를 필드로 가져야 할 때 (JSON 은 이걸 못 담는다)
+- 인스펙터에서 컴포넌트끼리 드래그로 연결해야 하는 배선용 데이터
+
+체크리스트:
+- [ ] 이 데이터가 "자주 튜닝되는 콘텐츠"인가, "거의 안 바뀌는 시스템 설정"인가?
+- [ ] `UnityEngine.Object` 참조가 필요한가? → 필요하면 SO, 아니면 JSON
+- [ ] JSON 파일명이 Enum 값명과 정확히 일치하는가 (Rule 03 §2)?
+- [ ] 배열 JSON 이면 `JsonArrayUtility.FromJsonArray<T>` 를 쓰는가 (`JsonUtility` 는 최상위 배열을 직접 못 읽는다)?
+
+---
+
 ## 적용 범위
 
 - 신규 작성 코드 전체
@@ -380,4 +432,4 @@ _xxx.SetControlEnabled(false);
 ## 예외
 
 §1~4(문법 스타일): 예외 없음.
-§5~10(설계 원칙): 가벼운 화면은 MVP/MVC 허용(§6), 단일 구현체 internal 인터페이스 분리 유지(§9), 하위 컴포넌트가 1개뿐이면 루트 파사드 생략 가능(§10).
+§5~11(설계 원칙): 가벼운 화면은 MVP/MVC 허용(§6), 단일 구현체 internal 인터페이스 분리 유지(§9), 하위 컴포넌트가 1개뿐이면 루트 파사드 생략 가능(§10).
