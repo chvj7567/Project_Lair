@@ -422,6 +422,73 @@ public class WeaponRow
 - [ ] JSON 파일명이 Enum 값명과 정확히 일치하는가 (Rule 03 §2)?
 - [ ] 배열 JSON 이면 `JsonArrayUtility.FromJsonArray<T>` 를 쓰는가 (`JsonUtility` 는 최상위 배열을 직접 못 읽는다)?
 
+### 11-1. JSON row 클래스 설계 절차 — 정규화
+
+**새 JSON row 클래스를 설계할 때는, 지금 당장 다른 데이터와 연관이 없어 보여도 처음부터 아래 절차를 따른다.** 나중에 관계가 생겨서 리팩터링하는 게 아니라, 설계 시점에 미리 분해해 둔다.
+
+1. **이 row 의 핵심 엔티티가 무엇인지 먼저 정한다** — "이 데이터는 무엇 하나를 표현하는가"를 한 문장으로 답할 수 있어야 한다.
+2. **그 엔티티 고유의 데이터만 row 에 남긴다** — 다른 개념(다른 엔티티, 다른 row, 외부 콘텐츠)을 가리키는 필드는 전부 후보에서 뺀다.
+3. **관계로 보이는 필드는 "선택적 관계"인지 "필수 1:1 관계"인지로 가른다.**
+   - **선택적 관계**(일부 row 에만 존재) → 별도 "관계 데이터"(별도 JSON)로 분리하고 상위 엔티티의 ID로 매칭한다. 관계가 있는 row 만 존재하게 해서 `-1`/`0`/`null` 같은 sentinel 값을 쓰지 않는다 — sentinel 값은 "관계가 없다"를 "관계가 있는데 값이 -1이다"로 오독하게 만든다. 지금은 상대편 데이터가 없어도, 그 관계 자체를 처음부터 별도 JSON 으로 모델링한다.
+   - **필수 1:1 관계**(모든 row 에 항상 정확히 하나씩 존재) → sentinel 문제가 애초에 없으므로, 엔티티가 그 참조를 관계 데이터 없이 직접 필드로 들어도 된다.
+4. **복합 키는 "하나의 row 가 그룹 내 여러 항목 중 하나"일 때 쓴다** — 단일 ID 하나로는 "이 row 들이 한 그룹에 속하고, 그 그룹 안에서 순서·구분이 있다"는 사실을 표현할 수 없다. 이럴 때 `groupId`(그룹 식별) + `index`(그룹 내 순서/구분) 조합을 키로 쓴다. 그룹 안에 원소가 정확히 하나뿐인 관계라면 쓰지 않는다 — 단일 ID로 충분하다.
+5. **관계 데이터 이름은 부모 엔티티 이름을 접두사로 언더스코어(`_`)로 잇는다** — `<부모>_<관계명>` 형태로 짓는다(예: `Quest` 엔티티의 보상 관계 데이터 → `Quest_Reward`, 클래스명은 `Quest_RewardRow`, JSON 파일/Enum 값명도 동일하게 `Quest_Reward`). 그 관계 데이터 아래에 또 하위 관계가 있으면 한 단계씩 계속 이어 붙인다 — `<부모>_<관계명>_<하위관계명>`. 이름만 보고 어느 엔티티에서 몇 단계 파생됐는지 알 수 있어야 한다.
+
+```csharp
+//# (X) 관계·선택적 데이터를 엔티티 row 에 직접 얹고, 없는 경우 sentinel 로 채움
+[Serializable]
+public class QuestRow
+{
+    public string title;
+    public int giverNpcId = -1;   //# NPC 관련 아니면 -1 (sentinel)
+    public int rewardGold = 0;    //# 보상 없으면 0 (sentinel)
+}
+
+//# (O) 엔티티는 고유 데이터만, 선택적 관계는 이름 규칙(§11-1-5)을 따르는 별도 JSON 으로
+[Serializable]
+public class QuestRow
+{
+    public string title;
+}
+
+[Serializable]
+public class Quest_GiverRow   //# Quest 의 선택적 관계 — NPC 가 있는 퀘스트만 row 존재
+{
+    public int questId;
+    public int npcId;
+}
+
+[Serializable]
+public class Quest_RewardRow  //# Quest 의 선택적 관계 — 보상이 있는 퀘스트만 row 존재
+{
+    public int questId;
+    public int rewardItemId;   //# 필수 1:1이 아니라 "어떤 아이템인지"를 가리키는 선택적 관계라 별도 데이터에 둔다
+}
+
+[Serializable]
+public class ItemRow   //# Item 은 Quest 와 무관한 별개의 최상위 엔티티
+{
+    public string itemName;
+    public int itemEffectId;   //# 모든 아이템이 항상 하나씩 갖는 필수 1:1 관계라
+                                //# 관계 데이터 없이 직접 참조해도 된다 (§11-1-3)
+}
+
+[Serializable]
+public class Quest_StepRow   //# Quest 의 그룹 내 여러 row — 복합 키(§11-1-4)
+{
+    public int questId;     //# 그룹 식별
+    public int stepIndex;   //# 그룹 내 순서
+    public string stepText;
+}
+```
+
+체크리스트 (새 row 클래스를 설계할 때마다 순서대로 확인):
+- [ ] 이 데이터의 핵심 엔티티를 한 문장으로 정의했는가?
+- [ ] row 에 다른 엔티티의 ID를 직접 들고 있는 필드가 있는가? 있다면 모든 row 에 항상 존재하는 필수 1:1 관계인가, 일부 row 에만 있는 선택적 관계인가?
+- [ ] 선택적 관계인데 sentinel 값(`-1`/`0`/`null`)으로 채우고 있지 않은가? (관계 데이터로 분리했는가)
+- [ ] 한 row 가 "그룹 내 여러 항목 중 하나"를 표현하는가? 그렇다면 단일 ID 대신 `groupId`+`index` 복합 키를 썼는가?
+- [ ] 관계 데이터 이름이 `<부모>_<관계명>`(중첩이면 `<부모>_<관계명>_<하위관계명>`) 규칙을 따르는가?
+
 ---
 
 ## 적용 범위
