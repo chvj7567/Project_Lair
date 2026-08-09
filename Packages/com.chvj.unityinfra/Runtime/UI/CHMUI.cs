@@ -10,7 +10,8 @@ namespace ChvjUnityInfra
 {
     /// <summary>
     /// UI 매니저 — UI 캐싱/재사용/ESC 자동닫기.
-    /// 키는 Enum 베이스로 받아 게임별 EUI에 의존하지 않음.
+    /// 키는 이름 문자열(EnumNameCache 경유) — CHMResource 와 동일 계약이며 Enum 키 박싱을 없앤다.
+    /// 게임별 EUI 타입은 여전히 몰라도 됨(제네릭 &lt;TEnum&gt; 로 받음). Enum 매개변수 오버로드는 하위 호환용 Obsolete.
     /// </summary>
     public class CHMUI : CHSingleton<CHMUI>
     {
@@ -18,11 +19,11 @@ namespace ChvjUnityInfra
         private Transform _rootTransform;
 
         // 현재 활성 UI
-        private Dictionary<Enum, UIBase> _dicCurrentUI = new Dictionary<Enum, UIBase>();
+        private Dictionary<string, UIBase> _dicCurrentUI = new Dictionary<string, UIBase>();
         // 비동기 로딩 중 닫기 요청이 들어온 UI 키
-        private HashSet<Enum> _dicWaitCloseUI = new HashSet<Enum>();
+        private HashSet<string> _dicWaitCloseUI = new HashSet<string>();
         // 인스턴스화한 UI 캐시 (재사용용)
-        private Dictionary<Enum, UIBase> _dicCashingUI = new Dictionary<Enum, UIBase>();
+        private Dictionary<string, UIBase> _dicCashingUI = new Dictionary<string, UIBase>();
 
         public bool CheckUI => _dicCurrentUI.Count > 0;
 
@@ -161,7 +162,48 @@ namespace ChvjUnityInfra
 #endif
         }
 
+        /// <summary>박싱 없는 진입점. 게임 측은 이 오버로드로 자동 바인딩된다(제네릭 identity 변환이 Enum 박싱 변환보다 우선).</summary>
+        public void ShowUI<TEnum>(TEnum uiType, UIArg arg = null, Action<UIBase> callback = null) where TEnum : struct, Enum
+        {
+            ShowUIByName(EnumNameCache<TEnum>.Get(uiType), arg, callback);
+        }
+
+        /// <summary>ShowUI의 async/await 버전. 캔버스 확보·인스턴스 로드 실패 시 결과는 null.</summary>
+        public Task<UIBase> ShowUIAsync<TEnum>(TEnum uiType, UIArg arg = null) where TEnum : struct, Enum
+        {
+            TaskCompletionSource<UIBase> tcs = new TaskCompletionSource<UIBase>();
+            ShowUIByName(EnumNameCache<TEnum>.Get(uiType), arg, ui => tcs.TrySetResult(ui));
+            return tcs.Task;
+        }
+
+        /// <summary>박싱 없는 진입점.</summary>
+        public void CloseUI<TEnum>(TEnum uiType, bool reuse = false) where TEnum : struct, Enum
+        {
+            CloseUIByName(EnumNameCache<TEnum>.Get(uiType), reuse);
+        }
+
+        [Obsolete("제네릭 오버로드를 사용하세요 — Enum 매개변수는 박싱됩니다", false)]
         public void ShowUI(Enum uiType, UIArg arg = null, Action<UIBase> callback = null)
+        {
+            //# 여기서는 이미 호출부에서 박싱된 Enum 을 받은 뒤라 추가 박싱이 아님.
+            ShowUIByName(uiType.ToString(), arg, callback);
+        }
+
+        [Obsolete("제네릭 오버로드를 사용하세요 — Enum 매개변수는 박싱됩니다", false)]
+        public Task<UIBase> ShowUIAsync(Enum uiType, UIArg arg = null)
+        {
+            TaskCompletionSource<UIBase> tcs = new TaskCompletionSource<UIBase>();
+            ShowUIByName(uiType.ToString(), arg, ui => tcs.TrySetResult(ui));
+            return tcs.Task;
+        }
+
+        [Obsolete("제네릭 오버로드를 사용하세요 — Enum 매개변수는 박싱됩니다", false)]
+        public void CloseUI(Enum uiType, bool reuse = false)
+        {
+            CloseUIByName(uiType.ToString(), reuse);
+        }
+
+        private void ShowUIByName(string uiTypeName, UIArg arg, Action<UIBase> callback)
         {
             if (arg == null)
                 arg = new UIArg();
@@ -174,29 +216,21 @@ namespace ChvjUnityInfra
                     callback?.Invoke(null);
                     return;
                 }
-                ShowUIInternal(root, uiType, arg, callback);
+                ShowUIInternal(root, uiTypeName, arg, callback);
             });
         }
 
-        /// <summary>ShowUI의 async/await 버전. 캔버스 확보·인스턴스 로드 실패 시 결과는 null.</summary>
-        public Task<UIBase> ShowUIAsync(Enum uiType, UIArg arg = null)
-        {
-            var tcs = new TaskCompletionSource<UIBase>();
-            ShowUI(uiType, arg, ui => tcs.TrySetResult(ui));
-            return tcs.Task;
-        }
-
-        private void ShowUIInternal(Transform root, Enum uiType, UIArg arg, Action<UIBase> callback)
+        private void ShowUIInternal(Transform root, string uiTypeName, UIArg arg, Action<UIBase> callback)
         {
             // 캐시된 UI가 있다면 재사용
-            if (_dicCashingUI.TryGetValue(uiType, out var cached))
+            if (_dicCashingUI.TryGetValue(uiTypeName, out UIBase cached))
             {
-                ActivateUI(cached, uiType, arg, callback);
+                ActivateUI(cached, uiTypeName, arg, callback);
             }
             else
             {
                 // 비동기 로드 — 콜백에서 _dicWaitCloseUI 검사 (race 처리)
-                CHMResource.Instance.Instantiate<GameObject>(uiType, (ui) =>
+                CHMResource.Instance.Instantiate<GameObject>(uiTypeName, (ui) =>
                 {
                     //# 프리팹 로드/인스턴스 실패 — callback(null) 로 ShowUIAsync 의 await 가 멈추지 않게 한다.
                     if (ui == null)
@@ -235,30 +269,30 @@ namespace ChvjUnityInfra
                         return;
                     }
 
-                    _dicCashingUI[uiType] = newUI;
+                    _dicCashingUI[uiTypeName] = newUI;
 
                     //# 로딩 중에 CloseUI 요청이 들어왔다면 즉시 닫음 — 표시된 UI 없음이므로 callback(null).
-                    if (_dicWaitCloseUI.Contains(uiType))
+                    if (_dicWaitCloseUI.Contains(uiTypeName))
                     {
-                        _dicWaitCloseUI.Remove(uiType);
+                        _dicWaitCloseUI.Remove(uiTypeName);
                         newUI.gameObject.SetActive(false);
                         callback?.Invoke(null);
                         return;
                     }
 
-                    ActivateUI(newUI, uiType, arg, callback);
+                    ActivateUI(newUI, uiTypeName, arg, callback);
                 });
             }
         }
 
-        private void ActivateUI(UIBase uiBase, Enum uiType, UIArg arg, Action<UIBase> callback)
+        private void ActivateUI(UIBase uiBase, string uiTypeName, UIArg arg, Action<UIBase> callback)
         {
-            uiBase.Init(uiType);
+            uiBase.Init(uiTypeName);
             uiBase.InitUI(arg);
             uiBase.gameObject.SetActive(true);
             uiBase.transform.SetAsLastSibling();
 
-            _dicCurrentUI[uiType] = uiBase;
+            _dicCurrentUI[uiTypeName] = uiBase;
 
             callback?.Invoke(uiBase);
         }
@@ -268,34 +302,34 @@ namespace ChvjUnityInfra
             if (uiBase == null)
                 return;
 
-            CloseUI(uiBase.UIType, reuse);
+            CloseUIByName(uiBase.UITypeName, reuse);
         }
 
-        public void CloseUI(Enum uiType, bool reuse = false)
+        private void CloseUIByName(string uiTypeName, bool reuse)
         {
             // 활성 UI에 있다면 즉시 닫음
-            if (_dicCurrentUI.TryGetValue(uiType, out var uiBase))
+            if (_dicCurrentUI.TryGetValue(uiTypeName, out UIBase uiBase))
             {
                 uiBase.gameObject.SetActive(false);
-                _dicCurrentUI.Remove(uiType);
+                _dicCurrentUI.Remove(uiTypeName);
             }
             else
             {
                 // 아직 로딩 중이라면 닫기 대기열에 추가 (ShowUI 콜백에서 처리)
-                _dicWaitCloseUI.Add(uiType);
+                _dicWaitCloseUI.Add(uiTypeName);
             }
 
             if (reuse == false)
             {
-                RemoveCashingUI(uiType);
+                RemoveCashingUI(uiTypeName);
             }
         }
 
-        private void RemoveCashingUI(Enum uiType)
+        private void RemoveCashingUI(string uiTypeName)
         {
-            if (_dicCashingUI.TryGetValue(uiType, out var uiBase))
+            if (_dicCashingUI.TryGetValue(uiTypeName, out UIBase uiBase))
             {
-                _dicCashingUI.Remove(uiType);
+                _dicCashingUI.Remove(uiTypeName);
                 if (uiBase != null)
                 {
                     Destroy(uiBase.gameObject);

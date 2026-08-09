@@ -134,11 +134,11 @@ namespace Lair.Tests.PlayMode.UI
 
             SynergyModalPopupArg arg = new SynergyModalPopupArg { ViewModel = _vm };
 
-            //# UIBase.Init 은 internal — 같은 어셈블리가 아니므로 reflection 으로 호출 (UIType 세팅).
+            //# UIBase.Init 은 internal — 같은 어셈블리가 아니므로 reflection 으로 호출 (UITypeName 세팅).
             MethodInfo init = typeof(UIBase).GetMethod("Init",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(init, "UIBase.Init(Enum) 존재 확인");
-            init.Invoke(popup, new object[] { EUI.SynergyModalPopup });
+            Assert.IsNotNull(init, "UIBase.Init(string) 존재 확인");
+            init.Invoke(popup, new object[] { EUI.SynergyModalPopup.ToString() });
 
             popup.InitUI(arg);
             popup.gameObject.SetActive(true);
