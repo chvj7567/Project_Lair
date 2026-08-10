@@ -171,10 +171,9 @@ namespace ChvjUnityInfra
                 _loadedHandles.Remove(key);
             }
 
-            // address(string)으로 로드 — IResourceLocation 사용 시 ResourceType과 T가 정확히 일치해야 하지만
-            // 문자열 키로 로드하면 Addressables의 sub-asset resolution이 작동
-            // (예: Sprite-imported PNG location.ResourceType이 Texture2D여도 LoadAssetAsync<Sprite>가 sprite 반환).
-            var handle = Addressables.LoadAssetAsync<T>(key);
+            //# 저장된 location의 PrimaryKey(전체 주소 문자열)로 로드.
+            //# 줄인 키(key)가 아닌 정식 주소라 풀경로 등록 에셋도 로드 성공 + 문자열 로드라 sub-asset resolution(PNG→Sprite) 유지.
+            AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(_dicAssetInfo[key].PrimaryKey);
             _loadedHandles[key] = handle;
             handle.Completed += h =>
             {
