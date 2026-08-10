@@ -696,13 +696,12 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
     {
         liPoolItem.Clear();
 
-        //# 기존 풀링 오브젝트 가져오기
-        int childCount = _contentObject.transform.childCount;
-        GameObject[] arrChildObj = new GameObject[childCount];
-        for (int i = 0; i < childCount; ++i)
-        {
-            arrChildObj[i] = _contentObject.transform.GetChild(i).gameObject;
-        }
+        //# origin 은 항상 비활성 템플릿 — Awake 시점에 _origin 미할당이었던 경로 대비 재확인.
+        if (_origin != null)
+            _origin.SetActive(false);
+
+        //# 기존 풀링 오브젝트 가져오기 — origin 은 순수 템플릿이라 데이터 셀 목록에서 제외
+        List<GameObject> liChildObj = GetContentChildrenExcludingOrigin();
 
         Rect contentRect = GetViewConentRect();
         Rect itemRect = new Rect();
@@ -715,15 +714,15 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
             return contentRect.Overlaps(itemRect);
         });
 
-        for (int i = 0; i < childCount; ++i)
+        for (int i = 0; i < liChildObj.Count; ++i)
         {
-            arrChildObj[i].SetActive(true);
+            liChildObj[i].SetActive(true);
         }
 
-        for (int i = 0; i < arrChildObj.Length; ++i)
+        for (int i = 0; i < liChildObj.Count; ++i)
         {
             int index = i + firstIndex;
-            TItem item = arrChildObj[i].GetComponent<TItem>();
+            TItem item = liChildObj[i].GetComponent<TItem>();
 
             InitItem(item, index);
             PoolingScrollViewItem<TItem> poolItem = new PoolingScrollViewItem<TItem>() { index = index, item = item };
@@ -759,9 +758,28 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
         rectTransform.SetSiblingIndex(index);
     }
 
+    //# origin 은 Content 의 실제 자식이지만 복제 소스일 뿐 데이터 셀이 아니므로 목록에서 제외.
+    //# CreatePoolingObject 의 카운트 계산과 InitItem() 의 순회가 이 하나의 소스를 공유한다.
+    private List<GameObject> GetContentChildrenExcludingOrigin()
+    {
+        int childCount = _contentObject.transform.childCount;
+        List<GameObject> liChildObj = new List<GameObject>(childCount);
+
+        for (int i = 0; i < childCount; ++i)
+        {
+            GameObject child = _contentObject.transform.GetChild(i).gameObject;
+            if (child == _origin)
+                continue;
+
+            liChildObj.Add(child);
+        }
+
+        return liChildObj;
+    }
+
     private void CreatePoolingObject()
     {
-        int diff = _poolItemCount - _contentObject.transform.childCount;
+        int diff = _poolItemCount - GetContentChildrenExcludingOrigin().Count;
         diff = Mathf.Min(diff, liData.Count); //# 필요한 만큼만 풀링 생성
         if (diff > 0)
         {
