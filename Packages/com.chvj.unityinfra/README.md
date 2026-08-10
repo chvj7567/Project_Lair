@@ -45,38 +45,53 @@ public enum EJson  { Items, Stages }
 - 모든 리소스(UI 프리팹, 사운드, JSON, 폰트, 스프라이트 등)에 Addressables 라벨 **"Resource"** 부여
 - 파일명은 enum 항목명과 **정확히 일치** (예: `EUI.UIShop` → `UIShop.prefab`)
 
-### 3) 게임 부팅 코드 — `ChvjUnityInfraSDK.Initialize` 한 번 호출
+### 3) 게임 부팅 코드 — 매니저 개별 초기화
 ```csharp
 using ChvjUnityInfra;
 
 public async Task InitManager()
 {
-    await ChvjUnityInfraSDK.Initialize(new InfraInitConfig<EAudio>
-    {
-        ClickSoundHook    = () => CHMSound.Instance.Play(EAudio.Click),
-        StringProvider    = new GameStringProvider(),
-        FontProvider      = new GameFontProvider(),
-        AfterResourceInit = async () =>
-        {
-            // CHMResource.Init 직후 실행할 게임 측 작업 (JSON 로드, 폰트 로드 등)
-            await MyJsonLoader.LoadAllAsync();
-            await LoadFontAsync();
-        }
-    });
+    // 1. 리소스 매니저 — 다른 매니저의 전제, 항상 먼저
+    bool ok = await CHMResource.Instance.Init();
+    if (ok == false) return;   // 에러 처리
+
+    // 2. 게임 측 추가 로드 (JSON, 폰트 등 — CHMResource.Init 이후 아무 때나)
+    await MyJsonLoader.LoadAllAsync();
+    await LoadFontAsync();
+
+    // 3. 나머지 매니저 — 순서 무관, 필요한 것만
+    CHMUI.Instance.Init();
+    CHMPool.Instance.Init();
+    CHMSound.Instance.Init<EAudio>(EAudio.BGM);   // BGM 키 명시 (params, 0~N개)
+
+    // 4. 오디오 + UI hook/Provider 설정 (SDK에 묶이지 않음 — 필요한 것만)
+    CHButton.ClickSoundHook  = () => CHMSound.Instance.Play(EAudio.Click);
+    CHToggle.ChangeSoundHook = CHButton.ClickSoundHook;
+    CHText.StringProvider    = new GameStringProvider();
+    CHText.FontProvider      = new GameFontProvider();
+
+    // 5. 옵트인 모듈(Ads/IAP) — Tools/ChvjUnityInfra/Settings 에서 켜져 컴파일된 경우만 hook 존재
+    ChvjUnityInfraSDK.AdsInitHook?.Invoke();
+    ChvjUnityInfraSDK.IapInitHook?.Invoke();
 }
 ```
 
-내부에서 처리되는 것 (순서대로):
-1. `CHMResource.Init`
-2. `config.AfterResourceInit` (게임 측 추가 로드)
-3. `CHMUI.Init`, `CHMSound.Init<TAudio>`
-4. Hook + Provider 자동 등록 (`CHButton.ClickSoundHook`, `CHToggle.ChangeSoundHook`, `CHText.StringProvider`, `CHText.FontProvider`)
-5. 옵트인 모듈 — `Tools/ChvjUnityInfra/Settings`에서 켰을 때만:
-   - Use Admob ✓ → `CHMAdmob.Init` (AdConfig 자동 로드)
-   - Use IAP ✓ → `CHMIAP.Init` (IAPProductConfig 자동 로드)
-   - Use GPGS는 명시 Init 없음 — `CHMGPGS.Login` 시 자동 초기화
+유일한 순서 규칙: **`CHMResource.Init()`이 가장 먼저** — 나머지 매니저가 리소스 로드에 의존한다. 그 외 순서는 자유.
 
-모든 `InfraInitConfig` 필드는 nullable — 필요한 것만 채우면 됨.
+**옵트인 모듈 훅**은 `ChvjUnityInfraSDK.AdsInitHook`/`IapInitHook`(둘 다 `public static Action`)에 각 모듈 어셈블리가 스스로 등록한다. 모듈이 꺼져 어셈블리가 컴파일 안 되면 hook이 null이라 자동 스킵된다.
+
+---
+
+**편의 함수 — `ChvjUnityInfraSDK.Initialize(Func<Task> afterResourceInit = null)`**
+
+위 1~2번(`CHMResource.Init` → 게임 측 추가 로드) + `CHMUI.Init` + 5번(옵트인 훅)만 대신 처리해주는 선택적 래퍼다. `CHMPool`/`CHMSound`/훅·Provider 등록(3~4번)은 이 함수를 쓰든 안 쓰든 항상 직접 호출해야 하므로, 실익이 크지 않으면 위 개별 방식 하나로 통일하는 걸 권장한다.
+
+```csharp
+await ChvjUnityInfraSDK.Initialize(async () =>
+{
+    await MyJsonLoader.LoadAllAsync();
+});
+```
 
 ### 4) Provider 구현체 (CHText의 i18n/폰트 쓰는 경우)
 ```csharp
