@@ -33,7 +33,7 @@ Assets/_Lair/                  게임 코드·에셋  (주의: _Project 가 아�
   Scenes/                      Battle.unity
 Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
 .claude/
-  rules/                       코딩 룰 01~14  ← 단일 진실의 원천
+  rules/                       코딩 룰 00~04  ← 단일 진실의 원천
   agents/                      서브에이전트 정의
 docs/
   design/                      project_lair_concept.md (컨셉) + game-designer 기능 기획서
