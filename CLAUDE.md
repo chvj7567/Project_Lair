@@ -37,8 +37,8 @@ Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
   agents/                      서브에이전트 정의
 docs/
   design/                      project_lair_concept.md (컨셉) + game-designer 기능 기획서
-  superpowers/specs/           메인 brainstorming 산출물 — 의도·범위·메커니즘 윤곽
-  superpowers/plans/           메인 writing-plans 산출물 — 단계별 구현 계획
+  superpowers/specs/           과거 기능별 의도·범위 스펙 문서 (레거시 보관)
+  superpowers/plans/           과거 단계별 구현 계획 문서 (레거시 보관)
   qa-reports/                  qa-simulator 시뮬레이션 리포트
 ```
 
@@ -50,7 +50,7 @@ docs/
 
 ## 6. 멀티 에이전트 위임
 
-6개 서브에이전트가 `.claude/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.**
+4개 서브에이전트가 `.claude/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.**
 
 - 에이전트 목록 · 역할 · 호출 시점 · 보고 형식 → 각 `.claude/agents/<name>.md` 전문
 - 단계별 위임 순서 (누구를 언제 호출할지) → `.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션
@@ -59,13 +59,11 @@ docs/
 
 ## 7. 표준 협업 흐름
 
-표준 흐름·간이 흐름·밸런스 조정 흐름은 **`.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션** 이 단일 진실이다. 본 CLAUDE.md 는 진입점만 둔다.
-
-`.claude/project.md` 의 `uses_superpowers` 키가 `true` 면 표준 흐름(0~9 단계), `false` 면 간이 흐름(2번부터 시작) 으로 분기.
+표준 흐름·밸런스 조정 흐름은 **`.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션** 이 단일 진실이다. 본 CLAUDE.md 는 진입점만 둔다.
 
 ### Lair 특수 사항
 
-- **프로토타입 간이 흐름**: `start-develop-simple` 스킬은 `uses_superpowers: true` 상태에서도 design-reviewer·code-reviewer·qa-simulator 단계를 추가 생략. throwaway 작업에만 사용.
+- **프로토타입 간이 흐름**: `start-develop-simple` 스킬은 qa-simulator 단계를 생략. throwaway 작업에만 사용.
 - **현 단계 제약**: §8 의 단계 범위 규칙이 모든 단계에 함께 적용됨.
 
 ## 8. v0.3 단계 특수 규칙
@@ -82,7 +80,7 @@ docs/
 
 ## 9. 절대 금지
 
-- `git commit` / `git push` 직접 실행 (Rule 01) — `git add` + 커밋 메시지(안)까지만
+- `git push` 직접 실행 (Rule 01) — 사용자가 명시적으로 요청할 때만. `git commit` 은 소작업 완료 시 자동 실행 대상(금지 아님)
 - `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 03 §4) — `CHMPool.Pop`/`Push`
 - Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 03 §3) — `CHText`/`CHButton`/`CHToggle`
 - 하드코딩 문자열로 에셋 로드 (Rule 03 §2) — Enum 키
