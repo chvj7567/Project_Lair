@@ -124,5 +124,10 @@ tools: Read, Glob, Grep, Write, Edit
 
 **Self-Review**: 통과 / N항목 보강 후 통과 (보강 내역 1줄)
 
+**커밋 메시지(안)** (Rule 01 — 메인이 이 메시지로 완료 직후 즉시 자동 커밋):
+```
+# [docs] - ...
+```
+
 **다음 단계**: 사용자 기획서 리뷰 → 승인 시 gameplay-programmer 구현
 ```

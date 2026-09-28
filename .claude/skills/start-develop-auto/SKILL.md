@@ -19,16 +19,15 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 ## 파이프라인 (순서대로, 단계 간 멈춤 없이)
 
-1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성.
-2. **gameplay-programmer** 위임 → 기획서대로 구현.
-3. **test-engineer** 위임 → 본격 테스트 스위트 작성.
-4. **마무리** — 변경사항 요약 + 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 파일 `git add` 까지만.
+1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성. 완료 즉시 Rule 01 에 따라 자동 커밋.
+2. **gameplay-programmer** 위임 → 기획서대로 구현. 완료 즉시 자동 커밋.
+3. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
+4. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 규칙
 
 - "전자동"은 **단계 간 사용자 승인을 묻지 않는다**는 뜻이다. 그래도 다음 경우엔 멈춘다:
   - 호출 시 기능 설명이 없을 때 — 무엇을 만들지 묻는다.
-  - 최종 커밋 — **절대 자동 커밋하지 않는다** (Rule 01). `git add` + 커밋 메시지(안) 까지만.
 - qa-simulator(밸런스 시뮬)는 포함하지 않는다. 밸런스 검증이 필요하면 마무리 후 별도 호출을 제안한다.
 - 룰은 `.claude/rules/01~04`, 위임·게이트 기준은 Rule 00 "메인 오케스트레이터 행동 규칙", 단계 순서는 `project.md` "협업 흐름 (Workflow)" 를 따른다.
 
@@ -60,4 +59,4 @@ gameplay-programmer / test-engineer 가 자체 보고한 컴파일·테스트 �
 - 수정 루프에서 같은 에이전트를 `Agent` 로 새로 호출(cold start) — 금지. `SendMessage` 로 기존 세션 유지.
 - 완료라고 판단하고 세션 종료·마무리 직행 — 금지. 사용자에게 종료 여부를 먼저 묻고, 해결 확인 후에만 종료.
 - 컨텍스트 요약 후 `.claude/.active-sessions.md` 를 안 읽고 곧장 새 `Agent` 호출 — 금지. 먼저 레지스트리로 세션 맵 복구.
-- 끝나고 자동 커밋 — 금지 (Rule 01).
+- 소작업이 끝났는데 커밋을 미루고 다음 단계로 넘어가기 — 금지 (Rule 01). 단계마다 완료 즉시 커밋.

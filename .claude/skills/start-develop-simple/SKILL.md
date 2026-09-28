@@ -21,9 +21,10 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성.
    - 프로토타입 범위로 작성해도 됨을 위임 프롬프트에 명시한다 (수치는 임시값, 시너지 컬럼 생략 등 허용).
-2. **gameplay-programmer** 위임 → 기획서대로 구현.
-3. **test-engineer** 위임 → 본격 테스트 스위트 작성.
-4. **마무리** — 변경사항 요약 + 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 파일 `git add` 까지만.
+   - 완료 즉시 Rule 01 에 따라 자동 커밋.
+2. **gameplay-programmer** 위임 → 기획서대로 구현. 완료 즉시 자동 커밋.
+3. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
+4. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 규칙
 
@@ -34,7 +35,6 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 - 다음 경우엔 멈춘다:
   - 호출 시 기능 설명이 없을 때 — 무엇을 만들지 묻는다.
   - gameplay-programmer / test-engineer 가 자체 보고한 **컴파일 실패·테스트 실패**가 풀리지 않을 때 — 사용자에게 에스컬레이션.
-  - 최종 커밋 — **절대 자동 커밋하지 않는다** (Rule 01). `git add` + 커밋 메시지(안) 까지만.
 
 ## 사용 시점 가이드
 
@@ -75,4 +75,4 @@ gameplay-programmer / test-engineer 가 자체 보고한 컴파일·테스트 �
 - 완료라고 판단하고 세션 종료·마무리 직행 — 금지. 사용자에게 종료 여부를 먼저 묻고, 해결 확인 후에만 종료.
 - 밸런스 의심이 생겼는데 이 스킬 안에서 해결하려 함 — 금지. 마무리 후 qa-simulator 별도 호출을 제안한다.
 - 컨텍스트 요약 후 `.claude/.active-sessions.md` 를 안 읽고 곧장 새 `Agent` 호출 — 금지. 먼저 레지스트리로 세션 맵 복구.
-- 끝나고 자동 커밋 — 금지 (Rule 01).
+- 소작업이 끝났는데 커밋을 미루고 다음 단계로 넘어가기 — 금지 (Rule 01). 단계마다 완료 즉시 커밋.

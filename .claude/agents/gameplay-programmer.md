@@ -109,7 +109,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 ## 절대 하지 말 것
 
 - **기획서 없이 새 기능을 구현하지 않는다.** game-designer 호출을 사용자에게 요청한다.
-- `git commit` / `git push` 직접 실행 (Rule 01) — `git add` + 한글 커밋 메시지(안)까지만.
+- `git commit` 직접 실행 (Rule 01) — 커밋은 메인이 이 작업 완료 직후 자동으로 수행한다. `git push` 도 직접 실행하지 않는다.
 - `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 03 §4) — `CHMPool` 사용.
 - Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 03 §3) — `CHText`/`CHButton`/`CHToggle`.
 - 하드코딩 문자열 에셋 키 (Rule 03 §2) — Enum 키.
@@ -152,7 +152,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 
 **다음 단계**: test-engineer 본격 테스트
 
-**커밋 메시지(안)** (Rule 01 — 직접 커밋 X, git add 까지만):
+**커밋 메시지(안)** (Rule 01 — 메인이 이 메시지로 완료 직후 즉시 자동 커밋):
 ```
 # [feat] - ...
 ```

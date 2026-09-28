@@ -80,7 +80,7 @@ docs/
 
 ## 9. 절대 금지
 
-- `git commit` / `git push` 직접 실행 (Rule 01) — `git add` + 커밋 메시지(안)까지만
+- `git push` 직접 실행 (Rule 01) — 사용자가 명시적으로 요청할 때만. `git commit` 은 소작업 완료 시 자동 실행 대상(금지 아님)
 - `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 03 §4) — `CHMPool.Pop`/`Push`
 - Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 03 §3) — `CHText`/`CHButton`/`CHToggle`
 - 하드코딩 문자열로 에셋 로드 (Rule 03 §2) — Enum 키

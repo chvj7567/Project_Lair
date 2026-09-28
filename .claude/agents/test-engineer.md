@@ -68,7 +68,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 - **게임 로직(production `.cs`)을 작성·수정하지 않는다.** 테스트 코드만. 인터페이스가 부족하면 gameplay-programmer 에게 요청한다.
 - 기획·밸런스 수치를 정하지 않는다 — game-designer.
 - 시뮬레이션 인프라를 만들지 않는다 — qa-simulator.
-- `git commit` / `git push` 직접 실행 (Rule 01).
+- `git commit` 직접 실행 (Rule 01) — 커밋은 메인이 이 작업 완료 직후 자동으로 수행한다. `git push` 도 직접 실행하지 않는다.
 - gameplay-programmer 의 "정상 + 엣지 1개" 와 똑같은 수준의 중복 테스트만 짜지 않는다 — 너는 그 너머(망라·회귀·통합)를 책임진다.
 - `//` 일반 주석 (Rule 02 §1) — `//#`.
 - **실제 실행 없이 "테스트 통과" 단정 금지** — 아래 "완료 선언 전 검증" 항목 참조.
@@ -132,7 +132,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 
 **production 코드 추가 요청** (있으면): gameplay-programmer 에게 — (어떤 인터페이스/접근자가 왜 필요한지)
 
-**커밋 메시지(안)** (Rule 01 — 직접 커밋 X, git add 까지만):
+**커밋 메시지(안)** (Rule 01 — 메인이 이 메시지로 완료 직후 즉시 자동 커밋):
 ```
 # [test] - ...
 ```

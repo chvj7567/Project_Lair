@@ -23,7 +23,8 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 
 1. **gameplay-programmer** 위임 → 수정 구현.
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
-2. **마무리** — 변경사항 요약 + 한글 커밋 메시지(안) 제시. Rule 01 준수 — `git commit` 직접 실행 금지, 관련 변경 파일 `git add` 까지만.
+   - 완료 즉시 Rule 01 에 따라 자동 커밋.
+2. **마무리** — 변경사항 요약 보고. 1단계에서 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 사후 안전망 — 에스컬레이션 출구
 
@@ -39,7 +40,6 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 - 코딩 룰(`.claude/rules/00~04`) 과 `project.md` 의 현재 단계 범위(`stage` · `stage_goal` · `concept_doc`) 는 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
 - `test-engineer` 를 스킵한다. 회귀 위험은 gameplay-programmer 의 자체 스모크 확인에 의존하며, 본격 회귀 테스트가 필요한 작업이면 본 스킬 대신 `start-develop-simple` 이상을 사용한다.
 - `qa-simulator` 도 포함하지 않는다. 밸런스 의심이 생기면 마무리 후 사용자에게 별도 호출을 제안한다.
-- 최종 커밋 — **절대 자동 커밋하지 않는다** (Rule 01). `git add` + 커밋 메시지(안) 까지만.
 
 ## 사용 시점 가이드
 
@@ -79,4 +79,4 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 - 수정 루프에서 gameplay-programmer 를 `Agent` 로 새로 호출(cold start) — 금지. `SendMessage` 로 기존 세션 유지.
 - 완료라고 판단하고 세션 종료·마무리 직행 — 금지. 사용자에게 종료 여부를 먼저 묻고, 해결 확인 후에만 종료.
 - 컨텍스트 요약 후 `.claude/.active-sessions.md` 를 안 읽고 곧장 새 `Agent` 호출 — 금지. 먼저 레지스트리로 세션 맵 복구.
-- 끝나고 자동 커밋 — 금지 (Rule 01).
+- 소작업이 끝났는데 커밋을 미루고 마무리까지 넘어가기 — 금지 (Rule 01). 완료 즉시 커밋.
