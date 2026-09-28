@@ -57,39 +57,22 @@
 - **docs**
   - **design**: `docs/design/` — game-designer 기획서
   - **qa_reports**: `docs/qa-reports/` — qa-simulator 리포트
-  - **specs**: `docs/superpowers/specs/` — superpowers:brainstorming 산출물 (uses_superpowers: true 일 때만)
-  - **plans**: `docs/superpowers/plans/` — superpowers:writing-plans 산출물 (uses_superpowers: true 일 때만)
+  - **specs**: `docs/superpowers/specs/` — 과거 기능별 의도·범위 스펙 문서 (레거시 보관, 신규 작성 안 함)
+  - **plans**: `docs/superpowers/plans/` — 과거 단계별 구현 계획 문서 (레거시 보관, 신규 작성 안 함)
 
 ## 협업 흐름 (Workflow)
-
-- **uses_superpowers**: true   ## 슈퍼파워 플러그인 사용 여부. false 면 아래 표준 흐름의 0·1 단계(brainstorming · writing-plans) 를 생략하고 2번부터 시작 (간이 흐름 참조).
-
-### 표준 흐름 (uses_superpowers: true)
 
 새 기능 개발은 다음 순서를 따른다. 각 단계의 산출물이 다음 단계의 입력이 된다 — 단방향 흐름으로 desync 를 줄인다.
 
 | 단계 | 주체 | 행위 | 산출물 |
 |---|---|---|---|
-| 0 | 메인 + `superpowers:brainstorming` | 사용자와 의도·범위·메커니즘 윤곽 합의, 결정 락 | `docs.specs/YYYY-MM-DD-[기능명]-design.md` |
-| 1 | 메인 + `superpowers:writing-plans` | spec 을 Task 단계로 분해 — 파일 경로·시그니처·TDD·verification gate | `docs.plans/YYYY-MM-DD-[기능명].md` |
-| 2 | **game-designer** | plan 의 파일 구조 안에서 도메인 결정 채움 — 수치·UX·시각·밸런스·페이싱·시너지 | `docs.design/[기능명].md` |
-| 3 | **design-reviewer** | 기획서 1차 검토 (사용자 리뷰 전) — BLOCKER 있으면 game-designer 재작업 | 검토 보고 |
-| 4 | **사용자** | 기획서 리뷰·승인 게이트 | 승인 |
-| 5 | **gameplay-programmer** | spec + plan + 기획서 모두 참조해 `.cs` 구현 | 코드 |
-| 6 | **code-reviewer** | 14 룰 + 기획서 일치 검토 — BLOCKER 있으면 재작업 | 검토 보고 |
-| 7 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs |
-| 8 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` |
-| 9 | 메인 | 변경 요약 + `git add` + 한글 커밋 메시지(안) (Rule 01) | 스테이징 + 메시지(안) |
-
-### 간이 흐름 (uses_superpowers: false)
-
-슈퍼파워 플러그인이 없거나 throwaway 프로토타입이면 0·1 단계를 생략한다.
-
-- 메인이 사용자와 의도·범위를 직접 합의 (별도 spec 파일 작성 없이 대화로 종결)
-- 2번 game-designer 가 사용자 요구·컨셉서를 직접 입력으로 받아 기획서 작성
-- 이후 3~9 단계는 표준 흐름과 동일
-
-> 간이 흐름에서는 `docs.specs/` · `docs.plans/` 폴더 자체가 비어 있어도 무방. game-designer / gameplay-programmer 의 self-review "스펙 커버리지" 항목은 "스펙 없음 — 사용자 요구 직접 매핑" 으로 처리.
+| 1 | 메인 | 사용자와 의도·범위·메커니즘 윤곽을 대화로 합의 | - |
+| 2 | **game-designer** | 사용자 요구·컨셉서를 입력으로 도메인 결정 채움 — 수치·UX·시각·밸런스·페이싱·시너지 | `docs.design/[기능명].md` |
+| 3 | **사용자** | 기획서 리뷰·승인 게이트 | 승인 |
+| 4 | **gameplay-programmer** | 승인된 기획서를 참조해 `.cs` 구현 | 코드 |
+| 5 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs |
+| 6 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` |
+| 7 | 메인 | 변경 요약 + `git add` + 한글 커밋 메시지(안) (Rule 01) | 스테이징 + 메시지(안) |
 
 ### 스킬 미지정 요청 — 메인 후보 제시 규칙
 
@@ -97,38 +80,22 @@
 
 | 스킬 | 적합 작업 | 파이프라인 단계 |
 |---|---|---|
-| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → design-reviewer → ⛔승인 → gameplay-programmer → code-reviewer → test-engineer |
-| `/start-develop-auto`  | 본격 기능 + 자동 리뷰어, 게이트 없음 | 위와 동일하되 ⛔승인 생략 |
-| `/start-develop-simple`| 프로토타입 — 리뷰·시뮬 생략, 테스트는 유지 | game-designer → gameplay-programmer → test-engineer |
-| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer → code-reviewer |
-
-`uses_superpowers: true` 면 위 모든 후보에 0·1단계(brainstorming·writing-plans) 가 앞단에 붙는다 — 단 `/start-develop-quick` 은 본인 정의상 0·1 도 스킵한다.
-
-### 문서 분담 (uses_superpowers: true 일 때 — 3 문서가 같이 있을 때)
-
-세 문서는 같은 추상의 다른 버전이 아니라 **다른 차원**이다. 결합되어야 완전.
-
-| 문서 | 위치 | 다루는 영역 | 단일 진실 |
-|---|---|---|---|
-| **spec** | `docs.specs/` | 의도·범위·메커니즘 윤곽 + 결정 락 | **무엇을** 만들지의 골격 |
-| **plan** | `docs.plans/` | 파일 경로·시그니처·TDD 단계·체크박스·verification gate | **어떻게 단계별로** 만들지 |
-| **기획서** | `docs.design/` | 도메인 — 수치·UX·시각·밸런스·페이싱·시너지 | **어떤 수치/디자인으로** 만들지 |
-
-**plan ↔ 기획서 sync 규칙**: 구현 후 화면/사용자 검증 결과로 기획서가 갱신되면 (예: 가시성 문제로 수치 조정), **plan 도 동일 시점에 delta 마일스톤으로 보강**한다. 두 문서가 단방향 흐름에서 어긋나는 순간 후속 구현이 어느 쪽을 따라야 할지 갈린다.
+| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → test-engineer |
+| `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → test-engineer |
+| `/start-develop-simple`| 프로토타입 — qa-simulator 생략, 테스트는 유지 | game-designer → gameplay-programmer → test-engineer |
+| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer |
 
 ### 밸런스 조정 흐름 (별도 짧은 사이클)
 
-새 기능이 아닌 기존 시스템의 밸런스 조정은 다음 짧은 사이클을 돈다 — 0·1 단계 (spec·plan) 없음.
+새 기능이 아닌 기존 시스템의 밸런스 조정은 다음 짧은 사이클을 돈다.
 
 1. 사용자 또는 game-designer 가 밸런스 의심 제기
 2. **qa-simulator** → N판 시뮬 후 데이터 리포트
 3. **game-designer** → 데이터 기반 조정안 작성 (기존 기획서 갱신 또는 짧은 patch note)
-4. **design-reviewer** → 조정안 검토
-5. **사용자 승인**
-6. **gameplay-programmer** → SO/수치 수정
-7. **code-reviewer** → 수정 검토
-8. **test-engineer** → 회귀 테스트 통과 확인
-9. **qa-simulator** → 조정 후 재시뮬로 검증
+4. **사용자 승인**
+5. **gameplay-programmer** → SO/수치 수정
+6. **test-engineer** → 회귀 테스트 통과 확인
+7. **qa-simulator** → 조정 후 재시뮬로 검증
 
 ## 도메인 데이터 (선택)
 

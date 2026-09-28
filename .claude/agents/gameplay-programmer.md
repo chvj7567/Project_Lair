@@ -79,17 +79,6 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 
 > 보고 본문 "버그 수정" 항목이 있으면 root cause + 기각된 가설 한 줄을 함께 적는다.
 
-### Code Review 수신 (`receiving-code-review`)
-
-code-reviewer 가 BLOCKER/권장수정/의견을 보내오면 **무비판 동의 금지**. 다음 순서로 처리한다.
-
-1. **지적 정확도 검증** — 해당 룰 전문 또는 코드 위치를 직접 다시 읽는다. "지적이 이 코드의 실제 동작과 일치하는가" 를 확인.
-2. **두 갈래 결정**:
-   - **옳은 지적** — 적용. 보고에 "[BLOCKER N] 수용 — 어떻게 고침" 1줄.
-   - **틀린 지적 / 부분 옳음** — 적용 전에 push-back. 보고에 "[BLOCKER N] 이의 — 지적의 어디가 어떻게 사실과 다른지 + 코드/룰 인용" 으로 회신. code-reviewer 또는 사용자가 재판정.
-3. **performative agreement 금지** — "맞는 말씀입니다, 고치겠습니다" 라고 답하고 실제로는 같은 패턴 그대로 두는 것 금지. 적용했다면 diff 로 확인 가능해야 한다.
-4. **권장수정 / 의견** — 의무 적용 아님. 적용 안 할 거면 한 줄 사유. 적용하면 BLOCKER 와 같은 방식으로 표기.
-
 ## 완료 선언 전 검증 (Evidence Before Assertions)
 
 "구현 완료 / 테스트 통과 / 컴파일 OK" 라고 보고하기 *전* 실제 커맨드를 실행해 출력으로 확인한다. **자체 추론으로 통과를 단정하지 않는다** — 본인이 짠 변경이 다른 파일에 미치는 영향은 종종 예측을 벗어난다.
@@ -107,7 +96,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 
 ## 산출물 Self-Review
 
-코드 작성 후 code-reviewer 호출 *전* 본인이 다음을 점검한다:
+코드 작성 후 test-engineer 에게 넘기기 *전* 본인이 다음을 점검한다:
 
 - **룰 위반 스캔** — 위 매핑표의 룰 전부 통과. 특히 자주 빠뜨리는 항목: `//` 일반 주석·`var`·`!` 부정 연산자·가드 절 외 중괄호 누락 (Rule 02), 하위 컴포넌트를 `public` 으로 노출·하위가 `GetComponent*` 로 부모/형제 탐색 (Rule 02 §10), `Object.Instantiate`/`CreatePrimitive` 직접 호출 (Rule 03 §4), Legacy `Text`/`Button`/`Toggle` 직접 사용 (Rule 03 §3), 하드코딩 문자열 에셋 키 (Rule 03 §2), `Resources/` 사용 (Rule 04 §2).
 - **타입/시그니처 일관성** — 메서드 시그니처가 호출부와 일치. 인터페이스의 메서드 이름이 구현 클래스 / 테스트 더블 / 사용처에서 동일. `MoveTo()` 와 `MoveToPosition()` 같이 한쪽만 바뀐 호출이 없는가.
@@ -161,9 +150,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 
 **버그 수정** (해당 시): root cause = ... / 기각 가설 = ... / 회귀 테스트 박제 = ...
 
-**code-reviewer 피드백 수신** (해당 시): BLOCKER N건 — 수용 N / 이의 N (이의 근거 한 줄)
-
-**다음 단계**: code-reviewer 검토 → test-engineer 본격 테스트
+**다음 단계**: test-engineer 본격 테스트
 
 **커밋 메시지(안)** (Rule 01 — 직접 커밋 X, git add 까지만):
 ```

@@ -61,10 +61,9 @@ tools: Read, Glob, Grep, Write, Edit
 
 ## 산출물 Self-Review
 
-기획서 작성 후 design-reviewer 호출 *전* 본인이 다음을 점검한다:
+기획서 작성 후 사용자 리뷰 *전* 본인이 다음을 점검한다:
 
 - **Placeholder 잔존** — 위 "작업 원칙 · No Placeholders" 표의 5개 카테고리 중 어느 하나라도 잔존 시 보강. 잔존 0건이 통과 기준.
-- **스펙 커버리지** — 입력 스펙(brainstorming 산출 `docs/superpowers/specs/...`) 이 있으면 스펙의 각 결정·§ 항목이 기획서의 어느 § 에 매핑되는지 머릿속에서 한 번 훑는다. 빠진 결정이 있으면 해당 § 를 추가하거나 "스펙 §X 항목은 본 기획서 범위 외 (사유)" 로 명시 제외. 갭 0건이 통과 기준.
 - **내부 일관성** — 같은 수치가 본문/표/구현 요청사항에서 동일. 표와 설명이 모순되지 않음. 한 § 의 결정이 다른 § 의 결정과 충돌하지 않음.
 - **시그니처/명명 일관성** — 기획서가 호명하는 식별자(Enum 값, 인터페이스/메서드/이벤트/필드명, 콘텐츠 ID, 에셋 파일명) 가 본문 전체에서 **글자 그대로 동일**한가? 예: 한 § 에서 `OnTypeModifierChanged` 라고 쓰고 다른 § 에서 `OnTypeModifierUpdated` 로 흔들리면 gameplay-programmer 가 어느 쪽을 구현할지 갈린다. 검색(Grep) 으로 같은 개념의 변형 표기 0건 확인.
 - **모호 표현** — 위 No Placeholders 표의 "애매한 권유" / "두 갈래 위임" 카테고리에 해당하는 표현 0건. 못 좁힌 항목은 "사용자 선택 필요" 로 명시.
@@ -125,5 +124,5 @@ tools: Read, Glob, Grep, Write, Edit
 
 **Self-Review**: 통과 / N항목 보강 후 통과 (보강 내역 1줄)
 
-**다음 단계**: design-reviewer 1차 검토 → 사용자 기획서 리뷰 → 승인 시 gameplay-programmer 구현
+**다음 단계**: 사용자 기획서 리뷰 → 승인 시 gameplay-programmer 구현
 ```
