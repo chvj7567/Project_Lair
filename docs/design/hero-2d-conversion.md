@@ -1,0 +1,532 @@
+# 영웅 2D 전환 — 3D 스켈레톤 재스킨 → 2D 픽셀 스프라이트 애니메이션 + 5스테이지 실루엣 분화
+
+> 입력: 사용자 요청(메인 경유, 2026-09-28) "몬스터를 2D 로 전환한 것처럼 영웅(보스) 도 2D 로 전환. 스테이지 1은 카드 일러스트의 해골 그대로, 나머지 4단계는 몬스터처럼 실루엣 파츠로 더 특별하게." 목업 파일(`.mockups/monster-2d-conversion.html`) 참고 지시.
+> 선행 기획서: `docs/design/hero-stage-variant.md`(스테이지 5단 재스킨·스탯 배수·해금·마을 캐러셀 UI — 본 문서가 **§1 외형 스펙만 대체**하고 §2 스탯 배수·§3 해금·§4 캐러셀 UI 는 그대로 둔다), `docs/design/hero-animation-timing-sync.md`(애니↔게임플레이 타이밍 동기화 — **본 문서는 이 계약을 건드리지 않는다.** 이벤트 이름·발행 시점·게이트 로직은 전부 불변이며, 2D 클립이 그 실시간 초 값을 그대로 재현해야 한다는 제약만 진다), `docs/design/monster-2d-conversion.md`(같은 방법론의 선행 사례 — 시점/PPU/셰이더 계약/오버레이 기법을 본 문서가 재사용).
+> 본 문서의 모든 "현행" 값은 코드 실측이다(§1). 추정치는 쓰지 않는다 — §5.3 의 공격/스폰 이벤트 시각도 `hero-animation-timing-sync.md` §2.6 의 사전 추정("~0.40nt"/"~0.55nt")이 아니라 **`Skeleton_*.fbx.meta` 에 실제로 구워진 `AnimationEvent.time` 실측값**을 쓴다(§5.3 각주 — 사전 추정과 실측이 달라 실측을 단일 진실로 채택). 이 실측 과정에서 **`Knight.controller` 의 기존 전이 설정(ExitTime 0.9 + Duration 0.1)이 Stab 의 `OnAttackEnd` 를 원천적으로 발화 불가능하게 만들 가능성**을 발견했다(`Knight.controller` YAML 의 전이 시각 직접 계산 — §5.4. `.fbx.meta` 의 FBX 임포터 경고는 **다른(과거) 값에 대한 캐시된 경고**라 이 발견의 근거가 아님을 §5.3 각주에서 명시적으로 구분한다).
+> 시안(승인 게이트 자료): `.mockups/hero-2d-conversion.html` — 5스테이지 픽셀 스프라이트 × 상태별 애니메이션(대기/이동/도주질주/공격3종/피격/사망/등장), 스테이지별 실루엣 성장 사다리, 프레임 스트립 + 시트 규격, 실루엣 증가율 실측표를 재생·계산한다.
+
+---
+
+## § 헤더
+
+- **목표**: 영웅(`EHero.Knight`) 1종의 전투 비주얼을 3D 스켈레톤 모델(틴트/아웃라인/발광/스케일 재스킨)에서 **2D 픽셀 스프라이트 + 상태별 프레임 애니메이션**으로 교체하고, 5스테이지를 **틴트 색만이 아니라 실루엣 파츠(모자→투구→왕관, 소검→장검→대검, 헝겊→망토→화염 망토)로 분화**한다. 스테이지 1 은 이미 승인된 카드 일러스트(`Fear.png`/`Bleed.png`/`TimeStop.png`)의 픽셀 해골 디자인을 기준형으로 그대로 채택한다.
+- **검증 가설**: (a) 스테이지가 색뿐 아니라 실루엣부터 다르면 마을 캐러셀·전투 시작 컷에서 "이번엔 다른 보스"라는 체감이 스탯 배수(§2, 불변)의 난이도 상승과 함께 더 강하게 전달되는가. (b) 공격 3종(횡베기/횡베기/찌르기)·피격·사망·등장 모션이 실제 2D 프레임으로 생기면 몬스터 2D 전환과 톤이 통일되는가. — **애니↔게임플레이 타이밍 계약(`hero-animation-timing-sync.md`)과 스탯 배수(`hero-stage-variant.md` §2)는 완전히 불변**이므로 밸런스·타이밍 가설은 건드리지 않는다.
+- **현재 단계 범위 적합성**: **범위 내**. CLAUDE.md §8 "아트/에셋 작업 허용 — 실제 스프라이트·모델 등 에셋으로 교체 가능". 신규 영웅 리소스 제작이 아니라 **기존 `EHero.Knight` 1종의 기존 5스테이지 표현을 교체**하는 작업이다(§8 "신규 영웅·몬스터·카드 리소스 제작 금지" 비저촉 — 영웅 추가 0, 스테이지 추가 0, 기존 5스테이지의 표현 방식만 바뀐다). `hero-skeleton-animation.md`·`hero-animation-timing-sync.md` 가 이미 영웅 1종 한정으로 프리미티브 고정(컨셉 §11.4)을 승격시킨 선례를 그대로 계승한다.
+- **핵심 메커니즘**: 영웅 프리팹의 `Visual`(3D 스켈레톤 SkinnedMeshRenderer + Animator) 자리를 몬스터 2D 전환이 이미 구현·검증한 **바로 그 컴포넌트**(`MonsterVisual2D` 빌보드+flipX 루트, `MonsterTierOverlay` 오버레이 동기)로 그대로 채운다 — 몸 Animator 가 보여주는 현재 스프라이트의 이름(프레임 인덱스)을 오버레이가 매 `LateUpdate` 읽어 같은 인덱스의 오버레이 스프라이트로 교체하는 **이름 기반 미러링**이라, 별도 오버레이 Animator·수동 동기 코드가 필요 없다(§6.4 — 몬스터가 실제로 이렇게 구현돼 있음을 코드 실측으로 확인). `HeroStageVariantApplier.Apply(HeroStageVariant)` 시그니처는 불변이며, 내부에서 `MonsterTierOverlay.SetTier(variant.Tier)` 호출 + 발광(보조)을 적용한다(몸 색은 런타임 틴트가 아니라 스테이지별 원화에 베이크, §6.2). 공격/피격/사망/스폰 애니메이션 이벤트(`OnAttackStrike`/`OnAttackEnd`/`OnSpawnAnimEnd`)는 몬스터처럼 즉시 판정이 **아니라**, 기존 3D 클립에 실제로 구워진 실시간 초 값을 2D 클립에서도 재현하도록 굽는다 — 단 2D Animator 전이는 몬스터 §5.7 패턴(Duration 0·ExitTime 1.0)을 써서 3D 에서 발견된 "이벤트가 전이 컷오프보다 늦게 박혀 발화하지 않는" 함정을 재현하지 않는다 — 이게 몬스터 2D 전환과 가장 크게 다른 지점이다(§5.3·§5.4).
+
+---
+
+## 1. 현행 실측 (코드·에셋 확인값)
+
+### 1.1 영웅 정체성 · 스테이지 5단
+
+출처: `CommonEnum.cs`(`EHero`), `HeroStageVariantConfig.cs`/`HeroStageVariantApplier.cs`, `hero-stage-variant.md` §1.2·§2.1, `Knight.prefab`, `HeroIcons/Knight.png`, `Art/Sprites/CardArt/{Fear,Bleed,TimeStop}.png`.
+
+| 항목 | 현행 |
+|---|---|
+| `EHero` | `Knight` 1값 (신규 영웅 없음, 본 작업도 0 유지) |
+| 3D 소스 | `Knight.prefab` 루트 스케일 1,1,1 · 자식 `Visual`(스켈레톤 SkinnedMeshRenderer 3개 + Animator `Knight.controller`) + `Falchion_01`(무기 소켓 부착) |
+| 콜라이더 | Capsule 반지름 0.5 · 높이 1.8 · 중심 0.9 (루트 스케일 곱 — 스테이지 5 배수 1.4 시 실제로 반지름 0.7·높이 2.52 로 커짐, **기존에 이미 승인된 게임플레이 영향**, §6.5) |
+| 스테이지 재스킨 정본 | `HeroStageVariantConfig`(SO, 5엔트리 `HeroStageVariant[]`) · `HeroStageVariantApplier.Apply(HeroStageVariant)` — 스폰 시 1회(`BattleController.ApplyStageVariant`), 마을 쇼케이스도 동일 API(`VillageController.ApplyShowcaseVariant`) |
+| 현재 표현 기법 | 틴트(`HitFlash.SetBaselineColor` 경유, `_BaseColor` 곱연산) + 아웃라인(서브머티리얼 `Mat_HeroOutline`, `_OutlineColor`/`_OutlineWidth`) + 발광(`_EmissionColor`×intensity, `_EMISSION` 키워드) + 스케일(루트 `localScale *= mul`, 스테이지 5 만 1.4) |
+| 스테이지별 현재 색/기법 | `hero-stage-variant.md` §1.2 표 그대로(§1.2 절 인용) — 1=본틴트만 / 2=그린+아웃라인 / 3=시안+발광 / 4=퍼플+아웃라인+발광 / 5=크림슨+골드아웃라인+화염발광+스케일1.4 |
+| HP/Power 배수 | `hero-stage-variant.md` §2.1 — 1=×1.00/×1.00(HP4000/Pow50) · 2=×1.25/×1.10 · 3=×1.55/×1.20 · 4=×1.90/×1.35(68) · 5=×2.30/×1.50(75). **본 문서에서 완전 불변** |
+| 정적 초상 | `HeroIcons/Knight.png`(512×512, 3D 렌더) 1장을 5스테이지 공유 + `PortraitTint`(`HeroSelectPopup.cs`) |
+| 카드 일러스트 기준 디자인 | `CardArt/Fear.png`·`Bleed.png`·`TimeStop.png` — 창백한 뼈색 스켈레톤, 정수리 낮은 검정 캡, 형광 초록 눈(#4ADE80 계열), 노출된 갈비뼈, 짧은 헝겊/반바지, **한손 소검(falchion) 소지**. 이미 픽셀 도트로 확정된 상태 — 본 문서 **스테이지 1 기준형**으로 그대로 채택(§3.1) |
+| 마을 쇼케이스 | `VillageController.SpawnIdleHero` → `HeroStageVariantApplier.Apply(GetStage(SelectedStage))`, 캐러셀 ◀/▶ 시 즉시 재적용(`hero-stage-variant.md` §4) |
+
+### 1.2 현행 애니메이션·게임플레이 타이밍 파이프 (2D 전환이 반드시 보존해야 할 계약)
+
+출처: `hero-skeleton-animation.md`, `hero-animation-timing-sync.md`, `Knight.controller`, `CharacterAnimationDriver.cs`, `CharacterAttackStrikeRelay.cs`, `HeroAttackGate.cs`, `HeroEntryDriver.cs`, `AnimatorSink.cs`, **`Skeleton_{spawn,slash01,slash02,stab}.fbx.meta`(`events:` 블록 실측 — §5.3)**.
+
+| 항목 | 현행 | 2D 에서 |
+|---|---|---|
+| Animator 상태 | `Idle` / `Move`(BlendTree, `Speed` 파라미터로 `Walk`↔`Run` 1D 블렌드, 문턱 1.0/2.0) / `Slash01` / `Slash02` / `Stab` / `Hit` / `Death`, 별도 `Spawn` 상태(AnyState 밖, 시작 상태) | **상태 이름·파라미터 이름·문턱값 전부 동일 유지**. 클립만 3D→2D 스프라이트 플립북으로 교체 |
+| 파라미터 | `Speed`(Float) · `Attack`(Trigger) · `AttackVariant`(Int, 0/1/2 **랜덤** 선택 — 몬스터의 "선언만" 과 달리 영웅은 실사용) · `Hit`(Trigger) · `Dead`(Bool) · `Spawn`(Trigger) | 불변 |
+| 클립 길이·이벤트 실측(3D, `.fbx.meta` `events:` 블록 직접 확인) | `Skeleton_spawn`: `OnSpawnAnimEnd`@**1.32s**(클립 40f=1.333s 중) · `Skeleton_slash01`/`02`: `OnAttackStrike`@**0.453s**·`OnAttackEnd`@**1.122s**(클립 34f=1.133s 중) · `Skeleton_stab`: `OnAttackStrike`@**0.494s**·`OnAttackEnd`@**1.617s**(클립 49f=1.633s 중). `Skeleton_take_damage`(Hit) 이벤트 없음, 길이 하드 결정치 아님 | **4클립의 실측 이벤트 초 값 불변 — §5.3.** Hit/Idle/Walk/Run/Death 는 이벤트가 없어 새 값 자유(§5.2) |
+| **발견 — Stab `OnAttackEnd` 미발화 가능성** | `Knight.controller` 의 Stab→Idle 무조건 전이가 `ExitTime 0.9`(=1.470s)+`Duration 0.1`(고정 실시간)로, 소스 상태 평가가 **1.570s 에 완전히 종료**된다(YAML 직접 확인). 그런데 `OnAttackEnd` 는 **1.617s**(1.570s **이후**)에 박혀 있다 — 즉 **Stab 의 `IsAttacking` 해제가 현재 `OnAttackEnd` 가 아니라 `_attackEndFallback`(1.8s) 타임아웃에 의존 중일 가능성**이 있다. Slash01/02 는 경계선상(전이 종료 1.120s vs 이벤트 1.122s, 2ms 차)이라 마찬가지로 불안정할 수 있다. (`.fbx.meta` 의 FBX 임포터 경고는 시각 2.641s 라는 **다른 과거 값**에 대한 캐시된 경고라 이 발견의 근거가 아니다 — §5.3 각주에서 별도로 구분) | **2D Animator 전이는 `Duration 0`·`ExitTime 1.0`(몬스터 §5.7 패턴, §5.4)을 쓰고, 이벤트는 클립 정규화 1.0 이 아니라 마지막 프레임 안쪽(§5.3.1)에 구워 여유를 둔다** — 이 함정을 재현하지 않는다. **단 이것이 실제로 3D 의 현재 라이브 동작(Stab 실질 주기가 1.633s 가 아니라 1.8s일 가능성)과 다르면, 2D 전환이 "버그를 의도치 않게 고치는" DPS 변화가 된다** — §5.4·§9 게이트로 검증 필요, qa-simulator 필요 여부를 §9 에서 재판단한다(§0 "qa-simulator 불필요" 결론을 이 발견으로 철회) |
+| **영웅 공격 흐름(몬스터와 근본적으로 다름)** | `MeleeAttacker.DeferStrike=true`(영웅만) → `AutoCombatAI` 가 교전+쿨다운 통과 시 `TryBeginAttack`(데미지 0, 애니 개시만) → `IAttackGate.BeginAttack()` → windup 재생 → 클립에 박힌 **`OnAttackStrike`** 애니 이벤트가 `MeleeAttacker.TryApplyStrike`(실제 데미지+`OnHit`)를 호출 → 클립 끝 **`OnAttackEnd`** 이벤트가 `IAttackGate.EndAttack()`(다음 공격 재개) | **완전 불변.** `CharacterAttackStrikeRelay`(Visual 자식, `GetComponentInParent` 로 루트 위임) · `HeroAttackGate`(`_attackEndFallback=1.8`) · `MeleeAttacker.TryBeginAttack/TryApplyStrike` 코드 변경 0줄. 2D 클립에 같은 3개 이벤트를 같은 실시간 초에 다시 굽기만 한다 |
+| 스폰 게이트 | `Skeleton_spawn` 마지막 프레임 **`OnSpawnAnimEnd`** → `HeroEntryDriver._marchGateOpen`/`AutoCombatAI._spawnGateOpen` open, fallback 1.8s(=1.333×1.35) | 불변. 2D spawn 클립도 반드시 **재생 클립**이어야 한다 — 몬스터 §5.6 의 "클립 없이 트윈" 방식은 영웅에 **적용 불가**(스폰 게이트가 실제 클립 이벤트를 기다림) |
+| 회전 | `SimpleRotator._snapInstant=true`(영웅만, 즉시 스냅) | 불변 — `Visual2D` 빌보드 회전(카메라 복사)과 무관한 별개의 루트 yaw 로직 |
+| 피격 억제 | `Hit` 트리거는 `IsAttacking==true` 동안(영웅 한정) + `_attackSuppressWindow=0.5`(공격 개시 후) 이중 억제, `_hitReactionCooldown=0.4` | 불변 |
+| 사망 | `Health.OnDied` → `BattleController` 가 그 즉시(동기) `EndBattle(BattleResult.Win)` 호출, `BestClearTime = _clock.Elapsed` 도 이 순간 확정. **`DespawnOnDeath._delay = 0`**(현재 3D 도 사망 즉시 풀 반환 — 사망 모션이 사실상 안 보임) | `EndBattle`/`BestClearTime` 타이밍은 **손대지 않는다**(계속 `Health.OnDied` 동기 이벤트 기준). 사망 2D 클립을 보여주기 위해 `DespawnOnDeath._delay` 를 **0 → 0.8**(§5.2 Death 클립 길이)로 올린다 — 몬스터 §5.5 와 동일 패턴("사망 판정"과 "풀 반환 지연"의 분리") |
+| 피격/공격 플래시 | `HitFlash`(반전 0.1s) · `AttackJuice`(흰색 lerp 0.6·0.12s 펀치) — 자식 `Renderer` 자동 수집(이름 접두 `Aura`/`HpBar` 제외), `Monster2DSprite` 셰이더 `_FlashInvert`/`_FlashWhite` 있으면 그쪽 우선(몬스터 2D 전환 때 이미 이중 경로로 구현됨) | **코드 변경 0줄** — `Mat_Monster2D` 셰이더를 그대로 쓰면 두 컴포넌트가 자동으로 2D 플래시(반전/백색) 경로를 탄다. **단 `HitFlash.SetBaselineColor`(틴트 유지용 원복색 설정) 는 `Mat_Monster2D` 에서 무동작이다**(`HitFlash.WriteColor` 가 `_FlashInvert`/`_FlashWhite` 둘 다 가진 머티리얼은 즉시 return) — §6.2 |
+| 몸 틴트(스테이지색) | `HitFlash.SetBaselineColor(TintColor)` 로 런타임 곱연산(§1.1) | **런타임 적용 안 함** — 몬스터처럼 스테이지 색을 **원화에 직접 베이크**한다(위 발견과 정합). `HeroStageVariant.TintColor` 필드 자체를 제거한다(§11) — 몬스터도 `MonsterEnhancementVisual` 에 색 필드가 없다(발광만 런타임) |
+| HP 표시 | 영웅은 **월드 HP 바 없음**(`Aura`/`HpBarWrapper` 자식 자체가 없음) — HUD 상단 게이지(`_vm.UpdateHeroHp`, `Health.OnChanged` 구독)만 사용 | 불변 — 몬스터 §6.3.7 의 스테이지별 HP바 높이 산식은 **영웅에 해당 없음**(적용 대상 없음) |
+| 접지/그림자 | 3D 메시가 실시간 그림자를 드리움(별도 바닥 데칼 없음) | 2D 평면 스프라이트는 그림자를 드리우지 않음 → **`AuraShadow` 신설**(§6.6, 최소 추가) |
+
+---
+
+## 2. 시점 — 몬스터 2D 전환과 동일 (확정, 재논의 없음)
+
+`monster-2d-conversion.md` §2 의 결론을 그대로 채택한다 — **3/4 탑다운 정면형 1방향 + 좌우 반전 + 카메라 전체 빌보드**. 근거 재논의 불필요(피치 50° 카메라, 유령 아님 도주/보행 애니가 있으므로 §2.1 참조):
+
+- 영웅은 **다리가 있고 걷는다**(스켈레톤 하체 애니 보유) — 몬스터(유령, 발 없음)와 달리 **풋 슬라이딩 보정이 필요할 수 있음**을 인지하되, 기존 3D 워크/런 클립도 `SimpleMover`(게임 로직)와 별개로 재생되는 순수 표현이라(§1.2 "표현/물리 분리") 2D 워크 사이클도 동일 전제로 루프 재생 속도를 고정한다(발-이동 정합 보정 없음, §5.2).
+- 접지: `AuraShadow`(§6.6)가 그림자 역할.
+
+---
+
+## 3. 스테이지별 2D 캐릭터 컨셉
+
+### 3.1 스테이지 1 — 기준형 (카드 일러스트 그대로 채택, 재디자인 없음)
+
+`CardArt/Fear.png`·`Bleed.png`·`TimeStop.png` 에 이미 확정된 디자인을 **원화 그대로** 몸 시트의 기준으로 삼는다:
+
+- 창백한 뼈색 몸(#E8E0C8 근접), 정수리에 낮은 검정 플랫캡, 형광 초록 눈(#4ADE80), 노출된 갈비뼈 3~4개, 짧은 헝겊 랩/반바지, 오른손에 한손 소검(falchion, 카드 아트의 은색 칼날).
+- 이 디자인은 `hero-stage-variant.md` §1.2 의 스테이지 1 TintColor(`#E8E0C8` 본)와 **이미 정합**한다(3D 버전도 흰 스켈레톤 텍스처 위에 같은 틴트를 곱했었다) — 색 재작업 없음.
+
+### 3.2 스테이지 2~5 — 실루엣 파츠 성장 (신규 핵심 결정)
+
+**대안 비교 — 성장 모티프를 어디서 가져오는가**
+
+| 안 | 내용 | 장점 | 단점 | 판정 |
+|---|---|---|---|---|
+| A. 스테이지마다 새 장비 종류 도입(예: 4=투구+검 신규 등장) | 사용자 초안 문구 그대로 | 직관적 문구 | 스테이지 1 이 **이미 캡+소검을 갖고 있어** "4에서 투구+검 등장"이 스테이지 1 과 모순(투구·검이 이미 있음) | ✗ |
+| **B. 기존 모티프의 등급 escalation** — 캡→후드→반투구→풀헬름→왕관, 소검→장검→대검, 헝겊→튜닉→망토→화염망토 | 스테이지 1 의 기존 실루엣(캡·소검·헝겊)을 부정하지 않고 **같은 부위가 더 커지고 위협적으로 변함** — 몬스터의 "정체성 모티프를 키운다"(§4.1) 원칙과 동일 문법 | 모티프 3종(머리장식/무기/의복) 모두 5단으로 escalation 표를 짜야 함(설계 비용) | ✅ 채택 |
+
+**채택 — B. 3모티프 5단 escalation 표**:
+
+| 스테이지 | 머리장식 | 무기 | 의복 | 신규 추가 요소 |
+|---|---|---|---|---|
+| 1 | 낮은 검정 플랫캡 | 한손 소검(falchion) | 헝겊 랩/반바지 | — (기준형) |
+| 2 | 챙 있는 가죽 후드(오픈페이스) | 한손 장검(falchion 대비 칼날 +6px 연장, 십자 가드 추가) | 벨트 두른 튜닉(헝겊보다 덮는 면적 큼) | 실루엣 테두리 밝은 림 1px(#F8FAFC, 베이크 — §6.3) |
+| 3 | 반투구(해골 드러나는 오픈 스컬형) | 장검 날에 유령빛 테두리(발광 마스크) | 찢어진 반투명 영묘 망토(뒤로 끌림, 점묘 알파로 "유령" 느낌) | 발 옆 부유 영혼 입자 2~3개(발광) |
+| 4 | 닫힌 풀헬름 + 작은 뿔 2개 | 양손 장검(그립 변경, 칼날폭 확대) | 견갑 갑주 추가 + 뻣뻣한 정예 망토 | 실루엣 테두리 마젠타 림(#E879F9, 베이크) |
+| 5 | 금 스파이크 왕관(풀헬름 대체) | 양손 대검(zweihänder, 칼날폭 최대 + 길이 최대) | 갈비뼈 위 판금 갑주 오버레이 + 화염 자락 망토(찢긴 날개처럼 뒤로 흩날림) | 테두리 골드 림(#FDE047, 베이크) + 화염 발광 입자(주황, §6.3) + **루트 스케일 1.4배**(기존 승인값 유지) |
+
+- **누적 원칙**(몬스터 §6.3.1 과 동일 문법): 매 스테이지가 직전 스테이지 모티프를 대체(머리장식·무기)하거나 덧입힘(의복)으로써 "성장했다"가 실루엣만으로 읽힌다. 단 몬스터와 달리 **런타임에 누적되지 않는다** — 한 판에는 항상 정확히 한 스테이지만 존재하므로, 오버레이 시트 4장(S2~S5)은 각각 "그 스테이지의 완성형"을 **독립적으로** 담는다(직전 스테이지 시트를 데이터로 재사용하지 않음, §6.4).
+- **색은 `hero-stage-variant.md` §1.2 값을 그대로 재사용**(§1.1 표) — 이미 승인된 hue-jump 논거(본→그린→시안→퍼플→크림슨, §1.3 근거 재인용 불요)를 재설계하지 않는다. 새로 정하는 것은 **실루엣 파츠**뿐이다.
+- **아웃라인 기법 전환**: 3D 의 `UseOutline`/`Mat_HeroOutline`(런타임 셰이더 림) 은 2D 에서 **원화에 직접 베이크된 1px 테두리 색**으로 대체한다(몬스터 §3.4 "외곽선 1px, Phantom 만 컬러 림" 과 동일 기법 — Phantom 사례가 선례). 스테이지 1·3·5는 발광이 주 신호라 테두리는 기본 흑(#0A0D14), 스테이지 2·4는 밝은/마젠타 테두리가 주 신호다.
+
+### 3.3 실루엣 검증 기준 (몬스터 §6.3.2 R2·R3 를 스테이지 비교판으로 재적용)
+
+몬스터는 "몸 스케일업 금지, 파츠로만 커짐"(§3.2)이 픽셀 밀도 유지 때문이었다 — **여러 레벨이 같은 화면에 동시에 존재**(스웜 밀집)하기 때문. 영웅은 **한 판에 항상 스테이지 1개만** 존재하므로 이 제약이 적용되지 않는다(§6.5). 따라서:
+
+| 규칙 | 내용 | 적용 |
+|---|---|---|
+| R2' 최대 돌출 | 스테이지 N 의 대기 F0 불투명 바운딩이 스테이지 1 대비 상·좌·우로 돌출한 최대 거리 | S2 ≥ 4텍셀 · S3 ≥ 6텍셀 · S4 ≥ 9텍셀 · S5 ≥ 14텍셀(왕관 상승분 포함) — 몬스터 R2(3·5·7) 보다 완화 없이 오히려 1.3배 여유(영웅은 화면에서 가장 큰 단일 개체라 더 큰 변화가 필요) |
+| R3' 실루엣 증가율 | (스테이지 N 에서 스테이지1 실루엣 밖에 새로 생긴 불투명 픽셀) ÷ (스테이지1 불투명 픽셀) | S2 ≥ 10% · S3 ≥ 18% · S4 ≥ 30% · S5 ≥ 45% |
+| R5' 스케일 | S5 만 루트 스케일 1.4(기존값, §6.5) — 그 외 스테이지는 1.0 |
+
+- **판정은 반올림 전 실측값, 표시는 소수 1자리 내림**(몬스터 §6.3.2 규칙 그대로 재사용) — 미달 칸은 빨강.
+- **시안이 이 표를 절차 생성 원화로 실측**한다(`.mockups/hero-2d-conversion.html` §2).
+- **최종 게이트(사용자 육안)**: 마을 캐러셀 + 실제 전투 화면(세로 14u) 양쪽에서 5스테이지가 실루엣만으로 구분되는가.
+
+---
+
+## 4. 아트 스타일 · 해상도 규격
+
+### 4.1 스타일 · PPU — 몬스터와 동일 (확정, 재논의 없음)
+
+픽셀아트 프레임 애니메이션 · **PPU 48**(몬스터 §3.2 근거 재사용 — 720p/1080p 화면 픽셀 밀도 계산 동일). 영웅은 **1개체만 항상 같은 화면에 존재**하므로 몬스터처럼 "6종 동일 PPU" 제약의 이유(여러 종이 동시 비교됨)는 없지만, **셰이더·머티리얼·Point 필터 설정을 몬스터와 공유**하기 위해 같은 PPU 를 그대로 쓴다(설정 재사용, 불일치 시 `Mat_Monster2D` 하나로 양쪽을 못 돌림).
+
+### 4.2 셀 규격
+
+기준: 루트 스케일 1.0 × PPU 48 = **몸 높이 48px**(스테이지 1~4). 스테이지 5 는 원화가 아니라 **런타임 Transform 스케일**로 1.4배 커진다(§6.5) — 원화 자체는 48px 기준 그대로 그린다.
+
+| 항목 | 값 | 근거 |
+|---|---|---|
+| 몸 높이(원화 기준) | 48px | 루트 스케일 1.0 × 48 |
+| 셀 크기 | **96×96** | 48px 몸 + 상단 여유 48px(스탭 전방 찌르기·대검 오버헤드·왕관 상승 수용) — 비율 96/48=2.0, 몬스터 Reaper(72/43≈1.67)보다 여유 있게 잡음(영웅은 무기 스윙 반경이 몬스터보다 큼) |
+| 피벗 | 셀 하단 중앙(0.5, 0) | 몬스터 §3.4 동일 |
+| 부유 없음(발이 지면에 붙음) | 대기 루프는 ±1px 상하 호흡만 | 유령이 아니라 두 발로 서 있는 스켈레톤이므로 몬스터의 "부유 2px" 미적용 |
+
+### 4.3 공통 원화 규칙 (몬스터 §3.4 재사용 + 영웅 전용 항목)
+
+| 항목 | 규칙 |
+|---|---|
+| 기본 방향 | 정면-우측 3/4. 공격은 화면 +X 로 뻗는다. 좌측 대상은 flipX |
+| 광원 | 좌상단, 부위 4톤(외곽선·그림자·기본·하이라이트) — 몬스터와 동일 |
+| 외곽선 | 1px 기본 `#0A0D14`. 스테이지 2 는 `#F8FAFC`, 4 는 `#E879F9`, 5 는 `#FDE047` 테두리로 베이크(§3.2) — 몬스터 Phantom 사례와 동일 기법 |
+| 몸 주색 | `TintColor`(§5.1 표) — 3D 와 동일 값, 데미지 숫자색과는 무관(영웅 데미지 숫자는 흰색 고정, `AttackJuice._heroWhiteDamageColor`, §1.2) |
+| 발광 부위 | 스테이지 3: 눈·검날 테두리·영혼 입자. 스테이지 4: 눈·뿔 끝. 스테이지 5: 눈·왕관 보석·화염 자락 입자. 스테이지 1·2 는 발광 없음(`hero-stage-variant.md` §1.2 UseEmission=false 그대로) |
+
+---
+
+## 5. 애니메이션 세트
+
+### 5.1 상태 목록 (Knight.controller 구조 그대로 계승)
+
+| 상태 | 형식 | 트리거 |
+|---|---|---|
+| Spawn | 스프라이트 클립, 1회 — **몬스터와 달리 트윈 아님(§1.2)** | 풀 Pop 직후 `CharacterAnimationDriver.OnEnable → OnSpawn()` |
+| Idle | 클립, 루프 | `Speed < 0.1` |
+| Move(Walk) | 클립, 루프, BlendTree `Speed≈1.0` | `IMover.IsMoving && FleeMode==false` |
+| Move(Run) | 클립, 루프, BlendTree `Speed≈2.0` | `AutoCombatAI.FleeMode==true`(공포 카드 도주) |
+| Slash01 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==0`(랜덤) |
+| Slash02 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==1`(랜덤) |
+| Stab | 클립, 1회 | `Attack` 트리거 + `AttackVariant==2`(랜덤) |
+| Hit | 클립, 1회 | `Hit` 트리거(억제 규칙 §1.2 그대로) |
+| Death | 클립, 1회, 마지막 프레임 유지 | `Dead=true`(AnyState 인터럽트) |
+
+### 5.2 프레임 규격 — 자유 결정 상태 (Idle/Walk/Run/Hit/Death, 게임플레이 이벤트 없음)
+
+| 상태 | 프레임 × FPS | 길이 | 비고 |
+|---|---|---|---|
+| Idle | 8 × 8 | 1.000s | 루프, 호흡 ±1px |
+| Walk | 8 × 10 | 0.800s | 루프, 보행 사이클 |
+| Run | 8 × 14 | 0.571s | 루프, 도주 절박함(Walk 대비 1.4배속 프레임) |
+| Hit | 6 × 12 | 0.500s | 1회, 뒤로 밀림→복귀. `hero-skeleton-animation.md` §2.1 이 언급한 "0.5~0.8s" 범위 내 |
+| Death | 8 × 10 | 0.800s | 1회, 마지막 프레임 유지. `DespawnOnDeath._delay` 를 **0.8** 로 갱신(§1.2) |
+
+### 5.3 프레임 규격 — 실시간 초 값 불변 상태 (Spawn/Slash01/Slash02/Stab, 이벤트 시점 보존 필수)
+
+**실측 우선 원칙**: `hero-animation-timing-sync.md` §2.6 의 strike 정규화 위치(≈0.40/≈0.55)는 클립을 굽기 **전** 세운 사전 추정치였다. 이번 문서는 `Skeleton_{spawn,slash01,slash02,stab}.fbx.meta` 의 `events:` 블록을 직접 읽어 **실제로 구워진 값**을 확보했다(§1.2) — 사전 추정과 다르면 **실측이 단일 진실**이다. Stab 의 strike 는 사전 추정(≈0.55, ≈0.90s)과 실측(0.494s, nt≈0.31)이 크게 달랐다 — 실측을 쓴다.
+
+**실측 이벤트 시각 (초, `AnimationEvent.time`, meta 원문)**:
+
+| 클립 | `OnAttackStrike` | `OnAttackEnd`/`OnSpawnAnimEnd` | 클립 길이(FBX 전체) |
+|---|---|---|---|
+| `Skeleton_spawn` | — | 1.32s | 1.333s(40f@30fps) |
+| `Skeleton_slash01` | 0.4533s | 1.122s | 1.133s(34f@30fps) |
+| `Skeleton_slash02` | 0.4533s | 1.122s | 1.133s(34f@30fps) |
+| `Skeleton_stab` | 0.4940s | 1.617s | 1.633s(49f@30fps) |
+
+- **`OnAttackEnd`/`OnSpawnAnimEnd` 가 클립 전체 길이보다 살짝 짧게(정규화 ≈0.990) 박혀 있다** — 클립 정확히 100% 지점이 아니라 그 직전 프레임 안쪽에 여유를 두고 배치한 것으로 보인다(원화 3종 모두 일관되게 0.9900~0.9903 — 의도된 패턴). **2D 클립도 이 관례를 그대로 따른다** — 이벤트를 클립의 수학적 끝(정규화 1.0)이 아니라 **마지막 프레임 안쪽**(§5.3.1)에 굽는다.
+- **Animator 전이 컷오프 확인**(별개 발견, §5.4): `Knight.controller` 의 Slash01/Slash02/Stab→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1`(고정 실시간) 조합이라, 소스 상태 평가가 `Stab: 0.9×1.633+0.1=1.570s` 에 완전히 끝난다 — 이는 `Knight.controller` YAML 을 직접 읽어 확인한 것이며(§1.2), FBX 임포터 경고와는 무관하다(아래 각주). `OnAttackEnd`(1.617s) 는 이 컷오프(1.570s) **이후**라 3D 에서 발화하지 않을 수 있다 — §5.4·§9 게이트로 확인 필요.
+- **각주 — FBX 임포터 경고는 이 사안과 무관**: `Skeleton_stab.fbx.meta` 의 `animationImportWarnings`(줄 27~28)는 "`OnAttackEnd` 가 시간 **2.641100**(현재 클립 범위 0~1.633333 밖)이라 발화하지 않는다"는 내용이다 — 이는 **과거에 잘못 구웠던 값(2.641s)에 대한 캐시된 경고**이며, 현재 `events:` 블록의 실제 값(1.617s, §1.2 표)과는 다른 숫자다. 즉 이 경고는 "현재 `OnAttackEnd`(1.617s)가 발화 안 한다"는 증거가 **아니다** — 위 Animator 전이 컷오프(1.570s) 분석만이 그 근거다.
+
+**메커니즘 — Animator State Speed 로 실시간 길이를 정확히 맞춘다.** 픽셀 프레임은 12fps/15fps 등 읽기 좋은 값으로 자유롭게 그리되, `AnimatorState.m_Speed`(Knight.controller 에 각 상태마다 이미 존재하는 필드) 를 곱해 **`재생시간 = (프레임수 ÷ fps) ÷ Speed`** 가 **클립 전체 길이(FBX 원본, §1.2 "클립 길이" 열)** 와 정확히 같아지게 한다. `AnimationEvent.time` 은 클립 로컬(unscaled) 시간이므로 **이벤트의 클립 내 정규화 위치(0~1)는 Speed 스케일과 무관하게 보존**된다 — 정규화 위치(실측 이벤트 시각 ÷ 클립 전체 길이)만 같게 박으면 실시간 위치도 자동으로 같아진다.
+
+| 클립 | 클립 전체 길이(Speed 보정 목표) | 원화 프레임×fps(nominal) | Animator Speed = nominal÷목표 | 실제 재생시간 | strike 정규화(=실측÷전체) | strike 프레임 |
+|---|---|---|---|---|---|---|
+| Spawn | 1.3333s | 16 × 12 = 1.3333s | **1.0000** | 1.3333s | — | — |
+| Slash01 | 1.1333s | 17 × 15 = 1.1333s | **1.0000** | 1.1333s | 0.4533÷1.1333 = **0.4000** | 0.4000×1.1333=0.4533s → ×15fps=F6.80 → **F7** |
+| Slash02 | 1.1333s | 17 × 15 = 1.1333s | **1.0000** | 1.1333s | 0.4000(Slash01 동일) | **F7**(동일) |
+| Stab | 1.6333s | 20 × 12 = 1.6667s | 1.6667÷1.6333 = **1.0204** | 1.6667÷1.0204 = 1.6333s | 0.4940÷1.6333 = **0.3025** | 0.3025×1.6667=0.5042s → ×12fps=F6.05 → **F6** |
+
+**검산(strike 실시간 역산 — Speed 보정 후 측정값과 정확히 일치해야 함)**: Slash 0.4533s(nominal-local)÷1.0000(Speed)=0.4533s = 측정값 0.4533s ✓. Stab 0.5042s÷1.0204=0.4941s ≈ 측정값 0.4940s(오차 0.0001s, 반올림) ✓.
+
+#### 5.3.1 `OnAttackEnd`/`OnSpawnAnimEnd` — 마지막 프레임 안쪽에 굽는다 (정규화 1.0 경계에 정확히 걸치지 않음)
+
+정확히 정규화 1.0(클립 수학적 끝)에 이벤트를 걸면 부동소수 오차로 재생 프레임이 클립 종료와 같은 프레임에 겹쳐 **엔진에 따라 발화가 불안정**할 수 있는 경계 케이스다(3D 원본도 정확히 1.0 이 아니라 0.990 부근에 굽는 관례를 씀, §5.3 각주). 2D 도 이 관례를 그대로 따라 **각 클립의 마지막 프레임**에 굽는다(정규화 0.990 근사, 클립 100% 가 아니라 그 한 프레임 안쪽):
+
+| 클립 | end 정규화(3D 원본 실측) | 2D 클립 프레임수 | end 프레임 | end 실시간(Speed 반영) |
+|---|---|---|---|---|
+| Spawn | 1.32÷1.3333=0.9900 | 16(F0~F15) | **F15**(마지막) | 1.320s |
+| Slash01/02 | 1.122÷1.1333=0.9900 | 17(F0~F16) | **F16**(마지막) | 1.122s |
+| Stab | 1.617÷1.6333=0.9902 | 20(F0~F19) | **F19**(마지막) | 1.617s |
+
+- "마지막 프레임에 굽는다"가 **정규화 1.0 과 차이가 있는 이유**: 프레임 F16(Slash)은 시간 구간 `[16/15, 17/15) = [1.0667, 1.1333)` 를 표시하는데, 실측 end 시각(nominal-local 1.122×Speed 보정 전=1.122s)이 이 구간 안에 들어와 "마지막 프레임 표시 도중"에 이벤트가 발화한다 — 클립이 끝나 다음 상태로 넘어가는 그 순간(정규화 1.0)보다 살짝 여유 있게, 3D 원본과 동일한 안전 마진을 재현한다.
+
+### 5.4 Animator 전이 설정 — Duration 0 · ExitTime 1.0 (몬스터 §5.7 패턴)
+
+**발견**: `Knight.controller` 의 Slash01/Slash02/Stab→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1`(고정 실시간) 조합이라, 소스 상태 평가가 `Stab: 0.9×1.6333+0.1=1.570s` 에 완전히 끝난다(YAML 직접 확인, §1.2). `OnAttackEnd`(1.617s) 는 이보다 **늦어** 3D 에서 발화하지 않을 가능성이 있다(§5.3 각주 — FBX 임포터 경고는 무관한 별개 사안).
+
+**2D 결정 — 몬스터가 이미 쓰는 패턴을 그대로 가져온다**: 1회성 상태(Slash01/Slash02/Stab/Spawn/Hit/Death)의 **무조건 종료 전이**(클립이 끝나면 다음 상태로 넘어가는 전이, 3D 의 "→Idle" 전이에 대응)는 **`Has Exit Time` on · `Exit Time = 1.0`(클립 100% 끝) · `Transition Duration = 0`**(몬스터 §5.7 표와 동일 값)으로 설정한다. `OnAttackEnd`/`OnSpawnAnimEnd` 는 §5.3.1 대로 **마지막 프레임 안쪽**(정규화 ≈0.990)에 구워지므로, ExitTime=1.0(=정규화 1.0) 컷오프보다 항상 먼저 온다 — 3D 에서 발견된 "이벤트가 컷오프보다 늦게 박혀 발화 못 함" 함정이 2D 에는 여유를 두고 구조적으로 없다. `Speed>0.1 → Move` 처럼 **조건부**로 즉시 끼어드는 전이(3D 에도 존재, Knight.controller 실측)는 이 규칙과 별개로 `Has Exit Time` off 로 그대로 둔다 — 둘은 같은 소스 상태에서 나가는 서로 다른 두 전이이며 택일이 아니다.
+
+| 전이 | 조건 | Has Exit Time | Exit Time | Duration |
+|---|---|---|---|---|
+| Any State → Death | `Dead == true` | off | — | 0 |
+| Any State → Slash01/Slash02/Stab | `Attack` + `AttackVariant==0/1/2` | off | — | 0 |
+| Any State → Hit | `Hit`, `Dead==false` | off | — | 0 |
+| Idle ↔ Move(BlendTree) | `Speed` 문턱 0.1/1.0/2.0 | off | — | 0 |
+| Slash01/Slash02/Stab/Hit → Move(조건부, 3D 에도 존재) | `Speed > 0.1` | off | — | 0 |
+| Spawn → Idle(무조건 종료) | (무조건) | **on** | **1.0** | **0** |
+| Slash01/Slash02/Stab → Idle(무조건 종료) | (무조건) | **on** | **1.0** | **0** |
+| Hit → Idle(무조건 종료) | (무조건) | **on** | **1.0** | **0** |
+
+- **DPS·타이밍 영향 재확인 필요(§9)**: 이 변경은 "3D 의 현재 라이브 동작을 그대로 베낀 것"이 아니라 "3D 의 *의도*(baked event time)를 안정적으로 재현하는 방식"이다. 만약 3D 가 실제로 Stab `OnAttackEnd` 미발화 → `_attackEndFallback`(1.8s) 의존 중이라면, 2D 는 Stab 공격 주기를 1.8s→1.633s 로 **단축**하는 부수효과를 낸다(클립 길이 자체는 불변, §5.5). §9 게이트로 확인하고, qa-simulator 필요 여부를 그 결과로 정한다(§9 "qa-simulator — '불필요' 결론 철회" 항목 참조 — 이 항목은 확인 전까지 보류).
+
+### 5.5 공격 재트리거 · IsAttacking 게이트 — 로직 완전 불변
+
+`hero-animation-timing-sync.md` §3(공격 주기 = max(쿨다운 1.0s, 클립 길이))·§3.4(공격 중 피격 억제)·§4(회전 즉시 스냅)는 **로직·수치 전부 불변**이다. **클립 길이 자체는 불변**(Slash 1.133s·Stab 1.633s, §1.2 FBX 원본 그대로) — 바뀌는 것은 `IsAttacking` 을 실제로 해제하는 `OnAttackEnd` 가 **언제 발화하느냐**(§5.3.1 마지막 프레임 안쪽, 클립 길이보다 살짝 이른 1.122s/1.617s)이며, §3 의 "공격 주기 = max(1.0, 클립 길이)" 산식은 "클립 길이"를 "`OnAttackEnd` 발화 시각"으로 읽어야 정확하다(그 차이는 1% 미만이라 공식의 결론 자체는 바뀌지 않는다).
+
+### 5.6 사망 — Death 클립 재생 + 풀 반환 0.8s 지연 (몬스터 §5.5 패턴 적용)
+
+| 항목 | 값 |
+|---|---|
+| `DespawnOnDeath._delay` | **0.8**(변경: 0 → 0.8, = Death 클립 길이) |
+| `Health.OnDied` → `EndBattle(BattleResult.Win)`/`BestClearTime` | **불변** — 여전히 `Health.OnDied` 동기 이벤트 순간에 확정. 풀 반환 지연과 완전히 분리된 별개 구독자(`BattleController` vs `DespawnOnDeath`) |
+| 사망 연출 0.8s 동안 | 영웅은 승리 판정이 이미 끝난 뒤의 **연출용 잔존**이다 — 이 구간에 타겟팅·이동 로직이 남아 있어도(영웅은 몬스터처럼 "생존 캐릭터 목록"에서 제외되는 로직이 없음, 몬스터만 있는 개념) 승패는 이미 확정됐으므로 게임플레이 영향 0 |
+
+### 5.7 좌우 방향 — `MonsterVisual2D` 재사용 (신규 로직 0)
+
+몬스터 2D 가 이미 구현·검증한 `MonsterVisual2D`(§6.4)를 그대로 재사용한다 — 데드존 `_flipDeadZone=0.1`(`|forward.x|≤0.1` 이면 직전 방향 유지), 카메라 회전 복사 빌보드, `_body.flipX` 판정 전부 기존 코드 그대로. `SimpleRotator._snapInstant=true`(영웅 한정, §1.2)로 루트 yaw 는 즉시 스냅되지만, `MonsterVisual2D` 가 매 `LateUpdate` 카메라 회전을 복사해 덮어쓰므로 루트 yaw 값 자체가 스프라이트를 돌리지 않는다 — 기존 몬스터와 동일한 안전한 분리.
+
+---
+
+## 6. 기존 연출 유지 매핑 + 스테이지 표현 메커니즘
+
+### 6.1 유지되는 연출 (표 — 몬스터 §6 형식)
+
+| 연출 | 현행 규칙(불변) | 2D 결과 | 변경점 |
+|---|---|---|---|
+| 피격 플래시 | `HitFlash` 반전 0.1s, 자식 Renderer 자동 수집(Aura/HpBar 제외) | `Mat_Monster2D` 셰이더가 `_FlashInvert` 를 가지므로 자동으로 2D 경로 탐 | **코드 변경 0** — 몬스터 2D 전환 때 이미 이중 경로 구현됨(§1.2) |
+| 공격 번쩍 | `AttackJuice` 흰색 lerp 0.6·0.12s, `_heroWhiteDamageColor=true` | 동일 — `_FlashWhite` 경로 자동 | 코드 변경 0 |
+| 스케일 펀치 | 루트 ×1.15, 0.12s(`AttackJuice._punchScale`) | 동일(루트 스케일 조작, 스프라이트 무관) | 없음 |
+| 데미지 숫자 | 흰색 고정(`_heroWhiteDamageColor`) | 동일 | 없음 |
+| 피격 임팩트 | `EVisual.HitImpact` | 동일 | 없음 |
+| HP 표시 | HUD 게이트(월드 바 없음) | 동일 | 없음 |
+| 공격 흐름(windup→strike→recovery), 스폰 게이트, 회전 스냅, 피격 억제 | `hero-animation-timing-sync.md` 전체 | 동일 | **게임플레이 코드 변경 0** — `AutoCombatAI`/`MeleeAttacker`/`HeroAttackGate`/`HeroEntryDriver`/`SimpleRotator` 무수정(§5.5). 바뀌는 것은 이 계약이 참조하는 클립/Animator 전이 설정뿐(§5.3·§5.4) |
+
+### 6.2 스프라이트 머티리얼 — 몬스터 셰이더 재사용 (신규 셰이더 0)
+
+**대안 비교**
+
+| 안 | 내용 | 판정 |
+|---|---|---|
+| A. 영웅 전용 신규 셰이더/머티리얼(`Hero2DSprite`/`Mat_Hero2D`) | 이름이 의미상 정확 | ✗ — `Monster2DSprite`(`_MainTex`/`_EmissionMask`/`_EmissionColor`/`_EMISSION`/`_FlashWhite`/`_FlashInvert`) 계약이 영웅에 필요한 기능과 **완전히 동일**. 신규 셰이더는 중복 유지비만 늘림(YAGNI) |
+| **B. `Monster2DSprite.shadergraph`/`Mat_Monster2D.mat` 그대로 재사용** | 신규 에셋 0, `HitFlash`/`AttackJuice` 가 이미 이 계약으로 동작 검증됨(몬스터 2D 전환) | ✅ 채택 |
+
+이름이 "Monster"인데 영웅에도 쓰이는 **의미 불일치는 인지**하되, 이번 스코프에서 리네임하지 않는다(6종 몬스터 프리팹이 이미 참조 중 — 리네임은 그쪽까지 건드리는 별도 작업, §10-후속).
+
+**몸 색(스테이지 틴트)은 이 셰이더의 색 프로퍼티로 런타임 적용하지 않는다.** `HitFlash.WriteColor`(`HitFlash.cs`)는 `_FlashInvert`+`_FlashWhite` 를 둘 다 가진 머티리얼(=`Mat_Monster2D`)에서 **즉시 return** 하도록 이미 구현돼 있다(몬스터 2D 전환 시 확정된 계약 — "곱연산 틴트로는 반전/백색 초과 표현이 안 돼 Float 채널로 전환" 설계의 직접적 귀결). 즉 `HeroStageVariantApplier` 가 기존처럼 `HitFlash.SetBaselineColor(TintColor)` 를 호출해도 **아무 일도 일어나지 않는다.** 몬스터가 이미 이 제약 아래에서 "몸 주색 = SpeciesColor 를 원화에 직접 베이크"(몬스터 §3.4)로 답을 낸 것과 동일하게, 영웅도 **스테이지색을 의복/케이프 원화에 직접 베이크**한다(§3.2 실루엣 파츠가 곧 색 담당). `HeroStageVariant.TintColor` 필드는 런타임 소비자가 없으므로 제거한다(§11) — 발광(`UseEmission`/`EmissionColor`/`EmissionIntensity`)은 `ApplyEmission`(별도 메서드, `mat.SetColor(EmissionColorId,...)` 직접 호출)이 담당해 이 제약과 무관하며 그대로 유지된다.
+
+### 6.3 아웃라인 베이크 — `HeroOutline.shader`/`Mat_HeroOutline.mat` 폐기(삭제는 안 함)
+
+3D 전용 서브머터리얼 아웃라인 기법은 2D 평면 스프라이트에 적용할 수 없다(서브메시가 없음). §3.2 에서 결정한 대로 **테두리 색을 원화에 직접 베이크**하는 것으로 대체한다. `HeroOutline.shader`/`Mat_HeroOutline.mat` 은 몬스터 §7.5 의 3D 잔존 에셋 패턴과 동일하게 **이번 구현에서 삭제하지 않는다**(참조처가 `HeroStageVariantApplier` 뿐이라 롤백 여지를 위해 보존, §10-4).
+
+### 6.4 스테이지 파츠가 몸을 따라 움직이는 방식 — `MonsterVisual2D`/`MonsterTierOverlay` 그대로 재사용 (신규 컴포넌트 0)
+
+**정정(초안 대비)**: 초안은 "오버레이에 별도 Animator 를 두고 몸과 동시에 파라미터를 받아 병렬 재생"하는 방식을 제안했었다. 코드 실측 결과 **몬스터 2D 는 이미 다른, 더 단순한 방식으로 구현·출시돼 있었다** — `MonsterVisual2D.cs`/`MonsterTierOverlay.cs`(`Scripts/Character/`). 오버레이는 자기 Animator 를 갖지 않는다. 대신 매 `LateUpdate` **몸 `SpriteRenderer.sprite` 의 이름에서 프레임 인덱스를 파싱**해(`"<시트이름>_<N>"` 접미 정수), 같은 인덱스의 오버레이 `Sprite` 를 `Dictionary<int,Sprite>` 로 즉시 조회해 표시한다. 별도 애니메이터·Speed 보정·상태 전이 동기화가 전혀 필요 없다 — 오버레이는 몸이 "지금 보여주는 프레임"을 그대로 미러링할 뿐이다. 이 방식을 **그대로 재사용**한다(신규 로직 0줄, 검증된 기존 코드).
+
+- `MonsterVisual2D`(루트 빌보드+flipX 소유, §5.7) — `_body`(SpriteRenderer) + `_tierOverlay`(MonsterTierOverlay 참조) 를 갖고 매 `LateUpdate` 카메라 회전 복사 → flipX 판정 → `_tierOverlay.Tick(_body.sprite, _body.flipX)` 순서로 호출.
+- `MonsterTierOverlay`(오버레이 자체) — `SetTier(int tier)` 로 활성 시트(`_tier1Frames`/`_tier2Frames`/`_tier3Frames`, 각 `Sprite[]`)를 고르고, `Tick(Sprite bodySprite, bool flipX)` 가 몸 스프라이트 이름에서 인덱스를 읽어 같은 인덱스의 오버레이 스프라이트로 교체 + `flipX` 동기.
+- **영웅은 티어가 4개**(S2/S3/S4/S5, 몬스터는 3개)이므로 `MonsterTierOverlay` 에 `_tier4Frames`(`Sprite[]`) + `SetTier` 의 `tier==4` 분기를 **추가**한다(기존 tier 0~3 동작은 무수정 — 순수 additive, 몬스터 회귀 위험 0). 이름은 이번 스코프에서 유지하고(§6.2 와 동일한 "의미 불일치 인지, 리네임은 후속" 정책), `CharacterTierOverlay`/`CharacterVisual2D` 로 일반화하는 리네임은 §10 후속으로 미룬다.
+- **`CharacterAttackStrikeRelay`(애니 이벤트 수신)는 몸 `Visual2D` 에만** 부착한다 — 오버레이는 Animator 자체가 없으므로 애니메이션 이벤트를 가질 수 없다(자연히 중복 데미지 적용 위험도 없음).
+- **`AnimatorSink`/`CharacterAnimationDriver` 코드는 전혀 바뀌지 않는다** — 오버레이가 몸의 파라미터를 "받는" 개념 자체가 없기 때문(이름 미러링은 프레임 단위 폴링일 뿐 파라미터와 무관). 초안의 `_overlayAnimator` 필드 추가 계획은 철회한다.
+
+#### 6.4.1 오버레이 원화 저작 규칙 — 스테이지 1 초과는 몸을 끄고 오버레이가 전체를 대체한다 (부분 커버리지 위험 회피)
+
+**문제**: 오버레이는 몸 위(`sortingOrder`=몸+1)에 그려지므로, 오버레이의 **불투명** 픽셀은 몸을 가리지만 **투명** 픽셀은 몸이 그대로 비쳐 보인다. §3.2 의 실루엣 파츠는 대부분 몸 전신을 다시 그린 **완전 합성본**(시안이 이미 그렇게 생성함, §8)이므로, 만약 오버레이 원화의 가장자리 1px 라도 의도치 않게 투명이면(칼날 끝, 캡/투구 테두리 등) 그 자리에 몸(S1) 픽셀이 새어나와 보인다 — 폭이 좁아지는 부위일수록 위험이 크다.
+
+**결정 — 몸 렌더러를 스테이지 1 에서만 켠다**: `HeroStageVariantApplier.Apply()` 가 `_body.enabled = (variant.Tier == 0)` 로 설정한다. 스테이지 2~5 는 몸이 꺼지고 **오버레이(그 스테이지의 완전 합성 원화)만 보인다** — 부분 커버리지를 걱정할 필요 자체가 없어진다(오버레이가 유일하게 보이는 레이어이므로). `SpriteRenderer.enabled=false` 여도 `sprite`/`flipX` 프로퍼티는 계속 갱신되므로(Unity 스펙 — 렌더링만 멈추고 값 갱신은 유지) `MonsterTierOverlay.Tick(_body.sprite, _body.flipX)` 의 프레임 인덱스 미러링은 **몸이 꺼져 있어도 정상 동작**한다(코드 변경 0).
+- 몬스터는 이 필드를 건드리지 않는다(`HeroStageVariantApplier` 는 영웅 전용 컴포넌트) — 몬스터의 누적 레벨 오버레이(진짜 diff, 몸 항상 표시)는 몬스터 §6.3.6 그대로 무변경.
+- §6.3.6(몬스터 "몸 실루엣 바깥으로만") 규칙은 **영웅 오버레이에는 적용하지 않는다** — 영웅 오버레이는 diff 가 아니라 완전 합성본이므로 몸과 자유롭게 겹쳐 그려도 된다(몸이 꺼져 있어 겹침 자체가 발생하지 않음).
+
+- flipX·색 플래시(반전/백색)·발광은 몸과 동일 부모 트랜스폼·같은 `Mat_Monster2D` 셰이더 계약으로 자동 상속(§6.1·§6.2). 스폰은 트윈이 아니라 클립이므로(§1.2) 오버레이도 몸의 스폰 클립 프레임을 그대로 미러링한다.
+
+### 6.5 스케일 — 스테이지 5 는 원화 확대가 아니라 Transform 배수 (몬스터와 의도적으로 다른 결정)
+
+**몬스터는 "몸 스케일업 금지"(§3.2)였다. 영웅은 이 제약을 적용하지 않는다.**
+
+- **이유**: 몬스터의 금지 근거는 "레벨이 다른 개체가 같은 화면(스웜)에 동시에 존재해 픽셀 밀도가 섞여 보인다"였다. 영웅은 **한 판에 항상 스테이지 1개**만 존재하고(마을 캐러셀도 한 번에 하나만 보여줌, `hero-stage-variant.md` §4), 다른 스테이지와 동시 비교되는 화면이 없다. 따라서 픽셀 밀도 불일치가 실제로 노출될 상황 자체가 없다.
+- **결정**: `HeroStageVariantApplier.ApplyScale`(기존 로직, §1.1)을 **그대로 유지** — 루트 `localScale = baseScale × ScaleMultiplier`(스테이지 5 만 1.4, 나머지 1.0). `Visual2D`/`Enhance`/`AuraShadow` 는 모두 루트의 자식이므로 **별도 카운터스케일 없이** 함께 확대된다. 콜라이더(반지름 0.7·높이 2.52)도 기존과 동일하게 함께 커진다 — **이미 승인된 게임플레이 영향(§1.4 hero-stage-variant.md)을 그대로 계승**할 뿐 새 결정이 아니다.
+- **트레이드오프 인지**: 1.4배 비정수 스케일에서 픽셀 경계가 약간 불균일해 보일 수 있다(몬스터 §3.1 이 이미 인정한 것과 같은 한계, Point 필터+피치 카메라 조합의 구조적 한계) — 사용자 육안 게이트(§9)로 확인, 문제 시 스테이지 5 오버레이 전용 원화를 1.4배 배율 기준으로 별도 그리는 것은 후속(§10) 옵션.
+- **사전 존재 위험(구현 착수 전 확인 필요, 본 문서 범위 밖의 기존 버그 가능성)**: `AttackJuice._baseScale`(`AttackJuice.cs`)은 `Awake()` 1회에 `transform.localScale` 을 캐시한다. 풀링 오브젝트의 `Awake()` 는 그 GameObject 의 전체 수명 동안 **단 한 번만** 실행되므로(재사용마다 재실행 안 됨), 이 캐시는 프리팹이 처음 생성될 때의 스케일(1,1,1)로 영구 고정될 가능성이 높다. `HeroStageVariantApplier.ApplyScale`(스폰마다 실행)이 이후 `localScale=1.4` 로 올려도, 공격 시 `AttackJuice.PunchCo()` 종료 시점의 `transform.localScale = _baseScale`(캐시된 1,1,1) 복원 코드가 스테이지 5 의 확대를 **첫 공격 직후 1.0 으로 되돌릴 수 있다.** 이는 **3D 구현에도 이미 존재하는 잠재 버그**이며 본 2D 전환이 원인이 아니다 — gameplay-programmer 가 착수 전 Unity 로 재현 확인하고, 재현되면 `AttackJuice`(및 `HitFlash` 등 유사 캐시를 쓰는 컴포넌트)가 `_baseScale` 을 `Awake` 대신 매 `OnEnable`(스테이지 적용 **이후** 시점, 즉 `SpawnHero`/`ApplyStageVariant` 호출 순서 재검토 필요) 에 재캐시하도록 고치는 것은 본 2D 전환과 별개의 픽스로 처리한다(§9 게이트).
+
+### 6.6 접지 — `AuraShadow` 신설 (최소 추가)
+
+3D 메시는 실시간 그림자를 드리웠지만 2D 평면 스프라이트는 그림자를 만들지 않는다(§1.2). 발밑에 아무 표식이 없으면 "떠 있다"는 인상을 준다.
+
+- **결정**: 루트 자식 **`AuraShadow`**(SpriteRenderer, 신규 스프라이트 1장 `HeroGroundShadow.png` — 부드러운 타원 블롭, 검정 α0.4) 신설. 로컬 위치 y=0.01(바닥), 스케일은 루트를 따라가므로(부모-자식) 스테이지 5 에서도 함께 커진다 — **별도 스케일 로직 불필요**.
+- **GameObject 이름은 `GroundShadow` 가 아니라 `AuraShadow`**(에셋 파일명 `HeroGroundShadow.png` 과는 별개) — `HitFlash`/`AttackJuice` 는 자식 Renderer 를 이름 접두 `Aura`/`HpBar` 로 자동 제외한다(§6.1). `GroundShadow` 라는 이름이면 이 제외 목록에 걸리지 않아 피격/공격 플래시 대상이 돼버린다(그림자가 반전/백색으로 번쩍이는 오류). `Aura` 접두로 지으면 기존 자동 제외 규칙을 그대로 활용해 별도 예외 코드 없이 문제가 사라진다.
+- **스테이지 무관 단색**(몬스터 `Aura`처럼 종족색을 싣지 않는다) — 그림자는 접지 신호일 뿐 스테이지 식별 채널이 아니다(식별은 §3.2 실루엣+색이 전담). 과설계 방지(YAGNI).
+
+---
+
+## 7. 에셋 규격
+
+### 7.1 파일·폴더·명명
+
+| 에셋 | 경로 | 파일명 | 수량 |
+|---|---|---|---|
+| 몸 스프라이트 시트 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet.png` | 1 |
+| 몸 발광 마스크 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet_Emission.png` | 1 |
+| 스테이지 오버레이 시트 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet_S2.png`·`_S3.png`·`_S4.png`·`_S5.png` | 4 |
+| 스테이지 오버레이 발광 마스크 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet_S2_Emission.png`·`_S3_`·`_S4_`·`_S5_` | 4 |
+| 접지 그림자 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `HeroGroundShadow.png` | 1 |
+| 애니메이션 클립(몸, Animator 구동) | `Assets/_Lair/Art/Animations/Heroes2D/` | `Knight_Idle.anim`·`_Walk`·`_Run`·`_Slash01`·`_Slash02`·`_Stab`·`_Hit`·`_Death`·`_Spawn` | 9 |
+| 몸 컨트롤러 | `Assets/_Lair/Art/Animations/` | `Knight_2D.controller`(기존 `Knight.controller` 와 나란히, 3D 잔존은 §10-4) | 1 |
+| 셰이더/머티리얼 | (신규 없음) | `Monster2DSprite.shadergraph`/`Mat_Monster2D.mat` **재사용**(§6.2) | 0 |
+| 영웅 프리팹 | `Assets/_Lair/Art/Characters/` | 기존 `Knight.prefab` **수정**(파일명·GUID·Addressable 주소 유지) | 1 |
+
+- **오버레이는 별도 애니메이션 클립/컨트롤러 에셋이 없다**(§6.4) — 오버레이 시트(위 `Knight_Sheet_S2~S5.png` 4장)를 §7.2 규격대로 슬라이스한 `Sprite[]` 108개(상태 9 × 최대 20프레임, 실제 프레임수는 §5.2·§5.3 표 그대로)를 `MonsterTierOverlay` 의 `_tier1Frames`~`_tier4Frames` 인스펙터 필드에 각각 드래그해 채운다. 슬라이스된 `Sprite` 의 **이름이 몸 시트와 같은 인덱스 접미사**여야 프레임 미러링이 성립한다(§7.2 슬라이스 이름 규칙 추가).
+- **이미지 총계**: 몸 1 + 몸 마스크 1 + 오버레이 4 + 오버레이 마스크 4 + 접지 그림자 1 = **11장**.
+- **애니메이션 에셋 총계**: 몸 클립 9 + 몸 컨트롤러 1 = **10 에셋**(오버레이는 기존 슬라이스 이미지 재사용, 별도 클립/컨트롤러 0).
+- **Rule 03 §2**: Addressable Enum 키 로드 대상은 `Knight.prefab` 뿐(`EHero.Knight` 그대로) — 시트·클립·컨트롤러는 프리팹이 직접 참조하므로 Addressable 등록 대상 아님.
+- **Rule 04 §2**: 이미지 → `Sprites/Heroes2D/`, 클립·컨트롤러 → `Animations/`·`Animations/Heroes2D/`.
+
+### 7.2 시트 레이아웃
+
+- **9행 × 20열 고정**, 셀 96×96, 여백·간격 0. 행 순서: 0 Idle · 1 Walk · 2 Run · 3 Slash01 · 4 Slash02 · 5 Stab · 6 Hit · 7 Death · 8 Spawn. 열 = 프레임 인덱스, 프레임 수가 20 미만인 행의 남는 칸은 투명. 시트 크기 = 1920×864px.
+- **오버레이 시트(S2~S5)는 몸 시트와 같은 크기·같은 칸 배치**. 각 칸은 그 스테이지의 **완전 합성 원화**(몸+파츠 전체, §6.4.1 — diff 아님)이며, 빈 칸(해당 상태의 프레임 수를 넘는 칸)만 투명.
+- 발광 마스크는 짝이 되는 원화 시트와 동일 크기·배치, 발광 부위 흰색(#FFFFFF) / 나머지 검정(#000000).
+- **슬라이스 이름 규칙(§6.4 프레임 미러링의 전제)**: 인덱스 = `행 × 20 + 열`(예: Stab F6 = 행5×20+열6=106). Unity 오토 슬라이스가 붙이는 기본 접미사(`_0`,`_1`,...)를 **그대로 사용**하고 별도 리네임을 하지 않는다 — 몸 시트와 오버레이 시트를 **동일한 Grid By Cell Size 설정으로 슬라이스**하면 같은 위치의 칸이 항상 같은 접미사 정수를 받으므로, `MonsterTierOverlay.ParseFrameIndex`(마지막 `_` 뒤 정수 파싱)가 자동으로 일치한다.
+
+### 7.3 텍스처 임포트 설정
+
+| 항목 | 값 |
+|---|---|
+| Texture Type / Sprite Mode | Sprite (2D and UI) / Multiple |
+| Pixels Per Unit | 48 |
+| Filter Mode | Point (no filter) |
+| Compression | None |
+| sRGB | 원화 on / 마스크 off |
+| Alpha Is Transparency | on |
+| Max Size | **2048**(시트 1920×864, 몬스터 1024 보다 큼 — 프레임 수가 많아 시트가 넓기 때문) |
+| 슬라이스 | Grid By Cell Size 96×96, Offset 0, Padding 0, Keep Empty Rects on(인덱스 = 행×20+열 고정), Pivot Bottom Center |
+| 보조 텍스처 | 몸·오버레이 시트 → Secondary Textures 에 `_EmissionMask` = 짝 마스크 시트 |
+
+### 7.4 프리팹 구성 변경
+
+- 제거: `Visual`(3D 스켈레톤 SkinnedMeshRenderer + Animator `Knight.controller`) 중첩 프리팹 인스턴스 및 `Falchion_01` 무기 소켓(2D 원화에 무기가 그려지므로 별도 3D 무기 오브젝트 불필요).
+- 추가: 루트 자식 `Visual2D`(SpriteRenderer `Mat_Monster2D` + Animator `Knight_2D.controller` + **`MonsterVisual2D`**, §6.4). 그 자식 `Enhance`(SpriteRenderer `Mat_Monster2D`, sortingOrder 몸+1, Animator 없음 + **`MonsterTierOverlay`**(확장판, `_tier1~4Frames` 에 각각 S2~S5 슬라이스 배정), §6.4). 루트 자식 `AuraShadow`(SpriteRenderer `HeroGroundShadow`, 항상 활성, §6.6).
+- `Visual2D` 의 `MonsterVisual2D` 인스펙터: `_body`=Visual2D 자신의 SpriteRenderer, `_tierOverlay`=Enhance 의 `MonsterTierOverlay`.
+- `CharacterAnimationDriver._animator` → `Visual2D` 의 Animator 참조로 갱신(코드 변경 없음, 인스펙터 재배선만).
+- `CharacterAttackStrikeRelay` 부착 위치를 `Visual`→`Visual2D` 로 이전(같은 역할, GameObject 만 교체).
+- 유지: 콜라이더·Rigidbody·`AutoCombatAI`·`MeleeAttacker`(`DeferStrike=true` 유지)·`HeroAttackGate`·`HeroEntryDriver`·`SimpleRotator`(`_snapInstant=true` 유지)·`Health`·`HitFlash`·`AttackJuice`(`_heroWhiteDamageColor=true` 유지, §6.5 스케일 캐시 위험 확인 필요)·루트 스케일(1,1,1).
+
+### 7.5 3D 잔존 에셋 (삭제하지 않음)
+
+`Skeleton_*.fbx`(9개 소스 클립) · `Knight.controller`(3D) · `HeroOutline.shader`/`Mat_HeroOutline.mat` — 참조처가 오직 Knight 프리팹뿐이나, 몬스터 §7.5 와 동일하게 **2D 전환 육안 승인 후 별도 정리 커밋**(§10-4)에서 삭제한다(롤백 여지 유지).
+
+---
+
+## 8. 아트 소스 — 몬스터와 동일 정책 (확정)
+
+`monster-2d-conversion.md` §8 의 결정을 그대로 따른다: **(c) 절차 생성 원화를 최종 채택**. 시안(`.mockups/hero-2d-conversion.html`)의 절차 생성 결과를 headless 로 추출해 §7.1 규격대로 커밋하고, 텍스처 임포트·프리팹 배선은 사용자 로컬 Unity 에서 1회용 에디터 툴(Rule 04 §3)로 마무리한다(§10-0). 추후 외주/구매로 교체해도 파일명·레이아웃이 같으면 코드·프리팹 변경이 없다(규격 고정).
+
+---
+
+## 9. 검증 게이트
+
+| 구분 | 항목 | 통과 기준 | 담당 |
+|---|---|---|---|
+| **선행 확인(구현 착수 전)** | **3D 현재 라이브 동작 실측** | Unity 에디터에서 Stab 공격을 재생해 `IsAttacking` 이 실제로 몇 초에 해제되는지 로그/Profiler 로 확인 — `OnAttackEnd`(1.617s)가 발화하는지, 아니면 `_attackEndFallback`(1.8s)에 의존 중인지(§5.4 발견). Slash01/02 도 함께 확인(경계선 1.120s vs 1.122s) | test-engineer/gameplay-programmer |
+| 불변식 | `OnAttackStrike`/`OnAttackEnd`/`OnSpawnAnimEnd` 발행 초 | 2D 클립이 §5.3 실측 목표(0.453/1.122, 0.494/1.617, —/1.32)에 정확히 도달, Duration0·ExitTime1.0 전이(§5.4)로 매번 안정적으로 발화(경계 이슈 0) | test-engineer |
+| 불변식 | `Health.OnDied` → `EndBattle(Win)`/`BestClearTime` | 사망 판정 순간(동기) 확정, `DespawnOnDeath._delay`(0.8) 와 완전 분리 | test-engineer |
+| 불변식 | `DeferStrike`/`IAttackGate`/`MeleeAttacker.TryBeginAttack`/`TryApplyStrike`/공격 재트리거·피격 억제 로직 | 코드 변경 0줄 — 기존 PlayMode 테스트(`HeroAnimationTimingSyncPlayTests` 등) 그대로 통과 | test-engineer |
+| 불변식 | HP/Power 배수(`hero-stage-variant.md` §2.1) | 5스테이지 수치 변경 0 | test-engineer |
+| 불변식 | Animator 파라미터 | 5스테이지 재생 중 "Parameter does not exist" 경고 0건 | test-engineer |
+| 불변식 | 오버레이 프레임 미러링 | `MonsterTierOverlay.Tick` 이 몸 스프라이트와 항상 같은 인덱스를 표시(§6.4 — 이름 파싱 기반이라 구조적으로 어긋날 수 없으나, 슬라이스 이름 불일치 시 조용히 오버레이가 꺼지므로 회귀 테스트로 실제 표시 여부 확인) | test-engineer |
+| 불변식 | 몸/오버레이 렌더러 배타성(§6.4.1) | 스테이지 1 에서 `_body.enabled==true && Enhance.enabled==false`, 스테이지 2~5 에서 `_body.enabled==false && Enhance.enabled==true` — 매 프레임 정확히 하나만 보임(영웅이 투명해지는 프레임 0건) | test-engineer |
+| 불변식 | 풀 재사용 초기화 | Pop 시 Idle 상태 진입(스폰 클립 자동 재생), `MonsterVisual2D` flipX 기본(오른쪽), `MonsterTierOverlay` 티어/발광/스케일 = 이번 스폰 스테이지 값 | test-engineer |
+| 불변식 | 스테이지 5 스케일 지속 | 공격(펀치 연출) 이후에도 `localScale` 이 1.4 로 유지되는가(§6.5 `AttackJuice._baseScale` 캐시 위험) | test-engineer |
+| 원화 검수 | R2'·R3' 실루엣 증가율(§3.3) | 표 전 항목 충족(시안과 동일 측정) | 아트 납품 검수(메인) |
+| 육안 | 스테이지 5단 실루엣 식별 | 마을 캐러셀 + 실전 화면(세로 14u) 양쪽에서 흑백 실루엣만으로 스테이지 구분 | 사용자 |
+| 육안 | 스테이지 1 기준형 일치 | 카드 일러스트(Fear/Bleed/TimeStop)와 인게임 스테이지1 스프라이트가 같은 디자인으로 인지되는가 | 사용자 |
+| 육안 | 접지감 | `AuraShadow` 가 "떠 있음" 인상을 해소하는가 | 사용자 |
+| 육안 | strike 프레임 아트 정합 | 2D Slash F7/Stab F6(§5.3 계산)에서 무기가 시각적으로 사거리에 닿는 포즈로 그려졌는가(시각은 육안 조정, **시각은 조정해도 이벤트 실시간 초 값 0.453/0.494 는 불변**) | 사용자(메인, Unity 로컬) |
+| 육안(승계) | 전장 색 가독성 — 스테이지 4 퍼플/스테이지 5 크림슨과 동일축 몬스터(Plague 보라·Reaper 빨강) 무리 | `hero-stage-variant.md` §1.6 게이트를 그대로 승계 — 실루엣 파츠(§3.2)가 새로 추가된 만큼 색만 쓰던 구버전보다 분리가 쉬워질 것으로 예상되나, 이는 정지 시안이 못 보는 실전 전장(수렴하는 동일색 몬스터 무리) 영역이라 파이프라인 8단계(qa-simulator/플레이테스트)에서 재확인한다. 흐리면 §1.6 과 동일 순서로 교정(아웃라인/발광 대비 우선, 그래도 부족하면 해당 스테이지 원화의 베이크된 스테이지색을 축색과 소폭 이격) | 사용자(파이프라인 8단계) |
+| 성능 | 드로우 부하 | 영웅 1개체 + 오버레이 1개체(SpriteRenderer 2개)가 3D 스켈레톤 메시(SkinnedMeshRenderer 3개) 대비 Draw Call·SetPass 증가 없음(Profiler) | gameplay-programmer |
+
+- **qa-simulator — "불필요" 결론 철회, "선행 확인 결과에 따라 조건부"로 정정.** §5.4 발견(Stab `OnAttackEnd` 가 현재 3D 전이 컷오프 이후에 박혀 fallback 1.8s 에 의존 중일 가능성) 이 "선행 확인" 게이트에서 **사실로 확인되면**, 2D 전환은 Stab 공격 주기를 1.8s→1.617s 로 단축하는 실질적 DPS 변화를 일으킨다 — 이 경우 밸런스 조정 흐름(`.claude/project.md`)에 따라 qa-simulator 로 영웅 평균 처치 시간 영향을 측정한다. 선행 확인에서 **현재도 정상적으로 1.617s/1.122s 에 발화 중임이 확인되면** 타이밍 변화 0 이므로 qa-simulator 불필요 결론이 유지된다. 어느 쪽이든 **구현 착수 전에** 선행 확인부터 한다.
+
+---
+
+## 10. 후속 분할 제안 (이번 범위 밖)
+
+0. **(이번 범위 내, 별도 실행 필요) Unity 임포트·프리팹 배선** — 헤드리스 세션은 Unity 에디터를 실행할 수 없다. gameplay-programmer 가 §7 규격대로 텍스처 임포트·스프라이트 슬라이스·애니메이션 클립·컨트롤러(몸 1개)·`MonsterTierOverlay` 티어4 확장·프리팹 배선을 수행하는 일회용 에디터 툴(Rule 04 §3)을 작성하면, 사용자가 로컬 Unity 에서 1회 실행해 마무리한다. **§9 "선행 확인" 게이트(3D Stab 이벤트 실측)를 이 배선보다 먼저 수행**.
+1. **`Monster2DSprite`/`Mat_Monster2D`/`MonsterVisual2D`/`MonsterTierOverlay` 리네임** — 영웅도 쓰는 지금은 이름이 부정확(§6.2·§6.4). 몬스터 6프리팹까지 함께 리네임하는 별도 저비용 작업(`CharacterVisual2D`/`CharacterTierOverlay` 등 일반화 이름 후보).
+2. **영웅 UI 아이콘 2D 교체** — `HeroIcons/Knight.png`(3D 렌더, 512×512, 5스테이지 공유+PortraitTint)를 2D 대기 F0 기반으로 재생성할지, 스테이지별 5장으로 늘릴지는 별도 결정(`hero-select` UI 기획 영역).
+3. **스테이지 5 전용 확대 원화** — §6.5 트레이드오프(비정수 스케일 픽셀 불균일)가 육안 게이트에서 문제로 확인되면, 1.4배 배율 기준 별도 원화 세트로 교체.
+4. **3D 잔존 에셋 정리** — §7.5 목록 삭제.
+5. **캐러셀 카메라 프레이밍 재확인** — 마을 씬 카메라가 몬스터 배틀 카메라(Orthographic 7, 피치 50°)와 다른 설정이면 빌보드 각도가 어긋날 수 있다 — gameplay-programmer 배선 시 확인.
+
+---
+
+## 11. 구현 요청사항 (gameplay-programmer 용)
+
+### Enum (Rule 02 §8)
+- **신규 없음.** `EHero.Knight` 1값·에셋 키 그대로.
+
+### Interface (Rule 02 §9)
+- **신규 없음.** `IAnimatorSink`(`Speed`/`Attack`/`AttackVariant`/`Hit`/`Dead`/`Spawn`) 계약 불변. `IAttackGate`(`IsAttacking`/`BeginAttack`/`EndAttack`/`OnAttackBegin`) 불변. `IAttacker`(`TryBeginAttack`/`TryApplyStrike`/`DeferStrike` 포함) 불변.
+
+### 에셋 키 (Rule 03 §2)
+- Addressable 키 변경 없음: `Knight` 프리팹.
+- 신규 비-Addressable 에셋은 §7.1 표 경로·파일명 그대로.
+
+### 데이터 스키마
+- **신규 JSON row 스키마 없음.** 아래는 SO/직렬화 필드 변경(정적 비주얼 배선, Rule 02 §11 SO 유지 대상 — `UnityEngine.Object` 참조 포함).
+
+### `HeroStageVariant` 필드 변경 (`Scripts/Data/HeroStageVariantConfig.cs`)
+
+| 필드 | 상태 | 사유 |
+|---|---|---|
+| `TintColor` | **제거** | §6.2 — `Mat_Monster2D` 에서 `HitFlash.SetBaselineColor` 경로가 무동작(코드 실측). 스테이지색은 원화에 직접 베이크(§3.2), 런타임 소비자 없음 |
+| `UseEmission` / `EmissionColor` / `EmissionIntensity` | **유지** | §4.3 — 보조 발광 채널, `ApplyEmission` 경로 무관하게 그대로 동작, 값 불변 |
+| `HpMultiplier` / `PowerMultiplier` | **유지, 완전 불변** | §5.1 hero-stage-variant.md §2.1 |
+| `ScaleMultiplier` | **유지** | §6.5 — 루트 Transform 배수, 로직 불변(단 §6.5 `AttackJuice` 캐시 위험 확인 필요) |
+| `UseOutline` / `OutlineColor` | **제거** | §3.2·§6.3 — 3D 서브머티리얼 아웃라인 폐기, 테두리는 원화 베이크로 대체 |
+| `Tier` | **신규 필드** — `int`(0~4) | §6.4 — `MonsterTierOverlay.SetTier(variant.Tier)` 에 그대로 전달. 스테이지 1 엔트리 = `0`(오버레이 off), 스테이지 2~5 = `1`~`4` |
+
+**주의(에셋 값 설정 필수)**: `Tier` 는 C# 기본값이 `0` 이므로, `HeroStageVariantConfig.asset` 의 기존 5엔트리를 인스펙터에서 **직접 편집하지 않으면 전부 0(스테이지 1 표현)으로 남는다** — 몸은 계속 보이고 오버레이는 5스테이지 내내 꺼진 채 있다. §10-0 일회용 에디터 툴이 5엔트리에 각각 `0,1,2,3,4` 를 명시적으로 써넣는 단계를 포함해야 한다(테스트: `HeroStageVariantConfigTests` 에 "엔트리 i 의 Tier == i" 케이스 추가).
+
+### `HeroStageVariantApplier.cs` 변경
+
+| 필드 | 상태 |
+|---|---|
+| `_hitFlash` | **제거**(틴트 위임 대상 자체가 사라짐, §6.2) — `HitFlash` 컴포넌트는 프리팹에 그대로 남지만(피격/공격 flash 는 계속 필요) `HeroStageVariantApplier` 가 더 이상 참조하지 않는다 |
+| `_skeletonRenderers`(`Renderer[]`) | **제거** — 몸 색 런타임 적용 대상 자체가 사라짐. 발광은 `_emissionTargets`(`SpriteRenderer[]`, `[Visual2D 몸, Visual2D/Enhance]`) 로 대체(발광은 여전히 런타임 적용, §6.2) |
+| `_outlineRenderer` / `_outlineSubMaterialIndex` / `_outlineWidth` | **제거**(§6.3) |
+| `_tierOverlay`(`MonsterTierOverlay`, `Enhance` 참조) | **신규 필드** — `Apply()` 가 `_tierOverlay.SetTier(variant.Tier)` 호출 |
+| `_body`(`SpriteRenderer`, `Visual2D` 자신) | **신규 필드** — `Apply()` 가 `_body.enabled = (variant.Tier == 0)` 로 설정(§6.4.1 — 부분 커버리지 위험 회피, 스테이지 1 만 몸 렌더러 사용) |
+| `ApplyEmission` | **대상만 변경** — 기존 로직(`_EMISSION` 키워드 토글 + `_EmissionColor` 세팅) 그대로, 반복 대상을 `_skeletonRenderers` 대신 `_emissionTargets` 로(`_body` 포함 — 몸이 꺼져 있어도 발광 프로퍼티 세팅 자체는 무해) |
+| `ApplyScale` | **유지, 무변경**(§6.5) |
+| `Apply()` 흐름 | `EnsureBaseScale → ApplyEmission → ApplyScale → _tierOverlay.SetTier(variant.Tier) → _body.enabled=(variant.Tier==0)` — 기존 "틴트는 마지막에" 단계 자체를 제거 |
+| `ApplyOutline`/`WriteBaseColorFallback` 메서드 | **제거**(§6.3, §6.2 — 3D 전용 폴백 경로) |
+
+### `MonsterTierOverlay.cs` 변경 (기존 몬스터 컴포넌트 확장 — additive, 몬스터 회귀 0)
+
+| 항목 | 변경 |
+|---|---|
+| `_tier4Frames`(`Sprite[]`) | **신규 필드** — 영웅 스테이지 5(Tier 4) 오버레이 프레임 |
+| `_tier4Map`(`Dictionary<int,Sprite>`) | **신규 내부 필드** — `RebuildMaps()` 에서 `BuildMap(_tier4Frames)` 로 채움 |
+| `SetTier(int tier)` | `tier==4` 분기 **추가** — `_activeMap = _tier4Map`. 기존 0~3 분기 **무변경** |
+| 몬스터 6프리팹 | **무변경** — `_tier4Frames` 를 비워두면(null) `RebuildMaps` 가 빈 `Dictionary` 를 만들 뿐, 몬스터는 `SetTier` 를 0~3 으로만 호출하므로 영향 0 |
+
+### 프리팹 배선 (`Knight.prefab`)
+- §7.4 그대로: `Visual`(3D) 제거 → `Visual2D`(SpriteRenderer+Animator `Knight_2D.controller` + **`MonsterVisual2D`**) + `Visual2D/Enhance`(SpriteRenderer + **`MonsterTierOverlay`**, Animator 없음) + 루트 `AuraShadow`(SpriteRenderer `HeroGroundShadow`) 추가.
+- `MonsterVisual2D` 인스펙터: `_body`=Visual2D 자신의 SpriteRenderer, `_tierOverlay`=Enhance 의 `MonsterTierOverlay`.
+- `MonsterTierOverlay` 인스펙터: `_tier1Frames`=S2 슬라이스 전체, `_tier2Frames`=S3, `_tier3Frames`=S4, `_tier4Frames`=S5(§6.4 — 필드명 tier1~4 는 몬스터 명명을 그대로 따르되, 값은 영웅 스테이지 2~5).
+- `HeroStageVariantApplier` 인스펙터: `_emissionTargets`=[Visual2D, Visual2D/Enhance], `_tierOverlay`=Enhance 의 `MonsterTierOverlay`.
+- `CharacterAnimationDriver` 인스펙터: `_animator`=Visual2D 의 Animator(변경 없음, 재배선만).
+- `CharacterAttackStrikeRelay` — `Visual2D` GameObject 로 이전 부착.
+- **`AnimatorSink`/`CharacterAnimationDriver` 코드 변경 없음**(§6.4 정정 — 초안의 `_overlayAnimator` 계획 철회).
+
+### 애니메이션 이벤트 베이크 (Unity Animation 창, 2D 클립) — §5.3 실측 목표
+
+**주의 — Unity Animation 창에 입력하는 시각은 "클립 로컬(nominal) 초"다**(Animator State Speed 가 적용되기 *전* 시간, `AnimationEvent.time` 의 정의 그대로). Speed=1.0000 인 Spawn/Slash01/Slash02 는 클립 로컬 초 = 실시간 목표 초와 같아 그대로 입력하면 되지만, **Stab 은 Speed=1.0204 ≠ 1 이므로 클립 로컬 초와 실시간 목표 초가 다르다** — Unity 창에는 **클립 로컬 초** 열의 값을 입력해야 재생 중 **실시간(목표)** 열의 순간에 발화한다.
+
+| 클립 | 이벤트 | 클립 로컬 초(Unity Animation 창에 입력) | 실시간(재생 중 발화 목표, §5.3 실측) |
+|---|---|---|---|
+| `Knight_Spawn` | `OnSpawnAnimEnd` | 1.320s | 1.320s(Speed 1.0, 동일) |
+| `Knight_Slash01` | `OnAttackStrike` | 0.453s | 0.453s(Speed 1.0, 동일) |
+| `Knight_Slash01` | `OnAttackEnd` | 1.122s | 1.122s(Speed 1.0, 동일) |
+| `Knight_Slash02` | `OnAttackStrike` | 0.453s(Slash01 과 동일) | 0.453s |
+| `Knight_Slash02` | `OnAttackEnd` | 1.122s | 1.122s |
+| `Knight_Stab` | `OnAttackStrike` | **0.5042s**(=0.494×1.0204) | 0.494s |
+| `Knight_Stab` | `OnAttackEnd` | **1.6500s**(=1.617×1.0204) | 1.617s |
+
+### 애니메이터 State Speed 설정 (§5.3 산식)
+
+| 상태 | 원화 프레임×fps(nominal) | Speed |
+|---|---|---|
+| Spawn | 16×12=1.3333s | 1.0000 |
+| Slash01 / Slash02 | 17×15=1.1333s | 1.0000 |
+| Stab | 20×12=1.6667s | 1.0204 |
+| Idle / Walk / Run / Hit / Death | §5.2 표 그대로 | 1.000(자유 결정 상태) |
+
+### Animator 전이 설정 — §5.4 표 그대로 (Duration 0 · ExitTime 1.0)
+
+### 동작 요구 (구현 방식은 gameplay-programmer 판단)
+1. 오버레이는 `MonsterTierOverlay` 그대로 재사용 — 새 동기화 코드를 작성하지 않는다(§6.4).
+2. `CharacterAttackStrikeRelay` 는 `Visual2D` 에만 부착, 오버레이는 Animator 자체가 없으므로 이벤트를 가질 수 없다(자연히 중복 적용 없음).
+3. `DespawnOnDeath._delay` = 0.8 로 갱신.
+4. `HeroStageVariantApplier.Apply()` 는 `_tierOverlay.SetTier(variant.Tier)` + `_body.enabled=(variant.Tier==0)` 두 줄로 스테이지 1(몸만 보임)~5(오버레이만 보임)를 전환한다(§6.4.1). `MonsterTierOverlay.SetTier` 가 `_activeMap==null`(tier 0)이면 오버레이 렌더러를 이미 끄므로, 결과적으로 매 스테이지 정확히 하나의 렌더러(몸 또는 오버레이)만 켜진다.
+5. `HeroOutline.shader`/`Mat_HeroOutline.mat`/3D `Skeleton_*.fbx`/`Knight.controller`(3D) 는 삭제하지 않는다(§7.5).
+6. **착수 전 필수**: §9 "선행 확인" 게이트(3D Stab/Slash 이벤트 실제 발화 여부)를 먼저 수행하고, 결과에 따라 qa-simulator 필요 여부를 확정한 뒤 나머지를 진행한다.
+7. `AttackJuice._baseScale` 캐시가 스테이지 5 스케일을 첫 공격 후 되돌리는지 확인(§6.5) — 재현되면 이번 2D 작업과 별도 커밋으로 수정.
+
+### 테스트 포인트 (test-engineer 참고)
+- §9 "불변식" 9항목 + "선행 확인" 1항목.
+- 기존 `HeroStageVariantConfig*Tests`·`HeroStageVariantApplier*Tests`(4파일) — `TintColor`/`UseOutline`/`OutlineColor`/`_skeletonRenderers`/`_outlineRenderer` 등 제거 필드·`Tier`/`_emissionTargets`/`_tierOverlay` 신규 필드에 맞춰 갱신 필요.
+- `HeroAnimationTimingSyncPlayTests` — 게임플레이 로직 무변경이므로 통과 유지가 기대값(회귀 감시 대상으로 재실행).
+- `MonsterTierOverlaySyncTests.cs`·`MonsterVisual2DFacingTests.cs`(기존 파일, 확인됨) — tier4 분기 추가 후 tier 0~3 케이스 회귀 재확인(무변경 기대), 영웅 전용 tier4 신규 테스트는 test-engineer 가 별도 추가.
+
+---
+
+## 12. Self-Review
+
+- **3 차례 재작성 이력**: 1차 초안은 (a) strike/end 이벤트 시각을 사전 추정치로 썼고, (b) `TintColor` 를 3D 방식 그대로 런타임 적용 가능하다 가정했고, (c) 오버레이를 별도 Animator 로 병렬 재생하는 자체 설계를 제안했다 — 코드 실측으로 셋 다 틀렸음을 확인하고 1차 수정했다. 2차 검토에서 (d) `.fbx.meta` 의 FBX 임포터 경고를 "현재(1.617s) 이벤트가 미발화한다"는 증거로 인용했으나, 그 경고는 실제로 **존재하되 다른 값(2.641s, 과거에 잘못 구웠던 캐시된 값)**을 가리켜 이 사안의 증거가 아니었고(§5.3 각주에서 구분), (e) 이벤트를 정규화 1.0(경계)에 정확히 거는 설계였다가 여유(≈0.990, 마지막 프레임 안쪽)를 두도록 바꿨고, (f) 오버레이를 "몸 위 diff" 로 다뤄 시안의 공격 안무(6~8프레임)가 strike 프레임과 어긋나고 스테이지 1 이 카드 일러스트의 어두운 캡/반바지를 반영하지 못했다 — 2차 수정. 3차 검토에서 (g) 2차 수정한 이벤트 수치를 시안의 `ANIM` 상수에 반영하지 않아 시안·기획서 수치가 어긋났고, (h) 공격 안무를 17/17/20 전 구간으로 늘렸지만 스탭의 `ang` 를 빠뜨려 칼이 정면을 향하지 않았고 슬래시2 가 반대 방향으로 휘둘렀고, 접촉 프레임의 칼끝이 셀(96) 가장자리에 근접/초과했다 — 시안의 `ANIM` 재동기화, 찌르기 `ang` 궤적 추가, 슬래시2 정면 방향 재설계, 무기 길이 축소(안전 마진), 가장자리 클리핑 자동 검사 추가(`edgeClipCheck`)로 3차 수정했다. 아래 점검은 **3차 수정 후 최종본** 기준.
+- **Placeholder 잔존 0**: 미정 마커 없음. strike/end 이벤트 시각은 이제 `Skeleton_*.fbx.meta` 실측값(0.453/1.122, 0.494/1.617, 1.32)이며 "확정 대상"이 아니라 "이미 구워진 값"이다. 단 하나 남은 미확정은 **3D 현재 라이브 발화 여부**(§5.4 발견)이며, 이는 빈칸으로 두지 않고 §9 "선행 확인" 게이트 + 결과 분기(qa-simulator 조건부)로 명시했다.
+- **애매 권유/두 갈래 위임 0건**: `grep "재량"·"또는"` 자체 점검 — 본 self-review 문장 자신을 빼면 문서 어디에도 매치 0건.
+- **내부 일관성**: 스테이지 1~5 UseEmission/EmissionColor/EmissionIntensity/ScaleMultiplier 값이 §1.1·§4.3·§11 전체에서 `hero-stage-variant.md` §1.2 원본과 동일(TintColor 는 §6.2 사유로 제거, §1.1·§6.2·§11 세 곳 모두 일관되게 "제거"로 기재). HP/Power 배수는 §1.1 한 곳만 인용. Spawn/Slash01/Slash02/Stab 의 실측 목표 초 값(1.32/1.122/1.122/1.617)이 §1.2·§5.3·§9·§11 전체에서 동일(구 값 1.333/1.133/1.633 은 "클립 전체 길이"라는 다른 개념으로만 등장, 목표값과 혼동되지 않게 §5.3 에서 명시적으로 구분). `DespawnOnDeath._delay` 0.8 이 §5.6·§9·§11 동일. `Tier` 필드 값(0~4)이 §1.1·§6.4·§11 동일.
+- **시그니처/명명 일관성**: `Visual2D`·`Enhance`·`AuraShadow`·`MonsterVisual2D`·`MonsterTierOverlay`·`Knight_Sheet.png`·`Knight_2D.controller`·`OnAttackStrike`/`OnAttackEnd`/`OnSpawnAnimEnd` — 문서 전체 동일 표기(재작성 후 Grep 재검증 완료, 철회된 `Knight_Overlay_2D.controller`/`overrideController`/`OverlayController`/`_overlayAnimator` 는 "초안에서 철회" 문맥으로만 §6.4·§12 에 남고 구현 요청사항(§11)에는 등장하지 않음을 확인).
+- **스코프**: 영웅 1종 프리팹 구성 안에서 끝나는 단일 단위(SO 필드 변경 + Applier 로직 + `MonsterTierOverlay` tier4 확장 + 10 애니메이션 에셋 + 11 이미지). 재작성 후 신규 컴포넌트가 **0개**로 줄었다(기존 몬스터 컴포넌트 재사용). UI 아이콘·셰이더/컴포넌트 리네임·3D 정리·캐러셀 카메라 재확인은 §10 분할.
+- **UI 목업**: `.mockups/hero-2d-conversion.html` — 5스테이지 × 전 상태 절차 생성 재생, 실루엣 성장 사다리, R2'/R3' 실측표, 프레임 스트립+시트 규격 미리보기, 영웅 단독 전투 프리뷰(strike/end 이벤트 실시간 초 마커 — §5.3 재작성값 반영). 공격 3종은 17/17/20 프레임 전 구간을 안무해 접촉 포즈가 strike 프레임(F7/F7/F6)에 오도록 재작성했고, 스테이지 1 은 캡·반바지에 카드 일러스트 기준 어두운 색(신규 리전 #9)을 반영했다. 메인이 브라우저 콘솔 오류 유무를 확인 후 사용자에게 제시할 것(헤드리스 세션은 JS 실행 확인 불가). 몬스터는 이번 시안에 등장하지 않는다 — 동일축 몬스터 무리 속 가독성은 §9 "육안(승계)" 게이트로 파이프라인 8단계에 남긴다.
+- **선행 문서 대체 범위 명시**: 본 문서는 `hero-stage-variant.md` **§1 전체(§1.1~§1.6)** 를 대체한다. `hero-stage-variant.md` §2(스탯 배수)·§3(해금)·§4(캐러셀 UI) 는 전혀 건드리지 않는다.
+- **잔여 리스크(자체 인지, §9 게이트로 이관)**: (1) 3D Stab `OnAttackEnd` 미발화 가능성 — 구현 착수 전 선행 확인 필수. (2) `AttackJuice._baseScale` 캐시가 스테이지 5 스케일을 되돌릴 가능성 — 사전 존재 버그로 별도 확인 필요. 두 항목 모두 "이번 2D 전환이 원인"이 아니라 "이번 작업이 실측하다 발견한 기존 리스크"이며, 숨기지 않고 §5.4·§6.5·§9·§11 에 각각 명시했다.

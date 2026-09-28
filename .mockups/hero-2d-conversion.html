@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영웅 2D 시안</title>
+<style>
+:root{--bg:#eef0f3;--fg:#111827;--muted:#4b5563;--line:#d3d7de;--card:#ffffff;--game:#1F2937;--panel:#262626;--acc:#FBBF24;--txt:#F9FAFB;--sub:#9CA3AF}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0f14;--fg:#e5e7eb;--muted:#9ca3af;--line:#2a2f3a;--card:#171a21}}
+:root[data-theme="dark"]{--bg:#0d0f14;--fg:#e5e7eb;--muted:#9ca3af;--line:#2a2f3a;--card:#171a21}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.45;overflow-x:hidden}
+.wrap{max-width:1040px;margin:0 auto;padding:12px}
+h1{font-size:21px;margin:2px 0 4px}
+h2{font-size:16px;margin:0 0 6px}
+h3{font-size:14px;margin:12px 0 6px}
+p{margin:0 0 8px}
+code{word-break:break-all}
+.lead{color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px}
+.lbl{font-size:12px;color:var(--muted)}
+.btn{appearance:none;-webkit-appearance:none;border:1.5px solid #fff;background:var(--panel);color:#fff;border-radius:8px;padding:4px 9px;font:inherit;font-size:12.5px;line-height:1.2;min-height:30px;cursor:pointer}
+.btn:hover{filter:brightness(1.2)}
+.btn.on{background:var(--acc);border-color:var(--acc);color:#111}
+.btn.sm{font-size:11.5px;padding:2px 5px;min-height:26px;border-width:1px}
+.note{font-size:12px;color:var(--muted)}
+.ok{color:#16a34a}
+.ng{color:#dc2626;font-weight:700}
+#loading{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);background:#1F2937;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:999999}
+ul.dec{margin:4px 0 0;padding-left:18px;font-size:12.5px}
+ul.dec li{margin:2px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.card{background:var(--game);border:2px solid rgba(255,255,255,.18);border-radius:10px;color:var(--txt);min-width:0;overflow:hidden}
+.card .hd{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:6px 8px 0}
+.card .nm{font-size:15px;white-space:nowrap}
+.card .en{font-size:11px;color:var(--sub);margin-left:4px}
+.ax{font-size:10.5px;padding:1px 6px;border-radius:999px;color:#fff;border:1px solid rgba(255,255,255,.5);white-space:nowrap}
+.card .st{font-size:10.5px;color:var(--sub);padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage{position:relative;height:156px;margin:4px 6px 2px;border-radius:8px;overflow:hidden;background:radial-gradient(ellipse at 50% 92%,#34405c 0%,#1d2536 55%,#131927 100%)}
+.stage .gl{position:absolute;left:0;right:0;bottom:16px;height:1px;background:rgba(255,255,255,.07)}
+.spr{position:absolute;transform-origin:50% 100%}
+.spr svg{display:block;width:100%;height:100%;overflow:visible}
+.shadow{position:absolute;border-radius:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.4)}
+.badge{position:absolute;right:5px;top:5px;background:rgba(15,21,32,.85);color:#fff;font-size:12px;line-height:1;padding:3px 6px;border-radius:6px;z-index:5}
+.fi{font-size:11px;color:var(--sub);padding:0 8px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi b{color:var(--acc);font-weight:normal}
+.sb{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:5px 6px}
+.lc2{display:flex;align-items:center;gap:4px;padding:0 6px 7px;flex-wrap:wrap}
+.pop{position:absolute;pointer-events:none;white-space:nowrap;font-weight:700;transform:translate(-50%,-50%);z-index:100000;line-height:1}
+.lhead,.lcells{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.lhead div{font-size:10px;text-align:center;color:var(--muted);line-height:1.2}
+.lname{font-size:12px;margin:6px 0 3px}
+.lc{position:relative;aspect-ratio:1/1;border-radius:6px;overflow:hidden;background:radial-gradient(ellipse at 50% 90%,#34405c 0%,#1d2536 60%,#131927 100%)}
+.lc .spr{left:50%}
+.strip{display:flex;flex-wrap:wrap;gap:6px}
+.fr{width:78px;background:#1F2937;border:2px solid transparent;border-radius:8px;padding:4px 2px;color:#E5E7EB;font-size:10.5px;text-align:center}
+.fr svg{width:68px;height:68px;display:block;margin:0 auto 2px}
+.fr.hit{border-color:#FBBF24}
+.fr.end{border-color:#38BDF8}
+.fr.cur{box-shadow:inset 0 0 0 2px #fff}
+.sheetwrap{background-color:#2a2f3a;background-image:conic-gradient(#3a4150 25%,transparent 0 50%,#3a4150 0 75%,transparent 0);background-size:16px 16px;border-radius:8px;padding:6px;max-width:100%;display:inline-block}
+.sheetwrap canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;max-width:100%}
+table.spec{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+table.spec th,table.spec td{border:1px solid var(--line);padding:3px 2px;text-align:center;overflow-wrap:anywhere}
+table.spec small{color:var(--muted);font-size:10px}
+table.met td,table.met th{font-size:10.5px}
+.prevbox{position:relative;width:112px;height:112px;background:#1F2937;border-radius:8px;flex:none}
+.prevbox .spr{left:8px;bottom:6px;width:96px;height:96px}
+.bf{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;
+ background:radial-gradient(circle at 50% 62%,rgba(94,234,212,.35) 0 2.2%,rgba(45,212,191,.12) 6%,transparent 16%),
+ repeating-conic-gradient(from 0deg at 50% 62%,rgba(160,180,230,.06) 0deg 5deg,transparent 5deg 22.5deg),
+ radial-gradient(ellipse at 50% 62%,#2c3750 0%,#1e2638 55%,#10141d 100%)}
+.bf::before{content:"";position:absolute;left:4%;right:4%;top:6%;bottom:6%;border:2px solid rgba(10,13,20,.55);border-radius:18px;pointer-events:none}
+.bfl{position:absolute;inset:0}
+.act{position:absolute;left:0;top:0;width:0;height:0}
+.bfhud{position:absolute;left:8px;top:6px;right:8px;font-size:11px;color:#e5e7eb;background:rgba(0,0,0,.4);padding:2px 6px;border-radius:6px;z-index:100001;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:max-content;max-width:calc(100% - 16px)}
+.evtag{position:absolute;pointer-events:none;font-weight:700;font-size:12px;color:#FBBF24;text-shadow:-1px 0 #1A1A1A,1px 0 #1A1A1A,0 -1px #1A1A1A,0 1px #1A1A1A;transform:translate(-50%,-50%);z-index:100001}
+</style>
+</head>
+<body>
+<div id="loading">원화 절차 생성 중… (5스테이지 × 9상태)</div>
+<div id="svgdefs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"></div>
+<div class="wrap">
+  <h1>영웅 2D 전환 시안 · 5스테이지 실루엣 분화</h1>
+  <p class="lead">Project Lair · 영웅(<code>EHero.Knight</code>) 3D 스켈레톤 재스킨 → 2D 픽셀 스프라이트, 5스테이지를 틴트뿐 아니라 <b>머리장식·무기·의복 실루엣</b>으로 분화(스테이지1=카드 일러스트 기준형, 2~5=몬스터 방식 파츠 성장). 기획서 <code>docs/design/hero-2d-conversion.md</code> §3·§5·§6 규격을 절차 생성해 재생한다. 카드·몬스터·UI 아이콘은 범위 밖.</p>
+  <div class="tags">
+    <span class="tag">PPU 48 · 셀 96 · 픽셀아트 프레임 애니</span><span class="tag">3/4 탑다운 · 카메라 빌보드</span><span class="tag">공격 3종(횡·횡·찌르기)</span><span class="tag">strike/end 이벤트 실측 초 재현</span><span class="tag">스폰=클립(트윈 아님)</span><span class="tag">MonsterTierOverlay 이름 미러링 재사용</span>
+  </div>
+  <p class="note">이 픽셀 원화는 규격 검증용 절차 생성물이다. 최종 아트 소스는 사용자 선택 필요(기획서 §8). 발광은 블룸을 SVG 블러로 근사했다.</p>
+
+  <section class="box">
+    <h2>1. 스테이지 카드 — 상태별 애니메이션(실제 초 값)</h2>
+    <div class="row">
+      <button class="btn on" id="autoBtn">전체 동시 재생: 켜짐</button>
+      <span class="lbl">재생 속도</span>
+      <button class="btn sm on" data-spd="1">×1</button><button class="btn sm" data-spd="0.5">×0.5</button><button class="btn sm" data-spd="0.25">×0.25</button>
+    </div>
+    <div class="row" id="allStates"><span class="lbl">전체 상태</span></div>
+    <div class="cards" id="cards"></div>
+    <p class="note" style="margin-top:8px">공격 3종은 강조 표시(●히트=OnAttackStrike, ◆끝=OnAttackEnd)로 이벤트 실시간 위치를 보여준다 — 값은 기획서 §5.3 실측(Slash 끝 1.122s·Stab 끝 1.617s·Spawn 끝 1.320s, `Skeleton_*.fbx.meta` 에 실제로 구워진 값). 피격: 반전 0.1s. 사망: 0.8s 후 풀 반환. 배지 "S N" 은 스테이지 번호 표기 예시.</p>
+  </section>
+
+  <section class="box">
+    <h2>2. 실루엣 성장 사다리 — 스테이지 1~5 (머리장식 · 무기 · 의복)</h2>
+    <div class="row" id="ldSt"></div>
+    <div class="lhead"><div>S1<br>기준형</div><div>S2<br>후드+장검</div><div>S3<br>반투구+영묘망토</div><div>S4<br>풀헬름+양손검</div><div>S5<br>왕관+대검</div></div>
+    <div id="ladder"></div>
+    <h3>가시성 규칙 실측 (대기 F0, 절차 생성 원화 기준 — 기획서 §3.3 R2'·R3')</h3>
+    <p class="note">R2' 최대 돌출(스테이지1 대비) ≥ S2 4텍셀 · S3 6 · S4 9 · S5 14 / R3' 실루엣 증가율 ≥ S2 10% · S3 18% · S4 30% · S5 45% — 판정은 반올림 전 실측값, 표시는 소수 1자리 내림, 미달은 빨강.</p>
+    <table class="spec met" id="metTbl"></table>
+  </section>
+
+  <section class="box">
+    <h2>3. 전투 미니 프리뷰 — 영웅 단독 루프 (실시간 타이밍 검증)</h2>
+    <div class="row" id="stageMode"><span class="lbl">스테이지</span></div>
+    <div class="row"><button class="btn sm on" id="evTag">이벤트 마커 표시(strike/end 실시간 초)</button></div>
+    <div class="bf" id="bf"><div class="bfl" id="bfl"></div><div class="bfhud" id="bfhud"></div></div>
+    <p class="note" style="margin-top:6px">영웅이 등장(스폰 클립) → 대기 → 도주(질주, FleeMode 예시) → 공격 3종을 순환 재생한다. 노란 점=OnAttackStrike, 청록 점=OnAttackEnd/OnSpawnAnimEnd 실시간 발행 순간 — 기존 3D 클립과 같은 초에 뜨는지 눈으로 검증한다.</p>
+  </section>
+
+  <section class="box">
+    <h2>4. 프레임 스트립 · 시트 규격</h2>
+    <div class="row" id="stSg"></div>
+    <div class="row" id="stSt"></div>
+    <div class="row" style="align-items:flex-start;flex-wrap:nowrap;gap:10px">
+      <div class="prevbox" id="stPrev"></div>
+      <p class="note" id="stInfo" style="margin:0"></p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <h3>스프라이트 시트 (9행 × 20열 · 행 = Idle/Walk/Run/Slash01/Slash02/Stab/Hit/Death/Spawn)</h3>
+    <div class="row">
+      <button class="btn sm" id="maskBtn">발광 마스크 보기</button>
+    </div>
+    <div class="sheetwrap" id="sheetWrap"></div>
+    <p class="note" id="sheetInfo" style="margin-top:6px"></p>
+    <div class="row">
+      <button class="btn sm" id="dlSheet">시트 PNG 저장</button>
+      <span class="note">로컬 브라우저 전용 — Artifact 뷰어에서는 다운로드가 차단된다.</span>
+    </div>
+    <h3>프레임 규격표 (프레임 수 · fps · Animator Speed · 실시간 길이)</h3>
+    <table class="spec" id="specTbl"></table>
+  </section>
+
+  <section class="box">
+    <h2>5. 핵심 결정 요약</h2>
+    <ul class="dec">
+      <li>스테이지 1 은 카드 일러스트(Fear/Bleed/TimeStop) 픽셀 해골을 그대로 기준형으로 채택 — 재디자인 없음.</li>
+      <li>스테이지 2~5 는 색(<code>hero-stage-variant.md</code> §1.2 값 불변)뿐 아니라 <b>머리장식·무기·의복 3모티프 escalation</b>으로 실루엣부터 분화한다(캡→후드→반투구→풀헬름→왕관, 소검→장검→양손검→대검, 헝겊→튜닉→영묘망토→정예망토→화염망토).</li>
+      <li>Spawn·Slash01·Slash02·Stab 4클립은 기존 3D 클립과 <b>동일 실시간 초</b>(1.333s·1.133s·1.133s·1.633s)를 Animator State Speed 로 정확히 재현 — OnAttackStrike/OnAttackEnd/OnSpawnAnimEnd 이벤트 시점·게임플레이 타이밍 계약 완전 불변.</li>
+      <li>스테이지 파츠는 몬스터 2D 가 이미 구현한 `MonsterTierOverlay` 를 그대로 재사용 — 오버레이는 별도 Animator 없이 몸 스프라이트 이름(프레임 인덱스)을 매 프레임 미러링만 한다(신규 동기화 코드 0). 영웅은 티어가 4개(S2~S5)라 `_tier4Frames` 분기만 additive 로 확장한다.</li>
+      <li>스테이지 5 만 기존 승인값대로 루트 스케일 1.4배 — 몬스터와 달리 "몸 스케일업 금지" 제약을 적용하지 않는다(여러 스테이지가 동시에 화면에 섞일 일이 없어 픽셀 밀도 불일치 문제 자체가 없음).</li>
+      <li>전투 판정·타이밍·스탯 배수 불변: 공격 개시→strike→회복 흐름, 스폰 게이트, 피격 억제, HP/Power 배수 모두 기존 <code>hero-animation-timing-sync.md</code>/<code>hero-stage-variant.md</code> 계약 그대로.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+'use strict';
+const TAU=Math.PI*2, K=Math.sin(50*Math.PI/180);
+const N=96; //# 셀 크기(기획서 §4.2)
+const STATES=['idle','walk','run','slash01','slash02','stab','hit','death','spawn'];
+const SKO={idle:'대기',walk:'이동',run:'도주질주',slash01:'횡베기1',slash02:'횡베기2',stab:'찌르기',hit:'피격',death:'사망',spawn:'등장'};
+const STAGE_NAME=['기준형','후드+장검','반투구+영묘망토','풀헬름+양손검','왕관+대검'];
+const STAGE_COL=['#E8E0C8','#4ADE80','#38BDF8','#A855F7','#EF4444'];
+const STAGE_RIM=['#0A0D14','#F8FAFC','#0A0D14','#E879F9','#FDE047'];
+const STAGE_GLOW=[null,null,'#38BDF8','#A855F7','#FF5722']; //# S1/S2 발광 없음(hero-stage-variant.md UseEmission=false), S3 시안·S4 퍼플·S5 화염
+const STAGE_EMI=[0,0,1.5,2.2,3.2];
+const $=id=>document.getElementById(id);
+
+//# ---------- 애니메이션 규격 (기획서 §5.2·§5.3) ----------
+//# [프레임수, fps, animatorSpeed, hitFrameNormalized(공격만), endEvent(bool)]
+//# strikeNt/endNt/speed — 기획서 §5.3·§11 최종값(Skeleton_*.fbx.meta 실측 ÷ 클립 전체 길이로 역산). Speed 는 nominal÷클립전체(FBX 원본 길이) 기준.
+const ANIM={
+ idle:   {n:8,  fps:8,  speed:1,      loop:true},
+ walk:   {n:8,  fps:10, speed:1,      loop:true},
+ run:    {n:8,  fps:14, speed:1,      loop:true},
+ slash01:{n:17, fps:15, speed:1.0000, loop:false, strikeNt:0.4000, endNt:0.9900, hasEnd:true},
+ slash02:{n:17, fps:15, speed:1.0000, loop:false, strikeNt:0.4000, endNt:0.9900, hasEnd:true},
+ stab:   {n:20, fps:12, speed:1.0204, loop:false, strikeNt:0.3025, endNt:0.9900, hasEnd:true},
+ hit:    {n:6,  fps:12, speed:1,      loop:false},
+ death:  {n:8,  fps:10, speed:1,      loop:false},
+ spawn:  {n:16, fps:12, speed:1.0000, loop:false, endNt:0.9900, hasEnd:true}
+};
+function realLen(st){const a=ANIM[st];return (a.n/a.fps)/a.speed;}
+function realTimeAt(st,normalized){const a=ANIM[st];return normalized*(a.n/a.fps)/a.speed;}
+
+//# ---------- shape helpers (기획서 §6.4 사다리 원화 절차생성 — monster-2d-conversion.html 과 동일 기법) ----------
+const E=(cx,cy,rx,ry)=>(X,Y)=>{const a=(X-cx)/rx,b=(Y-cy)/ry;return a*a+b*b<=1;};
+const C=(cx,cy,r)=>E(cx,cy,r,r);
+const R=(x0,y0,x1,y1)=>(X,Y)=>X>=x0&&X<x1&&Y>=y0&&Y<y1;
+const PL=pts=>(X,Y)=>{let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>Y)!==(yj>Y))&&(X<(xj-xi)*(Y-yi)/(yj-yi)+xi))c=!c;}return c;};
+const U=(...fs)=>(X,Y)=>{for(let i=0;i<fs.length;i++){if(fs[i](X,Y))return true;}return false;};
+function segD(px,py,ax,ay,bx,by){const vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay;const L2=vx*vx+vy*vy||1;const t=Math.max(0,Math.min(1,(vx*wx+vy*wy)/L2));const dx=px-(ax+vx*t),dy=py-(ay+vy*t);return Math.sqrt(dx*dx+dy*dy);}
+const LN=(pts,w)=>(X,Y)=>{for(let i=0;i<pts.length-1;i++){if(segD(X,Y,pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1])<=w/2)return true;}return false;};
+const ROT=(pts,a,ox,oy)=>{const c=Math.cos(a),s=Math.sin(a);return pts.map(p=>{const dx=p[0]-ox,dy=p[1]-oy;return [ox+dx*c-dy*s,oy+dx*s+dy*c];});};
+const MX=(pts,W)=>pts.map(p=>[W-p[0],p[1]]);
+function STAR(cx,cy,ro,ri,n){n=n||5;const p=[];for(let i=0;i<n*2;i++){const a=-Math.PI/2+i*Math.PI/n,r=i%2?ri:ro;p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return PL(p);}
+const mv=(pts,dx,dy)=>pts.map(p=>[p[0]+dx,p[1]+dy]);
+
+//# ---------- per-state frame params ----------
+//# 공격 전체 17/17/20 프레임 전 구간 안무 — 접촉(칼이 최대로 뻗는 포즈) 은 반드시 strike 프레임(슬래시 F7·스탭 F6)에 오도록 키를 짠다(기획서 §9 "strike 프레임 아트 정합" 게이트).
+//# ang 는 팔 피벗(58,54) 기준 회전각 — ang≈1.15 가 화면 +X(정면) 수평 신전에 가장 가깝다(§4.2 각주 산식). tx 최대값은 셀 가장자리(96) 클리핑 방지를 위해 낮게 제한.
+const ATK={
+ //# 횡베기1 — 아래에서 위로 감아올리는 스윙, 접촉(F7)에서 정면 수평으로 신전.
+ slash01:[
+  {tx:-1,ang:-0.30},{tx:-2,ang:-0.45},{tx:-1,ang:-0.30},{tx:0,ang:-0.05},{tx:1,ang:0.25},
+  {tx:2,ang:0.60},{tx:3,ang:0.90},{tx:4,ang:1.15},                          //# F7 = strike(접촉, 정면 수평 신전)
+  {tx:3,ang:1.05},{tx:2,ang:0.80},{tx:1,ang:0.55},{tx:0,ang:0.30},{tx:0,ang:0.15},
+  {tx:0,ang:0.05},{tx:0,ang:0},{tx:0,ang:0},{tx:0,ang:0}
+ ],
+ //# 횡베기2 — 위(어깨 너머)에서 내려찍는 스윙, 접촉(F7)은 슬래시1 과 같은 정면 수평(시각적으로 다른 궤적 + 같은 타격 방향).
+ slash02:[
+  {tx:-1,ang:1.90},{tx:-2,ang:2.05},{tx:-1,ang:1.90},{tx:0,ang:1.70},{tx:1,ang:1.50},
+  {tx:2,ang:1.35},{tx:3,ang:1.22},{tx:4,ang:1.15},                          //# F7 = strike(접촉, slash01 과 동일 정면 방향)
+  {tx:3,ang:1.05},{tx:2,ang:0.80},{tx:1,ang:0.55},{tx:0,ang:0.30},{tx:0,ang:0.15},
+  {tx:0,ang:0.05},{tx:0,ang:0},{tx:0,ang:0},{tx:0,ang:0}
+ ],
+ //# 찌르기 — ang 가 정면 수평(1.15)까지 회전 + rc(0→1)가 손 위치를 얹어 "찌름"을 강조, F6 에서 완전 신전.
+ stab:[
+  {tx:-1,ang:0.55,rc:0},{tx:-2,ang:0.45,rc:0},{tx:-1,ang:0.55,rc:0.05},{tx:0,ang:0.75,rc:0.25},
+  {tx:2,ang:0.95,rc:0.55},{tx:4,ang:1.08,rc:0.85},
+  {tx:5,ang:1.15,rc:1.00},                                                 //# F6 = strike(접촉, 완전 신전)
+  {tx:5,ang:1.15,rc:1.00},{tx:4,ang:1.05,rc:0.90},{tx:4,ang:0.95,rc:0.78},{tx:3,ang:0.85,rc:0.65},
+  {tx:2,ang:0.72,rc:0.52},{tx:2,ang:0.60,rc:0.40},{tx:1,ang:0.48,rc:0.30},{tx:1,ang:0.38,rc:0.20},
+  {tx:0,ang:0.28,rc:0.14},{tx:0,ang:0.18,rc:0.08},{tx:0,ang:0.10,rc:0.04},{tx:0,ang:0.03,rc:0.01},{tx:0,ang:0,rc:0}
+ ]
+};
+function params(st,f,tier){
+  const a=ANIM[st],n=a.n,ph=TAU*f/n;
+  const P={tx:0,ty:0,sx:1,sy:1,ph:ph,eyes:'n',dis:0,fx:0,f:f,n:n,st:st,tier:tier,ang:0,fl:0,rc:0};
+  if(st==='idle'){P.ty=-Math.round(Math.sin(ph));}
+  else if(st==='walk'){P.ty=-Math.round(Math.abs(Math.sin(ph)));P.tx=Math.round(Math.sin(ph*2));}
+  else if(st==='run'){P.ty=-Math.round(Math.abs(Math.sin(ph))*1.4);P.tx=Math.round(Math.sin(ph*2)*1.3);P.sy=0.94;}
+  else if(st==='hit'){Object.assign(P,[{tx:-2,sx:1.1,sy:0.9,eyes:'h'},{tx:-3,sx:1.05,sy:0.95,eyes:'h'},{tx:-1,eyes:'h'},{},{},{}][f]||{});}
+  else if(st==='death'){Object.assign(P,[{sx:1.08,sy:0.92,eyes:'x'},{ty:-1,dis:0.06,eyes:'x'},{ty:-1,dis:0.18,eyes:'x'},{ty:-2,dis:0.35,eyes:'x'},{ty:-2,sx:0.94,dis:0.55,eyes:'x'},{ty:-3,sx:0.88,dis:0.72,eyes:'x'},{ty:-3,sx:0.84,dis:0.86,eyes:'x'},{ty:-3,sx:0.8,dis:0.95,eyes:'x'}][f]||{});}
+  else if(st==='spawn'){const k=f/(n-1);P.dis=0;P.sy=0.3+0.7*Math.min(1,k*1.4);P.ty=-Math.round(2*(1-Math.min(1,k*1.4)));}
+  else if(ATK[st])Object.assign(P,ATK[st][f]||{});
+  return P;
+}
+
+//# ---------- Hero draw — 스테이지(tier 0~4) 누적 실루엣 (기획서 §3.2 3모티프 escalation) ----------
+const GOLD=['#FBBF24','#FDE68A','#B45309'];
+function drawHero(P){
+  const T=P.tier;
+  const bodyC=STAGE_COL[T];
+  //# 톤 3단(기본/하이라이트/그림자) 근사 생성
+  function ramp(hex){const r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
+    const hi='#'+[r,g,b].map(v=>Math.min(255,Math.round(v+(255-v)*0.45)).toString(16).padStart(2,'0')).join('');
+    const lo='#'+[r,g,b].map(v=>Math.round(v*0.55).toString(16).padStart(2,'0')).join('');
+    return [hex,hi,lo];}
+  const regs=[
+    {c:['#E8E0C8','#F5EDE4','#B8A99A'],sh:1},          //#0 뼈(항상 흰뼈, 스테이지 무관 — 카드 일러스트 기준)
+    {c:['#0A0D14'],in:1},                               //#1 눈구멍/입
+    {c:['#4ADE80'],in:1},                               //#2 눈(형광초록, 항상 동일 — 카드 일러스트 계승)
+    {c:ramp(bodyC),sh:1},                                //#3 의복(스테이지색)
+    {c:['#C7C7C7','#F1F1F1','#8A8A8A'],sh:1},           //#4 무기 날(은색)
+    {c:['#7A5230','#9C7248','#4E3419'],sh:1},           //#5 무기 손잡이(갈색)
+    {c:GOLD,sh:1},                                       //#6 금 파츠(왕관/버클, S4~S5)
+    {c:[STAGE_GLOW[T]||'#38BDF8'],in:1},                //#7 발광(보조, S3·S5)
+    {c:ramp(bodyC),sh:1},                                //#8 망토/케이프(스테이지색, S3+)
+    {c:['#1F2937','#374151','#111827'],sh:1}            //#9 어두운 헝겊(S1 캡·반바지 전용 — 카드 일러스트 기준색, 스테이지색과 무관)
+  ];
+  const S=[];
+  const cx=48,ang=P.ang||0,fl=P.fl||0;
+  //# 케이프(S3+) — 완전 합성 원화(diff 아님, 기획서 §6.4.1) 안에서 등 뒤로 그려 넣는 파츠. 몸이 이 시트와 같이 꺼져 있으므로(스테이지>0) 자유롭게 겹쳐 그려도 된다.
+  if(T>=2){
+    const capeLen=T>=4?30:(T>=3?24:18);
+    const sway=Math.round(Math.sin(P.ph)*2)+fl*2;
+    const cape=[[30,40],[16-sway,46],[10-sway,40+capeLen],[18-sway,44+capeLen],[26,52],[34,44]];
+    S.push({r:8,t:U(PL(cape),PL(MX(cape,96)))});
+    if(T>=4){ //# S5 화염 자락 파편(발광 입자)
+      for(let k=0;k<3;k++){const a=P.ph+k*2;S.push({r:7,g:1,t:C(20-sway+Math.cos(a)*3,88+Math.sin(a)*3,1.6)});}
+    }
+  }
+  //# 다리 — S1 은 카드 일러스트대로 어두운 헝겊(r9), S2+ 는 스테이지색 의복(r3)
+  const legSway=Math.round(Math.sin(P.ph)*2);
+  S.push({r:T===0?9:3,t:U(R(40,74,45,92+legSway*0),R(51,74,56,92))});
+  //# 몸통(갈비뼈 드러남 — 카드 일러스트 계승, S1 은 헝겊만 살짝, S2+ 는 튜닉이 덮음)
+  S.push({r:0,t:R(38,50,58,76)});
+  if(T===0){ //# S1 — 노출 갈비뼈 줄무늬 + 어두운 반바지(카드 일러스트 기준색)
+    S.push({r:1,t:U(R(41,56,55,58),R(41,61,55,63),R(41,66,55,68))});
+    S.push({r:9,t:R(40,70,56,76)}); //# 헝겊 반바지 — 어두운 색(카드 일러스트)
+  } else { //# S2+ — 튜닉/갑주가 몸통을 덮음(의복 escalation)
+    S.push({r:3,t:R(37,50,59,78)});
+    if(T>=3){S.push({r:6,t:U(R(35,50,40,58),R(56,50,61,58))});} //# S4+ 견갑
+    if(T>=4){S.push({r:6,t:U(R(40,60,44,68),R(52,60,56,68))});} //# S5 판금 갑주 조각(가슴 좌우)
+  }
+  //# 팔(무기 든 오른팔 — 공격 시 회전)
+  const armPts=ROT([[58,54],[70,50+P.rc*4]],ang,58,54);
+  S.push({r:0,t:LN(armPts,6)});
+  S.push({r:0,t:LN([[38,54],[30,64+legSway]],6)}); //# 왼팔
+  //# 무기 — S1 소검 → S5 대검(길이/폭 escalation). 셀(96) 가장자리 클리핑 방지를 위해 최대 길이를 안전 마진 안으로 제한(§4.2 각주).
+  const bladeLen=[14,18,21,24,26][T],bladeW=[3,3.4,3.8,4.4,5.0][T];
+  const tipY=50+P.rc*4-bladeLen;
+  const blade=ROT([[70,50+P.rc*4],[70-bladeW/2,tipY+4],[70,tipY],[70+bladeW/2,tipY+4]],ang,58,54);
+  S.push({r:4,t:PL(blade)});
+  S.push({r:5,t:LN(ROT([[58,54],[68,52]],ang,58,54),3)}); //# 손잡이
+  if(T>=1){S.push({r:5,t:LN(ROT([[64,48],[64,58]],ang,58,54),2)});} //# S2+ 십자가드
+  //# 머리
+  S.push({r:0,t:C(48,44,9)});
+  //# 눈(항상 형광초록 — 카드 일러스트 계승, 죽음/피격은 별도 표기)
+  if(P.eyes==='x'){
+    S.push({r:1,t:LN([[44,42],[46,44]],1.3)});S.push({r:1,t:LN([[44,44],[46,42]],1.3)});
+    S.push({r:1,t:LN([[50,42],[52,44]],1.3)});S.push({r:1,t:LN([[50,44],[52,42]],1.3)});
+  } else {
+    S.push({r:1,t:R(43,41,47,44)});S.push({r:1,t:R(49,41,53,44)});
+    S.push({r:2,t:R(44,41.5,46,43.5)});S.push({r:2,t:R(50,41.5,52,43.5)});
+  }
+  S.push({r:1,t:(X,Y)=>Y>=47&&Y<49&&X>=45&&X<51}); //# 입
+  //# 머리장식 escalation — 캡→후드→반투구→풀헬름→왕관
+  if(T===0){ //# S1 낮은 플랫캡 — 어두운 색(카드 일러스트 기준, r9)
+    S.push({r:9,t:R(40,33,56,37)});
+  } else if(T===1){ //# S2 후드(오픈페이스, 챙)
+    S.push({r:3,t:U(R(38,32,58,38),PL([[38,38],[36,44],[41,40]]),PL([[58,38],[60,44],[55,40]]))});
+    S.push({r:0,n:1,t:LN([[38,38],[58,38]],1)}); //# 림 베이크(색은 STAGE_RIM 이 외곽선 단계에서 처리)
+  } else if(T===2){ //# S3 반투구(스컬 드러남)
+    S.push({r:0,t:U(R(39,31,57,36),PL([[39,36],[41,44]]))});
+    S.push({r:7,g:1,t:C(48,29,1.4)}); //# 발광 장식
+  } else if(T===3){ //# S4 풀헬름 + 작은 뿔
+    S.push({r:6,t:R(38,30,58,39)});
+    S.push({r:6,t:U(PL([[39,31],[36,25],[41,31]]),PL([[57,31],[60,25],[55,31]]))});
+    S.push({r:0,n:1,t:U(R(41,34,47,37),R(49,34,55,37))}); //# 투구 눈 슬릿 음영
+    S.push({r:7,g:1,t:U(C(37,25,1.1),C(59,25,1.1))}); //# 뿔 끝 발광(§4.3 S4 발광 부위)
+  } else { //# S5 금 스파이크 왕관
+    S.push({r:6,t:R(39,32,57,37)});
+    for(let i=0;i<3;i++){const x=42+i*6;S.push({r:6,t:PL([[x-2,33],[x,33-8],[x+2,33]])});}
+    S.push({r:7,g:1,t:C(48,32,1.6)});
+  }
+  //# S3+ 발광 부유 입자(영혼/화염)
+  if(T>=2 && T!==3){
+    for(let k=0;k<2;k++){const a=P.ph+k*Math.PI;S.push({r:7,g:1,t:C(48+14*Math.cos(a),58+6*Math.sin(a),1.3)});}
+  }
+  return {regs:regs,S:S,out:STAGE_RIM[T]};
+}
+
+//# ---------- rasterizer (monster-2d-conversion.html 과 동일 알고리즘 재사용) ----------
+function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
+function makeFrame(st,f,tier){
+  const cx=N/2,P=params(st,f,tier),d=drawHero(P),regs=d.regs,S=d.S;
+  const NN=N*N,reg=new Int16Array(NN).fill(-1),gl=new Uint8Array(NN),no=new Uint8Array(NN),spk=new Uint8Array(NN);
+  const sx=P.sx||1,sy=P.sy||1;
+  for(let y=0;y<N;y++){for(let x=0;x<N;x++){
+    let X=x+0.5-(P.tx||0),Y=y+0.5-(P.ty||0);
+    X=cx+(X-cx)/sx;Y=N+(Y-N)/sy;
+    const i=y*N+x;
+    for(let k=0;k<S.length;k++){const s=S[k];if(s.t(X,Y)){reg[i]=s.r;gl[i]=s.g?1:0;no[i]=s.n?1:0;}}
+  }}
+  if(P.dis>0){for(let y=0;y<N;y++){for(let x=0;x<N;x++){const i=y*N+x;if(reg[i]<0)continue;if(hash(x,y)<P.dis){reg[i]=-1;gl[i]=0;if(hash(x+7.3,y+3.1)<0.2){const yy=y-1-Math.floor(hash(x+3.7,y+11.2)*6*P.dis);if(yy>=0)spk[yy*N+x]=1;}}}}}
+  const col=new Array(NN).fill(null),gm=new Uint8Array(NN);
+  const same=(x,y,r)=>{if(x<0||y<0||x>=N||y>=N)return false;const q=reg[y*N+x];return q===r||(q>=0&&!!regs[q].in);};
+  for(let y=0;y<N;y++){for(let x=0;x<N;x++){const i=y*N+x,r=reg[i];if(r<0)continue;const R0=regs[r];let c=R0.c[0];
+    if(R0.sh){if(!same(x+1,y,r)||!same(x,y+1,r))c=R0.c[2]||R0.c[0];else if(!same(x-1,y,r)||!same(x,y-1,r))c=R0.c[1]||R0.c[0];}
+    col[i]=c;gm[i]=gl[i];}}
+  for(let i=0;i<NN;i++){if(spk[i]&&reg[i]<0){col[i]=STAGE_GLOW[tier]||'#38BDF8';gm[i]=1;}}
+  for(let y=0;y<N;y++){for(let x=0;x<N;x++){const i=y*N+x;if(col[i])continue;
+    const nb=[[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+    for(let q=0;q<4;q++){const a=nb[q][0],b=nb[q][1];if(a<0||b<0||a>=N||b>=N)continue;const j=b*N+a;if(reg[j]>=0&&!no[j]){col[i]=d.out;break;}}}}
+  return {N:N,col:col,gm:gm};
+}
+function runs(NN2,test){let d='';for(let y=0;y<N;y++){let x=0;while(x<N){if(!test(y*N+x)){x++;continue;}let e=x+1;while(e<N&&test(y*N+e))e++;d+='M'+x+' '+y+'h'+(e-x)+'v1h'+(x-e)+'z';x=e;}}return d;}
+function framePaths(fr){
+  const by=new Map();
+  for(let y=0;y<N;y++){let x=0;while(x<N){const c=fr.col[y*N+x];if(!c){x++;continue;}let e=x+1;while(e<N&&fr.col[y*N+e]===c)e++;let a=by.get(c);if(!a){a=[];by.set(c,a);}a.push('M'+x+' '+y+'h'+(e-x)+'v1h'+(x-e)+'z');x=e;}}
+  let s='';by.forEach((a,c)=>{s+='<path fill="'+c+'" d="'+a.join('')+'"/>';});
+  return {s:s,g:runs(N,i=>fr.gm[i]===1)};
+}
+const fid=(t,st,f)=>'h-t'+t+'-'+st+'-'+f;
+
+const FR={};
+function buildDefs(){
+  let defs='';
+  const fxM=a=>{const b=(1-a).toFixed(2),v=a.toFixed(2);return b+' 0 0 0 '+v+' 0 '+b+' 0 0 '+v+' 0 0 '+b+' 0 '+v+' 0 0 0 1 0';};
+  for(let t=0;t<5;t++){FR[t]={};
+    STATES.forEach(st=>{const n=ANIM[st].n;FR[t][st]=[];for(let f=0;f<n;f++){const fr=makeFrame(st,f,t);FR[t][st].push(fr);const p=framePaths(fr);const id=fid(t,st,f);
+      defs+='<g id="'+id+'">'+p.s+'</g><g id="'+id+'-g"><path fill="'+(STAGE_GLOW[t]||'#38BDF8')+'" d="'+(p.g||'M0 0')+'"/></g>';}});
+    const I=STAGE_EMI[t]||1.5,a=0.05*(t+1);
+    defs+='<filter id="gl-'+t+'" filterUnits="userSpaceOnUse" x="-24" y="-24" width="'+(N+48)+'" height="'+(N+48)+'" color-interpolation-filters="sRGB">'+
+      '<feColorMatrix in="SourceGraphic" type="matrix" values="'+fxM(a)+'" result="c"/>'+
+      '<feGaussianBlur in="c" stdDeviation="'+(I*0.55).toFixed(2)+'" result="bl"/>'+
+      '<feComponentTransfer in="bl" result="hh"><feFuncA type="linear" slope="'+(I/1.6).toFixed(2)+'"/></feComponentTransfer>'+
+      '<feMerge><feMergeNode in="hh"/><feMergeNode in="hh"/><feMergeNode in="c"/></feMerge></filter>';
+  }
+  defs+='<filter id="fxInv" filterUnits="userSpaceOnUse" x="-40" y="-40" width="180" height="180" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0"/></filter>';
+  [20,40,60].forEach(v=>{defs+='<filter id="fxW'+v+'" filterUnits="userSpaceOnUse" x="-40" y="-40" width="180" height="180" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+fxM(v/100)+'"/></filter>';});
+  $('svgdefs').innerHTML='<svg width="0" height="0" style="position:absolute"><defs>'+defs+'</defs></svg>';
+}
+
+/* ---------- actor ---------- */
+function mkSpr(){
+  const d=document.createElement('div');d.className='spr';
+  d.innerHTML='<svg viewBox="0 0 '+N+' '+N+'" shape-rendering="crispEdges"><g class="fx"><use class="b" href="#'+fid(0,'idle',0)+'"></use><use class="g" href="#'+fid(0,'idle',0)+'-g" style="display:none"></use></g></svg>';
+  return d;
+}
+class Actor{
+  constructor(el){
+    this.el=el;this.svg=el.querySelector('svg');this.fxg=el.querySelector('.fx');
+    this.ub=el.querySelector('use.b');this.ug=el.querySelector('use.g');
+    this.tier=0;this.face=1;this.st='idle';this.t0=0;this.ended=false;this.gone=false;this.back='idle';
+    this.inv=-1;this.wf=-9;this.pu=-9;this.k='';this.ktier=-1;this.kface=1;this.scale=1;this.op=1;this.f=0;
+    this.lastEvt='';this.evtCb=null;
+  }
+  play(st,t){this.st=st;this.t0=t;this.ended=false;this.gone=false;this.lastEvt='';}
+  get busy(){return (this.st==='slash01'||this.st==='slash02'||this.st==='stab'||this.st==='hit'||this.st==='death'||this.st==='spawn')&&!this.ended;}
+  attack(variant,t){const st=['slash01','slash02','stab'][variant];this.play(st,t);this.pu=t;this.wf=t;}
+  hurt(t){this.inv=t+0.1;this.play('hit',t);}
+  die(t){this.play('death',t);}
+  update(t){
+    const a=ANIM[this.st],n=a.n,fps=a.fps,speed=a.speed;
+    let f=Math.floor((t-this.t0)*fps*speed+1e-6);
+    if(a.loop){f=((f%n)+n)%n;}
+    else if(f>=n){
+      if(this.st==='death'){f=n-1;this.ended=true;this.gone=true;}
+      else{this.ended=true;this.st=this.back;this.t0=t;f=0;}
+    }
+    if(f<0)f=0;this.f=f;
+    //# 이벤트 마커 — strike/end 실시간 초 경계를 넘는 순간 콜백
+    if(!a.loop && this.evtCb){
+      const elapsed=(t-this.t0);
+      if(a.strikeNt!=null){const st_t=realTimeAt(this.st,a.strikeNt);if(elapsed>=st_t && this.lastEvt!=='strike'){this.lastEvt='strike';this.evtCb('strike',this.st);}}
+      if(a.hasEnd){const et=realTimeAt(this.st,a.endNt);if(elapsed>=et && this.lastEvt!=='end' && this.lastEvt!=='strike-end'){this.lastEvt=(this.lastEvt==='strike'?'strike-end':'end');this.evtCb('end',this.st);}}
+    }
+    const key=fid(this.tier,this.st,f);
+    if(key!==this.k){this.ub.setAttribute('href','#'+key);this.ug.setAttribute('href','#'+key+'-g');this.k=key;}
+    if(this.tier!==this.ktier){this.ug.setAttribute('filter','url(#gl-'+this.tier+')');this.ktier=this.tier;}
+    const hasGlow=STAGE_GLOW[this.tier]!=null;
+    this.ug.style.display=hasGlow?'':'none';
+    let fl='';
+    if(t<this.inv){fl='fxInv';}
+    else{const k=(t-this.wf)/0.12;if(k>=0&&k<1){const v=0.6*Math.sin(k*Math.PI);fl=v>0.5?'fxW60':(v>0.3?'fxW40':'fxW20');}}
+    if(fl)this.fxg.setAttribute('filter','url(#'+fl+')');else this.fxg.removeAttribute('filter');
+    let s=1;const kp=(t-this.pu)/0.12;if(kp>=0&&kp<1)s*=1+0.15*Math.sin(kp*Math.PI);
+    this.scale=s;this.op=this.gone?0:1;
+    if(this.face!==this.kface){this.svg.style.transform=this.face<0?'scaleX(-1)':'';this.kface=this.face;}
+  }
+}
+
+/* ---------- time / popups ---------- */
+let T=0,last=performance.now(),SPD=1;
+const POPS=[];
+function lum(c){return 0.299*parseInt(c.substr(1,2),16)+0.587*parseInt(c.substr(3,2),16)+0.114*parseInt(c.substr(5,2),16);}
+function pop(host,x,y,text,color,rise,size){
+  const d=document.createElement('div');d.className='pop';d.textContent=text;
+  const o=lum(color)>=128?'#1A1A1A':'#FFFFFF';
+  d.style.color=color;d.style.fontSize=size+'px';
+  d.style.textShadow='-1px 0 '+o+',1px 0 '+o+',0 -1px '+o+',0 1px '+o+',-1px -1px '+o+',1px 1px '+o+',-1px 1px '+o+',1px -1px '+o;
+  d.style.left=x+'px';d.style.top=y+'px';host.appendChild(d);POPS.push({d:d,y:y,t0:T,rise:rise});
+}
+function updPops(){for(let i=POPS.length-1;i>=0;i--){const p=POPS[i],k=(T-p.t0)/0.6;if(k>=1){p.d.remove();POPS.splice(i,1);continue;}p.d.style.top=(p.y-p.rise*k).toFixed(1)+'px';p.d.style.opacity=(1-k).toFixed(3);}}
+function chips(host,list,cur,label,onPick,attr){
+  host.innerHTML='<span class="lbl">'+label+'</span>';
+  list.forEach(v=>{const b=document.createElement('button');b.className='btn sm'+(v[0]===cur?' on':'');b.textContent=v[1];b.setAttribute(attr,v[0]);
+    b.addEventListener('click',()=>{host.querySelectorAll('['+attr+']').forEach(x=>x.classList.toggle('on',x===b));onPick(v[0]);});host.appendChild(b);});
+}
+
+function init(){
+buildDefs();
+
+/* ---------- 1. cards ---------- */
+const CARDS=[];
+const SEQ=[['spawn',0.4],['idle',1.2],['walk',1.0],['run',0.8],['slash01',0.5],['slash02',0.5],['stab',0.5],['hit',0.6],['idle',0.4],['death',0.9]];
+const SEQT=SEQ.reduce((s,x)=>s+x[1],0);
+let autoAll=true,seqStart=0;
+function doAct(cd,act){
+  const a=cd.a;
+  if(act==='spawn'){a.tier=cd.tier;a.gone=false;a.play('spawn',T);}
+  else if(act==='idle'||act==='walk'||act==='run'){if(a.gone)return;a.play(act,T);}
+  else if(act==='slash01'){if(a.gone)return;a.attack(0,T);cardPop(cd);}
+  else if(act==='slash02'){if(a.gone)return;a.attack(1,T);cardPop(cd);}
+  else if(act==='stab'){if(a.gone)return;a.attack(2,T);cardPop(cd);}
+  else if(act==='hit'){if(a.gone)return;a.hurt(T);cardPop(cd,true);}
+  else if(act==='death'){if(a.gone)return;a.inv=T+0.1;a.die(T);cardPop(cd,true);}
+}
+function cardPop(cd,white){pop(cd.stage,cd.stage.clientWidth*0.5,cd.stage.clientHeight*0.32,white?'50':'50',white?'#FFFFFF':STAGE_COL[cd.tier],32,15);}
+for(let t=0;t<5;t++){
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML='<div class="hd"><div><span class="nm">스테이지 '+(t+1)+'</span><span class="en">'+STAGE_NAME[t]+'</span></div><span class="ax" style="background:'+STAGE_COL[t]+(t===0?';color:#111':'')+'">S'+(t+1)+'</span></div>'+
+    '<div class="st">HP×'+[1.00,1.25,1.55,1.90,2.30][t].toFixed(2)+' · Pow×'+[1.00,1.10,1.20,1.35,1.50][t].toFixed(2)+(t===4?' · 스케일×1.4':'')+'</div>'+
+    '<div class="stage"><div class="gl"></div><div class="shadow"></div><span class="badge" style="display:none"></span></div>'+
+    '<div class="fi"></div>'+
+    '<div class="sb">'+['idle','walk','run','hit','death','spawn'].map(s=>'<button class="btn sm" data-s="'+s+'">'+SKO[s]+'</button>').join('')+'</div>'+
+    '<div class="lc2">'+['slash01','slash02','stab'].map(s=>'<button class="btn sm" data-s="'+s+'">'+SKO[s]+'</button>').join('')+'<button class="btn sm" data-flip="1" title="좌우 반전">⇆</button></div>';
+  $('cards').appendChild(c);
+  const stage=c.querySelector('.stage'),shadow=c.querySelector('.shadow'),spr=mkSpr();
+  stage.appendChild(spr);
+  spr.style.width='120px';spr.style.height='120px';spr.style.left='50%';spr.style.bottom='14px';
+  shadow.style.width='46px';shadow.style.height='14px';shadow.style.left='50%';shadow.style.top='128px';
+  const cd={tier:t,el:c,stage:stage,spr:spr,shadow:shadow,a:new Actor(spr),fi:c.querySelector('.fi'),badge:c.querySelector('.badge'),auto:true,slot:-1,lastTxt:''};
+  cd.badge.style.display='';cd.badge.textContent='S'+(t+1);
+  c.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{cd.auto=false;doAct(cd,b.dataset.s);}));
+  c.querySelector('[data-flip]').addEventListener('click',()=>{cd.a.face=-cd.a.face;});
+  CARDS.push(cd);
+}
+const autoBtn=$('autoBtn');
+function setAuto(on){autoAll=on;autoBtn.classList.toggle('on',on);autoBtn.textContent='전체 동시 재생: '+(on?'켜짐':'꺼짐');if(on){seqStart=T;CARDS.forEach(cd=>{cd.auto=true;cd.slot=-1;});}}
+autoBtn.addEventListener('click',()=>setAuto(!autoAll));
+['idle','walk','run','slash01','slash02','stab','hit','death','spawn'].forEach(s=>{const b=document.createElement('button');b.className='btn sm';b.textContent=SKO[s];b.addEventListener('click',()=>{setAuto(false);CARDS.forEach(cd=>doAct(cd,s));});$('allStates').appendChild(b);});
+document.querySelectorAll('[data-spd]').forEach(b=>b.addEventListener('click',()=>{SPD=Number(b.dataset.spd);document.querySelectorAll('[data-spd]').forEach(x=>x.classList.toggle('on',x===b));}));
+function cardsTick(){
+  if(autoAll){const e=((T-seqStart)%SEQT+SEQT)%SEQT;let acc=0,idx=0;for(let i=0;i<SEQ.length;i++){if(e<acc+SEQ[i][1]){idx=i;break;}acc+=SEQ[i][1];}
+    CARDS.forEach(cd=>{if(!cd.auto)return;if(cd.slot!==idx){cd.slot=idx;doAct(cd,SEQ[idx][0]);}});}
+  CARDS.forEach(cd=>{
+    const a=cd.a;a.update(T);
+    cd.spr.style.transform='translateX(-50%) scale('+a.scale.toFixed(3)+')';cd.spr.style.opacity=a.op;
+    cd.shadow.style.opacity=a.gone?0:0.9;
+    const an=ANIM[a.st];
+    let txt=SKO[a.st]+' F'+a.f+'/'+an.n+' · '+an.fps+'fps'+(an.speed!==1?' · Sp'+an.speed:'')+' · '+realLen(a.st).toFixed(3)+'s';
+    if(an.strikeNt!=null){const stk=realTimeAt(a.st,an.strikeNt);if((T-a.t0)>=stk)txt+=' <b>●히트('+stk.toFixed(3)+'s)</b>';}
+    if(a.gone)txt='사망 완료 → 0.8s 후 풀 반환';
+    if(txt!==cd.lastTxt){cd.fi.innerHTML=txt;cd.lastTxt=txt;}
+  });
+}
+
+/* ---------- 2. ladder ---------- */
+const LAD=[];let ldSt='idle',ldNext=0;
+{
+  const blk=document.createElement('div');blk.innerHTML='<div class="lname">영웅(Knight) <span class="note">스테이지 1~5 · 몸 48px 기준(S5 는 런타임 스케일 1.4배, 원화 불변)</span></div><div class="lcells"></div>';
+  const cells=blk.querySelector('.lcells');$('ladder').appendChild(blk);
+  for(let t=0;t<5;t++){
+    const c=document.createElement('div');c.className='lc';cells.appendChild(c);
+    const shadow=document.createElement('div');shadow.className='shadow';c.appendChild(shadow);
+    const spr=mkSpr();c.appendChild(spr);
+    const a=new Actor(spr);a.tier=t;LAD.push({t:t,c:c,shadow:shadow,spr:spr,a:a});
+  }
+}
+chips($('ldSt'),[['idle','대기'],['walk','이동'],['slash01','횡베기1'],['stab','찌르기'],['hit','피격'],['death','사망']],ldSt,'상태',v=>{ldSt=v;LAD.forEach(o=>{o.a.back='idle';if(v==='slash01')o.a.attack(0,T);else if(v==='stab')o.a.attack(2,T);else if(v==='hit')o.a.hurt(T);else if(v==='death'){o.a.gone=false;o.a.die(T);}else o.a.play(v,T);});ldNext=T+1.5;},'data-lst');
+function ladLayout(){
+  const cw=LAD.length?LAD[0].c.clientWidth:40;
+  LAD.forEach(o=>{
+    const sz=cw*0.96,gy=cw*0.94;
+    o.spr.style.width=sz+'px';o.spr.style.height=sz+'px';o.spr.style.top=(gy-sz)+'px';
+    o.shadow.style.width=(sz*0.4)+'px';o.shadow.style.height=(sz*0.11)+'px';o.shadow.style.left='50%';o.shadow.style.top=gy+'px';
+  });
+}
+function ladTick(){
+  if(ldSt!=='idle'&&ldSt!=='walk'&&T>=ldNext){LAD.forEach(o=>{if(ldSt==='slash01')o.a.attack(0,T);else if(ldSt==='stab')o.a.attack(2,T);else if(ldSt==='hit')o.a.hurt(T);else if(ldSt==='death'){o.a.gone=false;o.a.die(T);}});ldNext=T+1.5;}
+  LAD.forEach(o=>{o.a.update(T);o.spr.style.transform='translateX(-50%) scale('+o.a.scale.toFixed(3)+')';o.spr.style.opacity=o.a.op;o.shadow.style.opacity=o.a.gone?0:0.9;});
+}
+(function metrics(){
+  const RT=[0,10,18,30,45],PT=[0,4,6,9,14];
+  const bbox=fr=>{let x0=1e9,y0=1e9,x1=-1;for(let y=0;y<fr.N;y++)for(let x=0;x<fr.N;x++){if(fr.col[y*fr.N+x]){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;}}return {x0:x0,y0:y0,x1:x1};};
+  const base=FR[0].idle[0],bb=bbox(base);let B=0;for(let i=0;i<base.col.length;i++)if(base.col[i])B++;
+  let h='<tr><th>스테이지</th><th>S2</th><th>S3</th><th>S4</th><th>S5</th></tr><tr><td>실루엣 증가율/돌출<br><small>기준 S1 top '+bb.y0+'</small></td>';
+  for(let t=1;t<5;t++){
+    const fr=FR[t].idle[0],fb=bbox(fr);let out=0,op=0;
+    for(let i=0;i<fr.col.length;i++){const c=fr.col[i];if(!c)continue;op++;if(!base.col[i])out++;}
+    const inc=100*out/B,pro=Math.max(bb.y0-fb.y0,bb.x0-fb.x0,fb.x1-bb.x1,0);
+    const f1=v=>(Math.floor(v*10)/10).toFixed(1);
+    h+='<td><span class="'+(inc>=RT[t]?'ok':'ng')+'">증가 '+f1(inc)+'%</span><br><span class="'+(pro>=PT[t]?'ok':'ng')+'">돌출 '+pro+'</span><br><small>top '+fb.y0+'</small></td>';
+  }
+  h+='</tr>';
+  $('metTbl').innerHTML=h;
+})();
+(function edgeClipCheck(){
+  //# 전 스테이지×상태×프레임을 스캔해 셀 가장자리(열0·열N-1·행0)에 닿는 불투명 픽셀이 있는지 확인(기획서 §4.2 각주 — 공격 신전 시 클리핑 방지).
+  let bad=[];
+  for(let t=0;t<5;t++){STATES.forEach(st=>{FR[t][st].forEach((fr,f)=>{
+    const NN=fr.N;
+    for(let x=0;x<NN;x++){ if(fr.col[x] || fr.col[(NN-1)*NN+x]){bad.push('S'+(t+1)+' '+SKO[st]+' F'+f+' row0/N-1');return;} }
+    for(let y=0;y<NN;y++){ if(fr.col[y*NN] || fr.col[y*NN+NN-1]){bad.push('S'+(t+1)+' '+SKO[st]+' F'+f+' col0/N-1');return;} }
+  });});}
+  const p=document.createElement('p');p.className='note';p.style.marginTop='6px';
+  p.innerHTML=bad.length?('<span class="ng">가장자리 클리핑 '+bad.length+'건</span> — 예: '+bad.slice(0,5).join(', ')):('<span class="ok">가장자리 클리핑 0건</span>(전 스테이지×상태×프레임, 셀 96 기준)');
+  $('metTbl').parentElement.insertBefore(p,$('metTbl').nextSibling);
+})();
+
+/* ---------- 3. battlefield (single hero, timing verification) ---------- */
+const bf=$('bf'),bfl=$('bfl'),bfhud=$('bfhud');
+let bfW=320,bfH=180,ppu=25,bfStage=0,showEvt=true;
+function bfLayout(){const r=bf.getBoundingClientRect();if(r.width>0){bfW=r.width;bfH=r.height;}ppu=bfH/14;}
+function w2s(x,z){return [bfW/2+x*ppu,bfH*0.62-z*ppu*K];}
+const EVQ=[];
+function evMark(text,color){const p=w2s(0,0);const d=document.createElement('div');d.className='evtag';d.textContent=text;d.style.left=p[0]+'px';d.style.top=(p[1]-2.1*ppu)+'px';d.style.color=color;bf.appendChild(d);EVQ.push({d:d,t0:T});}
+function updEv(){for(let i=EVQ.length-1;i>=0;i--){const o=EVQ[i],k=(T-o.t0)/0.6;if(k>=1){o.d.remove();EVQ.splice(i,1);continue;}o.d.style.opacity=(1-k).toFixed(2);o.d.style.top=(parseFloat(o.d.style.top)-0.3)+'px';}}
+let bfSpr=null,bfShadow=null,bfActor=null,bfSeqIdx=0,bfNext=0;
+const BFSEQ=[['spawn',null],['idle',1.0],['walk',0.9],['run',0.7],['slash01',null],['idle',0.3],['slash02',null],['idle',0.3],['stab',null],['idle',0.5]];
+function bfBuild(){
+  bfl.innerHTML='';
+  const el=document.createElement('div');el.className='act';
+  const shadow=document.createElement('div');shadow.className='shadow';
+  const spr=mkSpr();
+  el.appendChild(shadow);el.appendChild(spr);bfl.appendChild(el);
+  bfSpr=spr;bfShadow=shadow;bfActor=new Actor(spr);bfActor.tier=bfStage;
+  bfActor.evtCb=(kind,st)=>{ if(!showEvt) return; if(kind==='strike')evMark('●STRIKE','#FBBF24'); else evMark('◆END','#38BDF8'); };
+  bfActor.el2=el;
+  bfSeqIdx=0;bfNext=T;
+  bfActor.play('spawn',T);
+}
+function bfUpdate(dt){
+  if(!bfActor)return;
+  if(T>=bfNext && !bfActor.busy){
+    bfSeqIdx=(bfSeqIdx+1)%BFSEQ.length;
+    const [st,dur]=BFSEQ[bfSeqIdx];
+    if(st==='slash01')bfActor.attack(0,T);
+    else if(st==='slash02')bfActor.attack(1,T);
+    else if(st==='stab')bfActor.attack(2,T);
+    else if(st==='spawn'){bfActor.gone=false;bfActor.play('spawn',T);}
+    else bfActor.play(st,T);
+    bfNext=T+(dur||realLen(st)+0.05);
+  }
+}
+function bfRender(){
+  if(!bfActor)return;
+  bfActor.update(T);
+  const p=w2s(0,0),sz=1.9*ppu;
+  bfActor.el2.style.transform='translate('+p[0].toFixed(1)+'px,'+p[1].toFixed(1)+'px)';
+  bfSpr.style.width=sz+'px';bfSpr.style.height=sz+'px';bfSpr.style.left=(-sz/2)+'px';bfSpr.style.top=(-sz)+'px';
+  bfSpr.style.transform='scale('+bfActor.scale.toFixed(3)+')';bfSpr.style.opacity=bfActor.op;
+  const shw=sz*0.36,shh=sz*0.1;bfShadow.style.width=shw+'px';bfShadow.style.height=shh+'px';bfShadow.style.left=(-shw/2)+'px';bfShadow.style.top='-'+(shh/2)+'px';bfShadow.style.opacity=bfActor.gone?0:0.85;
+  bfhud.textContent='스테이지 '+(bfStage+1)+'('+STAGE_NAME[bfStage]+') · '+SKO[bfActor.st]+' F'+bfActor.f+'/'+ANIM[bfActor.st].n+' · 경과 '+(T-bfActor.t0).toFixed(3)+'s / 목표 '+realLen(bfActor.st).toFixed(3)+'s';
+}
+chips($('stageMode'),[0,1,2,3,4].map(t=>[t,'S'+(t+1)]),bfStage,'스테이지',v=>{bfStage=Number(v);bfBuild();},'data-bfs');
+$('evTag').addEventListener('click',()=>{showEvt=!showEvt;$('evTag').classList.toggle('on',showEvt);});
+
+/* ---------- 4. strip / sheet ---------- */
+let stTier=0,stSt='stab',stMask=false,stPrev=null,stNext=0;
+chips($('stSg'),[0,1,2,3,4].map(t=>[t,'S'+(t+1)]),stTier,'스테이지',v=>{stTier=Number(v);buildStrip();},'data-sg');
+chips($('stSt'),STATES.map(s=>[s,SKO[s]]),stSt,'상태',v=>{stSt=v;buildStrip();},'data-st');
+function drawSheet(tier,mask){
+  const cv=document.createElement('canvas');cv.width=N*20;cv.height=N*9;const g=cv.getContext('2d');
+  if(mask){g.fillStyle='#000';g.fillRect(0,0,cv.width,cv.height);}
+  STATES.forEach((st,r)=>{FR[tier][st].forEach((fr,c)=>{
+    for(let y=0;y<N;y++){for(let x=0;x<N;x++){const i=y*N+x;let col=fr.col[i];
+      if(mask)col=(col&&fr.gm[i])?'#FFFFFF':null;
+      if(col){g.fillStyle=col;g.fillRect(c*N+x,r*N+y,1,1);}}}});});
+  return cv;
+}
+function sheetName(){return 'Knight_Sheet'+(stTier>0?'_S'+(stTier+1):'')+(stMask?'_Emission':'')+'.png';}
+function sheetView(){
+  const wrap=$('sheetWrap'),cv=drawSheet(stTier,stMask);
+  const avail=Math.max(120,wrap.parentElement.clientWidth-14),w=Math.min(avail,N*20*1.1);
+  cv.style.width=w+'px';cv.style.height=(w*9/20)+'px';wrap.innerHTML='';wrap.appendChild(cv);
+  $('sheetInfo').textContent=sheetName()+' · '+(N*20)+'×'+(N*9)+'px · 셀 '+N+'×'+N+' · PPU 48 · Point · 빈 칸 유지(인덱스=행×20+열)';
+}
+function buildStrip(){
+  const an=ANIM[stSt],n=an.n,fps=an.fps,speed=an.speed;
+  const strikeF=an.strikeNt!=null?Math.round(an.strikeNt*n):-1;
+  const endF=an.hasEnd?Math.min(n-1,Math.floor(an.endNt*n)):-1;
+  let h='';for(let f=0;f<n;f++){
+    let cls='fr';if(f===strikeF)cls+=' hit';if(f===endF)cls+=' end';
+    const realT=(f/fps)/speed;
+    h+='<div class="'+cls+'" data-f="'+f+'"><svg viewBox="0 0 '+N+' '+N+'" shape-rendering="crispEdges"><use href="#'+fid(stTier,stSt,f)+'"></use></svg><div>F'+f+' · '+realT.toFixed(3)+'s'+(f===strikeF?'<br>●STRIKE':'')+(f===endF?'<br>◆END':'')+'</div></div>';
+  }
+  $('strip').innerHTML=h;
+  const loop=an.loop;
+  $('stInfo').textContent='S'+(stTier+1)+' '+SKO[stSt]+' — '+n+'프레임 × '+fps+'fps'+(speed!==1?' × Speed'+speed:'')+' = 실시간 '+realLen(stSt).toFixed(3)+'s · '+(loop?'루프':'1회')+(strikeF>=0?' · OnAttackStrike nt='+an.strikeNt+' → '+realTimeAt(stSt,an.strikeNt).toFixed(3)+'s(F'+strikeF+')':'')+(endF>=0?' · OnAttackEnd nt='+an.endNt+' → '+realTimeAt(stSt,an.endNt).toFixed(3)+'s(F'+endF+', 마지막 프레임 안쪽)':'')+(stSt==='death'?' · 끝나면 0.8s 후 풀 반환':'')+' · 셀 '+N+'×'+N;
+  const pb=$('stPrev');pb.innerHTML='';const spr=mkSpr();pb.appendChild(spr);stPrev=new Actor(spr);stPrev.tier=stTier;stPrev.play(stSt,T);stNext=T+n/fps/speed+0.4;
+  sheetView();
+}
+function stripTick(){
+  if(!stPrev)return;
+  const an=ANIM[stSt];
+  if(!an.loop&&T>=stNext){stPrev.gone=false;stPrev.play(stSt,T);stNext=T+an.n/an.fps/an.speed+0.4;}
+  stPrev.update(T);
+  const cur=stPrev.st===stSt?stPrev.f:-1;
+  $('strip').querySelectorAll('.fr').forEach(el=>el.classList.toggle('cur',Number(el.dataset.f)===cur));
+}
+$('maskBtn').addEventListener('click',()=>{stMask=!stMask;$('maskBtn').classList.toggle('on',stMask);$('maskBtn').textContent=stMask?'원화 보기':'발광 마스크 보기';sheetView();});
+$('dlSheet').addEventListener('click',()=>{try{const cv=drawSheet(stTier,stMask),a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=sheetName();document.body.appendChild(a);a.click();a.remove();}catch(e){alert('이 환경에서는 저장이 차단됐습니다. 파일을 로컬 브라우저에서 열어 주세요.');}});
+(function(){
+  let h='<tr><th>상태</th><th>프레임×fps</th><th>Speed</th><th>실시간 길이</th><th>비고</th></tr>';
+  STATES.forEach(st=>{const a=ANIM[st];
+    h+='<tr><td>'+SKO[st]+'</td><td>'+a.n+'f × '+a.fps+'</td><td>'+a.speed+'</td><td>'+realLen(st).toFixed(3)+'s</td><td>'+(a.loop?'루프':(a.strikeNt!=null?'1회 · strike nt='+a.strikeNt:(a.hasEnd?'1회 · end nt='+a.endNt:'1회')))+'</td></tr>';});
+  h+='<tr><td colspan="5"><small>Spawn·Slash01·Slash02·Stab 4개는 기존 3D 클립과 실시간 초 값이 정확히 같다(기획서 §5.3 검산). 나머지는 자유 결정(§5.2)</small></td></tr>';
+  $('specTbl').innerHTML=h;
+})();
+
+/* ---------- boot ---------- */
+function layoutAll(){bfLayout();ladLayout();}
+buildStrip();layoutAll();bfBuild();setAuto(true);
+if(window.ResizeObserver){const ro=new ResizeObserver(()=>{layoutAll();});ro.observe(bf);ro.observe($('ladder'));}
+window.addEventListener('resize',()=>{layoutAll();sheetView();});
+last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,Math.max(0,(now-last)/1000))*SPD;last=now;T+=dt;
+  cardsTick();ladTick();bfUpdate(dt);bfRender();stripTick();updPops();updEv();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+$('loading').remove();
+}
+setTimeout(init,30);
+})();
+</script>
+</body>
+</html>
