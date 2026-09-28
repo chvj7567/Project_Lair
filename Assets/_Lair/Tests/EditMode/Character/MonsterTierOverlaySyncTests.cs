@@ -63,5 +63,137 @@ namespace Lair.Tests.Character
 
             Assert.IsFalse(rd.enabled, "매칭 프레임이 없으면 오버레이 비활성");
         }
+
+        //# ───────── 이하 test-engineer 보강분 — ③ 매칭 규칙 망라 + flipX 동기 + 티어 전환 + 안전 가드 ─────────
+
+        [Test]
+        public void 오버레이_flipX가_몸의_flipX와_동기화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_4") }, null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(MakeSprite("Wisp_Sheet_4"), true);
+
+            Assert.IsTrue(rd.flipX, "몸이 flipX=true 이면 오버레이도 flipX=true 로 동기");
+        }
+
+        [Test]
+        public void 티어전환시_같은_인덱스라도_새_티어_오버레이로_즉시_전환된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            Sprite t1Frame = MakeSprite("Wisp_Sheet_T1_2");
+            Sprite t2Frame = MakeSprite("Wisp_Sheet_T2_2");
+            overlay.SetFramesForTest(new[] { t1Frame }, new[] { t2Frame }, null);
+            Sprite body = MakeSprite("Wisp_Sheet_2");
+
+            overlay.SetTier(1);
+            overlay.Tick(body, false);
+            Assert.AreEqual(t1Frame, rd.sprite, "티어1일 때 T1 프레임");
+
+            overlay.SetTier(2);
+            overlay.Tick(body, false);
+            Assert.AreEqual(t2Frame, rd.sprite, "같은 몸 인덱스라도 티어가 바뀌면 T2 프레임으로 전환");
+        }
+
+        //# 엣지 — 몸 스프라이트 자체가 null(Animator 미배선 등)이면 비활성화.
+        [Test]
+        public void 몸스프라이트가_null이면_오버레이가_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_1") }, null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(null, false);
+
+            Assert.IsFalse(rd.enabled);
+        }
+
+        //# 엣지 — 접미사가 정수로 파싱되지 않으면(오탈자·비규격 명명) 매칭 실패로 안전하게 비활성화.
+        [Test]
+        public void 접미사가_숫자가_아니면_안전하게_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_attack") }, null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(MakeSprite("Wisp_Sheet_attack"), false);
+
+            Assert.IsFalse(rd.enabled, "숫자가 아닌 접미사는 인덱스 파싱 실패 → 비활성화");
+        }
+
+        //# 엣지 — 언더스코어 자체가 없는 이름(시트 명명 규칙 위반)도 안전하게 비활성화.
+        [Test]
+        public void 언더스코어가_없는_이름이면_안전하게_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_0") }, null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(MakeSprite("WispSheet"), false);
+
+            Assert.IsFalse(rd.enabled);
+        }
+
+        //# 엣지 — 이름이 언더스코어로 끝나(접미사 빈 문자열) 파싱 대상이 없는 경우도 안전 처리.
+        [Test]
+        public void 언더스코어로_끝나는_이름이면_안전하게_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_0") }, null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(MakeSprite("Wisp_Sheet_"), false);
+
+            Assert.IsFalse(rd.enabled);
+        }
+
+        //# 엣지 — SetTier 에 정의 범위(0~3) 밖 값이 들어와도 활성 맵 없음으로 안전 처리.
+        [Test]
+        public void SetTier가_정의범위_밖_값이면_오버레이가_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(null, null, new[] { MakeSprite("Wisp_Sheet_T3_0") });
+
+            overlay.SetTier(4);   //# 정의된 값은 0~3 뿐
+            overlay.Tick(MakeSprite("Wisp_Sheet_0"), false);
+
+            Assert.IsFalse(rd.enabled, "정의되지 않은 티어 값은 오버레이 off 로 안전 처리");
+        }
+
+        [Test]
+        public void SetTier가_음수이면_오버레이가_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new[] { MakeSprite("Wisp_Sheet_T1_0") }, null, null);
+
+            overlay.SetTier(-1);
+            overlay.Tick(MakeSprite("Wisp_Sheet_0"), false);
+
+            Assert.IsFalse(rd.enabled);
+        }
+
+        //# 엣지 — 해당 티어에 프레임이 하나도 없는(빈 배열) 경우도 전부 비활성화.
+        [Test]
+        public void 빈_프레임배열이면_해당_티어가_전부_비활성화된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            overlay.SetFramesForTest(new Sprite[0], null, null);
+            overlay.SetTier(1);
+
+            overlay.Tick(MakeSprite("Wisp_Sheet_0"), false);
+
+            Assert.IsFalse(rd.enabled);
+        }
+
+        //# 엣지 — _overlayRenderer 가 배선되지 않은 상태(구형 프리팹 등)에서도 Tick 호출이 예외를 던지지 않는다.
+        [Test]
+        public void 오버레이렌더러가_없으면_Tick_호출해도_예외없다()
+        {
+            _go = new GameObject("NoRenderer");
+            MonsterTierOverlay overlay = _go.AddComponent<MonsterTierOverlay>();
+
+            Assert.DoesNotThrow(() => overlay.Tick(MakeSprite("Wisp_Sheet_0"), false));
+        }
     }
 }
