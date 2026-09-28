@@ -19,6 +19,7 @@ namespace Lair.Character
         [SerializeField] private float _outlineWidth = 0.02f;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
         private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
@@ -137,11 +138,15 @@ namespace Lair.Character
                 Material mat = rd.material;
                 if (mat == null)
                     continue;
+                //# 신규 2D 스프라이트 셰이더(§6.2)는 _BaseColor/_Color 가 둘 다 없을 수 있어 존재 확인 후에만 접근.
                 if (mat.HasProperty(BaseColorId))
                 {
                     mat.SetColor(BaseColorId, tint);
                 }
-                mat.color = tint;
+                if (mat.HasProperty(BaseColorId) || mat.HasProperty(ColorId))
+                {
+                    mat.color = tint;
+                }
             }
         }
     }

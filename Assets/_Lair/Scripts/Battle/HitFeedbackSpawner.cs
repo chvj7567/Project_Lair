@@ -81,11 +81,15 @@ namespace Lair.Battle
             if (rd == null)
                 return;
             Material mat = rd.material;
+            //# 신규 2D 스프라이트 셰이더(§6.2)는 _BaseColor/_Color 가 둘 다 없을 수 있어 존재 확인 후에만 접근.
             if (mat.HasProperty("_BaseColor"))
             {
                 mat.SetColor("_BaseColor", color);
             }
-            mat.color = color;
+            if (mat.HasProperty("_BaseColor") || mat.HasProperty("_Color"))
+            {
+                mat.color = color;
+            }
         }
     }
 }

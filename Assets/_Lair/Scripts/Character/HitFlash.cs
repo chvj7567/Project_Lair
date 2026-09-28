@@ -211,16 +211,34 @@ namespace Lair.Character
             _co = null;
         }
 
+        //# 신규 셰이더 계약(§6.2, Monster2DSprite) — _FlashInvert/_FlashWhite 를 모두 가진 머티리얼은
+        //# RGB 색 프로퍼티(_BaseColor/_Color) 자체가 없을 수 있어 ReadColor/WriteColor 에서 RGB 경로를 완전히 건너뛴다.
+        private static bool HasFlashFloatContract(Material mat)
+            => mat.HasProperty(FlashInvertId) && mat.HasProperty(FlashWhiteId);
+
         private static Color ReadColor(Material mat)
         {
-            if (mat.HasProperty("_BaseColor")) return mat.GetColor("_BaseColor");
-            return mat.color;
+            if (HasFlashFloatContract(mat))
+                return Color.white;
+            if (mat.HasProperty("_BaseColor"))
+                return mat.GetColor("_BaseColor");
+            if (mat.HasProperty("_Color"))
+                return mat.color;
+            return Color.white;
         }
 
         private static void WriteColor(Material mat, Color c)
         {
-            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
-            mat.color = c;
+            if (HasFlashFloatContract(mat))
+                return;
+            if (mat.HasProperty("_BaseColor"))
+            {
+                mat.SetColor("_BaseColor", c);
+            }
+            if (mat.HasProperty("_BaseColor") || mat.HasProperty("_Color"))
+            {
+                mat.color = c;
+            }
         }
 
         private static Color InvertColor(Color c) => new Color(1f - c.r, 1f - c.g, 1f - c.b, c.a);

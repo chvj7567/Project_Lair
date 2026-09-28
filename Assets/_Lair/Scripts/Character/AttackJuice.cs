@@ -90,7 +90,16 @@ namespace Lair.Character
                 if (IsExcluded(rd.gameObject.name)) continue;
                 Material m = rd.sharedMaterial;
                 if (m == null) continue;
-                _repColor = m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : m.color;
+                //# 신규 2D 스프라이트 셰이더(§6.2)는 _BaseColor/_Color 가 둘 다 없을 수 있어 다음 렌더러로 넘어간다.
+                if (m.HasProperty("_BaseColor"))
+                {
+                    _repColor = m.GetColor("_BaseColor");
+                    _repColorCached = true;
+                    return;
+                }
+                if (m.HasProperty("_Color") == false)
+                    continue;
+                _repColor = m.color;
                 _repColorCached = true;
                 return;
             }
