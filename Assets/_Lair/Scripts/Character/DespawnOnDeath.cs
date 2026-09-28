@@ -29,8 +29,14 @@ namespace Lair.Character
             if (_health != null) _health.OnDied -= HandleDied;
         }
 
+        //# monster-2d-conversion.md §5.5 불변식 1 — MonsterDied 는 풀 반환 지연(_delay)과 무관하게 사망 순간 즉시 발행.
+        //# (버그 수정: 과거엔 DespawnNow 내부, 즉 지연 이후에 발행돼 _delay>0 프리팹에서 지연만큼 늦게 통지됐다.)
         private void HandleDied()
         {
+            //# B3 — 몬스터면 사망 위치 발행 (위치가 유효한 사망 순간 즉시 — Push/연출 지연과 분리).
+            if (GetComponent<MonsterTag>() != null)
+                MonsterDied?.Invoke(transform.position);
+
             if (_delay > 0f) StartCoroutine(DespawnDelayed());
             else             DespawnNow();
         }
@@ -43,10 +49,6 @@ namespace Lair.Character
 
         private void DespawnNow()
         {
-            //# B3 — 몬스터면 사망 위치 발행 (Push 전 — 위치가 유효할 때).
-            if (GetComponent<MonsterTag>() != null)
-                MonsterDied?.Invoke(transform.position);
-
             //# 재사용 대비 — EndBattle 등에서 ai.enabled=false 됐던 상태 복원
             AutoCombatAI ai = GetComponent<AutoCombatAI>();
             if (ai != null) ai.enabled = true;

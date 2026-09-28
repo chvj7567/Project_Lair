@@ -13,6 +13,12 @@ namespace Lair.Character
         //# 자식 Renderer 이름이 이 prefix 로 시작하면 플래시 대상에서 제외 (오오라/HP바 트랙 등)
         private static readonly string[] ExcludeNamePrefixes = { "Aura", "HpBar" };
 
+        //# 2D 스프라이트 셰이더(Monster2DSprite) 전용 플래시 채널(monster-2d-conversion.md §6.2).
+        //# 곱셈 틴트로는 반전·백색 초과 표현이 안 되므로, 해당 프로퍼티가 있는 머티리얼은 Float 로 전환.
+        //# 프로퍼티가 없는(3D Lit 등 기존) 머티리얼은 아래 _BaseColor 색 조작 경로를 그대로 사용(하위 호환).
+        private static readonly int FlashInvertId = Shader.PropertyToID("_FlashInvert");
+        private static readonly int FlashWhiteId = Shader.PropertyToID("_FlashWhite");
+
         private Health _health;
         private readonly List<Material> _matInstances = new List<Material>();
         private readonly List<Color> _originalColors = new List<Color>();
@@ -96,6 +102,11 @@ namespace Lair.Character
             {
                 Material mat = _matInstances[i];
                 if (mat == null) continue;
+                if (mat.HasProperty(FlashWhiteId))
+                {
+                    mat.SetFloat(FlashWhiteId, toWhite);
+                    continue;
+                }
                 Color c = _originalColors[i];
                 Color lit = Color.Lerp(c, Color.white, toWhite);
                 lit.a = c.a;
@@ -152,6 +163,8 @@ namespace Lair.Character
             {
                 Material mat = _matInstances[i];
                 if (mat == null) continue;
+                if (mat.HasProperty(FlashInvertId)) mat.SetFloat(FlashInvertId, 0f);
+                if (mat.HasProperty(FlashWhiteId)) mat.SetFloat(FlashWhiteId, 0f);
                 WriteColor(mat, _originalColors[i]);
             }
         }
@@ -162,6 +175,11 @@ namespace Lair.Character
             {
                 Material mat = _matInstances[i];
                 if (mat == null) continue;
+                if (mat.HasProperty(FlashInvertId))
+                {
+                    mat.SetFloat(FlashInvertId, 1f);
+                    continue;
+                }
                 WriteColor(mat, InvertColor(_originalColors[i]));
             }
         }

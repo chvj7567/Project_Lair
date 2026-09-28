@@ -35,12 +35,30 @@ namespace Lair.Character
             }
             if (_health == null) return;
             _health.OnChanged += HandleChanged;
+            _health.OnDied += HandleDied;
             HandleChanged(_health.Current, _health.Max);
         }
 
         private void OnDisable()
         {
-            if (_health != null) _health.OnChanged -= HandleChanged;
+            if (_health != null)
+            {
+                _health.OnChanged -= HandleChanged;
+                _health.OnDied -= HandleDied;
+            }
+        }
+
+        //# 사망 순간 즉시 숨김(monster-2d-conversion.md §5.5 불변식 3) — 풀 반환 지연(DespawnOnDeath._delay)과 무관.
+        private void HandleDied() => gameObject.SetActive(false);
+
+        //# 몬스터 루트(부모) 스케일을 상쇄해 목표 월드 높이를 유지(§6.3.7 — 종족별 절대 높이 표).
+        public void SetHeightAboveRoot(float worldHeight)
+        {
+            float parentScaleY = transform.parent != null ? transform.parent.lossyScale.y : 1f;
+            if (Mathf.Approximately(parentScaleY, 0f)) parentScaleY = 1f;
+            Vector3 pos = transform.localPosition;
+            pos.y = worldHeight / parentScaleY;
+            transform.localPosition = pos;
         }
 
         //# 빌보드 — HP 바가 카메라 정면을 향하게.
