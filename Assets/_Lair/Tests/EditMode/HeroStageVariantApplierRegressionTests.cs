@@ -148,5 +148,39 @@ namespace Lair.Tests.EditMode
             AssertVec3(new Vector3(2f, 2f, 2f), _go.transform.localScale); //# 불변
             Assert.IsFalse(_body.enabled, "null Apply 로 상태가 바뀌지 않음 — 직전(Tier4) 유지");
         }
+
+        //# ───────── 이하 test-engineer 보강분 — §9 "몸/오버레이 렌더러 배타성" 5스테이지 전부 + 전환 순서 엣지 ─────────
+
+        //# 5스테이지(Tier 0~4) 전부에서 몸/오버레이가 정확히 하나만 켜진다(§6.4.1). 스테이지1(Tier0)만 몸, 나머지는 오버레이.
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        public void Apply는_5스테이지_전부에서_몸_오버레이가_상호배타적이다(int tier)
+        {
+            ExpectMaterialInstantiationWarnings();
+            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1f, Tier = tier });
+
+            bool expectBody = tier == 0;
+            Assert.AreEqual(expectBody, _body.enabled, $"Tier {tier} — 몸 렌더러 활성 여부(§6.4.1)");
+            Assert.AreEqual(tier, _tierOverlay.CurrentTierForTest, $"Tier {tier} — 오버레이 티어 전달");
+        }
+
+        //# 여러 스테이지를 연속 전환(1→3→5→2→4→1, Tier 0→2→4→1→3→0)해도 매 전환마다 배타성이 정확히 갱신된다.
+        //# 단발/왕복 전환(위 테스트들)과 달리 3회 이상 연속 전환에서 잔존 상태가 없는지 확인.
+        [Test]
+        public void 여러_스테이지를_연속_전환해도_매번_배타성이_정확히_갱신된다()
+        {
+            ExpectMaterialInstantiationWarnings();
+            int[] tierSequence = { 0, 2, 4, 1, 3, 0 };
+            foreach (int tier in tierSequence)
+            {
+                _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1f, Tier = tier });
+                bool expectBody = tier == 0;
+                Assert.AreEqual(expectBody, _body.enabled, $"연속 전환 중 Tier {tier} — 몸 활성 여부");
+                Assert.AreEqual(tier, _tierOverlay.CurrentTierForTest, $"연속 전환 중 Tier {tier} — 오버레이 티어");
+            }
+        }
     }
 }
