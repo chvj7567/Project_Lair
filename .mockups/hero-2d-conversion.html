@@ -213,14 +213,30 @@ function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onl
 
 /* ---------- 1) 카드 7장 → 이펙트 제거 베이스(색을 섞지 않는 중앙값) ---------- */
 let BASE=null;const RAW={};
+//# 카드 7장(각기 다른 이펙트 — 초록 십자·파랑 다이아몬드 등)에서 해골만 남기는 베이스 추출.
+//# 이전엔 "가장 잘 맞는 카드 1장 전체"를 픽셀마다 골랐다(argmin) — 그러면 인접 픽셀이 서로 다른 카드로 튈 수 있어
+//# 머리처럼 여러 카드의 이펙트가 겹치는 곳에서 뼈색·이펙트색이 픽셀 단위로 뒤섞인 얼룩덜룩한 노이즈가 났다(2026-09-29 재현).
+//# 대신 채널별 중앙값(median) + 이상치 1차 제거를 쓴다 — 7장 중 다수(대개 4장 이상)가 합의하는 색이면
+//# 소수의 이펙트 오염 카드가 섞여 있어도 항상 다수 합의색으로 수렴한다(어떤 이펙트 색인지 미리 알 필요 없음,
+//# 진짜 초록 눈처럼 다수가 실제로 동의하는 색은 이상치로 오인해 지우지 않는다).
+function median(arr){const s=arr.slice().sort((x,y)=>x-y),h=s.length>>1;return s.length%2?s[h]:(s[h-1]+s[h])/2;}
 function buildBase(imgs){
   const cv=document.createElement('canvas');cv.width=CROP.w;cv.height=CROP.h;const g=cv.getContext('2d',{willReadFrequently:true});
   const D=imgs.map((im,i)=>{g.clearRect(0,0,CROP.w,CROP.h);g.drawImage(im,CROP.x,CROP.y,CROP.w,CROP.h,0,0,CROP.w,CROP.h);const d=g.getImageData(0,0,CROP.w,CROP.h).data.slice();RAW[CARD_SRC[i]]=d;return d;});
-  const n=CROP.w*CROP.h,m=D.length,out=new Uint8ClampedArray(n*4);
+  const n=CROP.w*CROP.h,m=D.length,out=new Uint8ClampedArray(n*4),idx=[...Array(m).keys()];
   for(let p=0;p<n;p++){
-    const i=p*4;let best=0,bs=1e12;
-    for(let a=0;a<m;a++){let s=0;for(let b=0;b<m;b++){if(a===b)continue;s+=Math.abs(D[a][i]-D[b][i])+Math.abs(D[a][i+1]-D[b][i+1])+Math.abs(D[a][i+2]-D[b][i+2]);}if(s<bs){bs=s;best=a;}}
-    out[i]=D[best][i];out[i+1]=D[best][i+1];out[i+2]=D[best][i+2];out[i+3]=255;
+    const i=p*4;
+    //# 1차 합의 — 채널별 중앙값을 이상치 판정 기준점으로 삼는다
+    let mr=median(idx.map(a=>D[a][i])),mg=median(idx.map(a=>D[a][i+1])),mb=median(idx.map(a=>D[a][i+2]));
+    const dist=idx.map(a=>Math.abs(D[a][i]-mr)+Math.abs(D[a][i+1]-mg)+Math.abs(D[a][i+2]-mb));
+    const typical=Math.max(18,median(dist));   //# 자연스러운 앤티앨리어싱 차이(≤18)는 이상치로 보지 않는다
+    const keep=idx.filter(a=>dist[a]<=typical*2.5);
+    const survivors=keep.length>0?keep:idx;   //# 전부 이상치로 걸러지면(모두 다른 이펙트) 원래 7장 전부로 되돌아간다 — 빈 결과 방지
+    //# 2차 — 이펙트 오염 후보를 뺀 나머지로 채널별 중앙값 재계산(최종색). 몸 셀은 항상 alpha 255(§ 구멍 메우기와 별개, 기존 규칙 유지).
+    out[i]=median(survivors.map(a=>D[a][i]));
+    out[i+1]=median(survivors.map(a=>D[a][i+1]));
+    out[i+2]=median(survivors.map(a=>D[a][i+2]));
+    out[i+3]=255;
   }
   return out;
 }
