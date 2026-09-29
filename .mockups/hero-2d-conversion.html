@@ -166,7 +166,7 @@ const CARD_SRC=['Fear','Bleed','MarkOfDeath','HeroAttackDown','HeroPoisonAura','
 const CROP={x:80,y:104,w:176,h:208},CS=4,CW=44,CH=52;
 //# 애니메이션 작업 격자(휘두른 무기·흩어진 뼈가 들어갈 여백 포함)
 //# 72셀 = 카드 해골(약 36도트) 기준 → 48px 규격 환산 시 96셀(기획서 §4.2 셀 96 과 동일 여유). S5 대검 찌르기(F6~F7)까지 포함.
-const GW=72,GH=64,OX=10,OY=6;
+const GW=72,GH=72,OX=10,OY=6;   //# 게임 시트 셀 = 이 격자 그대로(72×72, 1 카드 도트 = 1 텍스처 픽셀, 기획서 §4.2·§7.2)
 const STAGE_NAME=['기준형(카드 해골)','후드 + 장검','반투구 + 영묘 망토','풀헬름·뿔 + 양손검','금 왕관 + 화염 대검'];
 const STAGE_COL=['#E8E0C8','#4ADE80','#38BDF8','#A855F7','#EF4444'];
 const RIM=[null,'#F8FAFC',null,'#E879F9','#FDE047'];
@@ -509,17 +509,24 @@ function getFrame(t,st,f){
     for(let i=0;i<dest.length;i++){if(!dest[i])continue;const x=i%GW,y=(i/GW)|0;if(hash(x,y)<P.dissolve){dest[i]=null;if(hash(x+7.3,y+3.1)<0.25){const yy=y-1-Math.floor(hash(x+3.7,y+11.2)*6*P.dissolve);if(yy>=0)dust.push(yy*GW+x);}}}
     dust.forEach(i=>{if(!dest[i])dest[i]={c:[232,224,200],a:0.55};});
   }
-  //# 렌더
-  const W=GW*CS,H=GH*CS,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const occ=new Uint8Array(GW*GH);for(let i=0;i<dest.length;i++){if(dest[i])occ[i]=1;}
+  //# 캔버스는 화면에 그릴 때만 만든다(추출·검사는 dest/occ 만 사용 → 540프레임 캔버스를 메모리에 쌓지 않음)
+  const fr={occ:occ,dest:dest,_cv:null,_gl:null};
+  Object.defineProperty(fr,'cv',{get(){if(!fr._cv)renderFrame(fr);return fr._cv;}});
+  Object.defineProperty(fr,'gl',{get(){if(!fr._gl)renderFrame(fr);return fr._gl;}});
+  CACHE.set(key,fr);return fr;
+}
+function renderFrame(fr){
+  const dest=fr.dest,W=GW*CS,H=GH*CS,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
   const gv=document.createElement('canvas');gv.width=W;gv.height=H;const gg=gv.getContext('2d');
-  const im=g.createImageData(W,H),gm=gg.createImageData(W,H),occ=new Uint8Array(GW*GH);
-  for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;occ[i]=1;const gx=i%GW,gy=(i/GW)|0;
+  const im=g.createImageData(W,H),gm=gg.createImageData(W,H);
+  for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;const gx=i%GW,gy=(i/GW)|0;
     for(let yy=0;yy<CS;yy++)for(let xx=0;xx<CS;xx++){const d=((gy*CS+yy)*W+gx*CS+xx)*4;
       if(pl.b!==undefined){const cx=pl.b%CW,cy=(pl.b/CW)|0,s=((cy*CS+yy)*CROP.w+cx*CS+xx)*4;im.data[d]=BASE[s];im.data[d+1]=BASE[s+1];im.data[d+2]=BASE[s+2];im.data[d+3]=255;}
       else{im.data[d]=pl.c[0];im.data[d+1]=pl.c[1];im.data[d+2]=pl.c[2];im.data[d+3]=Math.round(255*(pl.a==null?1:pl.a));
         if(pl.g){gm.data[d]=pl.c[0];gm.data[d+1]=pl.c[1];gm.data[d+2]=pl.c[2];gm.data[d+3]=255;}}}}
   g.putImageData(im,0,0);gg.putImageData(gm,0,0);
-  const fr={cv:cv,gl:gv,occ:occ};CACHE.set(key,fr);return fr;
+  fr._cv=cv;fr._gl=gv;
 }
 function drawTrail(rig,P,dest,t){
   const col=hexRgb(FXC[t]),pvx=A.ex+OX+PIV.armR[0]+P.armR.dx,pvy=A.ey+OY+PIV.armR[1]+P.armR.dy;
@@ -707,10 +714,69 @@ function init(){
   requestAnimationFrame(loop);
 }
 
+/* ---------- 10) ?export=1 — 게임용 시트 추출(기획서 §8 (e)·§7) ---------- */
+//# 1 카드 도트 = 1 텍스처 픽셀. 셀 = 작업 격자 72×72. 행 = STATES 순서, 열 = 프레임, 빈 칸 투명. 마스크 = 발광 흰색 / 나머지 검정(불투명).
+const SHEET_COLS=20;
+function cellRgba(pl){
+  if(pl.b!==undefined){const c=cc(pl.b%CW,(pl.b/CW)|0);return [c[0],c[1],c[2],255];}
+  return [pl.c[0],pl.c[1],pl.c[2],Math.round(255*(pl.a==null?1:pl.a))];
+}
+function buildSheet(t,mask){
+  const W=SHEET_COLS*GW,H=STATES.length*GH,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const im=g.createImageData(W,H),d=im.data;
+  if(mask){for(let i=0;i<d.length;i+=4){d[i+3]=255;}}
+  STATES.forEach((st,row)=>{for(let f=0;f<ANIM[st].n;f++){const dest=getFrame(t,st,f).dest;
+    for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;const x=f*GW+(i%GW),y=row*GH+((i/GW)|0),o=(y*W+x)*4;
+      if(mask){if(pl.g){d[o]=255;d[o+1]=255;d[o+2]=255;}}
+      else{const c=cellRgba(pl);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=c[3];}}}});
+  g.putImageData(im,0,0);return cv;
+}
+function buildShadow(){
+  //# 접지 그림자(기획서 §6.6) — 24×8 도트 타원, 중심 α0.4 · 가장자리 α0.25, 검정
+  const W=24,H=8,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d'),im=g.createImageData(W,H);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const a=(x+0.5-W/2)/(W/2),b=(y+0.5-H/2)/(H/2),r=a*a+b*b;if(r>1)continue;const o=(y*W+x)*4;im.data[o+3]=r>0.55?64:102;}
+  g.putImageData(im,0,0);return cv;
+}
+function sheetSpec(){
+  const occ=getFrame(0,'idle',0).occ;let y0=1e9,y1=-1;for(let i=0;i<occ.length;i++){if(!occ[i])continue;const y=(i/GW)|0;if(y<y0)y0=y;if(y>y1)y1=y;}
+  const bodyH=y1-y0+1,footRow=y1+1;
+  const edge=[];for(let t=0;t<5;t++)STATES.forEach(st=>{for(let f=0;f<ANIM[st].n;f++){const o=getFrame(t,st,f).occ;let hit=false;
+    for(let x=0;x<GW&&!hit;x++){if(o[x]||o[(GH-1)*GW+x])hit=true;}for(let y=0;y<GH&&!hit;y++){if(o[y*GW]||o[y*GW+GW-1])hit=true;}if(hit)edge.push('S'+(t+1)+' '+st+' F'+f);}});
+  const clips={};STATES.forEach(st=>{const a=ANIM[st],c={frames:a.n,fps:a.fps,animatorSpeed:a.speed,loop:!!a.loop};
+    if(a.strikeNt!=null){c.strikeFrame=strikeF(st);c.strikeClipLocalSec=+(realAt(st,a.strikeNt)*a.speed).toFixed(4);c.strikeRealSec=+realAt(st,a.strikeNt).toFixed(4);}
+    if(a.endNt!=null){c.endFrame=endF(st);c.endClipLocalSec=+(realAt(st,a.endNt)*a.speed).toFixed(4);c.endRealSec=+realAt(st,a.endNt).toFixed(4);}
+    clips[st]=c;});
+  return {doc:'docs/design/hero-2d-conversion.md §7',cellSize:GW,cols:SHEET_COLS,rows:STATES.length,rowOrder:STATES,
+    sheetSize:[SHEET_COLS*GW,STATES.length*GH],indexRule:'row*20+col',
+    pixelsPerUnit:bodyH,bodyHeightDots:bodyH,
+    pivot:{x:+((A.ex+OX+0.5)/GW).toFixed(4),y:+((GH-footRow)/GH).toFixed(4),note:'Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot'},
+    tiers:{Knight_Sheet:0,Knight_Sheet_S2:1,Knight_Sheet_S3:2,Knight_Sheet_S4:3,Knight_Sheet_S5:4},
+    clips:clips,edgeClipFrames:edge,anchors:{eyeDetected:A.eyeOk,bladeDetected:A.bladeOk}};
+}
+function postBlob(name,blob){return fetch('export/'+name,{method:'POST',body:blob}).then(r=>{if(!r.ok)throw new Error(name+' HTTP '+r.status);return name;});}
+function toBlob(cv){return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/png'));}
+async function exportAll(){
+  const st=document.createElement('pre');st.id='exportStatus';st.textContent='exporting…';document.querySelector('.wrap').appendChild(st);
+  try{
+    const jobs=[];const names=['Knight_Sheet','Knight_Sheet_S2','Knight_Sheet_S3','Knight_Sheet_S4','Knight_Sheet_S5'];
+    for(let t=0;t<5;t++){jobs.push([names[t]+'.png',buildSheet(t,false)]);jobs.push([names[t]+'_Emission.png',buildSheet(t,true)]);}
+    jobs.push(['HeroGroundShadow.png',buildShadow()]);
+    const spec=sheetSpec();const done=[];
+    for(const [name,cv] of jobs){done.push(await postBlob(name,await toBlob(cv)));}
+    done.push(await postBlob('Knight_SheetSpec.json',new Blob([JSON.stringify(spec,null,2)],{type:'application/json'})));
+    st.textContent='export done '+done.length+' files\n'+done.join('\n')+'\nppu='+spec.pixelsPerUnit+' pivot='+spec.pivot.x+','+spec.pivot.y+' sheet='+spec.sheetSize.join('x')+
+      '\nedgeClipFrames='+spec.edgeClipFrames.length+(spec.edgeClipFrames.length?(' ('+spec.edgeClipFrames.slice(0,6).join(', ')+')'):'')+
+      '\neyeDetected='+spec.anchors.eyeDetected+' bladeDetected='+spec.anchors.bladeDetected;
+  }catch(e){st.textContent='export failed: '+(e&&e.message?e.message:e);console.error(e);}
+}
+const EXPORT_MODE=new URLSearchParams(location.search).get('export')==='1';
+
 Promise.all(CARD_SRC.map(n=>loadImg('cardart/'+n+'.png'))).then(imgs=>{
   BASE=buildBase(imgs);detect();M1=buildMask();
   for(let t=0;t<5;t++)RIG.push(buildRig(t));
-  $('msg').style.display='none';$('app').style.display='';init();
+  $('msg').style.display='none';
+  if(EXPORT_MODE){exportAll();return;}
+  $('app').style.display='';init();
 }).catch(e=>{
   const m=$('msg');m.className='err';
   m.innerHTML='카드 일러스트를 불러오지 못했다('+e+'). 이 시안은 로컬 서버가 필요하다: 프로젝트 루트에서 <code>node .mockups/server.js</code> 실행 후 <code>http://localhost:8777/hero-2d-conversion.html</code> 로 연다(파일 직접 열기(file://)는 브라우저 보안상 픽셀을 읽을 수 없다).';
