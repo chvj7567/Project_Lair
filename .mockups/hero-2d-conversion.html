@@ -174,6 +174,8 @@ const FXC=['#FFFFFF','#BBF7D0','#7DD3FC','#E879F9','#FF7A3D'];
 const SCALE=[1,1,1,1,1.4];
 const HP=[1.00,1.25,1.55,1.90,2.30],PW=[1.00,1.10,1.20,1.35,1.50];
 const OUT='#0A0D14';
+//# 버그 수정 4 — 검날 외곽선은 몸 실루엣 외곽선(OUT/RIM)과 분리된 밝은 은색. 어두운 배경(마을 돌벽)에서도 대비가 남게.
+const BLADE_EDGE='#D1D5DB';
 
 //# 기획서 §5.2·§5.3·§11 최종값(개정 8 — 라이브 실측 기준).
 //# strike = OnAttackStrike 실시간 초(공격 상태 진입 기준). lock = 락 해제·스폰 게이트 실시간 초 — 이벤트가 아니라 fallback(1.8) 이 푼다(§5.3.1).
@@ -328,7 +330,8 @@ function sword(len,w,pal,guardPal,guardW,edgeGlow,pommel){
   const Lb=L0+len,s=1.2,tp=Math.min(3,w*1.2);
   const P=(a,b)=>[hx+ux*a+vx*b,hy+uy*a+vy*b];
   const parts=[
-    {f:PL([P(s,w/2),P(Lb-tp,w/2),P(Lb,0),P(Lb-tp,-w/2),P(s,-w/2)]),pal:pal,b:'armR'},
+    //# 검날 폴리곤만 outColor 지정 — 자루/그립/폼멜은 기존 스테이지 외곽선(RIM[t]||OUT) 유지
+    {f:PL([P(s,w/2),P(Lb-tp,w/2),P(Lb,0),P(Lb-tp,-w/2),P(s,-w/2)]),pal:pal,b:'armR',outColor:BLADE_EDGE},
     {f:LN([P(-0.3,-guardW),P(-0.3,guardW)],1.4),pal:guardPal,b:'armR'},
     {f:LN([P(-0.6,0),P(-3.2,0)],1.3),pal:LEATHER,b:'armR'}
   ];
@@ -395,13 +398,31 @@ function buildRig(t){
   //# 칼날 외곽선(어두워서 은색 검출에 안 잡힌 셀)도 손→칼끝 선분 근처면 무기 팔에 묶는다(휘두를 때 잔상 방지)
   for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx;if(!body[i])continue;const rx=cx-A.ex+0.5,ry=cy-A.ey+0.5;
     if(rx>=5&&ry<A.hand[1]-0.5&&segD(rx,ry,A.hand[0],A.hand[1],A.tip[0],A.tip[1])<=1.6)bladeSet.add(i);}
+  //# 버그 수정 5 — 칼끝 꼭짓점처럼 선분 거리 판정(위 루프)이 놓치는 돌출 1px 안전장치.
+  //# 이미 확정된 bladeSet 셀에 8방향 인접한 무기쪽(rx>=5) 불투명 셀을 2패스 성장시켜 클러스터 끝까지 포함.
+  for(let pass=0;pass<2;pass++){
+    const grow=[];
+    bladeSet.forEach(i=>{const x=i%CW,y=(i/CW)|0;
+      [[x+1,y],[x-1,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y+1],[x+1,y-1],[x-1,y-1]].forEach(([nx,ny])=>{
+        if(nx<0||ny<0||nx>=CW||ny>=CH)return;const ni=ny*CW+nx;
+        if(bladeSet.has(ni)||!body[ni]||nx-A.ex+0.5<5)return;
+        grow.push(ni);});});
+    grow.forEach(i=>bladeSet.add(i));
+  }
   if(t>0){
     for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx;if(!body[i])continue;const rx=cx-A.ex+0.5,ry=cy-A.ey+0.5,c=cc(cx,cy);
       if(ry<-2.5&&ry>-9&&rx>-7.5&&rx<10&&lum(c[0],c[1],c[2])<150){body[i]=0;erased.push(i);}}
     bladeSet.forEach(i=>{if(body[i]){body[i]=0;erased.push(i);}});
   }
   for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx;if(!body[i])continue;const rx=cx-A.ex+0.5,ry=cy-A.ey+0.5;
-    put(t===0&&bladeSet.has(i)?'armR':bodyBone(rx,ry),cx,cy,{b:i});}
+    if(t===0&&bladeSet.has(i)){
+      //# 버그 수정 4 — S1 소검은 원화(base) 픽셀 그대로라 자체 outColor 개념이 없다.
+      //# 칼날 영역의 어두운 픽셀(외곽선)만 밝은 은색으로 교체, 그 외(칼날 하이라이트 등)는 원화 톤 유지.
+      const c=cc(cx,cy);
+      if(lum(c[0],c[1],c[2])<90){put('armR',cx,cy,{c:hexRgb(BLADE_EDGE),a:1});continue;}
+      put('armR',cx,cy,{b:i});continue;
+    }
+    put(bodyBone(rx,ry),cx,cy,{b:i});}
   //# 파츠는 크롭(44셀)이 아니라 작업 격자 전체에 래스터화 — 크롭 밖으로 펼쳐지는 S5 화염 망토 등이 잘리지 않게.
   //# 좌표: 크롭 셀 좌표 cx = gx-OX (음수 가능), rel = cx-ex+0.5. put() 이 다시 OX/OY 를 더한다.
   const parts=stageParts(t);
@@ -412,7 +433,9 @@ function buildRig(t){
   const outRgb=hexRgb(RIM[t]||OUT);
   for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){if(reg[gy*GW+gx]>=0)continue;
     for(const [x,y] of [[gx+1,gy],[gx-1,gy],[gx,gy+1],[gx,gy-1]]){if(x<0||y<0||x>=GW||y>=GH)continue;const r=reg[y*GW+x];if(r<0||parts[r].noOut)continue;
-      put(partBone(parts[r],x-OX-A.ex+0.5,y-OY-A.ey+0.5),gx-OX,gy-OY,{c:outRgb,a:1});break;}}
+      //# 버그 수정 4 — 파츠에 outColor 가 있으면(검날) 스테이지 공용 외곽선 대신 그 색 사용
+      const oc=parts[r].outColor?hexRgb(parts[r].outColor):outRgb;
+      put(partBone(parts[r],x-OX-A.ex+0.5,y-OY-A.ey+0.5),gx-OX,gy-OY,{c:oc,a:1});break;}}
   //# 지운 캡·소검 자리가 남은 몸에 닿으면 흑 외곽선으로 봉합
   erased.forEach(i=>{const x=i%CW,y=(i/CW)|0;if(reg[(y+OY)*GW+(x+OX)]>=0)return;
     if((x>0&&body[i-1])||(x<CW-1&&body[i+1])||(y>0&&body[i-CW])||(y<CH-1&&body[i+CW]))put(bodyBone(x-A.ex+0.5,y-A.ey+0.5),x,y,{c:hexRgb(OUT),a:1});});
