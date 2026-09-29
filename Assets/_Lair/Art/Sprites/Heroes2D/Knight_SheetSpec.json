@@ -38,76 +38,96 @@
       "frames": 8,
       "fps": 8,
       "animatorSpeed": 1,
-      "loop": true
+      "loop": true,
+      "bakeEvents": []
     },
     "walk": {
       "frames": 8,
       "fps": 10,
       "animatorSpeed": 1,
-      "loop": true
+      "loop": true,
+      "bakeEvents": []
     },
     "run": {
       "frames": 8,
       "fps": 14,
       "animatorSpeed": 1,
-      "loop": true
+      "loop": true,
+      "bakeEvents": []
     },
     "slash01": {
       "frames": 17,
       "fps": 15,
       "animatorSpeed": 1,
       "loop": false,
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.5
+        }
+      ],
       "strikeFrame": 7,
-      "strikeClipLocalSec": 0.4533,
-      "strikeRealSec": 0.4533,
-      "endFrame": 16,
-      "endClipLocalSec": 1.122,
-      "endRealSec": 1.122
+      "strikeClipLocalSec": 0.5,
+      "strikeRealSec": 0.5,
+      "lockReleaseRealSec": 1.8,
+      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
     },
     "slash02": {
       "frames": 17,
       "fps": 15,
       "animatorSpeed": 1,
       "loop": false,
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.5
+        }
+      ],
       "strikeFrame": 7,
-      "strikeClipLocalSec": 0.4533,
-      "strikeRealSec": 0.4533,
-      "endFrame": 16,
-      "endClipLocalSec": 1.122,
-      "endRealSec": 1.122
+      "strikeClipLocalSec": 0.5,
+      "strikeRealSec": 0.5,
+      "lockReleaseRealSec": 1.8,
+      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
     },
     "stab": {
       "frames": 20,
       "fps": 12,
       "animatorSpeed": 1.0204,
       "loop": false,
-      "strikeFrame": 6,
-      "strikeClipLocalSec": 0.5042,
-      "strikeRealSec": 0.4941,
-      "endFrame": 19,
-      "endClipLocalSec": 1.65,
-      "endRealSec": 1.617
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.8163
+        }
+      ],
+      "strikeFrame": 9,
+      "strikeClipLocalSec": 0.8163,
+      "strikeRealSec": 0.8,
+      "lockReleaseRealSec": 1.8,
+      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
     },
     "hit": {
       "frames": 6,
       "fps": 12,
       "animatorSpeed": 1,
-      "loop": false
+      "loop": false,
+      "bakeEvents": []
     },
     "death": {
       "frames": 8,
       "fps": 10,
       "animatorSpeed": 1,
-      "loop": false
+      "loop": false,
+      "bakeEvents": []
     },
     "spawn": {
       "frames": 16,
       "fps": 12,
       "animatorSpeed": 1,
       "loop": false,
-      "endFrame": 15,
-      "endClipLocalSec": 1.32,
-      "endRealSec": 1.32
+      "bakeEvents": [],
+      "lockReleaseRealSec": 1.8,
+      "lockReleaseBy": "HeroEntryDriver/AutoCombatAI._spawnGateFallback"
     }
   },
   "edgeClipFrames": [],
