@@ -1,0 +1,118 @@
+{
+  "doc": "docs/design/hero-2d-conversion.md §7",
+  "cellSize": 72,
+  "cols": 20,
+  "rows": 9,
+  "rowOrder": [
+    "idle",
+    "walk",
+    "run",
+    "slash01",
+    "slash02",
+    "stab",
+    "hit",
+    "death",
+    "spawn"
+  ],
+  "sheetSize": [
+    1440,
+    648
+  ],
+  "indexRule": "row*20+col",
+  "pixelsPerUnit": 31,
+  "bodyHeightDots": 31,
+  "pivot": {
+    "x": 0.4236,
+    "y": 0.2917,
+    "note": "Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot"
+  },
+  "tiers": {
+    "Knight_Sheet": 0,
+    "Knight_Sheet_S2": 1,
+    "Knight_Sheet_S3": 2,
+    "Knight_Sheet_S4": 3,
+    "Knight_Sheet_S5": 4
+  },
+  "clips": {
+    "idle": {
+      "frames": 8,
+      "fps": 8,
+      "animatorSpeed": 1,
+      "loop": true
+    },
+    "walk": {
+      "frames": 8,
+      "fps": 10,
+      "animatorSpeed": 1,
+      "loop": true
+    },
+    "run": {
+      "frames": 8,
+      "fps": 14,
+      "animatorSpeed": 1,
+      "loop": true
+    },
+    "slash01": {
+      "frames": 17,
+      "fps": 15,
+      "animatorSpeed": 1,
+      "loop": false,
+      "strikeFrame": 7,
+      "strikeClipLocalSec": 0.4533,
+      "strikeRealSec": 0.4533,
+      "endFrame": 16,
+      "endClipLocalSec": 1.122,
+      "endRealSec": 1.122
+    },
+    "slash02": {
+      "frames": 17,
+      "fps": 15,
+      "animatorSpeed": 1,
+      "loop": false,
+      "strikeFrame": 7,
+      "strikeClipLocalSec": 0.4533,
+      "strikeRealSec": 0.4533,
+      "endFrame": 16,
+      "endClipLocalSec": 1.122,
+      "endRealSec": 1.122
+    },
+    "stab": {
+      "frames": 20,
+      "fps": 12,
+      "animatorSpeed": 1.0204,
+      "loop": false,
+      "strikeFrame": 6,
+      "strikeClipLocalSec": 0.5042,
+      "strikeRealSec": 0.4941,
+      "endFrame": 19,
+      "endClipLocalSec": 1.65,
+      "endRealSec": 1.617
+    },
+    "hit": {
+      "frames": 6,
+      "fps": 12,
+      "animatorSpeed": 1,
+      "loop": false
+    },
+    "death": {
+      "frames": 8,
+      "fps": 10,
+      "animatorSpeed": 1,
+      "loop": false
+    },
+    "spawn": {
+      "frames": 16,
+      "fps": 12,
+      "animatorSpeed": 1,
+      "loop": false,
+      "endFrame": 15,
+      "endClipLocalSec": 1.32,
+      "endRealSec": 1.32
+    }
+  },
+  "edgeClipFrames": [],
+  "anchors": {
+    "eyeDetected": true,
+    "bladeDetected": true
+  }
+}
