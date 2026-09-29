@@ -19,6 +19,7 @@ namespace Lair.Character
         private MeleeAttacker _attacker;
         private HitFlash _hitFlash;
         private Vector3 _baseScale;
+        private Vector3 _punchBaseScale;
         private Color _repColor = Color.white;
         private bool _repColorCached;
         private Coroutine _co;
@@ -117,7 +118,18 @@ namespace Lair.Character
 
         private void HandleHit(IHealth target)
         {
-            if (_co != null) StopCoroutine(_co);
+            //# 펀치 연출이 이미 진행 중이 아닐 때만 "지금 스케일"을 기준값으로 다시 잡는다.
+            //# 진행 중에 재기록하면 부풀어 있는 중간값(최대 ×1.15)이 기준으로 굳어 연타마다 커지는 ratchet 버그가 생긴다.
+            if (_co != null)
+            {
+                StopCoroutine(_co);
+            }
+            else
+            {
+                //# Awake 1회 캐시(_baseScale, 항상 (1,1,1))가 아니라 여기서 잡아야, 스폰 뒤
+                //# HeroStageVariantApplier 가 올린 스케일(예: 스테이지5 ×1.4)이 펀치 종료 후에도 유지된다.
+                _punchBaseScale = transform.localScale;
+            }
             _co = StartCoroutine(PunchCo());
             //# 색 플래시 — 몸체 머티리얼 단일 소유자인 HitFlash 가 처리.
             if (_hitFlash != null)
@@ -133,10 +145,10 @@ namespace Lair.Character
                 float k = t / _punchDuration;
                 //# 0→1 동안 baseScale → punch → baseScale (sin 반원).
                 float s = 1f + (_punchScale - 1f) * Mathf.Sin(k * Mathf.PI);
-                transform.localScale = _baseScale * s;
+                transform.localScale = _punchBaseScale * s;
                 yield return null;
             }
-            transform.localScale = _baseScale;
+            transform.localScale = _punchBaseScale;
             _co = null;
         }
     }
