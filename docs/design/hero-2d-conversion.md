@@ -188,9 +188,9 @@
 
 | 클립 | FBX 에 박힌 이벤트(meta) | 라이브 `OnAttackStrike`(공격 상태 진입 기준) | 라이브 `OnAttackEnd` | 라이브 공격 락(`IsAttacking`) 해제 |
 |---|---|---|---|---|
-| `Slash01` | strike 0.4533s · end 1.122s | **0.500s**(BeginAttack 기준 0.517s@60fps / 0.533s@30fps — 상태 진입은 BeginAttack 1프레임 뒤) | **한 번도 발화 안 함** | **1.800s**(@60fps, 30fps 에선 1.833s) — `HeroAttackGate._attackEndFallback`(1.8) |
-| `Slash02` | 동일 | **0.500s** | 발화 안 함 | **1.800s** — fallback |
-| `Stab` | strike 0.494s · end 1.617s | **0.800s**(BeginAttack 기준 0.817s@60 / 0.833s@30) | 발화 안 함 | **1.800s** — fallback |
+| `Slash01` | strike 0.4533s · end 1.122s | **0.500s**(BeginAttack 기준으로도 동일 **0.500s** — 2D 라이브 재측정 결과 상태 진입 지연 없음, 편차 0. 개정 8 초안의 "BeginAttack 1프레임 뒤" 가정은 폐기, §5.4·§9) | **한 번도 발화 안 함** | **1.800s**(@60fps, 30fps 에선 1.833s) — `HeroAttackGate._attackEndFallback`(1.8) |
+| `Slash02` | 동일 | **0.500s**(BeginAttack 기준도 동일, 편차 0) | 발화 안 함 | **1.800s** — fallback |
+| `Stab` | strike 0.494s · end 1.617s | **0.800s**(BeginAttack 기준으로도 동일 **0.800s**, 편차 0) | 발화 안 함 | **1.800s** — fallback |
 | `Spawn` | end 1.32s | — | 프로브에서 `spawnEndEventT=-1`(미발화로 기록. 단 측정 방식상 Spawn 이벤트를 기다리지 않았을 수 있어 **확인 필요 표시**). 전이 산식으로도 Spawn→Idle 컷오프 0.9×1.333+0.1=1.30s < 이벤트 1.32s 라 발화할 수 없다 | 스폰 게이트 **1.8s** — `HeroEntryDriver`/`AutoCombatAI._spawnGateFallback`(1.8) |
 
 - **해석**: strike 가 FBX 값보다 약 0.05~0.3s 늦게 발화하는 원인은 AnyState→공격 전이 블렌드(Duration 0.05s)·프레임 샘플링으로 추정되나, 원인과 무관하게 **목표는 측정값 그 자체**다. end 이벤트는 3D 전이 컷오프(ExitTime 0.9+Duration 0.1)가 이벤트보다 먼저 와서 **구조적으로 발화 불가**다. 따라서 현재 게임의 실제 공격 주기는 세 공격 모두 **1.8s**, strike 는 **0.50s/0.80s** 다.
@@ -227,7 +227,7 @@
 **발견**: `Knight.controller` 의 Slash01/Slash02/Stab/Spawn→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1` 조합이라 클립 끝 부근 이벤트가 컷오프에 잘린다(§5.3 라이브 실측으로 확인 — end 이벤트 전부 미발화).
 
 **2D 결정 — 몬스터가 이미 쓰는 패턴을 그대로 가져온다**: 1회성 상태(Slash01/Slash02/Stab/Spawn/Hit/Death)의 **무조건 종료 전이**(클립이 끝나면 다음 상태로 넘어가는 전이, 3D 의 "→Idle" 전이에 대응)는 **`Has Exit Time` on · `Exit Time = 1.0`(클립 100% 끝) · `Transition Duration = 0`**(몬스터 §5.7 표와 동일 값)으로 설정한다. 2D 에서 굽는 이벤트는 `OnAttackStrike` 하나뿐이고(§5.3.1 — end/spawnEnd 는 굽지 않음) 클립 중반에 있어 컷오프와 무관하다. `Speed>0.1 → Move` 처럼 **조건부**로 즉시 끼어드는 전이(3D 에도 존재, Knight.controller 실측)는 이 규칙과 별개로 `Has Exit Time` off 로 그대로 둔다 — 둘은 같은 소스 상태에서 나가는 서로 다른 두 전이이며 택일이 아니다.
-- **strike 발화 지연 재현**: 라이브 strike(0.50/0.80s)는 "공격 상태 진입 기준" 값이므로, 2D 의 AnyState→공격 전이 Duration 을 0 으로 해도 이벤트를 상태 진입 기준 0.500/0.800s 에 구우면 라이브와 같다(상태 진입이 BeginAttack 1프레임 뒤인 것도 같은 Animator 파이프라 동일). §9 불변식으로 BeginAttack 기준 0.517s(60fps)/0.817s 를 재측정해 확인한다.
+- **strike 발화 지연 없음(2D 라이브 재측정 — 개정 8 초안 가정 폐기)**: §5.3 라이브 strike(0.50/0.80s)는 "공격 상태 진입 기준" 값이다. 개정 8 초안은 BeginAttack 호출과 상태 진입 사이에 Animator 파이프라인상 1프레임 지연이 있다고 가정해 BeginAttack 기준 목표를 0.517s(60fps)/0.817s 로 따로 뒀었다. **2D 실제 클립으로 PlayMode 재측정한 결과 이 가정은 틀렸다 — BeginAttack 기준으로도 지연 없이 정확히 0.500s/0.800s 에 발화한다(편차 0, test-engineer 확인).** §9 불변식을 이 실측값으로 정정했다.
 
 | 전이 | 조건 | Has Exit Time | Exit Time | Duration |
 |---|---|---|---|---|
@@ -456,7 +456,7 @@
 |---|---|---|---|
 | **선행(추출)** | **시트 추출 결과** | `?export=1` 실행 후 페이지 DOM 에 `export done 12 files`, `edgeClipFrames=0`, 눈·검 자동 검출 true. `Assets/_Lair/Art/Sprites/Heroes2D/` 에 §7.1 의 12개 파일 존재, 각 시트 1440×648 | 메인 |
 | **선행 확인 — 완료(개정 8)** | **3D 현재 라이브 동작 실측** | 결과: strike 상태 진입 기준 Slash 0.500s·Stab 0.800s, `OnAttackEnd` 전부 미발화 → 락 해제 fallback 1.8s(§1.2·§5.3). **잔여 확인 1건**: Spawn `OnSpawnAnimEnd` 는 프로브가 `-1` 로 기록했으나 측정 방식상 이벤트를 기다리지 않았을 수 있다 — 스폰 후 행진 시작 시각이 1.8s(60fps)인지 1회 재측정해 표시를 지운다(전이 산식상 1.8s 가 예상값, 2D 설계는 이 예상값 기준) | test-engineer |
-| 불변식 | strike 발행 초(2D) | BeginAttack 기준 Slash01/02 **0.517s**·Stab **0.817s**(60fps, 상태 진입 기준 0.500/0.800s) — 3D 라이브 프로브와 같은 방식으로 측정해 ±1프레임(0.0167s) 이내 | test-engineer |
+| 불변식 — **확인 완료** | strike 발행 초(2D) | BeginAttack 기준 Slash01/02·Stab 모두 지연 없이 정확히 **0.500s**·**0.800s**(상태 진입 기준과 동일, 편차 0). 개정 8 초안의 "BeginAttack 1프레임 지연" 가정(0.517s/0.817s 목표)은 2D 라이브 재측정으로 폐기(§5.4) | test-engineer |
 | 불변식 | 공격 락·스폰 게이트(2D) | `IsAttacking` 해제 1.800s(60fps)/1.833s(30fps), 행진 시작 1.8s — 3D 라이브와 동일. 2D 클립에 `OnAttackEnd`·`OnSpawnAnimEnd` 이벤트가 **없음**을 확인 | test-engineer |
 | 불변식 | fallback 값 고정 | `HeroAttackGate._attackEndFallback == 1.8`, `HeroEntryDriver._spawnGateFallback == 1.8`, `AutoCombatAI._spawnGateFallback == 1.8`(Knight 프리팹) — 이제 공격 주기·스폰 대기를 정하는 게임플레이 값(§5.3.1) | test-engineer |
 | 불변식 | `Health.OnDied` → `EndBattle(Win)`/`BestClearTime` | 사망 판정 순간(동기) 확정, `DespawnOnDeath._delay`(0.8) 와 완전 분리 | test-engineer |
@@ -587,7 +587,7 @@
 
 ### 테스트 포인트 (test-engineer 참고)
 - §9 "불변식" 전 항목 + "선행 확인" 잔여 1건(Spawn 행진 시작 1.8s 재측정).
-- **개정 8 신규**: 3D 라이브 프로브와 같은 방식으로 2D 의 strike(BeginAttack 기준 0.517/0.817s @60fps)·`IsAttacking` 해제(1.800s)·행진 시작(1.8s)을 측정하는 PlayMode 테스트, 세 fallback 필드 값이 1.8 로 고정돼 있는지 확인하는 EditMode 테스트, 2D 클립에 `OnAttackEnd`/`OnSpawnAnimEnd` 이벤트가 없음을 확인하는 테스트.
+- **개정 8 신규 — 확인 완료**: 3D 라이브 프로브와 같은 방식으로 2D 의 strike·`IsAttacking` 해제(1.800s)·행진 시작(1.8s)을 측정하는 PlayMode 테스트 결과, BeginAttack 기준 strike 는 지연 없이 정확히 **0.500/0.800s**(편차 0 — §5.4 가정 정정)로 확인됐다. 세 fallback 필드 값이 1.8 로 고정돼 있는지 확인하는 EditMode 테스트, 2D 클립에 `OnAttackEnd`/`OnSpawnAnimEnd` 이벤트가 없음을 확인하는 테스트도 통과.
 - 기존 `HeroStageVariantConfig*Tests`·`HeroStageVariantApplier*Tests`(4파일) — `TintColor`/`UseOutline`/`OutlineColor`/`_skeletonRenderers`/`_outlineRenderer` 등 제거 필드·`Tier`/`_emissionTargets`/`_tierOverlay` 신규 필드에 맞춰 갱신 필요.
 - `HeroAnimationTimingSyncPlayTests` — 게임플레이 로직 무변경이므로 통과 유지가 기대값(회귀 감시 대상으로 재실행).
 - `MonsterTierOverlaySyncTests.cs`·`MonsterVisual2DFacingTests.cs`(기존 파일, 확인됨) — tier4 분기 추가 후 tier 0~3 케이스 회귀 재확인(무변경 기대), 영웅 전용 tier4 신규 테스트는 test-engineer 가 별도 추가.
