@@ -165,7 +165,8 @@ const CARD_SRC=['Fear','Bleed','MarkOfDeath','HeroAttackDown','HeroPoisonAura','
 //# 카드 원화는 4px 도트 격자. 해골 주변 크롭(셀 = 원화 도트 1개).
 const CROP={x:80,y:104,w:176,h:208},CS=4,CW=44,CH=52;
 //# 애니메이션 작업 격자(휘두른 무기·흩어진 뼈가 들어갈 여백 포함)
-const GW=64,GH=64,OX=10,OY=6;
+//# 72셀 = 카드 해골(약 36도트) 기준 → 48px 규격 환산 시 96셀(기획서 §4.2 셀 96 과 동일 여유). S5 대검 찌르기(F6~F7)까지 포함.
+const GW=72,GH=64,OX=10,OY=6;
 const STAGE_NAME=['기준형(카드 해골)','후드 + 장검','반투구 + 영묘 망토','풀헬름·뿔 + 양손검','금 왕관 + 화염 대검'];
 const STAGE_COL=['#E8E0C8','#4ADE80','#38BDF8','#A855F7','#EF4444'];
 const RIM=[null,'#F8FAFC',null,'#E879F9','#FDE047'];
@@ -187,7 +188,7 @@ const ANIM={
  spawn:  {n:16,fps:12,speed:1.0000,endNt:0.9900}
 };
 const STATES=['idle','walk','run','slash01','slash02','stab','hit','death','spawn'];
-const SKO={idle:'대기',walk:'이동',run:'도주질주',slash01:'횡베기1',slash02:'내려찍기',stab:'찌르기',hit:'피격',death:'사망',spawn:'등장'};
+const SKO={idle:'대기',walk:'이동',run:'도주질주',slash01:'횡베기',slash02:'내려찍기',stab:'찌르기',hit:'피격',death:'사망',spawn:'등장'};
 const realLen=st=>(ANIM[st].n/ANIM[st].fps)/ANIM[st].speed;
 const realAt=(st,nt)=>nt*realLen(st);
 const strikeF=st=>ANIM[st].strikeNt!=null?Math.round(ANIM[st].strikeNt*ANIM[st].n):-1;
@@ -330,16 +331,17 @@ function stageParts(t){
     eyes('#E879F9')
   ];
   return [
-    {f:PL([[-4,4],[-11,5.5],[-15,15],[-16.5,26],[-13.5,23.5],[-12.5,28],[-9.5,25],[-7.5,28.2],[-5.5,25.5],[-4.5,21]]),pal:['#B91C1C','#EF4444','#7F1D1D'],b:'cape'},
-    {f:U(PL([[-16.5,26],[-15.5,22],[-14.5,26]]),PL([[-12.5,28],[-11.8,24.5],[-11,28]]),PL([[-7.5,28.2],[-6.9,24.8],[-6.3,28.2]])),pal:['#FF7A3D'],b:'cape',glow:1,noOut:1},
+    //# 화염 망토 — 보스 실루엣 최대 돌출(R2' ≥14 텍셀) 확보를 위해 뒤로 크게 펼침(기획서 §3.3 개정 6)
+    {f:PL([[-4,4],[-12.5,5.5],[-18,14],[-20.5,25],[-16.5,22.5],[-14.5,28],[-11,25],[-7.5,28.2],[-5.5,25.5],[-4.5,21]]),pal:['#B91C1C','#EF4444','#7F1D1D'],b:'cape'},
+    {f:U(PL([[-20.5,25],[-19.3,20.5],[-18.2,24.2]]),PL([[-14.5,28],[-13.8,24.5],[-13,27.5]]),PL([[-7.5,28.2],[-6.9,24.8],[-6.3,28.2]])),pal:['#FF7A3D'],b:'cape',glow:1,noOut:1},
     {f:R(-5.5,6,7.5,17),pal:['#991B1B','#EF4444','#450A0A']},
     {f:U(R(-5.5,6,7.5,7),R(0.4,6,1.6,17)),pal:GOLD},
     {f:DF(R(-5.5,17,7.5,21.5),U(R(-3,19.5,-2,21.5),R(4,19.5,5,21.5))),pal:DSTEEL,b:'hips'},
     {f:U(E(-6.5,6.5,4.1,3),E(8.5,6.5,4.1,3),PL([[-9,5],[-11.5,2],[-8,4]]),PL([[11,5],[13.5,2],[10,4]])),pal:['#B91C1C','#F87171','#7F1D1D'],b:'pauld'},
-    {f:U(R(-5,-5,7,-2.6),PL([[-5,-5],[-4.3,-8.5],[-3.4,-5]]),PL([[-2.2,-5],[-1.2,-9.5],[-0.2,-5]]),PL([[0,-5],[1,-11.5],[2,-5]]),PL([[2.2,-5],[3.2,-9.5],[4.2,-5]]),PL([[5.4,-5],[6.3,-8.5],[7,-5]])),pal:GOLD,b:'head'},
+    {f:U(R(-5,-5,7,-2.6),PL([[-5,-5],[-4.3,-9],[-3.4,-5]]),PL([[-2.2,-5],[-1.2,-11],[-0.2,-5]]),PL([[0,-5],[1,-13.5],[2,-5]]),PL([[2.2,-5],[3.2,-11],[4.2,-5]]),PL([[5.4,-5],[6.3,-9],[7,-5]])),pal:GOLD,b:'head'},
     {f:U(C(-2.7,-3.8,0.7),C(1,-3.8,0.8),C(4.7,-3.8,0.7)),pal:['#EF4444'],b:'head',glow:1,noOut:1},
     ...sword(13,3.2,['#9CA3AF','#E5E7EB','#4B5563'],GOLD,4,'#FF7A3D',GOLD),
-    {f:U(C(-14,19,0.8),C(-10.5,13,0.7),C(13.5,22,0.8),C(-2,-13,0.6)),pal:['#FF7A3D'],b:'fx',glow:1,noOut:1},
+    {f:U(C(-15,18,0.8),C(-11,12,0.7),C(13.5,22,0.8),C(-4.5,-14,0.6)),pal:['#FF7A3D'],b:'fx',glow:1,noOut:1},
     eyes('#FF7A3D')
   ];
 }
@@ -363,22 +365,24 @@ function buildRig(t){
   }
   for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx;if(!body[i])continue;const rx=cx-A.ex+0.5,ry=cy-A.ey+0.5;
     put(t===0&&bladeSet.has(i)?'armR':bodyBone(rx,ry),cx,cy,{b:i});}
-  const parts=stageParts(t),N=CW*CH;
-  const reg=new Int16Array(N).fill(-1);
-  parts.forEach((p,k)=>{for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){if(p.f(cx-A.ex+0.5,cy-A.ey+0.5))reg[cy*CW+cx]=k;}});
-  const same=(x,y,r)=>x>=0&&y>=0&&x<CW&&y<CH&&reg[y*CW+x]===r;
+  //# 파츠는 크롭(44셀)이 아니라 작업 격자 전체에 래스터화 — 크롭 밖으로 펼쳐지는 S5 화염 망토 등이 잘리지 않게.
+  //# 좌표: 크롭 셀 좌표 cx = gx-OX (음수 가능), rel = cx-ex+0.5. put() 이 다시 OX/OY 를 더한다.
+  const parts=stageParts(t);
+  const reg=new Int16Array(GW*GH).fill(-1);
+  parts.forEach((p,k)=>{for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){if(p.f(gx-OX-A.ex+0.5,gy-OY-A.ey+0.5))reg[gy*GW+gx]=k;}});
+  const same=(gx,gy,r)=>gx>=0&&gy>=0&&gx<GW&&gy<GH&&reg[gy*GW+gx]===r;
   //# 외곽선(파츠 바깥 셀 → 인접 파츠의 부위를 따라감)
   const outRgb=hexRgb(RIM[t]||OUT);
-  for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx;if(reg[i]>=0)continue;
-    for(const [x,y] of [[cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]]){if(x<0||y<0||x>=CW||y>=CH)continue;const r=reg[y*CW+x];if(r<0||parts[r].noOut)continue;
-      put(partBone(parts[r],x-A.ex+0.5,y-A.ey+0.5),cx,cy,{c:outRgb,a:1});break;}}
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){if(reg[gy*GW+gx]>=0)continue;
+    for(const [x,y] of [[gx+1,gy],[gx-1,gy],[gx,gy+1],[gx,gy-1]]){if(x<0||y<0||x>=GW||y>=GH)continue;const r=reg[y*GW+x];if(r<0||parts[r].noOut)continue;
+      put(partBone(parts[r],x-OX-A.ex+0.5,y-OY-A.ey+0.5),gx-OX,gy-OY,{c:outRgb,a:1});break;}}
   //# 지운 캡·소검 자리가 남은 몸에 닿으면 흑 외곽선으로 봉합
-  erased.forEach(i=>{if(reg[i]>=0)return;const x=i%CW,y=(i/CW)|0;
+  erased.forEach(i=>{const x=i%CW,y=(i/CW)|0;if(reg[(y+OY)*GW+(x+OX)]>=0)return;
     if((x>0&&body[i-1])||(x<CW-1&&body[i+1])||(y>0&&body[i-CW])||(y<CH-1&&body[i+CW]))put(bodyBone(x-A.ex+0.5,y-A.ey+0.5),x,y,{c:hexRgb(OUT),a:1});});
   //# 파츠(명암 3단)
-  for(let cy=0;cy<CH;cy++)for(let cx=0;cx<CW;cx++){const i=cy*CW+cx,r=reg[i];if(r<0)continue;const p=parts[r],pal=p.pal;let c=pal[0];
-    if(pal.length>2){if(!same(cx+1,cy,r)||!same(cx,cy+1,r))c=pal[2];else if(!same(cx-1,cy,r)||!same(cx,cy-1,r))c=pal[1];}
-    put(partBone(p,cx-A.ex+0.5,cy-A.ey+0.5),cx,cy,{c:hexRgb(c),a:p.alpha||1,g:p.glow?1:0});}
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){const r=reg[gy*GW+gx];if(r<0)continue;const p=parts[r],pal=p.pal;let c=pal[0];
+    if(pal.length>2){if(!same(gx+1,gy,r)||!same(gx,gy+1,r))c=pal[2];else if(!same(gx-1,gy,r)||!same(gx,gy-1,r))c=pal[1];}
+    put(partBone(p,gx-OX-A.ex+0.5,gy-OY-A.ey+0.5),gx-OX,gy-OY,{c:hexRgb(c),a:p.alpha||1,g:p.glow?1:0});}
   //# 눈 셀(피격·사망 찡그림용)
   const eyeKeys=new Set();
   [A.eyeL,A.eyeR].forEach(e=>{const gx=A.ex+OX+e[0],gy=A.ey+OY+e[1];for(let dx=-1;dx<=1;dx++){const k=gk(Math.round(gx)+dx,Math.round(gy));if(L.head.has(k))eyeKeys.add(k);}});
