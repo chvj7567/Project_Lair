@@ -5,6 +5,7 @@
 > 본 문서의 모든 "현행" 값은 코드 실측이다(§1). 추정치는 쓰지 않는다 — §5.3 의 공격/스폰 이벤트 시각도 `hero-animation-timing-sync.md` §2.6 의 사전 추정("~0.40nt"/"~0.55nt")이 아니라 **`Skeleton_*.fbx.meta` 에 실제로 구워진 `AnimationEvent.time` 실측값**을 쓴다(§5.3 각주 — 사전 추정과 실측이 달라 실측을 단일 진실로 채택). 이 실측 과정에서 **`Knight.controller` 의 기존 전이 설정(ExitTime 0.9 + Duration 0.1)이 Stab 의 `OnAttackEnd` 를 원천적으로 발화 불가능하게 만들 가능성**을 발견했다(`Knight.controller` YAML 의 전이 시각 직접 계산 — §5.4. `.fbx.meta` 의 FBX 임포터 경고는 **다른(과거) 값에 대한 캐시된 경고**라 이 발견의 근거가 아님을 §5.3 각주에서 명시적으로 구분한다).
 > 시안(승인 게이트 자료): `.mockups/hero-2d-conversion.html` — **게임에 이미 들어간 카드 일러스트 해골 PNG(7장)를 직접 로드**해 스테이지 1 로 그대로 쓰고, 스테이지 2~5 는 같은 해골 위에 카드 원화와 같은 4px 도트 격자로 수작업 파츠를 얹었다. 해골을 8부위로 분리해 상태·프레임마다 부위별로 움직여 **프레임을 한 장씩 굽는다**(§5.8 — 몬스터 시안과 같은 "프레임 파라미터표 → 베이크" 방식). 스테이지 카드(프레임 애니메이션·실측 이벤트), 프레임 스트립, 성장 사다리(컬러/실루엣), 실루엣 실측표, 전투 미니 프리뷰, 클립 타이밍 바, 원화 소스·부위 분리 패널을 제공한다.
 > 개정 5(2026-09-29, 사용자 피드백 "캐릭터 전체가 움직여서 애니메이션 같지 않다"): 키아트 통째 이동 미리보기 폐기 → 부위 리그 프레임 애니메이션으로 교체, §5.8(부위·키포즈) 신설, §8 키아트 역할 문장 갱신.
+> 개정 8(2026-09-29, §9 선행 확인 결과 반영): 3D 라이브 실측 — strike 는 상태 진입 기준 Slash 0.500s·Stab 0.800s, `OnAttackEnd` 는 한 번도 발화하지 않고 공격 락은 fallback 1.8s(스폰 게이트도 1.8s). "데미지 타이밍 불변" 기준을 FBX 값에서 **라이브 실측값**으로 교체 — §1.2·§5.3(strike 재산출, 찌르기 접촉 F6→F9)·§5.3.1(end/spawnEnd 이벤트를 굽지 않고 fallback 유지 채택, 대안 비교)·§5.4·§5.5·§5.8·§9(qa-simulator 불필요로 정리)·§11. `AttackVariant` 는 랜덤이 아니라 0→1→2 순환으로 정정. 시트 재추출 필요(찌르기 행).
 > 개정 7(2026-09-29, 사용자 승인 + 아트 소스 결정 "시안 프레임을 그대로 게임 시트로 추출"): §8 아트 소스를 (e) 시안 부위 리그 베이크 프레임 추출로 확정((d) 손그림은 향후 교체용 보류). 연쇄: §4.1 PPU = 해골 높이 도트(1 카드 도트 = 1 텍스처 픽셀, 몬스터와 밀도 차 허용 근거), §4.2 셀 96→72·커스텀 피벗, §3.1·§3.3 재작도 문장 정리, §7.1 `Knight_SheetSpec.json`·추출 절차, §7.2 시트 1440×648, §7.3 임포트, §9 추출 게이트, §10-0·§11 JSON 입력.
 > 개정 6(2026-09-29, 메인 렌더링 확인): 시안 자체 진단 실패 2건 해소 — S5 대검 찌르기 F6~F7 작업 격자 클리핑(격자 64→72셀, §4.2 가로 검산 추가) · S5 R2' 12.3 < 14 미달(기준 유지, 화염 망토·왕관 확대, §3.2·§3.3). 공격 호칭을 횡베기/내려찍기/찌르기로 문서 전체 통일(§5.8). 로컬 서버(`node .mockups/server.js`)의 읽기 전용 `/cardart/` 경로로 원본 PNG 를 읽는다(복사본 없음).
 > 개정 4(2026-09-29, 사용자 피드백 "영웅 퀄리티가 너무 별로, 해골 이미지로 다시"): 절차 생성 캐릭터 시안 폐기 → 카드 해골 원본 기반 키아트로 교체. 연쇄: §3.1(해상도 환산)·§3.2(파츠 상세)·§3.3(측정 대상)·§8(아트 소스 정책)·§12.
@@ -46,11 +47,11 @@
 | 항목 | 현행 | 2D 에서 |
 |---|---|---|
 | Animator 상태 | `Idle` / `Move`(BlendTree, `Speed` 파라미터로 `Walk`↔`Run` 1D 블렌드, 문턱 1.0/2.0) / `Slash01` / `Slash02` / `Stab` / `Hit` / `Death`, 별도 `Spawn` 상태(AnyState 밖, 시작 상태) | **상태 이름·파라미터 이름·문턱값 전부 동일 유지**. 클립만 3D→2D 스프라이트 플립북으로 교체 |
-| 파라미터 | `Speed`(Float) · `Attack`(Trigger) · `AttackVariant`(Int, 0/1/2 **랜덤** 선택 — 몬스터의 "선언만" 과 달리 영웅은 실사용) · `Hit`(Trigger) · `Dead`(Bool) · `Spawn`(Trigger) | 불변 |
-| 클립 길이·이벤트 실측(3D, `.fbx.meta` `events:` 블록 직접 확인) | `Skeleton_spawn`: `OnSpawnAnimEnd`@**1.32s**(클립 40f=1.333s 중) · `Skeleton_slash01`/`02`: `OnAttackStrike`@**0.453s**·`OnAttackEnd`@**1.122s**(클립 34f=1.133s 중) · `Skeleton_stab`: `OnAttackStrike`@**0.494s**·`OnAttackEnd`@**1.617s**(클립 49f=1.633s 중). `Skeleton_take_damage`(Hit) 이벤트 없음, 길이 하드 결정치 아님 | **4클립의 실측 이벤트 초 값 불변 — §5.3.** Hit/Idle/Walk/Run/Death 는 이벤트가 없어 새 값 자유(§5.2) |
-| **발견 — Stab `OnAttackEnd` 미발화 가능성** | `Knight.controller` 의 Stab→Idle 무조건 전이가 `ExitTime 0.9`(=1.470s)+`Duration 0.1`(고정 실시간)로, 소스 상태 평가가 **1.570s 에 완전히 종료**된다(YAML 직접 확인). 그런데 `OnAttackEnd` 는 **1.617s**(1.570s **이후**)에 박혀 있다 — 즉 **Stab 의 `IsAttacking` 해제가 현재 `OnAttackEnd` 가 아니라 `_attackEndFallback`(1.8s) 타임아웃에 의존 중일 가능성**이 있다. Slash01/02 는 경계선상(전이 종료 1.120s vs 이벤트 1.122s, 2ms 차)이라 마찬가지로 불안정할 수 있다. (`.fbx.meta` 의 FBX 임포터 경고는 시각 2.641s 라는 **다른 과거 값**에 대한 캐시된 경고라 이 발견의 근거가 아니다 — §5.3 각주에서 별도로 구분) | **2D Animator 전이는 `Duration 0`·`ExitTime 1.0`(몬스터 §5.7 패턴, §5.4)을 쓰고, 이벤트는 클립 정규화 1.0 이 아니라 마지막 프레임 안쪽(§5.3.1)에 구워 여유를 둔다** — 이 함정을 재현하지 않는다. **단 이것이 실제로 3D 의 현재 라이브 동작(Stab 실질 주기가 1.633s 가 아니라 1.8s일 가능성)과 다르면, 2D 전환이 "버그를 의도치 않게 고치는" DPS 변화가 된다** — §5.4·§9 게이트로 검증 필요, qa-simulator 필요 여부를 §9 에서 재판단한다(§0 "qa-simulator 불필요" 결론을 이 발견으로 철회) |
-| **영웅 공격 흐름(몬스터와 근본적으로 다름)** | `MeleeAttacker.DeferStrike=true`(영웅만) → `AutoCombatAI` 가 교전+쿨다운 통과 시 `TryBeginAttack`(데미지 0, 애니 개시만) → `IAttackGate.BeginAttack()` → windup 재생 → 클립에 박힌 **`OnAttackStrike`** 애니 이벤트가 `MeleeAttacker.TryApplyStrike`(실제 데미지+`OnHit`)를 호출 → 클립 끝 **`OnAttackEnd`** 이벤트가 `IAttackGate.EndAttack()`(다음 공격 재개) | **완전 불변.** `CharacterAttackStrikeRelay`(Visual 자식, `GetComponentInParent` 로 루트 위임) · `HeroAttackGate`(`_attackEndFallback=1.8`) · `MeleeAttacker.TryBeginAttack/TryApplyStrike` 코드 변경 0줄. 2D 클립에 같은 3개 이벤트를 같은 실시간 초에 다시 굽기만 한다 |
-| 스폰 게이트 | `Skeleton_spawn` 마지막 프레임 **`OnSpawnAnimEnd`** → `HeroEntryDriver._marchGateOpen`/`AutoCombatAI._spawnGateOpen` open, fallback 1.8s(=1.333×1.35) | 불변. 2D spawn 클립도 반드시 **재생 클립**이어야 한다 — 몬스터 §5.6 의 "클립 없이 트윈" 방식은 영웅에 **적용 불가**(스폰 게이트가 실제 클립 이벤트를 기다림) |
+| 파라미터 | `Speed`(Float) · `Attack`(Trigger) · `AttackVariant`(Int, 0→1→2→0… **순차 순환** — `CharacterAnimationController._attackVariantIndex`, 랜덤 아님. 몬스터의 "선언만" 과 달리 영웅은 실사용) · `Hit`(Trigger) · `Dead`(Bool) · `Spawn`(Trigger) | 불변 |
+| 클립 길이·이벤트 실측(3D, `.fbx.meta` `events:` 블록 직접 확인) | `Skeleton_spawn`: `OnSpawnAnimEnd`@**1.32s**(클립 40f=1.333s 중) · `Skeleton_slash01`/`02`: `OnAttackStrike`@**0.453s**·`OnAttackEnd`@**1.122s**(클립 34f=1.133s 중) · `Skeleton_stab`: `OnAttackStrike`@**0.494s**·`OnAttackEnd`@**1.617s**(클립 49f=1.633s 중). `Skeleton_take_damage`(Hit) 이벤트 없음, 길이 하드 결정치 아님 | FBX 값은 **라이브 동작이 아니다**(아래 행) — 2D 목표는 §5.3 라이브 실측값. Hit/Idle/Walk/Run/Death 는 이벤트가 없어 새 값 자유(§5.2) |
+| **라이브 실측(개정 8, PlayMode 프로브 — 실제 Knight.prefab+Knight.controller, 60/30fps 각 3세트 일관)** | strike: 공격 상태 진입 기준 **Slash01/02 0.500s · Stab 0.800s**. `OnAttackEnd` **3공격 모두 한 번도 발화 안 함** → `IsAttacking` 해제는 `_attackEndFallback` **1.8s**(60fps 1.800 / 30fps 1.833). 원인: 3D 전이 `ExitTime 0.9`+`Duration 0.1` 컷오프가 end 이벤트보다 먼저 옴. Spawn 의 `OnSpawnAnimEnd` 도 프로브 `-1`(측정 방식 확인 필요 표시) + 전이 산식상 발화 불가 → 스폰 게이트는 `_spawnGateFallback` 1.8s | **라이브와 동일하게 재현**(§5.3·§5.3.1): strike 이벤트만 0.500/0.800s 에 굽고, end·spawnEnd 는 굽지 않아 락·스폰 게이트는 지금처럼 fallback 1.8s |
+| **영웅 공격 흐름(몬스터와 근본적으로 다름)** | `MeleeAttacker.DeferStrike=true`(영웅만) → `AutoCombatAI` 가 교전+쿨다운 통과 시 `TryBeginAttack`(데미지 0, 애니 개시만) → `IAttackGate.BeginAttack()` → windup 재생 → 클립에 박힌 **`OnAttackStrike`** 애니 이벤트가 `MeleeAttacker.TryApplyStrike`(실제 데미지+`OnHit`)를 호출 → 설계상 클립 끝 **`OnAttackEnd`** 이벤트가 `IAttackGate.EndAttack()`(다음 공격 재개). **라이브는 `OnAttackEnd` 미발화 → `_attackEndFallback` 1.8s 가 락을 푼다**(개정 8) | **완전 불변.** `CharacterAttackStrikeRelay`(Visual 자식, `GetComponentInParent` 로 루트 위임) · `HeroAttackGate`(`_attackEndFallback=1.8`) · `MeleeAttacker.TryBeginAttack/TryApplyStrike` 코드 변경 0줄. 2D 클립에는 `OnAttackStrike` 만 라이브 실측 초(0.500/0.800s)에 굽고 `OnAttackEnd`·`OnSpawnAnimEnd` 는 굽지 않는다(§5.3.1) |
+| 스폰 게이트 | 설계상 `Skeleton_spawn` 마지막 프레임 **`OnSpawnAnimEnd`** → `HeroEntryDriver._marchGateOpen`/`AutoCombatAI._spawnGateOpen` open, fallback 1.8s(=1.333×1.35). **라이브는 이벤트 미발화 → fallback 1.8s 로 열림**(개정 8, 아래 라이브 실측 행) | 불변 — 2D 도 `OnSpawnAnimEnd` 를 굽지 않고 fallback 1.8s 유지(§5.3.1). 2D spawn 은 등장 모션을 보여주는 **재생 클립**으로 둔다(몬스터 §5.6 의 "클립 없이 트윈" 과 다름 — 뼈 조립 모션 표현용) |
 | 회전 | `SimpleRotator._snapInstant=true`(영웅만, 즉시 스냅) | 불변 — `Visual2D` 빌보드 회전(카메라 복사)과 무관한 별개의 루트 yaw 로직 |
 | 피격 억제 | `Hit` 트리거는 `IsAttacking==true` 동안(영웅 한정) + `_attackSuppressWindow=0.5`(공격 개시 후) 이중 억제, `_hitReactionCooldown=0.4` | 불변 |
 | 사망 | `Health.OnDied` → `BattleController` 가 그 즉시(동기) `EndBattle(BattleResult.Win)` 호출, `BestClearTime = _clock.Elapsed` 도 이 순간 확정. **`DespawnOnDeath._delay = 0`**(현재 3D 도 사망 즉시 풀 반환 — 사망 모션이 사실상 안 보임) | `EndBattle`/`BestClearTime` 타이밍은 **손대지 않는다**(계속 `Health.OnDied` 동기 이벤트 기준). 사망 2D 클립을 보여주기 위해 `DespawnOnDeath._delay` 를 **0 → 0.8**(§5.2 Death 클립 길이)로 올린다 — 몬스터 §5.5 와 동일 패턴("사망 판정"과 "풀 반환 지연"의 분리") |
@@ -137,7 +138,7 @@
 | 항목 | 값 | 근거 |
 |---|---|---|
 | 몸 높이(원화 기준) | 스테이지 1 대기 F0 해골 높이 = PPU(약 36도트, `Knight_SheetSpec.json` 실측값) | 카드 원화 해상도 그대로 |
-| 셀 크기 | **72×72** | 시안의 작업 격자를 그대로 셀로 쓴다. 전 5스테이지 × 108프레임(540장)이 이 격자 안에 들어오는지 추출 도구가 **가장자리 클리핑을 검사**해 `edgeClipFrames` 에 기록한다(0건이어야 통과, §9). 가장 멀리 뻗는 S5 대검 찌르기 F6~F7 은 몸 중심에서 약 34도트 앞, S5 화염 망토는 약 22도트 뒤, 사망 시 흩어지는 뼈·등장 조립까지 격자 안(개정 6 검산) |
+| 셀 크기 | **72×72** | 시안의 작업 격자를 그대로 셀로 쓴다. 전 5스테이지 × 108프레임(540장)이 이 격자 안에 들어오는지 추출 도구가 **가장자리 클리핑을 검사**해 `edgeClipFrames` 에 기록한다(0건이어야 통과, §9). 가장 멀리 뻗는 S5 대검 찌르기 접촉 포즈(개정 8 이후 F9~F10, 포즈 자체는 동일)는 몸 중심에서 약 34도트 앞, S5 화염 망토는 약 22도트 뒤, 사망 시 흩어지는 뼈·등장 조립까지 격자 안(개정 6 검산) |
 | 피벗 | **Custom — 모든 슬라이스 공통**: x = 몸 중심 열 ÷ 72, y = (72 − 발바닥 행) ÷ 72(Unity 정규화, 좌하단 원점). 값은 `Knight_SheetSpec.json` 의 `pivot` | 캐릭터가 셀 가로 중앙에 있지 않다(무기가 앞으로 길게 뻗고 망토는 뒤로 짧게 — 좌우 비대칭 여유). 발바닥·몸 중심이 게임 루트 위치에 오도록 커스텀 피벗을 쓴다 |
 | 부유 없음(발이 지면에 붙음) | 대기 루프는 ±1도트 상하 호흡만 | 유령이 아니라 두 발로 서 있는 스켈레톤이므로 몬스터의 "부유 2px" 미적용 |
 
@@ -163,9 +164,9 @@
 | Idle | 클립, 루프 | `Speed < 0.1` |
 | Move(Walk) | 클립, 루프, BlendTree `Speed≈1.0` | `IMover.IsMoving && FleeMode==false` |
 | Move(Run) | 클립, 루프, BlendTree `Speed≈2.0` | `AutoCombatAI.FleeMode==true`(공포 카드 도주) |
-| Slash01 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==0`(랜덤) |
-| Slash02 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==1`(랜덤) |
-| Stab | 클립, 1회 | `Attack` 트리거 + `AttackVariant==2`(랜덤) |
+| Slash01 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==0`(0→1→2 순차 순환의 첫째) |
+| Slash02 | 클립, 1회 | `Attack` 트리거 + `AttackVariant==1`(순환 둘째) |
+| Stab | 클립, 1회 | `Attack` 트리거 + `AttackVariant==2`(순환 셋째) |
 | Hit | 클립, 1회 | `Hit` 트리거(억제 규칙 §1.2 그대로) |
 | Death | 클립, 1회, 마지막 프레임 유지 | `Dead=true`(AnyState 인터럽트) |
 
@@ -179,51 +180,54 @@
 | Hit | 6 × 12 | 0.500s | 1회, 뒤로 밀림→복귀. `hero-skeleton-animation.md` §2.1 이 언급한 "0.5~0.8s" 범위 내 |
 | Death | 8 × 10 | 0.800s | 1회, 마지막 프레임 유지. `DespawnOnDeath._delay` 를 **0.8** 로 갱신(§1.2) |
 
-### 5.3 프레임 규격 — 실시간 초 값 불변 상태 (Spawn/Slash01/Slash02/Stab, 이벤트 시점 보존 필수)
+### 5.3 프레임 규격 — 라이브 타이밍 불변 상태 (Spawn/Slash01/Slash02/Stab) — 개정 8
 
-**실측 우선 원칙**: `hero-animation-timing-sync.md` §2.6 의 strike 정규화 위치(≈0.40/≈0.55)는 클립을 굽기 **전** 세운 사전 추정치였다. 이번 문서는 `Skeleton_{spawn,slash01,slash02,stab}.fbx.meta` 의 `events:` 블록을 직접 읽어 **실제로 구워진 값**을 확보했다(§1.2) — 사전 추정과 다르면 **실측이 단일 진실**이다. Stab 의 strike 는 사전 추정(≈0.55, ≈0.90s)과 실측(0.494s, nt≈0.31)이 크게 달랐다 — 실측을 쓴다.
+**원칙: "데미지 타이밍·스탯 불변" 의 기준은 FBX 에 박힌 값이 아니라 현재 게임의 라이브 동작이다.** 개정 8 에서 §9 "선행 확인" 게이트가 실제 `Knight.prefab`+`Knight.controller` 로 PlayMode 프로브를 돌려(60fps·30fps 각 3세트, 전부 일관) 아래를 확인했다.
 
-**실측 이벤트 시각 (초, `AnimationEvent.time`, meta 원문)**:
+**라이브 실측(3D, 개정 8)**:
 
-| 클립 | `OnAttackStrike` | `OnAttackEnd`/`OnSpawnAnimEnd` | 클립 길이(FBX 전체) |
-|---|---|---|---|
-| `Skeleton_spawn` | — | 1.32s | 1.333s(40f@30fps) |
-| `Skeleton_slash01` | 0.4533s | 1.122s | 1.133s(34f@30fps) |
-| `Skeleton_slash02` | 0.4533s | 1.122s | 1.133s(34f@30fps) |
-| `Skeleton_stab` | 0.4940s | 1.617s | 1.633s(49f@30fps) |
-
-- **`OnAttackEnd`/`OnSpawnAnimEnd` 가 클립 전체 길이보다 살짝 짧게(정규화 ≈0.990) 박혀 있다** — 클립 정확히 100% 지점이 아니라 그 직전 프레임 안쪽에 여유를 두고 배치한 것으로 보인다(원화 3종 모두 일관되게 0.9900~0.9903 — 의도된 패턴). **2D 클립도 이 관례를 그대로 따른다** — 이벤트를 클립의 수학적 끝(정규화 1.0)이 아니라 **마지막 프레임 안쪽**(§5.3.1)에 굽는다.
-- **Animator 전이 컷오프 확인**(별개 발견, §5.4): `Knight.controller` 의 Slash01/Slash02/Stab→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1`(고정 실시간) 조합이라, 소스 상태 평가가 `Stab: 0.9×1.633+0.1=1.570s` 에 완전히 끝난다 — 이는 `Knight.controller` YAML 을 직접 읽어 확인한 것이며(§1.2), FBX 임포터 경고와는 무관하다(아래 각주). `OnAttackEnd`(1.617s) 는 이 컷오프(1.570s) **이후**라 3D 에서 발화하지 않을 수 있다 — §5.4·§9 게이트로 확인 필요.
-- **각주 — FBX 임포터 경고는 이 사안과 무관**: `Skeleton_stab.fbx.meta` 의 `animationImportWarnings`(줄 27~28)는 "`OnAttackEnd` 가 시간 **2.641100**(현재 클립 범위 0~1.633333 밖)이라 발화하지 않는다"는 내용이다 — 이는 **과거에 잘못 구웠던 값(2.641s)에 대한 캐시된 경고**이며, 현재 `events:` 블록의 실제 값(1.617s, §1.2 표)과는 다른 숫자다. 즉 이 경고는 "현재 `OnAttackEnd`(1.617s)가 발화 안 한다"는 증거가 **아니다** — 위 Animator 전이 컷오프(1.570s) 분석만이 그 근거다.
-
-**메커니즘 — Animator State Speed 로 실시간 길이를 정확히 맞춘다.** 픽셀 프레임은 12fps/15fps 등 읽기 좋은 값으로 자유롭게 그리되, `AnimatorState.m_Speed`(Knight.controller 에 각 상태마다 이미 존재하는 필드) 를 곱해 **`재생시간 = (프레임수 ÷ fps) ÷ Speed`** 가 **클립 전체 길이(FBX 원본, §1.2 "클립 길이" 열)** 와 정확히 같아지게 한다. `AnimationEvent.time` 은 클립 로컬(unscaled) 시간이므로 **이벤트의 클립 내 정규화 위치(0~1)는 Speed 스케일과 무관하게 보존**된다 — 정규화 위치(실측 이벤트 시각 ÷ 클립 전체 길이)만 같게 박으면 실시간 위치도 자동으로 같아진다.
-
-| 클립 | 클립 전체 길이(Speed 보정 목표) | 원화 프레임×fps(nominal) | Animator Speed = nominal÷목표 | 실제 재생시간 | strike 정규화(=실측÷전체) | strike 프레임 |
-|---|---|---|---|---|---|---|
-| Spawn | 1.3333s | 16 × 12 = 1.3333s | **1.0000** | 1.3333s | — | — |
-| Slash01 | 1.1333s | 17 × 15 = 1.1333s | **1.0000** | 1.1333s | 0.4533÷1.1333 = **0.4000** | 0.4000×1.1333=0.4533s → ×15fps=F6.80 → **F7** |
-| Slash02 | 1.1333s | 17 × 15 = 1.1333s | **1.0000** | 1.1333s | 0.4000(Slash01 동일) | **F7**(동일) |
-| Stab | 1.6333s | 20 × 12 = 1.6667s | 1.6667÷1.6333 = **1.0204** | 1.6667÷1.0204 = 1.6333s | 0.4940÷1.6333 = **0.3025** | 0.3025×1.6667=0.5042s → ×12fps=F6.05 → **F6** |
-
-**검산(strike 실시간 역산 — Speed 보정 후 측정값과 정확히 일치해야 함)**: Slash 0.4533s(nominal-local)÷1.0000(Speed)=0.4533s = 측정값 0.4533s ✓. Stab 0.5042s÷1.0204=0.4941s ≈ 측정값 0.4940s(오차 0.0001s, 반올림) ✓.
-
-#### 5.3.1 `OnAttackEnd`/`OnSpawnAnimEnd` — 마지막 프레임 안쪽에 굽는다 (정규화 1.0 경계에 정확히 걸치지 않음)
-
-정확히 정규화 1.0(클립 수학적 끝)에 이벤트를 걸면 부동소수 오차로 재생 프레임이 클립 종료와 같은 프레임에 겹쳐 **엔진에 따라 발화가 불안정**할 수 있는 경계 케이스다(3D 원본도 정확히 1.0 이 아니라 0.990 부근에 굽는 관례를 씀, §5.3 각주). 2D 도 이 관례를 그대로 따라 **각 클립의 마지막 프레임**에 굽는다(정규화 0.990 근사, 클립 100% 가 아니라 그 한 프레임 안쪽):
-
-| 클립 | end 정규화(3D 원본 실측) | 2D 클립 프레임수 | end 프레임 | end 실시간(Speed 반영) |
+| 클립 | FBX 에 박힌 이벤트(meta) | 라이브 `OnAttackStrike`(공격 상태 진입 기준) | 라이브 `OnAttackEnd` | 라이브 공격 락(`IsAttacking`) 해제 |
 |---|---|---|---|---|
-| Spawn | 1.32÷1.3333=0.9900 | 16(F0~F15) | **F15**(마지막) | 1.320s |
-| Slash01/02 | 1.122÷1.1333=0.9900 | 17(F0~F16) | **F16**(마지막) | 1.122s |
-| Stab | 1.617÷1.6333=0.9902 | 20(F0~F19) | **F19**(마지막) | 1.617s |
+| `Slash01` | strike 0.4533s · end 1.122s | **0.500s**(BeginAttack 기준 0.517s@60fps / 0.533s@30fps — 상태 진입은 BeginAttack 1프레임 뒤) | **한 번도 발화 안 함** | **1.800s**(@60fps, 30fps 에선 1.833s) — `HeroAttackGate._attackEndFallback`(1.8) |
+| `Slash02` | 동일 | **0.500s** | 발화 안 함 | **1.800s** — fallback |
+| `Stab` | strike 0.494s · end 1.617s | **0.800s**(BeginAttack 기준 0.817s@60 / 0.833s@30) | 발화 안 함 | **1.800s** — fallback |
+| `Spawn` | end 1.32s | — | 프로브에서 `spawnEndEventT=-1`(미발화로 기록. 단 측정 방식상 Spawn 이벤트를 기다리지 않았을 수 있어 **확인 필요 표시**). 전이 산식으로도 Spawn→Idle 컷오프 0.9×1.333+0.1=1.30s < 이벤트 1.32s 라 발화할 수 없다 | 스폰 게이트 **1.8s** — `HeroEntryDriver`/`AutoCombatAI._spawnGateFallback`(1.8) |
 
-- "마지막 프레임에 굽는다"가 **정규화 1.0 과 차이가 있는 이유**: 프레임 F16(Slash)은 시간 구간 `[16/15, 17/15) = [1.0667, 1.1333)` 를 표시하는데, 실측 end 시각(nominal-local 1.122×Speed 보정 전=1.122s)이 이 구간 안에 들어와 "마지막 프레임 표시 도중"에 이벤트가 발화한다 — 클립이 끝나 다음 상태로 넘어가는 그 순간(정규화 1.0)보다 살짝 여유 있게, 3D 원본과 동일한 안전 마진을 재현한다.
+- **해석**: strike 가 FBX 값보다 약 0.05~0.3s 늦게 발화하는 원인은 AnyState→공격 전이 블렌드(Duration 0.05s)·프레임 샘플링으로 추정되나, 원인과 무관하게 **목표는 측정값 그 자체**다. end 이벤트는 3D 전이 컷오프(ExitTime 0.9+Duration 0.1)가 이벤트보다 먼저 와서 **구조적으로 발화 불가**다. 따라서 현재 게임의 실제 공격 주기는 세 공격 모두 **1.8s**, strike 는 **0.50s/0.80s** 다.
+- **개정 7 까지의 목표치(FBX 값 0.453/1.122, 0.494/1.617)를 폐기한다** — 그 값대로 만들면 공격 주기가 1.8s → 1.12s(횡베기) 로 줄고 strike 도 앞당겨져 영웅 DPS 가 크게 오른다(원칙 위반).
+
+**2D 목표(라이브와 동일)**:
+
+| 클립 | 프레임×fps(불변) | Animator Speed(불변) | 재생 길이(불변) | strike 실시간 목표 | strike 클립 로컬 초 = 실시간 × Speed | strike 정규화 | strike 프레임(이벤트가 표시 중에 발화하는 칸) |
+|---|---|---|---|---|---|---|---|
+| Slash01 | 17 × 15 | 1.0000 | 1.1333s | **0.500s** | 0.5000s | 0.5000÷1.1333 = 0.4412 | 0.5000×15 = 7.50 → **F7**(구간 0.467~0.533s) |
+| Slash02 | 17 × 15 | 1.0000 | 1.1333s | **0.500s** | 0.5000s | 0.4412 | **F7** |
+| Stab | 20 × 12 | 1.0204 | 1.6333s | **0.800s** | 0.8000×1.0204 = **0.8163s** | 0.8163÷1.6667 = 0.4898 | 0.8163×12 = 9.80 → **F9**(구간 0.750~0.833s 클립 로컬) |
+| Spawn | 16 × 12 | 1.0000 | 1.3333s | — | — | — | — |
+
+- **프레임 수·fps·Speed·클립 길이는 바뀌지 않는다** — strike 이벤트 위치만 옮긴다. 횡베기·내려찍기 접촉 포즈는 원래 F7 이라 그대로(이벤트가 F7 표시 도중으로 이동). **찌르기 접촉 포즈는 F6 → F9 로 옮긴다**(윈드업을 3프레임 길게 — §5.8 키포즈 갱신, 시트 재추출 필요).
+- 검산: Slash 0.5000÷1.0000 = 0.500s ✓. Stab 0.8163÷1.0204 = 0.800s ✓.
+
+#### 5.3.1 공격 락 해제·스폰 게이트 — `OnAttackEnd`/`OnSpawnAnimEnd` 를 굽지 않고 fallback 1.8s 로 유지 (개정 8)
+
+**대안 비교 — 락 해제를 라이브와 같은 1.8s 로 만드는 방법**
+
+| 안 | 내용 | 장점 | 단점 | 판정 |
+|---|---|---|---|---|
+| **A. 이벤트를 굽지 않고 fallback 유지** | 2D 클립에 `OnAttackEnd`·`OnSpawnAnimEnd` 를 넣지 않는다. 락 해제는 현재 라이브와 **같은 코드 경로**(`HeroAttackGate._attackEndFallback`=1.8, `_spawnGateFallback`=1.8)로 일어난다 | 라이브와 메커니즘까지 동일 → 60fps 1.800s / 30fps 1.833s 의 프레임 양자화까지 그대로 재현. 코드·클립 변경 0, 클립 길이·시트 불변 | "안전망" 필드가 실질 공격 주기를 정하는 값이 된다 — 누가 1.8 을 바꾸면 DPS 가 바뀐다 → 값 고정 테스트로 보호 필요 | ✅ 채택 |
+| B. 클립을 1.8s 로 늘리고 끝에 `OnAttackEnd` 를 굽기 | 공격 클립 뒤에 정지 프레임을 붙여 1.8s 로 만들고 이벤트를 1.8s 부근에 굽기 | 락 해제가 이벤트로 명시됨 | 클립·프레임 수·시트·스펙 모두 변경, 1.13~1.8s 동안 마지막 포즈로 굳어 보여 대기 모션보다 어색, 이벤트 시각(클립 시간)과 fallback(Update 폴링) 의 양자화가 달라 30fps 에서 1.833→1.800 으로 미세 변화 | ✗ |
+| C. FBX 값대로 클립 끝(1.122/1.617)에 굽기(개정 7 안) | 원래 의도값 | 이벤트가 확실히 발화 | 공격 주기 1.8→1.12/1.62s, DPS 상승 — 원칙 위반 | ✗ |
+
+- **채택 A 의 화면 동작**: 공격 클립(1.133/1.633s)이 끝나면 Animator 는 대기(Idle)로 돌아가고, 영웅은 락이 풀리는 1.8s 까지 대기 모션으로 제자리에 서 있다 — 현재 3D 라이브와 같은 모습이다. 스폰도 클립(1.333s) 뒤 대기 모션으로 서 있다가 1.8s 에 행진을 시작한다.
+- **보호 장치**: `_attackEndFallback`·`_spawnGateFallback` 은 이제 "안전망"이 아니라 **공격 주기·스폰 대기를 정하는 게임플레이 값**이다. 두 필드의 코드 주석을 그 의미로 고치고, 1.8 로 고정돼 있는지 확인하는 테스트를 둔다(§11·§9). 값 변경은 밸런스 조정 흐름(qa-simulator)으로만 한다.
+- `CharacterAttackStrikeRelay.OnAttackEnd`/`OnSpawnAnimEnd` 메서드는 그대로 둔다(호출될 클립이 없을 뿐, 코드 변경 0).
 
 ### 5.4 Animator 전이 설정 — Duration 0 · ExitTime 1.0 (몬스터 §5.7 패턴)
 
-**발견**: `Knight.controller` 의 Slash01/Slash02/Stab→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1`(고정 실시간) 조합이라, 소스 상태 평가가 `Stab: 0.9×1.6333+0.1=1.570s` 에 완전히 끝난다(YAML 직접 확인, §1.2). `OnAttackEnd`(1.617s) 는 이보다 **늦어** 3D 에서 발화하지 않을 가능성이 있다(§5.3 각주 — FBX 임포터 경고는 무관한 별개 사안).
+**발견**: `Knight.controller` 의 Slash01/Slash02/Stab/Spawn→Idle 무조건 전이는 `ExitTime 0.9`+`Duration 0.1` 조합이라 클립 끝 부근 이벤트가 컷오프에 잘린다(§5.3 라이브 실측으로 확인 — end 이벤트 전부 미발화).
 
-**2D 결정 — 몬스터가 이미 쓰는 패턴을 그대로 가져온다**: 1회성 상태(Slash01/Slash02/Stab/Spawn/Hit/Death)의 **무조건 종료 전이**(클립이 끝나면 다음 상태로 넘어가는 전이, 3D 의 "→Idle" 전이에 대응)는 **`Has Exit Time` on · `Exit Time = 1.0`(클립 100% 끝) · `Transition Duration = 0`**(몬스터 §5.7 표와 동일 값)으로 설정한다. `OnAttackEnd`/`OnSpawnAnimEnd` 는 §5.3.1 대로 **마지막 프레임 안쪽**(정규화 ≈0.990)에 구워지므로, ExitTime=1.0(=정규화 1.0) 컷오프보다 항상 먼저 온다 — 3D 에서 발견된 "이벤트가 컷오프보다 늦게 박혀 발화 못 함" 함정이 2D 에는 여유를 두고 구조적으로 없다. `Speed>0.1 → Move` 처럼 **조건부**로 즉시 끼어드는 전이(3D 에도 존재, Knight.controller 실측)는 이 규칙과 별개로 `Has Exit Time` off 로 그대로 둔다 — 둘은 같은 소스 상태에서 나가는 서로 다른 두 전이이며 택일이 아니다.
+**2D 결정 — 몬스터가 이미 쓰는 패턴을 그대로 가져온다**: 1회성 상태(Slash01/Slash02/Stab/Spawn/Hit/Death)의 **무조건 종료 전이**(클립이 끝나면 다음 상태로 넘어가는 전이, 3D 의 "→Idle" 전이에 대응)는 **`Has Exit Time` on · `Exit Time = 1.0`(클립 100% 끝) · `Transition Duration = 0`**(몬스터 §5.7 표와 동일 값)으로 설정한다. 2D 에서 굽는 이벤트는 `OnAttackStrike` 하나뿐이고(§5.3.1 — end/spawnEnd 는 굽지 않음) 클립 중반에 있어 컷오프와 무관하다. `Speed>0.1 → Move` 처럼 **조건부**로 즉시 끼어드는 전이(3D 에도 존재, Knight.controller 실측)는 이 규칙과 별개로 `Has Exit Time` off 로 그대로 둔다 — 둘은 같은 소스 상태에서 나가는 서로 다른 두 전이이며 택일이 아니다.
+- **strike 발화 지연 재현**: 라이브 strike(0.50/0.80s)는 "공격 상태 진입 기준" 값이므로, 2D 의 AnyState→공격 전이 Duration 을 0 으로 해도 이벤트를 상태 진입 기준 0.500/0.800s 에 구우면 라이브와 같다(상태 진입이 BeginAttack 1프레임 뒤인 것도 같은 Animator 파이프라 동일). §9 불변식으로 BeginAttack 기준 0.517s(60fps)/0.817s 를 재측정해 확인한다.
 
 | 전이 | 조건 | Has Exit Time | Exit Time | Duration |
 |---|---|---|---|---|
@@ -236,11 +240,11 @@
 | Slash01/Slash02/Stab → Idle(무조건 종료) | (무조건) | **on** | **1.0** | **0** |
 | Hit → Idle(무조건 종료) | (무조건) | **on** | **1.0** | **0** |
 
-- **DPS·타이밍 영향 재확인 필요(§9)**: 이 변경은 "3D 의 현재 라이브 동작을 그대로 베낀 것"이 아니라 "3D 의 *의도*(baked event time)를 안정적으로 재현하는 방식"이다. 만약 3D 가 실제로 Stab `OnAttackEnd` 미발화 → `_attackEndFallback`(1.8s) 의존 중이라면, 2D 는 Stab 공격 주기를 1.8s→1.633s 로 **단축**하는 부수효과를 낸다(클립 길이 자체는 불변, §5.5). §9 게이트로 확인하고, qa-simulator 필요 여부를 그 결과로 정한다(§9 "qa-simulator — '불필요' 결론 철회" 항목 참조 — 이 항목은 확인 전까지 보류).
+- **타이밍 영향(개정 8)**: strike 0.500/0.800s, 공격 락 1.8s, 스폰 게이트 1.8s 모두 라이브와 동일하게 재현하므로 **게임플레이 타이밍 변화 0** — §9 에서 qa-simulator 불필요로 정리.
 
 ### 5.5 공격 재트리거 · IsAttacking 게이트 — 로직 완전 불변
 
-`hero-animation-timing-sync.md` §3(공격 주기 = max(쿨다운 1.0s, 클립 길이))·§3.4(공격 중 피격 억제)·§4(회전 즉시 스냅)는 **로직·수치 전부 불변**이다. **클립 길이 자체는 불변**(Slash 1.133s·Stab 1.633s, §1.2 FBX 원본 그대로) — 바뀌는 것은 `IsAttacking` 을 실제로 해제하는 `OnAttackEnd` 가 **언제 발화하느냐**(§5.3.1 마지막 프레임 안쪽, 클립 길이보다 살짝 이른 1.122s/1.617s)이며, §3 의 "공격 주기 = max(1.0, 클립 길이)" 산식은 "클립 길이"를 "`OnAttackEnd` 발화 시각"으로 읽어야 정확하다(그 차이는 1% 미만이라 공식의 결론 자체는 바뀌지 않는다).
+`hero-animation-timing-sync.md` §3(공격 주기)·§3.4(공격 중 피격 억제)·§4(회전 즉시 스냅)는 **로직·수치 전부 불변**이다. 그 문서의 "공격 주기 = max(쿨다운 1.0s, 클립 길이)" 는 설계 의도였고, **라이브 실측상 실제 주기는 세 공격 모두 `_attackEndFallback` 1.8s**(§5.3 — end 이벤트 미발화)다. 2D 는 이 라이브 주기를 그대로 유지한다(§5.3.1 안 A). 클립 길이(1.133/1.633s)는 불변이며, 클립이 끝난 뒤 락이 풀리는 1.8s 까지는 대기 모션이 재생된다(라이브와 동일).
 
 ### 5.6 사망 — Death 클립 재생 + 풀 반환 0.8s 지연 (몬스터 §5.5 패턴 적용)
 
@@ -278,13 +282,14 @@
 | 도주질주 8f | 다리 ±2도트 큰 보폭, 상체·머리 앞으로 1도트 숙임, 무기 팔 뒤로 젖힘(−25°), 망토 2도트 뒤로 날림 |
 | 횡베기(`Slash01`) 17f | F0~F4 윈드업(무기 −45°, 팔·상체 뒤로 1~2도트, 머리 뒤로 젖힘) → F6 가속 → **F7 접촉(+65°, 상체·머리 전진 1도트, 앞다리 내딛음)** → F8~F10 팔로스루(+95~100°) → F16 복귀. 큰 각도로 휘두르는 F5~F9 에 칼끝 궤적 |
 | 내려찍기(`Slash02` — 클립명 유지, 궤적만 위→아래로 차별화) 17f | F0~F5 머리 위로 치켜듦(−70°, 상체 1도트 솟음) → **F7 내려찍기 접촉(+100°, 상체 1도트 숙임·머리 끄덕임)** → F8 +125° 팔로스루 → F16 복귀. 칼끝 궤적 |
-| 찌르기(`Stab`) 20f | F0~F4 칼을 수평(+60~72°)으로 세우며 팔 3도트 당김 → **F6 접촉(+78°, 팔 3도트 뻗음·상체 전진·앞다리 내딛음)**, F6~F7 찌름 잔상 → F7 유지 → F19 복귀 |
+| 찌르기(`Stab`) 20f | F0~F7 칼을 수평(+60~76°)으로 세우며 팔 3도트 당김·버팀(개정 8: 라이브 strike 0.800s 에 맞춰 윈드업을 3프레임 늘림) → F8 가속 → **F9 접촉(+78°, 팔 3도트 뻗음·상체 전진·앞다리 내딛음)**, F9~F10 찌름 잔상 → F10 유지 → F19 복귀 |
 | 피격 6f | F0~F2 상체 1~2도트 뒤로 밀림, 머리 −12~−16° 젖힘, 눈 찡그림(검게 감김), 양팔 벌어짐, 망토 뒤로 → F3 회복 |
 | 사망 8f | F0 충격(찡그림) → F1 머리 꺾임·무기 팔 처짐 → F2~F7 **뼈가 흩어짐**(머리 위로 튀었다 떨어짐·회전, 팔 벌어지며 낙하, 다리 양옆으로 무너짐) + 도트 분해 5→90%·뼛가루 상승 |
 | 등장 16f | F0~F11 흩어진 뼈(분해 85%→0%)가 모이며 조립 → F12 1도트 튀어오름 → F13 정착 → F14 눈 깜빡임 → F15 대기 자세 |
 
 - **공격 명칭 통일**: 문서 전체에서 `Slash01` = 횡베기, `Slash02` = 내려찍기, `Stab` = 찌르기로 부른다(클립·상태 식별자는 기존 그대로 — 이름만 한국어 호칭 통일).
-- 이벤트 프레임: 횡베기·내려찍기 strike F7 / end F16, 찌르기 strike F6 / end F19, 등장 end F15 — §5.3·§11 과 동일. 접촉 포즈가 strike 프레임에 오도록 키를 잡았다(§9 "strike 프레임 아트 정합").
+- 이벤트 프레임(개정 8): 횡베기·내려찍기 strike **F7**(0.500s), 찌르기 strike **F9**(0.800s) — §5.3·§11 과 동일. end·spawnEnd 이벤트는 없다(§5.3.1 — 락 해제·스폰 게이트는 fallback 1.8s). 접촉 포즈가 strike 프레임에 오도록 키를 잡았다(§9 "strike 프레임 아트 정합").
+- 공격·등장 클립이 끝난 뒤 1.8s(락 해제·스폰 게이트)까지는 대기 모션이 재생된다(라이브와 동일).
 - 게임 시트는 이 키포즈로 구운 시안 프레임을 **그대로 추출**한다(§8 (e)). 시안의 부위 분리는 색·위치 기반 자동 분리라 경계가 1도트씩 거칠 수 있으며 사용자 승인 하에 수용한다 — 나중에 손그림(§8 (d))으로 바꿀 때도 이 표를 키포즈 기준으로 쓴다.
 
 ---
@@ -370,7 +375,7 @@
 | 스테이지 오버레이 시트 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet_S2.png`·`_S3.png`·`_S4.png`·`_S5.png` | 4 |
 | 스테이지 오버레이 발광 마스크 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_Sheet_S2_Emission.png`·`_S3_`·`_S4_`·`_S5_` | 4 |
 | 접지 그림자 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `HeroGroundShadow.png`(24×8, 검정 타원 — 중심 α0.4·가장자리 α0.25) | 1 |
-| 시트 규격 기록 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_SheetSpec.json` — 추출 도구가 실측한 PPU·피벗·셀·행 순서·클립별 프레임수/fps/Speed·strike/end 프레임과 클립 로컬 초·가장자리 클리핑 목록. §10-0 에디터 툴이 임포트 설정·이벤트 베이크에 이 값을 읽어 쓴다(숫자를 코드에 하드코딩하지 않음) | 1 |
+| 시트 규격 기록 | `Assets/_Lair/Art/Sprites/Heroes2D/` | `Knight_SheetSpec.json` — 추출 도구가 실측한 PPU·피벗·셀·행 순서·클립별 프레임수/fps/Speed·strike 프레임과 클립 로컬 초·락 해제 시각(1.8s, fallback — 이벤트로 굽지 않음)·가장자리 클리핑 목록. §10-0 에디터 툴이 임포트 설정·이벤트 베이크에 이 값을 읽어 쓴다(숫자를 코드에 하드코딩하지 않음) | 1 |
 | 애니메이션 클립(몸, Animator 구동) | `Assets/_Lair/Art/Animations/Heroes2D/` | `Knight_Idle.anim`·`_Walk`·`_Run`·`_Slash01`·`_Slash02`·`_Stab`·`_Hit`·`_Death`·`_Spawn` | 9 |
 | 몸 컨트롤러 | `Assets/_Lair/Art/Animations/` | `Knight_2D.controller`(기존 `Knight.controller` 와 나란히, 3D 잔존은 §10-4) | 1 |
 | 셰이더/머티리얼 | (신규 없음) | `Monster2DSprite.shadergraph`/`Mat_Monster2D.mat` **재사용**(§6.2) | 0 |
@@ -388,7 +393,7 @@
 - **9행 × 20열 고정**, 셀 **72×72**(개정 7), 여백·간격 0. 행 순서: 0 Idle · 1 Walk · 2 Run · 3 Slash01 · 4 Slash02 · 5 Stab · 6 Hit · 7 Death · 8 Spawn. 열 = 프레임 인덱스, 프레임 수가 20 미만인 행의 남는 칸은 투명. 시트 크기 = 20×72 × 9×72 = **1440×648px**.
 - **오버레이 시트(S2~S5)는 몸 시트와 같은 크기·같은 칸 배치**. 각 칸은 그 스테이지의 **완전 합성 원화**(몸+파츠 전체, §6.4.1 — diff 아님)이며, 빈 칸(해당 상태의 프레임 수를 넘는 칸)만 투명.
 - 발광 마스크는 짝이 되는 원화 시트와 동일 크기·배치, 발광 부위 흰색(#FFFFFF) / 나머지 검정(#000000).
-- **슬라이스 이름 규칙(§6.4 프레임 미러링의 전제)**: 인덱스 = `행 × 20 + 열`(예: Stab F6 = 행5×20+열6=106). Unity 오토 슬라이스가 붙이는 기본 접미사(`_0`,`_1`,...)를 **그대로 사용**하고 별도 리네임을 하지 않는다 — 몸 시트와 오버레이 시트를 **동일한 Grid By Cell Size 설정으로 슬라이스**하면 같은 위치의 칸이 항상 같은 접미사 정수를 받으므로, `MonsterTierOverlay.ParseFrameIndex`(마지막 `_` 뒤 정수 파싱)가 자동으로 일치한다.
+- **슬라이스 이름 규칙(§6.4 프레임 미러링의 전제)**: 인덱스 = `행 × 20 + 열`(예: Stab F9 = 행5×20+열9=109). Unity 오토 슬라이스가 붙이는 기본 접미사(`_0`,`_1`,...)를 **그대로 사용**하고 별도 리네임을 하지 않는다 — 몸 시트와 오버레이 시트를 **동일한 Grid By Cell Size 설정으로 슬라이스**하면 같은 위치의 칸이 항상 같은 접미사 정수를 받으므로, `MonsterTierOverlay.ParseFrameIndex`(마지막 `_` 뒤 정수 파싱)가 자동으로 일치한다.
 
 ### 7.3 텍스처 임포트 설정
 
@@ -445,8 +450,10 @@
 | 구분 | 항목 | 통과 기준 | 담당 |
 |---|---|---|---|
 | **선행(추출)** | **시트 추출 결과** | `?export=1` 실행 후 페이지 DOM 에 `export done 12 files`, `edgeClipFrames=0`, 눈·검 자동 검출 true. `Assets/_Lair/Art/Sprites/Heroes2D/` 에 §7.1 의 12개 파일 존재, 각 시트 1440×648 | 메인 |
-| **선행 확인(구현 착수 전)** | **3D 현재 라이브 동작 실측** | Unity 에디터에서 Stab 공격을 재생해 `IsAttacking` 이 실제로 몇 초에 해제되는지 로그/Profiler 로 확인 — `OnAttackEnd`(1.617s)가 발화하는지, 아니면 `_attackEndFallback`(1.8s)에 의존 중인지(§5.4 발견). Slash01/02 도 함께 확인(경계선 1.120s vs 1.122s) | test-engineer/gameplay-programmer |
-| 불변식 | `OnAttackStrike`/`OnAttackEnd`/`OnSpawnAnimEnd` 발행 초 | 2D 클립이 §5.3 실측 목표(0.453/1.122, 0.494/1.617, —/1.32)에 정확히 도달, Duration0·ExitTime1.0 전이(§5.4)로 매번 안정적으로 발화(경계 이슈 0) | test-engineer |
+| **선행 확인 — 완료(개정 8)** | **3D 현재 라이브 동작 실측** | 결과: strike 상태 진입 기준 Slash 0.500s·Stab 0.800s, `OnAttackEnd` 전부 미발화 → 락 해제 fallback 1.8s(§1.2·§5.3). **잔여 확인 1건**: Spawn `OnSpawnAnimEnd` 는 프로브가 `-1` 로 기록했으나 측정 방식상 이벤트를 기다리지 않았을 수 있다 — 스폰 후 행진 시작 시각이 1.8s(60fps)인지 1회 재측정해 표시를 지운다(전이 산식상 1.8s 가 예상값, 2D 설계는 이 예상값 기준) | test-engineer |
+| 불변식 | strike 발행 초(2D) | BeginAttack 기준 Slash01/02 **0.517s**·Stab **0.817s**(60fps, 상태 진입 기준 0.500/0.800s) — 3D 라이브 프로브와 같은 방식으로 측정해 ±1프레임(0.0167s) 이내 | test-engineer |
+| 불변식 | 공격 락·스폰 게이트(2D) | `IsAttacking` 해제 1.800s(60fps)/1.833s(30fps), 행진 시작 1.8s — 3D 라이브와 동일. 2D 클립에 `OnAttackEnd`·`OnSpawnAnimEnd` 이벤트가 **없음**을 확인 | test-engineer |
+| 불변식 | fallback 값 고정 | `HeroAttackGate._attackEndFallback == 1.8`, `HeroEntryDriver._spawnGateFallback == 1.8`, `AutoCombatAI._spawnGateFallback == 1.8`(Knight 프리팹) — 이제 공격 주기·스폰 대기를 정하는 게임플레이 값(§5.3.1) | test-engineer |
 | 불변식 | `Health.OnDied` → `EndBattle(Win)`/`BestClearTime` | 사망 판정 순간(동기) 확정, `DespawnOnDeath._delay`(0.8) 와 완전 분리 | test-engineer |
 | 불변식 | `DeferStrike`/`IAttackGate`/`MeleeAttacker.TryBeginAttack`/`TryApplyStrike`/공격 재트리거·피격 억제 로직 | 코드 변경 0줄 — 기존 PlayMode 테스트(`HeroAnimationTimingSyncPlayTests` 등) 그대로 통과 | test-engineer |
 | 불변식 | HP/Power 배수(`hero-stage-variant.md` §2.1) | 5스테이지 수치 변경 0 | test-engineer |
@@ -459,11 +466,11 @@
 | 육안 | 스테이지 5단 실루엣 식별 | 마을 캐러셀 + 실전 화면(세로 14u) 양쪽에서 흑백 실루엣만으로 스테이지 구분 | 사용자 |
 | 육안 | 스테이지 1 기준형 일치 | 카드 일러스트(Fear/Bleed/TimeStop)와 인게임 스테이지1 스프라이트가 같은 디자인으로 인지되는가 | 사용자 |
 | 육안 | 접지감 | `AuraShadow` 가 "떠 있음" 인상을 해소하는가 | 사용자 |
-| 육안 | strike 프레임 아트 정합 | 2D Slash F7/Stab F6(§5.3 계산)에서 무기가 시각적으로 사거리에 닿는 포즈로 그려졌는가(시각은 육안 조정, **시각은 조정해도 이벤트 실시간 초 값 0.453/0.494 는 불변**) | 사용자(메인, Unity 로컬) |
+| 육안 | strike 프레임 아트 정합 | 2D Slash F7/Stab F9(§5.3 계산)에서 무기가 시각적으로 사거리에 닿는 포즈로 그려졌는가(**이벤트 실시간 초 0.500/0.800s 는 불변**) | 사용자(메인, 시안·Unity 로컬) |
 | 육안(승계) | 전장 색 가독성 — 스테이지 4 퍼플/스테이지 5 크림슨과 동일축 몬스터(Plague 보라·Reaper 빨강) 무리 | `hero-stage-variant.md` §1.6 게이트를 그대로 승계 — 실루엣 파츠(§3.2)가 새로 추가된 만큼 색만 쓰던 구버전보다 분리가 쉬워질 것으로 예상되나, 이는 정지 시안이 못 보는 실전 전장(수렴하는 동일색 몬스터 무리) 영역이라 파이프라인 8단계(qa-simulator/플레이테스트)에서 재확인한다. 흐리면 §1.6 과 동일 순서로 교정(아웃라인/발광 대비 우선, 그래도 부족하면 해당 스테이지 원화의 베이크된 스테이지색을 축색과 소폭 이격) | 사용자(파이프라인 8단계) |
 | 성능 | 드로우 부하 | 영웅 1개체 + 오버레이 1개체(SpriteRenderer 2개)가 3D 스켈레톤 메시(SkinnedMeshRenderer 3개) 대비 Draw Call·SetPass 증가 없음(Profiler) | gameplay-programmer |
 
-- **qa-simulator — "불필요" 결론 철회, "선행 확인 결과에 따라 조건부"로 정정.** §5.4 발견(Stab `OnAttackEnd` 가 현재 3D 전이 컷오프 이후에 박혀 fallback 1.8s 에 의존 중일 가능성) 이 "선행 확인" 게이트에서 **사실로 확인되면**, 2D 전환은 Stab 공격 주기를 1.8s→1.617s 로 단축하는 실질적 DPS 변화를 일으킨다 — 이 경우 밸런스 조정 흐름(`.claude/project.md`)에 따라 qa-simulator 로 영웅 평균 처치 시간 영향을 측정한다. 선행 확인에서 **현재도 정상적으로 1.617s/1.122s 에 발화 중임이 확인되면** 타이밍 변화 0 이므로 qa-simulator 불필요 결론이 유지된다. 어느 쪽이든 **구현 착수 전에** 선행 확인부터 한다.
+- **qa-simulator — 불필요(타이밍 불변 달성).** 선행 확인(개정 8)으로 라이브 동작을 실측했고, 2D 는 strike 0.500/0.800s·공격 락 1.8s·스폰 게이트 1.8s 를 라이브와 같은 메커니즘으로 재현한다(§5.3·§5.3.1). 데미지·스탯·타이밍 변화가 0 이므로 밸런스 재시뮬은 필요 없다. 위 "불변식" 세 행(strike 발행 초·락/게이트·fallback 값 고정) 중 하나라도 실패하면 이 판단을 다시 연다.
 
 ---
 
@@ -492,7 +499,7 @@
 
 ### 시트 규격 입력 (개정 7)
 - 시트 PNG 11장 + `Knight_SheetSpec.json` 은 §8 (e) 추출 도구가 만든다(구현 착수 전 메인이 실행).
-- 에디터 툴은 `Knight_SheetSpec.json` 의 `cellSize`(72)·`pixelsPerUnit`·`pivot`·`rowOrder`·`clips.<state>.frames/fps/animatorSpeed`·`strikeFrame/strikeClipLocalSec`·`endFrame/endClipLocalSec` 를 읽어 임포트·슬라이스·클립 생성·이벤트 베이크·State Speed 를 설정한다. 아래 표의 수치는 JSON 과 같은 값이며, 어긋나면 JSON 이 단일 진실.
+- 에디터 툴은 `Knight_SheetSpec.json` 의 `cellSize`(72)·`pixelsPerUnit`·`pivot`·`rowOrder`·`clips.<state>.frames/fps/animatorSpeed`·`strikeFrame/strikeClipLocalSec`·`lockReleaseRealSec`(1.8 — 이벤트로 굽지 않고 fallback 값 확인용, §5.3.1) 를 읽어 임포트·슬라이스·클립 생성·이벤트 베이크·State Speed 를 설정한다. 아래 표의 수치는 JSON 과 같은 값이며, 어긋나면 JSON 이 단일 진실.
 
 ### 데이터 스키마
 - **신규 JSON row 스키마 없음.** 아래는 SO/직렬화 필드 변경(정적 비주얼 배선, Rule 02 §11 SO 유지 대상 — `UnityEngine.Object` 참조 포함).
@@ -542,19 +549,16 @@
 - `CharacterAttackStrikeRelay` — `Visual2D` GameObject 로 이전 부착.
 - **`AnimatorSink`/`CharacterAnimationDriver` 코드 변경 없음**(§6.4 정정 — 초안의 `_overlayAnimator` 계획 철회).
 
-### 애니메이션 이벤트 베이크 (Unity Animation 창, 2D 클립) — §5.3 실측 목표
+### 애니메이션 이벤트 베이크 (Unity Animation 창, 2D 클립) — §5.3 라이브 실측 목표(개정 8)
 
-**주의 — Unity Animation 창에 입력하는 시각은 "클립 로컬(nominal) 초"다**(Animator State Speed 가 적용되기 *전* 시간, `AnimationEvent.time` 의 정의 그대로). Speed=1.0000 인 Spawn/Slash01/Slash02 는 클립 로컬 초 = 실시간 목표 초와 같아 그대로 입력하면 되지만, **Stab 은 Speed=1.0204 ≠ 1 이므로 클립 로컬 초와 실시간 목표 초가 다르다** — Unity 창에는 **클립 로컬 초** 열의 값을 입력해야 재생 중 **실시간(목표)** 열의 순간에 발화한다.
+**주의 — Unity Animation 창에 입력하는 시각은 "클립 로컬(nominal) 초"다**(Animator State Speed 가 적용되기 *전* 시간, `AnimationEvent.time` 의 정의 그대로). Speed=1.0000 인 Slash01/Slash02 는 클립 로컬 초 = 실시간 목표 초와 같지만, **Stab 은 Speed=1.0204 ≠ 1 이므로 클립 로컬 초 열의 값을 입력**해야 재생 중 실시간 열의 순간에 발화한다. 값은 `Knight_SheetSpec.json` 의 `clips.<state>.strikeClipLocalSec` 과 같다.
 
-| 클립 | 이벤트 | 클립 로컬 초(Unity Animation 창에 입력) | 실시간(재생 중 발화 목표, §5.3 실측) |
-|---|---|---|---|
-| `Knight_Spawn` | `OnSpawnAnimEnd` | 1.320s | 1.320s(Speed 1.0, 동일) |
-| `Knight_Slash01` | `OnAttackStrike` | 0.453s | 0.453s(Speed 1.0, 동일) |
-| `Knight_Slash01` | `OnAttackEnd` | 1.122s | 1.122s(Speed 1.0, 동일) |
-| `Knight_Slash02` | `OnAttackStrike` | 0.453s(Slash01 과 동일) | 0.453s |
-| `Knight_Slash02` | `OnAttackEnd` | 1.122s | 1.122s |
-| `Knight_Stab` | `OnAttackStrike` | **0.5042s**(=0.494×1.0204) | 0.494s |
-| `Knight_Stab` | `OnAttackEnd` | **1.6500s**(=1.617×1.0204) | 1.617s |
+| 클립 | 이벤트 | 클립 로컬 초(Unity Animation 창에 입력) | 실시간(공격 상태 진입 기준, 라이브와 동일) | 프레임 |
+|---|---|---|---|---|
+| `Knight_Slash01` | `OnAttackStrike` | **0.5000s** | 0.500s | F7 |
+| `Knight_Slash02` | `OnAttackStrike` | **0.5000s** | 0.500s | F7 |
+| `Knight_Stab` | `OnAttackStrike` | **0.8163s**(=0.800×1.0204) | 0.800s | F9 |
+| `Knight_Spawn`·`Knight_Slash01/02`·`Knight_Stab` | `OnAttackEnd`·`OnSpawnAnimEnd` | **굽지 않음** | 락 해제·스폰 게이트는 fallback 1.8s(라이브와 동일, §5.3.1) | — |
 
 ### 애니메이터 State Speed 설정 (§5.3 산식)
 
@@ -573,11 +577,12 @@
 3. `DespawnOnDeath._delay` = 0.8 로 갱신.
 4. `HeroStageVariantApplier.Apply()` 는 `_tierOverlay.SetTier(variant.Tier)` + `_body.enabled=(variant.Tier==0)` 두 줄로 스테이지 1(몸만 보임)~5(오버레이만 보임)를 전환한다(§6.4.1). `MonsterTierOverlay.SetTier` 가 `_activeMap==null`(tier 0)이면 오버레이 렌더러를 이미 끄므로, 결과적으로 매 스테이지 정확히 하나의 렌더러(몸 또는 오버레이)만 켜진다.
 5. `HeroOutline.shader`/`Mat_HeroOutline.mat`/3D `Skeleton_*.fbx`/`Knight.controller`(3D) 는 삭제하지 않는다(§7.5).
-6. **착수 전 필수**: §9 "선행 확인" 게이트(3D Stab/Slash 이벤트 실제 발화 여부)를 먼저 수행하고, 결과에 따라 qa-simulator 필요 여부를 확정한 뒤 나머지를 진행한다.
+6. **타이밍(개정 8)**: 2D 클립에는 `OnAttackStrike` 만 굽는다(위 표). `OnAttackEnd`·`OnSpawnAnimEnd` 를 굽지 않아 락·스폰 게이트는 현재처럼 fallback 1.8s 로 풀린다. `HeroAttackGate._attackEndFallback`·`HeroEntryDriver._spawnGateFallback`·`AutoCombatAI._spawnGateFallback` 의 **값(1.8)은 바꾸지 않고**, 코드 주석만 "이벤트 누락 안전망" → "영웅 공격 락 시간 / 스폰 대기 시간(게임플레이 값, 라이브 실측 기준 — hero-2d-conversion §5.3.1)" 로 고친다.
 7. `AttackJuice._baseScale` 캐시가 스테이지 5 스케일을 첫 공격 후 되돌리는지 확인(§6.5) — 재현되면 이번 2D 작업과 별도 커밋으로 수정.
 
 ### 테스트 포인트 (test-engineer 참고)
-- §9 "불변식" 9항목 + "선행 확인" 1항목.
+- §9 "불변식" 전 항목 + "선행 확인" 잔여 1건(Spawn 행진 시작 1.8s 재측정).
+- **개정 8 신규**: 3D 라이브 프로브와 같은 방식으로 2D 의 strike(BeginAttack 기준 0.517/0.817s @60fps)·`IsAttacking` 해제(1.800s)·행진 시작(1.8s)을 측정하는 PlayMode 테스트, 세 fallback 필드 값이 1.8 로 고정돼 있는지 확인하는 EditMode 테스트, 2D 클립에 `OnAttackEnd`/`OnSpawnAnimEnd` 이벤트가 없음을 확인하는 테스트.
 - 기존 `HeroStageVariantConfig*Tests`·`HeroStageVariantApplier*Tests`(4파일) — `TintColor`/`UseOutline`/`OutlineColor`/`_skeletonRenderers`/`_outlineRenderer` 등 제거 필드·`Tier`/`_emissionTargets`/`_tierOverlay` 신규 필드에 맞춰 갱신 필요.
 - `HeroAnimationTimingSyncPlayTests` — 게임플레이 로직 무변경이므로 통과 유지가 기대값(회귀 감시 대상으로 재실행).
 - `MonsterTierOverlaySyncTests.cs`·`MonsterVisual2DFacingTests.cs`(기존 파일, 확인됨) — tier4 분기 추가 후 tier 0~3 케이스 회귀 재확인(무변경 기대), 영웅 전용 tier4 신규 테스트는 test-engineer 가 별도 추가.
@@ -587,9 +592,9 @@
 ## 12. Self-Review
 
 - **3 차례 재작성 이력**: 1차 초안은 (a) strike/end 이벤트 시각을 사전 추정치로 썼고, (b) `TintColor` 를 3D 방식 그대로 런타임 적용 가능하다 가정했고, (c) 오버레이를 별도 Animator 로 병렬 재생하는 자체 설계를 제안했다 — 코드 실측으로 셋 다 틀렸음을 확인하고 1차 수정했다. 2차 검토에서 (d) `.fbx.meta` 의 FBX 임포터 경고를 "현재(1.617s) 이벤트가 미발화한다"는 증거로 인용했으나, 그 경고는 실제로 **존재하되 다른 값(2.641s, 과거에 잘못 구웠던 캐시된 값)**을 가리켜 이 사안의 증거가 아니었고(§5.3 각주에서 구분), (e) 이벤트를 정규화 1.0(경계)에 정확히 거는 설계였다가 여유(≈0.990, 마지막 프레임 안쪽)를 두도록 바꿨고, (f) 오버레이를 "몸 위 diff" 로 다뤄 시안의 공격 안무(6~8프레임)가 strike 프레임과 어긋나고 스테이지 1 이 카드 일러스트의 어두운 캡/반바지를 반영하지 못했다 — 2차 수정. 3차 검토에서 (g) 2차 수정한 이벤트 수치를 시안의 `ANIM` 상수에 반영하지 않아 시안·기획서 수치가 어긋났고, (h) 공격 안무를 17/17/20 전 구간으로 늘렸지만 스탭의 `ang` 를 빠뜨려 칼이 정면을 향하지 않았고 슬래시2 가 반대 방향으로 휘둘렀고, 접촉 프레임의 칼끝이 셀(96) 가장자리에 근접/초과했다 — 시안의 `ANIM` 재동기화, 찌르기 `ang` 궤적 추가, 슬래시2 정면 방향 재설계, 무기 길이 축소(안전 마진), 가장자리 클리핑 자동 검사 추가(`edgeClipCheck`)로 3차 수정했다. 아래 점검은 **3차 수정 후 최종본** 기준.
-- **Placeholder 잔존 0**: 미정 마커 없음. strike/end 이벤트 시각은 이제 `Skeleton_*.fbx.meta` 실측값(0.453/1.122, 0.494/1.617, 1.32)이며 "확정 대상"이 아니라 "이미 구워진 값"이다. 단 하나 남은 미확정은 **3D 현재 라이브 발화 여부**(§5.4 발견)이며, 이는 빈칸으로 두지 않고 §9 "선행 확인" 게이트 + 결과 분기(qa-simulator 조건부)로 명시했다.
+- **Placeholder 잔존 0**: 미정 마커 없음. 개정 8 로 타이밍 목표는 **라이브 실측값**(strike 0.500/0.800s, 락·스폰 게이트 1.8s)으로 확정됐다. 남은 확인 1건(Spawn 행진 시작 1.8s 재측정)은 빈칸이 아니라 예상값(전이 산식) + §9 게이트로 명시했다.
 - **애매 권유/두 갈래 위임 0건**: `grep "재량"·"또는"` 자체 점검 — 본 self-review 문장 자신을 빼면 문서 어디에도 매치 0건.
-- **내부 일관성**: 스테이지 1~5 UseEmission/EmissionColor/EmissionIntensity/ScaleMultiplier 값이 §1.1·§4.3·§11 전체에서 `hero-stage-variant.md` §1.2 원본과 동일(TintColor 는 §6.2 사유로 제거, §1.1·§6.2·§11 세 곳 모두 일관되게 "제거"로 기재). HP/Power 배수는 §1.1 한 곳만 인용. Spawn/Slash01/Slash02/Stab 의 실측 목표 초 값(1.32/1.122/1.122/1.617)이 §1.2·§5.3·§9·§11 전체에서 동일(구 값 1.333/1.133/1.633 은 "클립 전체 길이"라는 다른 개념으로만 등장, 목표값과 혼동되지 않게 §5.3 에서 명시적으로 구분). `DespawnOnDeath._delay` 0.8 이 §5.6·§9·§11 동일. `Tier` 필드 값(0~4)이 §1.1·§6.4·§11 동일.
+- **내부 일관성**: 스테이지 1~5 UseEmission/EmissionColor/EmissionIntensity/ScaleMultiplier 값이 §1.1·§4.3·§11 전체에서 `hero-stage-variant.md` §1.2 원본과 동일(TintColor 는 §6.2 사유로 제거, §1.1·§6.2·§11 세 곳 모두 일관되게 "제거"로 기재). HP/Power 배수는 §1.1 한 곳만 인용. strike 목표(Slash 0.500s·Stab 0.800s, 클립 로컬 0.5000/0.8163s, 프레임 F7/F9)·락 해제 1.8s 가 §1.2·§5.3·§5.8·§9·§11·시안 `Knight_SheetSpec.json` 에서 동일. FBX 값(0.453/1.122, 0.494/1.617, 1.32)은 "라이브가 아닌 값" 설명 문맥(§1.2·§5.3)에만 등장. `DespawnOnDeath._delay` 0.8 이 §5.6·§9·§11 동일. `Tier` 필드 값(0~4)이 §1.1·§6.4·§11 동일.
 - **시그니처/명명 일관성**: `Visual2D`·`Enhance`·`AuraShadow`·`MonsterVisual2D`·`MonsterTierOverlay`·`Knight_Sheet.png`·`Knight_2D.controller`·`OnAttackStrike`/`OnAttackEnd`/`OnSpawnAnimEnd` — 문서 전체 동일 표기(재작성 후 Grep 재검증 완료, 철회된 `Knight_Overlay_2D.controller`/`overrideController`/`OverlayController`/`_overlayAnimator` 는 "초안에서 철회" 문맥으로만 §6.4·§12 에 남고 구현 요청사항(§11)에는 등장하지 않음을 확인).
 - **개정 7 연쇄 점검**: 셀 72·시트 1440×648·PPU=해골 높이(JSON)·커스텀 피벗이 §4.2·§7.2·§7.3·§9·§10-0·§11 에서 일치. 남은 "96"·"1920×864"·"PPU 48" 은 향후 손그림 교체값(§4.1)·몬스터 비교 문맥으로만 등장.
 - **스코프**: 영웅 1종 프리팹 구성 안에서 끝나는 단일 단위(SO 필드 변경 + Applier 로직 + `MonsterTierOverlay` tier4 확장 + 10 애니메이션 에셋 + 11 이미지 + 규격 JSON 1). 재작성 후 신규 컴포넌트가 **0개**로 줄었다(기존 몬스터 컴포넌트 재사용). UI 아이콘·셰이더/컴포넌트 리네임·3D 정리·캐러셀 카메라 재확인은 §10 분할.
