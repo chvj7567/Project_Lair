@@ -23,7 +23,8 @@ namespace Lair.Character
         //# 영웅 공격 게이트 (hero-animation-timing-sync §3.2). 영웅 프리팹만 부착 → 몬스터는 null(보류 미적용).
         private IAttackGate _attackGate;
 
-        //# 스폰 게이트 (§1.2). 영웅 한정 — spawn 모션 재생 중 교전/이동 보류. OnSpawnAnimEnd relay 또는 fallback 으로 open.
+        //# 스폰 게이트 (§1.2). 영웅 한정 — spawn 모션 재생 중 교전/이동 보류.
+        //# 3D 라이브 실측상 OnSpawnAnimEnd 는 발화하지 않고 이 값이 실제 교전 개시 시각을 정한다(hero-2d-conversion §5.3.1).
         //# 몬스터(DeferStrike=false)는 무시. 풀 재사용 대비 OnEnable 리셋.
         [SerializeField] private float _spawnGateFallback = 1.8f;
         private bool _spawnGateOpen;

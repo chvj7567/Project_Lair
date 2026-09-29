@@ -11,8 +11,8 @@ namespace Lair.Character
         //# 도달 임계값 (m). spec §10 — 0.5m.
         [SerializeField] private float _arriveThreshold = 0.5f;
 
-        //# 스폰 게이트 fallback (hero-animation-timing-sync §1.3·§7.6). spawn 1.33s × 1.35 마진.
-        //# OnSpawnAnimEnd 이벤트 유실 시 영구 봉인 방지 — enabled 후 이 시간 지나면 게이트 강제 open.
+        //# 영웅 스폰 대기 시간(게임플레이 값) — 3D 라이브 실측상 OnSpawnAnimEnd 는 발화하지 않고
+        //# 이 값이 실제 march 시작 시각을 정한다(hero-2d-conversion §5.3.1). 2D 도 이벤트를 굽지 않고 동일 값 유지.
         [SerializeField] private float _spawnGateFallback = 1.8f;
 
         private BattleZone _zone;

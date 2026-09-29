@@ -12,10 +12,13 @@ namespace Lair.Character
         [SerializeField] private Sprite[] _tier1Frames;
         [SerializeField] private Sprite[] _tier2Frames;
         [SerializeField] private Sprite[] _tier3Frames;
+        //# 영웅 스테이지 5(Tier 4) 오버레이 프레임 — 몬스터는 미사용(null, hero-2d-conversion §6.4).
+        [SerializeField] private Sprite[] _tier4Frames;
 
         private Dictionary<int, Sprite> _tier1Map;
         private Dictionary<int, Sprite> _tier2Map;
         private Dictionary<int, Sprite> _tier3Map;
+        private Dictionary<int, Sprite> _tier4Map;
         private Dictionary<int, Sprite> _activeMap;
         private int _currentTier;
 
@@ -43,6 +46,10 @@ namespace Lair.Character
             else if (tier == 3)
             {
                 _activeMap = _tier3Map;
+            }
+            else if (tier == 4)
+            {
+                _activeMap = _tier4Map;
             }
             else
             {
@@ -113,6 +120,7 @@ namespace Lair.Character
             _tier1Map = BuildMap(_tier1Frames);
             _tier2Map = BuildMap(_tier2Frames);
             _tier3Map = BuildMap(_tier3Frames);
+            _tier4Map = BuildMap(_tier4Frames);
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_TESTS
@@ -124,6 +132,12 @@ namespace Lair.Character
             _tier1Frames = tier1;
             _tier2Frames = tier2;
             _tier3Frames = tier3;
+            RebuildMaps();
+        }
+
+        public void SetTier4FramesForTest(Sprite[] tier4)
+        {
+            _tier4Frames = tier4;
             RebuildMaps();
         }
 #endif

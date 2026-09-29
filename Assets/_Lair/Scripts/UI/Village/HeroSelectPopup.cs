@@ -103,7 +103,7 @@ namespace Lair.UI
             {
                 //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼 (기획서 §3.1).
                 bool unlocked = StageProgress.IsUnlocked(stage, cleared);
-                Color tint = variantConfig != null ? variantConfig.GetStage(stage).TintColor : Color.white;
+                Color tint = variantConfig != null ? variantConfig.GetStage(stage).PortraitTintColor : Color.white;
                 list.Add(new HeroSelectCellData
                 {
                     DisplayName = unlocked ? $"스테이지 {stage}" : $"스테이지 {stage} — 잠금",

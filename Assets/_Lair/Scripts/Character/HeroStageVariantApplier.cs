@@ -3,26 +3,18 @@ using UnityEngine;
 
 namespace Lair.Character
 {
-    //# 스폰 시 현재 스테이지 variant 를 영웅에 적용 (hero-stage-variant plan Task 5).
-    //# 틴트는 HitFlash 로 위임(spec §5.1 색 채널 단일화) — 피격/공격 flash·풀 재사용 후에도 유지.
-    //# 발광/아웃라인/스케일은 여기서 직접 적용. 참조는 [SerializeField] 인스펙터 와이어링(Rule 02 §5).
+    //# 스폰 시 현재 스테이지 variant 를 영웅에 적용 (hero-stage-variant plan Task 5, hero-2d-conversion §6.2·§6.4·§11).
+    //# 몸 색/아웃라인은 원화 베이크(런타임 틴트 없음, §6.2·§6.3) — 여기서는 발광·스케일·오버레이 티어 전환만 담당.
     public class HeroStageVariantApplier : MonoBehaviour
     {
-        //# 틴트 baseline 위임 대상 — 미할당이면 Awake 에서 1회 캐싱.
-        [SerializeField] private HitFlash _hitFlash;
-        //# 발광(_EmissionColor) 적용 대상 스켈레톤 메시 렌더러.
-        [SerializeField] private Renderer[] _skeletonRenderers;
-        //# 아웃라인 서브머터리얼(materials[_outlineSubMaterialIndex])을 보유한 렌더러.
-        [SerializeField] private SkinnedMeshRenderer _outlineRenderer;
-        [SerializeField] private int _outlineSubMaterialIndex = 1;
-        //# 아웃라인 활성 시 셰이더 _OutlineWidth (오브젝트공간). 비활성은 0 으로 접어 숨김.
-        [SerializeField] private float _outlineWidth = 0.02f;
+        //# 강화 오버레이(Enhance) — 스테이지 2~5 완전 합성 원화 전환(§6.4).
+        [SerializeField] private MonsterTierOverlay _tierOverlay;
+        //# 몸(Visual2D) 스프라이트 렌더러 — 스테이지 1 에서만 활성(§6.4.1 부분 커버리지 회피).
+        [SerializeField] private SpriteRenderer _body;
+        //# 발광(_EmissionColor) 적용 대상 — [Visual2D 몸, Visual2D/Enhance].
+        [SerializeField] private SpriteRenderer[] _emissionTargets;
 
-        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
-        private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
-        private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
         private const string EmissionKeyword = "_EMISSION";
 
         private Vector3 _baseScale = Vector3.one;
@@ -31,10 +23,6 @@ namespace Lair.Character
         private void Awake()
         {
             EnsureBaseScale();
-            if (_hitFlash == null)
-            {
-                _hitFlash = GetComponent<HitFlash>();
-            }
         }
 
         //# 프리팹 원본 스케일을 1회 캐시 — 풀 재사용 시 배수 복리 누적 방지(항상 base × mul).
@@ -53,31 +41,29 @@ namespace Lair.Character
 
             EnsureBaseScale();
             ApplyEmission(variant);
-            ApplyOutline(variant);
             ApplyScale(variant);
 
-            //# 틴트는 마지막에 — HitFlash 원본을 variant 색으로 (재)설정(spec §5.1). 미할당 시 baseColor 직접 기록.
-            if (_hitFlash != null)
+            if (_tierOverlay != null)
             {
-                _hitFlash.SetBaselineColor(variant.TintColor);
+                _tierOverlay.SetTier(variant.Tier);
             }
-            else
+            if (_body != null)
             {
-                WriteBaseColorFallback(variant.TintColor);
+                _body.enabled = variant.Tier == 0;
             }
         }
 
         //# 발광 — 사용 스테이지는 색×intensity + 키워드 활성, 미사용은 검정·키워드 비활성으로 잔존 발광 차단(기획서 §1.5).
         private void ApplyEmission(HeroStageVariant variant)
         {
-            if (_skeletonRenderers == null)
+            if (_emissionTargets == null)
                 return;
             Color emission = variant.UseEmission
                 ? variant.EmissionColor * Mathf.Max(0f, variant.EmissionIntensity)
                 : Color.black;
-            for (int i = 0; i < _skeletonRenderers.Length; i++)
+            for (int i = 0; i < _emissionTargets.Length; i++)
             {
-                Renderer rd = _skeletonRenderers[i];
+                SpriteRenderer rd = _emissionTargets[i];
                 if (rd == null)
                     continue;
                 Material mat = rd.material;
@@ -98,56 +84,10 @@ namespace Lair.Character
             }
         }
 
-        //# 아웃라인 — 서브머터리얼[index] 인스턴스에 색 주입 + 너비 토글(머터리얼 배열 재할당 없이 0 으로 숨김).
-        private void ApplyOutline(HeroStageVariant variant)
-        {
-            if (_outlineRenderer == null)
-                return;
-            Material[] mats = _outlineRenderer.materials;
-            if (mats == null || _outlineSubMaterialIndex < 0 || _outlineSubMaterialIndex >= mats.Length)
-                return;
-            Material outline = mats[_outlineSubMaterialIndex];
-            if (outline == null)
-                return;
-            if (outline.HasProperty(OutlineColorId))
-            {
-                outline.SetColor(OutlineColorId, variant.OutlineColor);
-            }
-            if (outline.HasProperty(OutlineWidthId))
-            {
-                outline.SetFloat(OutlineWidthId, variant.UseOutline ? _outlineWidth : 0f);
-            }
-        }
-
         private void ApplyScale(HeroStageVariant variant)
         {
             float mul = variant.ScaleMultiplier <= 0f ? 1f : variant.ScaleMultiplier;
             transform.localScale = _baseScale * mul;
-        }
-
-        //# HitFlash 미할당(예외 구성)일 때만 — 스켈레톤 렌더러에 직접 baseColor 기록.
-        private void WriteBaseColorFallback(Color tint)
-        {
-            if (_skeletonRenderers == null)
-                return;
-            for (int i = 0; i < _skeletonRenderers.Length; i++)
-            {
-                Renderer rd = _skeletonRenderers[i];
-                if (rd == null)
-                    continue;
-                Material mat = rd.material;
-                if (mat == null)
-                    continue;
-                //# 신규 2D 스프라이트 셰이더(§6.2)는 _BaseColor/_Color 가 둘 다 없을 수 있어 존재 확인 후에만 접근.
-                if (mat.HasProperty(BaseColorId))
-                {
-                    mat.SetColor(BaseColorId, tint);
-                }
-                if (mat.HasProperty(BaseColorId) || mat.HasProperty(ColorId))
-                {
-                    mat.color = tint;
-                }
-            }
         }
     }
 }

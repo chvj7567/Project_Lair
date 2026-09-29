@@ -64,6 +64,22 @@ namespace Lair.Tests.Character
             Assert.IsFalse(rd.enabled, "매칭 프레임이 없으면 오버레이 비활성");
         }
 
+        //# 신규(hero-2d-conversion §6.4) — 영웅 스테이지5(Tier4) 오버레이. 몬스터 tier0~3 로직 무변경(additive) 확인.
+        [Test]
+        public void Tier4_몸프레임과_같은_인덱스의_오버레이가_표시된다()
+        {
+            MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
+            Sprite tier4Frame9 = MakeSprite("Knight_Sheet_S5_109");
+            overlay.SetTier4FramesForTest(new[] { tier4Frame9 });
+            overlay.SetTier(4);
+
+            Sprite bodyFrame9 = MakeSprite("Knight_Sheet_109");
+            overlay.Tick(bodyFrame9, false);
+
+            Assert.IsTrue(rd.enabled, "Tier4 매칭 프레임이 있으면 오버레이 활성");
+            Assert.AreEqual(tier4Frame9, rd.sprite);
+        }
+
         //# ───────── 이하 test-engineer 보강분 — ③ 매칭 규칙 망라 + flipX 동기 + 티어 전환 + 안전 가드 ─────────
 
         [Test]
@@ -148,14 +164,14 @@ namespace Lair.Tests.Character
             Assert.IsFalse(rd.enabled);
         }
 
-        //# 엣지 — SetTier 에 정의 범위(0~3) 밖 값이 들어와도 활성 맵 없음으로 안전 처리.
+        //# 엣지 — SetTier 에 정의 범위(0~4, hero-2d-conversion §6.4 로 4 까지 확장) 밖 값이 들어와도 활성 맵 없음으로 안전 처리.
         [Test]
         public void SetTier가_정의범위_밖_값이면_오버레이가_비활성화된다()
         {
             MonsterTierOverlay overlay = NewOverlay(out SpriteRenderer rd);
             overlay.SetFramesForTest(null, null, new[] { MakeSprite("Wisp_Sheet_T3_0") });
 
-            overlay.SetTier(4);   //# 정의된 값은 0~3 뿐
+            overlay.SetTier(5);   //# 정의된 값은 0~4 뿐
             overlay.Tick(MakeSprite("Wisp_Sheet_0"), false);
 
             Assert.IsFalse(rd.enabled, "정의되지 않은 티어 값은 오버레이 off 로 안전 처리");

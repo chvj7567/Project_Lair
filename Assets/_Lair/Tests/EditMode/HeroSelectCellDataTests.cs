@@ -56,7 +56,7 @@ namespace Lair.Tests.EditMode
             HeroStageVariant[] stages = new HeroStageVariant[tints.Length];
             for (int i = 0; i < tints.Length; ++i)
             {
-                stages[i] = new HeroStageVariant { TintColor = tints[i] };
+                stages[i] = new HeroStageVariant { PortraitTintColor = tints[i] };
             }
             TestReflection.SetField(cfg, "_stages", stages);
             return cfg;

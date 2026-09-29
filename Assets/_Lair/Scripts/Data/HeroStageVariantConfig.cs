@@ -4,19 +4,22 @@ using UnityEngine;
 
 namespace Lair.Data
 {
-    //# 스테이지 한 개의 외형 변형 + 스탯 배수 (hero-stage-variant 기획서 §1.2/§2.1). 필드명 = plan Task 2.
+    //# 스테이지 한 개의 외형 변형 + 스탯 배수 (hero-stage-variant 기획서 §1.2/§2.1, hero-2d-conversion §11).
+    //# 전투 몸 색/아웃라인은 2D 원화에 직접 베이크되어 전투 런타임 소비자가 없다 — UseOutline/OutlineColor 제거(§6.2·§6.3).
     [Serializable]
     public class HeroStageVariant
     {
-        public Color TintColor = Color.white;
-        public bool UseOutline;
-        public Color OutlineColor;
+        //# 정적 3D 렌더 초상(HeroIcons/Knight.png) 틴트 전용 — hero-select/records UI(HeroSelectPopup·RecordsPopup)만 소비.
+        //# 전투 스프라이트(Visual2D)에는 적용 안 됨(§6.2) — 구 TintColor 를 UI 전용 용도로 좁혀 이름 명확화(hero-2d-conversion §10 후속 아이콘 재설계 전까지 유지).
+        public Color PortraitTintColor = Color.white;
         public bool UseEmission;
         public Color EmissionColor;
         public float EmissionIntensity;
         public float ScaleMultiplier = 1f;
         public float HpMultiplier = 1f;
         public float PowerMultiplier = 1f;
+        //# 강화 오버레이 티어(0~4) — MonsterTierOverlay.SetTier 에 그대로 전달. 0=오버레이 off(스테이지1 몸만).
+        public int Tier;
     }
 
     //# 5스테이지 영웅 재스킨 정본 SO. int(1~5) 로 조회, HeroStageVariantApplier 가 스폰 시 적용(spec §4).

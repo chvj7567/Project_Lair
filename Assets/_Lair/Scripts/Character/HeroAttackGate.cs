@@ -8,8 +8,9 @@ namespace Lair.Character
     //# 게임플레이 판정 안 함 — AutoCombatAI/MeleeAttacker 가 통과시킨 개시 결과만 받아 애니 신호(OnAttackBegin) 발행.
     public class HeroAttackGate : MonoBehaviour, IAttackGate
     {
-        //# 공격 end 누락 fallback (§3.4·§7.6). stab 1.63s + 0.17 마진. _attackSuppressWindow(0.5) 와 별도 — 겸용 금지(M3).
-        //# OnAttackEnd 이벤트 유실 시 IsAttacking 영구 true 굳음 방지.
+        //# 영웅 공격 락 시간(게임플레이 값) — 3D 라이브 실측상 OnAttackEnd 는 전이 컷오프에 막혀 발화하지 않고
+        //# 이 값이 실제 공격 주기를 정한다(hero-2d-conversion §5.3.1). 2D 도 OnAttackEnd 를 굽지 않고 동일 값을 유지.
+        //# _attackSuppressWindow(0.5) 와 별도 — 겸용 금지(M3).
         [SerializeField] private float _attackEndFallback = 1.8f;
 
         private bool _isAttacking;
