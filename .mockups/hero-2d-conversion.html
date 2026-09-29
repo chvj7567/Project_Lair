@@ -289,7 +289,27 @@ function buildMask(){
   for(let x=0;x<CW;x++){q.push(x,(CH-1)*CW+x);}for(let y=0;y<CH;y++){q.push(y*CW,y*CW+CW-1);}
   while(q.length){const i=q.pop();if(seen[i]||m[i])continue;seen[i]=1;const x=i%CW,y=(i/CW)|0;if(x>0)q.push(i-1);if(x<CW-1)q.push(i+1);if(y>0)q.push(i-CW);if(y<CH-1)q.push(i+CW);}
   for(let i=0;i<CW*CH;i++){if(!m[i]&&!seen[i])m[i]=1;}
+  sealMask(m);
   return m;
+}
+//# 모자/캡↔두상 경계처럼, 앤티앨리어싱 색이 밝기 임계값(L>105)·어두운 외곽선 임계값(lum<=45) 둘 다에 못 미쳐
+//# 가로 폭 전체가 배경까지 뚫려버리는 얇은 틈을 막는다(2026-09-30 재현 — Fear.png 원본 대조: 카드에는 이 틈이 없음).
+//# 위 flood-fill 은 "실루엣 가장자리까지 뚫린" 이런 틈을 구멍으로 못 잡는다(경계에 안 막혀 있으니 배경과 그대로 연결됨).
+//# 다리 사이처럼 실제로 뚫려 있어야 하는 부위를 건드리지 않도록 머리·목 근방(ry<6)에만 적용한다.
+function sealMask(m){
+  const maxGap=4,ryLimit=6;
+  for(let cx=0;cx<CW;cx++){
+    let cy=0;
+    while(cy<CH){
+      if(m[cy*CW+cx]){cy++;continue;}
+      let cy2=cy;while(cy2<CH&&!m[cy2*CW+cx])cy2++;
+      const ry0=cy-A.ey+0.5,ry1=(cy2-1)-A.ey+0.5;
+      if(cy>0&&cy2<CH&&m[(cy-1)*CW+cx]&&m[cy2*CW+cx]&&(cy2-cy)<=maxGap&&ry0<ryLimit&&ry1<ryLimit){
+        for(let yy=cy;yy<cy2;yy++)m[yy*CW+cx]=1;
+      }
+      cy=cy2;
+    }
+  }
 }
 
 /* ---------- 4) 부위 리그 ---------- */
