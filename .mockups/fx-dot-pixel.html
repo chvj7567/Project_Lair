@@ -133,31 +133,25 @@ const SKP={'#':'#e8e0ff','+':'#b9a6ee','o':'#3b1670','n':'#3b1670'};
 
 //# ── 피격 임팩트 (s = 대상 크기 배율) ──
 function hitOne(cx,fy,k,s,lf){if(lf<0){hero(cx,fy,{sc:k});return}
-  hero(cx+(lf===1?-1:lf===2?1:0)*k,fy,{sc:k,flash:lf<=1?'#fff':null});
-  if(lf>=7)return;
-  const cy=fy-8*k,t=lf/6,cols=['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],core=[6,7,4,2,0,0,0][lf]*s;
-  disc(cx,cy,core,lf<=1?'#fff':lf===2?'#ffe066':'#ffb020',1,.85);
-  if(lf>=1&&lf<=4){const rx=(6+lf*5)*s;ring(cx,cy,rx,rx*.75,1,'#ff7a18',1-(lf-1)/4)}
-  for(let j=0;j<10;j++){const a=j*TAU/10+.3,d=(4+22*eo(t)*(.8+.4*rnd(j)))*s,len=(Math.round(5*(1-t)*(.6+.6*rnd(j+9)))+1)*s,c=cols[Math.min(4,Math.floor(t*4.5))];
-   line(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.8,cx+Math.cos(a)*(d+len),cy+Math.sin(a)*(d+len)*.8,c,1-t*t)}
-  for(let j=0;j<6;j++){const a=rnd(j+20)*TAU,d=(6+16*eo(t)*(.6+rnd(j+30)*.6))*s;px(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.8+12*t*t*s,'#ff4d4d',1-t)}}
+  hero(cx+(lf===1?-k:0),fy,{sc:k,flash:lf<=1?'#fff':null});
+  if(lf>=4)return;
+  const cy=fy-8*k,t=lf/3;
+  disc(cx,cy,[4,5,2,0][lf]*s,lf<2?'#fff':'#ffb020');
+  for(let j=0;j<6;j++){const an=j*TAU/6+.3,d=(3+10*eo(t))*s;px(cx+Math.cos(an)*d,cy+Math.sin(an)*d*.8,lf<2?'#ffe066':'#ff4d4d',1-t*t)}}
 function monOne(cx,fy,k,s,lf){if(lf<0){mon(cx,fy,{sc:k});return}
-  mon(cx+(lf>=1&&lf<=3?2:0),fy,{sc:k,flash:lf<=1?'#fff':null});
-  if(lf>=8)return;
-  const cy=fy-Math.round(4.5*k),N=8,t=lf/7,fade=lf<4?1:cl(1-(lf-3)/(N-3));
-  for(const[d,d0]of[[1,0],[-1,1]]){const rr=cl((lf+1-d0)/3);if(rr<=0)continue;const x0=cx-d*20*s,y0=cy-14*s,x1=x0+d*40*s*rr,y1=y0+28*s*rr;
-   line(x0,y0-1,x1,y1-1,'#ffe066',fade);line(x0,y0+1,x1,y1+1,'#ffe066',fade);line(x0,y0,x1,y1,'#fff',fade)}
-  if(lf>=1&&lf<=4){const L=[9,13,9,5][lf-1]*s;line(cx-L,cy,cx+L,cy,'#fff');line(cx,cy-L,cx,cy+L,'#fff');line(cx-L*.6,cy-L*.6,cx+L*.6,cy+L*.6,'#ffe066');line(cx-L*.6,cy+L*.6,cx+L*.6,cy-L*.6,'#ffe066')}
-  for(let j=0;j<8;j++){const a=rnd(j)*TAU,d=(4+18*eo(t)*(.6+rnd(j+8)*.6))*s,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d*.8+14*t*t*s,c=j%2?'#ffb020':'#ffe066';
-   px(x,y,c,1-t);if(t<.5){px(x+1,y,c,1-t);px(x,y+1,c,1-t);px(x+1,y+1,c,1-t)}}}
+  mon(cx+(lf===1?2:0),fy,{sc:k,flash:lf<=1?'#fff':null});
+  if(lf>=5)return;
+  const cy=fy-Math.round(4.5*k),fade=lf<3?1:1-(lf-2)/3,rr=cl((lf+1)/2),x0=cx-12*s,y0=cy-9*s;
+  line(x0,y0,x0+24*s*rr,y0+18*s*rr,'#fff',fade);
+  if(lf<=1)disc(cx,cy,3*s,'#ffe066')}
 
 const FX=[
 {id:'HitImpact',name:'피격 임팩트 (영웅)',key:'EVisual.HitImpact',N:12,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],
- desc:'영웅이 맞을 때 터지는 붉은 스파크. 임팩트 크기가 영웅 크기에 비례 (왼쪽 작은 영웅 ×1.0 / 오른쪽 큰 영웅(후반 스테이지) ×1.5, 0.6초).',
+ desc:'영웅이 맞을 때 흰 플래시 + 작은 스파크 6개만 (0.3초). 크기가 영웅 크기에 비례 (왼쪽 작은 영웅 ×1.0 / 오른쪽 큰 영웅 ×1.5).',
  draw(f,N){hitOne(34,84,1,1,f);hitOne(90,84,2,1.5,f-4)}},
 
 {id:'MonsterHitImpact',name:'피격 임팩트 (몬스터)',key:'EVisual.MonsterHitImpact',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020'],
- desc:'영웅 공격이 적중할 때 X자 베기 + 십자 스파크 + 파편. 크기가 몬스터 크기에 비례 (소형 ×0.6 / 중형 ×1.0 / 대형 ×1.4, 0.7초).',
+ desc:'영웅 공격이 적중할 때 사선 베기 1줄 + 작은 플래시만 (0.4초). 크기가 몬스터 크기에 비례 (소형 ×0.6 / 중형 ×1.0 / 대형 ×1.4).',
  draw(f,N){monOne(22,84,1,.6,f);monOne(62,84,2,1,f-4);monOne(104,84,3,1.4,f-8)}},
 
 {id:'DamagePopup',name:'데미지 숫자',key:'EVisual.DamagePopup',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#c9ced6','#000'],
