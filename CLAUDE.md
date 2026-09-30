@@ -63,7 +63,6 @@ docs/
 
 ### Lair 특수 사항
 
-- **프로토타입 간이 흐름**: `start-develop-simple` 스킬은 qa-simulator 단계를 생략. throwaway 작업에만 사용.
 - **현 단계 제약**: §8 의 단계 범위 규칙이 모든 단계에 함께 적용됨.
 
 ## 8. v0.3 단계 특수 규칙

@@ -82,7 +82,6 @@
 |---|---|---|
 | `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → test-engineer |
 | `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → test-engineer |
-| `/start-develop-simple`| 프로토타입 — qa-simulator 생략, 테스트는 유지 | game-designer → gameplay-programmer → test-engineer |
 | `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer |
 
 ### 밸런스 조정 흐름 (별도 짧은 사이클)
