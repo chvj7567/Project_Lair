@@ -6,6 +6,9 @@ namespace Lair.Character
     //# 래퍼는 WorldSpace Canvas + 이 MonsterHpBar. 그 자식에 HpBar.prefab 인스턴스가 nest.
     public class MonsterHpBar : MonoBehaviour
     {
+        //# 몬스터 HP바 표시 스위치 — true 로 바꾸면 복원 (영웅 HUD 는 별도 경로라 무영향).
+        private const bool ShowBar = false;
+
         [SerializeField] private HpBarView _hpBar;   //# nest 된 HpBar.prefab 인스턴스의 View
 
         private IHealth _health;
@@ -26,7 +29,10 @@ namespace Lair.Character
 
             //# 몬스터 바는 현재/최대 텍스트를 숨긴다 (영웅 HUD 와 공유하는 prefab 이라 런타임 토글).
             if (_hpBar != null)
+            {
                 _hpBar.SetTextVisible(false);
+                _hpBar.gameObject.SetActive(ShowBar);
+            }
 
             if (_health == null)
             {
