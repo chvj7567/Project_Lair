@@ -197,9 +197,9 @@ const FX=[
   if(f%2===0){px(x+3,y+4,'#ff4dd2',a);px(x+7,y+4,'#ff4dd2',a)}
   for(let i=0;i<8;i++){const an=i*TAU/8+f*.5,rad=9+(i%2)*3;px(x+5+Math.cos(an)*rad,y+5+Math.sin(an)*rad*.6-f*1.1,i%2?'#a45bff':'#e0b3ff',.85*a)}}},
 
-{id:'HeroExplosionFx',name:'돌진 (대시 스트라이크)',key:'EVisual.HeroExplosionFx',N:10,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff7a18','#d94a0b'],
+{id:'HeroDashConeFx',name:'돌진 부채꼴 (대시 스트라이크)',key:'EVisual.HeroDashConeFx',N:10,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff7a18','#d94a0b'],
  desc:'영웅이 몬스터 무리 쪽으로 돌진(길이 7)하며 부채꼴 궤적을 남김. 잔상 + 스피드 라인 + 먼지.',
- draw(f,N){const ox=16,oy=74,L=92,half=.5,sq=.5,rp=cl((f+1)/4),reach=L*eo(rp),fade=f<=4?1:cl(1-(f-4)/(N-4));
+ draw(f,N){const ox=16,oy=74,L=92,half=.61,sq=.5,rp=cl((f+1)/4),reach=L*eo(rp),fade=f<=4?1:cl(1-(f-4)/(N-4));
   for(const k of[.2,.5,.8]){const gx=ox+L*.95*k;if(gx<ox+reach&&fade>0)hero(gx,oy,{a:.3*fade,flash:'#ffb020',shadow:false})}
   if(f<N){
    for(let y=0;y<H;y++)for(let x=ox;x<=ox+reach;x++){const dy=(y-oy)/sq,d=Math.hypot(x-ox,dy);if(d>reach||d<2)continue;const ang=Math.atan2(dy,x-ox);if(Math.abs(ang)>half)continue;

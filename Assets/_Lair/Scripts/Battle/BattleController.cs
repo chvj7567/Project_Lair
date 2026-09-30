@@ -1236,7 +1236,7 @@ namespace Lair.Battle
             }
 
             //# 영웅 스킬 FX (2026-06-04) — 동시 표시 적음. count 4 (궤도 2 + 돌진/노바 순간).
-            foreach (EVisual key in new[] { EVisual.HeroExplosionFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })
+            foreach (EVisual key in new[] { EVisual.HeroDashConeFx, EVisual.HeroOrbitBladeFx, EVisual.HeroNovaFx })
             {
                 GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (fx != null)

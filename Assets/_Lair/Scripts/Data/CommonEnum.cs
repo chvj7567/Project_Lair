@@ -106,7 +106,7 @@ namespace Lair.Data
         HitImpact,    //# 피격 지점 프리미티브 버스트 파티클
         DamagePopup,  //# 부상+페이드 데미지 숫자 (월드스페이스 TMP+CHText)
         //# 영웅 스킬 FX (2026-06-04) — 프리미티브, CHMPool 대상.
-        HeroExplosionFx,        //# 돌진 — 늘어난 큐브
+        HeroDashConeFx,        //# 돌진 — 부채꼴(cone) 궤적
         HeroOrbitBladeFx,  //# 회전 블레이드 — 궤도 큐브
         HeroNovaFx,        //# AOE 노바 — 팽창 반투명 실린더
         //# 가해자별 임팩트 분리 (2026-06-04) — 영웅이 몬스터를 때릴 때 전용 CFXR 임팩트. 맨 끝 추가(int 직렬화 정합).
