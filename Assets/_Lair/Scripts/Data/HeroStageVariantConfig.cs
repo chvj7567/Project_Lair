@@ -9,9 +9,9 @@ namespace Lair.Data
     [Serializable]
     public class HeroStageVariant
     {
-        //# 정적 3D 렌더 초상(HeroIcons/Knight.png) 틴트 전용 — hero-select/records UI(HeroSelectPopup·RecordsPopup)만 소비.
-        //# 전투 스프라이트(Visual2D)에는 적용 안 됨(§6.2) — 구 TintColor 를 UI 전용 용도로 좁혀 이름 명확화(hero-2d-conversion §10 후속 아이콘 재설계 전까지 유지).
-        public Color PortraitTintColor = Color.white;
+        //# 스테이지별 2D 영웅 초상(HeroIcons/Knight*.png, 시트 idle frame 0) — HeroSelectPopup·RecordsPopup 만 소비. 틴트 재활용 없음.
+        //# Sprite 참조라 JSON 이 아닌 SO 에 둔다(Rule 02 §11 예외).
+        public Sprite Portrait;
         public bool UseEmission;
         public Color EmissionColor;
         public float EmissionIntensity;

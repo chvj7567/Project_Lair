@@ -39,10 +39,6 @@ namespace Lair.UI
         [SerializeField] private CHText _bodyText;                             //# 상단 총계
         [SerializeField] private RecordsStagePoolingScrollView _scrollView;
 
-        //# 영웅 초상 — 인스펙터 직접 참조 (HeroSelectPopup 관례, Addressables 키 아님).
-        //# 스켈레톤 1모델 재스킨이라 5스테이지가 같은 초상을 틴트만 달리해 공유한다.
-        [SerializeField] private Sprite _knightPortrait;
-
         //# 잠금 행 어둠 비율 — 캐러셀/영웅 목록의 잠금 톤과 동일.
         public const float LockedDimRatio = 0.55f;
 
@@ -100,7 +96,7 @@ namespace Lair.UI
             }
             if (_scrollView != null)
             {
-                _scrollView.SetItemList(BuildCellData(_arg.Profile, _arg.VariantConfig, _knightPortrait));
+                _scrollView.SetItemList(BuildCellData(_arg.Profile, _arg.VariantConfig));
             }
         }
 
@@ -118,9 +114,8 @@ namespace Lair.UI
             return $"총 출격  {profile.TotalRuns}\n승리  {profile.TotalWins}\n승률  {winRate}%\n최단 클리어  {bestClear}";
         }
 
-        //# 스테이지 1~5 행 — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 틴트 흰색 폴백.
-        public static List<RecordsStageCellData> BuildCellData(
-            MetaProfile profile, HeroStageVariantConfig variantConfig, Sprite portrait)
+        //# 스테이지 1~5 행 — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
+        public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
         {
             List<RecordsStageCellData> list = new List<RecordsStageCellData>();
             int cleared = profile != null ? profile.ClearedStage : 0;
@@ -130,7 +125,7 @@ namespace Lair.UI
             {
                 //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼.
                 bool unlocked = StageProgress.IsUnlocked(stage, cleared);
-                Color tint = variantConfig != null ? variantConfig.GetStage(stage).PortraitTintColor : Color.white;
+                Sprite portrait = variantConfig != null ? variantConfig.GetStage(stage).Portrait : null;
                 StageRecordEntry record = profile != null
                     ? profile.GetStageRecord(stage)
                     : new StageRecordEntry { Stage = stage };
@@ -142,7 +137,7 @@ namespace Lair.UI
                     IsLocked = unlocked == false,
                     IsSelected = unlocked && stage == selected,
                     Portrait = portrait,
-                    PortraitTint = unlocked ? tint : Color.Lerp(tint, Color.black, LockedDimRatio),
+                    PortraitTint = unlocked ? Color.white : Color.Lerp(Color.white, Color.black, LockedDimRatio),
                     StageText = $"STAGE {stage}",
                     ThreatText = BuildThreat(stage),
                     WinText = unlocked ? $"{record.Wins}승" : string.Empty,

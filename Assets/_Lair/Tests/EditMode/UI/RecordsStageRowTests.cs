@@ -11,7 +11,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 항상_스테이지_1부터_5까지_다섯_행이_나온다()
         {
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null);
 
             Assert.AreEqual(5, rows.Count);
             for (int i = 0; i < 5; ++i)
@@ -25,7 +25,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();   //# ClearedStage = 0
 
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
             Assert.IsFalse(rows[0].IsLocked);
             Assert.IsTrue(rows[1].IsLocked);
@@ -37,7 +37,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { ClearedStage = 3 };
 
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
             Assert.IsFalse(rows[3].IsLocked);   //# 스테이지 4
             Assert.IsTrue(rows[4].IsLocked);    //# 스테이지 5
@@ -48,7 +48,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { ClearedStage = 5 };
 
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
             foreach (RecordsStageCellData row in rows)
             {
@@ -61,7 +61,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();   //# ClearedStage = 0 → 스테이지 3 잠금
 
-            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null, null)[2];
+            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null)[2];
 
             Assert.AreEqual("스테이지 2 클리어 필요", row.LockHintText);
             Assert.IsEmpty(row.WinText);
@@ -76,7 +76,7 @@ namespace Lair.Tests.EditMode
                 p.RecordStageRun(1, win: true, clearTime: 200f);
             p.RecordStageRun(1, win: false, clearTime: 300f);
 
-            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null, null)[0];
+            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null)[0];
 
             Assert.AreEqual("3승", row.WinText);
             Assert.AreEqual("4판 · 75%", row.RunRateText);
@@ -87,7 +87,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();
 
-            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null, null)[0];
+            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null)[0];
 
             Assert.AreEqual("0승", row.WinText);
             Assert.AreEqual("0판 · 0%", row.RunRateText);
@@ -102,13 +102,13 @@ namespace Lair.Tests.EditMode
             p.RecordStageRun(1, win: false, clearTime: 100f);
 
             //# 2/3 = 66.67% → 67%
-            Assert.AreEqual("3판 · 67%", RecordsPopup.BuildCellData(p, null, null)[0].RunRateText);
+            Assert.AreEqual("3판 · 67%", RecordsPopup.BuildCellData(p, null)[0].RunRateText);
         }
 
         [Test]
         public void 위협도는_스테이지_수만큼_별이_찬다()
         {
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null);
 
             Assert.AreEqual("★☆☆☆☆", rows[0].ThreatText);
             Assert.AreEqual("★★★★★", rows[4].ThreatText);
@@ -132,7 +132,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { ClearedStage = 2, SelectedStage = 3 };
 
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
             Assert.IsTrue(rows[2].IsSelected);
             Assert.IsFalse(rows[0].IsSelected);
@@ -143,7 +143,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { ClearedStage = 0, SelectedStage = 4 };
 
-            Assert.IsFalse(RecordsPopup.BuildCellData(p, null, null)[3].IsSelected);
+            Assert.IsFalse(RecordsPopup.BuildCellData(p, null)[3].IsSelected);
         }
 
         [Test]
@@ -170,7 +170,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 프로필이_null이면_진행도_0으로_폴백하고_예외가_없다()
         {
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(null, null, null);
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(null, null);
 
             Assert.AreEqual(5, rows.Count);
             Assert.IsFalse(rows[0].IsLocked);

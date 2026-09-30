@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HeroStageVariantConfig
   m_EditorClassIdentifier: 
   _stages:
-  - PortraitTintColor: {r: 0.9098039, g: 0.8784314, b: 0.78431374, a: 1}
+  - Portrait: {fileID: 21300000, guid: b7efa04ab59348fd8c006f28a6041a38, type: 3}
     UseEmission: 0
     EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     EmissionIntensity: 0
@@ -21,7 +21,7 @@ MonoBehaviour:
     HpMultiplier: 1
     PowerMultiplier: 1
     Tier: 0
-  - PortraitTintColor: {r: 0.2901961, g: 0.87058824, b: 0.5019608, a: 1}
+  - Portrait: {fileID: 21300000, guid: b586be3dd913419a964965b6e3df4c06, type: 3}
     UseEmission: 0
     EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     EmissionIntensity: 0
@@ -29,7 +29,7 @@ MonoBehaviour:
     HpMultiplier: 1.25
     PowerMultiplier: 1.1
     Tier: 1
-  - PortraitTintColor: {r: 0.21960784, g: 0.7411765, b: 0.972549, a: 1}
+  - Portrait: {fileID: 21300000, guid: d519b2f7ecbe420e89e81d2049ca775b, type: 3}
     UseEmission: 1
     EmissionColor: {r: 0.21960784, g: 0.7411765, b: 0.972549, a: 1}
     EmissionIntensity: 1.5
@@ -37,7 +37,7 @@ MonoBehaviour:
     HpMultiplier: 1.55
     PowerMultiplier: 1.2
     Tier: 2
-  - PortraitTintColor: {r: 0.65882355, g: 0.33333334, b: 0.96862745, a: 1}
+  - Portrait: {fileID: 21300000, guid: 5aadc7d9a4e44d258466469073c9c2e7, type: 3}
     UseEmission: 1
     EmissionColor: {r: 0.65882355, g: 0.33333334, b: 0.96862745, a: 1}
     EmissionIntensity: 2.2
@@ -45,7 +45,7 @@ MonoBehaviour:
     HpMultiplier: 1.9
     PowerMultiplier: 1.35
     Tier: 3
-  - PortraitTintColor: {r: 0.9372549, g: 0.26666668, b: 0.26666668, a: 1}
+  - Portrait: {fileID: 21300000, guid: 7de10bc184784c0eb0b5c3674aaecc2c, type: 3}
     UseEmission: 1
     EmissionColor: {r: 1, g: 0.34117648, b: 0.13333334, a: 1}
     EmissionIntensity: 3.2
