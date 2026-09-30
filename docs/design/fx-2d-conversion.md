@@ -26,7 +26,7 @@
 | `PoisonAura` | 루트 스케일 (2.5, 0.1, 2.5) 원판 + `CHPoolable`(스크립트 GUID 부착), ReturnToPoolAfter 없음 | `PoisonAura.OnAttached` → `Pop` 후 `position = (hero.x, 0.05, hero.z)`, **스케일 미지정(프리팹 고정 2.5 = 지름 → 반경 1.25)**. 판정 반경 `_radius` 기본 1.25(`HeroPoisonAuraEffect`). 영웅 이동을 따라가지 않음 | 지속 5s(`_duration`). `OnDetached` 가 `Push` | 2 |
 | `TimeStopShield` | 루트 `CHPoolable` + 중첩 CFXR `Shield Leaves A (Lit)`, 스케일 1 | `TimeStopAura.OnAttached` → 위치 `(hero.x, hero.y + 0.5, hero.z)`, 스케일 미지정. 영웅 이동·공격 정지 동안 유지 | 부착 5s. `OnDetached` 가 `Push` | 2 |
 | `FearSkull` | 루트 `CHPoolable` + `ReturnToPoolAfter(1.6s)` + 중첩 CFXR `Skull Head Alt` | `FearEffect.Apply` → `HeroSkillFx.SpawnAttached(FearSkull, heroT, (0, **2.1**, 0), 1f)` — 영웅 자식으로 부착, 이동 추종. 지속 3s(`_duration`)와 별개인 1회성 | 1.6s 후 자동 `Push` | 2 |
-| `HeroDashConeFx` | 루트 `CHPoolable`+`ReturnToPoolAfter(0.45s)`, MeshFilter(`HeroDashFx_Fan.mesh`)·MeshRenderer **비활성**, 자식 CFXR `Fire Explosion B`(스케일 1.4) | `DashStrikeRuntime` → `HeroSkillFx.SpawnCone(key, heroPos, dir, DashLength)`: 위치 `(hero.x, 0.1, hero.z)`, 회전 `LookRotation(dir(XZ))`(로컬 +Z=축), 스케일 = `DashLength`(**7**). 판정 `DamageMonstersInCone(dir, 7, ConeHalfAngle **35°**)` — 전체각 70°. 쿨다운 3s, 발동 즉시 판정(영웅은 이동하지 않음) | 0.45s 후 `Push` | 4 |
+| `HeroDashConeFx` | 루트 `CHPoolable`+`ReturnToPoolAfter(0.45s)`, MeshFilter(`HeroDashFx_Fan.mesh`)·MeshRenderer **비활성**, 자식 CFXR `Fire Explosion B`(스케일 1.4) | `DashStrikeRuntime` → `HeroSkillFx.SpawnCone(key, heroPos, dir, DashLength)`: 위치 `(hero.x, 0.1, hero.z)`, 회전 `LookRotation(dir(XZ))`(로컬 +Z=축), 스케일 = `DashLength`. **shipped 에셋 `Art/Skills/HeroSkill_DashStrike.asset` 값(커밋 2814007 재구성): `_dashLength`=3, `_coneHalfAngle`=180 → 판정은 전방위 반경 3**(코드 기본값 7·35°는 에셋에서 덮어써져 무효). `DamageMonstersInCone(dir, 3, 180°)` = 원형. 쿨다운 3s, 발동 즉시 판정(영웅은 이동하지 않음) | 0.45s 후 `Push` | 4 |
 | `HeroNovaFx` | 루트 `CHPoolable`+`ReturnToPoolAfter(0.45s)`, MeshRenderer **비활성**(Sphere 메시), 자식 CFXR `Hit Light B (Air)` | `AoeNovaRuntime` → `HeroSkillFx.SpawnAt(key, heroPos, Radius*2)`: 위치 = `HeroPosition`, 스케일 = **7**(= Radius 3.5 × 2). 쿨다운 7s, 즉시 판정 `DamageMonstersInRing(0, 3.5)` | 0.45s 후 `Push` | 4 |
 | `HeroOrbitBladeFx` | 루트 `CHPoolable`(ReturnToPoolAfter 없음), MeshRenderer **비활성**(Sphere), 자식 CFXR | `OrbitingBladeRuntime.UpdateBlades`: 블레이드 **3개**(`_bladeCount`=3)를 각각 `SpawnTracked` 로 Pop, 매 틱 `position = heroPos + (cos a, 0, sin a) × OrbitRadius(1.4)`(a = `_angleDeg` + 120°×i, 증가 = 화면 **반시계**), 스케일 = `BladeSphereRadius × 2` = 1.8. 공전 180°/s(1바퀴 2.000s). 판정 = 구 반경 0.9 × 3개, 0.3s 간격 | 스킬 비활성(`OnDeactivate`) 시 `Push` | 4 |
 
@@ -45,12 +45,12 @@
 | `PoisonAura` | 16 × 12 = 1.333s | 루프 | 6×3 → 768×288 | 링 반지름 rx = 36 | 반경 1.25 | 2.5(프리팹 고정) | **72** | 36 ÷ 72 × 2.5 = 1.25 | (64,72) → **(0.5, 0.25)** |
 | `TimeStopShield` | 16 × 12 = 1.333s | 루프 | 6×3 → 768×288 | 더미 영웅 높이 16 = 1u | 없음(영웅 몸 높이 1u 기준) | 영웅 lossyScale(§5.5) | **16** | 16 ÷ 16 = 1.0 | (64,86) → **(0.5, 0.104167)** |
 | `FearSkull` | 14 × 12 = 1.167s | 1회 | 6×3 → 768×288 | 더미 영웅 높이 16 = 1u | 없음(영웅 자식이라 영웅 스케일 상속) | 1(코드 `1f`) | **16** | 16 ÷ 16 = 1.0 | (64,86) → **(0.5, 0.104167)** |
-| `HeroDashConeFx` | 10 × 12 = 0.833s | 1회 | 6×2 → 768×192 | 부채꼴 도달 L = 92 | 길이 7 | 7(`DashLength`) | **92** | 92 ÷ 92 × 7 = 7.0 | (16,74) → **(0.125, 0.229167)** |
+| `HeroDashConeFx` | 10 × 12 = 0.833s | 1회 | 6×2 → 768×192 | 원형 회전 베기 반지름 = 52(재추출 시트) | 전방위 반경 3 | 3(`DashLength`) | **52** | 52 ÷ 52 × 3 = 3.0 | (64,62) → **(0.5, 0.354167)** |
 | `HeroNovaFx` | 10 × 12 = 0.833s | 1회 | 6×2 → 768×192 | 최대 링 반지름 6 + 50 = 56 | 반경 3.5 | 7(`Radius*2`) | **112** | 56 ÷ 112 × 7 = 3.5 | (64,62) → **(0.5, 0.354167)** |
 | `HeroOrbitBladeFx` | 24 × 12 = 2.000s | 루프 | 6×4 → 768×384 | 궤도 rx = 40 | 궤도 반경 1.4 | 1.4(`OrbitRadius`, §5.6 변경) | **40** | 40 ÷ 40 × 1.4 = 1.4 | (64,66) → **(0.5, 0.3125)** |
 
-- 피벗 산식: x = 발x ÷ 128, y = (96 − 발y) ÷ 96. 검산: Poison (96−72)÷96 = 0.25 · Nova (96−62)÷96 = 0.354167 · Orbit (96−66)÷96 = 0.3125 · Dash (96−74)÷96 = 0.229167 · TimeStop·Fear (96−86)÷96 = 0.104167.
-- 부채꼴 각도 정합: 시안 반각 0.61rad = 34.95° ↔ 판정 35° → 차 0.05°(무시). 시안 부채꼴 도달 프레임: F3(4프레임 = 0.333s)에서 L 도달 — 판정은 발동 즉시 전 범위이므로 FX 확장이 판정보다 최대 0.333s 늦게 완성된다(§9 위험 R3).
+- 피벗 산식: x = 발x ÷ 128, y = (96 − 발y) ÷ 96. 검산: Poison (96−72)÷96 = 0.25 · Nova (96−62)÷96 = 0.354167 · Orbit (96−66)÷96 = 0.3125 · Dash (96−62)÷96 = 0.354167 · TimeStop·Fear (96−86)÷96 = 0.104167.
+- 돌진 정합(정정): 판정은 전방위(반각 180°)·반경 3, FX 는 방향 없는 원형 회전 베기(재추출 시트, 노바와 같은 규격 — 눕힘 Euler(90,0,0), 로컬 스케일 (1, 2, 1)). 판정은 발동 즉시 전 범위이므로 FX 확장이 판정보다 늦게 완성될 수 있다(§11.2 R3).
 - 궤도 회전 정합: 시트 1루프 24프레임 ÷ 12fps = 2.000s = 360° ÷ 180°/s ✓.
 - 기준 px 의 사용처는 오직 이 표다. 시트에서 지면 링 반지름을 다시 재지 않는다.
 
@@ -67,11 +67,11 @@
 
 | 부류 | FX | 방식 | 근거 |
 |---|---|---|---|
-| **지면 FX** | `PoisonAura` · `HeroNovaFx` · `HeroDashConeFx` | **바닥에 눕힘**(스프라이트 자식 로컬 회전으로 XZ 평면, 그림 위쪽 = 월드 +Z) + **세로 보정 스케일**(그림 세로축 × k) | 눕히면 문제 1 이 없다(현행 부채꼴도 바닥 y=0.1 에 눕혀 스폰 — `HeroSkillFx.ConeFloorLiftY`). 보정 k = 1 ÷ 시트 압축비 → 눕힌 뒤 카메라가 0.766 을 적용해 **수평·수직 모두 판정 반경과 일치**(문제 2 해소). 부채꼴은 루트 yaw(`LookRotation(dir)`)로 **방향 자유 회전**(빌보드는 방향 회전 불가) |
+| **지면 FX** | `PoisonAura` · `HeroNovaFx` · `HeroDashConeFx` | **바닥에 눕힘**(스프라이트 자식 로컬 회전으로 XZ 평면, 그림 위쪽 = 월드 +Z) + **세로 보정 스케일**(그림 세로축 × k) | 눕히면 문제 1 이 없다(현행 부채꼴도 바닥 y=0.1 에 눕혀 스폰 — `HeroSkillFx.ConeFloorLiftY`). 보정 k = 1 ÷ 시트 압축비 → 눕힌 뒤 카메라가 0.766 을 적용해 **수평·수직 모두 판정 반경과 일치**(문제 2 해소). 돌진은 판정이 전방위 원형이라 방향 회전이 필요 없다(루트 yaw 는 `SpawnCone` 이 그대로 설정하나 시각에 영향 없음) |
 | **서 있는 FX** | `TimeStopShield` · `FearSkull` · `HeroOrbitBladeFx` | **카메라 빌보드**(회전 복사) + 머티리얼 `ZTest Always` + sortingOrder 10 | 문제 1 은 깊이 테스트를 끄고 캐릭터보다 위에 그리는 것으로 해소. 이 셋은 지면 판정 원이 아니라 영웅 위·주위 표식이라 압축비 정합이 필요 없음(궤도는 §9 R2) |
 
-- 보정 스케일 k(스프라이트 자식 로컬 Y 스케일): **Poison 2.4**(= 36 ÷ 15, 시안 ry=15) · **Nova 2.0**(= 1 ÷ 0.5) · **Dash 2.0**(= 1 ÷ 0.5, 시안 sq=0.5). 눕힌 그림의 위쪽 = 월드 +Z 이므로 Y 스케일 = 월드 Z 방향 확대.
-- 부채꼴 눕힘 방향: 그림의 +X(부채꼴 축) → 루트 로컬 +Z(`dir`), 그림의 +Y → 루트 로컬 −X, 앞면이 위(+Y)를 향함. **검증**: `dir = 월드 +X` 로 발동했을 때 화면에서 원본 시트와 같은 방향(오른쪽으로 벌어짐)으로 보이고 그림이 좌우·상하 뒤집히지 않아야 한다. 회전 오일러 값은 gameplay-programmer 가 씬 뷰에서 이 검증으로 확정한다.
+- 보정 스케일 k(스프라이트 자식 로컬 Y 스케일): **Poison 2.4**(= 36 ÷ 15, 시안 ry=15) · **Nova 2.0**(= 1 ÷ 0.5) · **Dash 2.0**(= 1 ÷ 0.5, 재추출 시트도 압축비 0.5). 눕힌 그림의 위쪽 = 월드 +Z 이므로 Y 스케일 = 월드 Z 방향 확대.
+- 눕힘 회전: 지면 FX 3종 모두 Euler(90,0,0)(그림 위쪽 = 월드 +Z). 돌진은 원형이라 방향 검증 항목이 없다(정정 전 부채꼴 방향 검증 삭제).
 - 결과 픽셀 종횡비(화면): Nova·Dash 1 : 1.53, Poison 1 : 1.84(세로로 길어진 도트). 원인은 시안이 지면 원을 이미 눌러 그렸기 때문 — §9 D1 에서 top-down 재추출(픽셀 1 : 0.766, 방향·판정 완전 정합)을 개선안으로 분리.
 
 ### 3.3 sortingOrder · 머티리얼
@@ -117,15 +117,17 @@
 
 ## 5. FX 6종 상세 (현재 → 적용 후)
 
-### 5.1 `HeroDashConeFx` — 돌진 부채꼴 (1회 · 지면)
+### 5.1 `HeroDashConeFx` — 돌진 원형 회전 베기 (1회 · 지면)
+
+> 정정 기록: 초안은 코드 기본값(반각 35°·길이 7)으로 작성됐으나 shipped `HeroSkill_DashStrike.asset` 은 `_coneHalfAngle: 180`·`_dashLength: 3`(전방위 반경 3, 커밋 2814007)이다. 원인은 SO 에셋 실값 확인 누락(코드 필드 초기값만 읽음). 시안·시트는 판정에 맞춰 원형 회전 베기로 재추출됐고 본 항목을 정정했다. "판정 코드 불변·시각만 교체" 원칙은 유지.
 
 | 항목 | 내용 |
 |---|---|
 | 적용 후 프리팹 | 루트(`CHPoolable`+`SpriteSheetFx`, `_billboard`=false, `_returnToPoolOnFinish`=true) → 자식 `AuraFx`(SpriteRenderer `Mat_Monster2D`, 눕힘, 로컬 Y 스케일 2.0, sortingOrder −10). 제거: 자식 CFXR 인스턴스, MeshFilter·MeshRenderer, `ReturnToPoolAfter` |
-| 스폰 코드 | **변경 0줄**(`SpawnCone`: 위치 y=0.1 · yaw=`LookRotation(dir)` · 스케일=`DashLength`). 방향 회전은 루트 yaw 가 담당 → 부채꼴이 몬스터 무게중심 쪽으로 정확히 벌어짐 |
+| 스폰 코드 | **변경 0줄**(`SpawnCone`: 위치 y=0.1 · yaw=`LookRotation(dir)` · 스케일=`DashLength`=3 → 반경 3). 원형이라 yaw 는 시각에 영향 없음 |
 | 수명 | 0.45s → **0.833s**(10프레임). 재발동 최소 간격 3s(쿨다운) → 동시 최대 1개, 풀 4 유지 |
-| 판정 정합 | 반각 34.95°(시안) ↔ 35°, 길이 7 ↔ 92px @PPU 92 × 스케일 7. 판정·넉백·데미지 코드 무변경 |
-| 좌우 | 그림은 축 하나만 존재(방향 = yaw). flipX 사용 안 함. 시안의 영웅 잔상·더미 제외(투명) |
+| 판정 정합 | 판정 전방위(반각 180°)·반경 3 ↔ 시트 반지름 52px @PPU 52 × 스케일 3 = 3.0. 판정·넉백·데미지 코드 무변경 |
+| 좌우 | 방향 없는 원형 — flipX·방향 회전 없음. 영웅 더미 제외(투명) |
 
 ### 5.2 `HeroNovaFx` — AOE 노바 (1회 · 지면)
 
@@ -225,7 +227,7 @@
 | 항목 | 값 |
 |---|---|
 | Texture Type / Sprite Mode | Sprite (2D and UI) / **Multiple** |
-| Pixels Per Unit | §2 표의 FX 별 PPU(Poison 72 · TimeStop 16 · Fear 16 · Dash 92 · Nova 112 · Orbit 40) |
+| Pixels Per Unit | §2 표의 FX 별 PPU(Poison 72 · TimeStop 16 · Fear 16 · Dash 52 · Nova 112 · Orbit 40) |
 | Filter / Mip Maps / Compression | **Point** / **off** / **None** |
 | sRGB / Alpha Is Transparency | on / on |
 | Mesh Type | **Tight**(투명 여백 오버드로 절감) |
@@ -271,7 +273,7 @@
 
 | 프리팹 | 제거 | 추가·설정 |
 |---|---|---|
-| `HeroDashConeFx` | 자식 CFXR `Fire Explosion B` 인스턴스, MeshFilter(`HeroDashFx_Fan.mesh`)·MeshRenderer, `ReturnToPoolAfter` | 루트 `SpriteSheetFx`(`_fps`12, `_loop`false, `_billboard`false, `_autoPlay`true, `_returnToPoolOnFinish`true, `_frames`=`HeroDashConeFx_Sheet_0~9`, `_poolable`=루트 `CHPoolable`) · 자식 `AuraFx`(SpriteRenderer `Mat_Monster2D`, sortingOrder −10, 눕힘 회전 §3.2, 로컬 스케일 (1, 2.0, 1)) |
+| `HeroDashConeFx` | 자식 CFXR `Fire Explosion B` 인스턴스, MeshFilter(`HeroDashFx_Fan.mesh`)·MeshRenderer, `ReturnToPoolAfter` | 루트 `SpriteSheetFx`(`_fps`12, `_loop`false, `_billboard`false, `_autoPlay`true, `_returnToPoolOnFinish`true, `_frames`=`HeroDashConeFx_Sheet_0~9`, `_poolable`=루트 `CHPoolable`) · 자식 `AuraFx`(SpriteRenderer `Mat_Monster2D`, sortingOrder −10, Euler(90,0,0), 로컬 스케일 (1, 2.0, 1)) |
 | `HeroNovaFx` | 자식 CFXR `Hit Light B (Air)`, MeshFilter·MeshRenderer, `ReturnToPoolAfter` | 위와 동일 구조, `_frames`=`HeroNovaFx_Sheet_0~9`, 눕힘 회전 Euler(90,0,0)(그림 위쪽 = 월드 +Z), 로컬 스케일 (1, 2.0, 1) |
 | `PoisonAura` | 원판 메시·머티리얼, 루트 스케일 (2.5, 0.1, 2.5) | 루트 스케일 (2.5, 2.5, 2.5), `SpriteSheetFx`(`_loop`true, `_returnToPoolOnFinish`false, `_frames`=`PoisonAura_Sheet_0~15`), `AuraFx`(`Mat_Monster2D`, sortingOrder −10, Euler(90,0,0), 로컬 스케일 (1, 2.4, 1)) |
 | `FearSkull` | 자식 CFXR `Skull Head Alt`, `ReturnToPoolAfter` | `SpriteSheetFx`(`_loop`false, `_billboard`true, `_returnToPoolOnFinish`true, `_frames`=`FearSkull_Sheet_0~13`), `AuraFx`(`Mat_FX2D`, sortingOrder 10, 로컬 스케일 1) |
@@ -281,7 +283,7 @@
 | `HitImpact`·`MonsterHitImpact` | — | **무변경** |
 
 - 모든 `AuraFx` 스프라이트 초기값은 `_frames[0]`(프리팹 미리보기용). 풀 Pop 시 `OnEnable` 이 0 프레임으로 리셋.
-- 지면 FX 눕힘 회전의 부채꼴 판(`HeroDashConeFx`)은 §3.2 방향 검증을 통과하는 오일러 값으로 저장.
+- 돌진 프리팹은 노바와 같은 규격(Euler(90,0,0), 로컬 스케일 (1,2,1))이며 이미 배선돼 있으면 시트·`_frames` 만 확인한다.
 - 잔존: `HeroDashFx_Fan.mesh`·중첩 CFXR 원본 프리팹 폴더는 삭제하지 않는다(다른 프리팹이 CFXR 사용, 부채꼴 메시는 사용처 0이 되지만 롤백 여지 — 육안 승인 후 별도 정리 커밋).
 
 ### 8.4 일회용 에디터 툴 (Rule 04 §3 — 실행 후 삭제)
@@ -306,7 +308,7 @@
 |---|---|---|---|
 | 자동 | EditMode 전체 | §10 신규 테스트 통과 + 기존 회귀(`PoisonAuraTests`·`HitFeedbackTests`·`OrbitingBlade*Tests` 등) 통과 | test-engineer |
 | 자동 | PlayMode 회귀 | `HeroSkillFxAttachPlayTests`·`HitFeedbackPlayTests`·`HeroSkillRunnerPhasePlayTests` 통과(Orbit 단일 FX 반영 갱신 포함) | test-engineer |
-| 육안(Battle 플레이 스크린샷) | ① 돌진: HP 90% 이하 진입 후 첫 발동 시점, 발동 후 0.083s(F0)·0.25s(F3)·0.75s(F9) 3장 | 부채꼴이 몬스터 무게중심 방향으로 벌어짐, F3 에서 길이 7u·반각 35° 와 화면상 일치, 바닥 잘림 없음 | 메인 → 사용자 |
+| 육안(Battle 플레이 스크린샷) | ① 돌진: HP 90% 이하 진입 후 첫 발동 시점, 발동 후 0.083s(F0)·0.25s(F3)·0.75s(F9) 3장 | 원형 회전 베기가 영웅 중심 반경 3u 판정 원과 화면상 일치(가로·세로), 바닥 잘림 없음 | 메인 → 사용자 |
 | | ② 노바: HP 30% 이하 진입 후 첫 발동 F0~F9 | 링 바깥 가장자리가 반경 3.5u 판정 원과 일치(가로·세로) | 〃 |
 | | ③ 회전 블레이드: HP 60% 이하 진입 후 2초 | 블레이드 3개가 판정 구가 도는 방향(화면 반시계)으로 돈다, 몬스터 피격 위치와 시각 블레이드가 같은 쪽 | 〃 |
 | | ④ 독 장판: `HeroPoisonAura` 카드 적용 직후 + 3초 | 링이 반경 1.25u 원과 일치, 영웅이 안에서 밖으로 나가면 데미지 중단과 시각이 맞음 | 〃 |
@@ -326,7 +328,7 @@
 | 스펙 ↔ 수명 | 1회 FX 길이(frames ÷ 12): Dash 0.833 · Nova 0.833 · Fear 1.167. 루프 FX 는 `_returnToPoolOnFinish == false` |
 | 재생/종료/풀 리셋 | Pop → 종료 → `Finished` 1회 발행 → Push. 재 Pop 시 `CurrentFrame == 0`·`IsFinished == false`. 1회성 3종에서 `ReturnToPoolAfter` 부재(이중 Push 방지) |
 | 궤도 위상 | `_angleDeg` = 0 → 프레임 0, 90 → frame floor((1−0.25)×24) = 18, 180 → 12, 270 → 6(반시계 정합). `_bladeCount == 3` 고정 |
-| 부채꼴 각도 정합 | `DashStrikeSkillData` 반각 35° ↔ 시안 0.61rad(34.95°) 허용오차 0.1° |
+| 돌진 판정 값 정합 | `HeroSkill_DashStrike.asset` 의 `_coneHalfAngle`=180 · `_dashLength`=3 (시트·PPU 52 가 이 값 전제) |
 | 판정 불변 | 기존 `OrbitingBladeSkillTests`·`OrbitingBladeBoundaryTests`·Dash/Nova 스킬 테스트 무수정 통과(핸들 변경 반영 외 판정 assert 변경 0) |
 | 데미지 팝업 | n=0 → 부상 0·알파 1.00, n=4 → 알파 1.00, n=5 → 0.75, n=7 → 부상 1.2·알파 0.25, n=8 → 알파 0. 색·값 텍스트 불변 |
 | 셰이더 회귀 | `Mat_Monster2D` 에 `_ZTest` 프로퍼티가 저장되지 않아 기본 LEqual 로 동작(기존 렌더 회귀 0) |
@@ -349,9 +351,9 @@
 
 | ID | 위험 | 완화 · 확인 |
 |---|---|---|
-| R1 | 돌진 판정 각도 ≠ 시트 각도가 될 가능성: 시트 반각은 34.95°로 고정이고 SO `_coneHalfAngle` 이 바뀌면 시각이 따라가지 못한다 | 시각만 시트에 고정하고 **판정은 SO 값을 그대로** 사용(판정 불변 원칙). 각도 변경 시 시트 재추출이 필요하다는 점을 §10 부채꼴 각도 테스트가 알린다(35° 이탈 시 실패) |
+| R1 | 돌진 판정 값(반각 180·반경 3)이 바뀌면 시트(원형 반지름 52px, PPU 52)가 따라가지 못한다 | **판정은 SO 에셋 값을 그대로** 사용(판정 불변 원칙). 값 변경 시 스케일은 `DashLength` 로 자동 추종, 원형이 아니게 바뀌면 재추출 필요 — §10 판정 값 정합 테스트가 알린다 |
 | R2 | 궤도 앞/뒤 깊이(영웅 사이 정렬) 미표현, 위상 뒤집기 방향 오류 가능성 | 게이트 ③ 스크린샷. 방향이 반대로 보이면 `SetLoopPhase` 인자에서 `1 −` 제거 1줄 수정 |
-| R3 | 부채꼴 FX 가 4프레임(0.333s)에 걸쳐 확장 → 판정(즉시 전 범위)보다 시각이 늦게 완성 | 현행 CFXR 폭발(0.45s)도 즉시 판정과 같은 구조라 수용. 체감 문제면 시트 앞 프레임을 줄이는 재추출 |
+| R3 | 돌진 FX 가 여러 프레임에 걸쳐 진행 → 판정(즉시 전 범위)보다 시각이 늦게 완성 | 현행 CFXR 폭발(0.45s)도 즉시 판정과 같은 구조라 수용. 체감 문제면 시트 앞 프레임을 줄이는 재추출 |
 | R4 | 서 있는 FX 의 `ZTest Always` 가 다른 오브젝트(HP 바 캔버스 등) 뒤에 가려져야 할 때도 위에 그려짐 | sortingOrder 10 으로 의도한 표식이라 수용. 게이트 ⑤ 확인 |
 | R5 | `Battle.unity` 외 씬(Village 등)에 같은 FX 프리팹이 스폰되는 경우 `MapBackground` 별도 씬의 sortingOrder 가 −10 보다 높으면 지면 FX 가 가려짐 | 현재 FX 스폰은 전투 씬(`BattleController`·카드 효과) 한정. 마을 씬에 지면 FX 사용처가 생기면 그 씬의 바닥 order 를 −20 으로 |
 | R6 | 영웅 S5(×1.4)에서 TimeStop 아이콘 스케일 = `lossyScale.x` 전달이 누락되면 상대적으로 작아 보임 | 게이트 ⑤ + §10 확인 |
@@ -359,7 +361,7 @@
 
 ### 11.3 답변 요약 (요청 7-(a)~(d))
 
-- (a) 데미지 숫자: D2 = A 권장. (b) 돌진 각도 불일치: 시각만 시트에 맞추고 판정 불변(R1, 35° 대 34.95° 는 사실상 일치). (c) 영웅 좌우/회전: 서 있는 FX 는 좌우 대칭이라 flipX 를 쓰지 않고, 부채꼴만 루트 yaw 로 방향 회전. (d) 새 JSON 스키마: **없음**.
+- (a) 데미지 숫자: D2 = A 권장. (b) 돌진: 판정 전방위(반각 180)·반경 3, FX 는 원형 회전 베기로 재추출돼 각도 불일치 없음(R1). (c) 영웅 좌우/회전: 서 있는 FX 는 좌우 대칭이라 flipX 를 쓰지 않고, 돌진은 원형이라 방향 회전이 없다. (d) 새 JSON 스키마: **없음**.
 
 ---
 
