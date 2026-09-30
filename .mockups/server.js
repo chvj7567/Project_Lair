@@ -23,10 +23,35 @@ const FX_NAMES = new Set([
   'DamagePopup_Sheet.png', 'PoisonAura_Sheet.png', 'TimeStopShield_Sheet.png', 'FearSkull_Sheet.png',
   'HeroDashConeFx_Sheet.png', 'HeroNovaFx_Sheet.png', 'HeroOrbitBladeFx_Sheet.png', 'FX2D_SheetSpec.json',
 ]);
+//# POST /export/<Name> — 씬 2D 도트 배경·장식(scene-2d-atmosphere.html, 기획서 scene-2d-conversion §2.2·§2.4). Art/Sprites/Backdrop2D 로만 저장.
+const BACKDROP_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Backdrop2D');
+const BACKDROP_NAMES = new Set([
+  'Battle_Backdrop.png', 'Flame_Soul8_Sheet.png',
+  'Village_Backdrop.png', 'Village_CauldronGlow.png', 'Village_CauldronBubbles_Sheet.png', 'Village_CrownSparkle.png',
+  'Village_ProjectorRings.png', 'Village_HoloScan_Sheet.png',
+  'Flame_Warm7_Sheet.png', 'Flame_Warm3_Sheet.png', 'Flame_Warm3w1_Sheet.png', 'Shadow_R6.png', 'Shadow_R11.png',
+  'Loading_Backdrop.png', 'Loading_DoorGlow.png', 'Loading_CircleRings.png', 'Loading_AxisRing.png',
+  'Flame_Soul10_Sheet.png', 'Shadow_R7.png',
+  'Dot_1x1.png', 'Dot_2x1.png', 'Light2D_Falloff.png',
+  'Backdrop2D_SheetSpec.json',
+]);
+//# POST /export/<Name> — 같은 시안의 UI 도트 스프라이트 4장. Art/Sprites/UiDot 로만 저장.
+const UIDOT_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'UiDot');
+const UIDOT_NAMES = new Set([
+  'BossBar_Fill.png', 'BossBar_TickGem.png', 'Loading_BarFrame.png', 'Loading_BarFill.png',
+]);
 const EXPORT_MAX_BYTES = 20 * 1024 * 1024;
 
+function exportDirOf(name) {
+  if (EXPORT_NAMES.has(name)) return EXPORT_DIR;
+  if (FX_NAMES.has(name)) return FX_DIR;
+  if (BACKDROP_NAMES.has(name)) return BACKDROP_DIR;
+  if (UIDOT_NAMES.has(name)) return UIDOT_DIR;
+  return null;
+}
+
 function handleExport(req, res, name) {
-  const dir = EXPORT_NAMES.has(name) ? EXPORT_DIR : (FX_NAMES.has(name) ? FX_DIR : null);
+  const dir = exportDirOf(name);
   if (dir === null) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden name: ' + name);

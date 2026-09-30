@@ -44,6 +44,12 @@ table.cmp th,table.cmp td{border:1px solid var(--line);padding:5px 7px;text-alig
 table.cmp th{background:var(--card);font-weight:600}
 .box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}
 #msg{font-size:13px;color:var(--muted)}
+/*# 3′ 광각판 — 1228×704 캔버스, .scr = 실제 화면(1194.67×672, 여백 16.67/16 도트) */
+.wide-scroll{overflow-x:auto}
+.stage.wide{aspect-ratio:1228/704}
+.stage.wide.zoom1{width:1228px}
+.scr{position:absolute;left:1.3572%;top:2.2727%;width:97.2856%;height:95.4545%;pointer-events:none}
+.stage.showframe .scr{outline:1px dashed rgba(255,255,255,.75)}
 /*# 배틀 HUD — 960×540 기준 좌표, 스테이지 폭에 맞춰 scale */
 .bhud-wrap{position:absolute;inset:0;pointer-events:none;display:none;overflow:hidden}
 .stage.showhud .bhud-wrap{display:block}
@@ -116,7 +122,7 @@ table.cmp th{background:var(--card);font-weight:600}
   <h1>씬 2D 분위기 시안 — 로딩 · 마을 · 배틀</h1>
   <p>영웅·몬스터가 도트 스프라이트로 바뀐 데 맞춰 <b>세 씬의 배경과 바닥을 2D 도트로</b> 다시 그린 시안입니다. 캐릭터는 게임에 들어간 실제 시트(Knight_Sheet_S3, 몬스터 6종 T0)를 그대로 재생합니다.</p>
   <p>조명은 도트 계단식(디더)으로 계산합니다. 각 씬 아래 <b>조명</b> 버튼으로 끄면 바탕 도트 색을 그대로 볼 수 있고, <b>HUD 영역</b> 버튼은 기존 HUD 가 화면을 가리는 대략적인 범위를 겹쳐 보여 줍니다.</p>
-  <nav class="toc"><a href="#s-loading">1. 첫 로딩</a><a href="#s-village">2. 마을</a><a href="#s-battle">3. 배틀</a><a href="#s-impl">바닥 2D 전환 메모</a></nav>
+  <nav class="toc"><a href="#s-loading">1. 첫 로딩</a><a href="#s-village">2. 마을</a><a href="#s-battle">3. 배틀</a><a href="#s-battle-wide">3′. 배틀 광각판</a><a href="#s-export">추출</a><a href="#s-impl">바닥 2D 전환 메모</a></nav>
   <div id="msg">스프라이트·폰트 불러오는 중…</div>
 </header>
 
@@ -162,19 +168,7 @@ table.cmp th{background:var(--card);font-weight:600}
 <section class="sc" id="s-battle">
   <div class="hd"><h2>3. 배틀 — 넓은 투기장 + HUD 재배치</h2><code>Battle.unity · Floor / MapBackground → 2D · BattleHud.prefab 배치 변경</code></div>
   <div class="stage showhud" id="st-battle"><canvas></canvas>
-    <div class="bhud-wrap"><div class="bhud" id="bhud">
-      <div class="px dark b-timer"><div class="k">남은 시간</div><div class="v" id="bh-timer">5:00</div></div>
-      <div class="b-boss">
-        <div class="b-name"><span><em>침입자</em> 기사 · 3단계</span><span id="bh-hptxt">1000 / 1000</span></div>
-        <div class="b-bar"><b id="bh-hp"></b><i id="bh-lag"></i><div class="ticks" id="bh-ticks"></div></div>
-        <div class="b-status" id="bh-status"></div>
-      </div>
-      <div class="px dark b-active"><div class="k">액티브 카드</div><div class="v" id="bh-act">0:30</div><div class="mini"><b id="bh-actbar"></b></div></div>
-      <div class="b-spawn" id="bh-spawn"></div>
-      <div class="b-syn" id="bh-syn"><div class="synhd">시너지 <span>상세 ›</span></div></div>
-      <div class="px dark b-build" id="bh-build"></div>
-      <div class="b-banner" id="bh-banner"><span class="tag">SKILL</span>영웅의 <em>'회전 칼날'</em> 스킬 해제</div>
-    </div></div>
+    <div class="bhud-wrap"></div>
   </div>
   <div class="ctl" data-for="st-battle"><button data-act="light" class="on">조명</button><button data-act="hud2" class="on">HUD</button><button data-act="pause">일시정지</button></div>
   <div class="note">
@@ -197,6 +191,39 @@ table.cmp th{background:var(--card);font-weight:600}
     </table>
     <p class="muted" style="margin-top:6px">결과적으로 위쪽은 보스 바, 아래쪽은 스포너, 오른쪽은 시너지와 빌드를 맡고, <b>왼쪽 가장자리와 가운데는 비어 있습니다</b>. 전장 정보(스포너)는 아래, 내 빌드 정보(시너지·카드)는 오른쪽으로 역할을 나눴습니다.</p>
     <div class="sw"><span><i style="background:#05060a"></i>#05060A 심연</span><span><i style="background:#2a3242"></i>#2A3242 석판</span><span><i style="background:#3a4358"></i>#3A4358 테두리</span><span><i style="background:#28e66e"></i>도깨비불</span><span><i style="background:#c0cce6"></i>망령</span><span><i style="background:#e64141"></i>사신</span><span><i style="background:#e6af08"></i>저주술사</span><span><i style="background:#9c4fe6"></i>역병귀</span><span><i style="background:#82abe6"></i>환령</span></div>
+  </div>
+</section>
+
+<section class="sc" id="s-battle-wide">
+  <div class="hd"><h2>3′. 배틀 광각판 — 현행 시야 그대로 (재확인 필요)</h2><code>buildBattleWide · Battle_Backdrop 1228×704 · 기획서 scene-2d-conversion §3.1.1</code></div>
+  <div class="wide-scroll"><div class="stage wide showhud showframe" id="st-battle-wide"><canvas></canvas>
+    <div class="scr"><div class="bhud-wrap"></div></div>
+  </div></div>
+  <div class="ctl" data-for="st-battle-wide"><button data-act="light" class="on">조명</button><button data-act="hud2" class="on">HUD</button><button data-act="frame" class="on">화면 경계</button><button data-act="zoom">1× 원본 크기</button><button data-act="pause">일시정지</button></div>
+  <div class="note">
+    <ul>
+      <li>게임의 <b>지금 배틀 시야(카메라 size 7)를 그대로 둔 채</b> 그 화면을 채우도록 배경을 다시 그린 판입니다. 위 3번 시안(640×360)은 화면을 좁혀 본 구도였고, 실제 게임 화면은 <b>1194.67×672 도트</b>라 배경을 <b>1228×704</b>(흔들림 여백 포함)로 새로 그렸습니다. 캐릭터 도트 크기는 두 판이 같습니다.</li>
+      <li>점선 사각형이 실제 화면 경계입니다. 바깥 띠(좌우 16.67·위아래 16 도트)는 카메라가 흔들릴 때만 드러나는 여백입니다.</li>
+      <li>팔레트·그리기 함수·시드(41)는 3번과 같고, 크기·투기장 반경·석판 동심원 수(8 → 15)·벽 기둥 위치·균열/핏자국/뼈 개수만 넓이에 맞춰 늘렸습니다. 투기장은 화면 좌우 밖까지 이어집니다.</li>
+      <li><b>스포너 제단은 없습니다.</b> 스포너는 지금 게임처럼 화면 밖(반지름 20)에 있어서, 몬스터가 화면 가장자리에서 걸어 들어옵니다(여기서는 도깨비불이 오른쪽 0° 스포너에서 들어옴). 스포너 정보는 아래 HUD 스포너 줄이 맡습니다.</li>
+      <li>화로 4개는 HUD 에 가리지 않는 투기장 네 귀퉁이(193,218)·(1035,218)·(193,514)·(1035,514)에 둡니다. 영웅은 투기장 중심 (614,366)에 서 있습니다.</li>
+      <li>화면이 넓어진 만큼 조명이 닿지 않는 어두운 가장자리가 3번보다 많습니다(의도). 너무 어두우면 앰비언트만 조정합니다.</li>
+      <li><b>이 구도를 승인(G1a)해 주셔야</b> 아래 추출 버튼으로 에셋을 저장합니다.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sc" id="s-export">
+  <div class="hd"><h2>추출 — Backdrop2D · UiDot</h2><code>POST /export/&lt;파일명&gt; → Assets/_Lair/Art/Sprites/Backdrop2D · UiDot</code></div>
+  <div class="box note">
+    <b>3′ 배틀 광각판 승인(G1a) 뒤에만 누르세요.</b>
+    <ul>
+      <li>서버에서 열어야 저장됩니다: <code>node .mockups/server.js</code> → <code>http://localhost:8777/scene-2d-atmosphere.html</code></li>
+      <li>마을·로딩 배경은 위 시안과 같은 함수·시드로 픽셀 그대로, 배틀 배경은 3′ 광각판(<code>buildBattleWide</code>)으로 저장합니다. 불꽃 시트는 위상 0, t = i/12 로 24프레임을 굽습니다.</li>
+      <li>각 조각을 여백 캔버스에 먼저 그려 목표 크기 밖으로 잘리는 도트가 있는지 검산합니다. 하나라도 실패하면 추출하지 않습니다.</li>
+    </ul>
+    <div class="ctl"><button id="bExport">Backdrop2D 추출</button><span id="exMsg" class="muted" style="align-self:center"></span></div>
+    <table class="cmp" id="exTable"></table>
   </div>
 </section>
 
@@ -335,33 +362,33 @@ function drawMon(ctx,sp,row,f,x,y,flip,e){
 }
 const fr=(t,n,fps)=>Math.floor(t*fps)%n;
 function shadow(ctx,x,y,rx){const g=mk(ctx);ctx.globalAlpha=.4;g.ell('#000',x,y,rx,Math.max(1,Math.round(rx/3.5)));ctx.globalAlpha=1;}
-function flame(ctx,x,y,t,size,pal,wd=2){
-  const g=mk(ctx);const h=size+Math.round(Math.sin(t*13+x)*1+Math.sin(t*7.3+x*1.7)*.8);
-  for(let c=-wd;c<=wd;c++){const ch=Math.max(1,Math.round(h*(1-Math.abs(c)/(wd+1))+Math.sin(t*17+c*2+x)*.9));
+//# ph = 위상(기본 x — 시안 동작). 추출 시트는 ph=0 으로 굽는다(기획서 §2.4 불꽃 산식).
+function flame(ctx,x,y,t,size,pal,wd=2,ph=x){
+  const g=mk(ctx);const h=size+Math.round(Math.sin(t*13+ph)*1+Math.sin(t*7.3+ph*1.7)*.8);
+  for(let c=-wd;c<=wd;c++){const ch=Math.max(1,Math.round(h*(1-Math.abs(c)/(wd+1))+Math.sin(t*17+c*2+ph)*.9));
     g.R(pal[2],x+c,y-ch,1,ch);if(Math.abs(c)<wd)g.R(pal[1],x+c,y-Math.round(ch*.7),1,Math.round(ch*.7));}
   g.R(pal[0],x,y-Math.round(h*.45),1,Math.round(h*.45));
-  if(Math.floor(t*6+x)%3===0)g.P(pal[1],x+(Math.floor(t*10)%3-1),y-h-2);
+  if(Math.floor(t*6+ph)%3===0)g.P(pal[1],x+(Math.floor(t*10)%3-1),y-h-2);
 }
 
-//# 도트 조명 — 480×270 라이트맵을 디더 계단으로 양자화해 960×540 에 곱한다
-const LM=new Float32Array(640*360*3);
-function applyLight(ctx,amb,lights){
+//# 도트 조명 — W×H 라이트맵을 디더 계단으로 양자화해 표시 캔버스(도트당 sc×sc 픽셀)에 곱한다
+const LM=new Float32Array(1228*704*3);
+function applyLight(ctx,amb,lights,sc=2){
   for(let i=0;i<W*H;i++){LM[i*3]=amb[0];LM[i*3+1]=amb[1];LM[i*3+2]=amb[2];}
   for(const l of lights){const sq=l.sq||1,r=l.r,ry=r*sq;
     const x0=Math.max(0,Math.floor(l.x-r)),x1=Math.min(W-1,Math.ceil(l.x+r)),y0=Math.max(0,Math.floor(l.y-ry)),y1=Math.min(H-1,Math.ceil(l.y+ry));
     for(let y=y0;y<=y1;y++){const dy=(y-l.y)/sq;for(let x=x0;x<=x1;x++){const dx=x-l.x,d2=(dx*dx+dy*dy)/(r*r);if(d2>=1)continue;
       const f=1-Math.sqrt(d2),k=f*f*l.i,j=(y*W+x)*3;LM[j]+=l.c[0]*k;LM[j+1]+=l.c[1]*k;LM[j+2]+=l.c[2]*k;}}}
-  const img=ctx.getImageData(0,0,W*2,H*2),d=img.data,Q=6;
+  const RW=W*sc,img=ctx.getImageData(0,0,RW,H*sc),d=img.data,Q=6;
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const j=(y*W+x)*3,th=BAYER[(y&3)*4+(x&3)];
     const r=Math.floor(LM[j]*Q+th)/Q,g=Math.floor(LM[j+1]*Q+th)/Q,b=Math.floor(LM[j+2]*Q+th)/Q;
-    let p=(y*2*W*2+x*2)*4;
-    for(let q=0;q<2;q++){d[p]*=r;d[p+1]*=g;d[p+2]*=b;d[p+4]*=r;d[p+5]*=g;d[p+6]*=b;p+=W*2*4;}}
+    for(let qy=0;qy<sc;qy++){let p=((y*sc+qy)*RW+x*sc)*4;for(let qx=0;qx<sc;qx++,p+=4){d[p]*=r;d[p+1]*=g;d[p+2]*=b;}}}
   ctx.putImageData(img,0,0);
 }
 
 function Engine(id,def){
-  const DW=def.w||480,DH=def.h||270;W=DW;H=DH;
-  const st=document.getElementById(id),cv=st.querySelector('canvas');cv.width=W*2;cv.height=H*2;
+  const DW=def.w||480,DH=def.h||270,SC=def.scale||2;W=DW;H=DH;
+  const st=document.getElementById(id),cv=st.querySelector('canvas');cv.width=W*SC;cv.height=H*SC;
   const ctx=cv.getContext('2d',{willReadFrequently:true});
   const base=document.createElement('canvas');base.width=W;base.height=H;
   const b=base.getContext('2d',{willReadFrequently:true});
@@ -371,11 +398,11 @@ function Engine(id,def){
   function draw(){
     W=DW;H=DH;
     ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.filter='none';
-    ctx.drawImage(base,0,0,W*2,H*2);
-    ctx.setTransform(2,0,0,2,0,0);ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(base,0,0,W*SC,H*SC);
+    ctx.setTransform(SC,0,0,SC,0,0);ctx.imageSmoothingEnabled=false;
     def.lit(ctx,S,t);
-    if(lit){ctx.setTransform(1,0,0,1,0,0);applyLight(ctx,def.ambient,def.lights(S,t));}
-    ctx.setTransform(2,0,0,2,0,0);ctx.imageSmoothingEnabled=false;
+    if(lit){ctx.setTransform(1,0,0,1,0,0);applyLight(ctx,def.ambient,def.lights(S,t),SC);}
+    ctx.setTransform(SC,0,0,SC,0,0);ctx.imageSmoothingEnabled=false;
     def.emissive(ctx,S,t);
     ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.filter='none';
     def.overlay(ctx,S,t);
@@ -396,6 +423,8 @@ function Engine(id,def){
     if(a==='light'){lit=!lit;btn.classList.toggle('on',lit);draw();}
     if(a==='pause'){paused=!paused;btn.classList.toggle('on',paused);}
     if(a==='hud'||a==='hud2'){st.classList.toggle('showhud');btn.classList.toggle('on');}
+    if(a==='frame'){st.classList.toggle('showframe');btn.classList.toggle('on');}
+    if(a==='zoom'){st.classList.toggle('zoom1');btn.classList.toggle('on');}
   }));
   draw();requestAnimationFrame(frame);
 }
@@ -634,25 +663,43 @@ const VScene={
 };
 
 //# ============ 3. 배틀 (줌아웃 640×360) ============
+//# 배틀 HUD 마크업(960×540 기준) — hudInit 이 .bhud-wrap 안에 찍는다.
+const BHUD_HTML=`<div class="bhud" data-k="bhud">
+  <div class="px dark b-timer"><div class="k">남은 시간</div><div class="v" data-k="bh-timer">5:00</div></div>
+  <div class="b-boss">
+    <div class="b-name"><span><em>침입자</em> 기사 · 3단계</span><span data-k="bh-hptxt">1000 / 1000</span></div>
+    <div class="b-bar"><b data-k="bh-hp"></b><i data-k="bh-lag"></i><div class="ticks" data-k="bh-ticks"></div></div>
+    <div class="b-status" data-k="bh-status"></div>
+  </div>
+  <div class="px dark b-active"><div class="k">액티브 카드</div><div class="v" data-k="bh-act">0:30</div><div class="mini"><b data-k="bh-actbar"></b></div></div>
+  <div class="b-spawn" data-k="bh-spawn"></div>
+  <div class="b-syn" data-k="bh-syn"><div class="synhd">시너지 <span>상세 ›</span></div></div>
+  <div class="px dark b-build" data-k="bh-build"></div>
+  <div class="b-banner" data-k="bh-banner"><span class="tag">SKILL</span>영웅의 <em>'회전 칼날'</em> 스킬 해제</div>
+</div>`;
 const ARENA={x:320,y:198,rx:336,ry:148};
 const ALTAR={};[['Wisp',240],['Reaper',180],['Hex',120],['Wraith',60],['Plague',0],['Phantom',300]].forEach(([sp,deg])=>{const a=deg*Math.PI/180;ALTAR[sp]={x:Math.round(320+204*Math.cos(a)),y:Math.round(198-96*Math.sin(a))};});
 const BRAZ=[150,30,210,330].map(d=>{const a=d*Math.PI/180;return{x:Math.round(320+300*Math.cos(a)),y:Math.round(198-132*Math.sin(a))};});
 const HERO={x:320,y:204};
-const BScene={
-  seed:41,w:640,h:360,ambient:[.44,.5,.64],
-  build(b,rng){
+//# 배틀 배경 파라미터 — 승인 시안(640×360)과 광각판(1228×704, 기획서 scene-2d-conversion §3.1.1). 팔레트·함수·시드는 공용.
+const BATTLE_SIAN={w:640,h:360,noise:70,wallH:40,pillars:[70,180,450,560],arena:ARENA,rings:8,cracks:22,blood:9,bones:12,braz:BRAZ,altars:true};
+const BATTLE_WIDE={w:1228,h:704,noise:263,wallH:56,pillars:[147,353,857,1062],arena:{x:614,y:366,rx:624,ry:258},rings:15,cracks:83,blood:34,bones:45,
+  braz:[{x:193,y:218},{x:1035,y:218},{x:193,y:514},{x:1035,y:514}],altars:false};
+//# W·H 전역이 P.w·P.h 여야 한다(Engine·추출기가 호출 전에 맞춘다).
+function buildBattle(b,rng,P){
     const g=mk(b);
     gradFill(b,0,0,W,H,['#05060a','#070a10','#080b12','#06080c']);
-    for(let i=0;i<70;i++)g.P(rng()<.5?'#111827':'#0d1320',Math.floor(rng()*W),Math.floor(rng()*H));
-    brickWall(b,rng,0,0,W,40,['#1b2231','#1e2636','#182030','#222b3d'],'#0c1018');
-    for(const x of [70,180,450,560]){g.R('#222b3d',x,0,16,42);g.R('#2e3850',x,0,3,42);g.R('#12171f',x+13,0,3,42);g.R('#2e3850',x-2,36,20,4);}
-    g.R('#2a3347',0,40,W,4);g.R('#3a4358',0,40,W,1);
+    for(let i=0;i<P.noise;i++)g.P(rng()<.5?'#111827':'#0d1320',Math.floor(rng()*W),Math.floor(rng()*H));
+    const WH=P.wallH;
+    brickWall(b,rng,0,0,W,WH,['#1b2231','#1e2636','#182030','#222b3d'],'#0c1018');
+    for(const x of P.pillars){g.R('#222b3d',x,0,16,WH+2);g.R('#2e3850',x,0,3,WH+2);g.R('#12171f',x+13,0,3,WH+2);g.R('#2e3850',x-2,WH-4,20,4);}
+    g.R('#2a3347',0,WH,W,4);g.R('#3a4358',0,WH,W,1);
     //# 투기장 바닥 (픽셀 단위 동심원 석판)
-    const img=b.getImageData(0,0,W,H),d=img.data,A=ARENA;
+    const img=b.getImageData(0,0,W,H),d=img.data,A=P.arena;
     const tp=['#262d3c','#2a3242','#232a38','#2d3546','#28303f'].map(hex),mortar=hex('#131824'),rim=hex('#3a4358'),rimHi=hex('#4d5872'),rimDk=hex('#2a3141'),
       cliffA=hex('#161b27'),cliffB=hex('#0e1119'),inner=hex('#221f30'),innerL=hex('#3a3350');
     const hash=(a,c)=>{let h=Math.imul(a,374761393)+Math.imul(c,668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296;};
-    const RINGS=8;
+    const RINGS=P.rings;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
       const nx=(x-A.x)/A.rx,ny=(y-A.y)/A.ry,rr=Math.hypot(nx,ny);let c=null;
       if(rr<=1){
@@ -672,18 +719,22 @@ const BScene={
     }
     b.putImageData(img,0,0);
     const inArena=(r)=>{const a=rng()*Math.PI*2;return[Math.round(A.x+Math.cos(a)*r*A.rx*.9),Math.round(A.y+Math.sin(a)*r*A.ry*.9)];};
-    for(let i=0;i<22;i++){const[x,y]=inArena(.2+rng()*.7);crack(g,rng,x,y,6+Math.floor(rng()*9),'#161b26');}
-    for(let i=0;i<9;i++){const[x,y]=inArena(.25+rng()*.6);for(let k=0;k<16;k++)g.P(rng()<.5?'#3a1a22':'#2e161c',x+Math.floor(rng()*9)-4,y+Math.floor(rng()*4)-2);}
-    for(let i=0;i<12;i++){const[x,y]=inArena(.3+rng()*.6);
+    for(let i=0;i<P.cracks;i++){const[x,y]=inArena(.2+rng()*.7);crack(g,rng,x,y,6+Math.floor(rng()*9),'#161b26');}
+    for(let i=0;i<P.blood;i++){const[x,y]=inArena(.25+rng()*.6);for(let k=0;k<16;k++)g.P(rng()<.5?'#3a1a22':'#2e161c',x+Math.floor(rng()*9)-4,y+Math.floor(rng()*4)-2);}
+    for(let i=0;i<P.bones;i++){const[x,y]=inArena(.3+rng()*.6);
       if(rng()<.4){g.ell('#b9b09a',x,y,3,2);g.P('#1a1d24',x-1,y);g.P('#1a1d24',x+1,y);}else{g.R('#b9b09a',x-3,y,7,1);g.P('#b9b09a',x-4,y-1);g.P('#b9b09a',x+4,y+1);}}
-    //# 제단
-    for(const sp in ALTAR){const{x,y}=ALTAR[sp];g.ring(shade(GLOW[sp],.35),x,y+1,22,8);g.ring(shade(GLOW[sp],.25),x,y+1,16,6);
+    //# 제단 (광각판은 스포너가 화면 밖이라 없음 — §3.2)
+    if(P.altars)for(const sp in ALTAR){const{x,y}=ALTAR[sp];g.ring(shade(GLOW[sp],.35),x,y+1,22,8);g.ring(shade(GLOW[sp],.25),x,y+1,16,6);
       g.ell('#0d1019',x,y+1,11,4);g.R('#2e3850',x-9,y-3,18,4);g.R('#3a4358',x-9,y-3,18,1);
       g.R('#262d3c',x-6,y-16,12,13);g.R('#3a4358',x-6,y-16,3,13);g.R('#4d5872',x-6,y-16,1,13);g.R('#171d2a',x+4,y-16,2,13);
       g.R('#3a4358',x-8,y-19,16,3);g.R('#56627e',x-8,y-19,16,1);}
     //# 화로
-    for(const{x,y}of BRAZ){g.ell('#0d1019',x,y+1,6,2);g.R('#2e3850',x-2,y-10,4,10);g.R('#3a4358',x-6,y-13,12,3);g.R('#56627e',x-6,y-13,12,1);g.R('#171d2a',x-5,y-11,10,1);}
-  },
+    for(const{x,y}of P.braz){g.ell('#0d1019',x,y+1,6,2);g.R('#2e3850',x-2,y-10,4,10);g.R('#3a4358',x-6,y-13,12,3);g.R('#56627e',x-6,y-13,12,1);g.R('#171d2a',x-5,y-11,10,1);}
+}
+function buildBattleWide(b,rng){buildBattle(b,rng,BATTLE_WIDE);}
+const BScene={
+  seed:41,w:640,h:360,ambient:[.44,.5,.64],
+  build(b,rng){buildBattle(b,rng,BATTLE_SIAN);},
   init(){
     const atk=(sp,x,y,flip,ph)=>({sp,x,y,flip,ph,atk:false,t0:0,next:Math.random()*1.5,hit:false});
     return{
@@ -711,10 +762,10 @@ const BScene={
     S.orbs=S.orbs.filter(o=>{if(t-o.t0>=o.dur){hitHero(18+Math.floor(Math.random()*10),Math.random()<.3);return false;}return true;});
     for(const w of S.wisps){
       if(w.delay>0){w.delay-=dt;continue;}
-      if(w.state==='walk'){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d<1.5){w.state='atk';w.t0=t;w.swings=0;w.hit=false;}else{w.x+=dx/d*30*dt;w.y+=dy/d*30*dt;}}
+      if(w.state==='walk'){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d<1.5){w.state='atk';w.t0=t;w.swings=0;w.hit=false;}else{const v=this.wispSpeed||30;w.x+=dx/d*v*dt;w.y+=dy/d*v*dt;}}
       else if(w.state==='atk'){const f=Math.floor((t-w.t0)*12);if(f>=1&&!w.hit){w.hit=true;hitHero(4+Math.floor(Math.random()*5),false);}
         if(f>=5){w.swings++;w.t0=t;w.hit=false;if(w.swings>=3){w.state='die';w.t0=t;}}}
-      else if(w.state==='die'){if((t-w.t0)*12>=6){w.state='walk';w.x=ALTAR.Wisp.x;w.y=ALTAR.Wisp.y;w.delay=.8;}}}
+      else if(w.state==='die'){if((t-w.t0)*12>=6){const sp=this.wispSpawn||ALTAR.Wisp;w.state='walk';w.x=sp.x;w.y=sp.y;w.delay=.8;}}}
     for(const p of S.phantoms)p.a+=dt*.8;
     S.sparks=S.sparks.filter(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=90*dt;s.life-=dt;return s.life>0;});
     S.nums=S.nums.filter(n=>t-n.t0<.9);
@@ -748,20 +799,27 @@ const BScene={
       const cy=y-27+bob;for(let r=0;r<9;r++){const w=r<4?r:8-r;g.R(c,x-w,cy+r,w*2+1,1);}g.R('#ffffff',x,cy+2,1,4);g.P('#ffffff',x-1,cy+3);
       if(Math.floor(t*3+x)%4===0)g.P(c,x+3,cy-3);}
     for(const p of BRAZ)flame(ctx,p.x,p.y-13,t+p.x,8,SOULF,3);
+    this._actorsGlow(ctx,S,t);
+    for(const e of S.ember){ctx.globalAlpha=.25+.25*Math.sin(t*3+e.p);g.P('#9ec3ff',e.x,e.y);}
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  },
+  //# 캐릭터 발광 + 저주 구슬 + 불똥 (가산 상태에서 호출)
+  _actorsGlow(ctx,S,t){
+    const g=mk(ctx);
     this._draws(ctx,S,t,true).forEach(o=>o.d());
     for(const o of S.orbs){const k=(t-o.t0)/o.dur,x=o.x0+(HERO.x-o.x0)*k,y=o.y0+(HERO.y-20-o.y0)*k-Math.sin(k*Math.PI)*10;
       for(let i=1;i<5;i++){const kk=Math.max(0,k-i*.05);ctx.globalAlpha=.6-i*.12;g.P('#e6af08',o.x0+(HERO.x-o.x0)*kk,o.y0+(HERO.y-20-o.y0)*kk-Math.sin(kk*Math.PI)*10);}
       ctx.globalAlpha=1;g.R('#e6af08',x-1,y-1,3,3);g.P('#fff3c4',x,y);}
     for(const s of S.sparks){ctx.globalAlpha=Math.min(1,s.life*4);g.P(s.c,s.x,s.y);}
-    for(const e of S.ember){ctx.globalAlpha=.25+.25*Math.sin(t*3+e.p);g.P('#9ec3ff',e.x,e.y);}
-    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   },
   overlay(ctx,S,t){
     for(const n of S.nums){const a=(t-n.t0)/.9;pxText(ctx,String(n.v),n.x,n.y-a*18,{font:n.crit?'14px Galmuri14, monospace':'11px Galmuri11, monospace',fill:n.col,outline:'#07090e',align:'center',alpha:a>.7?(1-a)/.3:1});}
   },
   //# HUD (DOM) — 960×540 좌표로 짜고 스테이지 폭에 맞춰 스케일
-  hudInit(){
-    const $=id=>document.getElementById(id);
+  //# wrap = .bhud-wrap(HUD 가 덮는 화면 영역). 같은 마크업을 원본(3)·광각판(3′) 두 곳에 찍는다.
+  hudInit(wrap){
+    wrap.innerHTML=BHUD_HTML;
+    const $=k=>wrap.querySelector(`[data-k="${k}"]`);
     const tk=$('bh-ticks');for(let i=1;i<=9;i++){const s=document.createElement('span');s.style.left=(i*10)+'%';tk.appendChild(s);}
     $('bh-status').innerHTML=['HeroPoisonAura','Slow','MarkOfDeath'].map(k=>`<i style="background-image:url(${ICON[k]})"></i>`).join('');
     const SP=[['Wisp',5,3,3],['Wraith',3,2,8],['Reaper',2,1,12],['Hex',1,1,6],['Plague',2,2,7],['Phantom',1,4,4]];
@@ -774,7 +832,7 @@ const BScene={
     const bic=(k,c,n)=>k?`<i class="bic" style="--c:${c};background-image:url(${ICON[k]})">${n?`<em>×${n}</em>`:''}</i>`:`<i class="bic emp"></i>`;
     $('bh-build').innerHTML=`<div class="lb" style="color:#5ef0b4">패시브 <span>4/6</span></div><div class="grid">`+[['SpawnWisps',2],['IronWill'],['SpawnerHaste'],['WallOfWisps'],[],[]].map(([k,n])=>bic(k,'#5ef0b4',n)).join('')
       +`</div><div class="lb" style="color:#f7c64a">액티브 <span>2/3</span></div><div class="grid">`+[['TimeStop'],['Fear',2],[]].map(([k,n])=>bic(k,'#f7c64a',n)).join('')+`</div>`;
-    const st=$('st-battle'),hud=$('bhud');new ResizeObserver(()=>{hud.style.transform=`scale(${st.clientWidth/960})`;}).observe(st);
+    const hud=$('bhud');new ResizeObserver(()=>{hud.style.transform=`scale(${wrap.clientWidth/960})`;}).observe(wrap);
     this._h={timer:$('bh-timer'),timerBox:$('bh-timer').parentElement,hp:$('bh-hp'),lag:$('bh-lag'),hptxt:$('bh-hptxt'),ticks:[...tk.children],act:$('bh-act'),actbar:$('bh-actbar'),
       cells:[...$('bh-spawn').children],banner:$('bh-banner')};
   },
@@ -791,6 +849,134 @@ const BScene={
   },
 };
 
+//# ============ 3′. 배틀 광각판 (1228×704 = 현행 카메라 size 7 화면 1194.67×672 + 흔들림 여백) ============
+//# 전투 연출은 3번 시뮬을 그대로 쓰고, 영웅을 BattleZone 중심 도트 (614,366) 로 옮긴다(오프셋 WOX·WOY). 캐릭터 도트 크기는 동일.
+const WOX=614-HERO.x,WOY=366-HERO.y;
+const BWide=Object.assign(Object.create(BScene),{
+  w:1228,h:704,scale:1,
+  //# 도깨비불 = 0° 스포너(화면 오른쪽 밖 dx 1574)에서 걸어 들어옴. 좌표는 오프셋 전 시안 좌표계
+  wispSpawn:{x:1244-WOX,y:366-WOY},wispSpeed:90,
+  build(b,rng){buildBattleWide(b,rng);},
+  init(){
+    const S=BScene.init.call(this);
+    S.wisps.forEach(w=>{w.x=this.wispSpawn.x;w.y=this.wispSpawn.y;});
+    S.ember=Array.from({length:188},()=>({x:Math.random()*1228,y:Math.random()*704,v:3+Math.random()*6,p:Math.random()*6}));
+    return S;
+  },
+  lit(ctx,S,t){ctx.save();ctx.translate(WOX,WOY);BScene.lit.call(this,ctx,S,t);ctx.restore();},
+  lights(S,t){
+    const L=[{x:HERO.x+WOX,y:HERO.y-12+WOY,r:110,sq:.55,c:[.7,.82,1],i:.7}];
+    BATTLE_WIDE.braz.forEach((p,i)=>L.push({x:p.x,y:p.y-14,r:70,sq:.65,c:[.4,1,.7],i:.8+Math.sin(t*10+i*2)*.07}));
+    for(const o of S.orbs){const k=(t-o.t0)/o.dur;L.push({x:o.x0+(HERO.x-o.x0)*k+WOX,y:o.y0+(HERO.y-20-o.y0)*k+WOY,r:26,c:[1,.75,.2],i:.8});}
+    return L;
+  },
+  emissive(ctx,S,t){
+    const g=mk(ctx);ctx.globalCompositeOperation='lighter';
+    //# 화로 불꽃 — 게임과 같이 위상 0 + 인스턴스별 시작 오프셋 0/0.5/1.0/1.5s(§3.1)
+    BATTLE_WIDE.braz.forEach((p,i)=>flame(ctx,p.x,p.y-13,t+i*.5,8,SOULF,3,0));
+    ctx.save();ctx.translate(WOX,WOY);this._actorsGlow(ctx,S,t);ctx.restore();
+    for(const e of S.ember){ctx.globalAlpha=.25+.25*Math.sin(t*3+e.p);g.P('#9ec3ff',e.x,e.y);}
+    ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  },
+  overlay(ctx,S,t){ctx.save();ctx.translate(WOX,WOY);BScene.overlay.call(this,ctx,S,t);ctx.restore();},
+});
+
+//# ============ 추출 — Backdrop2D · UiDot (기획서 scene-2d-conversion §2.2·§2.4) ============
+//# 각 조각은 시안과 같은 함수·시드로 1× 도트 캔버스에 그린다. org = 시안 캔버스의 좌상단 도트(조각 로컬 원점).
+//# raw = 캔버스 전체를 직접 채우는 조각(getImageData 기반이라 변환 없이 정확한 크기에 그린다).
+const withWH=(w,h,fn)=>{const pw=W,ph=H;W=w;H=h;try{fn();}finally{W=pw;H=ph;}};
+const flameSheet=(name,size,pal,wd)=>({name,folder:'Backdrop2D',w:(2*wd+3)*24,h:size+4,cell:[2*wd+3,size+4],frames:24,fps:12,
+  pivot:[+((wd+1)/(2*wd+3)).toFixed(4),0],org:[0,0],draw:(c,i)=>flame(c,wd+1,size+4,i/12,size,pal,wd,0)});
+const shadowPiece=(name,rx)=>{const ry=Math.max(1,Math.round(rx/3.5));
+  return{name,folder:'Backdrop2D',w:rx*2,h:ry*2+1,pivot:[.5,+((ry+1)/(2*ry+1)).toFixed(4)],org:[0,0],draw:c=>mk(c).ell('#000',rx,ry,rx,ry)};};
+const EXPORTS=[
+  //# 배틀
+  {name:'Battle_Backdrop.png',folder:'Backdrop2D',w:1228,h:704,pivot:[.5,.5],raw:c=>withWH(1228,704,()=>buildBattleWide(c,mulberry32(41)))},
+  flameSheet('Flame_Soul8_Sheet.png',8,SOULF,3),
+  //# 마을
+  {name:'Village_Backdrop.png',folder:'Backdrop2D',w:480,h:270,pivot:[.5,.5],raw:c=>withWH(480,270,()=>VScene.build(c,mulberry32(VScene.seed)))},
+  {name:'Village_CauldronGlow.png',folder:'Backdrop2D',w:19,h:5,pivot:[0,1],org:[118,155],draw:c=>{const g=mk(c);g.ell('#1f9e74',127,157,9,2);g.R('#5ef0b4',121,157,12,1);}},
+  {name:'Village_CauldronBubbles_Sheet.png',folder:'Backdrop2D',w:117,h:15,cell:[13,15],frames:9,fps:12,pivot:[0,1],org:[120,142],
+    draw:(c,i)=>{const g=mk(c);for(let k=0;k<4;k++){const ph=(i/9+k*.27)%1;g.P(ph>.7?'#e9fff6':'#5ef0b4',120+k*4,Math.round(156-ph*14));}}},
+  {name:'Village_CrownSparkle.png',folder:'Backdrop2D',w:3,h:3,pivot:[0,1],org:[443,105],draw:c=>{const g=mk(c);g.P('#fff3c4',444,105);g.P('#fff3c4',443,106);g.P('#fff3c4',445,106);g.P('#fff3c4',444,107);}},
+  {name:'Village_ProjectorRings.png',folder:'Backdrop2D',w:77,h:21,pivot:[0,1],org:[202,214],draw:c=>{const g=mk(c);g.ring('#5aa9ff',240,224,38,10);g.ring('#5aa9ff',240,224,28,7);}},
+  {name:'Village_HoloScan_Sheet.png',folder:'Backdrop2D',w:864,h:60,cell:[36,60],frames:24,fps:12,pivot:[0,1],org:[222,164],
+    draw:(c,i)=>{const g=mk(c),sy=Math.floor(i/12*30)%60;for(let y=164;y<224;y+=3){if(Math.abs(y-164-sy)<4)continue;g.R('#5aa9ff',222,y,36,1);}}},
+  flameSheet('Flame_Warm7_Sheet.png',7,WARMF,2),
+  flameSheet('Flame_Warm3_Sheet.png',3,WARMF,0),
+  flameSheet('Flame_Warm3w1_Sheet.png',3,WARMF,1),
+  shadowPiece('Shadow_R6.png',6),
+  shadowPiece('Shadow_R11.png',11),
+  //# 로딩
+  {name:'Loading_Backdrop.png',folder:'Backdrop2D',w:480,h:270,pivot:[.5,.5],raw:c=>withWH(480,270,()=>LoadingScene.build(c,mulberry32(LoadingScene.seed)))},
+  {name:'Loading_DoorGlow.png',folder:'Backdrop2D',w:36,h:54,pivot:[0,1],org:[222,106],draw:c=>{const g=mk(c);
+    for(let x=222;x<258;x++)for(let y=106;y<160;y++){const dy=(y-106)/54,a=(1-Math.abs(x-240)/19)*(.4+dy*.6);if(a<=0)continue;c.globalAlpha=Math.min(1,a);g.P(dy>.6?'#5ef0b4':'#1f9e74',x,y);}
+    c.globalAlpha=1;}},
+  {name:'Loading_CircleRings.png',folder:'Backdrop2D',w:301,h:49,pivot:[0,1],org:[90,178],draw:c=>{const g=mk(c),C=LOAD_CIRCLE;g.ring('#1f9e74',C.x,C.y,C.rx,C.ry);g.ring('#1f9e74',C.x,C.y,C.rx-28,C.ry-5);}},
+  {name:'Loading_AxisRing.png',folder:'Backdrop2D',w:27,h:9,pivot:[.4815,.5556],org:[0,0],draw:c=>{const g=mk(c);c.globalAlpha=.8;g.ring('#ffffff',13,4,13,4);c.globalAlpha=.25;g.ell('#ffffff',13,4,12,3);c.globalAlpha=1;}},
+  flameSheet('Flame_Soul10_Sheet.png',10,SOULF,3),
+  shadowPiece('Shadow_R7.png',7),
+  //# 공용
+  {name:'Dot_1x1.png',folder:'Backdrop2D',w:1,h:1,pivot:[.5,.5],org:[0,0],draw:c=>mk(c).R('#ffffff',0,0,1,1)},
+  {name:'Dot_2x1.png',folder:'Backdrop2D',w:2,h:1,pivot:[.5,.5],org:[0,0],draw:c=>mk(c).R('#ffffff',0,0,2,1)},
+  {name:'Light2D_Falloff.png',folder:'Backdrop2D',w:128,h:128,pivot:[.5,.5],ppu:128,raw:c=>{const id=c.createImageData(128,128),d=id.data;
+    for(let y=0;y<128;y++)for(let x=0;x<128;x++){const r=Math.hypot(x+.5-64,y+.5-64)/64,v=r<1?(1-r)*(1-r):0,k=(y*128+x)*4;d[k]=d[k+1]=d[k+2]=Math.round(v*255);d[k+3]=255;}
+    c.putImageData(id,0,0);}},
+  //# UI (UiDot 규약 PPU 25)
+  {name:'BossBar_Fill.png',folder:'UiDot',w:1,h:6,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);g.R('#8e1f2a',0,0,1,6);g.R('#e5484d',0,0,1,4);g.R('#ff9a9d',0,0,1,1);}},
+  {name:'BossBar_TickGem.png',folder:'UiDot',w:3,h:3,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);g.R('#ffffff',1,0,1,3);g.R('#ffffff',0,1,3,1);}},
+  {name:'Loading_BarFrame.png',folder:'UiDot',w:184,h:11,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);g.R('#07090e',0,0,184,11);g.R('#313b52',1,1,182,9);g.R('#0c1017',2,2,180,7);}},
+  {name:'Loading_BarFill.png',folder:'UiDot',w:180,h:7,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);
+    g.R('#1f9e74',0,0,180,7);g.R('#5ef0b4',0,0,180,5);g.R('#b8ffe0',0,0,180,1);for(let x=6;x<180;x+=6)g.R('#1f9e74',x,1,1,4);}},
+];
+//# 조각 1장(시트면 1프레임)을 여백 M 을 둔 캔버스에 그려 잘림 여부를 검산 — 내용 박스가 목표 크기 안이어야 통과
+function renderPiece(p){
+  const cw=p.cell?p.cell[0]:p.w,ch=p.cell?p.cell[1]:p.h,n=p.frames||1,M=8;
+  const out=document.createElement('canvas');out.width=p.w;out.height=p.h;const oc=out.getContext('2d',{willReadFrequently:true});oc.imageSmoothingEnabled=false;
+  if(p.raw){p.raw(oc);return{canvas:out,ok:true,box:[0,0,p.w,p.h]};}
+  let ok=true,bx0=1e9,by0=1e9,bx1=-1,by1=-1;
+  for(let i=0;i<n;i++){
+    const sc=document.createElement('canvas');sc.width=cw+2*M;sc.height=ch+2*M;const s=sc.getContext('2d',{willReadFrequently:true});
+    s.translate(M-p.org[0],M-p.org[1]);p.draw(s,i);
+    const d=s.getImageData(0,0,sc.width,sc.height).data;
+    for(let y=0;y<sc.height;y++)for(let x=0;x<sc.width;x++){if(d[(y*sc.width+x)*4+3]===0)continue;
+      const lx=x-M,ly=y-M;if(lx<0||ly<0||lx>=cw||ly>=ch)ok=false;bx0=Math.min(bx0,lx);by0=Math.min(by0,ly);bx1=Math.max(bx1,lx);by1=Math.max(by1,ly);}
+    oc.drawImage(sc,M,M,cw,ch,i*cw,0,cw,ch);
+  }
+  return{canvas:out,ok,box:bx1<0?null:[bx0,by0,bx1-bx0+1,by1-by0+1]};
+}
+function sheetSpec(results){
+  const files={};
+  for(const[p,r]of results)files[p.name]={folder:p.folder,size:[p.w,p.h],cell:p.cell||null,frames:p.frames||1,fps:p.fps||null,
+    pivot:p.pivot,topLeftDot:p.org&&(p.org[0]||p.org[1])?p.org:null,ppu:p.ppu||48,content:r.box};
+  return{source:'.mockups/scene-2d-atmosphere.src.html',design:'docs/design/scene-2d-conversion.md §2.4',
+    note:'size/cell = 도트. pivot = 셀 기준(0~1, 좌하단 원점). topLeftDot = 시안 캔버스 좌상단 도트 배치. content = 셀 로컬 내용 박스(시트는 전 프레임 합집합, [x,y,w,h]). 필터 Point·무압축·밉맵 off(쿠키만 Bilinear·sRGB off).',files};
+}
+function initExportPanel(){
+  const tb=document.getElementById('exTable'),msg=document.getElementById('exMsg');
+  const results=EXPORTS.map(p=>[p,renderPiece(p)]);
+  const bad=results.filter(([,r])=>r.ok===false).length;
+  tb.innerHTML='<tr><th>파일</th><th>폴더</th><th>크기(도트)</th><th>셀 × 프레임</th><th>피벗</th><th>좌상단 도트</th><th>검산</th><th>상태</th></tr>'+
+    results.map(([p,r])=>`<tr><td><code>${p.name}</code></td><td>${p.folder}</td><td>${p.w}×${p.h}</td><td>${p.cell?p.cell.join('×')+' × '+p.frames:'—'}</td><td>${p.pivot.join(', ')}</td>`+
+      `<td>${p.org&&(p.org[0]||p.org[1])?p.org.join(', '):'—'}</td><td>${r.ok?'통과':'<b style="color:#e5484d">잘림</b>'}</td><td data-st="${p.name}">대기</td></tr>`).join('');
+  msg.textContent=`검산 ${results.length-bad}/${results.length} 통과 · PNG ${EXPORTS.filter(p=>p.folder==='Backdrop2D').length}장(Backdrop2D) + ${EXPORTS.filter(p=>p.folder==='UiDot').length}장(UiDot) + Backdrop2D_SheetSpec.json`;
+  document.getElementById('bExport').onclick=async()=>{
+    if(bad>0){msg.textContent='검산 실패 조각이 있어 추출하지 않습니다 — 시안 코드를 재검산하세요.';return;}
+    if(confirm('3′ 배틀 광각판 사용자 재확인(G1a) 승인 뒤에만 추출합니다. Assets/_Lair/Art/Sprites/Backdrop2D · UiDot 에 저장할까요?')===false)return;
+    msg.textContent='추출 중…';
+    try{
+      for(const[p,r]of results){
+        const blob=await new Promise(res=>r.canvas.toBlob(res,'image/png'));
+        const resp=await fetch('/export/'+p.name,{method:'POST',body:blob});if(resp.ok===false)throw new Error(p.name+' '+resp.status);
+        tb.querySelector(`[data-st="${p.name}"]`).textContent='저장';
+      }
+      const resp=await fetch('/export/Backdrop2D_SheetSpec.json',{method:'POST',body:JSON.stringify(sheetSpec(results),null,2)});
+      if(resp.ok===false)throw new Error('SheetSpec '+resp.status);
+      msg.textContent=`완료: PNG ${results.length}장 + Backdrop2D_SheetSpec.json 저장`;
+    }catch(e){msg.textContent='실패: '+e.message+' — node .mockups/server.js 로 띄운 http://localhost:8777/scene-2d-atmosphere.html 에서 실행하세요.';}
+  };
+}
+
 //# ============ 부팅 ============
 (async()=>{
   await Promise.all(Object.entries(SRC).map(([k,src])=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{IMG[k]=i;res();};i.onerror=()=>rej(k);i.src=src;})));
@@ -799,8 +985,11 @@ const BScene={
   document.getElementById('msg').textContent='';
   Engine('st-loading',LoadingScene);
   Engine('st-village',VScene);
-  BScene.hudInit();
+  BScene.hudInit(document.querySelector('#st-battle .bhud-wrap'));
   Engine('st-battle',BScene);
+  BWide.hudInit(document.querySelector('#st-battle-wide .bhud-wrap'));
+  Engine('st-battle-wide',BWide);
+  initExportPanel();
 })().catch(e=>{document.getElementById('msg').textContent='스프라이트 로드 실패: '+e;});
 </script>
 </body>
