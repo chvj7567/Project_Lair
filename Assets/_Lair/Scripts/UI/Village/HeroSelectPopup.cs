@@ -18,6 +18,7 @@ namespace Lair.UI
     //# 셀 표시 데이터 — 스테이지 1~5 영웅 외형 (스테이지별 초상). 표시 전용 (선택은 마을 캐러셀 담당).
     public class HeroSelectCellData
     {
+        public string SubText;         //# 보조 줄 — 해금 "N단계" / 잠금 "잠김"
         public string DisplayName;     //# 해금 "스테이지 N" / 잠금 "스테이지 N — 잠금"
         public bool IsLocked;
         public Sprite Portrait;        //# 스테이지 영웅 초상 (잠금이어도 어둡게 표시)
@@ -102,6 +103,7 @@ namespace Lair.UI
                 Sprite portrait = variantConfig != null ? variantConfig.GetStage(stage).Portrait : null;
                 list.Add(new HeroSelectCellData
                 {
+                    SubText = unlocked ? $"{stage}단계" : "잠김",
                     DisplayName = unlocked ? $"스테이지 {stage}" : $"스테이지 {stage} — 잠금",
                     IsLocked = unlocked == false,
                     Portrait = portrait,

@@ -13,6 +13,8 @@ namespace Lair.UI
         public VillageViewModel Vm;
         public Action<EUI> OnOpenMenu;
         public Action OnSortie;
+        //# 스테이지 카드 초상 — 스테이지(1~5) → 초상 스프라이트. null 이면 초상을 숨긴다.
+        public Func<int, Sprite> PortraitOf;
     }
 
     //# 마을 상단바(소울/이름/영주 Lv+게이지) + 좌우 메뉴 6종 + 하단 출격. 표시·입력만 (Rule 02 §6).
@@ -44,11 +46,16 @@ namespace Lair.UI
         [SerializeField] private CHText _stageLockHintText;     //# "스테이지 {N-1} 클리어 필요"
 
         //# UI 리디자인 전적 패널(제안 1) — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        //# 스테이지 카드 — 침입자 초상 + 5칸 점(선택 스테이지까지 금색). 위젯 연결은 프리팹 단계.
+        [SerializeField] private Image _stageHeroPortrait;
+        [SerializeField] private Image[] _stageDots = new Image[0];
+
         [SerializeField] private CHText _recordIntruderText;    //# "기사 · 3단계"
         [SerializeField] private CHText _recordBestText;        //# "3:42.1" / "-"
         [SerializeField] private CHText _recordWinsText;        //# "7승 · 11판"
 
         private VillageViewModel _vm;
+        private Func<int, Sprite> _portraitOf;
 
         //# 마을 베이스 HUD — ESC(뒤로가기)로 닫히지 않는다. 팝업만 닫히게 한다.
         public override bool CanCloseByEsc => false;
@@ -60,6 +67,7 @@ namespace Lair.UI
                 return;
 
             _vm = hudArg.Vm;
+            _portraitOf = hudArg.PortraitOf;
             if (_vm != null)
             {
                 Action refresh = RefreshTop;
@@ -150,7 +158,26 @@ namespace Lair.UI
             {
                 _stageLockHintText.SetText($"스테이지 {stage - 1} 클리어 필요");
             }
+            RefreshStageCard(stage);
             RefreshRecordPanel();
+        }
+
+        //# 침입자 초상 + 점 5칸 — 선택 스테이지까지 금색, 그 뒤는 stone4. 표시만(Rule 02 §6).
+        private void RefreshStageCard(int stage)
+        {
+            if (_stageHeroPortrait != null)
+            {
+                Sprite portrait = _portraitOf != null ? _portraitOf(stage) : null;
+                _stageHeroPortrait.sprite = portrait;
+                _stageHeroPortrait.enabled = portrait != null;
+            }
+            for (int i = 0; i < _stageDots.Length; ++i)
+            {
+                if (_stageDots[i] != null)
+                {
+                    _stageDots[i].color = i < stage ? UiDotPalette.Gold : UiDotPalette.Stone4;
+                }
+            }
         }
 
         //# 전적 패널 — 문구 조립은 VM, 여기선 표시만(Rule 02 §6). 스테이지 이동·프로필 변경 때 호출.

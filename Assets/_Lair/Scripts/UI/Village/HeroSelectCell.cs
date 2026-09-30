@@ -11,6 +11,10 @@ namespace Lair.UI
         [SerializeField] private Image _border;          //# 미사용 테두리 — 표시 전용 목록이라 항상 투명 처리
         [SerializeField] private Image _portrait;        //# 영웅 초상 — 해금/잠금 모두 표시(잠금은 어두운 틴트), sprite 없을 때만 숨김
         [SerializeField] private CHText _nameText;
+        //# UI 리디자인 — 보조 줄("N단계"/"잠김") + 석판 스프라이트 스왑(해금 Px_Panel / 잠금 Px_PanelDark). 미할당이면 기존 색 방식으로 폴백.
+        [SerializeField] private CHText _subText;
+        [SerializeField] private Sprite _normalSprite;
+        [SerializeField] private Sprite _lockedSprite;
 
         private static readonly Color NormalBg = new Color(0.122f, 0.161f, 0.216f, 0.95f);
         private static readonly Color DummyBg = new Color(0.08f, 0.09f, 0.12f, 0.95f);
@@ -24,7 +28,22 @@ namespace Lair.UI
 
             if (_background != null)
             {
-                _background.color = data.IsLocked ? DummyBg : NormalBg;
+                Sprite skin = data.IsLocked ? _lockedSprite : _normalSprite;
+                if (skin != null)
+                {
+                    //# 도트 석판 스프라이트는 색을 그대로 쓴다 — tint 로 덮으면 베벨 색이 죽는다.
+                    _background.sprite = skin;
+                    _background.color = Color.white;
+                }
+                else
+                {
+                    _background.color = data.IsLocked ? DummyBg : NormalBg;
+                }
+            }
+            if (_subText != null)
+            {
+                _subText.SetText(data.SubText);
+                _subText.SetColor(data.IsLocked ? DummyTextColor : UiDotPalette.Soul);
             }
             if (_border != null)
             {

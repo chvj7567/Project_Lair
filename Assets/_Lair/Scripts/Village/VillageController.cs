@@ -51,7 +51,13 @@ namespace Lair.Village
             _vm.OnStageChanged += HandleStageChanged;
 
             UIBase hud = await CHMUI.Instance.ShowUIAsync(EUI.VillageHud,
-                new VillageHudArg { Vm = _vm, OnOpenMenu = OpenMenu, OnSortie = Sortie });
+                new VillageHudArg
+                {
+                    Vm = _vm,
+                    OnOpenMenu = OpenMenu,
+                    OnSortie = Sortie,
+                    PortraitOf = stage => _stageVariantConfig != null ? _stageVariantConfig.GetStage(stage).Portrait : null,
+                });
             if (hud == null)
             {
                 Debug.LogError("[VillageController] VillageHud 표시 실패(프리팹 로드/캔버스 확보 불가)");

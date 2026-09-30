@@ -186,6 +186,15 @@ namespace Lair.Tests.EditMode
             Assert.IsNull(SaveSummary.From(null, null));
         }
 
+        [Test]
+        public void 영웅_선택_셀은_해금이면_N단계_잠금이면_잠김_보조줄을_가진다()
+        {
+            List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(new MetaProfile { ClearedStage = 1 }, null);
+            Assert.AreEqual("1단계", list[0].SubText);
+            Assert.AreEqual("2단계", list[1].SubText);
+            Assert.AreEqual("잠김", list[2].SubText);
+        }
+
         //# ---- 스테이지 랭킹 (제안 2) ----
 
         [Test]
