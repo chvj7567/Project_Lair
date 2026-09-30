@@ -186,6 +186,7 @@ namespace Lair.EditorTools
             StyleText(soul, font, 20f, UiDotPalette.Soul, TextAlignmentOptions.Left, null);
 
             SetStretch(Need(root, "ScrollView"), 28f, 28f, 28f, 116f);
+            SyncOrigin(Need(root, "ScrollView"), "ShopItemCell", new Vector2(664f, 88f));
         }
 
         //# ---------------- LordLevel ----------------
@@ -265,6 +266,7 @@ namespace Lair.EditorTools
             StyleText(next, font, 15f, Sub, TextAlignmentOptions.Right, "다음 레벨까지 0 XP");
 
             SetStretch(Need(root, "ScrollView"), 28f, 28f, 28f, 128f);
+            SyncOrigin(Need(root, "ScrollView"), "LordRewardCell", new Vector2(664f, 72f));
 
             LordLevelPopup popup = root.GetComponent<LordLevelPopup>();
             SetRef(popup, "_xpFill", fillImage);
@@ -328,6 +330,7 @@ namespace Lair.EditorTools
         {
             RectTransform body = SkinModal(root, FindFont(root));
             SetStretch(Need(body, "ScrollView"), 28f, 28f, 28f, 72f);
+            SyncOrigin(Need(body, "ScrollView"), "QuestCell", new Vector2(664f, 104f));
         }
 
         //# ---------------- Codex ----------------
@@ -383,6 +386,9 @@ namespace Lair.EditorTools
 
             SetStretch(Need(root, "MonsterScrollView"), 28f, 28f, 28f, 116f);
             SetStretch(Need(root, "CardScrollView"), 28f, 28f, 28f, 116f);
+            //# 몬스터 탭 4열(158x150) / 카드 탭 6열(104x132 — 6열 + 간격 30 이 스크롤 폭 664 안에 들어오는 최대치).
+            SyncOrigin(Need(root, "MonsterScrollView"), "CodexCell", new Vector2(158f, 150f));
+            SyncOrigin(Need(root, "CardScrollView"), "CodexCell", new Vector2(104f, 132f));
 
             SetRef(root.GetComponent<CodexPopup>(), "_collectedText", collected.GetComponent<CHText>());
         }
@@ -467,6 +473,7 @@ namespace Lair.EditorTools
             SetRef(popup, "_statTopCardText", topValue);
 
             SetStretch(Need(root, "StageScrollView"), 28f, 28f, 28f, 208f);
+            SyncOrigin(Need(root, "StageScrollView"), "RecordsStageCell", new Vector2(440f, 84f));
         }
 
         //# 통계 타일 — sunk 패널 + 위 라벨 + 아래 값. 값 CHText 를 돌려준다.
@@ -549,6 +556,7 @@ namespace Lair.EditorTools
 
             StyleText(Need(root, "EmptyText"), font, 18f, Sub, TextAlignmentOptions.Center, null);
             SetStretch(Need(root, "ScrollView"), 28f, 84f, 28f, 148f);
+            SyncOrigin(Need(root, "ScrollView"), "LeaderboardCell", new Vector2(648f, 52f));
 
             RankingPopup popup = root.GetComponent<RankingPopup>();
             SetRefArray(popup, "_stageTabs", stageTabs);
@@ -746,6 +754,20 @@ namespace Lair.EditorTools
         }
 
         //# ---------------- 공용 헬퍼 ----------------
+
+        //# 팝업 안 ScrollView 의 origin 셀(중첩 프리팹 인스턴스)은 크기 override 를 따로 들고 있어 원본 프리팹 크기 변경이 반영되지 않는다.
+        //# 풀링 스크롤뷰가 origin 크기로 배치하므로 인스턴스 크기를 설계값으로 직접 맞춘다.
+        private static void SyncOrigin(RectTransform scope, string cellName, Vector2 size)
+        {
+            RectTransform cell = FindDeep(scope, cellName);
+            if (cell == null)
+            {
+                Debug.LogWarning($"[UiRedesign2bBuilder] origin 셀 없음: {cellName}");
+                return;
+            }
+
+            cell.sizeDelta = size;
+        }
 
         private static void TopText(RectTransform rt, TMP_FontAsset font, Vector2 anchor, Vector2 pos, Vector2 size, float fontSize, Color color, TextAlignmentOptions align)
         {
