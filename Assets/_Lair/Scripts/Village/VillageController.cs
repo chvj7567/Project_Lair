@@ -224,7 +224,7 @@ namespace Lair.Village
             await CHMUI.Instance.ShowUIAsync(EUI.CloudPopup, new CloudPopupArg
             {
                 IsConnected = MetaSession.IsCloudConnected,
-                DisplayName = profile.DisplayName,
+                DisplayName = _vm.DisplayName,   //# 상단바와 같은 해석 경로(미설정 시 기본명)
                 ConflictPending = showConflict,
                 OnRestore = RestoreFromCloud,
                 OnChangeName = ChangeDisplayName,

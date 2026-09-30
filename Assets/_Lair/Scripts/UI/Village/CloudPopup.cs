@@ -110,13 +110,12 @@ namespace Lair.UI
             _nameConfirmButton.Interactable = interactable;
         }
 
-        //# 표시명 라벨 갱신 — 빈 값이면 안내(기본명 자체는 제출 시 결정, 여기선 미설정 표기).
+        //# 표시명 라벨 갱신 — 기본명 해석은 호출부(VillageViewModel/MetaProfile.ResolveDisplayName)에서 끝난 값을 표시만 한다.
         private void RefreshDisplayName(string displayName)
         {
             if (_displayNameText == null)
                 return;
-            string shown = string.IsNullOrEmpty(displayName) ? "(미설정 — 기본명 사용)" : displayName;
-            _displayNameText.SetText("표시명: ", shown);
+            _displayNameText.SetText("표시명: ", displayName);
         }
 
         private void SetNameEditActive(bool active)
