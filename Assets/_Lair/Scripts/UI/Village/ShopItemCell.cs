@@ -30,10 +30,16 @@ namespace Lair.UI
         //# UI 리디자인 — 레벨 5칸 눈금, 상태 링(구매 가능=소울 / MAX=금), 구매 버튼 스프라이트 3종(soul/off/gold). 미할당이면 기존 표시 유지.
         [SerializeField] private Image[] _levelPips = new Image[0];
         [SerializeField] private Image _stateRing;
+        [SerializeField] private GameObject _iconSlot;        //# 종족 아이콘 슬롯 — 스탯 항목(아이콘 없음)에선 숨긴다
+        [SerializeField] private RectTransform[] _textBlock = new RectTransform[0];   //# 슬롯이 없으면 왼쪽으로 당길 이름/설명/눈금
         [SerializeField] private Image _buyButtonImage;
         [SerializeField] private Sprite _buySoulSprite;
         [SerializeField] private Sprite _buyOffSprite;
         [SerializeField] private Sprite _buyGoldSprite;
+
+        //# 텍스트 블록 왼쪽 여백 — 아이콘 슬롯이 있을 때 / 없을 때.
+        private const float TextLeftWithIcon = 96f;
+        private const float TextLeftNoIcon = 20f;
 
         //# 다음 Lv 힌트 링 알파 배수 (§5.2 — ≈0.35×).
         private const float HintRingAlpha = 0.35f;
@@ -140,6 +146,7 @@ namespace Lair.UI
         private void BindSpeciesGlow(ShopItemCellData data)
         {
             bool isSpecies = data.Icon != null && data.Species.HasValue && data.MaxLevel > 0;
+            ApplyIconSlot(isSpecies);
 
             if (_iconImage != null)
             {
@@ -184,6 +191,24 @@ namespace Lair.UI
             }
         }
 
+        //# 아이콘 슬롯 표시 + 텍스트 블록 좌측 여백 — 슬롯이 없으면 텍스트 영역을 넓힌다.
+        private void ApplyIconSlot(bool hasIcon)
+        {
+            if (_iconSlot != null)
+            {
+                _iconSlot.SetActive(hasIcon);
+            }
+            float left = hasIcon ? TextLeftWithIcon : TextLeftNoIcon;
+            for (int i = 0; i < _textBlock.Length; ++i)
+            {
+                if (_textBlock[i] == null)
+                    continue;
+                Vector2 position = _textBlock[i].anchoredPosition;
+                position.x = left;
+                _textBlock[i].anchoredPosition = position;
+            }
+        }
+
         //# 헤더 그룹 3위젯 일괄 토글 (기획서 §1·2.1).
         private void SetHeaderWidgetsActive(bool on)
         {
@@ -223,6 +248,10 @@ namespace Lair.UI
             if (_stateRing != null && on == false)
             {
                 _stateRing.gameObject.SetActive(false);
+            }
+            if (_iconSlot != null && on == false)
+            {
+                _iconSlot.SetActive(false);
             }
             if (_descText != null)
             {

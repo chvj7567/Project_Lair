@@ -82,17 +82,18 @@ namespace Lair.EditorTools
             SetImage(rootRt, Spr("Px_Panel"), Color.white, true);
 
             RectTransform headerBg = Need(root, "HeaderBg");
-            SetRect(headerBg, BottomLeft, BottomRight, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(0f, 60f));
+            //# 헤더 행은 셀 전체를 dark 석판으로 덮는다 — 일부만 덮으면 위쪽에 밝은 줄이 남는다.
+            SetStretch(headerBg, 0f, 0f, 0f, 0f);
             SetImage(headerBg, Spr("Px_PanelDark"), Color.white, false);
             headerBg.SetSiblingIndex(0);
             RectTransform divider = Need(root, "HeaderDivider");
             SetRect(divider, BottomLeft, BottomRight, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(0f, 8f));
             SetImage(divider, Spr("Px_Divider"), Color.white, false);
             RectTransform accent = Need(root, "HeaderAccent");
-            SetRect(accent, BottomLeft, BottomLeft, MidLeft, new Vector2(16f, 30f), new Vector2(8f, 28f));
+            SetRect(accent, MidLeft, MidLeft, MidLeft, new Vector2(16f, 0f), new Vector2(8f, 28f));
             SetImage(accent, Spr("Px_Solid"), UiDotPalette.Soul, false);
             RectTransform headerText = Need(root, "HeaderText");
-            SetRect(headerText, BottomLeft, BottomLeft, MidLeft, new Vector2(36f, 30f), new Vector2(400f, 30f));
+            SetRect(headerText, MidLeft, MidLeft, MidLeft, new Vector2(36f, 0f), new Vector2(400f, 30f));
             StyleText(headerText, font, 22f, Bone, TextAlignmentOptions.Left, null);
 
             RectTransform ring = Child(rootRt, "StateRing");
@@ -102,25 +103,25 @@ namespace Lair.EditorTools
             ring.SetSiblingIndex(1);
 
             RectTransform slot = Child(rootRt, "IconSlot");
-            SetRect(slot, MidLeft, MidLeft, MidLeft, new Vector2(12f, 0f), new Vector2(64f, 64f));
+            SetRect(slot, MidLeft, MidLeft, MidLeft, new Vector2(12f, 0f), new Vector2(68f, 68f));
             SetImage(slot, Spr("Px_PanelSunk"), Color.white, false);
             slot.SetSiblingIndex(2);
 
             RectTransform icon = Need(root, "IconImage");
-            SetRect(icon, MidLeft, MidLeft, Half, new Vector2(44f, 0f), new Vector2(52f, 52f));
+            SetRect(icon, MidLeft, MidLeft, Half, new Vector2(46f, 0f), new Vector2(52f, 52f));
             icon.GetComponent<Image>().preserveAspect = true;
             RectTransform glowFrame = Need(root, "GlowFrame");
-            SetRect(glowFrame, MidLeft, MidLeft, Half, new Vector2(44f, 0f), new Vector2(72f, 72f));
+            SetRect(glowFrame, MidLeft, MidLeft, Half, new Vector2(46f, 0f), new Vector2(76f, 76f));
             SetSpriteKeepColor(glowFrame, Spr("Px_Ring"), false);
             RectTransform glowHint = Need(root, "GlowHintRing");
-            SetRect(glowHint, MidLeft, MidLeft, Half, new Vector2(44f, 0f), new Vector2(80f, 80f));
+            SetRect(glowHint, MidLeft, MidLeft, Half, new Vector2(46f, 0f), new Vector2(84f, 84f));
             SetSpriteKeepColor(glowHint, Spr("Px_Ring"), false);
 
             RectTransform nameText = Need(root, "NameText");
-            SetRect(nameText, TopLeft, TopLeft, TopLeft, new Vector2(92f, -10f), new Vector2(300f, 26f));
+            SetRect(nameText, TopLeft, TopLeft, TopLeft, new Vector2(96f, -10f), new Vector2(300f, 26f));
             StyleText(nameText, font, 20f, Bone, TextAlignmentOptions.Left, null);
             RectTransform descText = Need(root, "DescText");
-            SetRect(descText, BottomLeft, BottomLeft, BottomLeft, new Vector2(92f, 10f), new Vector2(360f, 22f));
+            SetRect(descText, BottomLeft, BottomLeft, BottomLeft, new Vector2(96f, 10f), new Vector2(360f, 22f));
             StyleText(descText, font, 16f, Sub, TextAlignmentOptions.Left, null);
             RectTransform levelText = Need(root, "LevelText");
             SetRect(levelText, TopLeft, TopLeft, TopLeft, new Vector2(400f, -12f), new Vector2(90f, 22f));
@@ -128,7 +129,7 @@ namespace Lair.EditorTools
 
             //# 레벨 5칸 눈금 — 정적 5칸(전 아이템 MaxLevel 5), 채움은 셀 코드가 금색/stone4 로 칠한다.
             RectTransform pips = Child(rootRt, "LevelPips");
-            SetRect(pips, TopLeft, TopLeft, TopLeft, new Vector2(92f, -40f), new Vector2(130f, 12f));
+            SetRect(pips, TopLeft, TopLeft, TopLeft, new Vector2(96f, -40f), new Vector2(130f, 12f));
             Image[] pipImages = new Image[5];
             for (int i = 0; i < pipImages.Length; ++i)
             {
@@ -152,6 +153,8 @@ namespace Lair.EditorTools
             ShopItemCell cell = root.GetComponent<ShopItemCell>();
             SetRefArray(cell, "_levelPips", pipImages);
             SetRef(cell, "_stateRing", ringImage);
+            SetRef(cell, "_iconSlot", slot.gameObject);
+            SetRefArray(cell, "_textBlock", new UnityEngine.Object[] { nameText, descText, pips });
             SetRef(cell, "_buyButtonImage", buyImage);
             SetRef(cell, "_buySoulSprite", Spr("Px_BtnSoul"));
             SetRef(cell, "_buyOffSprite", Spr("Px_BtnOff"));
@@ -191,7 +194,7 @@ namespace Lair.EditorTools
         {
             TMP_FontAsset font = FindFont(root);
             RectTransform rootRt = (RectTransform)root.transform;
-            rootRt.sizeDelta = new Vector2(664f, 64f);
+            rootRt.sizeDelta = new Vector2(664f, 72f);
             Image background = SetImage(rootRt, Spr("Px_Panel"), Color.white, true);
 
             RectTransform ring = Child(rootRt, "StateRing");
@@ -204,10 +207,10 @@ namespace Lair.EditorTools
             SetRect(level, MidLeft, MidLeft, MidLeft, new Vector2(20f, 0f), new Vector2(80f, 28f));
             StyleText(level, font, 22f, UiDotPalette.Gold, TextAlignmentOptions.Left, null);
             RectTransform nameText = Need(root, "NameText");
-            SetRect(nameText, MidLeft, MidLeft, MidLeft, new Vector2(108f, 9f), new Vector2(300f, 26f));
+            SetRect(nameText, MidLeft, MidLeft, MidLeft, new Vector2(108f, 15f), new Vector2(300f, 26f));
             StyleText(nameText, font, 20f, Txt, TextAlignmentOptions.Left, null);
             RectTransform subText = Child(rootRt, "SubText");
-            SetRect(subText, MidLeft, MidLeft, MidLeft, new Vector2(108f, -15f), new Vector2(300f, 20f));
+            SetRect(subText, MidLeft, MidLeft, MidLeft, new Vector2(108f, -17f), new Vector2(300f, 20f));
             StyleText(subText, font, 15f, Sub, TextAlignmentOptions.Left, "수령 완료");
             RectTransform reward = Need(root, "RewardText");
             SetRect(reward, MidRight, MidRight, MidRight, new Vector2(-118f, 0f), new Vector2(190f, 26f));
@@ -274,7 +277,7 @@ namespace Lair.EditorTools
         {
             TMP_FontAsset font = FindFont(root);
             RectTransform rootRt = (RectTransform)root.transform;
-            rootRt.sizeDelta = new Vector2(664f, 96f);
+            rootRt.sizeDelta = new Vector2(664f, 104f);
             Image background = SetImage(rootRt, Spr("Px_Panel"), Color.white, true);
 
             RectTransform nameText = Need(root, "NameText");
@@ -290,11 +293,11 @@ namespace Lair.EditorTools
             badgeBg.SetSiblingIndex(badge.GetSiblingIndex());
 
             RectTransform desc = Need(root, "DescText");
-            SetRect(desc, TopLeft, TopLeft, TopLeft, new Vector2(20f, -44f), new Vector2(520f, 22f));
+            SetRect(desc, TopLeft, TopLeft, TopLeft, new Vector2(20f, -48f), new Vector2(520f, 22f));
             StyleText(desc, font, 16f, Sub, TextAlignmentOptions.Left, null);
 
             RectTransform progress = Need(root, "ProgressRoot");
-            SetRect(progress, BottomLeft, BottomLeft, BottomLeft, new Vector2(20f, 12f), new Vector2(220f, 20f));
+            SetRect(progress, BottomLeft, BottomLeft, BottomLeft, new Vector2(20f, 10f), new Vector2(220f, 20f));
             RectTransform track = Need(root, "Track");
             SetStretch(track, 0f, 0f, 0f, 0f);
             SetImage(track, Spr("Px_BarBg"), Color.white, false);
@@ -311,7 +314,7 @@ namespace Lair.EditorTools
             StyleText(progressText, font, 16f, Txt, TextAlignmentOptions.Left, null);
 
             RectTransform reward = Need(root, "RewardText");
-            SetRect(reward, BottomRight, BottomRight, BottomRight, new Vector2(-20f, 12f), new Vector2(160f, 26f));
+            SetRect(reward, BottomRight, BottomRight, BottomRight, new Vector2(-20f, 10f), new Vector2(160f, 26f));
             StyleText(reward, font, 18f, UiDotPalette.Soul, TextAlignmentOptions.Right, null);
 
             QuestCell cell = root.GetComponent<QuestCell>();
@@ -435,6 +438,8 @@ namespace Lair.EditorTools
         {
             TMP_FontAsset font = FindFont(root);
             RectTransform body = SkinModal(root, font);
+            //# 본체 높이 540 — 20:9 기기(캔버스 세로 ≈ 644 ref)에서도 명판 돌출(+26)까지 화면 안에 들어온다(620 은 잘림).
+            body.sizeDelta = new Vector2(480f, 540f);
 
             //# 통계 한 덩어리(BodyText)를 숫자 타일 5칸으로 교체 — 스크립트의 _bodyText 필드는 제거됐다.
             RectTransform bodyText = FindDeep((RectTransform)root.transform, "BodyText");
@@ -492,10 +497,10 @@ namespace Lair.EditorTools
             ringImage.fillCenter = false;
             ring.SetSiblingIndex(0);
 
-            StyleText(Need(root, "RankText"), font, 20f, Txt, TextAlignmentOptions.Center, null);
-            StyleText(Need(root, "NameText"), font, 18f, Txt, TextAlignmentOptions.Left, null);
-            StyleText(Need(root, "TimeText"), font, 18f, UiDotPalette.Soul, TextAlignmentOptions.Center, null);
-            StyleText(Need(root, "HeroText"), font, 16f, Sub, TextAlignmentOptions.Center, null);
+            RankColumn(Need(root, "RankText"), font, 0, 20f, Txt);
+            RankColumn(Need(root, "NameText"), font, 1, 18f, Txt);
+            RankColumn(Need(root, "TimeText"), font, 2, 18f, UiDotPalette.Soul);
+            RankColumn(Need(root, "HeroText"), font, 3, 16f, Sub);
 
             RankingCell cell = root.GetComponent<RankingCell>();
             SetRef(cell, "_background", background);
@@ -527,13 +532,14 @@ namespace Lair.EditorTools
 
             Toggle overall = MakeTab(row, font, "OverallTab", "최단 클리어", new Vector2(490f, 0f), 130f, group);
 
+            //# 헤더와 셀이 같은 열 표를 쓴다 — 순위 / 이름 / 시간 / 영웅 (RankingCell 과 동일 앵커).
             RectTransform header = Need(root, "Header");
             SetRect(header, TopLeft, TopRight, new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(-56f, 36f));
             SetImage(header, Spr("Px_PanelDark"), Color.white, false);
-            StyleText(Need(root, "HRank"), font, 16f, Sub, TextAlignmentOptions.Center, null);
-            StyleText(Need(root, "HName"), font, 16f, Sub, TextAlignmentOptions.Left, null);
-            StyleText(Need(root, "HTime"), font, 16f, Sub, TextAlignmentOptions.Center, null);
-            StyleText(Need(root, "HHero"), font, 16f, Sub, TextAlignmentOptions.Center, null);
+            RankColumn(Need(root, "HRank"), font, 0, 16f, Sub);
+            RankColumn(Need(root, "HName"), font, 1, 16f, Sub);
+            RankColumn(Need(root, "HTime"), font, 2, 16f, Sub);
+            RankColumn(Need(root, "HHero"), font, 3, 16f, Sub);
 
             RectTransform myRow = Need(root, "MyRankRow");
             SetRect(myRow, BottomLeft, BottomRight, new Vector2(0.5f, 0f), new Vector2(0f, 12f), new Vector2(-56f, 52f));
@@ -547,6 +553,15 @@ namespace Lair.EditorTools
             RankingPopup popup = root.GetComponent<RankingPopup>();
             SetRefArray(popup, "_stageTabs", stageTabs);
             SetRef(popup, "_overallTab", overall);
+        }
+
+        //# 랭킹 열 표 — 헤더·셀 공용. 순위 / 이름 / 시간 / 영웅 (앵커 x 구간). 이름만 좌측 정렬.
+        private static readonly float[] RankColumnEdges = { 0f, 0.14f, 0.58f, 0.84f, 1f };
+
+        private static void RankColumn(RectTransform rt, TMP_FontAsset font, int column, float size, Color color)
+        {
+            SetRect(rt, new Vector2(RankColumnEdges[column], 0f), new Vector2(RankColumnEdges[column + 1], 1f), Half, Vector2.zero, new Vector2(-12f, 0f));
+            StyleText(rt, font, size, color, column == 1 ? TextAlignmentOptions.Left : TextAlignmentOptions.Center, null);
         }
 
         private static Toggle MakeTab(RectTransform row, TMP_FontAsset font, string name, string label, Vector2 pos, float width, ToggleGroup group)
