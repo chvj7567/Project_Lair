@@ -122,11 +122,46 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 대시_부채꼴_반각은_시안_34점95도와_0점1도_이내이다()
+        public void 대시_판정은_전방위_반각180이고_FX는_반경3_원형_시트이다()
         {
             DashStrikeSkillData so = AssetDatabase.LoadAssetAtPath<DashStrikeSkillData>(DashSkillAsset);
             Assert.IsNotNull(so, $"에셋 누락: {DashSkillAsset}");
-            Assert.AreEqual(0.61f * Mathf.Rad2Deg, so.ConeHalfAngle, 0.1f, "시트 재추출 필요 — 기획서 §11 R1");
+            Assert.AreEqual(180f, so.ConeHalfAngle, 1e-4f, "돌진 반각이 바뀜 — FX 시트·크기 재검토 필요");
+            Assert.AreEqual(3f, so.DashLength, 1e-4f, "돌진 반경이 바뀜 — FX 크기(루트 스케일 3, PPU 52) 재검토 필요");
+        }
+
+        [Test]
+        public void 대시_시트_스펙은_원형_규격이다()
+        {
+            JObject spec = LoadFx("HeroDashConeFx");
+            Assert.AreEqual(10, (int)spec["frames"]);
+            Assert.AreEqual(6, (int)spec["cols"]);
+            Assert.AreEqual(2, (int)spec["rows"]);
+            Assert.AreEqual(false, (bool)spec["loop"]);
+            Assert.AreEqual(64, (int)spec["foot"][0], "foot.x");
+            Assert.AreEqual(62, (int)spec["foot"][1], "foot.y");
+        }
+
+        [Test]
+        public void 대시_프리팹_AuraFx는_노바와_같이_바닥에_눕고_스케일y2_PPU52이다()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{FxFolder}/HeroDashConeFx.prefab");
+            Assert.IsNotNull(prefab, "HeroDashConeFx 프리팹 누락");
+            Transform aura = prefab.transform.Find("AuraFx");
+            Assert.IsNotNull(aura, "AuraFx 자식 없음");
+            Assert.Less(Quaternion.Angle(aura.localRotation, Quaternion.Euler(90f, 0f, 0f)), 0.1f, "AuraFx 회전은 X축 90도여야 한다");
+            Assert.AreEqual(1f, Mathf.Abs(aura.forward.y), 1e-3f, "AuraFx forward 가 월드 ±Y 가 아님(눕지 않음)");
+            Assert.AreEqual(2f, aura.localScale.y, 1e-4f, "AuraFx 로컬 스케일 y");
+
+            GameObject nova = AssetDatabase.LoadAssetAtPath<GameObject>($"{FxFolder}/HeroNovaFx.prefab");
+            Assert.IsNotNull(nova, "HeroNovaFx 프리팹 누락");
+            Transform novaAura = nova.transform.Find("AuraFx");
+            Assert.IsNotNull(novaAura, "노바 AuraFx 없음");
+            Assert.Less(Quaternion.Angle(aura.localRotation, novaAura.localRotation), 0.1f, "노바와 회전 불일치");
+
+            TextureImporter imp = AssetImporter.GetAtPath("Assets/_Lair/Art/Sprites/FX2D/HeroDashConeFx_Sheet.png") as TextureImporter;
+            Assert.IsNotNull(imp, "돌진 시트 임포터 없음");
+            Assert.AreEqual(52f, imp.spritePixelsPerUnit, 1e-4f, "돌진 시트 PPU");
         }
 
         [Test]
