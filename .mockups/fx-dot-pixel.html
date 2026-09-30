@@ -132,26 +132,23 @@ const TH=["..+.+.+.+..","..+.+.+.+.."];
 const SKP={'#':'#e8e0ff','+':'#b9a6ee','o':'#3b1670','n':'#3b1670'};
 
 //# ── 피격 임팩트 (s = 대상 크기 배율) ──
-function hitOne(cx,fy,k,s,lf){if(lf<0){hero(cx,fy,{sc:k});return}
-  hero(cx+(lf===1?-k:0),fy,{sc:k,flash:lf<=1?'#fff':null});
-  if(lf>=4)return;
-  const cy=fy-8*k,t=lf/3;
+function burst(cx,cy,s,lf){if(lf>=4)return;const t=lf/3;
   disc(cx,cy,[4,5,2,0][lf]*s,lf<2?'#fff':'#ffb020');
   for(let j=0;j<6;j++){const an=j*TAU/6+.3,d=(3+10*eo(t))*s;px(cx+Math.cos(an)*d,cy+Math.sin(an)*d*.8,lf<2?'#ffe066':'#ff4d4d',1-t*t)}}
+function hitOne(cx,fy,k,s,lf){if(lf<0){hero(cx,fy,{sc:k});return}
+  hero(cx+(lf===1?-k:0),fy,{sc:k,flash:lf<=1?'#fff':null});
+  burst(cx,fy-8*k,s,lf)}
 function monOne(cx,fy,k,s,lf){if(lf<0){mon(cx,fy,{sc:k});return}
-  mon(cx+(lf===1?2:0),fy,{sc:k,flash:lf<=1?'#fff':null});
-  if(lf>=5)return;
-  const cy=fy-Math.round(4.5*k),fade=lf<3?1:1-(lf-2)/3,rr=cl((lf+1)/2),x0=cx-12*s,y0=cy-9*s;
-  line(x0,y0,x0+24*s*rr,y0+18*s*rr,'#fff',fade);
-  if(lf<=1)disc(cx,cy,3*s,'#ffe066')}
+  mon(cx+(lf===1?-k:0),fy,{sc:k,flash:lf<=1?'#fff':null});
+  burst(cx,fy-Math.round(4.5*k),s,lf)}
 
 const FX=[
 {id:'HitImpact',name:'피격 임팩트 (영웅)',key:'EVisual.HitImpact',N:12,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],
  desc:'영웅이 맞을 때 흰 플래시 + 작은 스파크 6개만 (0.3초). 크기가 영웅 크기에 비례 (왼쪽 작은 영웅 ×1.0 / 오른쪽 큰 영웅 ×1.5).',
  draw(f,N){hitOne(34,84,1,1,f);hitOne(90,84,2,1.5,f-4)}},
 
-{id:'MonsterHitImpact',name:'피격 임팩트 (몬스터)',key:'EVisual.MonsterHitImpact',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020'],
- desc:'영웅 공격이 적중할 때 사선 베기 1줄 + 작은 플래시만 (0.4초). 크기가 몬스터 크기에 비례 (소형 ×0.6 / 중형 ×1.0 / 대형 ×1.4).',
+{id:'MonsterHitImpact',name:'피격 임팩트 (몬스터)',key:'EVisual.MonsterHitImpact',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff4d4d'],
+ desc:'영웅 피격 임팩트와 동일한 연출(흰 플래시 + 스파크 6개, 0.3초). 크기만 몬스터 크기에 비례 (소형 ×0.6 / 중형 ×1.0 / 대형 ×1.4).',
  draw(f,N){monOne(22,84,1,.6,f);monOne(62,84,2,1,f-4);monOne(104,84,3,1.4,f-8)}},
 
 {id:'DamagePopup',name:'데미지 숫자',key:'EVisual.DamagePopup',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#c9ced6','#000'],
