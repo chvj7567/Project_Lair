@@ -176,6 +176,21 @@ namespace Lair.EditorTools
 
             RectTransform scroll = Need(root, "ScrollView");
             SetStretch(scroll, 28f, 28f, 28f, 64f);
+            SyncOrigin(scroll, "HeroSelectCell", new Vector2(152f, 192f));
+        }
+
+        //# 팝업 안 ScrollView 의 origin 셀(중첩 프리팹 인스턴스)은 크기 override 를 따로 들고 있어 원본 프리팹 크기 변경이 반영되지 않는다.
+        //# 풀링 스크롤뷰가 origin 크기로 배치하므로 인스턴스 크기를 설계값으로 직접 맞춘다.
+        private static void SyncOrigin(RectTransform scope, string cellName, Vector2 size)
+        {
+            RectTransform cell = FindDeep(scope, cellName);
+            if (cell == null)
+            {
+                Debug.LogWarning($"[UiRedesign2aBuilder] origin 셀 없음: {cellName}");
+                return;
+            }
+
+            cell.sizeDelta = size;
         }
 
         //# 팝업 공통 머리 — 명판(Px_Plaque) 위에 Title, 우상단 핏빛 X(Px_CloseX). 명판은 Title 바로 뒤(아래)에 그려진다.
