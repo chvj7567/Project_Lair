@@ -44,6 +44,70 @@ table.cmp th,table.cmp td{border:1px solid var(--line);padding:5px 7px;text-alig
 table.cmp th{background:var(--card);font-weight:600}
 .box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}
 #msg{font-size:13px;color:var(--muted)}
+/*# 배틀 HUD — 960×540 기준 좌표, 스테이지 폭에 맞춰 scale */
+.bhud-wrap{position:absolute;inset:0;pointer-events:none;display:none;overflow:hidden}
+.stage.showhud .bhud-wrap{display:block}
+.bhud{position:absolute;left:0;top:0;width:960px;height:540px;transform-origin:0 0;font-family:"Galmuri11","Noto Sans KR",monospace;color:#eef1f6;font-size:13px;line-height:1.25;
+  --ol:1px 0 #07090e,-1px 0 #07090e,0 1px #07090e,0 -1px #07090e,0 2px #07090e}
+.bhud img{image-rendering:pixelated}
+.bhud .px{position:absolute;background:#222a3b;box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e,inset 0 3px 0 0 #48546e,inset 0 -3px 0 0 #10141d,inset 3px 0 0 0 #313b52,inset -3px 0 0 0 #10141d}
+.bhud .px.dark{background:rgba(16,20,29,.9);box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e,inset 0 3px 0 0 #313b52,inset 0 -3px 0 0 #07090e}
+.b-timer{left:178px;top:12px;width:78px;height:52px;text-align:center;padding-top:7px}
+.b-timer .k,.b-active .k{font-size:10px;color:#8e98ad}
+.b-timer .v{font-size:22px;font-family:"Galmuri14","Galmuri11",monospace;margin-top:1px}
+.b-timer.warn .v{color:#e5484d}
+.b-boss{position:absolute;left:272px;top:10px;width:418px}
+.b-name{display:flex;justify-content:space-between;font-size:12px;text-shadow:var(--ol)}
+.b-name em{font-style:normal;color:#ff6b5a;margin-right:4px}
+.b-bar{position:relative;height:18px;margin-top:5px;background:#3a1a22;box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e}
+.b-bar b{position:absolute;left:0;top:0;bottom:0;z-index:2;background:linear-gradient(#ff9a9d 0 3px,#e5484d 3px 12px,#8e1f2a 12px)}
+.b-bar i{position:absolute;left:0;top:0;bottom:0;z-index:1;background:#f7c64a;opacity:.75;transition:width .7s linear}
+.ticks{position:absolute;inset:0;z-index:3}
+.ticks span{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(7,9,14,.85)}
+.ticks span::after{content:"◆";position:absolute;left:50%;top:-13px;transform:translateX(-50%);font-size:9px;color:#48546e;text-shadow:var(--ol)}
+.ticks span.got::after{color:#f7c64a}
+.b-status{display:flex;gap:6px;margin-top:8px;justify-content:center}
+.b-status i{width:20px;height:20px;background-size:cover;background-position:center;display:block;box-shadow:0 0 0 2px #07090e,inset 0 0 0 1px #48546e}
+.b-active{left:706px;top:12px;width:86px;height:52px;text-align:center;padding-top:7px}
+.b-active .v{font-size:18px;color:#f7c64a;font-family:"Galmuri14","Galmuri11",monospace}
+.b-active .mini{position:absolute;left:9px;right:9px;bottom:8px;height:4px;background:#0c1017}
+.b-active .mini b{display:block;height:100%;width:0;background:#f7c64a}
+/*# 하단 스포너 현황 */
+.b-spawn{position:absolute;left:102px;top:480px;width:756px;display:flex;gap:10px}
+.spc{position:relative!important;flex:1;height:48px;display:flex;align-items:center;gap:7px;padding:0 8px 0 11px}
+.spc .chip{position:absolute;left:3px;top:3px;bottom:3px;width:3px}
+.spc .ic{width:36px;height:36px;background:#0c1017;position:relative;flex:none;box-shadow:inset 0 0 0 2px #07090e}
+.spc .ic img{width:36px;height:36px;object-fit:contain;display:block}
+.spc .lv{position:absolute;left:-3px;bottom:-5px;font-size:9px;background:#07090e;padding:0 2px;color:#f7c64a}
+.spc .body{flex:1;min-width:0}
+.spc .r1{display:flex;justify-content:space-between;font-size:11px;white-space:nowrap}
+.spc .cnt{color:#f7c64a}
+.spc .r2{position:absolute;right:8px;bottom:6px}
+.spc .sec{font-size:9px;color:#8e98ad}
+.spc .bar{height:5px;background:#0c1017;margin:6px 18px 0 0;box-shadow:0 0 0 1px #07090e}
+.spc .bar b{display:block;height:100%;width:0}
+/*# 오른쪽 열: 시너지 + 빌드 */
+.b-syn{position:absolute;left:826px;top:84px;width:124px;display:flex;flex-direction:column;gap:9px}
+.synhd{font-size:11px;color:#8e98ad;display:flex;justify-content:space-between;text-shadow:var(--ol)}
+.syc{position:relative!important;height:34px;display:flex;align-items:center;gap:6px;padding:0 8px}
+.syc img{width:24px;height:24px}
+.syc .nm{flex:1;font-size:11px;color:var(--c)}
+.syc .pp{display:flex;gap:2px}
+.syc .pp i{width:6px;height:9px;background:#0c1017;box-shadow:0 0 0 1px #07090e}
+.syc .pp i.on{background:var(--c)}
+.syc.off{opacity:.45}
+.b-build{left:826px;top:290px;width:124px;padding:9px 10px 10px}
+.b-build .lb{font-size:10px;display:flex;justify-content:space-between;margin:2px 0 5px}
+.b-build .lb span{color:#8e98ad}
+.b-build .grid{display:grid;grid-template-columns:repeat(3,30px);gap:7px;margin-bottom:8px}
+.bic{width:30px;height:30px;background:#0c1017 center/cover;position:relative;display:block;box-shadow:0 0 0 2px #07090e,inset 0 0 0 2px var(--c)}
+.bic em{position:absolute;right:-4px;bottom:-5px;font-style:normal;font-size:9px;background:#07090e;color:#eef1f6;padding:0 2px}
+.bic.emp{background:#10141d;box-shadow:0 0 0 2px #07090e,inset 0 0 0 1px #313b52}
+.b-banner{position:absolute;left:50%;top:84px;transform:translateX(-50%);white-space:nowrap;padding:5px 12px;background:rgba(16,20,29,.9);
+  box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e,inset 0 0 0 1px #5b3aa6;opacity:0;transition:opacity .3s}
+.b-banner.on{opacity:1}
+.b-banner .tag{background:#b58cff;color:#07090e;padding:1px 5px;margin-right:7px}
+.b-banner em{font-style:normal;color:#f7c64a}
 </style>
 </head>
 <body>
@@ -96,24 +160,42 @@ table.cmp th{background:var(--card);font-weight:600}
 </section>
 
 <section class="sc" id="s-battle">
-  <div class="hd"><h2>3. 배틀 — 둥지 원형 투기장</h2><code>Battle.unity · Floor / MapBackground → 2D</code></div>
-  <div class="stage" id="st-battle"><canvas></canvas>
-    <div class="hud">
-      <div style="left:1.7%;top:3%;width:24%;height:52%">스포너 현황</div>
-      <div style="left:43.7%;top:2.2%;width:12.5%;height:10.4%">타이머</div>
-      <div style="left:81.2%;top:3%;width:17.1%;height:40.7%">시너지</div>
-      <div style="left:26%;top:87%;width:48%;height:11%">빌드 바</div>
-    </div>
+  <div class="hd"><h2>3. 배틀 — 넓은 투기장 + HUD 재배치</h2><code>Battle.unity · Floor / MapBackground → 2D · BattleHud.prefab 배치 변경</code></div>
+  <div class="stage showhud" id="st-battle"><canvas></canvas>
+    <div class="bhud-wrap"><div class="bhud" id="bhud">
+      <div class="px dark b-timer"><div class="k">남은 시간</div><div class="v" id="bh-timer">5:00</div></div>
+      <div class="b-boss">
+        <div class="b-name"><span><em>침입자</em> 기사 · 3단계</span><span id="bh-hptxt">1000 / 1000</span></div>
+        <div class="b-bar"><b id="bh-hp"></b><i id="bh-lag"></i><div class="ticks" id="bh-ticks"></div></div>
+        <div class="b-status" id="bh-status"></div>
+      </div>
+      <div class="px dark b-active"><div class="k">액티브 카드</div><div class="v" id="bh-act">0:30</div><div class="mini"><b id="bh-actbar"></b></div></div>
+      <div class="b-spawn" id="bh-spawn"></div>
+      <div class="b-syn" id="bh-syn"><div class="synhd">시너지 <span>상세 ›</span></div></div>
+      <div class="px dark b-build" id="bh-build"></div>
+      <div class="b-banner" id="bh-banner"><span class="tag">SKILL</span>영웅의 <em>'회전 칼날'</em> 스킬 해제</div>
+    </div></div>
   </div>
-  <div class="ctl" data-for="st-battle"><button data-act="light" class="on">조명</button><button data-act="hud">HUD 영역</button><button data-act="pause">일시정지</button></div>
+  <div class="ctl" data-for="st-battle"><button data-act="light" class="on">조명</button><button data-act="hud2" class="on">HUD</button><button data-act="pause">일시정지</button></div>
   <div class="note">
+    <b>필드 — 줌아웃</b>
     <ul>
-      <li>현재 씬 배치를 그대로 따랐습니다. 영웅은 가운데서 시작하고, 스포너 6개는 육각형 고리(반지름 20)에 있습니다. 순서는 도깨비불 240° · 사신 180° · 저주술사 120° · 망령 60° · 역병귀 0° · 환령 300°입니다.</li>
-      <li>바닥은 Map_Arena 텍스처를 붙인 3D 쿼드 대신, <b>동심원 석판을 도트로 그린 원형 투기장</b>입니다. 앞쪽 가장자리에 절벽 단면을 넣어 공중에 뜬 제단처럼 보이게 했습니다.</li>
-      <li>스포너는 돌 제단 위에 종족 발광색(SpeciesGlowColor) 수정을 올린 모양입니다. 그 빛이 제단 주변 바닥을 물들여, 어느 방향에서 어떤 종족이 나오는지 바닥 색만 봐도 알 수 있습니다.</li>
-      <li>뒷벽 가운데 창살문은 영웅이 들어온 입구를 나타내는 장식입니다. 조명은 차가운 청백색이 기본이고, 초록 화로 4개와 종족색 제단이 포인트입니다.</li>
-      <li>HUD 는 네 귀퉁이와 아래 가운데를 차지합니다. 그래서 전투가 벌어지는 투기장 중심 가로 60% 는 비워 두었습니다.</li>
+      <li>이전 시안보다 <b>카메라를 약 1.33배 뒤로 뺐습니다</b>(도트 화면 480×270 → 640×360). 캐릭터 도트 크기는 그대로 두고 보이는 전장을 넓혔습니다.</li>
+      <li>투기장이 화면 좌우 밖까지 이어져서 무대가 넓게 느껴집니다. 스포너 제단 6개는 육각형 배치를 유지하면서 간격만 벌렸습니다.</li>
+      <li>영웅 주위 몬스터들의 간격을 넓혀, 누가 붙어 싸우고 누가 멀리서 쏘는지 구분되게 했습니다. 도깨비불이 제단에서 걸어 나와 싸우고, 죽으면 다시 나오는 흐름도 보입니다.</li>
     </ul>
+    <b>HUD — 가장자리로 밀고 가운데를 비움</b>
+    <table class="cmp">
+      <tr><th>요소</th><th>이전 배치</th><th>새 배치</th></tr>
+      <tr><td>영웅 HP</td><td>영웅 머리 위 작은 바</td><td><b>위쪽 가운데 보스 바</b>(폭 약 46%). 패시브 카드가 나오는 HP 10% 구간마다 눈금을 넣고, 이미 받은 구간은 금색 ◆로 표시. 상태 아이콘은 바 아래 한 줄</td></tr>
+      <tr><td>타이머</td><td>위쪽 가운데</td><td>보스 바 <b>왼쪽</b>. 30초 이하에서는 붉은색(기존 규칙 유지)</td></tr>
+      <tr><td>액티브 카드 주기</td><td>표시 없음</td><td>보스 바 <b>오른쪽</b>에 새로 추가. 다음 액티브 카드(30·90·150·210·270초)까지 남은 시간과 게이지</td></tr>
+      <tr><td>스포너 현황</td><td>왼쪽 위 큰 셀 4~6개</td><td><b>하단 가로 한 줄</b>(6칸, 폭 약 76%). 칸마다 아이콘 · Lv · 종족명 · 마릿수 · 다음 스폰 게이지와 남은 초</td></tr>
+      <tr><td>시너지</td><td>오른쪽 위</td><td><b>오른쪽 열 위쪽</b>. 활성 축만 밝게</td></tr>
+      <tr><td>빌드 바</td><td>아래 가운데</td><td><b>오른쪽 열 아래쪽</b>(시너지 밑). 패시브 3×2 칸 + 액티브 3칸, 보유 수 표시</td></tr>
+      <tr><td>스킬 해제 배너</td><td>가운데</td><td>보스 바 바로 아래에 잠깐 떴다가 사라짐</td></tr>
+    </table>
+    <p class="muted" style="margin-top:6px">결과적으로 위쪽은 보스 바, 아래쪽은 스포너, 오른쪽은 시너지와 빌드를 맡고, <b>왼쪽 가장자리와 가운데는 비어 있습니다</b>. 전장 정보(스포너)는 아래, 내 빌드 정보(시너지·카드)는 오른쪽으로 역할을 나눴습니다.</p>
     <div class="sw"><span><i style="background:#05060a"></i>#05060A 심연</span><span><i style="background:#2a3242"></i>#2A3242 석판</span><span><i style="background:#3a4358"></i>#3A4358 테두리</span><span><i style="background:#28e66e"></i>도깨비불</span><span><i style="background:#c0cce6"></i>망령</span><span><i style="background:#e64141"></i>사신</span><span><i style="background:#e6af08"></i>저주술사</span><span><i style="background:#9c4fe6"></i>역병귀</span><span><i style="background:#82abe6"></i>환령</span></div>
   </div>
 </section>
@@ -150,7 +232,29 @@ const SRC={
   Phantom:'@@sheet:Monsters2D/Phantom_Sheet.png', PhantomE:'@@sheet:Monsters2D/Phantom_Sheet_Emission.png',
 };
 const IMG={};
-const W=480,H=270;
+const ICON={
+  Wisp:'@@sheet:MonsterIcons/Wisp.png',
+  Wraith:'@@sheet:MonsterIcons/Wraith.png',
+  Reaper:'@@sheet:MonsterIcons/Reaper.png',
+  Hex:'@@sheet:MonsterIcons/Hex.png',
+  Plague:'@@sheet:MonsterIcons/Plague.png',
+  Phantom:'@@sheet:MonsterIcons/Phantom.png',
+  TANK:'@@sheet:SynergyIcons/TANK.png',
+  DPS:'@@sheet:SynergyIcons/DPS.png',
+  DEBUFF:'@@sheet:SynergyIcons/DEBUFF.png',
+  SWARM:'@@sheet:SynergyIcons/SWARM.png',
+  HeroPoisonAura:'@@sheet:CardArt/HeroPoisonAura.png',
+  Slow:'@@sheet:CardArt/Slow.png',
+  MarkOfDeath:'@@sheet:CardArt/MarkOfDeath.png',
+  SpawnWisps:'@@sheet:CardArt/SpawnWisps.png',
+  IronWill:'@@sheet:CardArt/IronWill.png',
+  SpawnerHaste:'@@sheet:CardArt/SpawnerHaste.png',
+  WallOfWisps:'@@sheet:CardArt/WallOfWisps.png',
+  TimeStop:'@@sheet:CardArt/TimeStop.png',
+  Fear:'@@sheet:CardArt/Fear.png',
+};
+
+let W=480,H=270;
 const BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v=>(v+.5)/16);
 const MON={
   Wisp:{cell:48,idle:[6,8],walk:[6,12],atk:[5,12]},
@@ -240,7 +344,7 @@ function flame(ctx,x,y,t,size,pal,wd=2){
 }
 
 //# 도트 조명 — 480×270 라이트맵을 디더 계단으로 양자화해 960×540 에 곱한다
-const LM=new Float32Array(W*H*3);
+const LM=new Float32Array(640*360*3);
 function applyLight(ctx,amb,lights){
   for(let i=0;i<W*H;i++){LM[i*3]=amb[0];LM[i*3+1]=amb[1];LM[i*3+2]=amb[2];}
   for(const l of lights){const sq=l.sq||1,r=l.r,ry=r*sq;
@@ -256,6 +360,7 @@ function applyLight(ctx,amb,lights){
 }
 
 function Engine(id,def){
+  const DW=def.w||480,DH=def.h||270;W=DW;H=DH;
   const st=document.getElementById(id),cv=st.querySelector('canvas');cv.width=W*2;cv.height=H*2;
   const ctx=cv.getContext('2d',{willReadFrequently:true});
   const base=document.createElement('canvas');base.width=W;base.height=H;
@@ -264,6 +369,7 @@ function Engine(id,def){
   const S=def.init?def.init():{};
   let t=0,last=performance.now(),acc=0,visible=true,paused=false,lit=true;
   function draw(){
+    W=DW;H=DH;
     ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.filter='none';
     ctx.drawImage(base,0,0,W*2,H*2);
     ctx.setTransform(2,0,0,2,0,0);ctx.imageSmoothingEnabled=false;
@@ -273,6 +379,7 @@ function Engine(id,def){
     def.emissive(ctx,S,t);
     ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.filter='none';
     def.overlay(ctx,S,t);
+    def.hud&&def.hud(S,t);
   }
   function frame(now){
     requestAnimationFrame(frame);
@@ -280,7 +387,7 @@ function Engine(id,def){
     if(!visible||paused)return;
     acc+=dt;if(acc<1/24)return;
     const step=acc;acc=0;t+=step;
-    def.update&&def.update(S,step,t);
+    W=DW;H=DH;def.update&&def.update(S,step,t);
     draw();
   }
   new IntersectionObserver(es=>{visible=es[0].isIntersecting;},{threshold:0}).observe(st);
@@ -288,7 +395,7 @@ function Engine(id,def){
     const a=btn.dataset.act;
     if(a==='light'){lit=!lit;btn.classList.toggle('on',lit);draw();}
     if(a==='pause'){paused=!paused;btn.classList.toggle('on',paused);}
-    if(a==='hud'){st.classList.toggle('showhud');btn.classList.toggle('on');}
+    if(a==='hud'||a==='hud2'){st.classList.toggle('showhud');btn.classList.toggle('on');}
   }));
   draw();requestAnimationFrame(frame);
 }
@@ -526,54 +633,51 @@ const VScene={
   overlay(){},
 };
 
-//# ============ 3. 배틀 ============
-const ARENA={x:240,y:166,rx:224,ry:98};
-const ALTAR={};[['Wisp',240],['Reaper',180],['Hex',120],['Wraith',60],['Plague',0],['Phantom',300]].forEach(([sp,deg])=>{const a=deg*Math.PI/180;ALTAR[sp]={x:Math.round(240+178*Math.cos(a)),y:Math.round(166-78*Math.sin(a))};});
-const BRAZ=[145,35,215,325].map(d=>{const a=d*Math.PI/180;return{x:Math.round(240+224*.955*Math.cos(a)),y:Math.round(166-98*.955*Math.sin(a))};});
-const HERO={x:240,y:172};
+//# ============ 3. 배틀 (줌아웃 640×360) ============
+const ARENA={x:320,y:198,rx:336,ry:148};
+const ALTAR={};[['Wisp',240],['Reaper',180],['Hex',120],['Wraith',60],['Plague',0],['Phantom',300]].forEach(([sp,deg])=>{const a=deg*Math.PI/180;ALTAR[sp]={x:Math.round(320+204*Math.cos(a)),y:Math.round(198-96*Math.sin(a))};});
+const BRAZ=[150,30,210,330].map(d=>{const a=d*Math.PI/180;return{x:Math.round(320+300*Math.cos(a)),y:Math.round(198-132*Math.sin(a))};});
+const HERO={x:320,y:204};
 const BScene={
-  seed:41,ambient:[.44,.5,.64],
+  seed:41,w:640,h:360,ambient:[.44,.5,.64],
   build(b,rng){
     const g=mk(b);
     gradFill(b,0,0,W,H,['#05060a','#070a10','#080b12','#06080c']);
-    for(let i=0;i<50;i++)g.P(rng()<.5?'#111827':'#0d1320',Math.floor(rng()*W),Math.floor(rng()*H));
-    brickWall(b,rng,0,0,W,58,['#1b2231','#1e2636','#182030','#222b3d'],'#0c1018');
-    for(const x of [52,134,332,414]){g.R('#222b3d',x,0,16,60);g.R('#2e3850',x,0,3,60);g.R('#12171f',x+13,0,3,60);g.R('#2e3850',x-2,52,20,4);}
-    g.R('#2a3347',0,56,W,4);g.R('#3a4358',0,56,W,1);
-    //# 입구 창살문
-    g.R('#2e3850',210,10,60,50);g.R('#020305',216,22,48,38);for(let y=14;y<22;y++){const h=Math.round(24*Math.sqrt(1-((22-y)/8)**2));g.R('#020305',240-h,y,h*2,1);}
-    for(let x=218;x<264;x+=5)g.R('#2a2f38',x,16,2,44);g.R('#2a2f38',216,32,48,2);g.R('#2a2f38',216,46,48,2);
+    for(let i=0;i<70;i++)g.P(rng()<.5?'#111827':'#0d1320',Math.floor(rng()*W),Math.floor(rng()*H));
+    brickWall(b,rng,0,0,W,40,['#1b2231','#1e2636','#182030','#222b3d'],'#0c1018');
+    for(const x of [70,180,450,560]){g.R('#222b3d',x,0,16,42);g.R('#2e3850',x,0,3,42);g.R('#12171f',x+13,0,3,42);g.R('#2e3850',x-2,36,20,4);}
+    g.R('#2a3347',0,40,W,4);g.R('#3a4358',0,40,W,1);
     //# 투기장 바닥 (픽셀 단위 동심원 석판)
     const img=b.getImageData(0,0,W,H),d=img.data,A=ARENA;
     const tp=['#262d3c','#2a3242','#232a38','#2d3546','#28303f'].map(hex),mortar=hex('#131824'),rim=hex('#3a4358'),rimHi=hex('#4d5872'),rimDk=hex('#2a3141'),
       cliffA=hex('#161b27'),cliffB=hex('#0e1119'),inner=hex('#221f30'),innerL=hex('#3a3350');
     const hash=(a,c)=>{let h=Math.imul(a,374761393)+Math.imul(c,668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967296;};
+    const RINGS=8;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++){
       const nx=(x-A.x)/A.rx,ny=(y-A.y)/A.ry,rr=Math.hypot(nx,ny);let c=null;
       if(rr<=1){
         const ang=Math.atan2(ny,nx);
-        if(rr>.935){c=rr<.948?rimDk:(rr>.988&&ny<0?rimHi:rim);if(((ang/(2*Math.PI)+1)*56)%1<.03)c=rimDk;}
-        else if(rr<.2){c=inner;if(Math.abs(rr-.12)<.01||Math.abs(rr-.19)<.01)c=innerL;
-          if(rr>.12&&rr<.19&&((ang/(2*Math.PI)+1)*6)%1<.04)c=innerL;}
-        else{const rs=(rr-.2)/.735*6,ring=Math.floor(rs),fq=rs-ring,sectors=12+ring*8,sa=(ang/(2*Math.PI)+.5)*sectors+(ring%2)*.5,sec=Math.floor(sa),fa=sa-sec;
-          const radLen=(.735/6)*Math.hypot(A.rx*nx,A.ry*ny)/Math.max(rr,.001),tanLen=Math.hypot(A.rx*ny,A.ry*nx)*2*Math.PI/sectors/Math.max(rr,.001)*rr;
+        if(rr>.95){c=rr<.96?rimDk:(rr>.99&&ny<0?rimHi:rim);if(((ang/(2*Math.PI)+1)*72)%1<.03)c=rimDk;}
+        else if(rr<.14){c=inner;if(Math.abs(rr-.08)<.007||Math.abs(rr-.135)<.007)c=innerL;
+          if(rr>.08&&rr<.135&&((ang/(2*Math.PI)+1)*6)%1<.04)c=innerL;}
+        else{const rs=(rr-.14)/.81*RINGS,ring=Math.floor(rs),fq=rs-ring,sectors=16+ring*8,sa=(ang/(2*Math.PI)+.5)*sectors+(ring%2)*.5,sec=Math.floor(sa),fa=sa-sec;
+          const radLen=(.81/RINGS)*Math.hypot(A.rx*nx,A.ry*ny)/Math.max(rr,.001),tanLen=Math.hypot(A.rx*ny,A.ry*nx)*2*Math.PI/sectors;
           c=tp[Math.floor(hash(ring,sec)*tp.length)];
           if(fq*radLen<1||fa*tanLen<1)c=mortar;else if(fq*radLen<2)c=c.map(v=>v*1.12);
           if(hash(x,y*3)<.03)c=c.map(v=>v*.78);}
       }else if(ny>0&&Math.abs(nx)<1){const yb=A.y+A.ry*Math.sqrt(1-nx*nx),k=y-yb;
-        if(k>=0&&k<14){const row=Math.floor(k/5);c=(Math.floor(k)%5===0||Math.floor(x+row*6)%12===0)?cliffB:cliffA;if(k<1.5)c=rimDk;
-          if(k>8&&BAYER[(y&3)*4+(x&3)]<(k-8)/6)c=cliffB;}}
+        if(k>=0&&k<16){const row=Math.floor(k/5);c=(Math.floor(k)%5===0||Math.floor(x+row*6)%12===0)?cliffB:cliffA;if(k<1.5)c=rimDk;
+          if(k>9&&BAYER[(y&3)*4+(x&3)]<(k-9)/7)c=cliffB;}}
       if(c){const i=(y*W+x)*4;d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];d[i+3]=255;}
     }
     b.putImageData(img,0,0);
-    //# 바닥 소품: 균열·핏자국·뼈
-    for(let i=0;i<14;i++){const a=rng()*Math.PI*2,r=.25+rng()*.6;crack(g,rng,Math.round(240+Math.cos(a)*r*210),Math.round(166+Math.sin(a)*r*90),6+Math.floor(rng()*8),'#161b26');}
-    for(let i=0;i<6;i++){const a=rng()*Math.PI*2,r=.3+rng()*.5,x=Math.round(240+Math.cos(a)*r*210),y=Math.round(166+Math.sin(a)*r*90);
-      for(let k=0;k<14;k++)g.P(rng()<.5?'#3a1a22':'#2e161c',x+Math.floor(rng()*8)-4,y+Math.floor(rng()*4)-2);}
-    for(let i=0;i<8;i++){const a=rng()*Math.PI*2,r=.35+rng()*.55,x=Math.round(240+Math.cos(a)*r*210),y=Math.round(166+Math.sin(a)*r*90);
+    const inArena=(r)=>{const a=rng()*Math.PI*2;return[Math.round(A.x+Math.cos(a)*r*A.rx*.9),Math.round(A.y+Math.sin(a)*r*A.ry*.9)];};
+    for(let i=0;i<22;i++){const[x,y]=inArena(.2+rng()*.7);crack(g,rng,x,y,6+Math.floor(rng()*9),'#161b26');}
+    for(let i=0;i<9;i++){const[x,y]=inArena(.25+rng()*.6);for(let k=0;k<16;k++)g.P(rng()<.5?'#3a1a22':'#2e161c',x+Math.floor(rng()*9)-4,y+Math.floor(rng()*4)-2);}
+    for(let i=0;i<12;i++){const[x,y]=inArena(.3+rng()*.6);
       if(rng()<.4){g.ell('#b9b09a',x,y,3,2);g.P('#1a1d24',x-1,y);g.P('#1a1d24',x+1,y);}else{g.R('#b9b09a',x-3,y,7,1);g.P('#b9b09a',x-4,y-1);g.P('#b9b09a',x+4,y+1);}}
     //# 제단
-    for(const sp in ALTAR){const{x,y}=ALTAR[sp];g.ring(shade(GLOW[sp],.35),x,y+1,20,7);g.ring(shade(GLOW[sp],.25),x,y+1,15,5);
+    for(const sp in ALTAR){const{x,y}=ALTAR[sp];g.ring(shade(GLOW[sp],.35),x,y+1,22,8);g.ring(shade(GLOW[sp],.25),x,y+1,16,6);
       g.ell('#0d1019',x,y+1,11,4);g.R('#2e3850',x-9,y-3,18,4);g.R('#3a4358',x-9,y-3,18,1);
       g.R('#262d3c',x-6,y-16,12,13);g.R('#3a4358',x-6,y-16,3,13);g.R('#4d5872',x-6,y-16,1,13);g.R('#171d2a',x+4,y-16,2,13);
       g.R('#3a4358',x-8,y-19,16,3);g.R('#56627e',x-8,y-19,16,1);}
@@ -584,67 +688,67 @@ const BScene={
     const atk=(sp,x,y,flip,ph)=>({sp,x,y,flip,ph,atk:false,t0:0,next:Math.random()*1.5,hit:false});
     return{
       hero:{seq:0,t0:0,flip:false,hp:1000},
-      attackers:[atk('Wraith',270,160,true,.2),atk('Reaper',208,188,false,.7),atk('Plague',270,194,true,1.3),atk('Hex',176,130,false,.4)],
-      wisps:[0,1,2].map(i=>({state:'walk',x:ALTAR.Wisp.x,y:ALTAR.Wisp.y,delay:i*1.6,tx:220+i*8,ty:192+i*4,t0:0,swings:0,hit:false,ph:i})),
+      attackers:[atk('Wraith',362,190,true,.2),atk('Reaper',278,220,false,.7),atk('Plague',364,230,true,1.3),atk('Hex',236,150,false,.4)],
+      wisps:[0,1,2].map(i=>({state:'walk',x:ALTAR.Wisp.x,y:ALTAR.Wisp.y,delay:i*1.6,tx:292+i*10,ty:228+i*5,t0:0,swings:0,hit:false,ph:i})),
       phantoms:[0,1,2].map(i=>({a:i/3*Math.PI*2,ph:i*.5})),
-      orbs:[],sparks:[],nums:[],ember:Array.from({length:36},()=>({x:Math.random()*W,y:Math.random()*H,v:3+Math.random()*6,p:Math.random()*6})),
+      orbs:[],sparks:[],nums:[],ember:Array.from({length:50},()=>({x:Math.random()*640,y:Math.random()*360,v:3+Math.random()*6,p:Math.random()*6})),
     };
   },
   update(S,dt,t){
-    const HS=[['slash1'],['idle'],['slash2'],['idle'],['stab'],['idle']];
-    const h=S.hero,cur=KROW[HS[h.seq][0]],hf=Math.floor((t-h.t0)*cur[2]);
-    if(HS[h.seq][0]!=='idle'&&hf===7&&!h.struck){h.struck=true;const tx=h.flip?HERO.x-22:HERO.x+22;
-      S.nums.push({x:tx,y:HERO.y-30,v:30+Math.floor(Math.random()*25),t0:t,col:'#ff9a9d'});for(let k=0;k<6;k++)S.sparks.push({x:tx,y:HERO.y-16,vx:(Math.random()-.5)*60,vy:-Math.random()*40,life:.35,c:'#e8f4ff'});}
-    if(hf>=cur[1]){h.seq=(h.seq+1)%HS.length;h.t0=t;h.struck=false;if(HS[h.seq][0]!=='idle')h.flip=Math.random()<.5;}
-    const hitHero=(dmg,crit)=>{S.nums.push({x:HERO.x+(Math.random()-.5)*14,y:HERO.y-58,v:dmg,t0:t,col:crit?'#f7c64a':'#eef1f6',crit});h.hp=Math.max(80,h.hp-dmg);
+    const HS=['slash1','idle','slash2','idle','stab','idle'];
+    const h=S.hero,cur=KROW[HS[h.seq]],hf=Math.floor((t-h.t0)*cur[2]);
+    if(HS[h.seq]!=='idle'&&hf===7&&!h.struck){h.struck=true;const tx=h.flip?HERO.x-24:HERO.x+24;
+      S.nums.push({x:tx,y:HERO.y-34,v:30+Math.floor(Math.random()*25),t0:t,col:'#ff9a9d'});for(let k=0;k<6;k++)S.sparks.push({x:tx,y:HERO.y-16,vx:(Math.random()-.5)*60,vy:-Math.random()*40,life:.35,c:'#e8f4ff'});}
+    if(hf>=cur[1]){h.seq=(h.seq+1)%HS.length;h.t0=t;h.struck=false;if(HS[h.seq]!=='idle')h.flip=Math.random()<.5;}
+    const hitHero=(dmg,crit)=>{S.nums.push({x:HERO.x+(Math.random()-.5)*16,y:HERO.y-62,v:dmg,t0:t,col:crit?'#f7c64a':'#eef1f6',crit});h.hp=Math.max(60,h.hp-dmg);
       for(let k=0;k<4;k++)S.sparks.push({x:HERO.x,y:HERO.y-18,vx:(Math.random()-.5)*50,vy:-Math.random()*30,life:.3,c:crit?'#f7c64a':'#ffffff'});};
-    if(h.hp<=100)h.hp=1000;
+    if(h.hp<=60)h.hp=1000;
     for(const a of S.attackers){const s=MON[a.sp];
       if(!a.atk&&t>a.next){a.atk=true;a.t0=t;a.hit=false;}
       if(a.atk){const f=Math.floor((t-a.t0)*s.atk[1]);
-        if(f>=1&&!a.hit){a.hit=true;if(a.sp==='Hex')S.orbs.push({x0:a.x+10,y0:a.y-26,t0:t,dur:.45});else hitHero(8+Math.floor(Math.random()*14),Math.random()<.15);}
+        if(f>=1&&!a.hit){a.hit=true;if(a.sp==='Hex')S.orbs.push({x0:a.x+10,y0:a.y-26,t0:t,dur:.5});else hitHero(8+Math.floor(Math.random()*14),Math.random()<.15);}
         if(f>=s.atk[0]){a.atk=false;a.next=t+.5+Math.random()*1.2;}}}
     S.orbs=S.orbs.filter(o=>{if(t-o.t0>=o.dur){hitHero(18+Math.floor(Math.random()*10),Math.random()<.3);return false;}return true;});
     for(const w of S.wisps){
       if(w.delay>0){w.delay-=dt;continue;}
-      if(w.state==='walk'){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d<1.5){w.state='atk';w.t0=t;w.swings=0;w.hit=false;}else{w.x+=dx/d*28*dt;w.y+=dy/d*28*dt;}}
+      if(w.state==='walk'){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);if(d<1.5){w.state='atk';w.t0=t;w.swings=0;w.hit=false;}else{w.x+=dx/d*30*dt;w.y+=dy/d*30*dt;}}
       else if(w.state==='atk'){const f=Math.floor((t-w.t0)*12);if(f>=1&&!w.hit){w.hit=true;hitHero(4+Math.floor(Math.random()*5),false);}
         if(f>=5){w.swings++;w.t0=t;w.hit=false;if(w.swings>=3){w.state='die';w.t0=t;}}}
       else if(w.state==='die'){if((t-w.t0)*12>=6){w.state='walk';w.x=ALTAR.Wisp.x;w.y=ALTAR.Wisp.y;w.delay=.8;}}}
-    for(const p of S.phantoms)p.a+=dt*.9;
+    for(const p of S.phantoms)p.a+=dt*.8;
     S.sparks=S.sparks.filter(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=90*dt;s.life-=dt;return s.life>0;});
     S.nums=S.nums.filter(n=>t-n.t0<.9);
     for(const e of S.ember){e.y-=e.v*dt;e.x+=Math.sin(e.y*.04+e.p)*.2;if(e.y<0){e.y=H;e.x=Math.random()*W;}}
   },
-  _phPos(p,t){return{x:HERO.x+Math.cos(p.a)*46,y:HERO.y+Math.sin(p.a)*18,flip:-Math.sin(p.a)<0,bob:Math.round(Math.sin(t*4+p.ph)*2)-12};},
-  _draws(S,t,e){
+  _phPos(p,t){return{x:HERO.x+Math.cos(p.a)*64,y:HERO.y+Math.sin(p.a)*26,flip:-Math.sin(p.a)<0,bob:Math.round(Math.sin(t*4+p.ph)*2)-12};},
+  _draws(ctx,S,t,e){
     const L=[],h=S.hero,HS=['slash1','idle','slash2','idle','stab','idle'],k=KROW[HS[h.seq]],hf=Math.min(k[1]-1,Math.floor((t-h.t0)*k[2]));
-    L.push({y:HERO.y,d:()=>{if(!e)shadow(ctx0(),HERO.x,HERO.y,9);drawKnight(ctx0(),k[0],HS[h.seq]==='idle'?fr(t,8,8):hf,HERO.x,HERO.y,h.flip,e);}});
-    for(const a of S.attackers){const s=MON[a.sp];L.push({y:a.y,d:()=>{if(!e)shadow(ctx0(),a.x,a.y,s.cell>60?12:7);
-      if(a.atk)drawMon(ctx0(),a.sp,2,Math.min(s.atk[0]-1,Math.floor((t-a.t0)*s.atk[1])),a.x,a.y,a.flip,e);else drawMon(ctx0(),a.sp,0,fr(t+a.ph,s.idle[0],s.idle[1]),a.x,a.y,a.flip,e);}});}
-    for(const w of S.wisps){if(w.delay>0)continue;L.push({y:w.y,d:()=>{const flip=w.tx<w.x;if(!e&&w.state!=='die')shadow(ctx0(),w.x,w.y,6);
-      if(w.state==='walk')drawMon(ctx0(),'Wisp',1,fr(t+w.ph,6,12),w.x,w.y,flip,e);
-      else if(w.state==='atk')drawMon(ctx0(),'Wisp',2,Math.min(4,Math.floor((t-w.t0)*12)),w.x,w.y,flip,e);
-      else drawMon(ctx0(),'Wisp',4,Math.min(5,Math.floor((t-w.t0)*12)),w.x,w.y,flip,e);}});}
-    for(const p of S.phantoms){const q=this._phPos(p,t);L.push({y:q.y,d:()=>{if(!e)shadow(ctx0(),q.x,q.y,5);drawMon(ctx0(),'Phantom',1,fr(t+p.ph,4,12),q.x,q.y+q.bob,q.flip,e);}});}
+    L.push({y:HERO.y,d:()=>{if(!e)shadow(ctx,HERO.x,HERO.y,9);drawKnight(ctx,k[0],HS[h.seq]==='idle'?fr(t,8,8):hf,HERO.x,HERO.y,h.flip,e);}});
+    for(const a of S.attackers){const s=MON[a.sp];L.push({y:a.y,d:()=>{if(!e)shadow(ctx,a.x,a.y,s.cell>60?12:7);
+      if(a.atk)drawMon(ctx,a.sp,2,Math.min(s.atk[0]-1,Math.floor((t-a.t0)*s.atk[1])),a.x,a.y,a.flip,e);else drawMon(ctx,a.sp,0,fr(t+a.ph,s.idle[0],s.idle[1]),a.x,a.y,a.flip,e);}});}
+    for(const w of S.wisps){if(w.delay>0)continue;L.push({y:w.y,d:()=>{const flip=w.tx<w.x;if(!e&&w.state!=='die')shadow(ctx,w.x,w.y,6);
+      if(w.state==='walk')drawMon(ctx,'Wisp',1,fr(t+w.ph,6,12),w.x,w.y,flip,e);
+      else if(w.state==='atk')drawMon(ctx,'Wisp',2,Math.min(4,Math.floor((t-w.t0)*12)),w.x,w.y,flip,e);
+      else drawMon(ctx,'Wisp',4,Math.min(5,Math.floor((t-w.t0)*12)),w.x,w.y,flip,e);}});}
+    for(const p of S.phantoms){const q=this._phPos(p,t);L.push({y:q.y,d:()=>{if(!e)shadow(ctx,q.x,q.y,5);drawMon(ctx,'Phantom',1,fr(t+p.ph,4,12),q.x,q.y+q.bob,q.flip,e);}});}
     return L.sort((a,b)=>a.y-b.y);
   },
-  lit(ctx,S,t){CUR=ctx;this._draws(S,t,false).forEach(o=>o.d());},
+  lit(ctx,S,t){this._draws(ctx,S,t,false).forEach(o=>o.d());},
   lights(S,t){
-    const L=[{x:HERO.x,y:HERO.y-12,r:96,sq:.55,c:[.7,.82,1],i:.7},{x:240,y:40,r:48,sq:.8,c:[.4,.6,.95],i:.55}];
-    for(const sp in ALTAR){const c=hex(GLOW[sp]).map(v=>v/255);L.push({x:ALTAR[sp].x,y:ALTAR[sp].y-8,r:52,sq:.55,c,i:1+Math.sin(t*2+ALTAR[sp].x)*.12});}
-    BRAZ.forEach((p,i)=>L.push({x:p.x,y:p.y-14,r:62,sq:.65,c:[.4,1,.7],i:.8+Math.sin(t*10+i*2)*.07}));
+    const L=[{x:HERO.x,y:HERO.y-12,r:110,sq:.55,c:[.7,.82,1],i:.7}];
+    for(const sp in ALTAR){const c=hex(GLOW[sp]).map(v=>v/255);L.push({x:ALTAR[sp].x,y:ALTAR[sp].y-8,r:58,sq:.55,c,i:1+Math.sin(t*2+ALTAR[sp].x)*.12});}
+    BRAZ.forEach((p,i)=>L.push({x:p.x,y:p.y-14,r:70,sq:.65,c:[.4,1,.7],i:.8+Math.sin(t*10+i*2)*.07}));
     for(const o of S.orbs){const k=(t-o.t0)/o.dur;L.push({x:o.x0+(HERO.x-o.x0)*k,y:o.y0+(HERO.y-20-o.y0)*k,r:26,c:[1,.75,.2],i:.8});}
     return L;
   },
   emissive(ctx,S,t){
     const g=mk(ctx);ctx.globalCompositeOperation='lighter';
     for(const sp in ALTAR){const{x,y}=ALTAR[sp],c=GLOW[sp],bob=Math.round(Math.sin(t*2.4+x)*1.5);
-      ctx.globalAlpha=.45+.25*Math.sin(t*2+x);g.ring(c,x,y+1,20,7);ctx.globalAlpha=1;
+      ctx.globalAlpha=.45+.25*Math.sin(t*2+x);g.ring(c,x,y+1,22,8);ctx.globalAlpha=1;
       const cy=y-27+bob;for(let r=0;r<9;r++){const w=r<4?r:8-r;g.R(c,x-w,cy+r,w*2+1,1);}g.R('#ffffff',x,cy+2,1,4);g.P('#ffffff',x-1,cy+3);
       if(Math.floor(t*3+x)%4===0)g.P(c,x+3,cy-3);}
     for(const p of BRAZ)flame(ctx,p.x,p.y-13,t+p.x,8,SOULF,3);
-    this._draws(S,t,true).forEach(o=>o.d());
+    this._draws(ctx,S,t,true).forEach(o=>o.d());
     for(const o of S.orbs){const k=(t-o.t0)/o.dur,x=o.x0+(HERO.x-o.x0)*k,y=o.y0+(HERO.y-20-o.y0)*k-Math.sin(k*Math.PI)*10;
       for(let i=1;i<5;i++){const kk=Math.max(0,k-i*.05);ctx.globalAlpha=.6-i*.12;g.P('#e6af08',o.x0+(HERO.x-o.x0)*kk,o.y0+(HERO.y-20-o.y0)*kk-Math.sin(kk*Math.PI)*10);}
       ctx.globalAlpha=1;g.R('#e6af08',x-1,y-1,3,3);g.P('#fff3c4',x,y);}
@@ -653,15 +757,39 @@ const BScene={
     ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   },
   overlay(ctx,S,t){
-    const g=mk(ctx),h=S.hero,bx=HERO.x-22,by=HERO.y-66;
-    g.R('#07090e',bx-1,by-1,46,6);g.R('#3a1a22',bx,by,44,4);const w=Math.round(44*h.hp/1000);g.R('#8e1f2a',bx,by,w,4);g.R('#e5484d',bx,by,w,3);g.R('#ff9a9d',bx,by,w,1);
-    for(let x=bx+4;x<bx+w;x+=4.4)g.R('#8e1f2a',x,by+1,1,2);
     for(const n of S.nums){const a=(t-n.t0)/.9;pxText(ctx,String(n.v),n.x,n.y-a*18,{font:n.crit?'14px Galmuri14, monospace':'11px Galmuri11, monospace',fill:n.col,outline:'#07090e',align:'center',alpha:a>.7?(1-a)/.3:1});}
   },
+  //# HUD (DOM) — 960×540 좌표로 짜고 스테이지 폭에 맞춰 스케일
+  hudInit(){
+    const $=id=>document.getElementById(id);
+    const tk=$('bh-ticks');for(let i=1;i<=9;i++){const s=document.createElement('span');s.style.left=(i*10)+'%';tk.appendChild(s);}
+    $('bh-status').innerHTML=['HeroPoisonAura','Slow','MarkOfDeath'].map(k=>`<i style="background-image:url(${ICON[k]})"></i>`).join('');
+    const SP=[['Wisp',5,3,3],['Wraith',3,2,8],['Reaper',2,1,12],['Hex',1,1,6],['Plague',2,2,7],['Phantom',1,4,4]];
+    const KO={Wisp:'도깨비불',Wraith:'망령',Reaper:'사신',Hex:'저주술사',Plague:'역병귀',Phantom:'환령'};
+    $('bh-spawn').innerHTML=SP.map(([sp,lv,n,p])=>`<div class="px dark spc" data-p="${p}"><span class="chip" style="background:${AXIS[sp]}"></span>
+      <div class="ic"><img src="${ICON[sp]}"><span class="lv">Lv${lv}</span></div>
+      <div class="body"><div class="r1"><span>${KO[sp]}</span><span class="cnt">×${n}</span></div><div class="r2"><span class="sec">0s</span></div><div class="bar"><b style="background:${GLOW[sp]}"></b></div></div></div>`).join('');
+    const SY=[['TANK','#5aa9ff',2],['SWARM','#7be36a',3],['DPS','#ff6b5a',1],['DEBUFF','#c08bff',0]];
+    $('bh-syn').insertAdjacentHTML('beforeend',SY.map(([k,c,n])=>`<div class="px dark syc ${n<2?'off':''}" style="--c:${c}"><img src="${ICON[k]}"><span class="nm">${k}</span><span class="pp">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span></div>`).join(''));
+    const bic=(k,c,n)=>k?`<i class="bic" style="--c:${c};background-image:url(${ICON[k]})">${n?`<em>×${n}</em>`:''}</i>`:`<i class="bic emp"></i>`;
+    $('bh-build').innerHTML=`<div class="lb" style="color:#5ef0b4">패시브 <span>4/6</span></div><div class="grid">`+[['SpawnWisps',2],['IronWill'],['SpawnerHaste'],['WallOfWisps'],[],[]].map(([k,n])=>bic(k,'#5ef0b4',n)).join('')
+      +`</div><div class="lb" style="color:#f7c64a">액티브 <span>2/3</span></div><div class="grid">`+[['TimeStop'],['Fear',2],[]].map(([k,n])=>bic(k,'#f7c64a',n)).join('')+`</div>`;
+    const st=$('st-battle'),hud=$('bhud');new ResizeObserver(()=>{hud.style.transform=`scale(${st.clientWidth/960})`;}).observe(st);
+    this._h={timer:$('bh-timer'),timerBox:$('bh-timer').parentElement,hp:$('bh-hp'),lag:$('bh-lag'),hptxt:$('bh-hptxt'),ticks:[...tk.children],act:$('bh-act'),actbar:$('bh-actbar'),
+      cells:[...$('bh-spawn').children],banner:$('bh-banner')};
+  },
+  hud(S,t){
+    const h=this._h;if(!h)return;
+    const left=Math.max(0,300-((t+100)%300)),el=300-left;
+    h.timer.textContent=`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`;h.timerBox.classList.toggle('warn',left<=30);
+    const hp=S.hero.hp/1000;h.hp.style.width=(hp*100)+'%';h.lag.style.width=(hp*100)+'%';h.hptxt.textContent=`${S.hero.hp} / 1000`;
+    h.ticks.forEach((s,i)=>s.classList.toggle('got',hp<=(i+1)/10));
+    const nexts=[30,90,150,210,270].find(v=>v>el);const prev=[0,30,90,150,210,270].filter(v=>v<=el).pop();
+    if(nexts){const r=nexts-el;h.act.textContent=`0:${String(Math.ceil(r)).padStart(2,'0')}`;h.actbar.style.width=((el-prev)/(nexts-prev)*100)+'%';}else{h.act.textContent='—';h.actbar.style.width='0%';}
+    for(const c of h.cells){const p=+c.dataset.p,ph=(t%p)/p;c.querySelector('.bar b').style.width=(ph*100)+'%';c.querySelector('.sec').textContent=Math.ceil(p-t%p)+'s';}
+    h.banner.classList.toggle('on',(t%16)>2&&(t%16)<5.5);
+  },
 };
-let CUR=null;function ctx0(){return CUR;}
-//# 발광 패스는 같은 _draws 를 쓰므로 호출 전 CUR 을 갱신
-const _be=BScene.emissive;BScene.emissive=function(ctx,S,t){CUR=ctx;_be.call(this,ctx,S,t);};
 
 //# ============ 부팅 ============
 (async()=>{
@@ -671,6 +799,7 @@ const _be=BScene.emissive;BScene.emissive=function(ctx,S,t){CUR=ctx;_be.call(thi
   document.getElementById('msg').textContent='';
   Engine('st-loading',LoadingScene);
   Engine('st-village',VScene);
+  BScene.hudInit();
   Engine('st-battle',BScene);
 })().catch(e=>{document.getElementById('msg').textContent='스프라이트 로드 실패: '+e;});
 </script>
