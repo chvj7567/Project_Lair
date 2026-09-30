@@ -106,17 +106,18 @@ function ring(cx,cy,rx,ry,th,c,a=1,pick){if(rx<=0)return;cx=Math.round(cx);cy=Ma
     if(pick){const p=pick(Math.atan2(y/ry,x/rx));if(p===null)continue;cc=p[0];aa=p[1]*a}
     px(cx+x,cy+y,cc,aa)}}
 function line(x0,y0,x1,y1,c,a=1){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;for(;;){px(x0,y0,c,a);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
-function sprite(map,pal,x,y,o={}){const a=o.a??1;
-  if(o.outline)for(let j=0;j<map.length;j++)for(let i=0;i<map[j].length;i++){if(map[j][i]==='.')continue;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const n=map[j+dy]?.[i+dx];if(n===undefined||n==='.')px(x+i+dx,y+j+dy,o.outline,a)}}
-  for(let j=0;j<map.length;j++)for(let i=0;i<map[j].length;i++){const ch=map[j][i];if(ch!=='.')px(x+i,y+j,o.flash||pal[ch],a)}}
+function blk(x,y,k,c,a){for(let j=0;j<k;j++)for(let i=0;i<k;i++)px(x+i,y+j,c,a)}
+function sprite(map,pal,x,y,o={}){const a=o.a??1,k=o.sc||1;
+  if(o.outline)for(let j=0;j<map.length;j++)for(let i=0;i<map[j].length;i++){if(map[j][i]==='.')continue;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const n=map[j+dy]?.[i+dx];if(n===undefined||n==='.')blk(x+(i+dx)*k,y+(j+dy)*k,k,o.outline,a)}}
+  for(let j=0;j<map.length;j++)for(let i=0;i<map[j].length;i++){const ch=map[j][i];if(ch!=='.')blk(x+i*k,y+j*k,k,o.flash||pal[ch],a)}}
 
 //# ── 더미 영웅/몬스터 (스케일 참고) ──
 const HERO=["....rr....","...hhhh...","..hhhhhh..","..hdssdh..","..hhhhhh..",".HHhhhhHH.","HhHhrrhHhH","HhHhrrhHhH","sHHhhhhHHs",".HHggggHH.","..hhhhhh..","..hHhhHh..","..hH..Hh..","..hH..Hh..","..dd..dd..","..dd..dd.."];
 const HP={h:'#aab4c2',H:'#6b7686',s:'#f1c9a0',r:'#d64545',d:'#232833',g:'#fbbf24'};
 const MON=["....dddd....","..ddmmmmdd..",".dmmmmmmmmd.","dmmwwmmwwmmd","dmmwkmmwkmmd","dmmmmmmmmmmd","dmmmmkkmmmmd",".dmmmmmmmmd.","..dddddddd.."];
 const MP={d:'#3a1f2e',m:'#7c8f3a',w:'#fff',k:'#111'};
-function hero(x,fy,o={}){if(o.shadow!==false)disc(x,fy,7,'#000',.45*(o.a??1),.35);sprite(HERO,HP,Math.round(x-5),fy-16+(o.dy||0),{outline:'#0b0e14',a:o.a,flash:o.flash})}
-function mon(x,fy,o={}){disc(x,fy,8,'#000',.45,.35);sprite(MON,MP,Math.round(x-6),fy-9,{outline:'#0b0e14',flash:o.flash})}
+function hero(x,fy,o={}){const k=o.sc||1;if(o.shadow!==false)disc(x,fy,7*k,'#000',.45*(o.a??1),.35);sprite(HERO,HP,Math.round(x-5*k),fy-16*k+(o.dy||0),{outline:'#0b0e14',a:o.a,flash:o.flash,sc:k})}
+function mon(x,fy,o={}){const k=o.sc||1;disc(x,fy,8*k,'#000',.45,.35);sprite(MON,MP,Math.round(x-6*k),fy-9*k,{outline:'#0b0e14',flash:o.flash,sc:k})}
 
 //# ── 3x5 도트 숫자 폰트 ──
 const GL={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001001010010','8':'111101111101111','9':'111101111001111','!':'010010010000010'};
@@ -130,30 +131,34 @@ const SK=["..#######..",".#########.","###########","##ooo#ooo##","##ooo#ooo##",
 const TH=["..+.+.+.+..","..+.+.+.+.."];
 const SKP={'#':'#e8e0ff','+':'#b9a6ee','o':'#3b1670','n':'#3b1670'};
 
-const FX=[
-{id:'HitImpact',name:'피격 임팩트 (영웅)',key:'EVisual.HitImpact',N:7,hold:5,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],
- desc:'영웅이 맞을 때 피격 지점에 터지는 붉은 스파크 버스트 (0.6초).',
- draw(f,N){const cx=64,cy=62,fy=76,t=f<N?f/(N-1):1;
-  hero(cx+(f===1?-1:f===2?1:0),fy,{flash:f<=1?'#fff':null});
-  if(f>=N)return;
-  const cols=['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],core=[6,7,4,2,0,0,0][f]||0;
-  disc(cx,cy,core,f<=1?'#fff':f===2?'#ffe066':'#ffb020',1,.85);
-  if(f>=1&&f<=4){const rx=6+f*5;ring(cx,cy,rx,rx*.75,1,'#ff7a18',1-(f-1)/4)}
-  for(let k=0;k<10;k++){const a=k*TAU/10+.3,d=4+22*eo(t)*(.8+.4*rnd(k)),len=Math.round(5*(1-t)*(.6+.6*rnd(k+9)))+1,c=cols[Math.min(4,Math.floor(t*4.5))];
+//# ── 피격 임팩트 (s = 대상 크기 배율) ──
+function hitOne(cx,fy,k,s,lf){if(lf<0){hero(cx,fy,{sc:k});return}
+  hero(cx+(lf===1?-1:lf===2?1:0)*k,fy,{sc:k,flash:lf<=1?'#fff':null});
+  if(lf>=7)return;
+  const cy=fy-8*k,t=lf/6,cols=['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],core=[6,7,4,2,0,0,0][lf]*s;
+  disc(cx,cy,core,lf<=1?'#fff':lf===2?'#ffe066':'#ffb020',1,.85);
+  if(lf>=1&&lf<=4){const rx=(6+lf*5)*s;ring(cx,cy,rx,rx*.75,1,'#ff7a18',1-(lf-1)/4)}
+  for(let j=0;j<10;j++){const a=j*TAU/10+.3,d=(4+22*eo(t)*(.8+.4*rnd(j)))*s,len=(Math.round(5*(1-t)*(.6+.6*rnd(j+9)))+1)*s,c=cols[Math.min(4,Math.floor(t*4.5))];
    line(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.8,cx+Math.cos(a)*(d+len),cy+Math.sin(a)*(d+len)*.8,c,1-t*t)}
-  for(let k=0;k<6;k++){const a=rnd(k+20)*TAU,d=6+16*eo(t)*(.6+rnd(k+30)*.6);px(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.8+12*t*t,'#ff4d4d',1-t)}}},
-
-{id:'MonsterHitImpact',name:'피격 임팩트 (몬스터)',key:'EVisual.MonsterHitImpact',N:8,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020'],
- desc:'영웅 공격이 몬스터에게 적중할 때: X자 베기 + 십자 스파크 + 파편 (0.7초).',
- draw(f,N){const cx=64,cy=66,fy=80;
-  mon(cx+(f>=1&&f<=3?2:0),fy,{flash:f<=1?'#fff':null});
-  if(f>=N)return;
-  const t=f/(N-1),fade=f<4?1:cl(1-(f-3)/(N-3));
-  for(const[s,d0]of[[1,0],[-1,1]]){const rr=cl((f+1-d0)/3);if(rr<=0)continue;const x0=cx-s*20,y0=cy-14,x1=x0+s*40*rr,y1=y0+28*rr;
+  for(let j=0;j<6;j++){const a=rnd(j+20)*TAU,d=(6+16*eo(t)*(.6+rnd(j+30)*.6))*s;px(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.8+12*t*t*s,'#ff4d4d',1-t)}}
+function monOne(cx,fy,k,s,lf){if(lf<0){mon(cx,fy,{sc:k});return}
+  mon(cx+(lf>=1&&lf<=3?2:0),fy,{sc:k,flash:lf<=1?'#fff':null});
+  if(lf>=8)return;
+  const cy=fy-Math.round(4.5*k),N=8,t=lf/7,fade=lf<4?1:cl(1-(lf-3)/(N-3));
+  for(const[d,d0]of[[1,0],[-1,1]]){const rr=cl((lf+1-d0)/3);if(rr<=0)continue;const x0=cx-d*20*s,y0=cy-14*s,x1=x0+d*40*s*rr,y1=y0+28*s*rr;
    line(x0,y0-1,x1,y1-1,'#ffe066',fade);line(x0,y0+1,x1,y1+1,'#ffe066',fade);line(x0,y0,x1,y1,'#fff',fade)}
-  if(f>=1&&f<=4){const L=[9,13,9,5][f-1];line(cx-L,cy,cx+L,cy,'#fff');line(cx,cy-L,cx,cy+L,'#fff');line(cx-L*.6,cy-L*.6,cx+L*.6,cy+L*.6,'#ffe066');line(cx-L*.6,cy+L*.6,cx+L*.6,cy-L*.6,'#ffe066')}
-  for(let k=0;k<8;k++){const a=rnd(k)*TAU,d=4+18*eo(t)*(.6+rnd(k+8)*.6),x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d*.8+14*t*t,c=k%2?'#ffb020':'#ffe066';
-   px(x,y,c,1-t);if(t<.5){px(x+1,y,c,1-t);px(x,y+1,c,1-t);px(x+1,y+1,c,1-t)}}}},
+  if(lf>=1&&lf<=4){const L=[9,13,9,5][lf-1]*s;line(cx-L,cy,cx+L,cy,'#fff');line(cx,cy-L,cx,cy+L,'#fff');line(cx-L*.6,cy-L*.6,cx+L*.6,cy+L*.6,'#ffe066');line(cx-L*.6,cy+L*.6,cx+L*.6,cy-L*.6,'#ffe066')}
+  for(let j=0;j<8;j++){const a=rnd(j)*TAU,d=(4+18*eo(t)*(.6+rnd(j+8)*.6))*s,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d*.8+14*t*t*s,c=j%2?'#ffb020':'#ffe066';
+   px(x,y,c,1-t);if(t<.5){px(x+1,y,c,1-t);px(x,y+1,c,1-t);px(x+1,y+1,c,1-t)}}}
+
+const FX=[
+{id:'HitImpact',name:'피격 임팩트 (영웅)',key:'EVisual.HitImpact',N:12,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff4d4d','#7a1010'],
+ desc:'영웅이 맞을 때 터지는 붉은 스파크. 임팩트 크기가 영웅 크기에 비례 (왼쪽 작은 영웅 ×1.0 / 오른쪽 큰 영웅(후반 스테이지) ×1.5, 0.6초).',
+ draw(f,N){hitOne(34,84,1,1,f);hitOne(90,84,2,1.5,f-4)}},
+
+{id:'MonsterHitImpact',name:'피격 임팩트 (몬스터)',key:'EVisual.MonsterHitImpact',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020'],
+ desc:'영웅 공격이 적중할 때 X자 베기 + 십자 스파크 + 파편. 크기가 몬스터 크기에 비례 (소형 ×0.6 / 중형 ×1.0 / 대형 ×1.4, 0.7초).',
+ draw(f,N){monOne(22,84,1,.6,f);monOne(62,84,2,1,f-4);monOne(104,84,3,1.4,f-8)}},
 
 {id:'DamagePopup',name:'데미지 숫자',key:'EVisual.DamagePopup',N:16,hold:4,tag:'1회',pal:['#fff','#ffe066','#c9ced6','#000'],
  desc:'부상 + 디더 페이드하는 도트 숫자. 일반(흰색) / 치명타(노랑, 팝 바운스) 두 종.',
@@ -172,18 +177,20 @@ const FX=[
    if(p<.35){px(bx,by,'#7cfc5a',a);px(bx+1,by,'#7cfc5a',a);px(bx,by+1,'#7cfc5a',a);px(bx+1,by+1,'#7cfc5a',a)}
    else{for(const[dx,dy]of[[1,0],[2,0],[0,1],[3,1],[0,2],[3,2],[1,3],[2,3]])px(bx+dx,by+dy,'#b6ffa0',a);px(bx+1,by+1,'#fff',a)}}}},
 
-{id:'TimeStopShield',name:'타임스톱 실드',key:'EVisual.TimeStopShield',N:16,hold:0,tag:'루프',pal:['#fff','#b8f4ff','#5ad1ff','#2b8fd6'],
- desc:'영웅을 감싸는 시간 정지 돔 (5초 부착). 시계 눈금 + 빛이 도는 테두리 + 멈춰 떠는 분침. 영웅은 정지(보빙 없음).',
- draw(f,N){const t=f/N,cx=64,fy=84,cy=66,r=30;
-  disc(cx,cy,r,'#5ad1ff',.10);
-  ring(cx,fy,26,10,1,'#5ad1ff',.7);
-  const mh=-Math.PI/2-(f%4<2?0:TAU/12);
-  line(cx,cy,cx+Math.cos(mh)*(r-6),cy+Math.sin(mh)*(r-6),'#5ad1ff',.55);
-  line(cx,cy,cx+Math.cos(-Math.PI/2-1.05)*(r-14),cy+Math.sin(-Math.PI/2-1.05)*(r-14),'#5ad1ff',.55);
+{id:'TimeStopShield',name:'타임스톱 아이콘',key:'EVisual.TimeStopShield',N:16,hold:0,tag:'루프',pal:['#fff','#b8f4ff','#5ad1ff','#2b8fd6','#1b4f9a'],
+ desc:'시간 정지 5초 동안 영웅 머리 위에 떠 있는 시계 아이콘 (공포 해골과 같은 위치). 분침이 멈춰 떨고, 영웅은 정지(보빙 없음) + 발밑 푸른 링.',
+ draw(f,N){const t=f/N,cx=64,fy=86;
+  ring(cx,fy,20,8,1,'#5ad1ff',.6+.2*Math.sin(t*TAU));
   hero(cx,fy);
-  ring(cx,cy,r,r,2,'#2b8fd6',1,ang=>{const da=(((ang-(t*TAU-Math.PI))%TAU)+TAU)%TAU;return da<.7?['#fff',1]:da<1.6?['#b8f4ff',1]:['#2b8fd6',.85]});
-  for(let i=0;i<12;i++){const a=i*TAU/12-Math.PI/2,lit=Math.floor(t*12)===i,r1=r+(i%3===0?7:5);line(cx+Math.cos(a)*(r+2),cy+Math.sin(a)*(r+2),cx+Math.cos(a)*r1,cy+Math.sin(a)*r1,lit?'#fff':'#5ad1ff',lit?1:.7)}
-  for(let i=0;i<6;i++){const a=rnd(i+60)*TAU,rad=rnd(i+66)*(r-8),x=cx+Math.cos(a)*rad,y=cy+Math.sin(a)*rad,q=(t*2+rnd(i+70))%1;
+  const ix=cx,iy=Math.round(52+Math.sin(t*TAU)*2);
+  disc(ix,iy,7,'#0b1f3a');disc(ix,iy,6,'#1b4f9a');disc(ix,iy,5,'#2b8fd6');ring(ix,iy,6,6,1,'#b8f4ff');
+  for(const[dx,dy]of[[0,-4],[4,0],[0,4],[-4,0]])px(ix+dx,iy+dy,'#fff');
+  const mh=-Math.PI/2-(f%4<2?0:TAU/12);
+  line(ix,iy,ix+Math.cos(mh)*4,iy+Math.sin(mh)*4,'#fff');
+  line(ix,iy,ix+Math.cos(-Math.PI/2-1.05)*2.5,iy+Math.sin(-Math.PI/2-1.05)*2.5,'#b8f4ff');
+  px(ix,iy,'#fff');
+  for(let i=0;i<5;i++){const p=(t+i/5)%1;px(ix-8+rnd(i+80)*16,iy+8+p*10,'#5ad1ff',1-p)}
+  for(let i=0;i<4;i++){const a=rnd(i+60)*TAU,x=ix+Math.cos(a)*12,y=iy+Math.sin(a)*12,q=(t*2+rnd(i+70))%1;
    if(q<.15)px(x,y,'#fff');else if(q<.3){px(x,y,'#fff');px(x-1,y,'#b8f4ff');px(x+1,y,'#b8f4ff');px(x,y-1,'#b8f4ff');px(x,y+1,'#b8f4ff')}}}},
 
 {id:'FearSkull',name:'공포 해골',key:'EVisual.FearSkull',N:14,hold:4,tag:'1회',pal:['#e8e0ff','#b9a6ee','#a45bff','#3b1670','#ff4dd2'],
