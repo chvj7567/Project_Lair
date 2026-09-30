@@ -44,6 +44,7 @@ namespace Lair.UI
             if (_subtitleText != null)
             {
                 _subtitleText.SetText(BuildSubtitle(sa.IsPassive, sa.TriggerHpPercent, sa.ActivePeriodSeconds));
+                _subtitleText.SetColor(UiDotPalette.CardKind(sa.IsPassive));
             }
 
             for (int i = 0; i < _slots.Length; ++i)

@@ -22,6 +22,8 @@ namespace Lair.UI
         [SerializeField] private CHButton _closeButton;                          //# 우상단 X
         [SerializeField] private SynergyModalCardPoolingScrollView _scrollView;  //# 단일 세로 시너지 리스트
         [SerializeField] private CHText _emptyText;                              //# 활성 티어 0개일 때만 활성
+        //# 축당 1행 셀(단계 배지·설명·다음 미리보기) 프리팹이면 true — Effect 행은 헤더가 대체하므로 목록에서 뺀다. BuildRows 결과 자체는 그대로.
+        [SerializeField] private bool _headerRowsOnly;
 
         //# 4축 아이콘 — 직접 Sprite 참조 (BuildSynergyPanel 관례 동형, Addressables 키 아님).
         //# 인스펙터에서 SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png 연결. AxisIcon 으로 매핑.
@@ -92,6 +94,11 @@ namespace Lair.UI
             //# 설명 수치는 tier(_vm.GetTier)·표시 문자열은 스트링 테이블(CHText.StringProvider) 단일 소스.
             List<SynergyModalCellData> rows =
                 BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider, AxisIcon);
+
+            if (_headerRowsOnly)
+            {
+                rows.RemoveAll(row => row.RowKind != SynergyModalCellData.Kind.Header);
+            }
 
             //# 활성 티어 0개면 빈 상태 라벨, 그 외엔 리스트.
             if (_emptyText != null)

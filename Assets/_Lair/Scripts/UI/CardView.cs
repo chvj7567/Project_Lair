@@ -23,6 +23,7 @@ namespace Lair.UI
         [SerializeField] private Image _pickButtonImage;
         [SerializeField] private Sprite _passiveButtonSprite;
         [SerializeField] private Sprite _activeButtonSprite;
+        [SerializeField] private GameObject _countBadgeBg;   //# CountBadge 뒤 배지 배경 — 배지와 함께 토글
 
         public void Bind(CardData card, Action onClick) => Bind(card, onClick, 0);
 
@@ -36,6 +37,7 @@ namespace Lair.UI
             if (_kindLabel != null)
             {
                 _kindLabel.SetText(isPassive ? "패시브" : "액티브");
+                _kindLabel.SetColor(UiDotPalette.CardKind(isPassive));
             }
             Sprite buttonSprite = isPassive ? _passiveButtonSprite : _activeButtonSprite;
             if (_pickButtonImage != null && buttonSprite != null)
@@ -80,10 +82,18 @@ namespace Lair.UI
             if (pickCount <= 0)
             {
                 _countBadge.gameObject.SetActive(false);
+                if (_countBadgeBg != null)
+                {
+                    _countBadgeBg.SetActive(false);
+                }
                 return;
             }
 
             _countBadge.gameObject.SetActive(true);
+            if (_countBadgeBg != null)
+            {
+                _countBadgeBg.SetActive(true);
+            }
             _countBadge.SetText(pickCount + "/" + Lair.Card.CardPickCounter.Cap);
         }
     }

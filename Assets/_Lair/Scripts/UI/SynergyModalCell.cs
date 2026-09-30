@@ -67,6 +67,7 @@ namespace Lair.UI
                 if (header)
                 {
                     _tierBadge.SetText(data.TierBadgeText);
+                    _tierBadge.SetColor(data.AxisColor);
                 }
             }
             if (_descText != null)

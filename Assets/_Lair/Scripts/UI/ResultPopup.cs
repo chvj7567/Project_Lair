@@ -83,6 +83,11 @@ namespace Lair.UI
                     });
                 }
 
+                if (_resultText != null)
+                {
+                    //# 승리=금 / 패배=붉은 제목 (시안).
+                    _resultText.SetColor(rp.Result == BattleResult.Win ? UiDotPalette.Gold : new Color32(0xFF, 0x6B, 0x6F, 0xFF));
+                }
                 ApplyRows(BuildRows(rp));
                 if (_rays != null)
                 {
