@@ -40,11 +40,10 @@ namespace Lair.Card
                 _attacker.Enabled = false;
             }
 
-            //# 실드 FX — 영웅을 감싸야 하니 영웅 위치 그대로(살짝 위 0.5) 스폰.
+            //# 실드 FX — 시트 피벗이 영웅 발이라 영웅 위치 그대로, 스케일은 영웅 lossyScale.x(S5 ×1.4 비례).
             if (hero is MonoBehaviour mb && mb != null)
             {
-                Vector3 p = mb.transform.position;
-                RequestVisualAt(new Vector3(p.x, p.y + 0.5f, p.z));
+                RequestVisualAt(mb.transform.position, mb.transform.lossyScale.x);
             }
         }
 
@@ -65,7 +64,7 @@ namespace Lair.Card
         }
 
         //# CHMResource 캐시 hit 시 즉시 callback (사전 워밍 후 즉시 처리). 인프라 null 시 무동작(부트 전/테스트).
-        private void RequestVisualAt(Vector3 worldPos)
+        private void RequestVisualAt(Vector3 worldPos, float scale)
         {
             if (CHMResource.Instance == null || CHMPool.Instance == null)
                 return;
@@ -81,6 +80,7 @@ namespace Lair.Card
                     return;
                 _visualPoolable = poolable;
                 _visualPoolable.transform.position = worldPos;
+                _visualPoolable.transform.localScale = Vector3.one * scale;
             });
         }
     }

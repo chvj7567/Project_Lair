@@ -144,4 +144,16 @@ namespace Lair.Character
         void SetDead(bool dead);
         void TriggerSpawn();
     }
+
+    //# ===== FX 시트 재생 =====
+
+    //# 도트 시트 FX 루트 파사드(SpriteSheetFx)의 외부 진입점. 소비자는 궤도 블레이드(SetLoopPhase)뿐이나 Rule 02 §10 에 따라 미리 정의.
+    public interface ISpriteSheetFx
+    {
+        int CurrentFrame { get; }
+        bool IsFinished { get; }
+        event Action Finished;
+        //# 0~1(순환) 위상으로 프레임을 직접 지정. 범위 밖·음수 입력은 frac 로 접는다.
+        void SetLoopPhase(float normalized);
+    }
 }

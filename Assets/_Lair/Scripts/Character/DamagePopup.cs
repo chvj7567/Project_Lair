@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# 월드스페이스 데미지 숫자. Rule 03 §3 — TMP 엔 CHText 동반(프리팹에 부착).
-    //# 부상(rise) + 선형 알파 페이드 후 자동 CHMPool.Push. 트윈 없음 → 코루틴 lerp.
+    //# 12fps 계단 부상(rise) + 4단 알파 후 자동 CHMPool.Push. 트윈 없음 → 코루틴.
     [RequireComponent(typeof(CHPoolable))]
     public class DamagePopup : MonoBehaviour
     {
@@ -59,20 +59,55 @@ namespace Lair.Character
                 fontMat.SetColor(ShaderUtilities.ID_OutlineColor, outline);
         }
 
+        //# 도트 연출 시간 함수(순수) — 12fps 프레임 지수 n = floor(t × 12). 기획서 fx-2d-conversion §6.3.
+        private const float StepFps = 12f;
+        private const int RiseFrames = 7;
+
+        public static int StepIndex(float t)
+        {
+            if (t <= 0f)
+                return 0;
+            return (int)Mathf.Floor(t * StepFps + 0.0001f);
+        }
+
+        //# 부상 비율 0~1 — 프레임 단위 ease-out(n=7 이후 1.0 정지).
+        public static float RiseRatio(int n)
+        {
+            float k = Mathf.Min(Mathf.Max(n, 0) / (float)RiseFrames, 1f);
+            float inv = 1f - k;
+            return 1f - inv * inv * inv;
+        }
+
+        //# 알파 4단 계단 — n≤4 1.00 / 5 0.75 / 6 0.50 / 7 0.25 / ≥8 0.
+        public static float StepAlpha(int n)
+        {
+            if (n <= 4)
+                return 1f;
+            if (n >= 8)
+                return 0f;
+            return 1f - (n - 4) * 0.25f;
+        }
+
         private IEnumerator PlayCo(Vector3 start, Color color)
         {
             float t = 0f;
+            int lastStep = -1;
             while (t < _duration)
             {
                 t += Time.deltaTime;
-                float k = t / _duration;
-                transform.position = start + Vector3.up * (_rise * k);
+                int n = StepIndex(t);
+                if (n != lastStep)
+                {
+                    //# 12fps 계단 — 프레임이 바뀔 때만 위치·알파 갱신.
+                    lastStep = n;
+                    transform.position = start + Vector3.up * (_rise * RiseRatio(n));
+                    if (_text != null)
+                        _text.color = new Color(color.r, color.g, color.b, StepAlpha(n));
+                }
                 if (_cam != null)
                     //# 카메라 회전 복사 → 쿼드가 카메라 평면과 평행 = 화면상 항상 똑바로(스크린-정렬 빌보드).
                     //# LookRotation(위치 방향) 은 카메라 피치를 받아 화면상 기울어진다.
                     transform.rotation = _cam.transform.rotation;
-                if (_text != null)
-                    _text.color = new Color(color.r, color.g, color.b, 1f - k);   //# 선형 페이드
                 yield return null;
             }
             _co = null;

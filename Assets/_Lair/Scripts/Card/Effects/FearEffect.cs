@@ -11,9 +11,8 @@ namespace Lair.Card
     {
         [SerializeField] private float _duration = 3f;
 
-        //# 스컬 FX 를 영웅 머리 위에 거는 로컬 Y (피벗=발밑 기준).
-        //# Knight CapsuleCollider 머리꼭대기 y≈1.8 + 여유 0.3.
-        private const float FxLiftY = 2.1f;
+        //# 스컬 FX 로컬 Y 오프셋 — 시트 피벗이 영웅 발이라 0(해골 높이는 시트에 포함).
+        private const float FxLiftY = 0f;
 
         public void Apply(IBattleContext ctx)
         {
@@ -23,7 +22,7 @@ namespace Lair.Card
             if (ai == null) return;
             ctx.ApplyHeroAura(new FearAura(ai), _duration);
 
-            //# 공포 적용 순간 영웅에 스컬 FX 부착 — 영웅이 이동하면 따라간다(인프라 null 시 무동작, 자동 풀 반환은 ReturnToPoolAfter).
+            //# 공포 적용 순간 영웅에 스컬 FX 부착 — 영웅이 이동하면 따라간다(인프라 null 시 무동작, 재생 종료 시 SpriteSheetFx 가 풀 반환).
             HeroSkillFx.SpawnAttached(EVisual.FearSkull, heroT, new Vector3(0f, FxLiftY, 0f), 1f);
         }
     }

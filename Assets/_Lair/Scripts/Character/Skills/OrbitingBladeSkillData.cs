@@ -31,7 +31,9 @@ namespace Lair.Character
         private float _angleDeg;
         //# 지속형이라 매 틱 울리면 안 됨 — 공전 블레이드 활성화 첫 틱 1회만 P3Skill 재생.
         private bool _played;
-        private readonly ChvjUnityInfra.CHPoolable[] _blades;
+        //# 시트 FX 1개(블레이드 3개가 한 장에 포함) — 영웅 추적. 공전 각도에서 프레임을 직접 지정해 판정과 동기.
+        private ChvjUnityInfra.CHPoolable _blade;
+        private ISpriteSheetFx _bladeFx;
         //# 구 중심 재사용 버퍼 — 매 틱 _angleDeg 로 계산(transform 비의존, 인프라 미부팅에도 정상).
         private readonly Vector3[] _centers;
 
@@ -39,7 +41,6 @@ namespace Lair.Character
         {
             _data = data;
             int n = Mathf.Max(1, data.BladeCount);
-            _blades = new ChvjUnityInfra.CHPoolable[n];
             _centers = new Vector3[n];
         }
 
@@ -82,33 +83,37 @@ namespace Lair.Character
         {
             if (ChvjUnityInfra.CHMResource.Instance == null || ChvjUnityInfra.CHMPool.Instance == null)
                 return;
-            ComputeCenters(heroPos);
-            float scale = _data.BladeSphereRadius * 2f;
-            for (int i = 0; i < _blades.Length; ++i)
+            if (_blade == null)
             {
-                if (_blades[i] == null)
-                {
-                    _blades[i] = HeroSkillFx.SpawnTracked(Lair.Data.EVisual.HeroOrbitBladeFx);
-                }
-                if (_blades[i] == null)
-                    continue;
-                _blades[i].transform.position = _centers[i];
-                _blades[i].transform.localScale = Vector3.one * scale;
+                _blade = HeroSkillFx.SpawnTracked(Lair.Data.EVisual.HeroOrbitBladeFx);
+                if (_blade == null)
+                    return;
+                _bladeFx = _blade.GetComponent<ISpriteSheetFx>();   //# 스폰 시 1회 캐싱
             }
+            _blade.transform.position = heroPos;
+            _blade.transform.localScale = Vector3.one * _data.OrbitRadius;
+            //# 시트는 시계 방향 영상 → 위상 반전(1 − frac)으로 판정 구(반시계)와 같은 방향·각도.
+            if (_bladeFx != null)
+                _bladeFx.SetLoopPhase(1f - OrbitPhase(_angleDeg));
+        }
+
+        //# 공전 각도(도) → 0~1 위상(frac). 음수 각도도 안전.
+        public static float OrbitPhase(float angleDeg)
+        {
+            float p = angleDeg / 360f;
+            return p - Mathf.Floor(p);
         }
 
         public void OnDeactivate()
         {
             if (ChvjUnityInfra.CHMPool.Instance == null)
                 return;
-            for (int i = 0; i < _blades.Length; ++i)
+            if (_blade != null)
             {
-                if (_blades[i] != null)
-                {
-                    ChvjUnityInfra.CHMPool.Instance.Push(_blades[i]);
-                }
-                _blades[i] = null;
+                ChvjUnityInfra.CHMPool.Instance.Push(_blade);
             }
+            _blade = null;
+            _bladeFx = null;
         }
     }
 }
