@@ -119,15 +119,17 @@ namespace Lair.Tests.UI
                 "테두리 색 = Reaper 종 대표색");
         }
 
-        //# ===== 색칩 — v1.1 항상 숨김 (역할 이관) =====
+        //# ===== 색칩 — UI 리디자인: 왼쪽 종색 띠로 표시 =====
 
         [Test]
-        public void RebindSnapshot_색칩_항상_숨김()
+        public void RebindSnapshot_색칩은_종대표색_띠로_표시()
         {
             (SpawnerStatusCell cell, GameObject chipGo, _, _) = CreateCell();
             InvokeOnEnable(cell);
-            cell.RebindSnapshot(MakeSnapshot(outputCount: 1));
-            Assert.IsFalse(chipGo.activeSelf, "v1.1 — 색칩은 중앙 아이콘으로 역할 이관, 항상 숨김");
+            Assert.IsFalse(chipGo.activeSelf, "바인드 전(OnEnable 직후)엔 숨김");
+            cell.RebindSnapshot(MakeSnapshot(outputCount: 1, type: EMonster.Reaper));
+            Assert.IsTrue(chipGo.activeSelf, "리디자인 — 색칩은 왼쪽 종색 띠로 표시");
+            Assert.AreEqual(SpawnerStatusCell.SpeciesColor(EMonster.Reaper), chipGo.GetComponent<Image>().color);
         }
 
         //# ===== 풀 재사용 — OnEnable 이 직전 아이콘 스프라이트/활성 리셋 =====

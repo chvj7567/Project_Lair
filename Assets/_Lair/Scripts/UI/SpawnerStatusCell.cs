@@ -44,6 +44,8 @@ namespace Lair.UI
         //# lv0 에서 칩까지 통째로 숨기려면 이 부모를 셀이 직접 토글한다(기획서 §10 "칩 배경 + 자식 CHText").
         [SerializeField] private GameObject _levelBadgeRoot;
         [SerializeField] private RectTransform _iconRect; //# 스케일 대상 = 중앙 Icon 의 RectTransform (기획서 §5)
+        //# UI 리디자인 — 최대 레벨(Lv5) 금테. 미할당이면 건너뛴다.
+        [SerializeField] private Image _maxLevelRing;
 
         //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
         [SerializeField] private Sprite _wispIcon;
@@ -75,8 +77,9 @@ namespace Lair.UI
                 _icon.color = Color.white;
                 _icon.gameObject.SetActive(false);
             }
-            //# 색칩은 v1.1 에서 중앙 아이콘에 역할 이관 — 항상 숨김 (Rule 03 §4 잔존 방지).
+            //# 색칩은 리디자인에서 왼쪽 종색 띠로 부활 — 바인드 전엔 숨겨 잔존 방지 (Rule 03 §4).
             if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+            if (_maxLevelRing != null) _maxLevelRing.gameObject.SetActive(false);
             //# 테두리 색은 RebindSnapshot 에서 종색으로 설정 — 기본 투명으로 초기화.
             if (_border != null) _border.color = InactiveBorderColor;
 
@@ -118,8 +121,12 @@ namespace Lair.UI
             //# 테두리 — 종 대표색 프레임 (v1.1). 색칩 대신 셀 외곽이 종색을 담당.
             if (_border != null) _border.color = SpeciesColor(snapshot.CurrentType);
 
-            //# 색칩 — v1.1 중앙 아이콘으로 역할 이관, 숨김 유지.
-            if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+            //# 색칩 — 왼쪽 종색 띠(리디자인). 종 대표색으로 칠해 표시한다.
+            if (_colorChip != null)
+            {
+                _colorChip.color = SpeciesColor(snapshot.CurrentType);
+                _colorChip.gameObject.SetActive(true);
+            }
 
             //# 중앙 아이콘 — 종 스프라이트. 누락 시 숨김 (테두리 색만으로 종 식별 fallback).
             Sprite iconSprite = SpeciesSprite(snapshot.CurrentType);
@@ -159,6 +166,11 @@ namespace Lair.UI
             if (_levelBadgeRoot != null)
             {
                 _levelBadgeRoot.SetActive(lv > 0);
+            }
+            if (_maxLevelRing != null)
+            {
+                _maxLevelRing.gameObject.SetActive(lv >= EnhanceLevelVisual.MaxLevel);
+                _maxLevelRing.color = new Color(0.969f, 0.776f, 0.290f, 1f);
             }
         }
 
