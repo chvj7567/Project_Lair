@@ -8,6 +8,7 @@ Shader "Lair/Monster2DSprite"
         [Toggle(_EMISSION)] _EmissionToggle ("Emission Enabled", Float) = 0
         _FlashWhite ("Flash White", Range(0,1)) = 0
         _FlashInvert ("Flash Invert", Range(0,1)) = 0
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
     }
 
     SubShader
@@ -22,6 +23,7 @@ Shader "Lair/Monster2DSprite"
 
         Cull Off
         ZWrite Off
+        ZTest [_ZTest]
         Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
