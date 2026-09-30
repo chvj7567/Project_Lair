@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using ChvjUnityInfra;
 using Lair.Data;
+using Lair.Meta;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +19,26 @@ namespace Lair.UI
         public int LordLevel;          //# 이번 정산 레벨 업 시 신규 레벨, 아니면 0 — 영주 줄 생략 키 (§9.2)
         public int LordRewardSouls;    //# 이번 정산 자동 수령 소울 합 — 0 이면 "+N 소울" 부분만 생략
         public List<AchievementDef> NewlyAchieved = new List<AchievementDef>();
+        //# UI 리디자인 — 결과 항목 줄 입력. ClearTime=이번 판 경과(초), IsNewBest=스테이지 신기록(승리 한정),
+        //# HeroHpRatio=영웅 남은 HP 비율 0~1(패배 화면 전용 줄).
+        public float ClearTime;
+        public bool IsNewBest;
+        public float HeroHpRatio;
+    }
+
+    //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
+    public struct ResultRowsData
+    {
+        public string SubText;         //# 큰 결과 글씨 아래 부제
+        public bool ShowClearRow;      //# 승리 전용 "클리어 시간" 줄
+        public string ClearTimeText;   //# "3:42.1"
+        public bool ShowNewBadge;      //# 신기록 NEW 배지
+        public bool ShowHeroHpRow;     //# 패배 전용 "영웅 남은 HP" 줄
+        public string HeroHpText;      //# "18%"
+        public bool ShowSoulsRow;      //# 메타 미할당이면 숨김
+        public string SoulsText;       //# "+180"
+        public bool ShowXpRow;
+        public string XpText;          //# "+60"
     }
 
     //# 결과 표시 + 보상 요약 + 「다시 도전」(Battle 재시작) / 「마을로」(Village 복귀) 2버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
@@ -28,6 +49,18 @@ namespace Lair.UI
 
         [SerializeField] private CHText _resultText;
         [SerializeField] private CHText _rewardText;
+        //# UI 리디자인 항목 줄 — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        [SerializeField] private CHText _subText;
+        [SerializeField] private GameObject _rowClear;
+        [SerializeField] private CHText _clearTimeText;
+        [SerializeField] private GameObject _newBadge;
+        [SerializeField] private GameObject _rowSouls;
+        [SerializeField] private CHText _soulsText;
+        [SerializeField] private GameObject _rowXp;
+        [SerializeField] private CHText _xpText;
+        [SerializeField] private GameObject _rowHeroHp;
+        [SerializeField] private CHText _heroHpText;
+        [SerializeField] private GameObject _rays;   //# 승리 방사광 — 승리에서만 표시
         [SerializeField] private CHButton _retryButton;
         [SerializeField] private CHButton _villageButton;
 
@@ -50,6 +83,12 @@ namespace Lair.UI
                     });
                 }
 
+                ApplyRows(BuildRows(rp));
+                if (_rays != null)
+                {
+                    _rays.SetActive(rp.Result == BattleResult.Win);
+                }
+
                 if (_rewardText != null)
                 {
                     _rewardText.gameObject.SetActive(rp.HasMeta);
@@ -69,6 +108,65 @@ namespace Lair.UI
             if (_villageButton != null)
             {
                 _villageButton.OnClick(OnClickToVillage, closeDisposable);
+            }
+        }
+
+        //# 항목 줄 데이터 조립 — 승리=클리어 시간(+NEW), 패배=영웅 남은 HP. 소울/XP 는 메타가 있을 때만.
+        public static ResultRowsData BuildRows(ResultPopupArg arg)
+        {
+            bool win = arg.Result == BattleResult.Win;
+            bool lose = arg.Result == BattleResult.Lose;
+            return new ResultRowsData
+            {
+                SubText = win ? "영웅을 처치했다" : lose ? "영웅이 던전을 돌파했다" : string.Empty,
+                ShowClearRow = win,
+                ClearTimeText = FormatClearTime(arg.ClearTime),
+                ShowNewBadge = win && arg.IsNewBest,
+                ShowHeroHpRow = lose,
+                HeroHpText = $"{Mathf.RoundToInt(Mathf.Clamp01(arg.HeroHpRatio) * 100f)}%",
+                ShowSoulsRow = arg.HasMeta,
+                SoulsText = $"+{arg.SoulsGained}",
+                ShowXpRow = arg.HasMeta,
+                XpText = $"+{arg.XpGained}",
+            };
+        }
+
+        //# 클리어 시간 표기 "m:ss.d" — 표기 규약은 ClearTimeFormat 단일 소유(음수 방어는 0 으로).
+        public static string FormatClearTime(float seconds)
+        {
+            return ClearTimeFormat.WithTenths(Mathf.Max(0f, seconds));
+        }
+
+        private void ApplyRows(ResultRowsData rows)
+        {
+            SetText(_subText, rows.SubText);
+            SetRow(_rowClear, _clearTimeText, rows.ShowClearRow, rows.ClearTimeText);
+            SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
+            SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);
+            SetRow(_rowHeroHp, _heroHpText, rows.ShowHeroHpRow, rows.HeroHpText);
+            if (_newBadge != null)
+            {
+                _newBadge.SetActive(rows.ShowNewBadge);
+            }
+        }
+
+        private static void SetText(CHText label, string text)
+        {
+            if (label != null)
+            {
+                label.SetText(text);
+            }
+        }
+
+        private static void SetRow(GameObject row, CHText label, bool show, string text)
+        {
+            if (row != null)
+            {
+                row.SetActive(show);
+            }
+            if (show)
+            {
+                SetText(label, text);
             }
         }
 

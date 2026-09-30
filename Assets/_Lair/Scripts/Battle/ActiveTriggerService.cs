@@ -16,6 +16,18 @@ namespace Lair.Battle
 
         public event Action<int> OnTriggered;   //# 0..N-1, 임계점 인덱스
 
+        //# 카드 선택 부제용 — 액티브 트리거 주기(초). 임계점이 2개 이상이면 첫 두 임계점의 간격, 1개면 그 값, 없으면 0.
+        //# 기본 {30,90,...} 는 간격 60 이다 — 첫 트리거(30초)와 주기(60초)가 다르므로 표기는 실제 간격을 따른다.
+        public static int ResolvePeriodSeconds(float[] thresholds)
+        {
+            float[] source = thresholds ?? DefaultThresholds;
+            if (source.Length == 0)
+                return 0;
+            if (source.Length == 1)
+                return (int)Math.Round(source[0]);
+            return (int)Math.Round(source[1] - source[0]);
+        }
+
         //# thresholds 미지정 시 {30,90,150,210,270} 5개 사용.
         public ActiveTriggerService(BattleClock clock, float[] thresholds = null)
         {

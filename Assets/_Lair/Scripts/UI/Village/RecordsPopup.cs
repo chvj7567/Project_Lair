@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Battle;
+using Lair.Card;
 using Lair.Data;
 using Lair.Meta;
 using UnityEngine;
@@ -13,6 +14,18 @@ namespace Lair.UI
     {
         public MetaProfile Profile;
         public HeroStageVariantConfig VariantConfig;
+        //# "가장 많이 픽한 카드" 이름 조회용 — 패시브+액티브 전체 카드. null/누락이면 카드 ID 를 그대로 표기.
+        public List<CardData> AllCards = new List<CardData>();
+    }
+
+    //# 통계 타일 5칸의 표시 확정값 — 기록 팝업 상단 (BodyText 를 대체).
+    public struct RecordsStatTilesData
+    {
+        public string RunsText;      //# "42"
+        public string WinsText;      //# "27"
+        public string RateText;      //# "64%"
+        public string BestText;      //# "2:58"  (기록 없으면 "-")
+        public string TopCardText;   //# "시간 정지 ×31" (기록 없으면 "-")
     }
 
     //# 스테이지 한 행의 표시 확정값 — 셀은 계산하지 않는다(spec §6.2).
@@ -36,7 +49,13 @@ namespace Lair.UI
     {
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
-        [SerializeField] private CHText _bodyText;                             //# 상단 총계
+        [SerializeField] private CHText _bodyText;                             //# 상단 총계 (타일 배선 후 제거 예정 — 프리팹 단계)
+        //# UI 리디자인 통계 타일 5칸 — 값 텍스트. 위젯 연결은 프리팹 단계, 미할당이면 건너뛴다.
+        [SerializeField] private CHText _statRunsText;
+        [SerializeField] private CHText _statWinsText;
+        [SerializeField] private CHText _statRateText;
+        [SerializeField] private CHText _statBestText;
+        [SerializeField] private CHText _statTopCardText;
         [SerializeField] private RecordsStagePoolingScrollView _scrollView;
 
         //# 잠금 행 어둠 비율 — 캐러셀/영웅 목록의 잠금 톤과 동일.
@@ -94,10 +113,64 @@ namespace Lair.UI
             {
                 _bodyText.SetText(BuildBody(_arg.Profile));
             }
+            RecordsStatTilesData tiles = BuildStatTiles(_arg.Profile, _arg.AllCards);
+            SetTileText(_statRunsText, tiles.RunsText);
+            SetTileText(_statWinsText, tiles.WinsText);
+            SetTileText(_statRateText, tiles.RateText);
+            SetTileText(_statBestText, tiles.BestText);
+            SetTileText(_statTopCardText, tiles.TopCardText);
             if (_scrollView != null)
             {
                 _scrollView.SetItemList(BuildCellData(_arg.Profile, _arg.VariantConfig));
             }
+        }
+
+        private static void SetTileText(CHText label, string text)
+        {
+            if (label != null)
+            {
+                label.SetText(text);
+            }
+        }
+
+        //# 통계 타일 5칸 — 총계 산식은 BuildBody 와 동일(승률 반올림, 최단은 m:ss). profile null 이면 0/"-".
+        public static RecordsStatTilesData BuildStatTiles(MetaProfile profile, List<CardData> allCards)
+        {
+            if (profile == null)
+                return new RecordsStatTilesData { RunsText = "0", WinsText = "0", RateText = "0%", BestText = "-", TopCardText = "-" };
+
+            int winRate = profile.TotalRuns > 0
+                ? Mathf.RoundToInt(profile.TotalWins * 100f / profile.TotalRuns)
+                : 0;
+            return new RecordsStatTilesData
+            {
+                RunsText = profile.TotalRuns.ToString(),
+                WinsText = profile.TotalWins.ToString(),
+                RateText = $"{winRate}%",
+                BestText = FormatClearTime(profile.BestClearTime),
+                TopCardText = BuildTopCardText(profile, allCards),
+            };
+        }
+
+        //# 가장 많이 픽한 카드 "이름 ×N" — 동률은 카드 ID 사전순(MetaProfile.GetMostPickedCard). 기록 없으면 "-".
+        public static string BuildTopCardText(MetaProfile profile, List<CardData> allCards)
+        {
+            CardPickCountEntry top = profile != null ? profile.GetMostPickedCard() : null;
+            if (top == null)
+                return "-";
+            string name = top.CardId;
+            if (allCards != null)
+            {
+                foreach (CardData card in allCards)
+                {
+                    if (card != null && card.Id.ToString() == top.CardId)
+                    {
+                        name = card.DisplayName;
+                        break;
+                    }
+                }
+            }
+            return $"{name} ×{top.Count}";
         }
 
         //# 상단 총계 — 산식(BestClearTime 소스)은 유지, 표기는 스테이지 행과 동일한 m:ss.

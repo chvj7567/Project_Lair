@@ -19,6 +19,12 @@ namespace Lair.Net
         Task<List<RankingRowDto>> GetTopAsync(int top);
         //# 내 순위 ±주변 — 실패면 빈 리스트.
         Task<List<RankingRowDto>> GetMyRankAsync();
+        //# 스테이지별 랭킹 제출 — 해당 스테이지 기존 최단보다 빠를 때만 갱신. 범위 밖 스테이지/실패면 false.
+        Task<bool> SubmitStageScoreAsync(int stage, int clearTimeMs, string hero, string displayName);
+        //# 스테이지 Top N 조회 — 실패/범위 밖이면 빈 리스트.
+        Task<List<RankingRowDto>> GetStageTopAsync(int stage, int top);
+        //# 스테이지 내 순위 — 실패/미등재/범위 밖이면 빈 리스트.
+        Task<List<RankingRowDto>> GetMyStageRankAsync(int stage);
         //# 표시명 변경 — 서버 권위 중복 체크. 결과(성공/중복/유효하지않음/오프라인)와 확정 이름 반환.
         Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName);
     }

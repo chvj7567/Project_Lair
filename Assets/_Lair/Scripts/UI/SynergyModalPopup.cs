@@ -159,6 +159,10 @@ namespace Lair.UI
                     AxisColor = color,
                     Label     = $"{BuildSynergyPanel.AxisLabel[axis]} ({count}장)",
                     Icon      = iconOf?.Invoke(axis),
+                    TierBadgeText = $"{tiers}/{Thresholds.Length}",
+                    IsMaxTier = tiers >= Thresholds.Length,
+                    DescText  = DescribeTier(tierOf, axis, tiers, strings),
+                    NextText  = BuildNextText(tierOf, axis, tiers, strings),
                 });
                 for (int tier = 1; tier <= tiers; ++tier)
                 {
@@ -171,6 +175,16 @@ namespace Lair.UI
                 }
             }
             return rows;
+        }
+
+        //# 다음 단계 미리보기 — "다음: {설명}". 최대 단계이거나 설명을 못 만들면 빈 문자열.
+        private static string BuildNextText(Func<EBuildAxis, int, IBuildSynergyTier> tierOf,
+            EBuildAxis axis, int activeTier, IStringProvider strings)
+        {
+            if (activeTier >= Thresholds.Length)
+                return "";
+            string next = DescribeTier(tierOf, axis, activeTier + 1, strings);
+            return string.IsNullOrEmpty(next) ? "" : $"다음: {next}";
         }
 
         //# 티어 설명 조립 — 템플릿(스트링 id) + 수치(tier const 유래). provider·tier 가드로 빈 문자열 안전.

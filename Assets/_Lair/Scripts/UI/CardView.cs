@@ -17,8 +17,32 @@ namespace Lair.UI
         [SerializeField] private CHButton _pickButton;
         //# 3픽 캡 — 이미 픽한 횟수 N (0 이면 숨김, 1~2 면 "N/3"). 3 도달 카드는 후보에 안 나옴.
         [SerializeField] private CHText _countBadge;
+        //# 종류 표시 — 패시브=소울 / 액티브=금. 프레임 링 tint + 종류 라벨 + 선택 버튼 스프라이트(soul/gold).
+        [SerializeField] private Image _kindRing;
+        [SerializeField] private CHText _kindLabel;
+        [SerializeField] private Image _pickButtonImage;
+        [SerializeField] private Sprite _passiveButtonSprite;
+        [SerializeField] private Sprite _activeButtonSprite;
 
         public void Bind(CardData card, Action onClick) => Bind(card, onClick, 0);
+
+        //# 카드 종류 표시 — 팝업이 Bind 전에 호출. 미할당 위젯은 건너뛴다.
+        public void SetKind(bool isPassive)
+        {
+            if (_kindRing != null)
+            {
+                _kindRing.color = UiDotPalette.CardKind(isPassive);
+            }
+            if (_kindLabel != null)
+            {
+                _kindLabel.SetText(isPassive ? "패시브" : "액티브");
+            }
+            Sprite buttonSprite = isPassive ? _passiveButtonSprite : _activeButtonSprite;
+            if (_pickButtonImage != null && buttonSprite != null)
+            {
+                _pickButtonImage.sprite = buttonSprite;
+            }
+        }
 
         public void Bind(CardData card, Action onClick, int pickCount)
         {

@@ -24,6 +24,8 @@ namespace Lair.UI
     public class BattleHud : UIBase
     {
         [SerializeField] private CHText _timerText;
+        //# 타이머 평상시 색(txt). 30초 이하면 UiDotPalette.TimerWarn 붉은 글씨로 바뀐다.
+        [SerializeField] private Color _timerNormalColor = new Color32(0xEE, 0xF1, 0xF6, 0xFF);
         //# 영웅 HP 바 — Fill/텍스트 내부 위젯은 HpBarView 가 캡슐화. HUD 는 SetHp 만 호출.
         [SerializeField] private HpBarView _heroHpBar;
         [SerializeField] private BuildPanel _buildPanel;
@@ -35,6 +37,8 @@ namespace Lair.UI
         [SerializeField] private BuildSynergyPanel _synergyPanel;
 
         private BattleViewModel _vm;
+        //# 타이머 경고 색 적용 상태 — -1 미적용 / 0 평상시 / 1 경고. 변할 때만 SetColor.
+        private int _timerWarnState = -1;
         //# 상태 아이콘 — ECardId→Sprite 해석 dict (BattleHudArg 로 주입).
         private IReadOnlyDictionary<ECardId, Sprite> _cardIcons;
 
@@ -96,6 +100,12 @@ namespace Lair.UI
             float remain = Mathf.Max(0f, total - elapsed);
             int totalSec = Mathf.CeilToInt(remain);
             _timerText.SetText($"{totalSec / 60}:{totalSec % 60:00}");
+
+            int warnState = BattleViewModel.IsTimerWarning(elapsed, total) ? 1 : 0;
+            if (warnState == _timerWarnState)
+                return;
+            _timerWarnState = warnState;
+            _timerText.SetColor(warnState == 1 ? UiDotPalette.TimerWarn : _timerNormalColor);
         }
 
         private void HandleHpValues(int current, int max)

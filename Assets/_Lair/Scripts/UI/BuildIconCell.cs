@@ -13,6 +13,9 @@ namespace Lair.UI
         [SerializeField] private Image _frameImage;
         [SerializeField] private CHText _countText;
         [SerializeField] private CHButton _button;
+        //# UI 리디자인 — 종류색 링(패시브=소울 / 액티브=금)과 빈 슬롯 빗금. 위젯 연결은 프리팹 단계.
+        [SerializeField] private Image _kindRing;
+        [SerializeField] private GameObject _emptyHatch;
         //# 클릭 리스너 수명 관리 — OnEnable 에서 Clear 해 풀 재사용 시 리스너 누적 방지.
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
@@ -23,6 +26,26 @@ namespace Lair.UI
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_iconImage != null) _iconImage.sprite = null;
             if (_frameImage != null) _frameImage.color = Color.gray;
+            if (_emptyHatch != null) _emptyHatch.SetActive(false);
+        }
+
+        //# 종류색 링 — 패시브=소울, 액티브=금. 빈 슬롯에도 같은 색을 쓴다.
+        public void SetKind(bool isPassive)
+        {
+            if (_kindRing == null) return;
+            _kindRing.color = UiDotPalette.CardKind(isPassive);
+        }
+
+        //# 빈 슬롯 — 아이콘·배지를 숨기고 빗금만 표시.
+        public void SetEmpty()
+        {
+            if (_iconImage != null)
+            {
+                _iconImage.sprite = null;
+                _iconImage.enabled = false;
+            }
+            if (_countText != null) _countText.gameObject.SetActive(false);
+            if (_emptyHatch != null) _emptyHatch.SetActive(true);
         }
 
         //# 카드 바인딩 — 프레임 색·아이콘·클릭 콜백 설정.

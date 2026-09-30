@@ -79,6 +79,17 @@ namespace Lair.UI
             _model = model;
         }
 
+        //# 타이머 경고 임계 — 남은 시간이 이 값 이하이면 붉은 글씨(30초 = 액티브 카드 1주기 근사, 기획서 §6.2-6).
+        public const float TimerWarnRemainSeconds = 30f;
+
+        //# 타이머 경고 여부 — total 이 0 이하(미설정)면 경고하지 않는다.
+        public static bool IsTimerWarning(float elapsed, float total)
+        {
+            if (total <= 0f)
+                return false;
+            return total - elapsed <= TimerWarnRemainSeconds;
+        }
+
         public void UpdateTimer(float elapsed)
         {
             _model.ElapsedSeconds = elapsed;

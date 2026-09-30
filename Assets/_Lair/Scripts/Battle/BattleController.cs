@@ -980,6 +980,7 @@ namespace Lair.Battle
             int xpGained = 0;
             int lordLevelUp = 0;
             int lordRewardSouls = 0;
+            bool isNewBest = false;
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
             if (_metaConfig != null)
             {
@@ -991,6 +992,8 @@ namespace Lair.Battle
                 profile.Souls += reward.Souls;
                 profile.LordXp += reward.Xp;
                 profile.TotalRuns++;
+                //# 신기록 판정 — RecordStageRun 이 최단을 덮기 "전에" 이전 기록과 비교해야 한다(결과 팝업 NEW 배지).
+                isNewBest = profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
                 profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 if (result == BattleResult.Win)
@@ -1011,6 +1014,9 @@ namespace Lair.Battle
                     profile.AddDistinct(profile.SeenMonsters, seen.ToString());
                 foreach (ECardId pick in _runPicks)
                     profile.AddDistinct(profile.PickedCards, pick.ToString());
+                //# 카드별 누적 픽 횟수 — 같은 판 중첩 픽은 픽한 횟수만큼 +N (기록 팝업 "가장 많이 픽한 카드").
+                foreach (ECardId pick in _runPicks)
+                    profile.AddCardPick(pick.ToString());
 
                 //# 영주 보상 자동 수령 — 멱등 가드 (기획서 §4.4). LordLevel=0 이면 결과 팝업 영주 줄 생략 (§9.2).
                 int levelAfter = LordLevelService.LevelFromXp(profile.LordXp, _metaConfig);
@@ -1047,6 +1053,10 @@ namespace Lair.Battle
                 LordLevel = lordLevelUp,
                 LordRewardSouls = lordRewardSouls,
                 NewlyAchieved = newlyAchieved,
+                ClearTime = _clock.Elapsed,
+                IsNewBest = isNewBest,
+                //# 남은 HP 비율 — 패배 화면 "영웅 남은 HP" 줄 (깎은 비율의 여집합).
+                HeroHpRatio = 1f - GetHeroDamagedRatio(),
             });
         }
 
@@ -1064,6 +1074,8 @@ namespace Lair.Battle
                 profile != null ? profile.DisplayName : null,
                 AuthTokenStore.GetOrCreateDeviceId());
             await MetaSession.Ranking.SubmitAsync(clearMs, hero, name);
+            //# 스테이지별 랭킹 — 서버가 스테이지 기존 최단보다 빠를 때만 갱신한다(느린 기록이 덮지 않음).
+            await MetaSession.Ranking.SubmitStageAsync(profile != null ? profile.SelectedStage : 1, clearMs, hero, name);
         }
 
         //# v0.2 메타 — 영웅 최대 HP 대비 깎은 비율 0~1 (패배 부분 보상 입력).
@@ -1165,6 +1177,9 @@ namespace Lair.Battle
                 CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
+                    IsPassive = entry.SourceType == TriggerQueue.Source.Passive,
+                    TriggerHpPercent = PassiveTriggerService.ResolveHpPercent(_balance?.PassiveThresholds, entry.Index),
+                    ActivePeriodSeconds = ActiveTriggerService.ResolvePeriodSeconds(_balance?.ActiveThresholds),
                     PickCountOf = c => _pickCounter.GetCount(c.Id),   //# 배지 N/3 — 픽 전 누적값
                     OnPicked = card =>
                     {

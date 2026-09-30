@@ -17,6 +17,15 @@ namespace Lair.Battle
 
         public event Action<int> OnTriggered;   //# 0=첫 임계점, ...
 
+        //# 카드 선택 부제용 — index 번째 임계점의 HP 퍼센트 정수(0.6 → 60). thresholds null 이면 기본 배열, 범위 밖이면 0.
+        public static int ResolveHpPercent(float[] thresholds, int index)
+        {
+            float[] source = thresholds ?? DefaultThresholds;
+            if (index < 0 || index >= source.Length)
+                return 0;
+            return (int)Math.Round(source[index] * 100f);
+        }
+
         //# thresholds 미지정 시 90%..10% 9개 사용.
         public PassiveTriggerService(IHealth hero, float[] thresholds = null)
         {

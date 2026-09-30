@@ -2,6 +2,7 @@ using System.Collections;
 using ChvjUnityInfra;
 using Lair.Data;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -9,6 +10,7 @@ namespace Lair.UI
     public class ToastArg : UIArg
     {
         public string Message;
+        public EToastKind Kind = EToastKind.Info;
     }
 
     //# 공용 토스트 — 하단중앙 1.8초 노출 후 페이드아웃 자동 닫힘. 입력 통과(게임 흐름 차단 금지, 기획서 §6).
@@ -17,6 +19,7 @@ namespace Lair.UI
     {
         [SerializeField] private CHText _messageText;   //# 메시지 라벨
         [SerializeField] private CanvasGroup _canvasGroup;   //# 페이드용
+        [SerializeField] private Image _dot;                 //# 종류 색 점 (정보=소울 / 경고=금 / 오류=피)
 
         private const float HoldSeconds = 1.8f;
         private const float FadeSeconds = 0.35f;
@@ -25,9 +28,9 @@ namespace Lair.UI
         private bool _pendingPlay;
 
         //# 정적 헬퍼 — 어디서든 ToastView.Show("...") 1줄. CHMUI 캐시 재사용으로 동시 1개 보장.
-        public static void Show(string message)
+        public static void Show(string message, EToastKind kind = EToastKind.Info)
         {
-            CHMUI.Instance.ShowUI(EUI.ToastView, new ToastArg { Message = message });
+            CHMUI.Instance.ShowUI(EUI.ToastView, new ToastArg { Message = message, Kind = kind });
         }
 
         //# CHMUI 순서는 InitUI → SetActive(true) 다. 이 시점 GO 가 비활성일 수 있어 StartCoroutine 이 실패하므로
@@ -38,10 +41,19 @@ namespace Lair.UI
             {
                 if (_messageText != null)
                     _messageText.SetText(toastArg.Message);
+                SetKind(toastArg.Kind);
                 _pendingPlay = true;
                 if (isActiveAndEnabled)
                     StartFade();
             }
+        }
+
+        //# 종류 색 점 갱신 — 풀 재사용 시 이전 종류 색이 남지 않도록 매 Show 마다 덮어쓴다.
+        private void SetKind(EToastKind kind)
+        {
+            if (_dot == null)
+                return;
+            _dot.color = UiDotPalette.ToastDot(kind);
         }
 
         private void OnEnable()

@@ -178,6 +178,7 @@ namespace Lair.Village
                     {
                         Profile = profile,
                         VariantConfig = _stageVariantConfig,
+                        AllCards = await LoadAllCardsAsync(),
                     });
                     break;
 
@@ -206,6 +207,9 @@ namespace Lair.Village
                         MyBestClearTime = profile.BestClearTime,
                         //# 미등재 표기용 닉네임 — 상단 HUD 와 같은 해석 경로(VM) 재사용, 두 곳이 다른 이름을 보이면 안 된다.
                         MyDisplayName = _vm.DisplayName,
+                        //# 스테이지 탭 — 현재 캐러셀 스테이지에서 열고, 내 행 시간 fallback 은 스테이지 전적 최단.
+                        InitialStage = _vm.SelectedStage,
+                        MyStageBestClearTime = stage => profile.GetStageRecord(stage).BestClearTime,
                     });
                     break;
 
@@ -221,6 +225,16 @@ namespace Lair.Village
             //# 충돌 권유는 세션당 1회만 노출(기획서 §3) — 게이트 판정·플래그 set 은 MetaSession 으로 추출.
             bool showConflict = MetaSession.TryConsumeConflictPrompt();
 
+            //# 충돌 비교 칸 — 충돌 감지 시점엔 서버 프로필을 받아 두지 않으므로(PutSave 트랜잭션은 버전만 본다) 권유를 띄울 때 1회 읽는다.
+            SaveSummary localSummary = null;
+            SaveSummary cloudSummary = null;
+            if (showConflict && MetaSession.Cloud != null)
+            {
+                MetaProfile cloud = await MetaSession.Cloud.RestoreAsync();
+                localSummary = SaveSummary.From(profile, _metaConfig);
+                cloudSummary = SaveSummary.From(cloud, _metaConfig);
+            }
+
             await CHMUI.Instance.ShowUIAsync(EUI.CloudPopup, new CloudPopupArg
             {
                 IsConnected = MetaSession.IsCloudConnected,
@@ -230,6 +244,8 @@ namespace Lair.Village
                 OnChangeName = ChangeDisplayName,
                 OnConflictRestore = RestoreFromCloud,
                 OnConflictLater = () => { },   //# 로컬 유지·배지 유지(기획서 §3)
+                LocalSummary = localSummary,
+                CloudSummary = cloudSummary,
             });
         }
 
@@ -241,14 +257,14 @@ namespace Lair.Village
             string normalized = MetaProfile.NormalizeDisplayName(name);
             if (string.IsNullOrEmpty(normalized))
             {
-                ToastView.Show("표시명을 확인해 주세요.");
+                ToastView.Show("표시명을 확인해 주세요.", EToastKind.Warning);
                 return DisplayNameResult.Of(DisplayNameStatus.Invalid);
             }
 
             //# 오프라인 단축 — Api 미구성이면 doomed 요청 없이 즉시 오프라인 통지(RestoreFromCloud 와 동일 가드 패턴).
             if (MetaSession.Api == null)
             {
-                ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.", EToastKind.Error);
                 return DisplayNameResult.Of(DisplayNameStatus.Offline);
             }
 
@@ -263,13 +279,13 @@ namespace Lair.Village
                     ToastView.Show("표시명을 변경했습니다.");
                     break;
                 case DisplayNameStatus.Taken:
-                    ToastView.Show("이미 사용 중인 이름입니다.");
+                    ToastView.Show("이미 사용 중인 이름입니다.", EToastKind.Warning);
                     break;
                 case DisplayNameStatus.Invalid:
-                    ToastView.Show("표시명을 확인해 주세요.");
+                    ToastView.Show("표시명을 확인해 주세요.", EToastKind.Warning);
                     break;
                 default:
-                    ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                    ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.", EToastKind.Error);
                     break;
             }
             return result;
@@ -280,7 +296,7 @@ namespace Lair.Village
         {
             if (MetaSession.Cloud == null)
             {
-                ToastView.Show("오프라인 상태입니다. 클라우드 기능을 사용할 수 없습니다.");
+                ToastView.Show("오프라인 상태입니다. 클라우드 기능을 사용할 수 없습니다.", EToastKind.Error);
                 return;
             }
 
@@ -317,13 +333,7 @@ namespace Lair.Village
         //# 도감 — 카드 풀 2종을 로드해 전체 카드 목록을 Arg 로 전달 (조우/픽 판정은 프로필).
         private async Task OpenCodex(MetaProfile profile)
         {
-            List<CardData> cards = new List<CardData>();
-            CardPool passive = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
-            if (passive != null)
-                cards.AddRange(passive.Cards);
-            CardPool active = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
-            if (active != null)
-                cards.AddRange(active.Cards);
+            List<CardData> cards = await LoadAllCardsAsync();
 
             await CHMUI.Instance.ShowUIAsync(EUI.CodexPopup, new CodexPopupArg
             {
@@ -331,6 +341,19 @@ namespace Lair.Village
                 Config = _metaConfig,
                 AllCards = cards,
             });
+        }
+
+        //# 패시브+액티브 카드 풀 전체 — 도감·기록(가장 많이 픽한 카드 이름)이 공유한다.
+        private async Task<List<CardData>> LoadAllCardsAsync()
+        {
+            List<CardData> cards = new List<CardData>();
+            CardPool passive = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
+            if (passive != null)
+                cards.AddRange(passive.Cards);
+            CardPool active = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
+            if (active != null)
+                cards.AddRange(active.Cards);
+            return cards;
         }
 
         //# 상점 구매 등 프로필 변경 시 — 즉시 저장 (spec §5.7) + 상단바 갱신 + 클라우드 백업(best-effort).

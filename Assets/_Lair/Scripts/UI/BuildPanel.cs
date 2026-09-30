@@ -10,6 +10,28 @@ namespace Lair.UI
     //# 패널 루트 클릭 시 BuildModalPopup 으로 픽한 모든 카드 표시 (기획서 §2.6.3).
     public class BuildPanel : MonoBehaviour
     {
+        //# 빌드 바 최소 슬롯 — 획득 전에도 빈 빗금 슬롯으로 채워 보여 주고, 획득이 최소치를 넘으면 늘어난다(기획서 §6.2-8).
+        public const int MinPassiveSlots = 6;
+        public const int MinActiveSlots = 3;
+
+        //# 빈 슬롯 수 — 채워진 칸이 최소치 이상이면 0.
+        public static int EmptySlotCount(int filled, int minSlots)
+        {
+            return Mathf.Max(0, minSlots - filled);
+        }
+
+        //# 획득 카드 뒤에 빈 슬롯 placeholder(Card=null)를 최소 슬롯 수까지 채운 리스트.
+        public static List<BattleViewModel.BuildEntry> PadWithEmptySlots(List<BattleViewModel.BuildEntry> filled, int minSlots, bool isPassive)
+        {
+            List<BattleViewModel.BuildEntry> padded = new List<BattleViewModel.BuildEntry>(filled);
+            int empty = EmptySlotCount(filled.Count, minSlots);
+            for (int i = 0; i < empty; ++i)
+            {
+                padded.Add(new BattleViewModel.BuildEntry { Card = null, IsPassive = isPassive, Count = 0 });
+            }
+            return padded;
+        }
+
         [SerializeField] private BuildIconPoolingScrollView _passiveScrollView;
         [SerializeField] private BuildIconPoolingScrollView _activeScrollView;
         //# 패널 루트 클릭 → BuildModalPopup 호출.
@@ -86,8 +108,8 @@ namespace Lair.UI
                 else                 active.Add(entry);
             }
 
-            if (_passiveScrollView != null) _passiveScrollView.SetItemList(passive);
-            if (_activeScrollView  != null) _activeScrollView.SetItemList(active);
+            if (_passiveScrollView != null) _passiveScrollView.SetItemList(PadWithEmptySlots(passive, MinPassiveSlots, true));
+            if (_activeScrollView  != null) _activeScrollView.SetItemList(PadWithEmptySlots(active, MinActiveSlots, false));
         }
     }
 }

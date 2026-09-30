@@ -43,6 +43,11 @@ namespace Lair.UI
         [SerializeField] private CHText _stageLockLabel;        //# 중앙 "잠금"
         [SerializeField] private CHText _stageLockHintText;     //# "스테이지 {N-1} 클리어 필요"
 
+        //# UI 리디자인 전적 패널(제안 1) — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        [SerializeField] private CHText _recordIntruderText;    //# "기사 · 3단계"
+        [SerializeField] private CHText _recordBestText;        //# "3:42.1" / "-"
+        [SerializeField] private CHText _recordWinsText;        //# "7승 · 11판"
+
         private VillageViewModel _vm;
 
         //# 마을 베이스 HUD — ESC(뒤로가기)로 닫히지 않는다. 팝업만 닫히게 한다.
@@ -145,6 +150,26 @@ namespace Lair.UI
             {
                 _stageLockHintText.SetText($"스테이지 {stage - 1} 클리어 필요");
             }
+            RefreshRecordPanel();
+        }
+
+        //# 전적 패널 — 문구 조립은 VM, 여기선 표시만(Rule 02 §6). 스테이지 이동·프로필 변경 때 호출.
+        private void RefreshRecordPanel()
+        {
+            if (_vm == null)
+                return;
+            if (_recordIntruderText != null)
+            {
+                _recordIntruderText.SetText(_vm.IntruderText);
+            }
+            if (_recordBestText != null)
+            {
+                _recordBestText.SetText(_vm.BestDefenseText);
+            }
+            if (_recordWinsText != null)
+            {
+                _recordWinsText.SetText(_vm.StageRecordText);
+            }
         }
 
         //# 위협도 ★×N + ☆×(5-N) — 문자 글리프(이모지 아님, 신규 아트 불필요, 기획서 §4.2).
@@ -189,6 +214,7 @@ namespace Lair.UI
             {
                 _lordXpFill.fillAmount = _vm.LordProgress;
             }
+            RefreshRecordPanel();
         }
     }
 }

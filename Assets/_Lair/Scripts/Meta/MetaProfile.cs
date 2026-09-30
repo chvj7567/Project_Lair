@@ -8,7 +8,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 3;
+        public int Version = 4;
         public int Souls;
         //# 스테이지 진행(hero-stage-variant 기획서 §3) — SelectedStage=마지막 선택(1~5, 기본 1),
         //# ClearedStage=클리어한 최고 스테이지(0~5, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -24,6 +24,9 @@ namespace Lair.Meta
         public List<string> AchievedIds = new List<string>();    //# 달성한 도전과제 Id
         public List<string> SeenMonsters = new List<string>();   //# 도감 — EMonster.ToString()
         public List<string> PickedCards = new List<string>();    //# 도감 — ECardId.ToString() (distinct)
+        //# 카드별 누적 픽 횟수(v4) — 픽한 카드만 행이 존재(sentinel 없음). 기록 팝업 "가장 많이 픽한 카드"용.
+        //# 구버전 세이브엔 키가 없어 빈 리스트로 로드 → 이후 판부터 집계.
+        public List<CardPickCountEntry> CardPickCounts = new List<CardPickCountEntry>();
         public int TotalRuns;
         public int TotalWins;
         public float BestClearTime = -1f;                        //# 승리 최단 시간(초). 없으면 -1
@@ -96,6 +99,60 @@ namespace Lair.Meta
             }
         }
 
+        //# 카드 픽 횟수 조회 — 픽한 적 없으면 0(조회는 부수효과 0).
+        public int GetCardPickCount(string cardId)
+        {
+            foreach (CardPickCountEntry entry in CardPickCounts)
+            {
+                if (entry != null && entry.CardId == cardId)
+                    return entry.Count;
+            }
+            return 0;
+        }
+
+        //# 픽 횟수 누적 — 엔트리 없으면 생성. count 는 1 이상만 반영.
+        public void AddCardPick(string cardId, int count = 1)
+        {
+            if (string.IsNullOrEmpty(cardId) || count < 1)
+                return;
+            foreach (CardPickCountEntry entry in CardPickCounts)
+            {
+                if (entry != null && entry.CardId == cardId)
+                {
+                    entry.Count += count;
+                    return;
+                }
+            }
+            CardPickCounts.Add(new CardPickCountEntry { CardId = cardId, Count = count });
+        }
+
+        //# 가장 많이 픽한 카드 — 동률이면 카드 ID 사전순(ordinal) 첫 번째로 고정. 기록 없으면 null.
+        public CardPickCountEntry GetMostPickedCard()
+        {
+            CardPickCountEntry best = null;
+            foreach (CardPickCountEntry entry in CardPickCounts)
+            {
+                if (entry == null || entry.Count < 1 || string.IsNullOrEmpty(entry.CardId))
+                    continue;
+                if (best == null
+                    || entry.Count > best.Count
+                    || (entry.Count == best.Count && string.CompareOrdinal(entry.CardId, best.CardId) < 0))
+                {
+                    best = entry;
+                }
+            }
+            return best;
+        }
+
+        //# 이번 판이 스테이지 최단 신기록인가 — 승리이면서 이전 최단이 없거나 더 빠를 때. RecordStageRun 호출 "전에" 판정해야 한다.
+        public bool IsNewStageBest(int stage, bool win, float clearTime)
+        {
+            if (win == false)
+                return false;
+            float previous = GetStageRecord(stage).BestClearTime;
+            return previous < 0f || clearTime < previous;
+        }
+
         //# 클라우드 복원 — 서버 프로필 값을 이 인스턴스에 in-place 복사(참조 유지 → VM/View 가 보던 객체 그대로).
         //# DisplayName 은 로컬 전용이라 복원으로 덮지 않는다(기획서 §1 — 새 기기는 기본명 시작).
         public void CopyFrom(MetaProfile other)
@@ -115,6 +172,8 @@ namespace Lair.Meta
             AchievedIds = other.AchievedIds ?? new List<string>();
             SeenMonsters = other.SeenMonsters ?? new List<string>();
             PickedCards = other.PickedCards ?? new List<string>();
+            //# 카드 픽 횟수도 복원 대상 — 빠뜨리면 복원 시 "가장 많이 픽한 카드" 만 유실된다.
+            CardPickCounts = other.CardPickCounts ?? new List<CardPickCountEntry>();
             TotalRuns = other.TotalRuns;
             TotalWins = other.TotalWins;
             BestClearTime = other.BestClearTime;
@@ -162,6 +221,14 @@ namespace Lair.Meta
     {
         public string ItemId;
         public int Level;
+    }
+
+    //# 카드 하나의 누적 픽 횟수 — MetaProfile 소속 선택적 관계 데이터(픽한 카드만 존재). JsonUtility 직렬화 대상.
+    [Serializable]
+    public class CardPickCountEntry
+    {
+        public string CardId;    //# ECardId.ToString() — PickedCards 와 같은 키
+        public int Count;        //# 누적 픽 횟수 (>= 1)
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

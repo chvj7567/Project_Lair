@@ -177,6 +177,15 @@ namespace Lair.Data
         Lose,
     }
 
+    //# 토스트 종류 — 색 점(소울/금/피)으로 구분. ToastView.Show 의 인자이자 호출부 분류 계약.
+    //# 분류 기준: 소울 부족·이름 규칙 위반 = Warning, 통신 실패·저장 실패 = Error, 그 외 = Info.
+    public enum EToastKind
+    {
+        Info,
+        Warning,
+        Error,
+    }
+
     //# 타격 피드백 피격자 종류 — DamageFeedback(Character) → HitFeedbackSpawner(Battle) 통신 계약.
     //# 임팩트 프리팹 분기 기준 (영웅=기존 HitImpact / 몬스터=MonsterHitImpact).
     public enum HitVictimKind

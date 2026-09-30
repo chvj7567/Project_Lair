@@ -55,6 +55,26 @@ namespace Lair.Village
         //# 상단바 표시명(기획서 §1) — DisplayName 우선, 빈 값이면 기본명. 해석은 헬퍼에 위임(View 는 표시만, Rule 02 §6).
         public string DisplayName => MetaProfile.ResolveDisplayName(_profile != null ? _profile.DisplayName : null, Lair.Net.AuthTokenStore.GetOrCreateDeviceId());
 
+        //# 마을 전적 패널(제안 1) — 현재 캐러셀 스테이지 기준. 스테이지 이동(OnStageChanged)·프로필 변경(OnChanged) 때 View 가 다시 읽는다.
+        //# "이번 침입자": "기사 · 3단계" — 영웅 이름 + 선택 스테이지.
+        public string IntruderText => $"{HeroDisplayName(_profile != null ? _profile.SelectedHero : null)} · {_selectedStage}단계";
+        //# "최단 방어": 이 스테이지 최단 클리어 "3:42.1", 기록 없으면 "-".
+        public string BestDefenseText => ClearTimeFormat.WithTenths(CurrentStageRecord.BestClearTime);
+        //# "이 스테이지 전적": "7승 · 11판".
+        public string StageRecordText => $"{CurrentStageRecord.Wins}승 · {CurrentStageRecord.Runs}판";
+
+        private StageRecordEntry CurrentStageRecord => _profile != null
+            ? _profile.GetStageRecord(_selectedStage)
+            : new StageRecordEntry { Stage = _selectedStage };
+
+        //# 영웅 표시 이름 — 현재 Knight 1종. 미지정/미등록은 원문(빈 값이면 기본 영웅명).
+        public static string HeroDisplayName(string hero)
+        {
+            if (string.IsNullOrEmpty(hero) || hero == EHero.Knight.ToString())
+                return "기사";
+            return hero;
+        }
+
         public int Souls => _profile != null ? _profile.Souls : 0;
         public int LordLevel => LordLevelService.LevelFromXp(_profile != null ? _profile.LordXp : 0, _config);
         public float LordProgress => LordLevelService.ProgressInLevel(_profile != null ? _profile.LordXp : 0, _config);
