@@ -63,7 +63,7 @@ body.showstrip .strip{display:flex}
   <div class="box">
     <div class="row">
       <span class="lbl">재생</span>
-      <div class="grp"><button class="btn on" id="bPlay">⏸ 일시정지</button><button class="btn" id="bPrev">◀ 프레임</button><button class="btn" id="bNext">프레임 ▶</button></div>
+      <div class="grp"><button class="btn on" id="bPlay">⏸ 일시정지</button><button class="btn" id="bPrev">◀ 프레임</button><button class="btn" id="bNext">프레임 ▶</button></div><div class="grp"><button class="btn" id="bExp">시트 추출 (FX만·투명)</button><span class="note" id="expMsg"></span></div>
       <span class="lbl">속도</span><div class="grp" id="gSpeed"></div>
       <span class="lbl">배율</span><div class="grp" id="gScale"></div>
     </div>
@@ -116,8 +116,9 @@ const HERO=["....rr....","...hhhh...","..hhhhhh..","..hdssdh..","..hhhhhh..",".H
 const HP={h:'#aab4c2',H:'#6b7686',s:'#f1c9a0',r:'#d64545',d:'#232833',g:'#fbbf24'};
 const MON=["....dddd....","..ddmmmmdd..",".dmmmmmmmmd.","dmmwwmmwwmmd","dmmwkmmwkmmd","dmmmmmmmmmmd","dmmmmkkmmmmd",".dmmmmmmmmd.","..dddddddd.."];
 const MP={d:'#3a1f2e',m:'#7c8f3a',w:'#fff',k:'#111'};
-function hero(x,fy,o={}){const k=o.sc||1;if(o.shadow!==false)disc(x,fy,7*k,'#000',.45*(o.a??1),.35);sprite(HERO,HP,Math.round(x-5*k),fy-16*k+(o.dy||0),{outline:'#0b0e14',a:o.a,flash:o.flash,sc:k})}
-function mon(x,fy,o={}){const k=o.sc||1;disc(x,fy,8*k,'#000',.45,.35);sprite(MON,MP,Math.round(x-6*k),fy-9*k,{outline:'#0b0e14',flash:o.flash,sc:k})}
+let EXP=false;
+function hero(x,fy,o={}){if(EXP)return;const k=o.sc||1;if(o.shadow!==false)disc(x,fy,7*k,'#000',.45*(o.a??1),.35);sprite(HERO,HP,Math.round(x-5*k),fy-16*k+(o.dy||0),{outline:'#0b0e14',a:o.a,flash:o.flash,sc:k})}
+function mon(x,fy,o={}){if(EXP)return;const k=o.sc||1;disc(x,fy,8*k,'#000',.45,.35);sprite(MON,MP,Math.round(x-6*k),fy-9*k,{outline:'#0b0e14',flash:o.flash,sc:k})}
 
 //# ── 3x5 도트 숫자 폰트 ──
 const GL={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001001010010','8':'111101111101111','9':'111101111001111','!':'010010010000010'};
@@ -243,6 +244,14 @@ group('gSpeed',[['×0.25',.25],['×0.5',.5],['×1',1],['×2',2]],1,v=>speed=v);
 group('gScale',[['×2',2],['×3',3],['×4',4]],3,v=>document.documentElement.style.setProperty('--s',v));
 group('gBg',[['던전',0],['투명 체커',1]],0,v=>{grid.classList.toggle('dungeon',v===0);grid.classList.toggle('checker',v===1)});
 group('gStrip',[['접기',0],['펼치기',1]],0,v=>document.body.classList.toggle("showstrip",v===1));
+const FOOT={DamagePopup:[64,88],PoisonAura:[64,72],TimeStopShield:[64,86],FearSkull:[64,86],HeroDashConeFx:[16,74],HeroNovaFx:[64,62],HeroOrbitBladeFx:[64,66]};
+document.getElementById('bExp').onclick=async()=>{const m=document.getElementById('expMsg');m.textContent='추출 중...';EXP=true;const spec={fps:FPS,cell:[W,H],note:'셀 128x96, 좌->우/위->아래, 대기(hold) 프레임 제외. foot=영웅 발 기준점(셀 픽셀). 더미 영웅/몬스터 제외, 투명 배경.',fx:{}};
+ try{for(const fx of FX){const cols=Math.min(fx.N,6),rows=Math.ceil(fx.N/cols),sh=document.createElement('canvas');sh.width=W*cols;sh.height=H*rows;const t=document.createElement('canvas');t.width=W;t.height=H;
+  for(let f=0;f<fx.N;f++){render(t,fx,f);sh.getContext('2d').drawImage(t,(f%cols)*W,Math.floor(f/cols)*H)}
+  const blob=await new Promise(r=>sh.toBlob(r,'image/png'));const r=await fetch('/export/'+fx.id+'_Sheet.png',{method:'POST',body:blob});if(r.ok===false)throw new Error(fx.id+' '+r.status);
+  spec.fx[fx.id]={frames:fx.N,cols,rows,loop:fx.tag==='루프',foot:FOOT[fx.id]}}
+  const r=await fetch('/export/FX2D_SheetSpec.json',{method:'POST',body:JSON.stringify(spec,null,2)});if(r.ok===false)throw new Error('spec '+r.status);m.textContent='완료: Art/Sprites/FX2D/ 에 저장'}
+ catch(e){m.textContent='실패: '+e.message}finally{EXP=false;cards.forEach(c=>{c.f=-1})}};
 window.onerror=(m,s,l)=>{const e=document.getElementById('msg');e.style.display='block';e.textContent='JS 오류: '+m+' (line '+l+')'};
 requestAnimationFrame(tick);
 </script>

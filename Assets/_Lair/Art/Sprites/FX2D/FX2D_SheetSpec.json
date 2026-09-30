@@ -1,0 +1,80 @@
+{
+  "fps": 12,
+  "cell": [
+    128,
+    96
+  ],
+  "note": "셀 128x96, 좌->우/위->아래, 대기(hold) 프레임 제외. foot=영웅 발 기준점(셀 픽셀). 더미 영웅/몬스터 제외, 투명 배경.",
+  "fx": {
+    "DamagePopup": {
+      "frames": 16,
+      "cols": 6,
+      "rows": 3,
+      "loop": false,
+      "foot": [
+        64,
+        88
+      ]
+    },
+    "PoisonAura": {
+      "frames": 16,
+      "cols": 6,
+      "rows": 3,
+      "loop": true,
+      "foot": [
+        64,
+        72
+      ]
+    },
+    "TimeStopShield": {
+      "frames": 16,
+      "cols": 6,
+      "rows": 3,
+      "loop": true,
+      "foot": [
+        64,
+        86
+      ]
+    },
+    "FearSkull": {
+      "frames": 14,
+      "cols": 6,
+      "rows": 3,
+      "loop": false,
+      "foot": [
+        64,
+        86
+      ]
+    },
+    "HeroDashConeFx": {
+      "frames": 10,
+      "cols": 6,
+      "rows": 2,
+      "loop": false,
+      "foot": [
+        16,
+        74
+      ]
+    },
+    "HeroNovaFx": {
+      "frames": 10,
+      "cols": 6,
+      "rows": 2,
+      "loop": false,
+      "foot": [
+        64,
+        62
+      ]
+    },
+    "HeroOrbitBladeFx": {
+      "frames": 24,
+      "cols": 6,
+      "rows": 4,
+      "loop": true,
+      "foot": [
+        64,
+        66
+      ]
+    }
+  }
+}

@@ -17,10 +17,17 @@ const EXPORT_NAMES = new Set([
   'Knight_Sheet_S2_Emission.png', 'Knight_Sheet_S3_Emission.png', 'Knight_Sheet_S4_Emission.png', 'Knight_Sheet_S5_Emission.png',
   'HeroGroundShadow.png', 'Knight_SheetSpec.json',
 ]);
+//# POST /export/<Name> — FX 도트 시트(fx-dot-pixel.html). Art/Sprites/FX2D 로만 저장, 파일명 화이트리스트.
+const FX_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'FX2D');
+const FX_NAMES = new Set([
+  'DamagePopup_Sheet.png', 'PoisonAura_Sheet.png', 'TimeStopShield_Sheet.png', 'FearSkull_Sheet.png',
+  'HeroDashConeFx_Sheet.png', 'HeroNovaFx_Sheet.png', 'HeroOrbitBladeFx_Sheet.png', 'FX2D_SheetSpec.json',
+]);
 const EXPORT_MAX_BYTES = 20 * 1024 * 1024;
 
 function handleExport(req, res, name) {
-  if (EXPORT_NAMES.has(name) === false) {
+  const dir = EXPORT_NAMES.has(name) ? EXPORT_DIR : (FX_NAMES.has(name) ? FX_DIR : null);
+  if (dir === null) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden name: ' + name);
     return;
@@ -41,13 +48,13 @@ function handleExport(req, res, name) {
   });
   req.on('end', () => {
     if (aborted) return;
-    fs.mkdir(EXPORT_DIR, { recursive: true }, (mkErr) => {
+    fs.mkdir(dir, { recursive: true }, (mkErr) => {
       if (mkErr) {
         res.writeHead(500);
         res.end('mkdir failed');
         return;
       }
-      const target = path.join(EXPORT_DIR, name);
+      const target = path.join(dir, name);
       fs.writeFile(target, Buffer.concat(chunks), (wErr) => {
         if (wErr) {
           res.writeHead(500);
