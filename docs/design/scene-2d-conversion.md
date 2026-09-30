@@ -788,6 +788,30 @@ HUD 좌표(§4.2, 1280×720 캔버스)를 배경 도트로 환산: 도트 = 여�
 | S9 로딩 | gameplay-programmer | §6 전부 + `KnightWalkLoop` + LoadingHud 스킨 | `[asset]`+`[feat]` | G9 |
 | S10 정리 | gameplay-programmer(사용자 육안 승인 후) | `Map_Arena_1280x720.png`·`Village_Floor/Wall.png`·마을 3D 면 머티리얼 삭제(스포너 `SpawnerBody` 관련은 유지) | `[refactor]` | 참조 0 확인 |
 
+### 9.1 S0 렌더러 스파이크 결과 (2026-10-01, gameplay-programmer)
+
+**방법**: `Renderer2D_Dot` 생성(Sort Custom Axis (0,0,1) · HDR Emulation 2 · Light RT Scale 1) → `PC_RPAsset`·`Mobile_RPAsset` 렌더러 리스트 인덱스 1 등록(기본 인덱스 0 유지). (a) 임시 추가 씬(저장 안 함)에 항목별 프리팹을 격리 배치, 같은 카메라(직교·피치 50°)로 인덱스 0/1 을 각각 렌더해 픽셀 수·평균색 비교. (b) 플레이(Loading → Battle) 중 Main Camera 만 런타임으로 인덱스 1 전환해 실제 전투 화면 캡처. 씬 파일은 저장하지 않았다.
+
+| 항목(§1.7) | 인덱스 0 → 1 | 판정 |
+|---|---|---|
+| 몬스터 몸(`Mat_Monster2D`) | 픽셀 530 → 530, 평균색 동일 | OK |
+| 피격 흰빛(`_FlashWhite`) · 반전(`_FlashInvert`) | 1259 → 1259, 색 동일 | OK |
+| 강화 발광(`_EMISSION` + `_EmissionMask`) | 발광 off/on 차이가 두 렌더러에서 동일(픽셀 단위 같은 출력) | OK |
+| 영웅 Knight 몸 | 1220 → 1220, 색 동일 | OK |
+| CFXR `HitImpact`(`Mat_HitImpact` = URP Lit) | 보임(331 → 289, 파티클 난수 시드 차이) | OK |
+| CFXR `MonsterHitImpact`(CFXR 셰이더, `Universal2D` 패스 보유) | 보임(9822 → 11188, 난수 차이) | OK — Particles/Unlit 교체 불필요 |
+| `Mat_FX2D` 서 있는 FX(FearSkull·TimeStopShield·HeroOrbitBlade) | 전부 픽셀·색 동일 | OK — 타깃 변경 불필요 |
+| TMP 데미지 팝업 | 68 → 68 | OK |
+| 몬스터 월드 HP 바(월드 캔버스) | 709 → 709 | OK |
+| `Aura`(URP Lit 원판) | 226 → 226, 평균색 소폭 변화(음영 없는 알베도) | OK(§1.7 예상대로) |
+| 지면 FX 3종(HeroNova·PoisonAura·HeroDashCone) | 전부 동일 | OK |
+| 배틀 HUD·카드 선택 팝업(Screen Space-Camera UGUI) | 플레이 캡처에서 정상 | OK |
+| 현행 `Floor`(URP Lit Plane) + `MapBackground`(스프라이트 order −20) | 인덱스 1 에서 `Floor` 가 단색 알베도로 `MapBackground` **위에** 그려져 배경 그림이 가려짐(`Floor` 렌더러 off 시 `MapBackground` 정상 표시로 확인) | 비차단 — S5 에서 두 오브젝트 삭제 예정이라 조치 불필요. 단 S5 전에 배틀 카메라를 인덱스 1 로 저장하면 배경이 단색이 된다 |
+
+- **차단 이슈 없음.** 분기 조치(CFXR → Particles/Unlit, `Mat_FX2D` 타깃 변경) 적용 안 함.
+- **카메라 원복**: 위 `Floor` 문제 때문에 배틀 카메라 렌더러 인덱스는 **씬에 저장하지 않았다**(현행 렌더링 유지). S5 에서 `Floor`·`MapBackground` 삭제와 함께 인덱스 1 로 전환한다.
+- **실측 정정(S3 영향)**: `Monster2DSprite` 는 Shader Graph 가 아니라 손으로 쓴 HLSL `Assets/_Lair/Art/Shaders/Monster2DSprite.shader`(셰이더명 `Lair/Monster2DSprite`, LightMode 태그 없는 단일 패스 = 2D 렌더러에서 `SRPDefaultUnlit` 로 그려짐)다. `Mat_FX2D` 도 같은 셰이더를 쓴다. 따라서 §1.6 의 "SG 타깃 URP Unlit → Sprite Custom Lit 변경" 은 S3 에서 **HLSL 셰이더에 `Universal2D` 라이트 패스를 추가하거나 SG 로 재작성**하는 작업으로 읽어야 한다(속성 계약은 동일하게 유지). `Mat_HitImpact` 는 CFXR 셰이더가 아니라 URP Lit 이다.
+
 ---
 
 ## 10. 테스트 대상 (EditMode, 순수 로직)
