@@ -27,6 +27,14 @@ namespace Lair.UI
         [SerializeField] private Image _headerBg;       //# 배너 밴드 배경 + 하단 구분선
         [SerializeField] private Image _headerAccent;   //# 금 액센트 바 3×22 (#FBBF24)
 
+        //# UI 리디자인 — 레벨 5칸 눈금, 상태 링(구매 가능=소울 / MAX=금), 구매 버튼 스프라이트 3종(soul/off/gold). 미할당이면 기존 표시 유지.
+        [SerializeField] private Image[] _levelPips = new Image[0];
+        [SerializeField] private Image _stateRing;
+        [SerializeField] private Image _buyButtonImage;
+        [SerializeField] private Sprite _buySoulSprite;
+        [SerializeField] private Sprite _buyOffSprite;
+        [SerializeField] private Sprite _buyGoldSprite;
+
         //# 다음 Lv 힌트 링 알파 배수 (§5.2 — ≈0.35×).
         private const float HintRingAlpha = 0.35f;
 
@@ -92,10 +100,40 @@ namespace Lair.UI
                 //# 버튼 문구 치환 — 구매 / 만렙 / 소울 부족 (기획서 §7). 프리팹 _buyLabel 은 stringID 미사용 전제.
                 string label = data.IsMax ? "만렙" : data.CanBuy ? "구매" : "소울 부족";
                 _buyLabel.SetText(label);
-                _buyLabel.SetColor(data.CanBuy ? BuyableColor : DisabledColor);
+                _buyLabel.SetColor(data.IsMax ? new Color32(0x07, 0x09, 0x0E, 0xFF) : data.CanBuy ? Color.white : DisabledColor);
             }
+            ApplyLevelPips(data);
+            ApplyBuyState(data);
 
             BindSpeciesGlow(data);
+        }
+
+        //# 레벨 5칸 눈금 — Level 칸까지 금색, 나머지 stone4. MaxLevel 을 넘는 칸은 숨긴다.
+        private void ApplyLevelPips(ShopItemCellData data)
+        {
+            for (int i = 0; i < _levelPips.Length; ++i)
+            {
+                if (_levelPips[i] == null)
+                    continue;
+                _levelPips[i].gameObject.SetActive(i < data.MaxLevel);
+                _levelPips[i].color = i < data.Level ? UiDotPalette.Gold : UiDotPalette.Stone4;
+            }
+        }
+
+        //# 구매 상태 스킨 — 구매 가능=soul 버튼 + 소울 링, 만렙=금 버튼 + 금 링, 소울 부족=off 버튼.
+        private void ApplyBuyState(ShopItemCellData data)
+        {
+            Sprite sprite = data.IsMax ? _buyGoldSprite : data.CanBuy ? _buySoulSprite : _buyOffSprite;
+            if (_buyButtonImage != null && sprite != null)
+            {
+                _buyButtonImage.sprite = sprite;
+            }
+            if (_stateRing != null)
+            {
+                bool show = data.CanBuy || data.IsMax;
+                _stateRing.gameObject.SetActive(show);
+                _stateRing.color = data.IsMax ? UiDotPalette.Gold : UiDotPalette.Soul;
+            }
         }
 
         //# 종족 강화 셀의 아이콘 + 발광 프레임 표시. 글로벌 항목(Icon/Species null)이면 세 위젯 모두 숨김(풀 재사용 잔존 방지 Rule 03 §4).
@@ -172,7 +210,19 @@ namespace Lair.UI
             }
             if (_levelText != null)
             {
-                _levelText.gameObject.SetActive(on);
+                //# 눈금이 배선되면 "Lv N/5" 텍스트는 눈금이 대체한다.
+                _levelText.gameObject.SetActive(on && _levelPips.Length == 0);
+            }
+            for (int i = 0; i < _levelPips.Length; ++i)
+            {
+                if (_levelPips[i] != null)
+                {
+                    _levelPips[i].gameObject.SetActive(on);
+                }
+            }
+            if (_stateRing != null && on == false)
+            {
+                _stateRing.gameObject.SetActive(false);
             }
             if (_descText != null)
             {

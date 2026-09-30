@@ -137,12 +137,18 @@ namespace Lair.EditorTools
             portraitImage.raycastTarget = false;
 
             RectTransform nameText = Need(root, "NameText");
-            SetRect(nameText, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(0f, 24f));
-            StyleText(nameText, font, 20f, Bone, TextAlignmentOptions.Center, null);
+            //# 이름은 셀 폭 안(좌우 6 여백) 두 줄까지 — 초상 슬롯 아래 영역에 이름 → 보조 줄 순으로 쌓는다. 긴 이름은 자동 축소.
+            SetRect(nameText, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 32f), new Vector2(-12f, 32f));
+            StyleText(nameText, font, 17f, Bone, TextAlignmentOptions.Center, null);
+            TextMeshProUGUI nameTmp = nameText.GetComponent<TextMeshProUGUI>();
+            nameTmp.enableAutoSizing = true;
+            nameTmp.fontSizeMin = 11f;
+            nameTmp.fontSizeMax = 17f;
+            nameTmp.overflowMode = TextOverflowModes.Overflow;
 
             RectTransform subText = Child(rootRt, "SubText");
-            SetRect(subText, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(0f, 22f));
-            StyleText(subText, font, 16f, Sub, TextAlignmentOptions.Center, "1단계");
+            SetRect(subText, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(-12f, 22f));
+            StyleText(subText, font, 15f, Sub, TextAlignmentOptions.Center, "1단계");
 
             RectTransform border = Need(root, "Border");
             SetStretch(border, 0f, 0f, 0f, 0f);

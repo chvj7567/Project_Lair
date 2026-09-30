@@ -5,6 +5,7 @@ using Lair.Meta;
 using Lair.Net;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -45,6 +46,7 @@ namespace Lair.UI
         [SerializeField] private CHButton _conflictLaterButton;
         [SerializeField] private GameObject _conflictDot;    //# 빨간 dot 배지
         //# UI 리디자인 충돌 비교 칸 — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        [SerializeField] private Image _connectionDot;       //# 연결 상태 점 — 연결됨=소울 / 오프라인=피
         [SerializeField] private GameObject _conflictCompare;
         [SerializeField] private CHText _conflictLocalText;  //# "영주 Lv 7 · 1,240 소울" (이 기기)
         [SerializeField] private CHText _conflictCloudText;  //# 클라우드
@@ -60,6 +62,11 @@ namespace Lair.UI
 
             if (_connectionText != null)
                 _connectionText.SetText(cloudArg.IsConnected ? "연결됨" : "오프라인");
+
+            if (_connectionDot != null)
+            {
+                _connectionDot.color = cloudArg.IsConnected ? UiDotPalette.Soul : UiDotPalette.Blood;
+            }
 
             RefreshDisplayName(cloudArg.DisplayName);
             SetNameEditActive(false);

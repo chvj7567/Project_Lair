@@ -15,6 +15,11 @@ namespace Lair.UI
         [SerializeField] private CHText _runRateText;
         [SerializeField] private CHText _lockHintText;
         [SerializeField] private GameObject _selectedBadge;
+        //# UI 리디자인 — 석판 스프라이트(해금 Px_Panel / 잠금 Px_PanelDark) + 선택 중 금테. 미할당이면 건너뛴다.
+        [SerializeField] private Image _background;
+        [SerializeField] private Sprite _normalSprite;
+        [SerializeField] private Sprite _lockedSprite;
+        [SerializeField] private Image _selectedRing;
 
         //# 풀 재사용/재오픈 리셋은 Bind 이 전담한다 (다른 셀 관례 — CodexCell·ShopItemCell 등).
         //# OnEnable 리셋 금지: 재오픈 시 팝업 재활성화가 셀 OnEnable 을 Bind 뒤에 발화시켜(부모→자식 순서)
@@ -24,6 +29,17 @@ namespace Lair.UI
             if (data == null)
                 return;
 
+            Sprite skin = data.IsLocked ? _lockedSprite : _normalSprite;
+            if (_background != null && skin != null)
+            {
+                _background.sprite = skin;
+                _background.color = Color.white;
+            }
+            if (_selectedRing != null)
+            {
+                _selectedRing.gameObject.SetActive(data.IsSelected);
+                _selectedRing.color = UiDotPalette.Gold;
+            }
             if (_portrait != null)
             {
                 _portrait.sprite = data.Portrait;

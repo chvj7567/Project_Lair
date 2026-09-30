@@ -195,6 +195,26 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("잠김", list[2].SubText);
         }
 
+        [Test]
+        public void 도감_수집_문구는_더미를_제외하고_해금만_센다()
+        {
+            List<CodexCellData> cells = new List<CodexCellData>
+            {
+                new CodexCellData { Unlocked = true },
+                new CodexCellData { Unlocked = false },
+                new CodexCellData { IsLockedDummy = true },
+            };
+            Assert.AreEqual("수집 1 / 2", CodexPopup.BuildCollectedText(cells));
+            Assert.AreEqual("수집 0 / 0", CodexPopup.BuildCollectedText(null));
+        }
+
+        [Test]
+        public void 영주_다음_레벨_문구는_설정이_없으면_최대_레벨이다()
+        {
+            Assert.AreEqual("최대 레벨", LordLevelPopup.BuildXpNextText(100, null));
+            Assert.AreEqual(0, LordLevelService.XpForLevel(1, null));
+        }
+
         //# ---- 스테이지 랭킹 (제안 2) ----
 
         [Test]

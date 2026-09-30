@@ -51,6 +51,33 @@ namespace Lair.Meta
             return 1f;
         }
 
+        //# 해당 레벨에 도달하는 데 필요한 누적 XP — Lv1=0. 레벨 상한(99)까지만 누적한다.
+        public static int XpForLevel(int level, MetaConfig cfg)
+        {
+            if (cfg == null || level <= 1)
+                return 0;
+
+            int sum = 0;
+            for (int l = 1; l < level && l < MaxLevel; ++l)
+            {
+                sum += NeedForLevel(l, cfg);
+            }
+            return sum;
+        }
+
+        //# 다음 레벨까지 남은 XP — 트랙 만렙/레벨 상한이면 0 ("다음 레벨까지 N XP" 표기 입력).
+        public static int XpToNextLevel(int xp, MetaConfig cfg)
+        {
+            if (cfg == null)
+                return 0;
+
+            int level = LevelFromXp(xp, cfg);
+            int trackMax = TrackMaxLevel(cfg);
+            if (level >= MaxLevel || (trackMax > 0 && level >= trackMax))
+                return 0;
+            return Mathf.Max(0, XpForLevel(level + 1, cfg) - xp);
+        }
+
         //# 보상 트랙 만렙 — cfg.LordRewards 의 최고 Level. 트랙 미정의 시 0 (게이지 고정 비적용).
         public static int TrackMaxLevel(MetaConfig cfg)
         {

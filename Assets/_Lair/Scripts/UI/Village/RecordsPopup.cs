@@ -49,7 +49,6 @@ namespace Lair.UI
     {
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
-        [SerializeField] private CHText _bodyText;                             //# 상단 총계 (타일 배선 후 제거 예정 — 프리팹 단계)
         //# UI 리디자인 통계 타일 5칸 — 값 텍스트. 위젯 연결은 프리팹 단계, 미할당이면 건너뛴다.
         [SerializeField] private CHText _statRunsText;
         [SerializeField] private CHText _statWinsText;
@@ -109,10 +108,6 @@ namespace Lair.UI
             if (_arg == null)
                 return;
 
-            if (_bodyText != null)
-            {
-                _bodyText.SetText(BuildBody(_arg.Profile));
-            }
             RecordsStatTilesData tiles = BuildStatTiles(_arg.Profile, _arg.AllCards);
             SetTileText(_statRunsText, tiles.RunsText);
             SetTileText(_statWinsText, tiles.WinsText);
