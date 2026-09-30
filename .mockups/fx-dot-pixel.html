@@ -177,16 +177,21 @@ const FX=[
   if(f%2===0){px(x+3,y+4,'#ff4dd2',a);px(x+7,y+4,'#ff4dd2',a)}
   for(let i=0;i<8;i++){const an=i*TAU/8+f*.5,rad=9+(i%2)*3;px(x+5+Math.cos(an)*rad,y+5+Math.sin(an)*rad*.6-f*1.1,i%2?'#a45bff':'#e0b3ff',.85*a)}}},
 
-{id:'HeroDashConeFx',name:'돌진 부채꼴 (대시 스트라이크)',key:'EVisual.HeroDashConeFx',N:10,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff7a18','#d94a0b'],
- desc:'영웅이 몬스터 무리 쪽으로 돌진(길이 7)하며 부채꼴 궤적을 남김. 잔상 + 스피드 라인 + 먼지.',
- draw(f,N){const ox=16,oy=74,L=92,half=.61,sq=.5,rp=cl((f+1)/4),reach=L*eo(rp),fade=f<=4?1:cl(1-(f-4)/(N-4));
-  for(const k of[.2,.5,.8]){const gx=ox+L*.95*k;if(gx<ox+reach&&fade>0)hero(gx,oy,{a:.3*fade,flash:'#ffb020',shadow:false})}
-  if(f<N){
-   for(let y=0;y<H;y++)for(let x=ox;x<=ox+reach;x++){const dy=(y-oy)/sq,d=Math.hypot(x-ox,dy);if(d>reach||d<2)continue;const ang=Math.atan2(dy,x-ox);if(Math.abs(ang)>half)continue;
-    const edge=Math.abs(ang)>half*.8,head=d>reach-7;px(x,y,head?'#fff':edge?'#ffe066':d/L<.35?'#ffb020':d/L<.7?'#ff7a18':'#d94a0b',(head||edge?1:.5)*fade)}
-   for(let k=0;k<6;k++){const sy=oy+(k-2.5)*5,al=(k*29+f*34)%Math.max(reach,1);if(Math.abs(sy-oy)/sq<=al*Math.tan(half)*.9)line(ox+al,sy,Math.min(ox+al+10,ox+reach),sy,'#fff',.8*fade)}
-   if(f<4)for(let k=0;k<5;k++)px(ox-2-k*2-f*2,oy-rnd(k)*4,'#8a7a68',.6)}
-  hero(ox+L*.95*eo(rp),oy)}},
+{id:'HeroDashConeFx',name:'돌진 베기 (대시 스트라이크 · 전방위)',key:'EVisual.HeroDashConeFx',N:10,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020','#ff7a18','#d94a0b'],
+ desc:'영웅 주변 반경 3 전방위 회전 베기 (판정 반각 180°). 방사형 베기 줄 + 소용돌이 호 + 먼지가 바깥으로 퍼짐 (노바와 달리 주황 슬래시 중심).',
+ draw(f,N){const cx=64,cy=62,R=52,sq=.5,t=f/(N-1),fade=f<5?1:cl(1-(f-4)/(N-4));
+  hero(cx,cy,{flash:f===0?'#ffb020':null});
+  if(f>=N)return;
+  const reach=R*eo(cl((f+1)/5));
+  disc(cx,cy,reach,'#d94a0b',.1*fade,sq);
+  if(f<4)for(let k=0;k<4;k++){const yy=cy-14+k*4;line(cx-22-f*4,yy,cx-8,yy,'#fff',.8*(1-f/4))}
+  for(let k=0;k<12;k++){const a=k*TAU/12+f*.14,r0=reach*(.3+.1*rnd(k)),r1=reach*(.85+.15*rnd(k+3)),al=fade*(.55+.45*rnd(k+9));
+   line(cx+Math.cos(a)*r0,cy+Math.sin(a)*r0*sq,cx+Math.cos(a)*r1,cy+Math.sin(a)*r1*sq,k%3?'#ffb020':'#ffe066',al);
+   px(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1*sq,'#fff',fade)}
+  for(let j=0;j<4;j++){const a0=j*TAU/4+f*.8,rr=reach*(.62+.1*(j%2));for(let s2=0;s2<=22;s2++){const an=a0+s2*.075,w=1-s2/22,x=cx+Math.cos(an)*rr,y=cy+Math.sin(an)*rr*sq;px(x,y,w>.55?'#fff':'#ffe066',fade);px(x,y-1,'#ffb020',fade*(.4+.6*w));px(x,y+1,'#ff7a18',fade*.7*w);if(s2<12)px(x+1,y,'#ffe066',fade*w)}}
+  ring(cx,cy,reach,reach*sq,2,'#ff7a18',fade,ang=>Math.sin(ang)>.15?['#ffe066',1]:['#d94a0b',.9]);
+  if(f>=2)ring(cx,cy,reach*.6,reach*.6*sq,1,'#ffb020',.7*fade);
+  for(let k=0;k<10;k++){const a=k*TAU/10+rnd(k+21)*.6,rr=reach*(.9+rnd(k+31)*.15);px(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*sq-f*rnd(k+41)*1.4-1,k%2?'#8a7a68':'#c9b79c',.7*fade)}}},
 
 {id:'HeroNovaFx',name:'AOE 노바',key:'EVisual.HeroNovaFx',N:10,hold:4,tag:'1회',pal:['#fff','#ffe066','#ffb020'],
  desc:'영웅 중심에서 바닥을 따라 퍼지는 황금빛 충격파 링 + 안쪽 2차 링 + 불꽃 알갱이 (0.8초).',
@@ -244,7 +249,7 @@ group('gSpeed',[['×0.25',.25],['×0.5',.5],['×1',1],['×2',2]],1,v=>speed=v);
 group('gScale',[['×2',2],['×3',3],['×4',4]],3,v=>document.documentElement.style.setProperty('--s',v));
 group('gBg',[['던전',0],['투명 체커',1]],0,v=>{grid.classList.toggle('dungeon',v===0);grid.classList.toggle('checker',v===1)});
 group('gStrip',[['접기',0],['펼치기',1]],0,v=>document.body.classList.toggle("showstrip",v===1));
-const FOOT={DamagePopup:[64,88],PoisonAura:[64,72],TimeStopShield:[64,86],FearSkull:[64,86],HeroDashConeFx:[16,74],HeroNovaFx:[64,62],HeroOrbitBladeFx:[64,66]};
+const FOOT={DamagePopup:[64,88],PoisonAura:[64,72],TimeStopShield:[64,86],FearSkull:[64,86],HeroDashConeFx:[64,62],HeroNovaFx:[64,62],HeroOrbitBladeFx:[64,66]};
 document.getElementById('bExp').onclick=async()=>{const m=document.getElementById('expMsg');m.textContent='추출 중...';EXP=true;const spec={fps:FPS,cell:[W,H],note:'셀 128x96, 좌->우/위->아래, 대기(hold) 프레임 제외. foot=영웅 발 기준점(셀 픽셀). 더미 영웅/몬스터 제외, 투명 배경.',fx:{}};
  try{for(const fx of FX){const cols=Math.min(fx.N,6),rows=Math.ceil(fx.N/cols),sh=document.createElement('canvas');sh.width=W*cols;sh.height=H*rows;const t=document.createElement('canvas');t.width=W;t.height=H;
   for(let f=0;f<fx.N;f++){render(t,fx,f);sh.getContext('2d').drawImage(t,(f%cols)*W,Math.floor(f/cols)*H)}
