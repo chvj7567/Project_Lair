@@ -109,6 +109,19 @@ table.cmp th{background:var(--card);font-weight:600}
 .bic{width:30px;height:30px;background:#0c1017 center/cover;position:relative;display:block;box-shadow:0 0 0 2px #07090e,inset 0 0 0 2px var(--c)}
 .bic em{position:absolute;right:-4px;bottom:-5px;font-style:normal;font-size:9px;background:#07090e;color:#eef1f6;padding:0 2px}
 .bic.emp{background:#10141d;box-shadow:0 0 0 2px #07090e,inset 0 0 0 1px #313b52}
+/*# 개정 3 — 시너지·빌드 접기/펼치기(기획서 §4.10). 아이콘 5×5 아트px = 15px(960 기준) */
+.fold{display:inline-block;position:relative;width:15px;height:15px;vertical-align:middle;margin-left:6px;cursor:pointer;pointer-events:auto}
+.fold::before{content:"";position:absolute;left:0;top:6px;width:15px;height:3px;background:#8e98ad}
+.fold.plus::after{content:"";position:absolute;left:6px;top:0;width:3px;height:15px;background:#8e98ad}
+.fold:hover::before,.fold:hover::after,.ftab:hover .fold::before,.ftab:hover .fold::after{background:#eef1f6}
+.ftab{display:none;position:relative!important;height:23px;align-items:center;gap:6px;padding:0 4px 0 8px;font-size:10px;color:#8e98ad;cursor:pointer;pointer-events:auto}
+.ftab .sp{flex:1}
+.ftab .dots{display:flex;gap:3px}
+.ftab .dots i{width:6px;height:6px;background:#0b0e14;box-shadow:0 0 0 1px #07090e}
+.b-syn.col>*:not(.ftab),.b-build.col>*:not(.ftab){display:none}
+.b-syn.col>.ftab,.b-build.col>.ftab{display:flex}
+.b-build.col{padding:0}
+.b-build .bhd{font-size:11px;color:#8e98ad;display:flex;justify-content:space-between;align-items:center;margin:0 0 5px}
 .b-banner{position:absolute;left:50%;top:84px;transform:translateX(-50%);white-space:nowrap;padding:5px 12px;background:rgba(16,20,29,.9);
   box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e,inset 0 0 0 1px #5b3aa6;opacity:0;transition:opacity .3s}
 .b-banner.on{opacity:1}
@@ -213,7 +226,8 @@ body.only-battle .stage.showframe .scr{outline:0}
       <li>게임의 <b>지금 배틀 시야(카메라 size 7)를 그대로 둔 채</b> 그 화면을 채우도록 배경을 다시 그린 판입니다. 위 3번 시안(640×360)은 화면을 좁혀 본 구도였고, 실제 게임 화면은 <b>1194.67×672 도트</b>라 배경을 <b>1228×704</b>(흔들림 여백 포함)로 새로 그렸습니다. 캐릭터 도트 크기는 두 판이 같습니다.</li>
       <li>점선 사각형이 실제 화면 경계입니다. 바깥 띠(좌우 16.67·위아래 16 도트)는 카메라가 흔들릴 때만 드러나는 여백입니다.</li>
       <li>팔레트·그리기 함수·시드(41)는 3번과 같고, 크기·투기장 반경·석판 동심원 수(8 → 15)·벽 기둥 위치·균열/핏자국/뼈 개수만 넓이에 맞춰 늘렸습니다. 투기장은 화면 좌우 밖까지 이어집니다.</li>
-      <li><b>스포너 제단 6개를 투기장 안에 복원했습니다</b>(개정 2 — 스포너 반지름 20 → 6.0u, 각도는 지금 그대로). 위치는 도깨비불 (902,366) · 사신 (758,175) · 저주술사 (470,175) · 망령 (326,366) · 역병귀 (470,557) · 환령 (758,557) 이고, 6개 모두 HUD 밖에 있습니다. 제단은 배경에 굽지 않은 별도 스프라이트라 캐릭터와 앞뒤로 정렬되고, 결정·링 색은 종족 발광색(= HUD 스포너 칸 게이지 색)입니다.</li>
+      <li><b>스포너 제단 6개를 투기장 테두리를 따라 배치했습니다</b>(개정 3 — 투기장과 중심을 같이 쓰는 타원, 각도는 지금 그대로). 위·아래 4개는 보이는 테두리 바로 안쪽, 좌우 2개는 오른쪽 시너지·빌드 열을 펼친 상태에서도 가리지 않는 가장 바깥에 둡니다. 위치는 도깨비불 (1013,366) · 사신 (814,165) · 저주술사 (414,165) · 망령 (215,366) · 역병귀 (414,567) · 환령 (814,567) 이고, 6개 모두 HUD 밖에 있습니다. 제단은 배경에 굽지 않은 별도 스프라이트라 캐릭터와 앞뒤로 정렬되고, 결정·링 색은 종족 발광색(= HUD 스포너 칸 게이지 색)입니다.</li>
+      <li><b>시너지·빌드 패널에 접기 버튼 [−]</b>(개정 3)을 넣었습니다. 각 패널을 따로 접을 수 있고, 접으면 작은 탭(시너지 = 활성 축 점 4개, 빌드 = 패시브 5/9 · 액티브 3/5)만 남습니다. 탭을 누르면 다시 펼쳐집니다. 게임에서는 접힌 상태가 다음 전투에도 유지됩니다.</li>
       <li>몬스터는 자기 제단에서 걸어 나옵니다. 여기서는 도깨비불이 오른쪽(0°) 제단에서 나와 영웅에게 붙고, 다른 공격자도 각자 제단이 있는 쪽에서 붙어 싸웁니다.</li>
       <li>화로 4개는 HUD 에 가리지 않는 투기장 네 귀퉁이(193,218)·(1035,218)·(193,514)·(1035,514)에 둡니다. 영웅은 투기장 중심 (614,366)에 서 있습니다.</li>
       <li>화면이 넓어진 만큼 조명이 닿지 않는 어두운 가장자리가 3번보다 많습니다(의도). 너무 어두우면 앰비언트만 조정합니다.</li>
@@ -682,7 +696,7 @@ const BHUD_HTML=`<div class="bhud" data-k="bhud">
   </div>
   <div class="px dark b-active"><div class="k">액티브 카드</div><div class="v" data-k="bh-act">0:30</div><div class="mini"><b data-k="bh-actbar"></b></div></div>
   <div class="b-spawn" data-k="bh-spawn"></div>
-  <div class="b-syn" data-k="bh-syn"><div class="synhd">시너지 <span>상세 ›</span></div></div>
+  <div class="b-syn" data-k="bh-syn"><div class="synhd"><span>시너지</span><span>상세 › <b class="fold" data-fold="bh-syn" title="접기"></b></span></div></div>
   <div class="px dark b-build" data-k="bh-build"></div>
   <div class="b-banner" data-k="bh-banner"><span class="tag">SKILL</span>영웅의 <em>'회전 칼날'</em> 스킬 해제</div>
 </div>`;
@@ -848,9 +862,15 @@ const BScene={
       <div class="body"><div class="r1"><span>${KO[sp]}</span><span class="cnt">×${n}</span></div><div class="r2"><span class="sec">0s</span></div><div class="bar"><b style="background:${GLOW[sp]}"></b></div></div></div>`).join('');
     const SY=[['TANK','#5aa9ff',2],['SWARM','#7be36a',3],['DPS','#ff6b5a',1],['DEBUFF','#c08bff',0]];
     $('bh-syn').insertAdjacentHTML('beforeend',SY.map(([k,c,n])=>`<div class="px dark syc ${n<2?'off':''}" style="--c:${c}"><img src="${ICON[k]}"><span class="nm">${k}</span><span class="pp">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span></div>`).join(''));
+    //# 개정 3 — 접힌 탭(165×31 → 960 기준 124×23): 시너지 = 축 점 4개(펼친 셀 순서, 활성 = 축 색), 빌드 = 패시브 픽/9 · 액티브 픽/5
+    $('bh-syn').insertAdjacentHTML('beforeend',`<div class="px dark ftab" data-fold="bh-syn" title="펼치기"><span>시너지</span><span class="dots">${SY.map(([k,c,n])=>`<i style="${n>=2?`background:${c}`:''}"></i>`).join('')}</span><span class="sp"></span><b class="fold plus"></b></div>`);
     const bic=(k,c,n)=>k?`<i class="bic" style="--c:${c};background-image:url(${ICON[k]})">${n?`<em>×${n}</em>`:''}</i>`:`<i class="bic emp"></i>`;
-    $('bh-build').innerHTML=`<div class="lb" style="color:#5ef0b4">패시브 <span>4/6</span></div><div class="grid">`+[['SpawnWisps',2],['IronWill'],['SpawnerHaste'],['WallOfWisps'],[],[]].map(([k,n])=>bic(k,'#5ef0b4',n)).join('')
-      +`</div><div class="lb" style="color:#f7c64a">액티브 <span>2/3</span></div><div class="grid">`+[['TimeStop'],['Fear',2],[]].map(([k,n])=>bic(k,'#f7c64a',n)).join('')+`</div>`;
+    $('bh-build').innerHTML=`<div class="bhd">빌드 <b class="fold" data-fold="bh-build" title="접기"></b></div>`
+      +`<div class="lb" style="color:#5ef0b4">패시브 <span>5/9</span></div><div class="grid">`+[['SpawnWisps',2],['IronWill'],['SpawnerHaste'],['WallOfWisps'],[],[]].map(([k,n])=>bic(k,'#5ef0b4',n)).join('')
+      +`</div><div class="lb" style="color:#f7c64a">액티브 <span>3/5</span></div><div class="grid">`+[['TimeStop'],['Fear',2],[]].map(([k,n])=>bic(k,'#f7c64a',n)).join('')+`</div>`
+      +`<div class="ftab" data-fold="bh-build" title="펼치기"><span>빌드</span><span style="color:#5ef0b4">5/9</span><span style="color:#f7c64a">3/5</span><span class="sp"></span><b class="fold plus"></b></div>`;
+    //# 접기/펼치기 — 패널별 개별, 즉시 전환(트윈 없음), [−]·탭 클릭은 모달(상세)로 전달되지 않음
+    wrap.querySelectorAll('[data-fold]').forEach(el=>el.addEventListener('click',ev=>{ev.stopPropagation();$(el.dataset.fold).classList.toggle('col');}));
     const hud=$('bhud');new ResizeObserver(()=>{hud.style.transform=`scale(${wrap.clientWidth/960})`;}).observe(wrap);
     this._h={timer:$('bh-timer'),timerBox:$('bh-timer').parentElement,hp:$('bh-hp'),lag:$('bh-lag'),hptxt:$('bh-hptxt'),ticks:[...tk.children],act:$('bh-act'),actbar:$('bh-actbar'),
       cells:[...$('bh-spawn').children],banner:$('bh-banner')};
@@ -871,8 +891,9 @@ const BScene={
 //# ============ 3′. 배틀 광각판 (1228×704 = 현행 카메라 size 7 화면 1194.67×672 + 흔들림 여백) ============
 //# 전투 연출은 3번 시뮬을 그대로 쓰고, 영웅을 BattleZone 중심 도트 (614,366) 로 옮긴다(오프셋 WOX·WOY). 캐릭터 도트 크기는 동일.
 const WOX=614-HERO.x,WOY=366-HERO.y;
-//# 개정 2 — 스포너 반지름 6.0u, 각도 현행(Wisp 0°…Phantom 300°). 앵커 = 기획서 §3.5.2 도트(반올림). i = 스포너 인덱스(위상 φ = i·60°)
-const WIDE_ALTARS=[['Wisp',902,366.38],['Reaper',758,175.32],['Hex',470,175.32],['Wraith',326,366.38],['Plague',470,557.44],['Phantom',758,557.44]]
+//# 개정 3 — 투기장 테두리를 따르는 화면 타원(중심 (614,366.38), 가로 624×0.64 = 399.36, 세로 258×0.90 = 232.2), 각도 현행(Wisp 0°…Phantom 300°).
+//# 앵커 = 기획서 §3.5.2 도트(반올림). 월드 X 반축 8.320 · Z 반축 6.315. i = 스포너 인덱스(위상 φ = i·60°)
+const WIDE_ALTARS=[['Wisp',1013.36,366.38],['Reaper',813.68,165.29],['Hex',414.32,165.29],['Wraith',214.64,366.38],['Plague',414.32,567.47],['Phantom',813.68,567.47]]
   .map(([sp,x,y],i)=>({sp,i,x:Math.round(x),y:Math.round(y),ph:i*1.0472}));
 const WIDE_ALTAR={};WIDE_ALTARS.forEach(a=>{WIDE_ALTAR[a.sp]=a;});
 //# 제단 결정 흔들림(도트, 화면 아래 +) — §3.2 / §7.4 CrystalBobDots
@@ -1039,6 +1060,8 @@ function initExportPanel(){
   Engine('st-battle',BScene);
   BWide.hudInit(document.querySelector('#st-battle-wide .bhud-wrap'));
   Engine('st-battle-wide',BWide);
+  //# ?only=battle&fold=1 — 시너지·빌드 접힌 상태로 보기
+  if(new URLSearchParams(location.search).get('fold')==='1')document.querySelectorAll('#st-battle-wide [data-k="bh-syn"],#st-battle-wide [data-k="bh-build"]').forEach(e=>e.classList.add('col'));
   initExportPanel();
 })().catch(e=>{document.getElementById('msg').textContent='스프라이트 로드 실패: '+e;});
 </script>
