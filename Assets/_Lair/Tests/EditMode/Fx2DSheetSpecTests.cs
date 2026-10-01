@@ -202,14 +202,16 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(4f, mat.GetFloat("_ZTest"), 1e-6f);
         }
 
+        //# scene-2d-conversion S3 — 서 있는 FX 는 2D 조명에 어두워지지 않게 몬스터 셰이더의 무조명 사본을 쓴다(속성 계약 동일).
         [Test]
-        public void Mat_FX2D는_몬스터_머티리얼과_같은_셰이더를_쓴다()
+        public void Mat_FX2D는_몬스터_셰이더의_무조명_사본을_쓴다()
         {
             Material fx = AssetDatabase.LoadAssetAtPath<Material>(MatFx2D);
             Material mon = AssetDatabase.LoadAssetAtPath<Material>(MatMonster2D);
             Assert.IsNotNull(fx);
             Assert.IsNotNull(mon);
-            Assert.AreSame(mon.shader, fx.shader);
+            Assert.AreEqual("Lair/Monster2DSpriteUnlit", fx.shader.name);
+            Assert.IsTrue(fx.HasProperty("_FlashWhite") && fx.HasProperty("_FlashInvert") && fx.HasProperty("_EmissionColor"));
         }
     }
 }
