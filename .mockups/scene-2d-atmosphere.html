@@ -946,6 +946,59 @@ const BWide=Object.assign(Object.create(BScene),{
   overlay(ctx,S,t){ctx.save();ctx.translate(WOX,WOY);BScene.overlay.call(this,ctx,S,t);ctx.restore();},
 });
 
+//# ============ 와이드 배경 확장 (초와이드 화면에서 좌우 빈 띠 방지) ============
+//# 승인 시안 중앙 영역은 픽셀 그대로 두고, 좌우 여백만 같은 레시피(그라데이션·벽돌·바닥 타일)로 이어 그린다. 중앙 도트 좌표 불변.
+const BATTLE_EXPORT={noise:343,wallH:56,pillars:[133,333,539,1043,1248,1448],arena:{x:800,y:366,rx:624,ry:258},rings:15,cracks:108,blood:44,bones:59,
+  braz:[{x:379,y:218},{x:1221,y:218},{x:379,y:514},{x:1221,y:514}],altars:false};
+function buildBattleExport(b,rng){buildBattle(b,rng,BATTLE_EXPORT);}
+function buildLoadingWide(b){
+  const X0=80,CW=640,CH=270,mid=480;
+  const tmp=document.createElement('canvas');tmp.width=mid;tmp.height=CH;const tc=tmp.getContext('2d',{willReadFrequently:true});
+  withWH(mid,CH,()=>LoadingScene.build(tc,mulberry32(LoadingScene.seed)));
+  b.drawImage(tmp,X0,0);
+  const rng=mulberry32(777);
+  for(const[x0,x1]of [[0,X0],[X0+mid,CW]]){
+    gradFill(b,x0,0,x1-x0,178,['#040508','#06090c','#08100f','#0b1714','#0d1b17']);
+    gradFill(b,x0,178,x1-x0,92,['#121826','#0f141f','#0b1018','#080b11']);
+    b.save();b.beginPath();b.rect(x0,0,x1-x0,CH);b.clip();b.translate(X0,0);
+    const g=mk(b);
+    for(let i=0;i<24;i++)g.P(rng()<.5?'#15302a':'#1a2230',(x0<X0?-X0:mid)+Math.floor(rng()*X0),Math.floor(rng()*170));
+    for(const x of (x0<X0?[-16,-52]:[496,532])){const top=86+Math.floor(rng()*26);g.R('#0b1113',x,top,14,178-top);g.R('#101a1b',x,top,3,178-top);
+      for(let k=0;k<4;k++)g.P('#040608',x+Math.floor(rng()*14),top+k);}
+    const ys=[178,182,187,193,200,208,217,227,238,250,263,277];
+    for(let i=0;i<ys.length-1;i++){const y0=ys[i],y1=ys[i+1],ym=(y0+y1)/2,sp=22*(ym-120)/58;
+      for(let s=-24;s<=24;s++){const xa=240+(s+(i%2?.5:0))*sp;const c=['#141b29','#161e2d','#121826','#18202f'][Math.floor(rng()*4)];g.R(c,xa+1,y0+1,sp-1,y1-y0-1);
+        if(rng()<.2)g.P('#0a0e16',xa+2+Math.floor(rng()*Math.max(1,sp-4)),y0+2);}
+      g.R('#080b11',-X0,y0,CW,1);}
+    b.restore();
+  }
+}
+
+function buildVillageWide(b){
+  const X0=80,CW=640,CH=270,mid=480;
+  const tmp=document.createElement('canvas');tmp.width=mid;tmp.height=CH;const tc=tmp.getContext('2d',{willReadFrequently:true});
+  withWH(mid,CH,()=>VScene.build(tc,mulberry32(VScene.seed)));
+  b.drawImage(tmp,X0,0);
+  const rng=mulberry32(888);
+  for(const[x0,x1]of [[0,X0],[X0+mid,CW]]){
+    const lx=x0<X0?-X0:mid,w=X0;
+    gradFill(b,x0,0,x1-x0,26,['#040508','#080a10','#0b0e15']);
+    b.save();b.beginPath();b.rect(x0,0,x1-x0,CH);b.clip();b.translate(X0,0);
+    const g=mk(b);
+    brickWall(b,rng,lx,24,w,122,['#232b3c','#262f42','#20283a','#2a3348'],'#141925');
+    for(let i=0;i<14;i++){const x=lx+Math.floor(rng()*w),y=128+Math.floor(rng()*16);g.P(rng()<.5?'#23402f':'#2f5a3c',x,y);}
+    for(let i=0;i<2;i++)crack(g,rng,lx+Math.floor(rng()*w),30+Math.floor(rng()*80),10+Math.floor(rng()*10),'#12161f');
+    g.R('#313b52',lx,144,w,3);g.R('#48546e',lx,144,w,1);g.R('#10141d',lx,147,w,3);
+    const fp=['#2d2a2e','#29262a','#322e31','#262326'];
+    for(let r=0;r<10;r++){const y=150+r*12,off=(r%2)*14;
+      g.R('#17151a',lx,y,w,12);
+      const start=-28+off+28*Math.floor((lx-(-28+off))/28);
+      for(let x=start;x<lx+w;x+=28){const c=fp[Math.floor(rng()*fp.length)];g.R(c,x+1,y+1,27,11);g.R(shade(c,1.15),x+1,y+1,27,1);
+        if(rng()<.3)g.P(shade(c,.75),x+3+Math.floor(rng()*22),y+3+Math.floor(rng()*7));}}
+    b.restore();
+  }
+}
+
 //# ============ 추출 — Backdrop2D · UiDot (기획서 scene-2d-conversion §2.2·§2.4) ============
 //# 각 조각은 시안과 같은 함수·시드로 1× 도트 캔버스에 그린다. org = 시안 캔버스의 좌상단 도트(조각 로컬 원점).
 //# raw = 캔버스 전체를 직접 채우는 조각(getImageData 기반이라 변환 없이 정확한 크기에 그린다).
@@ -956,7 +1009,7 @@ const shadowPiece=(name,rx)=>{const ry=Math.max(1,Math.round(rx/3.5));
   return{name,folder:'Backdrop2D',w:rx*2,h:ry*2+1,pivot:[.5,+((ry+1)/(2*ry+1)).toFixed(4)],org:[0,0],draw:c=>mk(c).ell('#000',rx,ry,rx,ry)};};
 const EXPORTS=[
   //# 배틀
-  {name:'Battle_Backdrop.png',folder:'Backdrop2D',w:1228,h:704,pivot:[.5,.5],raw:c=>withWH(1228,704,()=>buildBattleWide(c,mulberry32(41)))},
+  {name:'Battle_Backdrop.png',folder:'Backdrop2D',w:1600,h:704,pivot:[.5,.5],raw:c=>withWH(1600,704,()=>buildBattleExport(c,mulberry32(41)))},
   flameSheet('Flame_Soul8_Sheet.png',8,SOULF,3),
   //# 제단 5장(개정 2 §2.4) — 흰색 틴트용(RingDim 은 회색 0.35/0.25 계조), 런타임에 종족 발광색을 곱한다
   {name:'Altar2D_Base.png',folder:'Backdrop2D',w:22,h:25,pivot:[.5,.24],org:[0,0],draw:c=>ALTAR_PARTS.base(mk(c),11,19)},
@@ -965,7 +1018,7 @@ const EXPORTS=[
   {name:'Altar2D_Crystal.png',folder:'Backdrop2D',w:9,h:9,pivot:[.4444,1],org:[0,0],draw:c=>ALTAR_PARTS.crystal(mk(c),4,0,'#ffffff')},
   {name:'Altar2D_CrystalCore.png',folder:'Backdrop2D',w:2,h:4,pivot:[.5,1],org:[0,0],draw:c=>ALTAR_PARTS.core(mk(c),1,-2)},
   //# 마을
-  {name:'Village_Backdrop.png',folder:'Backdrop2D',w:480,h:270,pivot:[.5,.5],raw:c=>withWH(480,270,()=>VScene.build(c,mulberry32(VScene.seed)))},
+  {name:'Village_Backdrop.png',folder:'Backdrop2D',w:640,h:270,pivot:[.5,.5],raw:c=>buildVillageWide(c)},
   {name:'Village_CauldronGlow.png',folder:'Backdrop2D',w:19,h:5,pivot:[0,1],org:[118,155],draw:c=>{const g=mk(c);g.ell('#1f9e74',127,157,9,2);g.R('#5ef0b4',121,157,12,1);}},
   {name:'Village_CauldronBubbles_Sheet.png',folder:'Backdrop2D',w:117,h:15,cell:[13,15],frames:9,fps:12,pivot:[0,1],org:[120,142],
     draw:(c,i)=>{const g=mk(c);for(let k=0;k<4;k++){const ph=(i/9+k*.27)%1;g.P(ph>.7?'#e9fff6':'#5ef0b4',120+k*4,Math.round(156-ph*14));}}},
@@ -979,7 +1032,7 @@ const EXPORTS=[
   shadowPiece('Shadow_R6.png',6),
   shadowPiece('Shadow_R11.png',11),
   //# 로딩
-  {name:'Loading_Backdrop.png',folder:'Backdrop2D',w:480,h:270,pivot:[.5,.5],raw:c=>withWH(480,270,()=>LoadingScene.build(c,mulberry32(LoadingScene.seed)))},
+  {name:'Loading_Backdrop.png',folder:'Backdrop2D',w:640,h:270,pivot:[.5,.5],raw:c=>buildLoadingWide(c)},
   {name:'Loading_DoorGlow.png',folder:'Backdrop2D',w:36,h:54,pivot:[0,1],org:[222,106],draw:c=>{const g=mk(c);
     for(let x=222;x<258;x++)for(let y=106;y<160;y++){const dy=(y-106)/54,a=(1-Math.abs(x-240)/19)*(.4+dy*.6);if(a<=0)continue;c.globalAlpha=Math.min(1,a);g.P(dy>.6?'#5ef0b4':'#1f9e74',x,y);}
     c.globalAlpha=1;}},
