@@ -27,6 +27,7 @@ const FX_NAMES = new Set([
 const BACKDROP_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Backdrop2D');
 const BACKDROP_NAMES = new Set([
   'Battle_Backdrop.png', 'Flame_Soul8_Sheet.png',
+  'Altar2D_Base.png', 'Altar2D_RingDim.png', 'Altar2D_Ring.png', 'Altar2D_Crystal.png', 'Altar2D_CrystalCore.png',
   'Village_Backdrop.png', 'Village_CauldronGlow.png', 'Village_CauldronBubbles_Sheet.png', 'Village_CrownSparkle.png',
   'Village_ProjectorRings.png', 'Village_HoloScan_Sheet.png',
   'Flame_Warm7_Sheet.png', 'Flame_Warm3_Sheet.png', 'Flame_Warm3w1_Sheet.png', 'Shadow_R6.png', 'Shadow_R11.png',

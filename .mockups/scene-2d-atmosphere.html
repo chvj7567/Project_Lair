@@ -203,7 +203,7 @@ body.only-battle .stage.showframe .scr{outline:0}
 </section>
 
 <section class="sc" id="s-battle-wide">
-  <div class="hd"><h2>3′. 배틀 광각판 — 현행 시야 그대로 (재확인 필요)</h2><code>buildBattleWide · Battle_Backdrop 1228×704 · 기획서 scene-2d-conversion §3.1.1</code></div>
+  <div class="hd"><h2>3′. 배틀 광각판 — 현행 시야 그대로 (재확인 필요)</h2><code>buildBattleWide · Battle_Backdrop 1228×704 + 제단 6 · 기획서 scene-2d-conversion §3.1.1 · §3.2 · §3.5</code></div>
   <div class="wide-scroll"><div class="stage wide showhud showframe" id="st-battle-wide"><canvas></canvas>
     <div class="scr"><div class="bhud-wrap"></div></div>
   </div></div>
@@ -213,7 +213,8 @@ body.only-battle .stage.showframe .scr{outline:0}
       <li>게임의 <b>지금 배틀 시야(카메라 size 7)를 그대로 둔 채</b> 그 화면을 채우도록 배경을 다시 그린 판입니다. 위 3번 시안(640×360)은 화면을 좁혀 본 구도였고, 실제 게임 화면은 <b>1194.67×672 도트</b>라 배경을 <b>1228×704</b>(흔들림 여백 포함)로 새로 그렸습니다. 캐릭터 도트 크기는 두 판이 같습니다.</li>
       <li>점선 사각형이 실제 화면 경계입니다. 바깥 띠(좌우 16.67·위아래 16 도트)는 카메라가 흔들릴 때만 드러나는 여백입니다.</li>
       <li>팔레트·그리기 함수·시드(41)는 3번과 같고, 크기·투기장 반경·석판 동심원 수(8 → 15)·벽 기둥 위치·균열/핏자국/뼈 개수만 넓이에 맞춰 늘렸습니다. 투기장은 화면 좌우 밖까지 이어집니다.</li>
-      <li><b>스포너 제단은 없습니다.</b> 스포너는 지금 게임처럼 화면 밖(반지름 20)에 있어서, 몬스터가 화면 가장자리에서 걸어 들어옵니다(여기서는 도깨비불이 오른쪽 0° 스포너에서 들어옴). 스포너 정보는 아래 HUD 스포너 줄이 맡습니다.</li>
+      <li><b>스포너 제단 6개를 투기장 안에 복원했습니다</b>(개정 2 — 스포너 반지름 20 → 6.0u, 각도는 지금 그대로). 위치는 도깨비불 (902,366) · 사신 (758,175) · 저주술사 (470,175) · 망령 (326,366) · 역병귀 (470,557) · 환령 (758,557) 이고, 6개 모두 HUD 밖에 있습니다. 제단은 배경에 굽지 않은 별도 스프라이트라 캐릭터와 앞뒤로 정렬되고, 결정·링 색은 종족 발광색(= HUD 스포너 칸 게이지 색)입니다.</li>
+      <li>몬스터는 자기 제단에서 걸어 나옵니다. 여기서는 도깨비불이 오른쪽(0°) 제단에서 나와 영웅에게 붙고, 다른 공격자도 각자 제단이 있는 쪽에서 붙어 싸웁니다.</li>
       <li>화로 4개는 HUD 에 가리지 않는 투기장 네 귀퉁이(193,218)·(1035,218)·(193,514)·(1035,514)에 둡니다. 영웅은 투기장 중심 (614,366)에 서 있습니다.</li>
       <li>화면이 넓어진 만큼 조명이 닿지 않는 어두운 가장자리가 3번보다 많습니다(의도). 너무 어두우면 앰비언트만 조정합니다.</li>
       <li><b>이 구도를 승인(G1a)해 주셔야</b> 아래 추출 버튼으로 에셋을 저장합니다.</li>
@@ -689,6 +690,16 @@ const ARENA={x:320,y:198,rx:336,ry:148};
 const ALTAR={};[['Wisp',240],['Reaper',180],['Hex',120],['Wraith',60],['Plague',0],['Phantom',300]].forEach(([sp,deg])=>{const a=deg*Math.PI/180;ALTAR[sp]={x:Math.round(320+204*Math.cos(a)),y:Math.round(198-96*Math.sin(a))};});
 const BRAZ=[150,30,210,330].map(d=>{const a=d*Math.PI/180;return{x:Math.round(320+300*Math.cos(a)),y:Math.round(198-132*Math.sin(a))};});
 const HERO={x:320,y:204};
+//# 제단 부품 — 앵커 (x,y) = 제단 발밑 도트. 시안 3번 디자인 그대로, 추출 스프라이트(Altar2D_*)와 광각판 레이어가 같은 함수를 쓴다.
+const ALTAR_PARTS={
+  base:(g,x,y)=>{g.ell('#0d1019',x,y+1,11,4);g.R('#2e3850',x-9,y-3,18,4);g.R('#3a4358',x-9,y-3,18,1);
+    g.R('#262d3c',x-6,y-16,12,13);g.R('#3a4358',x-6,y-16,3,13);g.R('#4d5872',x-6,y-16,1,13);g.R('#171d2a',x+4,y-16,2,13);
+    g.R('#3a4358',x-8,y-19,16,3);g.R('#56627e',x-8,y-19,16,1);},
+  ringDim:(g,x,y,c)=>{g.ring(shade(c,.35),x,y+1,22,8);g.ring(shade(c,.25),x,y+1,16,6);},
+  ring:(g,x,y,c)=>g.ring(c,x,y+1,22,8),
+  crystal:(g,x,cy,c)=>{for(let r=0;r<9;r++){const w=r<4?r:8-r;g.R(c,x-w,cy+r,w*2+1,1);}},
+  core:(g,x,cy)=>{g.R('#ffffff',x,cy+2,1,4);g.P('#ffffff',x-1,cy+3);},
+};
 //# 배틀 배경 파라미터 — 승인 시안(640×360)과 광각판(1228×704, 기획서 scene-2d-conversion §3.1.1). 팔레트·함수·시드는 공용.
 const BATTLE_SIAN={w:640,h:360,noise:70,wallH:40,pillars:[70,180,450,560],arena:ARENA,rings:8,cracks:22,blood:9,bones:12,braz:BRAZ,altars:true};
 const BATTLE_WIDE={w:1228,h:704,noise:263,wallH:56,pillars:[147,353,857,1062],arena:{x:614,y:366,rx:624,ry:258},rings:15,cracks:83,blood:34,bones:45,
@@ -731,11 +742,8 @@ function buildBattle(b,rng,P){
     for(let i=0;i<P.blood;i++){const[x,y]=inArena(.25+rng()*.6);for(let k=0;k<16;k++)g.P(rng()<.5?'#3a1a22':'#2e161c',x+Math.floor(rng()*9)-4,y+Math.floor(rng()*4)-2);}
     for(let i=0;i<P.bones;i++){const[x,y]=inArena(.3+rng()*.6);
       if(rng()<.4){g.ell('#b9b09a',x,y,3,2);g.P('#1a1d24',x-1,y);g.P('#1a1d24',x+1,y);}else{g.R('#b9b09a',x-3,y,7,1);g.P('#b9b09a',x-4,y-1);g.P('#b9b09a',x+4,y+1);}}
-    //# 제단 (광각판은 스포너가 화면 밖이라 없음 — §3.2)
-    if(P.altars)for(const sp in ALTAR){const{x,y}=ALTAR[sp];g.ring(shade(GLOW[sp],.35),x,y+1,22,8);g.ring(shade(GLOW[sp],.25),x,y+1,16,6);
-      g.ell('#0d1019',x,y+1,11,4);g.R('#2e3850',x-9,y-3,18,4);g.R('#3a4358',x-9,y-3,18,1);
-      g.R('#262d3c',x-6,y-16,12,13);g.R('#3a4358',x-6,y-16,3,13);g.R('#4d5872',x-6,y-16,1,13);g.R('#171d2a',x+4,y-16,2,13);
-      g.R('#3a4358',x-8,y-19,16,3);g.R('#56627e',x-8,y-19,16,1);}
+    //# 제단 (광각판은 배경에 굽지 않고 별도 스프라이트 레이어 — 개정 2 §3.2)
+    if(P.altars)for(const sp in ALTAR){const{x,y}=ALTAR[sp];ALTAR_PARTS.ringDim(g,x,y,GLOW[sp]);ALTAR_PARTS.base(g,x,y);}
     //# 화로
     for(const{x,y}of P.braz){g.ell('#0d1019',x,y+1,6,2);g.R('#2e3850',x-2,y-10,4,10);g.R('#3a4358',x-6,y-13,12,3);g.R('#56627e',x-6,y-13,12,1);g.R('#171d2a',x-5,y-11,10,1);}
 }
@@ -813,8 +821,11 @@ const BScene={
   },
   //# 캐릭터 발광 + 저주 구슬 + 불똥 (가산 상태에서 호출)
   _actorsGlow(ctx,S,t){
-    const g=mk(ctx);
     this._draws(ctx,S,t,true).forEach(o=>o.d());
+    this._orbFx(ctx,S,t);
+  },
+  _orbFx(ctx,S,t){
+    const g=mk(ctx);
     for(const o of S.orbs){const k=(t-o.t0)/o.dur,x=o.x0+(HERO.x-o.x0)*k,y=o.y0+(HERO.y-20-o.y0)*k-Math.sin(k*Math.PI)*10;
       for(let i=1;i<5;i++){const kk=Math.max(0,k-i*.05);ctx.globalAlpha=.6-i*.12;g.P('#e6af08',o.x0+(HERO.x-o.x0)*kk,o.y0+(HERO.y-20-o.y0)*kk-Math.sin(kk*Math.PI)*10);}
       ctx.globalAlpha=1;g.R('#e6af08',x-1,y-1,3,3);g.P('#fff3c4',x,y);}
@@ -860,29 +871,54 @@ const BScene={
 //# ============ 3′. 배틀 광각판 (1228×704 = 현행 카메라 size 7 화면 1194.67×672 + 흔들림 여백) ============
 //# 전투 연출은 3번 시뮬을 그대로 쓰고, 영웅을 BattleZone 중심 도트 (614,366) 로 옮긴다(오프셋 WOX·WOY). 캐릭터 도트 크기는 동일.
 const WOX=614-HERO.x,WOY=366-HERO.y;
+//# 개정 2 — 스포너 반지름 6.0u, 각도 현행(Wisp 0°…Phantom 300°). 앵커 = 기획서 §3.5.2 도트(반올림). i = 스포너 인덱스(위상 φ = i·60°)
+const WIDE_ALTARS=[['Wisp',902,366.38],['Reaper',758,175.32],['Hex',470,175.32],['Wraith',326,366.38],['Plague',470,557.44],['Phantom',758,557.44]]
+  .map(([sp,x,y],i)=>({sp,i,x:Math.round(x),y:Math.round(y),ph:i*1.0472}));
+const WIDE_ALTAR={};WIDE_ALTARS.forEach(a=>{WIDE_ALTAR[a.sp]=a;});
+//# 제단 결정 흔들림(도트, 화면 아래 +) — §3.2 / §7.4 CrystalBobDots
+const crystalBob=(t,ph)=>Math.floor(Math.sin(2.4*t+ph)*1.5+.5);
 const BWide=Object.assign(Object.create(BScene),{
   w:1228,h:704,scale:1,
-  //# 도깨비불 = 0° 스포너(화면 오른쪽 밖 dx 1574)에서 걸어 들어옴. 좌표는 오프셋 전 시안 좌표계
-  wispSpawn:{x:1244-WOX,y:366-WOY},wispSpeed:90,
+  //# 도깨비불 = Wisp 제단(0°)에서 나와 영웅 오른쪽으로 걸어감(이동 1.0u/s = 48도트/s). 좌표는 오프셋 전 시안 좌표계
+  wispSpawn:{x:WIDE_ALTAR.Wisp.x-WOX,y:WIDE_ALTAR.Wisp.y-WOY},wispSpeed:48,
   build(b,rng){buildBattleWide(b,rng);},
   init(){
     const S=BScene.init.call(this);
-    S.wisps.forEach(w=>{w.x=this.wispSpawn.x;w.y=this.wispSpawn.y;});
+    S.wisps.forEach((w,i)=>{w.x=this.wispSpawn.x;w.y=this.wispSpawn.y;w.tx=344+(i%2)*10;w.ty=206+i*9;});
+    //# 근접 공격자는 각자 제단이 있는 쪽에서 영웅에게 붙는다(Reaper 위-오른쪽 · Hex 위-왼쪽 원거리 · Wraith 왼쪽 · Plague 아래-왼쪽)
+    const POS={Reaper:[356,184,true],Hex:[244,150,false],Wraith:[276,200,false],Plague:[286,228,false]};
+    S.attackers.forEach(a=>{const p=POS[a.sp];if(p){a.x=p[0];a.y=p[1];a.flip=p[2];}});
     S.ember=Array.from({length:188},()=>({x:Math.random()*1228,y:Math.random()*704,v:3+Math.random()*6,p:Math.random()*6}));
     return S;
   },
-  lit(ctx,S,t){ctx.save();ctx.translate(WOX,WOY);BScene.lit.call(this,ctx,S,t);ctx.restore();},
+  //# 제단(별도 스프라이트 레이어, 배경에 굽지 않음)과 캐릭터를 앵커 y 로 함께 깊이 정렬
+  _draws(ctx,S,t,e){
+    const L=BScene._draws.call(this,ctx,S,t,e).map(o=>({y:o.y+WOY,d:()=>{ctx.save();ctx.translate(WOX,WOY);o.d();ctx.restore();}}));
+    for(const A of WIDE_ALTARS)L.push({y:A.y,d:()=>this._altar(ctx,A,t,e)});
+    return L.sort((p,q)=>p.y-q.y);
+  },
+  //# e=false: RingDim(order −1) + Base — 조명 받음 · e=true: 발광 링(알파 맥동) + 결정 + 심지 + 반짝 — 가산
+  _altar(ctx,A,t,e){
+    const g=mk(ctx),c=GLOW[A.sp];
+    if(e===false){ALTAR_PARTS.ringDim(g,A.x,A.y,c);ALTAR_PARTS.base(g,A.x,A.y);return;}
+    const a0=ctx.globalAlpha;ctx.globalAlpha=.45+.25*Math.sin(2*t+A.ph);ALTAR_PARTS.ring(g,A.x,A.y,c);ctx.globalAlpha=a0;
+    const cy=A.y-27+crystalBob(t,A.ph);
+    ALTAR_PARTS.crystal(g,A.x,cy,c);ALTAR_PARTS.core(g,A.x,cy);
+    if(Math.floor(t*3)%4===0)g.P(c,A.x+3,cy-3);
+  },
+  lit(ctx,S,t){this._draws(ctx,S,t,false).forEach(o=>o.d());},
   lights(S,t){
     const L=[{x:HERO.x+WOX,y:HERO.y-12+WOY,r:110,sq:.55,c:[.7,.82,1],i:.7}];
+    for(const A of WIDE_ALTARS)L.push({x:A.x,y:A.y-8,r:58,sq:.55,c:hex(GLOW[A.sp]).map(v=>v/255),i:1+Math.sin(2*t+A.ph)*.12});
     BATTLE_WIDE.braz.forEach((p,i)=>L.push({x:p.x,y:p.y-14,r:70,sq:.65,c:[.4,1,.7],i:.8+Math.sin(t*10+i*2)*.07}));
-    for(const o of S.orbs){const k=(t-o.t0)/o.dur;L.push({x:o.x0+(HERO.x-o.x0)*k+WOX,y:o.y0+(HERO.y-20-o.y0)*k+WOY,r:26,c:[1,.75,.2],i:.8});}
     return L;
   },
   emissive(ctx,S,t){
     const g=mk(ctx);ctx.globalCompositeOperation='lighter';
     //# 화로 불꽃 — 게임과 같이 위상 0 + 인스턴스별 시작 오프셋 0/0.5/1.0/1.5s(§3.1)
     BATTLE_WIDE.braz.forEach((p,i)=>flame(ctx,p.x,p.y-13,t+i*.5,8,SOULF,3,0));
-    ctx.save();ctx.translate(WOX,WOY);this._actorsGlow(ctx,S,t);ctx.restore();
+    this._draws(ctx,S,t,true).forEach(o=>o.d());
+    ctx.save();ctx.translate(WOX,WOY);this._orbFx(ctx,S,t);ctx.restore();
     for(const e of S.ember){ctx.globalAlpha=.25+.25*Math.sin(t*3+e.p);g.P('#9ec3ff',e.x,e.y);}
     ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   },
@@ -901,6 +937,12 @@ const EXPORTS=[
   //# 배틀
   {name:'Battle_Backdrop.png',folder:'Backdrop2D',w:1228,h:704,pivot:[.5,.5],raw:c=>withWH(1228,704,()=>buildBattleWide(c,mulberry32(41)))},
   flameSheet('Flame_Soul8_Sheet.png',8,SOULF,3),
+  //# 제단 5장(개정 2 §2.4) — 흰색 틴트용(RingDim 은 회색 0.35/0.25 계조), 런타임에 종족 발광색을 곱한다
+  {name:'Altar2D_Base.png',folder:'Backdrop2D',w:22,h:25,pivot:[.5,.24],org:[0,0],draw:c=>ALTAR_PARTS.base(mk(c),11,19)},
+  {name:'Altar2D_RingDim.png',folder:'Backdrop2D',w:45,h:17,pivot:[.4889,.5882],org:[0,0],draw:c=>ALTAR_PARTS.ringDim(mk(c),22,7,'#ffffff')},
+  {name:'Altar2D_Ring.png',folder:'Backdrop2D',w:45,h:17,pivot:[.4889,.5882],org:[0,0],draw:c=>ALTAR_PARTS.ring(mk(c),22,7,'#ffffff')},
+  {name:'Altar2D_Crystal.png',folder:'Backdrop2D',w:9,h:9,pivot:[.4444,1],org:[0,0],draw:c=>ALTAR_PARTS.crystal(mk(c),4,0,'#ffffff')},
+  {name:'Altar2D_CrystalCore.png',folder:'Backdrop2D',w:2,h:4,pivot:[.5,1],org:[0,0],draw:c=>ALTAR_PARTS.core(mk(c),1,-2)},
   //# 마을
   {name:'Village_Backdrop.png',folder:'Backdrop2D',w:480,h:270,pivot:[.5,.5],raw:c=>withWH(480,270,()=>VScene.build(c,mulberry32(VScene.seed)))},
   {name:'Village_CauldronGlow.png',folder:'Backdrop2D',w:19,h:5,pivot:[0,1],org:[118,155],draw:c=>{const g=mk(c);g.ell('#1f9e74',127,157,9,2);g.R('#5ef0b4',121,157,12,1);}},
