@@ -11,6 +11,8 @@ namespace Lair.UI
     public class BattleHudArg : UIArg
     {
         public BattleViewModel ViewModel;
+        //# 시너지·빌드 패널 접힘 상태 VM.
+        public HudLayoutViewModel HudLayout;
         //# 스포너 상태 UI — 진행 바 폴링용 ISpawnerProgress 6개.
         public IReadOnlyList<Spawner> Spawners;
         //# 스포너 상태 UI — 툴팁이 base 스탯을 읽기 위한 단일 진실.

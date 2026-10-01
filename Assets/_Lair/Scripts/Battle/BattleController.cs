@@ -71,6 +71,8 @@ namespace Lair.Battle
         //# B1 신규
         private PauseService _pause;
         private PassiveTriggerService _passiveTriggers;
+        //# 오른쪽 열 패널 접힘 상태 VM — HUD 에 BattleHudArg 로 전달(scene-2d-conversion §4.10).
+        private HudLayoutViewModel _hudLayout;
         private TriggerQueue _queue;
         private CardDeck _passiveDeck;
         private IBattleContext _ctx;
@@ -134,6 +136,11 @@ namespace Lair.Battle
                 _model.TotalSeconds = _balance.RunDuration;
             }
             _vm = new BattleViewModel(_model);
+            _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
+            _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
+            MetaProfile heroProfile = MetaSession.GetOrLoad();
+            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(
+                Lair.Village.VillageViewModel.HeroDisplayName(heroProfile.SelectedHero), heroProfile.SelectedStage));
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
@@ -150,7 +157,7 @@ namespace Lair.Battle
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
-                new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
+                new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
             if (hudUI == null)
             {
                 Debug.LogError("[BattleController] BattleHud UI 표시 실패(프리팹 로드/캔버스 확보 불가) — HUD 없이 부팅 계속");
@@ -168,6 +175,7 @@ namespace Lair.Battle
                 _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance?.PassiveThresholds);
                 _passiveTriggers.OnTriggered += idx =>
                 {
+                    _vm?.MarkPassiveTriggered(idx);
                     _queue.Enqueue(TriggerQueue.Source.Passive, idx);
                     TryProcessNext();
                 };

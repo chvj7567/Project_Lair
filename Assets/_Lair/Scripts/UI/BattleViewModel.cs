@@ -6,6 +6,14 @@ using Lair.Data;
 
 namespace Lair.UI
 {
+    //# 다음 액티브 카드까지의 카운트다운 — scene-2d-conversion §4.4. HasNext=false 면 표시 "—"·진행 0.
+    public struct ActiveCountdown
+    {
+        public float RemainingSeconds;
+        public float Progress;
+        public bool HasNext;
+    }
+
     //# Model 가공 + 이벤트 노출. View 를 모름.
     //# BattleResult 는 Lair.Data 의 공용 enum (Rule 09).
     public class BattleViewModel
@@ -61,6 +69,10 @@ namespace Lair.UI
         private Action<EMonster> _typeModifierHandler;
 
         public event Action<float, float> OnTimerChanged;
+        //# UpdateTimer 안에서 OnTimerChanged 직후 발행 — 다음 액티브 카드까지 남은 시간.
+        public event Action<ActiveCountdown> OnActiveCountdownChanged;
+        //# 패시브 트리거 i(0=90%) 발화 — 보스 바 눈금 획득 표시. 늦은 구독자는 IsPassiveTickAcquired 로 동기화.
+        public event Action<int> OnPassiveTickAcquired;
         public event Action<float> OnHeroHpRatioChanged;
         //# 영웅 HP 정수값 (current, max) — HUD 의 "현재/최대" 텍스트 표기용. ratio 와 같은 지점에서 발행.
         public event Action<int, int> OnHeroHpValuesChanged;
@@ -94,6 +106,95 @@ namespace Lair.UI
         {
             _model.ElapsedSeconds = elapsed;
             OnTimerChanged?.Invoke(elapsed, _model.TotalSeconds);
+            OnActiveCountdownChanged?.Invoke(ComputeActiveCountdown(_activeThresholds, elapsed));
+        }
+
+        //# === 트리거 페이싱 HUD (scene-2d-conversion §4.9) ===
+        private float[] _activeThresholds = System.Array.Empty<float>();
+        private float[] _passiveThresholds = System.Array.Empty<float>();
+        private bool[] _passiveAcquired = System.Array.Empty<bool>();
+
+        public IReadOnlyList<float> ActiveThresholds => _activeThresholds;
+        public IReadOnlyList<float> PassiveThresholds => _passiveThresholds;
+        public int ActiveTriggerTotal => _activeThresholds.Length;
+        public int PassiveTriggerTotal => _passiveThresholds.Length;
+
+        //# BattleController 가 두 트리거 서비스를 만들 때 같은 배열을 1회 주입.
+        public void BindTriggerThresholds(float[] active, float[] passive)
+        {
+            _activeThresholds = active ?? System.Array.Empty<float>();
+            _passiveThresholds = passive ?? System.Array.Empty<float>();
+            _passiveAcquired = new bool[_passiveThresholds.Length];
+        }
+
+        //# 획득 판정은 HP 비율이 아니라 트리거 발화 기록 — 리젠으로 HP 가 올라가도 유지.
+        public void MarkPassiveTriggered(int index)
+        {
+            if (index < 0 || index >= _passiveAcquired.Length)
+                return;
+            _passiveAcquired[index] = true;
+            OnPassiveTickAcquired?.Invoke(index);
+        }
+
+        public bool IsPassiveTickAcquired(int index)
+        {
+            return index >= 0 && index < _passiveAcquired.Length && _passiveAcquired[index];
+        }
+
+        //# next = elapsed 보다 큰 첫 임계, prev = elapsed 이하의 마지막 임계(없으면 0).
+        public static ActiveCountdown ComputeActiveCountdown(IReadOnlyList<float> thresholds, float elapsed)
+        {
+            ActiveCountdown c = default;
+            if (thresholds == null)
+                return c;
+            float prev = 0f;
+            for (int i = 0; i < thresholds.Count; i++)
+            {
+                float t = thresholds[i];
+                if (t > elapsed)
+                {
+                    c.HasNext = true;
+                    c.RemainingSeconds = t - elapsed;
+                    float span = t - prev;
+                    c.Progress = span > 0f ? Math.Clamp((elapsed - prev) / span, 0f, 1f) : 0f;
+                    return c;
+                }
+                prev = t;
+            }
+            return c;
+        }
+
+        //# m:ss(올림, 타이머와 같은 규칙) / 다음 없음이면 "—"
+        public static string FormatCountdown(ActiveCountdown c)
+        {
+            if (c.HasNext == false)
+                return "—";
+            int sec = (int)Math.Ceiling(c.RemainingSeconds);
+            return $"{sec / 60}:{sec % 60:00}";
+        }
+
+        private string _heroTitle = string.Empty;
+        public string HeroTitle => _heroTitle;
+        public void SetHeroTitle(string title) => _heroTitle = title ?? string.Empty;
+
+        //# "기사 · 3단계"
+        public static string ComposeHeroTitle(string heroName, int stage) => $"{heroName} · {stage}단계";
+
+        //# 해당 종류 BuildEntry.Count 합 — 빌드 패널 라벨·접힌 탭.
+        public int PassivePickCount => SumPicks(true);
+        public int ActivePickCount => SumPicks(false);
+
+        private int SumPicks(bool passive)
+        {
+            int sum = 0;
+            foreach (BuildEntry e in _build)
+            {
+                if (e != null && e.IsPassive == passive)
+                {
+                    sum += e.Count;
+                }
+            }
+            return sum;
         }
 
         public void UpdateHeroHp(int current, int max)
