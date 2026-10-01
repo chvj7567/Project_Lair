@@ -14,6 +14,9 @@ namespace Lair.EditorTools
     {
         //# 관리 스포너 자식 식별 prefix — Rebuild 시 이 prefix 자식만 전면 제거.
         private const string SpawnerNamePrefix = "Spawner_";
+        //# 스포너 제단 프리팹(scene-2d-conversion §3.2) — 기존 SpawnerBody 실린더 대체
+        public const string AltarPrefabPath = "Assets/_Lair/Art/Characters/SpawnerAltar2D.prefab";
+        private const string AltarChildName = "SpawnerAltar2D";
 
         public override void OnInspectorGUI()
         {
@@ -33,9 +36,6 @@ namespace Lair.EditorTools
             //# 1) 이전 관리 스포너 자식 전부 제거 (전면 교체, idempotent).
             RemoveManagedSpawners(arranger.transform);
 
-            //# 6종 머티리얼 — 공유 팔레트에서 준비 (색상표 단일 진실).
-            Material[] mats = SpawnerColorPalette.EnsureSpawnerMaterials();
-
             IReadOnlyList<EMonster> monsters = arranger.Monsters;
             int count = monsters.Count;
             Vector3[] positions = CircularSpawnerArranger.ComputePositions(
@@ -46,7 +46,7 @@ namespace Lair.EditorTools
             for (int i = 0; i < count; ++i)
             {
                 EMonster type = monsters[i];
-                Spawner spawner = CreateSpawner(arranger.transform, type, i, positions[i], mats);
+                Spawner spawner = CreateSpawner(arranger.transform, type, i, positions[i]);
                 created.Add(spawner);
             }
 
@@ -75,8 +75,8 @@ namespace Lair.EditorTools
             }
         }
 
-        //# Spawner GameObject 생성 + _outputType 설정 + 위치 배치 + SpawnerBody 색 디스크 부착.
-        private static Spawner CreateSpawner(Transform parent, EMonster type, int index, Vector3 worldPos, Material[] mats)
+        //# Spawner GameObject 생성 + _outputType 설정 + 위치 배치 + 제단 프리팹 부착.
+        private static Spawner CreateSpawner(Transform parent, EMonster type, int index, Vector3 worldPos)
         {
             GameObject go = new GameObject($"{SpawnerNamePrefix}{type}_{index}");
             go.transform.SetParent(parent, worldPositionStays: true);
@@ -95,10 +95,37 @@ namespace Lair.EditorTools
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            //# SpawnerBody 색 디스크 부착 — 기존 빌더 패턴 재사용 (Cylinder·머티리얼 주입).
-            LairSpawnerVisualBuilder.EnsureSpawnerBody(spawner, mats);
+            EnsureAltar(spawner, index);
 
             return spawner;
+        }
+
+        //# 스포너 자식 제단 — 기존 SpawnerBody 를 제거하고 SpawnerAltar2D 프리팹 인스턴스를 로컬 원점에 둔다. 위상 인덱스 = 스포너 순번.
+        public static void EnsureAltar(Spawner spawner, int index)
+        {
+            Transform body = spawner.transform.Find("SpawnerBody");
+            if (body != null)
+                Object.DestroyImmediate(body.gameObject);
+
+            Transform altar = spawner.transform.Find(AltarChildName);
+            if (altar == null)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AltarPrefabPath);
+                if (prefab == null)
+                {
+                    Debug.LogWarning("[CircularSpawnerArrangerEditor] 제단 프리팹 없음: " + AltarPrefabPath);
+                    return;
+                }
+                GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, spawner.transform);
+                go.name = AltarChildName;
+                altar = go.transform;
+            }
+            altar.localPosition = Vector3.zero;
+            altar.localRotation = Quaternion.identity;
+
+            SerializedObject so = new SerializedObject(altar.GetComponent<SpawnerAltar2D>());
+            so.FindProperty("_phaseIndex").intValue = index;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         //# 씬의 BattleController._spawners 를 새 배열로 교체 (SerializedObject).

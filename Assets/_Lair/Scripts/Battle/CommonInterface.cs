@@ -41,6 +41,13 @@ namespace Lair.Battle
         event System.Action<int> OnOutputCountChanged;
     }
 
+    //# Rule 02 §10 — 스포너 제단(SpawnerAltar2D) 루트 계약. 제단 색 = 종족 발광색(scene-2d-conversion §3.2).
+    public interface ISpawnerAltar
+    {
+        //# 현재 제단 발광색 — 링·결정·반짝·조명에 적용 중인 색.
+        Color GlowColor { get; }
+    }
+
     //# 카메라 쉐이크 추상. 컷인이 BattleCamera 구체 대신 참조 → EditMode 모킹.
     public interface ICameraShake
     {
