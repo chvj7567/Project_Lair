@@ -86,7 +86,7 @@ namespace Lair.EditorTools
             Spawner spawner = go.AddComponent<Spawner>();
 
             //# _outputType 설정 (SerializedObject) — enum 프로퍼티는 enumValueIndex 로 써야
-            //# EnsureSpawnerBody 의 GetOutputTypeIndex(enumValueIndex 읽기)와 정합한다.
+            //# 제단 위상 인덱스와 정합한다.
             SerializedObject so = new SerializedObject(spawner);
             SerializedProperty prop = so.FindProperty("_outputType");
             if (prop != null)

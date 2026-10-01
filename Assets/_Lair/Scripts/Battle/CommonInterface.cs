@@ -25,7 +25,7 @@ namespace Lair.Battle
     }
 
     //# Rule 10 — Spawner 출력 종(EMonster) 변경 이벤트 + 동시 출력 수 노출 계약.
-    //# SpawnerBody 가 GetComponentInParent<ISpawnerOutputProvider>() 로 구독 (Rule 06).
+    //# SpawnerAltar2D 가 GetComponentInParent<ISpawnerOutputProvider>() 로 구독 (Rule 06).
     public interface ISpawnerOutputProvider
     {
         //# 현재 출력 중인 몬스터 종.

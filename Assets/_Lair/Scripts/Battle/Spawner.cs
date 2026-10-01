@@ -69,7 +69,7 @@ namespace Lair.Battle
             }
         }
 
-        //# ISpawnerOutputProvider 구현 — SpawnerBody 가 구독.
+        //# ISpawnerOutputProvider 구현 — SpawnerAltar2D 가 구독.
         public event System.Action<EMonster> OnOutputTypeChanged;
 
         //# ISpawnerOutputProvider 구현 — VM 이 IncrementOutput 발생 시 구독해 셀 갱신.
@@ -85,7 +85,7 @@ namespace Lair.Battle
             _timer = 0f;
             _firstSpawnDone = false;
             _firstSpawnDelay = 0f;
-            //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerBody 가 초기 색상 수신.
+            //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerAltar2D 가 초기 색상 수신.
             OnOutputTypeChanged?.Invoke(_currentType);
         }
 
@@ -172,7 +172,7 @@ namespace Lair.Battle
         public float SpawnPeriod => _spawnPeriod;
 
         //# 융합 카드 — 출력 종 영구 변경. 동시 출력 수는 유지 (§3.5 케이스 3).
-        //# 변경 후 OnOutputTypeChanged 발행 — SpawnerBody 가 틴트 즉시 갱신.
+        //# 변경 후 OnOutputTypeChanged 발행 — SpawnerAltar2D 가 틴트 즉시 갱신.
         public void ReplaceOutput(EMonster to)
         {
             _currentType = to;
