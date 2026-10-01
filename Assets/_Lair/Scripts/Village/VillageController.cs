@@ -87,6 +87,13 @@ namespace Lair.Village
             //# 캐러셀 — 쇼케이스 applier 캐싱 후 현재 SelectedStage 외형 즉시 반영(기획서 §4.1). 전투 컴포넌트 off 여도 재스킨은 성립(§6).
             _showcaseApplier = poolable.gameObject.GetComponent<HeroStageVariantApplier>();
             ApplyShowcaseVariant();
+
+            //# 투영진 위 푸른 홀로그램(scene-2d-conversion §5.5) — 조명 안 받는 반투명 머티리얼, 영웅 조명·그림자 숨김
+            HeroHologramMode hologram = poolable.gameObject.GetComponent<HeroHologramMode>();
+            if (hologram != null)
+            {
+                hologram.SetHologram(true);
+            }
         }
 
         //# 현재 VM.SelectedStage 의 variant 를 쇼케이스 영웅에 적용. config/applier 미비 시 무동작(가드).
