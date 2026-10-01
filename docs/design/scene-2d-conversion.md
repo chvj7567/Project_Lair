@@ -929,7 +929,7 @@ HUD 좌표(§4.2, 1280×720 캔버스)를 배경 도트로 환산: 도트 = 여�
 | S2 에셋 임포트 | gameplay-programmer | 33장 커밋 + §2.3 임포트(배틀 배경 Max Size 2048) + 시트 슬라이스(JSON 기준) + 정렬 레이어 4종 | `[asset]` | 임포트 설정 검사 통과 |
 | S3 셰이더·머티리얼 | gameplay-programmer | §1.6 전부, 지면 FX 3종 머티리얼 교체 | `[asset]` | G3·G4(§11) |
 | S4 공통 컴포넌트 | gameplay-programmer → test-engineer | `DotStageMapping`·`DotWave`/`DotAlphaPulse`/`DotLightFlicker`·`DotOrbitRing`·`DotLightingSettings`·`SpriteSheetFx._startTimeOffset` + EditMode 테스트 | `[feat]`, `[test]` | 테스트 통과 |
-| S5 배틀 무대 | gameplay-programmer | 렌더러 인덱스 1(Floor·MapBackground 삭제와 같은 커밋 — §9.1)·배경색·DotStage·광각 배경·화로·조명(전체·화로·영웅)·불티·삭제 3·캔버스 레이어·흔들림 양자화·휠 줌 고정(15)·`SortingGroup`. 카메라 위치·회전·size·스포너·BattleZone 은 건드리지 않음 | `[asset]`+`[feat]` | G1(b)·G4 |
+| S5 배틀 무대 ✅ | gameplay-programmer | 렌더러 인덱스 1(Floor·MapBackground 삭제와 같은 커밋 — §9.1)·배경색·DotStage·광각 배경·화로·조명(전체·화로·영웅)·불티·삭제 3·캔버스 레이어·흔들림 양자화·휠 줌 고정(15)·`SortingGroup`. 카메라 위치·회전·size·스포너·BattleZone 은 건드리지 않음 | `[asset]`+`[feat]` | G1(b)·G4 |
 | S6 제단 | gameplay-programmer | `SpawnerAltar2D` + 프리팹(빌더 생성 후 삭제, Rule 04 §3) + 스포너 6 의 `SpawnerBody` 교체 + Arranger 에디터 Rebuild 변경. 반지름은 아직 20(제단은 화면 밖) — 게임플레이 변경 없음 | `[feat]` | 융합 카드로 종 변경 시 색 즉시 변경(씬 뷰 확인) |
 | **S7** 스포너 배치 + 첫 스폰 지연 | gameplay-programmer → test-engineer → **qa-simulator** | `CircularSpawnerArranger` 타원 지원(`_radiusZ`·`PositionOnEllipse`) + `SpawnerRing` 8.32×6.3149 Rebuild, `SpawnTravelCompensation`·`Spawner.SetFirstSpawnDelay`·`BattleController` 스포너별 거리 주입 + 테스트. qa 기준선은 **S6 커밋**(게임플레이 미변경 상태)에서 측정 | `[feat]`, `[test]`, `[docs]`(QA 리포트) | G2·G5·**G6 통과해야 병합**(실패 시 §3.5.4 대응) |
 | S8 HUD 로직 | gameplay-programmer → test-engineer | §4.9 VM·순수 함수·이벤트 배선 + `HudLayoutViewModel`·`IHudLayoutPrefs`(§4.10) | `[feat]`, `[test]` | 테스트 통과 |
@@ -961,6 +961,28 @@ HUD 좌표(§4.2, 1280×720 캔버스)를 배경 도트로 환산: 도트 = 여�
 - **차단 이슈 없음.** 분기 조치(CFXR → Particles/Unlit, `Mat_FX2D` 타깃 변경) 적용 안 함.
 - **카메라 원복**: 위 `Floor` 문제 때문에 배틀 카메라 렌더러 인덱스는 **씬에 저장하지 않았다**(현행 렌더링 유지). S5 에서 `Floor`·`MapBackground` 삭제와 함께 인덱스 1 로 전환한다.
 - **실측 정정(S3 영향)**: `Monster2DSprite` 는 Shader Graph 가 아니라 손으로 쓴 HLSL `Assets/_Lair/Art/Shaders/Monster2DSprite.shader`(셰이더명 `Lair/Monster2DSprite`, LightMode 태그 없는 단일 패스 = 2D 렌더러에서 `SRPDefaultUnlit` 로 그려짐)다. `Mat_FX2D` 도 같은 셰이더를 쓴다. 따라서 §1.6 의 "SG 타깃 URP Unlit → Sprite Custom Lit 변경" 은 S3 에서 **HLSL 셰이더에 `Universal2D` 라이트 패스를 추가하거나 SG 로 재작성**하는 작업으로 읽어야 한다(속성 계약은 동일하게 유지). `Mat_HitImpact` 는 CFXR 셰이더가 아니라 URP Lit 이다.
+
+### 9.2 구현 현황과 기획서에서 달라진 점 (S1~S12, 2026-10-01, gameplay-programmer)
+
+**진행**: S0~S12 전부 구현 완료. **G6(qa-simulator 밸런스 게이트)는 사용자 지시("QA 는 필요 없다")로 실행하지 않았다** — 스포너 배치 변경(반지름 20 → 타원 8.32×6.3149)과 스포너별 첫 스폰 지연의 밸런스 영향은 검증되지 않았다. 남은 사용자 육안 확인: G1(b)·G3·G4·G7·G8·G9·G10.
+
+| 항목 | 기획서 | 구현 | 사유 |
+|---|---|---|---|
+| 셰이더 형식 | Shader Graph(`.shadergraph`) | HLSL `.shader` + 공용 `DotLightQuantize.hlsl` (`Dot2DLit`·`DotEmissive`·`Monster2DSprite`·`Monster2DSpriteUnlit`) | 기존 `Monster2DSprite` 가 원래 HLSL 이었음(§9.1). 각 셰이더에 `UniversalForward` 무조명 패스를 두어 기본 렌더러 카메라에서도 전과 같이 보임 |
+| 스프라이트 색 | — | 셰이더가 `unity_SpriteColor` 도 곱함 | 2D 렌더러에서 SpriteRenderer 색은 정점색이 아니라 이 값으로 들어옴(제단이 하얗게 보이던 원인) |
+| `Mat_FX2D` | 변경 없음 | `Monster2DSpriteUnlit` 로 교체 | 몬스터 셰이더를 조명 받게 바꾸면 서 있는 FX 도 어두워짐 |
+| 전역 조명 세기 | 1 | 0.5 | URP 는 전역 조명만 HDR 에뮬레이션 배율(2)로 나누지 않아 1 이면 앰비언트가 2배로 밝아짐 |
+| 시너지 축 색 | `BuildSynergyPanel.AxisColor` 현행값 | 시안 팔레트(TANK #5AA9FF · DPS #FF6B5A · DEBUFF #C08BFF · SWARM #7BE36A) 로 값 교체 | 승인 시안과 동일하게. 시너지 모달도 같은 사전을 읽어 함께 바뀜. 셀 순서도 TANK·SWARM·DPS·DEBUFF |
+| 스포너 칸 | Cool/Warm 2색·소수 초 | 게이지 = 종족 발광색, 남은 초 = 정수 올림, 색띠 = 빌드 축 색, 테두리(`Border`) 오브젝트 제거 | §4.5 대로 — 이전 동작을 고정하던 테스트 `WarmThreshold_0점70_고정` 삭제·칸 색 테스트 수정 |
+| 제단 반짝 | `SpriteSheetFx` 16프레임 | 같음 (켜짐 4 + null 12) | — |
+| 배틀 불티 | 개별 입자 알파 사인 | 알파 0~0.5 랜덤 + 노이즈 흔들림 근사 | 파티클 시스템 한계 |
+| 로딩 영혼 입자 색 | #5EF0B4 2/3 · #E9FFF6 1/3 | 두 색 사이 랜덤 보간 | 파티클 시스템 한계 |
+| 로딩 제목 외곽선 | #07090E 외곽선 | 생략(어두운 배경이라 시각 차이 작음) | TMP 외곽선은 머티리얼 인스턴스가 씬에 박힘 |
+| 로딩 `Panel` 배경 | 이미지 컴포넌트 비활성 | 스프라이트 제거 + 알파 0 | 전체 화면 클릭(시작) 입력을 유지하려면 Image 가 필요 |
+| 마을 배회자 위치 | 지면(XZ) 역변환 | 같음 + 매 프레임 도트 반올림 | 도트 번짐 방지 |
+| 와이드 화면 | (미정의) | 마을·로딩 배경 480 → **640**도트, 배틀 배경 1228 → **1600**도트로 좌우를 같은 무늬로 확장(중앙 구도 불변). 배틀·로딩은 16:9 UI 박스를 유지하되 양옆 레터박스 띠에 같은 월드를 이어 그림(`LetterboxFramer._renderWorldInBars`). 마을 카메라는 `DotStageCoverFit` 로 640 을 넘는 초와이드에서만 확대 | 사용자 요청: 마을 좌우 검은 띠 제거. 배틀·로딩은 HUD 가 1280×720 단일 좌표계라 16:9 박스 유지가 필요 |
+| 마을 스테이지 카드 | 508×484 | **340×324**(−33%), 글자·초상·점·◀▶ 비례 축소, 영웅·방어하기 버튼을 카드 폭에 맞춰 바로 아래로 | 사용자 요청: 배경 소품 가림 완화 |
+| S12 정리 | 3D 소품 삭제 | `Map_Arena_1280x720`·`Village_Floor/Wall`·`Mat_Floor`·`Mat_VillageGround/Wall`·`Mat_Spawner_*` 6종·`SpawnerBody`(+테스트)·`SpawnerColorPalette`·`LairSpawnerVisualBuilder` 삭제 | 씬·프리팹 참조 0 확인 |
 
 ---
 
