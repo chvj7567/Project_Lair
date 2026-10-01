@@ -39,6 +39,12 @@ namespace Lair.Character
             return RawFrame(elapsed, fps) >= frames;
         }
 
+        //# 시작 오프셋(초)에서의 첫 프레임 — 루프면 감고, 1회면 마지막 프레임에서 고정(scene-2d-conversion §7.5).
+        public static int StartFrame(float startOffset, float fps, int frames, bool loop)
+        {
+            return loop ? LoopFrame(startOffset, fps, frames) : OnceFrame(startOffset, fps, frames);
+        }
+
         //# 위상(0~1 순환) → 프레임. 음수·1 초과·NaN 입력도 [0, frames) 로 접는다.
         public static int PhaseFrame(float normalized, int frames)
         {
@@ -63,6 +69,7 @@ namespace Lair.Character
         [SerializeField] private bool _billboard;
         [SerializeField] private bool _autoPlay = true;
         [SerializeField] private bool _returnToPoolOnFinish;
+        [SerializeField] private float _startTimeOffset;   //# 인스턴스별 시작 위상(초) — 풀 FX 는 0 이라 동작 불변
         [SerializeField] private CHPoolable _poolable;   //# 인스펙터 배선 — 런타임 GetComponent 금지(Rule 02 §5)
 
         private float _elapsed;
@@ -78,10 +85,10 @@ namespace Lair.Character
         //# 풀 재사용 리셋(Rule 03 §4) — 경과·프레임·종료 상태 초기화, 카메라 재캐시.
         private void OnEnable()
         {
-            _elapsed = 0f;
+            _elapsed = _startTimeOffset;
             _finished = false;
             _cam = Camera.main;
-            ShowFrame(0);
+            ShowFrame(SpriteSheetFrames.StartFrame(_startTimeOffset, _fps, FrameCount, _loop));
         }
 
         private void Update()
@@ -124,6 +131,7 @@ namespace Lair.Character
             _currentFrame = index;
             if (_renderer == null || FrameCount == 0)
                 return;
+            //# null 프레임 허용 — 빈 프레임(깜빡임 꺼짐)으로 표시
             _renderer.sprite = _frames[Mathf.Clamp(index, 0, FrameCount - 1)];
         }
 
