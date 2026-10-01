@@ -30,6 +30,8 @@ namespace Lair.Battle
         private float _timer;
         //# 첫 발사 완료 여부 — 첫 발사는 첫 Tick(t≈0) 에 즉시, 이후는 매 Period.
         private bool _firstSpawnDone;
+        //# 첫 스폰 지연(초) — 0 이면 첫 Tick 즉시. 전투 시작 시 BattleController 가 1회 주입(scene-2d-conversion §7.8).
+        private float _firstSpawnDelay;
 
         private ISpawnerHost _host;
         //# (no-op) Bind 시 주입되나 스폰 위치 산정엔 미사용 — 스폰 위치는 _spawnPoint → transform.position.
@@ -43,12 +45,13 @@ namespace Lair.Battle
         public int OutputCount => _outputCount;
 
         //# ISpawnerProgress 구현 — SpawnerStatusCell 이 매 프레임 폴링.
-        //# 초기 지연 국면(firstSpawnDone==false): 0f 고정.
+        //# 초기 지연 국면(firstSpawnDone==false): 지연 0 이면 0f, 지연이 있으면 timer ÷ delay.
         public float Progress
         {
             get
             {
-                if (_firstSpawnDone == false) return 0f;
+                if (_firstSpawnDone == false)
+                    return _firstSpawnDelay > 0f ? Mathf.Clamp01(_timer / _firstSpawnDelay) : 0f;
                 if (_spawnPeriod <= 0f) return 1f;
                 return Mathf.Clamp01(_timer / _spawnPeriod);
             }
@@ -59,7 +62,8 @@ namespace Lair.Battle
         {
             get
             {
-                if (_firstSpawnDone == false) return _spawnPeriod;
+                if (_firstSpawnDone == false)
+                    return _firstSpawnDelay > 0f ? Mathf.Max(0f, _firstSpawnDelay - _timer) : _spawnPeriod;
                 if (_spawnPeriod <= 0f) return 0f;
                 return Mathf.Max(0f, _spawnPeriod - _timer);
             }
@@ -80,6 +84,7 @@ namespace Lair.Battle
             //# 타이머 0 시작 — 첫 Tick 에서 _firstSpawnDone==false 이므로 즉시 첫 발사.
             _timer = 0f;
             _firstSpawnDone = false;
+            _firstSpawnDelay = 0f;
             //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerBody 가 초기 색상 수신.
             OnOutputTypeChanged?.Invoke(_currentType);
         }
@@ -101,7 +106,10 @@ namespace Lair.Battle
 
             if (_firstSpawnDone == false)
             {
-                //# 첫 발사 — 전투 시작 직후 첫 Tick 에 즉시 1회 (_initialDelay 무시). 이후 주기 발사로 전환.
+                //# 지연 중이면 대기. 지연 0 이면 첫 Tick 즉시 (_initialDelay 무시).
+                if (_timer < _firstSpawnDelay)
+                    return;
+                //# 첫 발사 후 주기 발사로 전환.
                 _firstSpawnDone = true;
                 //# 첫 발사 위상 기준점 — _timer 0 으로 맞춰 다음 발사가 정확히 _spawnPeriod 후가 되게.
                 _timer = 0f;
@@ -118,6 +126,12 @@ namespace Lair.Battle
             //# 스폰 위치 — 각 스포너 자기 위치 우선: _spawnPoint > transform.position (zone 픽 미사용).
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
             _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
+        }
+
+        //# 첫 스폰 지연 주입(초) — 음수는 0. 지연 중 Progress·RemainingSeconds 는 지연 기준.
+        public void SetFirstSpawnDelay(float seconds)
+        {
+            _firstSpawnDelay = Mathf.Max(0f, seconds);
         }
 
         //# 추가소환 카드 — 동시 출력 +1 (Spawner 슬롯에 영구 귀속, §3.2).

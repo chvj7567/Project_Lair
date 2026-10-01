@@ -144,6 +144,9 @@ namespace Lair.Battle
             //# v0.2 메타 — 상점 영구 업그레이드를 전투 시작 배율로 적용 (BindSpawners 의 base 주기 주입 뒤, 첫 스폰 전).
             ApplyMetaBonuses();
 
+            //# 스포너가 영웅 쪽으로 당겨진 만큼 첫 스폰만 늦춰 몬스터 도착 시각을 보존(scene-2d-conversion §3.5.4) — 메타 배율 반영 뒤 1회.
+            ApplyFirstSpawnDelays();
+
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
@@ -656,6 +659,28 @@ namespace Lair.Battle
             _spawnersActive = true;
             //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
             _vm?.AttachSpawners(_spawners, this);
+        }
+
+        //# 스포너별 첫 스폰 지연 — 그 스포너 위치에서 BattleZone 중심까지 XZ 거리 D 와 출력 종의 실효 사거리·이동속도로 계산.
+        private void ApplyFirstSpawnDelays()
+        {
+            if (_spawners == null || _balance == null || _zone == null)
+                return;
+            Vector3 center = _zone.transform.position;
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp == null)
+                    continue;
+                BalanceConfig.CharacterStat raw = _balance.GetMonster(sp.CurrentType);
+                if (raw == null)
+                    continue;
+                StatMultiplier mul = _typeModifiers.TryGetValue(sp.CurrentType, out StatMultiplier m) ? m : StatMultiplier.Identity;
+                Vector3 d = sp.transform.position - center;
+                float distance = new Vector2(d.x, d.z).magnitude;
+                sp.SetFirstSpawnDelay(SpawnTravelCompensation.FirstSpawnDelay(
+                    SpawnTravelCompensation.LegacyRadius, distance, raw.Range * mul.RangeMul,
+                    raw.MoveSpeed * mul.MoveSpeedMul, SpawnTravelCompensation.DelayScale));
+            }
         }
 
         //# v0.2 메타 — 상점 레벨 → 종 스탯 배율(_typeModifiers) + 스포너 주기 일괄 적용 (기획서 §3.2 / plan Task 3.1).

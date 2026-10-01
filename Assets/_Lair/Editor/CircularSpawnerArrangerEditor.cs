@@ -38,8 +38,8 @@ namespace Lair.EditorTools
 
             IReadOnlyList<EMonster> monsters = arranger.Monsters;
             int count = monsters.Count;
-            Vector3[] positions = CircularSpawnerArranger.ComputePositions(
-                arranger.transform.position, arranger.Radius, count, arranger.StartAngleDeg);
+            Vector3[] positions = CircularSpawnerArranger.ComputeEllipsePositions(
+                arranger.transform.position, arranger.Radius, arranger.RadiusZ, count, arranger.StartAngleDeg);
 
             //# 2) _monsters[i] 마다 Spawner 생성·배치·색상.
             List<Spawner> created = new List<Spawner>(count);
