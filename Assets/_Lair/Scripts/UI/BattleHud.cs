@@ -28,8 +28,10 @@ namespace Lair.UI
         [SerializeField] private CHText _timerText;
         //# 타이머 평상시 색(txt). 30초 이하면 UiDotPalette.TimerWarn 붉은 글씨로 바뀐다.
         [SerializeField] private Color _timerNormalColor = new Color32(0xEE, 0xF1, 0xF6, 0xFF);
-        //# 영웅 HP 바 — Fill/텍스트 내부 위젯은 HpBarView 가 캡슐화. HUD 는 SetHp 만 호출.
-        [SerializeField] private HpBarView _heroHpBar;
+        //# 상단 보스 바 — 내부 위젯은 BossHpBarView 가 캡슐화. HUD 는 의도 API 만 호출(scene-2d-conversion §4.3).
+        [SerializeField] private BossHpBarView _bossBar;
+        //# 보스 바 오른쪽 "액티브 카드" 카운트다운(§4.4)
+        [SerializeField] private ActiveCountdownView _activeCountdown;
         [SerializeField] private BuildPanel _buildPanel;
         //# 스포너 상태 UI — 화면 하단 6셀 패널 (기획서 §2.1).
         [SerializeField] private SpawnerStatusPanel _spawnerStatusPanel;
@@ -60,6 +62,8 @@ namespace Lair.UI
             vm.OnBattleEnded         += HandleEnded;
             vm.OnStatusIconAdded     += HandleStatusIconAdded;
             vm.OnStatusIconRemoved   += HandleStatusIconRemoved;
+            vm.OnActiveCountdownChanged += HandleCountdown;
+            vm.OnPassiveTickAcquired    += HandleTickAcquired;
 
             //# Close 시 자동 해제
             closeDisposable.Add(() => vm.OnTimerChanged        -= HandleTimer);
@@ -67,18 +71,20 @@ namespace Lair.UI
             closeDisposable.Add(() => vm.OnBattleEnded         -= HandleEnded);
             closeDisposable.Add(() => vm.OnStatusIconAdded     -= HandleStatusIconAdded);
             closeDisposable.Add(() => vm.OnStatusIconRemoved   -= HandleStatusIconRemoved);
+            closeDisposable.Add(() => vm.OnActiveCountdownChanged -= HandleCountdown);
+            closeDisposable.Add(() => vm.OnPassiveTickAcquired    -= HandleTickAcquired);
 
             //# 빌드 패널 바인딩 (Close 시 자동 해제)
             if (_buildPanel != null)
             {
-                _buildPanel.Bind(vm);
+                _buildPanel.Bind(vm, ba.HudLayout);
                 closeDisposable.Add(() => _buildPanel.Unbind());
             }
 
             //# 카드 리뉴얼 v0.6 — 시너지 패널 바인딩 (Close 시 자동 해제).
             if (_synergyPanel != null)
             {
-                _synergyPanel.Bind(vm);
+                _synergyPanel.Bind(vm, ba.HudLayout);
                 closeDisposable.Add(() => _synergyPanel.Unbind());
             }
 
@@ -88,6 +94,18 @@ namespace Lair.UI
                 _spawnerStatusPanel.Bind(vm, ba.Spawners);
                 closeDisposable.Add(() => _spawnerStatusPanel.Unbind());
             }
+
+            //# 보스 바 초기 동기화 — 제목·눈금 위치·이미 획득한 눈금
+            if (_bossBar != null)
+            {
+                _bossBar.SetTitle(vm.HeroTitle);
+                _bossBar.SetTicks(vm.PassiveThresholds);
+                for (int i = 0; i < vm.PassiveTriggerTotal; i++)
+                {
+                    _bossBar.SetTickAcquired(i, vm.IsPassiveTickAcquired(i));
+                }
+            }
+            HandleCountdown(BattleViewModel.ComputeActiveCountdown(vm.ActiveThresholds, vm.ElapsedSeconds));
 
             //# 초기 동기화
             HandleTimer(vm.ElapsedSeconds, vm.TotalSeconds);
@@ -112,22 +130,32 @@ namespace Lair.UI
 
         private void HandleHpValues(int current, int max)
         {
-            if (_heroHpBar != null) _heroHpBar.SetHp(current, max);
+            if (_bossBar != null) _bossBar.SetHp(current, max);
+        }
+
+        private void HandleCountdown(ActiveCountdown c)
+        {
+            if (_activeCountdown != null) _activeCountdown.Show(c);
+        }
+
+        private void HandleTickAcquired(int index)
+        {
+            if (_bossBar != null) _bossBar.SetTickAcquired(index, true);
         }
 
         //# 상태 아이콘 — ECardId→Sprite 해석 후 영웅 HP바 아이콘 행에 추가.
         //# dict 매핑 누락 시 icon null → HpBarView 가 슬롯 미표시(graceful).
         private void HandleStatusIconAdded(object key, ECardId iconId)
         {
-            if (_heroHpBar == null) return;
+            if (_bossBar == null) return;
             Sprite icon = null;
             _cardIcons?.TryGetValue(iconId, out icon);
-            _heroHpBar.AddStatusIcon(key, icon);
+            _bossBar.AddStatusIcon(key, icon);
         }
 
         private void HandleStatusIconRemoved(object key)
         {
-            if (_heroHpBar != null) _heroHpBar.RemoveStatusIcon(key);
+            if (_bossBar != null) _bossBar.RemoveStatusIcon(key);
         }
 
         private void HandleEnded(BattleResult result)

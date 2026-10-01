@@ -87,6 +87,7 @@ namespace Lair.UI
             if (_text != null)
             {
                 _text.SetText(data.Label);
+                _text.SetColor(_axisColor);
             }
             _axisIcon.sprite = data.Icon;
             _axisIcon.enabled = data.Icon != null;

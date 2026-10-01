@@ -14,13 +14,14 @@ namespace Lair.UI
     //# Bind(snapshot, progress, onClick) 로 받아, 스냅샷은 이벤트 수신 시 교체하고
     public class SpawnerStatusCell : MonoBehaviour
     {
-        //# Cool 진행 바 색 (#60A5FA), Warm (#F97316), Background (#374151) — 기획서 §3.1.
-        public static readonly Color CoolColor = new Color(0.376f, 0.647f, 0.980f, 1f);
-        public static readonly Color WarmColor = new Color(0.976f, 0.451f, 0.086f, 1f);
-        public static readonly Color BarBackgroundColor = new Color(0.216f, 0.255f, 0.318f, 1f);
+        //# 진행 바 채움색 = 종족 발광색(몬스터 강화 발광·제단과 같은 색, scene-2d-conversion §4.5). Cool/Warm 2색 규칙은 폐기.
+        public static Color GaugeColor(EMonster type) => SpeciesVisual.SpeciesGlowColor(type);
 
-        //# Threshold (기획서 §3.1). 0.70 경계는 Warm (>= threshold).
-        public const float WarmThreshold = 0.7f;
+        //# 남은 초 — 정수 올림 "Ns"(좁은 칸에서 글자 폭이 흔들리지 않게).
+        public static string RemainingText(float seconds) => $"{Mathf.CeilToInt(Mathf.Max(0f, seconds))}s";
+
+        //# 왼쪽 색띠 = 그 종이 속한 빌드 축 색(BuildSynergyPanel.AxisColor).
+        public static Color ChipColor(EMonster type) => BuildSynergyPanel.AxisColor[SpeciesVisual.SpeciesAxis(type)];
 
         //# 셀 배경 테두리 기본 색 — 투명 (종색은 RebindSnapshot 에서 설정).
         public static readonly Color InactiveBorderColor = new Color(0f, 0f, 0f, 0f);
@@ -124,7 +125,7 @@ namespace Lair.UI
             //# 색칩 — 왼쪽 종색 띠(리디자인). 종 대표색으로 칠해 표시한다.
             if (_colorChip != null)
             {
-                _colorChip.color = SpeciesColor(snapshot.CurrentType);
+                _colorChip.color = ChipColor(snapshot.CurrentType);
                 _colorChip.gameObject.SetActive(true);
             }
 
@@ -180,13 +181,13 @@ namespace Lair.UI
             if (_progressSource == null || _progressFill == null) return;
             float p = _progressSource.Progress;
             _progressFill.fillAmount = p;
-            _progressFill.color = p < WarmThreshold ? CoolColor : WarmColor;
+            if (_snapshot != null)
+            {
+                _progressFill.color = GaugeColor(_snapshot.CurrentType);
+            }
             if (_periodText != null)
             {
-                //# 남은 초 소수점 첫째자리 (예: 2.5s). RemainingSeconds 는 Spawner 에서 0 클램프됨.
-                //# 한국어 로캘에서 소수점이 콤마로 찍히지 않도록 InvariantCulture 고정.
-                string remain = _progressSource.RemainingSeconds.ToString("F1", CultureInfo.InvariantCulture);
-                _periodText.SetText($"{remain}s");
+                _periodText.SetText(RemainingText(_progressSource.RemainingSeconds));
             }
         }
 

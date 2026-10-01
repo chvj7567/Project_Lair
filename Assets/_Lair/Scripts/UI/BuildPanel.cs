@@ -37,16 +37,66 @@ namespace Lair.UI
         //# 패널 루트 클릭 → BuildModalPopup 호출.
         [SerializeField] private CHButton _rootButton;
 
+        //# 접기/펼치기(scene-2d-conversion §4.10) — 본문·접힌 탭 정적 자식. 접어도 앵커 위치는 그대로, 높이만 바뀐다.
+        [SerializeField] private GameObject _body;
+        [SerializeField] private GameObject _foldedTab;
+        [SerializeField] private CHButton _collapseButton;
+        [SerializeField] private CHButton _expandButton;
+        //# 라벨 우측 "받은 픽 수/총 트리거 수" (본문 + 접힌 탭)
+        [SerializeField] private CHText _passiveCountText;
+        [SerializeField] private CHText _activeCountText;
+        [SerializeField] private CHText _foldedPassiveText;
+        [SerializeField] private CHText _foldedActiveText;
+        [SerializeField] private float _expandedHeight = 239f;
+        [SerializeField] private float _collapsedHeight = 31f;
+
+        private HudLayoutViewModel _layout;
+        private System.Action<bool> _layoutHandler;
+
+        //# View 의도 API — 본문 ↔ 접힌 탭 즉시 전환. 펼칠 때 레이아웃을 강제 재계산한 뒤 목록을 1회 갱신(셀 0 크기 방지).
+        public void SetCollapsed(bool collapsed)
+        {
+            if (_body != null)
+                _body.SetActive(collapsed == false);
+            if (_foldedTab != null)
+                _foldedTab.SetActive(collapsed);
+            RectTransform rt = transform as RectTransform;
+            if (rt != null)
+            {
+                rt.sizeDelta = new Vector2(rt.sizeDelta.x, collapsed ? _collapsedHeight : _expandedHeight);
+            }
+            if (_rootButton != null)
+            {
+                _rootButton.Interactable = collapsed == false;
+            }
+            if (collapsed == false && _vm != null && isActiveAndEnabled)
+            {
+                RefreshWithLayout();
+            }
+        }
+
         private BattleViewModel _vm;
         //# 루트 버튼 listener 수명 관리.
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
         //# BattleHud.Bind 가 호출 — VM 구독 + 초기 동기화.
         //# Refresh 첫 호출은 OnEnable 로 미룬다. BattleHud 가 CHMUI 로 띄워지는 UIBase 이고
-        public void Bind(BattleViewModel vm)
+        public void Bind(BattleViewModel vm, HudLayoutViewModel layout = null)
         {
             _vm = vm;
             vm.OnBuildChanged += Refresh;
+
+            if (layout != null)
+            {
+                _layout = layout;
+                _layoutHandler = SetCollapsed;
+                layout.OnBuildCollapsedChanged += _layoutHandler;
+                if (_collapseButton != null)
+                    _collapseButton.OnClick(layout.ToggleBuild, _disposable);
+                if (_expandButton != null)
+                    _expandButton.OnClick(layout.ToggleBuild, _disposable);
+                SetCollapsed(layout.IsBuildCollapsed);
+            }
 
             //# 루트 클릭 → BuildModalPopup. CHMUI 가 단일 인스턴스 caching 으로 재사용.
             if (_rootButton != null)
@@ -88,8 +138,25 @@ namespace Lair.UI
         public void Unbind()
         {
             if (_vm != null) _vm.OnBuildChanged -= Refresh;
+            if (_layout != null && _layoutHandler != null)
+            {
+                _layout.OnBuildCollapsedChanged -= _layoutHandler;
+            }
+            _layout = null;
+            _layoutHandler = null;
             _vm = null;
             _disposable.Clear();
+        }
+
+        //# 라벨 수 = 받은 픽 수 / 총 트리거 수 (패시브 N/9 · 액티브 N/5)
+        private void RefreshCounts()
+        {
+            string passive = $"{_vm.PassivePickCount}/{_vm.PassiveTriggerTotal}";
+            string active = $"{_vm.ActivePickCount}/{_vm.ActiveTriggerTotal}";
+            if (_passiveCountText != null) _passiveCountText.SetText(passive);
+            if (_activeCountText != null) _activeCountText.SetText(active);
+            if (_foldedPassiveText != null) _foldedPassiveText.SetText(passive);
+            if (_foldedActiveText != null) _foldedActiveText.SetText(active);
         }
 
         //# vm.Build 재조회 후 필터·분할해 두 ScrollView 각각에 단일 호출로 push.
@@ -97,6 +164,10 @@ namespace Lair.UI
         private void Refresh()
         {
             if (_vm == null) return;
+
+            RefreshCounts();
+            //# 접힌 동안은 본문이 비활성 — 목록 갱신은 펼칠 때 SetCollapsed 가 수행
+            if (_body != null && _body.activeInHierarchy == false) return;
 
             List<BattleViewModel.BuildEntry> passive = new List<BattleViewModel.BuildEntry>();
             List<BattleViewModel.BuildEntry> active  = new List<BattleViewModel.BuildEntry>();
