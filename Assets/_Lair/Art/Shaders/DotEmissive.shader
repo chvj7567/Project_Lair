@@ -54,7 +54,7 @@ Shader "Lair/DotEmissive"
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 OUT.uv = IN.uv;
-                OUT.color = IN.color * _Color;
+                OUT.color = IN.color * _Color * unity_SpriteColor;
                 return OUT;
             }
 

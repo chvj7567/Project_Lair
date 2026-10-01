@@ -52,7 +52,7 @@ Shader "Lair/Dot2DLit"
             OUT.positionHCS = TransformWorldToHClip(positionWS);
             OUT.positionVS = TransformWorldToView(positionWS);
             OUT.uv = IN.uv;
-            OUT.color = IN.color * _Color;
+            OUT.color = IN.color * _Color * unity_SpriteColor;
             return OUT;
         }
         ENDHLSL
