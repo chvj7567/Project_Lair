@@ -26,6 +26,7 @@ GameObject:
   - component: {fileID: 8415480412623821058}
   - component: {fileID: 6241712245956280871}
   - component: {fileID: 2797737285733329720}
+  - component: {fileID: 5288645470665764120}
   m_Layer: 0
   m_Name: Plague
   m_TagString: Untagged
@@ -333,6 +334,18 @@ MonoBehaviour:
   _runSpeed: 2
   _hitReactionCooldown: 0.4
   _attackSuppressWindow: 0.5
+--- !u!210 &5288645470665764120
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822707464687008870}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1 &2064074585128764601
 GameObject:
   m_ObjectHideFlags: 0
@@ -391,7 +404,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1279345155
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &1084959707356837267
@@ -707,6 +720,7 @@ MonoBehaviour:
   - {fileID: 1585856471756657406, guid: 2815e95f357a17a4db289cbcc6e18752, type: 3}
   - {fileID: -8994603690242389675, guid: 2815e95f357a17a4db289cbcc6e18752, type: 3}
   - {fileID: -3640656972392792143, guid: 2815e95f357a17a4db289cbcc6e18752, type: 3}
+  _tier4Frames: []
 --- !u!1 &5234924116864823485
 GameObject:
   m_ObjectHideFlags: 0

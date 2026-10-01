@@ -65,6 +65,14 @@ namespace Lair.Battle
             ApplyShake();   //# 줌 여부와 무관하게 매 프레임 — early-return 함정 회피
         }
 
+        //# 도트 격자(PPU 48) 양자화 — Round(v × 48) / 48
+        public static float QuantizeToDot(float value)
+        {
+            return Mathf.Round(value * DotPpu) / DotPpu;
+        }
+
+        private const float DotPpu = 48f;
+
         //# ICameraShake — duration 동안 magnitude 세기로 흔든다. 중첩 호출 시 더 센/긴 쪽으로 갱신.
         public void Shake(float duration, float magnitude)
         {
@@ -85,11 +93,10 @@ namespace Lair.Battle
             _shakeRemain -= Time.unscaledDeltaTime;
             float k = _shakeDuration > 0f ? Mathf.Clamp01(_shakeRemain / _shakeDuration) : 0f;
             float amp = _shakeMagnitude * k;   //# 선형 감쇠
-            Vector3 offset = new Vector3(
-                (Random.value * 2f - 1f) * amp,
-                (Random.value * 2f - 1f) * amp,
-                0f);
-            transform.position = basePos + offset;
+            //# 도트 단위 흔들림(scene-2d-conversion §3.6) — 카메라 right/up 성분을 1/48u 배수로 양자화해 배경 도트가 번지지 않게
+            float rx = QuantizeToDot((Random.value * 2f - 1f) * amp);
+            float ry = QuantizeToDot((Random.value * 2f - 1f) * amp);
+            transform.position = basePos + transform.right * rx + transform.up * ry;
 
             if (_shakeRemain <= 0f)
             {

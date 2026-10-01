@@ -194,6 +194,7 @@ MonoBehaviour:
   - {fileID: -6585336298947478609, guid: 1f453cf73992f254a91d635a55ab88e8, type: 3}
   - {fileID: 7194967641775913538, guid: 1f453cf73992f254a91d635a55ab88e8, type: 3}
   - {fileID: 3252998386663738584, guid: 1f453cf73992f254a91d635a55ab88e8, type: 3}
+  _tier4Frames: []
 --- !u!1 &2125141715487958054
 GameObject:
   m_ObjectHideFlags: 0
@@ -411,6 +412,7 @@ GameObject:
   - component: {fileID: 7930061631850810296}
   - component: {fileID: 5269038587208959756}
   - component: {fileID: 8260649890324103424}
+  - component: {fileID: 4100790666411733693}
   m_Layer: 0
   m_Name: Phantom
   m_TagString: Untagged
@@ -704,6 +706,18 @@ MonoBehaviour:
   _runSpeed: 2
   _hitReactionCooldown: 0.4
   _attackSuppressWindow: 0.5
+--- !u!210 &4100790666411733693
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7498979116898781069}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1 &7936445732414093724
 GameObject:
   m_ObjectHideFlags: 0
@@ -762,7 +776,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1279345155
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &1257442147313007233
