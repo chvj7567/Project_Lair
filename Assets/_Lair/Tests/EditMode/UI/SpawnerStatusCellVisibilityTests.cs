@@ -128,8 +128,8 @@ namespace Lair.Tests.UI
             InvokeOnEnable(cell);
             Assert.IsFalse(chipGo.activeSelf, "바인드 전(OnEnable 직후)엔 숨김");
             cell.RebindSnapshot(MakeSnapshot(outputCount: 1, type: EMonster.Reaper));
-            Assert.IsTrue(chipGo.activeSelf, "리디자인 — 색칩은 왼쪽 종색 띠로 표시");
-            Assert.AreEqual(SpawnerStatusCell.SpeciesColor(EMonster.Reaper), chipGo.GetComponent<Image>().color);
+            Assert.IsTrue(chipGo.activeSelf, "리디자인 — 색칩은 왼쪽 빌드 축 색 띠로 표시");
+            Assert.AreEqual(SpawnerStatusCell.ChipColor(EMonster.Reaper), chipGo.GetComponent<Image>().color, "색띠 = 빌드 축 색(Reaper = Dps)");
         }
 
         //# ===== 풀 재사용 — OnEnable 이 직전 아이콘 스프라이트/활성 리셋 =====
