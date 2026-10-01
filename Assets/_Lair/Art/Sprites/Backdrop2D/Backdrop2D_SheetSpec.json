@@ -1,0 +1,775 @@
+{
+  "source": ".mockups/scene-2d-atmosphere.src.html",
+  "design": "docs/design/scene-2d-conversion.md §2.4",
+  "note": "size/cell = 도트. pivot = 셀 기준(0~1, 좌하단 원점). topLeftDot = 시안 캔버스 좌상단 도트 배치. content = 셀 로컬 내용 박스(시트는 전 프레임 합집합, [x,y,w,h]). 필터 Point·무압축·밉맵 off(쿠키만 Bilinear·sRGB off).",
+  "files": {
+    "Battle_Backdrop.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        1228,
+        704
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        1228,
+        704
+      ]
+    },
+    "Flame_Soul8_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        216,
+        12
+      ],
+      "cell": [
+        9,
+        12
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0.4444,
+        0
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        1,
+        0,
+        7,
+        12
+      ]
+    },
+    "Altar2D_Base.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        22,
+        25
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.24
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        22,
+        24
+      ]
+    },
+    "Altar2D_RingDim.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        45,
+        17
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.4889,
+        0.5882
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        45,
+        17
+      ]
+    },
+    "Altar2D_Ring.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        45,
+        17
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.4889,
+        0.5882
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        45,
+        17
+      ]
+    },
+    "Altar2D_Crystal.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        9,
+        9
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.4444,
+        1
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        9,
+        9
+      ]
+    },
+    "Altar2D_CrystalCore.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        2,
+        4
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        1
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        2,
+        4
+      ]
+    },
+    "Village_Backdrop.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        480,
+        270
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        480,
+        270
+      ]
+    },
+    "Village_CauldronGlow.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        19,
+        5
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        118,
+        155
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        1,
+        18,
+        3
+      ]
+    },
+    "Village_CauldronBubbles_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        117,
+        15
+      ],
+      "cell": [
+        13,
+        15
+      ],
+      "frames": 9,
+      "fps": 12,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        120,
+        142
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        13,
+        15
+      ]
+    },
+    "Village_CrownSparkle.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        3,
+        3
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        443,
+        105
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        3,
+        3
+      ]
+    },
+    "Village_ProjectorRings.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        77,
+        21
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        202,
+        214
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        77,
+        21
+      ]
+    },
+    "Village_HoloScan_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        864,
+        60
+      ],
+      "cell": [
+        36,
+        60
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        222,
+        164
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        36,
+        58
+      ]
+    },
+    "Flame_Warm7_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        168,
+        11
+      ],
+      "cell": [
+        7,
+        11
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0.4286,
+        0
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        1,
+        0,
+        5,
+        11
+      ]
+    },
+    "Flame_Warm3_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        72,
+        7
+      ],
+      "cell": [
+        3,
+        7
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0.3333,
+        0
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        3,
+        7
+      ]
+    },
+    "Flame_Warm3w1_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        120,
+        7
+      ],
+      "cell": [
+        5,
+        7
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0.4,
+        0
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        1,
+        0,
+        3,
+        7
+      ]
+    },
+    "Shadow_R6.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        12,
+        5
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.6
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        1,
+        12,
+        3
+      ]
+    },
+    "Shadow_R11.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        22,
+        7
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5714
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        1,
+        22,
+        5
+      ]
+    },
+    "Loading_Backdrop.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        480,
+        270
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        480,
+        270
+      ]
+    },
+    "Loading_DoorGlow.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        36,
+        54
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        222,
+        106
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        36,
+        54
+      ]
+    },
+    "Loading_CircleRings.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        301,
+        49
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0,
+        1
+      ],
+      "topLeftDot": [
+        90,
+        178
+      ],
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        301,
+        49
+      ]
+    },
+    "Loading_AxisRing.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        27,
+        9
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.4815,
+        0.5556
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        27,
+        9
+      ]
+    },
+    "Flame_Soul10_Sheet.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        216,
+        14
+      ],
+      "cell": [
+        9,
+        14
+      ],
+      "frames": 24,
+      "fps": 12,
+      "pivot": [
+        0.4444,
+        0
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        1,
+        0,
+        7,
+        14
+      ]
+    },
+    "Shadow_R7.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        14,
+        5
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.6
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        1,
+        14,
+        3
+      ]
+    },
+    "Dot_1x1.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        1,
+        1
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        1,
+        1
+      ]
+    },
+    "Dot_2x1.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        2,
+        1
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 48,
+      "content": [
+        0,
+        0,
+        2,
+        1
+      ]
+    },
+    "Light2D_Falloff.png": {
+      "folder": "Backdrop2D",
+      "size": [
+        128,
+        128
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 128,
+      "content": [
+        0,
+        0,
+        128,
+        128
+      ]
+    },
+    "BossBar_Fill.png": {
+      "folder": "UiDot",
+      "size": [
+        1,
+        6
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        0,
+        1,
+        6
+      ]
+    },
+    "BossBar_TickGem.png": {
+      "folder": "UiDot",
+      "size": [
+        3,
+        3
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        0,
+        3,
+        3
+      ]
+    },
+    "Loading_BarFrame.png": {
+      "folder": "UiDot",
+      "size": [
+        184,
+        11
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        0,
+        184,
+        11
+      ]
+    },
+    "Loading_BarFill.png": {
+      "folder": "UiDot",
+      "size": [
+        180,
+        7
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        0,
+        180,
+        7
+      ]
+    },
+    "Px_Minus.png": {
+      "folder": "UiDot",
+      "size": [
+        5,
+        5
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        2,
+        5,
+        1
+      ]
+    },
+    "Px_Plus.png": {
+      "folder": "UiDot",
+      "size": [
+        5,
+        5
+      ],
+      "cell": null,
+      "frames": 1,
+      "fps": null,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "topLeftDot": null,
+      "ppu": 25,
+      "content": [
+        0,
+        0,
+        5,
+        5
+      ]
+    }
+  }
+}
