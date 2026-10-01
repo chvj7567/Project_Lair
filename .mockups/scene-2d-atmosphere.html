@@ -999,6 +999,9 @@ const EXPORTS=[
   {name:'Loading_BarFrame.png',folder:'UiDot',w:184,h:11,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);g.R('#07090e',0,0,184,11);g.R('#313b52',1,1,182,9);g.R('#0c1017',2,2,180,7);}},
   {name:'Loading_BarFill.png',folder:'UiDot',w:180,h:7,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);
     g.R('#1f9e74',0,0,180,7);g.R('#5ef0b4',0,0,180,5);g.R('#b8ffe0',0,0,180,1);for(let x=6;x<180;x+=6)g.R('#1f9e74',x,1,1,4);}},
+  //# 패널 접기/펼치기 아이콘(개정 3 §4.10) — 흰색, 런타임 틴트 #8E98AD
+  {name:'Px_Minus.png',folder:'UiDot',w:5,h:5,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>mk(c).R('#ffffff',0,2,5,1)},
+  {name:'Px_Plus.png',folder:'UiDot',w:5,h:5,pivot:[.5,.5],ppu:25,org:[0,0],draw:c=>{const g=mk(c);g.R('#ffffff',0,2,5,1);g.R('#ffffff',2,0,1,5);}},
 ];
 //# 조각 1장(시트면 1프레임)을 여백 M 을 둔 캔버스에 그려 잘림 여부를 검산 — 내용 박스가 목표 크기 안이어야 통과
 function renderPiece(p){

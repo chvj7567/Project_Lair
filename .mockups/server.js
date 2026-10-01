@@ -40,6 +40,7 @@ const BACKDROP_NAMES = new Set([
 const UIDOT_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'UiDot');
 const UIDOT_NAMES = new Set([
   'BossBar_Fill.png', 'BossBar_TickGem.png', 'Loading_BarFrame.png', 'Loading_BarFill.png',
+  'Px_Minus.png', 'Px_Plus.png',
 ]);
 const EXPORT_MAX_BYTES = 20 * 1024 * 1024;
 
