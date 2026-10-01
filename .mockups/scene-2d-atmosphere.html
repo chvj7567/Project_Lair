@@ -114,9 +114,17 @@ table.cmp th{background:var(--card);font-weight:600}
 .b-banner.on{opacity:1}
 .b-banner .tag{background:#b58cff;color:#07090e;padding:1px 5px;margin-right:7px}
 .b-banner em{font-style:normal;color:#f7c64a}
+/*# ?only=battle — 배틀 광각판 실제 화면(1194.67×672 도트)만 뷰포트 꽉 채워 보기 */
+body.only-battle{background:#000;overflow:hidden}
+body.only-battle .wrap>*:not(#s-battle-wide),body.only-battle #s-battle-wide>*:not(.wide-scroll){display:none!important}
+body.only-battle .wrap{padding:0;max-width:none}
+body.only-battle #s-battle-wide{margin:0;padding:0;border:0}
+body.only-battle .stage.wide{position:fixed;border:0;border-radius:0;width:calc(100vw*1228/1194.67);left:calc(-100vw*16.67/1194.67);top:calc(-100vw*16/1194.67)}
+body.only-battle .stage.showframe .scr{outline:0}
 </style>
 </head>
 <body>
+<script>if(new URLSearchParams(location.search).get('only')==='battle')document.body.classList.add('only-battle');</script>
 <div class="wrap">
 <header>
   <h1>씬 2D 분위기 시안 — 로딩 · 마을 · 배틀</h1>
