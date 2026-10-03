@@ -11,8 +11,8 @@ namespace Lair.UI
     public class BuildPanel : MonoBehaviour
     {
         //# 빌드 바 최소 슬롯 — 획득 전에도 빈 빗금 슬롯으로 채워 보여 주고, 획득이 최소치를 넘으면 늘어난다(기획서 §6.2-8).
-        public const int MinPassiveSlots = 6;
-        public const int MinActiveSlots = 3;
+        public const int MinPassiveSlots = 9;
+        public const int MinActiveSlots = 5;
 
         //# 빈 슬롯 수 — 채워진 칸이 최소치 이상이면 0.
         public static int EmptySlotCount(int filled, int minSlots)

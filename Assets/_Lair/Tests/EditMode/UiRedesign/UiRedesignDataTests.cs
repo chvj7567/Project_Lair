@@ -125,9 +125,10 @@ namespace Lair.Tests.EditMode
                 new BattleViewModel.BuildEntry(), new BattleViewModel.BuildEntry(),
             };
             List<BattleViewModel.BuildEntry> padded = BuildPanel.PadWithEmptySlots(two, BuildPanel.MinPassiveSlots, true);
-            Assert.AreEqual(6, padded.Count);
-            Assert.IsNull(padded[5].Card);
-            Assert.AreEqual(0, BuildPanel.EmptySlotCount(8, BuildPanel.MinPassiveSlots));
+            Assert.AreEqual(9, padded.Count);
+            Assert.IsNull(padded[8].Card);
+            Assert.AreEqual(0, BuildPanel.EmptySlotCount(10, BuildPanel.MinPassiveSlots));
+            Assert.AreEqual(5, BuildPanel.MinActiveSlots);
         }
 
         //# ---- 시너지 다음 단계 (제안 5) ----
