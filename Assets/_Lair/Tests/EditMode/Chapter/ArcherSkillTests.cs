@@ -11,6 +11,19 @@ namespace Lair.Tests.EditMode
     {
         private const string SkillDir = "Assets/_Lair/Art/Skills/";
 
+        //# FX 프리팹은 (d2) 소관 — 에셋 부재 LogError(키별 1회 정적 캐시)가 실행 순서에 따라 새지 않도록 테스트 동안 격리한다.
+        [SetUp]
+        public void 궁수_FX_로그_캐시를_격리한다()
+        {
+            ArcherFxLogGuard.Suppress();
+        }
+
+        [TearDown]
+        public void 궁수_FX_로그_캐시를_원복한다()
+        {
+            ArcherFxLogGuard.Restore();
+        }
+
         //# 호출 기록용 궁수 컨텍스트 더블.
         private class FakeArcherCtx : IArcherSkillContext
         {
@@ -86,7 +99,7 @@ namespace Lair.Tests.EditMode
         {
             EvadeSkillData data = ScriptableObject.CreateInstance<EvadeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
-            FakeArcherCtx ctx = new FakeArcherCtx { HeroPosition = new Vector3(5f, 0f, 0f), Centroid = new Vector3(4f, 0f, 0f), NearbyCount = 2 };
+            FakeArcherCtx ctx = new FakeArcherCtx { HeroPosition = new Vector3(4f, 0f, 0f), Centroid = new Vector3(3f, 0f, 0f), NearbyCount = 2 };
 
             runtime.Tick(ctx, 10f);
             Assert.IsFalse(ctx.Leaped, "2마리는 트리거 미달");
