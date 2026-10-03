@@ -226,6 +226,11 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0.8f, m.Apply(1f), 0.0001f, "1.0 x 0.7 = 0.7 → 하한 0.8");
             Assert.AreEqual(0.5f, m.Apply(0.5f), 0.0001f, "원래 사거리가 하한보다 작으면 늘리지 않는다");
 
+            //# 충돌 거리 1.0(반경 0.5+0.5) → 하한 1.1: 1.3 → 1.1, 원래 1.0 은 하한(1.1)보다 작아 늘리지 않는다(E-7).
+            Assert.AreEqual(1.1f, m.Apply(1.3f, 1.0f), 0.0001f);
+            Assert.AreEqual(1.0f, m.Apply(1.0f, 1.0f), 0.0001f);
+            Assert.AreEqual(3.5f, m.Apply(5f, 1.0f), 0.0001f);
+
             m.Clear();
             Assert.AreEqual(5f, m.Apply(5f), 0.0001f);
         }

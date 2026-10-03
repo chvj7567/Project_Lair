@@ -3,9 +3,12 @@ using System;
 namespace Lair.Battle
 {
     //# 몬스터 공격 사거리 규칙 상태 (DenseFog) — 비활성이면 입력을 그대로 돌려줘 기존 동작과 동일.
-    //# 활성이면 range x mul, 단 하한 minRange 를 지키되 원래 사거리가 하한보다 작으면 늘리지 않는다.
+    //# 활성이면 range x mul, 단 하한 max(minRange, 충돌 거리 + 여유)를 지키되 원래 사거리가 하한보다 작으면 늘리지 않는다(E-7).
     public class MonsterRangeModifier
     {
+        //# 충돌 거리 위 여유 — chapter-system E-7 "충돌 거리 + 0.1" (명세 고정값).
+        public const float ClearanceMargin = 0.1f;
+
         private float _mul = 1f;
         private float _minRange;
 
@@ -25,11 +28,13 @@ namespace Lair.Battle
             IsActive = false;
         }
 
-        public float Apply(float range)
+        //# collisionDistance = 영웅 + 해당 몬스터의 콜라이더 반경 합(중심 거리 기준 닿는 거리). 0 이면 minRange 만 하한.
+        public float Apply(float range, float collisionDistance = 0f)
         {
             if (IsActive == false)
                 return range;
-            return Math.Max(Math.Min(range, _minRange), range * _mul);
+            float floor = Math.Max(_minRange, collisionDistance + ClearanceMargin);
+            return Math.Max(Math.Min(range, floor), range * _mul);
         }
     }
 }

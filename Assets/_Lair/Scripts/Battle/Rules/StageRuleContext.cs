@@ -25,6 +25,8 @@ namespace Lair.Battle
         private readonly Dictionary<EMonster, List<Spawner>> _locked = new Dictionary<EMonster, List<Spawner>>();
         //# Transform → SimpleMover 1회 캐시(Rule 02 §5) — 풀 재사용 인스턴스는 같은 Transform 이라 안전.
         private readonly Dictionary<Transform, SimpleMover> _moverCache = new Dictionary<Transform, SimpleMover>();
+        //# Transform → IDamageColorSink 1회 캐시(null 포함) — 틱마다 GetComponent 를 반복하지 않는다.
+        private readonly Dictionary<Transform, IDamageColorSink> _sinkCache = new Dictionary<Transform, IDamageColorSink>();
         private readonly List<SimpleMover> _slowed = new List<SimpleMover>();
         private readonly HashSet<EVisual> _missingFxLogged = new HashSet<EVisual>();
 
@@ -125,7 +127,7 @@ namespace Lair.Battle
                 if (ValidTarget(e) == false)
                     continue;
                 //# 데미지색 스탬프 — TakeDamage 가 OnChanged 를 동기 발행하기 전에 찍어야 DamageFeedback 이 팝업을 띄운다.
-                e.Transform.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(Color.white);
+                SinkOf(e.Transform)?.StampDamageColor(Color.white);
                 e.Health.TakeDamage(amount);
                 ++hit;
             }
@@ -259,6 +261,16 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[StageRuleContext] 스테이지 규칙 FX 에셋 없음: {key} — Addressables 등록 필요(Art/FX)");
             }
+        }
+
+        private IDamageColorSink SinkOf(Transform t)
+        {
+            if (_sinkCache.TryGetValue(t, out IDamageColorSink sink) == false)
+            {
+                sink = t.GetComponent<LairCharacter>()?.Get<IDamageColorSink>();
+                _sinkCache[t] = sink;
+            }
+            return sink;
         }
 
         private SimpleMover MoverOf(Transform t)

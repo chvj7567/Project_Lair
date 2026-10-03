@@ -61,6 +61,9 @@ namespace Lair.Battle
         private StageRuleRunner _ruleRunner;
         //# 짙은 안개 사거리 규칙 — 비활성이면 ApplyMonsterStats 가 사거리를 그대로 통과시킨다.
         private readonly MonsterRangeModifier _rangeModifier = new MonsterRangeModifier();
+        //# 안개 하한용 콜라이더 반경 캐시(E-7) — 영웅은 규칙 시작 시 1회, 몬스터는 종별 첫 적용 시 1회 측정.
+        private float _heroColliderRadius;
+        private readonly Dictionary<EMonster, float> _monsterColliderRadius = new Dictionary<EMonster, float>();
 
         //# 상태 아이콘 — ECardId→Sprite 해석 dict. HUD 에 reference 주입 후 카드 풀 로드 시점에 populate.
         //# 인스턴스 1회 생성·재할당 금지 — HUD 가 stale empty reference 를 들지 않도록(주입은 reference).
@@ -389,6 +392,7 @@ namespace Lair.Battle
             if (rules.Count == 0)
                 return true;
 
+            _heroColliderRadius = ColliderRadiusOf(_hero.gameObject);
             try
             {
                 StageRuleContext ctx = new StageRuleContext(
@@ -404,6 +408,30 @@ namespace Lair.Battle
                 return false;
             }
             return true;
+        }
+
+        //# 영웅 + 몬스터 콜라이더 반경 합 — 안개 사거리 하한(E-7). 몬스터 반경은 종별 캐시.
+        private float CollisionDistanceOf(GameObject monster, EMonster key)
+        {
+            if (_monsterColliderRadius.TryGetValue(key, out float radius) == false)
+            {
+                radius = ColliderRadiusOf(monster);
+                _monsterColliderRadius[key] = radius;
+            }
+            return _heroColliderRadius + radius;
+        }
+
+        //# 프리팹 CapsuleCollider 반경 x 월드 스케일(XZ 최대). 콜라이더가 없으면 LogError 후 0 — 하한이 minRange 로만 걸린다.
+        private static float ColliderRadiusOf(GameObject go)
+        {
+            CapsuleCollider capsule = go.GetComponentInChildren<CapsuleCollider>();
+            if (capsule == null)
+            {
+                Debug.LogError($"[BattleController] {go.name} 에 CapsuleCollider 가 없어 안개 사거리 하한 충돌 거리를 구하지 못함");
+                return 0f;
+            }
+            Vector3 scale = capsule.transform.lossyScale;
+            return capsule.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
         }
 
         //# 사거리 규칙 변경 시 필드 몬스터 전원에 소급 — RegisterMonsterTypeBuff 와 같은 resetCurrent:false(현재 HP 보존).
@@ -523,8 +551,13 @@ namespace Lair.Battle
             if (attacker != null)
             {
                 //# 사거리 = raw x 카드 배율, 그 뒤 마지막으로 스테이지 규칙(짙은 안개) — 규칙 비활성이면 값 불변.
+                float range = raw.Range * mul.RangeMul;
+                if (_rangeModifier.IsActive)
+                {
+                    range = _rangeModifier.Apply(range, CollisionDistanceOf(character, key));
+                }
                 attacker.Configure(
-                    _rangeModifier.Apply(raw.Range * mul.RangeMul),
+                    range,
                     Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
                     Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
             }
