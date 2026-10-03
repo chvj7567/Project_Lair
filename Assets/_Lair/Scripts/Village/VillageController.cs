@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
+using Lair.Battle;
 using Lair.Card;
 using Lair.Character;
 using Lair.Data;
@@ -32,7 +33,7 @@ namespace Lair.Village
             CHMSound.Instance.Play(EAudio.VillageBgm);
 
             MetaProfile profile = MetaSession.GetOrLoad();
-            _vm = new VillageViewModel(profile, _metaConfig);
+            _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
 
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
             //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
@@ -195,7 +196,12 @@ namespace Lair.Village
                     });
                     break;
 
+                case EUI.WorldMapPopup:
+                    await OpenWorldMap(profile);
+                    break;
+
                 case EUI.HeroSelectPopup:
+                    //# (구) 표시 전용 — 월드맵으로 대체됐고 HUD 는 더 이상 열지 않는다. 호환용으로 남김.
                     //# 표시 전용 — 스테이지 1~5 영웅 외형 나열. 실제 스테이지 선택은 마을 캐러셀 담당(기획서 §4).
                     await CHMUI.Instance.ShowUIAsync(EUI.HeroSelectPopup, new HeroSelectPopupArg
                     {
@@ -230,6 +236,32 @@ namespace Lair.Village
                     await OpenCloud(profile);
                     break;
             }
+        }
+
+        //# 침입 지도 — 챕터 데이터가 없으면 안내만(조용히 열지 않음). 선택 확정은 VM 이 선형 번호를 돌려주면 캐러셀 VM 으로 반영한다.
+        private async Task OpenWorldMap(MetaProfile profile)
+        {
+            ChapterDatabase chapters = ChapterDatabase.Current;
+            if (chapters == null)
+            {
+                Debug.LogError("[VillageController] 챕터 데이터 미로드 — 월드맵을 열 수 없음");
+                ToastView.Show(LookupString(WorldMapViewModel.StrNotReady), EToastKind.Error);
+                return;
+            }
+
+            //# 확정 → 캐러셀 이동(OnStageChanged 구독이 SelectedStage 로컬 저장 + 쇼케이스 재스킨, 클라우드 백업 호출 없음).
+            WorldMapViewModel worldMapVm = new WorldMapViewModel(chapters, profile, LookupString, linear => _vm?.SelectStage(linear));
+            await CHMUI.Instance.ShowUIAsync(EUI.WorldMapPopup, new WorldMapPopupArg
+            {
+                ViewModel = worldMapVm,
+                PortraitOf = linear => _stageVariantConfig != null ? _stageVariantConfig.GetStage(linear).Portrait : null,
+            });
+        }
+
+        //# Strings_Ko 조회 — CHText 와 같은 테이블. 미등록이면 빈 문자열.
+        private static string LookupString(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
         }
 
         //# 클라우드 팝업 — 연결상태/표시명/복원/충돌 권유를 콜백으로 주입(기획서 §5).
@@ -397,6 +429,12 @@ namespace Lair.Village
         {
             if (_vm == null || _vm.IsCurrentStageUnlocked == false)
                 return;
+            //# 출격 불가 챕터(ChapterGate)는 오류 대신 명시적 안내 — 월드맵·캐러셀이 1차로 막고 여기는 방어 가드.
+            if (ChapterGate.IsStagePlayable(_vm.SelectedStage) == false)
+            {
+                ToastView.Show(LookupString(WorldMapViewModel.StrNotReadyHint), EToastKind.Warning);
+                return;
+            }
             SceneManager.LoadScene(EScene.Battle.ToString());
         }
     }

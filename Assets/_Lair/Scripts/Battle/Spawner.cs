@@ -5,7 +5,7 @@ namespace Lair.Battle
 {
     //# 지속 스폰 — 씬에 사전 배치되는 컴포넌트 (Addressables 프리팹 아님 → Rule 12 예외).
     //# 한 판 동안 고정 주기로 출력 종 몬스터를 동시 출력 수만큼 스폰한다.
-    public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider
+    public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider, ISpawnerLockState
     {
         //# === 인스펙터 직렬화 — 스타터 프리셋 (§5.3) ===
         [Tooltip("이 Spawner 가 스폰하는 몬스터 종 (초기값 — 융합 카드로 런타임 변경됨)")]

@@ -92,6 +92,8 @@ namespace Lair.Data
         CloudPopup,            //# 클라우드 — 복원·표시명·충돌 권유 통합
         ConfirmPopup,          //# 공용 2버튼 확인 다이얼로그 (복원·충돌 재사용)
         ToastView,             //# 공용 토스트 (하단중앙 1.8초 페이드, 입력통과)
+        //# 챕터 시스템 — 맨 끝 append. 월드맵 팝업(HeroSelectPopup 대체, chapter-system §6). 값명 = 프리팹 파일명.
+        WorldMapPopup,         //# 침입 지도 — 챕터 탭 + 스테이지 노드 + 상세
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)

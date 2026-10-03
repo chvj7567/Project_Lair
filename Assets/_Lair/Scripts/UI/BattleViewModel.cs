@@ -44,6 +44,8 @@ namespace Lair.UI
             public EMonster CurrentType;
             public int OutputCount;
             public IReadOnlyList<AppliedBuff> AppliedBuffs;    //# 현 출력 종에 적용된 강화 카드 픽 누적
+            //# 스테이지 규칙(봉인된 둥지) 해제 HP% — 이 종이 봉인 대상이면 해제 임계(정수), 아니면 0. 표기만(봉인 여부는 셀이 폴링).
+            public int SealUnlockHpPercent;
         }
 
         private readonly BattleStateModel _model;
@@ -368,6 +370,7 @@ namespace Lair.UI
                 CurrentType = sp.CurrentType,
                 OutputCount = sp.OutputCount,
                 AppliedBuffs = controller.GetAppliedBuffs(sp.CurrentType),
+                SealUnlockHpPercent = controller.GetSealUnlockHpPercent(sp.CurrentType),
             };
         }
     }

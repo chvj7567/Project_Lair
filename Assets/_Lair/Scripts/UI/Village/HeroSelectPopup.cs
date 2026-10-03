@@ -25,6 +25,7 @@ namespace Lair.UI
         public Color PortraitTint;     //# 해금 흰색(원본 그대로), 잠금이면 어둠 반영
     }
 
+    //# (구) 월드맵(WorldMapPopup)으로 대체되어 HUD 는 더 이상 열지 않는다 — 후속 소작업에서 프리팹·테스트와 함께 제거 예정.
     //# 영웅 목록 — 스테이지 1~5 의 영웅 외형을 나열하는 표시 전용 팝업 (hero-stage-variant 기획서 §1.2/§4.3).
     public class HeroSelectPopup : UIBase
     {

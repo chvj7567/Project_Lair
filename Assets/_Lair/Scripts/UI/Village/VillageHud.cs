@@ -13,7 +13,7 @@ namespace Lair.UI
         public VillageViewModel Vm;
         public Action<EUI> OnOpenMenu;
         public Action OnSortie;
-        //# 스테이지 카드 초상 — 스테이지(1~5) → 초상 스프라이트. null 이면 초상을 숨긴다.
+        //# 스테이지 카드 초상 — 선형 스테이지 번호 → 초상 스프라이트. null 이면 초상을 숨긴다.
         public Func<int, Sprite> PortraitOf;
     }
 
@@ -81,7 +81,7 @@ namespace Lair.UI
             BindMenuButton(_shopButton,        hudArg, EUI.ShopPopup);
             BindMenuButton(_codexButton,       hudArg, EUI.CodexPopup);
             BindMenuButton(_recordsButton,     hudArg, EUI.RecordsPopup);
-            BindMenuButton(_heroButton,        hudArg, EUI.HeroSelectPopup);
+            BindMenuButton(_heroButton,        hudArg, EUI.WorldMapPopup);   //# 라벨 "지도" — 챕터 월드맵(HeroSelectPopup 대체)
             BindMenuButton(_questButton,       hudArg, EUI.QuestPopup);
             BindMenuButton(_lordButton,        hudArg, EUI.LordLevelPopup);
             BindMenuButton(_rankingButton,     hudArg, EUI.RankingPopup);
@@ -128,11 +128,11 @@ namespace Lair.UI
 
             if (_stageIndicatorText != null)
             {
-                _stageIndicatorText.SetText($"STAGE {stage}");
+                _stageIndicatorText.SetText(_vm.StageIndicatorText);
             }
             if (_stageThreatText != null)
             {
-                _stageThreatText.SetText(BuildThreat(stage));
+                _stageThreatText.SetText(_vm.StageThreatText);
             }
             if (_stagePrevButton != null)
             {
@@ -156,14 +156,14 @@ namespace Lair.UI
             }
             if (_stageLockHintText != null)
             {
-                _stageLockHintText.SetText($"스테이지 {stage - 1} 클리어 필요");
+                _stageLockHintText.SetText(_vm.StageLockHintText);
             }
-            RefreshStageCard(stage);
+            RefreshStageCard(stage, _vm.SelectedStageIndex);
             RefreshRecordPanel();
         }
 
         //# 침입자 초상 + 점 5칸 — 선택 스테이지까지 금색, 그 뒤는 stone4. 표시만(Rule 02 §6).
-        private void RefreshStageCard(int stage)
+        private void RefreshStageCard(int stage, int stageIndex)
         {
             if (_stageHeroPortrait != null)
             {
@@ -175,7 +175,7 @@ namespace Lair.UI
             {
                 if (_stageDots[i] != null)
                 {
-                    _stageDots[i].color = i < stage ? UiDotPalette.Gold : UiDotPalette.Stone4;
+                    _stageDots[i].color = i < stageIndex ? UiDotPalette.Gold : UiDotPalette.Stone4;
                 }
             }
         }
@@ -197,13 +197,6 @@ namespace Lair.UI
             {
                 _recordWinsText.SetText(_vm.StageRecordText);
             }
-        }
-
-        //# 위협도 ★×N + ☆×(5-N) — 문자 글리프(이모지 아님, 신규 아트 불필요, 기획서 §4.2).
-        private static string BuildThreat(int stage)
-        {
-            int filled = Mathf.Clamp(stage, 0, 5);
-            return new string('★', filled) + new string('☆', 5 - filled);
         }
 
         //# 클라우드 충돌 배지(기획서 §3) — pending 이면 빨간 dot 표시. HUD 표시·재오픈마다 갱신.

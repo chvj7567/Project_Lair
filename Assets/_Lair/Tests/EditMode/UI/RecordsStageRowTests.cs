@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Lair.Battle;
 using Lair.Meta;
 using Lair.UI;
 using NUnit.Framework;
@@ -61,9 +62,9 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();   //# ClearedStage = 0 → 스테이지 3 잠금
 
-            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null)[2];
+            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null, id => id == StageLabels.HintPreviousStageStringId ? "스테이지 {0}-{1} 클리어 필요" : string.Empty)[2];
 
-            Assert.AreEqual("스테이지 2 클리어 필요", row.LockHintText);
+            Assert.AreEqual("스테이지 1-2 클리어 필요", row.LockHintText);
             Assert.IsEmpty(row.WinText);
             Assert.IsEmpty(row.RunRateText);
         }

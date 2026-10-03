@@ -56,11 +56,16 @@ namespace Lair.UI
         [SerializeField] private Sprite _plagueIcon;
         [SerializeField] private Sprite _phantomIcon;
 
+        //# 봉인 표기 문구 id — "봉인 - 영웅 HP {0}% 이하 해제" (Strings_Ko 1319).
+        private const int SealTextStringId = 1319;
+
         //# 클릭 리스너 수명 관리 (BuildIconCell 선례 패턴).
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
         //# 매 프레임 폴링 대상.
         private ISpawnerProgress _progressSource;
+        //# 봉인 상태 폴링 소스 — progress 가 같은 객체(Spawner)면 함께 확보, 아니면 null(봉인 표기 없음).
+        private ISpawnerLockState _lockSource;
         //# 현재 표시 스냅샷 캐시 (이벤트 갱신 시 RebindSnapshot 만 호출).
         private BattleViewModel.SpawnerSnapshot _snapshot;
 
@@ -104,6 +109,7 @@ namespace Lair.UI
         public void Bind(BattleViewModel.SpawnerSnapshot snapshot, ISpawnerProgress progress, Action<int> onClick)
         {
             _progressSource = progress;
+            _lockSource = progress as ISpawnerLockState;
             RebindSnapshot(snapshot);
 
             if (_button != null && onClick != null)
@@ -187,8 +193,19 @@ namespace Lair.UI
             }
             if (_periodText != null)
             {
-                _periodText.SetText(RemainingText(_progressSource.RemainingSeconds));
+                _periodText.SetText(PeriodLabel());
             }
+        }
+
+        //# 남은 초 — 봉인 중이고 해제 HP% 가 있으면 "봉인 - 영웅 HP {x}% 이하 해제" 로 대체(스테이지 규칙 SealedNest, chapter-system §3.4).
+        private string PeriodLabel()
+        {
+            bool sealedNow = _lockSource != null && _lockSource.IsLocked;
+            if (sealedNow && _snapshot != null && _snapshot.SealUnlockHpPercent > 0 && CHText.StringProvider != null)
+            {
+                return string.Format(CHText.StringProvider.GetString(SealTextStringId), _snapshot.SealUnlockHpPercent);
+            }
+            return RemainingText(_progressSource.RemainingSeconds);
         }
 
         //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.

@@ -434,6 +434,21 @@ namespace Lair.Battle
             return capsule.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
         }
 
+        //# 스포너 상태 UI 봉인 표기용 — 현재 스테이지의 봉인된 둥지가 species 를 봉인하면 해제 HP%(정수), 아니면 0. 규칙 데이터에서 읽는다.
+        public int GetSealUnlockHpPercent(EMonster species)
+        {
+            if (_chapters == null)
+                return 0;
+            MetaProfile profile = MetaSession.GetOrLoad();
+            foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
+            {
+                int percent = Lair.Village.StageRuleText.SealUnlockHpPercent(data, species);
+                if (percent > 0)
+                    return percent;
+            }
+            return 0;
+        }
+
         //# 사거리 규칙 변경 시 필드 몬스터 전원에 소급 — RegisterMonsterTypeBuff 와 같은 resetCurrent:false(현재 HP 보존).
         private void ReapplyAllMonsterStats()
         {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Battle;
@@ -182,11 +183,11 @@ namespace Lair.UI
             return $"총 출격  {profile.TotalRuns}\n승리  {profile.TotalWins}\n승률  {winRate}%\n최단 클리어  {bestClear}";
         }
 
-        //# 기록 행 상한 — 월드맵(슬라이스 c) 전까지 챕터 1(5행)만 노출. (c) 에서 StageProgress.MaxStage 로 바꿔 푼다.
-        public static int VisibleStageCount => StageProgress.StagesPerChapter;
+        //# 기록 행 상한 — 선형 스테이지 전체(챕터 수 x 5).
+        public static int VisibleStageCount => StageProgress.MaxStage;
 
         //# 스테이지 1~VisibleStageCount 행(선형 번호) — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
-        public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
+        public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig, Func<int, string> text = null)
         {
             List<RecordsStageCellData> list = new List<RecordsStageCellData>();
             int cleared = profile != null ? profile.ClearedStage : 0;
@@ -209,15 +210,21 @@ namespace Lair.UI
                     IsSelected = unlocked && stage == selected,
                     Portrait = portrait,
                     PortraitTint = unlocked ? Color.white : Color.Lerp(Color.white, Color.black, LockedDimRatio),
-                    StageText = $"STAGE {stage}",
-                    ThreatText = BuildThreat(stage),
+                    StageText = $"STAGE {StageLabels.Number(stage)}",
+                    ThreatText = BuildThreat(StageProgress.IndexOf(stage)),
                     WinText = unlocked ? $"{record.Wins}승" : string.Empty,
                     RunRateText = unlocked ? $"{record.Runs}판 · {rate}%" : string.Empty,
                     BestText = unlocked ? $"최단 {FormatClearTime(record.BestClearTime)}" : string.Empty,
-                    LockHintText = unlocked ? string.Empty : $"스테이지 {stage - 1} 클리어 필요",
+                    LockHintText = unlocked ? string.Empty : StageLabels.UnlockHint(stage, text ?? LookupString),
                 });
             }
             return list;
+        }
+
+        //# Strings_Ko 조회 — 호출부가 text 를 안 넘기면 CHText 와 같은 테이블(미등록이면 빈 문자열).
+        private static string LookupString(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
         }
 
         //# 위협도 — 채운 별 N + 빈 별 (5-N). VillageHud.BuildThreat 과 같은 규약(저쪽은 private static,

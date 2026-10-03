@@ -25,6 +25,12 @@ namespace Lair.Battle
         float RemainingSeconds { get; }
     }
 
+    //# 스테이지 규칙(SealedNest) 봉인 상태 노출 계약 — 스포너 상태 UI 가 봉인 표기에 폴링. 소비자 UI 는 ISpawnerProgress 와 별도 타입 검사.
+    public interface ISpawnerLockState
+    {
+        bool IsLocked { get; }
+    }
+
     //# Rule 10 — Spawner 출력 종(EMonster) 변경 이벤트 + 동시 출력 수 노출 계약.
     //# SpawnerAltar2D 가 GetComponentInParent<ISpawnerOutputProvider>() 로 구독 (Rule 06).
     public interface ISpawnerOutputProvider

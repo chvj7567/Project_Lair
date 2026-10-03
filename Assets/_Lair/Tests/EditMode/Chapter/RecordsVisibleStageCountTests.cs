@@ -6,72 +6,69 @@ using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
 {
-    //# 기록 팝업 행 상한 — 월드맵(슬라이스 c) 전까지 챕터 1(5행)만 노출 (1221bca). 진행이 6~10 이어도 행은 늘지 않는다.
+    //# 기록 팝업 행 상한 — 슬라이스 (c) 에서 챕터 1 한정(1221bca)을 풀어 선형 스테이지 전체(MaxStage)로 확장. 행 라벨은 "{챕터}-{인덱스}".
     public class RecordsVisibleStageCountTests : ChapterStaticStateTestBase
     {
-        [Test]
-        public void VisibleStageCount는_챕터당_스테이지_수_5다()
+        private static string Text(int id)
         {
-            Assert.AreEqual(5, RecordsPopup.VisibleStageCount);
-            Assert.AreEqual(StageProgress.StagesPerChapter, RecordsPopup.VisibleStageCount);
+            switch (id)
+            {
+                case StageLabels.HintPreviousStageStringId: return "스테이지 {0}-{1} 클리어 필요";
+                case StageLabels.HintChapterBossStringId: return "{0}장 보스 클리어 필요";
+                default: return string.Empty;
+            }
         }
 
         [Test]
-        public void VisibleStageCount는_MaxStage_10보다_작다()
+        public void VisibleStageCount는_MaxStage와_같다()
         {
-            Assert.Less(RecordsPopup.VisibleStageCount, StageProgress.MaxStage);
+            Assert.AreEqual(StageProgress.MaxStage, RecordsPopup.VisibleStageCount);
+            Assert.AreEqual(10, RecordsPopup.VisibleStageCount);
         }
 
         [Test]
-        public void 챕터수를_늘려도_행은_5개로_유지된다()
+        public void 챕터수를_늘리면_행도_따라_늘어난다()
         {
             StageProgress.ConfigureChapterCount(3);
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null);
 
-            Assert.AreEqual(5, rows.Count);
-        }
-
-        [TestCase(0)]
-        [TestCase(5)]
-        [TestCase(6)]
-        [TestCase(10)]
-        public void 클리어_진행이_챕터2여도_행은_5개다(int cleared)
-        {
-            MetaProfile p = new MetaProfile { ClearedStage = cleared };
-
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
-
-            Assert.AreEqual(5, rows.Count);
-            Assert.AreEqual(5, rows[rows.Count - 1].Stage);
+            Assert.AreEqual(15, rows.Count);
         }
 
         [Test]
-        public void 어떤_진행에서도_STAGE_6_이상_행은_없다()
+        public void 행_라벨은_챕터_인덱스_형식이고_위협도_별은_챕터_내_인덱스_기준이다()
         {
-            MetaProfile p = new MetaProfile { ClearedStage = 10, SelectedStage = 10 };
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 10 }, null);
 
-            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
-
-            foreach (RecordsStageCellData row in rows)
-            {
-                Assert.LessOrEqual(row.Stage, 5);
-                StringAssert.DoesNotContain("STAGE 6", row.StageText);
-                StringAssert.DoesNotContain("STAGE 10", row.StageText);
-            }
+            Assert.AreEqual(10, rows.Count);
+            Assert.AreEqual("STAGE 1-1", rows[0].StageText);
+            Assert.AreEqual("STAGE 1-5", rows[4].StageText);
+            Assert.AreEqual("STAGE 2-1", rows[5].StageText);
+            Assert.AreEqual("STAGE 2-5", rows[9].StageText);
+            Assert.AreEqual("★☆☆☆☆", rows[5].ThreatText, "2-1 은 인덱스 1 기준");
+            Assert.AreEqual("★★★★★", rows[9].ThreatText);
         }
 
         [Test]
-        public void 선택_스테이지가_6_이상이면_보이는_행_중_선택_표시는_없다()
+        public void 챕터2_첫_행의_잠금_안내는_1장_보스_클리어_필요다()
+        {
+            List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 4 }, null, Text);
+
+            Assert.IsTrue(rows[5].IsLocked);
+            Assert.AreEqual("1장 보스 클리어 필요", rows[5].LockHintText);
+            Assert.AreEqual("스테이지 2-2 클리어 필요", RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 5 }, null, Text)[6].LockHintText);
+        }
+
+        [Test]
+        public void 선택_스테이지가_챕터2면_해당_행에_선택_표시가_붙는다()
         {
             MetaProfile p = new MetaProfile { ClearedStage = 10, SelectedStage = 7 };
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
-            foreach (RecordsStageCellData row in rows)
-            {
-                Assert.IsFalse(row.IsSelected, $"STAGE {row.Stage}");
-            }
+            Assert.IsTrue(rows[6].IsSelected);
+            Assert.IsFalse(rows[0].IsSelected);
         }
 
         [Test]
@@ -81,30 +78,29 @@ namespace Lair.Tests.EditMode
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
-            foreach (RecordsStageCellData row in rows)
+            for (int i = 0; i < 5; ++i)
             {
-                Assert.IsFalse(row.IsLocked, $"STAGE {row.Stage}");
+                Assert.IsFalse(rows[i].IsLocked, $"STAGE {rows[i].Stage}");
             }
         }
 
         [Test]
-        public void 범위_밖_전적_6_이상은_행에_나타나지_않아도_프로필에서_조회는_된다()
+        public void 챕터2_전적은_행에_나타난다()
         {
             MetaProfile p = new MetaProfile { ClearedStage = 7 };
             p.RecordStageRun(7, true, 100f);
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
-            Assert.AreEqual(5, rows.Count);
-            Assert.AreEqual(1, p.GetStageRecord(7).Wins);
+            Assert.AreEqual("1승", rows[6].WinText);
         }
 
         [Test]
-        public void profile이_null이어도_5행이고_첫_행만_해금이다()
+        public void profile이_null이어도_첫_행만_해금이다()
         {
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(null, null);
 
-            Assert.AreEqual(5, rows.Count);
+            Assert.AreEqual(StageProgress.MaxStage, rows.Count);
             Assert.IsFalse(rows[0].IsLocked);
             Assert.IsTrue(rows[1].IsLocked);
         }
