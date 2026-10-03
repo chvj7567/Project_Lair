@@ -1,6 +1,7 @@
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Lair.Character;
 
 namespace Lair.Tests.Character
@@ -17,9 +18,18 @@ namespace Lair.Tests.Character
         private GameObject _go;
         private Material _mat;
 
+        //# HitFlash.CacheRenderers 는 런타임 계약상 renderer.material 로 인스턴스화한다 — EditMode 에선 그 접근이
+        //# "Instantiating material ... during edit mode" 에러 로그를 남긴다(동작은 정상). 이 스위트는 그 로그만 허용한다.
+        [SetUp]
+        public void SetUp()
+        {
+            LogAssert.ignoreFailingMessages = true;
+        }
+
         [TearDown]
         public void TearDown()
         {
+            LogAssert.ignoreFailingMessages = false;
             if (_go != null) Object.DestroyImmediate(_go);
             if (_mat != null) Object.DestroyImmediate(_mat);
         }
@@ -58,7 +68,7 @@ namespace Lair.Tests.Character
             InvokeVoid(flash, "Start");     //# _lastHp 캐시
             InvokeVoid(flash, "OnEnable");
 
-            instanceMat = rd.material;      //# CacheRenderers 가 이미 인스턴스화한 것과 동일 인스턴스
+            instanceMat = rd.sharedMaterial; //# CacheRenderers 가 인스턴스화한 머티리얼(추가 .material 접근 없이 조회)
             return flash;
         }
 
@@ -144,7 +154,7 @@ namespace Lair.Tests.Character
             InvokeVoid(flash, "Start");
             InvokeVoid(flash, "OnEnable");
 
-            Material instance = rd.material;
+            Material instance = rd.sharedMaterial;   //# Awake 의 .material 인스턴스화 결과
             InvokeVoid(flash, "ApplyInvertedColors");
 
             Color inverted = new Color(1f - original.r, 1f - original.g, 1f - original.b, original.a);
