@@ -442,7 +442,7 @@ namespace Lair.Battle
             MetaProfile profile = MetaSession.GetOrLoad();
             foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
             {
-                int percent = Lair.Village.StageRuleText.SealUnlockHpPercent(data, species);
+                int percent = SealedNestInfo.UnlockHpPercent(data, species);
                 if (percent > 0)
                     return percent;
             }

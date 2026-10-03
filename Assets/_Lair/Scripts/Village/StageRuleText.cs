@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Lair.Battle;
 using Lair.Data;
 
 namespace Lair.Village
@@ -45,14 +46,10 @@ namespace Lair.Village
             }
         }
 
-        //# 봉인된 둥지의 해제 HP% (정수). 봉인 규칙이 아니거나 종이 다르면 0 — 스포너 상태 UI 봉인 표기용.
+        //# 봉인된 둥지의 해제 HP% (정수). 봉인 규칙이 아니거나 종이 다르면 0. 변환 본체는 Battle.SealedNestInfo(스포너 UI 가 Village 를 참조하지 않게).
         public static int SealUnlockHpPercent(StageRuleData data, EMonster species)
         {
-            if (data.RuleId != EStageRule.SealedNest)
-                return 0;
-            if ((EMonster)(int)Math.Round(P(data, "lockedSpecies")) != species)
-                return 0;
-            return (int)Math.Round(P(data, "unlockHpFraction") * 100f);
+            return SealedNestInfo.UnlockHpPercent(data, species);
         }
 
         private static float P(StageRuleData data, string key)

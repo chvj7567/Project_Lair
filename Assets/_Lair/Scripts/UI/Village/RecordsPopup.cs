@@ -227,12 +227,10 @@ namespace Lair.UI
             return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
         }
 
-        //# 위협도 — 채운 별 N + 빈 별 (5-N). VillageHud.BuildThreat 과 같은 규약(저쪽은 private static,
-        //# 여기선 테스트 대상이라 public). 두 곳이 어긋나면 표기가 갈리므로 규약 변경 시 함께 고친다.
-        public static string BuildThreat(int stage)
+        //# 위협도 — 챕터 내 인덱스 기준 채운 별 N + 빈 별 (5-N). 표기 규약은 StageLabels.Stars 단일 소유(마을 HUD 와 공유).
+        public static string BuildThreat(int stageIndex)
         {
-            int filled = Mathf.Clamp(stage, 0, StageProgress.StagesPerChapter);
-            return new string('★', filled) + new string('☆', StageProgress.StagesPerChapter - filled);
+            return StageLabels.Stars(stageIndex);
         }
 
         //# 클리어타임 표기 — 기록 없음(-1)은 "-", 그 외 m:ss (초는 내림).
