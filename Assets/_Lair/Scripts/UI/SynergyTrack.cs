@@ -44,7 +44,8 @@ namespace Lair.UI
                     _frames[i].color = isTier ? (isFilled ? FrameTierFilled : FrameTierEmpty) : FrameNormal;
             }
 
-            if (flashNewCell && filled > 0 && count <= SynergyProgress.TrackLength && isActiveAndEnabled)
+            //# _fills 미배선·범위 밖이면 FlashRoutine 이 NRE 이므로 점멸 생략.
+            if (flashNewCell && filled > 0 && count <= SynergyProgress.TrackLength && isActiveAndEnabled && _fills != null && filled <= _fills.Length)
             {
                 _flashIndex = filled - 1;
                 _flashRoutine = StartCoroutine(FlashRoutine());
