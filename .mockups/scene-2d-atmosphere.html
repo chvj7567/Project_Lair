@@ -122,10 +122,11 @@ table.cmp th{background:var(--card);font-weight:600}
 .b-syn.col>.ftab,.b-build.col>.ftab{display:flex}
 .b-build.col{padding:0}
 .b-build .bhd{font-size:11px;color:#8e98ad;display:flex;justify-content:space-between;align-items:center;margin:0 0 5px}
-.b-banner{position:absolute;left:50%;top:84px;transform:translateX(-50%);white-space:nowrap;padding:5px 12px;background:rgba(16,20,29,.9);
-  box-shadow:0 -3px 0 0 #07090e,0 3px 0 0 #07090e,-3px 0 0 0 #07090e,3px 0 0 0 #07090e,inset 0 0 0 1px #5b3aa6;opacity:0;transition:opacity .3s}
+/*# 스킬 해제 배너 — 화면 세로 중앙, 풀폭, 크게(실제 프리팹: 풀폭 × 84 @중앙, 960 기준 63) */
+.b-banner{position:absolute;left:0;top:238px;width:960px;height:63px;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;white-space:nowrap;background:rgba(12,5,20,.92);
+  box-shadow:0 -3px 0 0 #b58cff,0 3px 0 0 #b58cff;opacity:0;transition:opacity .3s}
 .b-banner.on{opacity:1}
-.b-banner .tag{background:#b58cff;color:#07090e;padding:1px 5px;margin-right:7px}
+.b-banner .tag{border:2px solid #5b3aa6;color:#b58cff;padding:3px 9px;font-size:10px}
 .b-banner em{font-style:normal;color:#f7c64a}
 /*# ?only=battle — 배틀 광각판 실제 화면(1194.67×672 도트)만 뷰포트 꽉 채워 보기 */
 body.only-battle{background:#000;overflow:hidden}
