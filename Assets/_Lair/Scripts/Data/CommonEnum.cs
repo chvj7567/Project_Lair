@@ -150,6 +150,13 @@ namespace Lair.Data
         TimeStopShield,    //# TimeStopAura 가 5초 부착 동안 영웅 위치에 스폰, OnDetached 시 풀 반환
         //# Fear 카드 적용 순간 영웅 위에 띄우는 스컬 FX (2026-06-05) — 맨 끝 추가(int 직렬화 정합).
         FearSkull,         //# FearEffect 적용 시 1회성 스폰, ReturnToPoolAfter 가 자동 풀 반환
+        //# 스테이지 규칙 FX 6종 (chapter-system §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스에서 제작(append-only).
+        StageSpringFx,      //# 성수 샘 개방 링
+        StageFogFx,         //# 짙은 안개 오버레이
+        StageSealChainFx,   //# 봉인된 둥지 사슬
+        StageBulwarkFx,     //# 수호 결계 링
+        StageArrowRainFx,   //# 화살비 예고/낙하
+        StageTrapFx,        //# 사냥꾼의 덫
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).

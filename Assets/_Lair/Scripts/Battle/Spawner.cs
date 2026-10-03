@@ -33,6 +33,9 @@ namespace Lair.Battle
         //# 첫 스폰 지연(초) — 0 이면 첫 Tick 즉시. 전투 시작 시 BattleController 가 1회 주입(scene-2d-conversion §7.8).
         private float _firstSpawnDelay;
 
+        //# 스테이지 규칙(SealedNest) 봉인 — true 면 주기 타이머가 진행하지 않고 스폰하지 않는다. 카드 즉시 소환 경로는 무관.
+        private bool _locked;
+
         private ISpawnerHost _host;
         //# (no-op) Bind 시 주입되나 스폰 위치 산정엔 미사용 — 스폰 위치는 _spawnPoint → transform.position.
         //# Bind(host, zone) 시그니처 보존을 위해 필드만 유지.
@@ -85,6 +88,7 @@ namespace Lair.Battle
             _timer = 0f;
             _firstSpawnDone = false;
             _firstSpawnDelay = 0f;
+            _locked = false;
             //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerAltar2D 가 초기 색상 수신.
             OnOutputTypeChanged?.Invoke(_currentType);
         }
@@ -102,6 +106,7 @@ namespace Lair.Battle
         public void Tick(float dt)
         {
             if (_host == null) return;
+            if (_locked) return;
             _timer += dt;
 
             if (_firstSpawnDone == false)
@@ -126,6 +131,25 @@ namespace Lair.Battle
             //# 스폰 위치 — 각 스포너 자기 위치 우선: _spawnPoint > transform.position (zone 픽 미사용).
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
             _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
+        }
+
+        //# 봉인 여부 — 스테이지 규칙(SealedNest) 전용.
+        public bool IsLocked => _locked;
+
+        //# 주기 스폰 봉인 — 타이머 정지(진행 중이던 값은 보존).
+        public void Lock()
+        {
+            _locked = true;
+        }
+
+        //# 봉인 해제 — 타이머를 한 주기 가득 채워 다음 Tick 에 즉시 1회 스폰(기획서 §3.4 해제 버스트).
+        public void Unlock()
+        {
+            if (_locked == false)
+                return;
+            _locked = false;
+            _firstSpawnDone = true;
+            _timer = _spawnPeriod;
         }
 
         //# 첫 스폰 지연 주입(초) — 음수는 0. 지연 중 Progress·RemainingSeconds 는 지연 기준.

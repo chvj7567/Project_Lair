@@ -57,6 +57,10 @@ namespace Lair.Battle
         private Health _heroHealth;
         //# 챕터/스테이지/영웅 직업 데이터 — Start 에서 1회 확보. null 이면 영웅 스탯 데이터 경로 skip.
         private ChapterDatabase _chapters;
+        //# 스테이지 규칙(chapter-system §3) — 규칙이 있는 스테이지에서만 러너 생성. 없으면 null(기존 동작 불변).
+        private StageRuleRunner _ruleRunner;
+        //# 짙은 안개 사거리 규칙 — 비활성이면 ApplyMonsterStats 가 사거리를 그대로 통과시킨다.
+        private readonly MonsterRangeModifier _rangeModifier = new MonsterRangeModifier();
 
         //# 상태 아이콘 — ECardId→Sprite 해석 dict. HUD 에 reference 주입 후 카드 풀 로드 시점에 populate.
         //# 인스턴스 1회 생성·재할당 금지 — HUD 가 stale empty reference 를 들지 않도록(주입은 reference).
@@ -156,6 +160,9 @@ namespace Lair.Battle
                 return;
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
+            //# 스테이지 규칙 — 첫 스포너 Tick 전에 활성해야 봉인이 첫 스폰보다 앞선다(Start 의 이후 await 중 Update 가 돈다).
+            if (SetupStageRules() == false)
+                return;
 
             //# v0.2 메타 — 상점 영구 업그레이드를 전투 시작 배율로 적용 (BindSpawners 의 base 주기 주입 뒤, 첫 스폰 전).
             ApplyMetaBonuses();
@@ -235,6 +242,11 @@ namespace Lair.Battle
             _clock = new BattleClock(_model.TotalSeconds);
             _clock.OnTick   += _vm.UpdateTimer;
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
+            //# 스테이지 규칙 갱신은 BattleClock 틱 — 카드 선택 일시정지 중엔 dt=0 이라 러너가 활성·갱신을 미룬다.
+            if (_ruleRunner != null)
+            {
+                _clock.OnTick += _ruleRunner.Tick;
+            }
             //# 폴백 분기(zone 미할당)는 즉시 시작.
             if (_zone == null)
             {
@@ -360,8 +372,52 @@ namespace Lair.Battle
             {
                 _skillRunner.OnSkillUnlocked -= HandleSkillUnlocked;
             }
+            _ruleRunner?.Shutdown();
             _vm?.DetachSpawners();
             TeardownHeroAuraEvents();
+        }
+
+        //# 스테이지 규칙 러너 구성·시작 — Stage_Rule 이 없으면(1-1 등) 아무것도 만들지 않는다. 실패 시 false(전투 진입 중단).
+        private bool SetupStageRules()
+        {
+            if (_chapters == null || _heroHealth == null || _hero == null)
+                return true;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            IReadOnlyList<StageRuleData> rules = _chapters.GetRules(
+                StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage));
+            if (rules.Count == 0)
+                return true;
+
+            try
+            {
+                StageRuleContext ctx = new StageRuleContext(
+                    _heroHealth, _hero.transform, _spawners, _zone, _rangeModifier, ReapplyAllMonsterStats,
+                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider);
+                _ruleRunner = new StageRuleRunner(ctx, _heroHealth, rules);
+                _ruleRunner.Start();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[BattleController] 스테이지 규칙 구성 실패 — 전투 진입 중단: {e}");
+                _ruleRunner = null;
+                return false;
+            }
+            return true;
+        }
+
+        //# 사거리 규칙 변경 시 필드 몬스터 전원에 소급 — RegisterMonsterTypeBuff 와 같은 resetCurrent:false(현재 HP 보존).
+        private void ReapplyAllMonsterStats()
+        {
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null)
+                    continue;
+                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
+                if (tag == null)
+                    continue;
+                ApplyMonsterStats(e.Transform.gameObject, tag.Key, resetCurrent: false);
+            }
         }
 
         //# 상태 아이콘 — 영웅 HeroAuraRunner 이벤트를 VM 으로 forward 구독.
@@ -466,8 +522,9 @@ namespace Lair.Battle
             MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null)
             {
+                //# 사거리 = raw x 카드 배율, 그 뒤 마지막으로 스테이지 규칙(짙은 안개) — 규칙 비활성이면 값 불변.
                 attacker.Configure(
-                    raw.Range * mul.RangeMul,
+                    _rangeModifier.Apply(raw.Range * mul.RangeMul),
                     Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
                     Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
             }
@@ -1005,6 +1062,8 @@ namespace Lair.Battle
             if (_model.Result != BattleResult.None)
                 return;   //# 중복 방지
             _clock.Stop();
+            //# 스테이지 규칙 전원 비활성 — 부수효과 원복 + FX 풀 반환(E-6). 결과 확정(_vm.EndBattle) 전 동기 실행.
+            _ruleRunner?.Shutdown();
 
             //# Slice C — 한 판 결과 기록 (생존 몬스터 수 집계)
             int aliveMonsters = 0;
