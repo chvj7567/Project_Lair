@@ -148,11 +148,11 @@ namespace Lair.Data
         {
             foreach (HeroArchetypeRow row in rows)
             {
-                if (Enum.TryParse(row.heroId, out EHero _) == false)
+                if (IsEnumName<EHero>(row.heroId) == false)
                 {
                     errors.Add($"HeroArchetype.heroId 가 EHero 에 없음: {row.heroId}");
                 }
-                if (Enum.TryParse(row.aiType, out EHeroAi _) == false)
+                if (IsEnumName<EHeroAi>(row.aiType) == false)
                 {
                     errors.Add($"HeroArchetype[{row.heroId}].aiType 가 EHeroAi 에 없음: {row.aiType}");
                 }
@@ -212,7 +212,7 @@ namespace Lair.Data
                 {
                     errors.Add($"Chapter[{row.chapterId}].heroId 가 HeroArchetype 에 없음: {row.heroId}");
                 }
-                if (Enum.TryParse(row.backdropKey, out EBackdrop _) == false)
+                if (IsEnumName<EBackdrop>(row.backdropKey) == false)
                 {
                     errors.Add($"Chapter[{row.chapterId}].backdropKey 가 EBackdrop 에 없음: {row.backdropKey}");
                 }
@@ -287,7 +287,7 @@ namespace Lair.Data
                     errors.Add($"Stage_Rule 복합키 중복: {row.chapterId}-{row.stageIndex}-{row.ruleIndex}");
                     continue;
                 }
-                if (Enum.TryParse(row.ruleId, out EStageRule _) == false)
+                if (IsEnumName<EStageRule>(row.ruleId) == false)
                 {
                     errors.Add($"Stage_Rule[{row.chapterId}-{row.stageIndex}-{row.ruleIndex}].ruleId 가 EStageRule 에 없음: {row.ruleId}");
                     continue;
@@ -382,6 +382,12 @@ namespace Lair.Data
                     errors.Add($"Stage_Rule_Param[{label}] 허용되지 않은 추가 키: {key}");
                 }
             }
+        }
+
+        //# 값명 문자열만 허용 — Enum.TryParse 는 "1" 같은 숫자 문자열도 통과시키므로 IsDefined 를 함께 건다.
+        private static bool IsEnumName<T>(string name) where T : struct, Enum
+        {
+            return Enum.TryParse(name, out T parsed) && Enum.IsDefined(typeof(T), parsed) && parsed.ToString() == name;
         }
 
         private static bool MatchesAny(float value, float[] candidates)

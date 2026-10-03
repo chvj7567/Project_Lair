@@ -86,6 +86,16 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 챕터_heroId가_숫자_문자열이면_로드_오류다()
+        {
+            ChapterRow[] chapters = Load<ChapterRow>("Chapter");
+            chapters[0].heroId = "0";
+
+            ChapterDataException e = Assert.Throws<ChapterDataException>(() => BuildFrom(chapters: chapters));
+            StringAssert.Contains("heroId", e.Message);
+        }
+
+        [Test]
         public void 규칙_파라미터_필수키가_누락되면_로드_오류다()
         {
             Stage_Rule_ParamRow[] ruleParams = Load<Stage_Rule_ParamRow>("Stage_Rule_Param")

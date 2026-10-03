@@ -182,14 +182,17 @@ namespace Lair.UI
             return $"총 출격  {profile.TotalRuns}\n승리  {profile.TotalWins}\n승률  {winRate}%\n최단 클리어  {bestClear}";
         }
 
-        //# 스테이지 1~MaxStage 행(선형 번호) — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
+        //# 기록 행 상한 — 월드맵(슬라이스 c) 전까지 챕터 1(5행)만 노출. (c) 에서 StageProgress.MaxStage 로 바꿔 푼다.
+        public static int VisibleStageCount => StageProgress.StagesPerChapter;
+
+        //# 스테이지 1~VisibleStageCount 행(선형 번호) — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
         public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
         {
             List<RecordsStageCellData> list = new List<RecordsStageCellData>();
             int cleared = profile != null ? profile.ClearedStage : 0;
             int selected = profile != null ? profile.SelectedStage : 0;
 
-            for (int stage = 1; stage <= StageProgress.MaxStage; ++stage)
+            for (int stage = 1; stage <= VisibleStageCount; ++stage)
             {
                 //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼.
                 bool unlocked = StageProgress.IsUnlocked(stage, cleared);

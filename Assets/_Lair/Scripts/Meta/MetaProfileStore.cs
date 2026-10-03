@@ -32,7 +32,8 @@ namespace Lair.Meta
                 if (profile == null)
                     return new MetaProfile();
 
-                //# 구버전(v4 이하) 세이브 → v5 마이그레이션 (chapter-system §2.2). 디스크에는 다음 Save 때 반영.
+                //# 구버전(v4 이하) → v5 마이그레이션 (chapter-system §2.2), 디스크엔 다음 Save 때 반영.
+                //# ChapterDatabase.Current 가 null 이면 5단계(SelectedHero 재설정)만 건너뛰고 Version 은 5 가 된다.
                 if (profile.Version < MetaProfileMigration.CurrentVersion)
                 {
                     MetaProfileMigration.Apply(profile, ChapterDatabase.Current);

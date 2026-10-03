@@ -1,21 +1,20 @@
 using System.Collections.Generic;
-using Lair.Battle;
 using Lair.Meta;
 using Lair.UI;
 using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
 {
-    //# 기록 팝업 스테이지 행 조립 — 항상 MaxStage(10)행 / 잠금 판정 / 승률 / 최단 표기 (spec §6.3).
+    //# 기록 팝업 스테이지 행 조립 — 항상 VisibleStageCount(월드맵 전 5)행 / 잠금 판정 / 승률 / 최단 표기 (spec §6.3).
     public class RecordsStageRowTests
     {
         [Test]
-        public void 항상_스테이지_1부터_MaxStage까지_행이_나온다()
+        public void 항상_스테이지_1부터_VisibleStageCount까지_행이_나온다()
         {
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null);
 
-            Assert.AreEqual(StageProgress.MaxStage, rows.Count);
-            for (int i = 0; i < StageProgress.MaxStage; ++i)
+            Assert.AreEqual(RecordsPopup.VisibleStageCount, rows.Count);
+            for (int i = 0; i < RecordsPopup.VisibleStageCount; ++i)
             {
                 Assert.AreEqual(i + 1, rows[i].Stage);
             }
@@ -173,7 +172,7 @@ namespace Lair.Tests.EditMode
         {
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(null, null);
 
-            Assert.AreEqual(StageProgress.MaxStage, rows.Count);
+            Assert.AreEqual(RecordsPopup.VisibleStageCount, rows.Count);
             Assert.IsFalse(rows[0].IsLocked);
             Assert.IsTrue(rows[1].IsLocked);
         }

@@ -151,7 +151,9 @@ namespace Lair.Battle
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
-            await SpawnHero();
+            bool heroSpawned = await SpawnHero();
+            if (heroSpawned == false)
+                return;
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
 
@@ -492,27 +494,30 @@ namespace Lair.Battle
             }
         }
 
-        private async Task SpawnHero()
+        //# 영웅 스폰 — 챕터 데이터/직업/스테이지 조회나 프리팹 로드에 실패하면 false(전투 진입 중단). 조용한 폴백 금지(chapter-system E-11).
+        private async Task<bool> SpawnHero()
         {
-            //# 챕터 영웅 직업 — 선택 스테이지가 속한 챕터의 heroId (chapter-system §7.4). 데이터 미로드면 기사.
+            //# 챕터 영웅 직업·스테이지 — 선택 스테이지가 속한 챕터 기준 (chapter-system §7.4).
             MetaProfile stageProfile = MetaSession.GetOrLoad();
             HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(stageProfile.SelectedStage) : null;
-            EHero heroKey = EHero.Knight;
-            if (archetype != null && System.Enum.TryParse(archetype.heroId, out EHero parsedHero))
+            StageRow stageRow = _chapters != null ? _chapters.GetStageByLinear(stageProfile.SelectedStage) : null;
+            if (archetype == null || stageRow == null || System.Enum.TryParse(archetype.heroId, out EHero heroKey) == false
+                || System.Enum.IsDefined(typeof(EHero), heroKey) == false)
             {
-                heroKey = parsedHero;
+                Debug.LogError($"[BattleController] 챕터 데이터에서 스테이지 {stageProfile.SelectedStage} 의 영웅/스테이지를 찾지 못함 — 전투 진입 중단");
+                return false;
             }
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
-                Debug.LogError($"[BattleController] {heroKey} 프리팹 로드 실패");
-                return;
+                Debug.LogError($"[BattleController] {heroKey} 프리팹 로드 실패 — 전투 진입 중단");
+                return false;
             }
 
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null)
-                return;
+                return false;
             //# 우선순위 — BattleZone.HeroEntryPoint > _heroSpawn > Vector3.zero.
             Vector3 spawnPos;
             if (_zone != null && _zone.HeroEntryPoint != null)
@@ -539,15 +544,7 @@ namespace Lair.Battle
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
             if (_balance != null && _balance.Hero != null)
             {
-                StageRow stageRow = _chapters != null ? _chapters.GetStageByLinear(stageProfile.SelectedStage) : null;
-                if (archetype != null && stageRow != null)
-                {
-                    ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow));
-                }
-                else
-                {
-                    Debug.LogError($"[BattleController] 챕터 데이터에서 스테이지 {stageProfile.SelectedStage} 를 찾지 못함 — 영웅 프리팹 기본 스탯으로 진행");
-                }
+                ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow));
                 //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
             }
@@ -610,6 +607,7 @@ namespace Lair.Battle
                 _ = EnableHeroAIAfterDelay(3f);
                 _spawnersActive = true;   //# zone 미할당 시 즉시 spawner 활성
             }
+            return true;
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.
