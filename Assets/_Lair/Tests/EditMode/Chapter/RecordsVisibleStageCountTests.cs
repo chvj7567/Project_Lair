@@ -57,7 +57,8 @@ namespace Lair.Tests.EditMode
 
             Assert.IsTrue(rows[5].IsLocked);
             Assert.AreEqual("1장 보스 클리어 필요", rows[5].LockHintText);
-            Assert.AreEqual("스테이지 2-2 클리어 필요", RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 5 }, null, Text)[6].LockHintText);
+            //# rows[6] = 2-2 → 직전 스테이지 2-1 안내(기획서 §6.4: 인덱스 > 1 이면 {챕터}-{인덱스-1}).
+            Assert.AreEqual("스테이지 2-1 클리어 필요", RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 5 }, null, Text)[6].LockHintText);
         }
 
         [Test]

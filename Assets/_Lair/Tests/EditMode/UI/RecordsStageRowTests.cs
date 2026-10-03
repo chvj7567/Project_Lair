@@ -47,7 +47,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 전부_클리어면_잠긴_행이_없다()
         {
-            MetaProfile p = new MetaProfile { ClearedStage = 5 };
+            //# 행은 선형 전체(MaxStage=10)라 "전부 클리어" = ClearedStage 가 MaxStage.
+            MetaProfile p = new MetaProfile { ClearedStage = StageProgress.MaxStage };
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
