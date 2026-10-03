@@ -34,6 +34,26 @@ namespace Lair.Character
         Vector3 MonsterCentroid(float radius);
     }
 
+    //# 궁수 스킬 3종이 추가로 쓰는 월드 기능 (chapter-system §5.4). 기존 IHeroSkillContext 소비자·테스트 더블을 깨지 않으려 확장 인터페이스로 분리.
+    //# 실구현 HeroSkillContext 가 둘 다 구현 — 스킬 런타임은 ctx as IArcherSkillContext 로 확인(없으면 LogError 후 보류).
+    public interface IArcherSkillContext : IHeroSkillContext
+    {
+        //# 영웅에서 direction 방향 직사각(길이 length, 반폭 halfWidth) 안 살아있는 교전 몬스터 전원에 amount 데미지(+넉백). 피격 수 반환.
+        int DamageMonstersInLine(Vector3 direction, float length, float halfWidth, int amount, float knockbackStrength);
+
+        //# 영웅 중심 searchRadius 안에서 clusterRadius 안에 몬스터가 가장 많이 모인 지점. 없으면 false.
+        bool TryFindMonsterDensePoint(float searchRadius, float clusterRadius, out Vector3 point);
+
+        //# 영웅 중심 radius 안 살아있는 교전 몬스터 수.
+        int CountMonstersInRadius(float radius);
+
+        //# 도약 목적지 등을 전장(카이팅 아레나 소프트 반경) 안으로 클램프.
+        Vector3 ClampToArena(Vector3 position);
+
+        //# 회피 도약 — duration 동안 destination 으로 이동하고 그 동안 AI 이동 명령을 잠근다(이동 소유권은 스킬 쪽).
+        void BeginLeap(Vector3 destination, float duration);
+    }
+
     //# 활성화된 스킬 1개의 가변 상태(쿨다운 타이머·궤도 각도). HeroSkillData.CreateRuntime() 이 생성.
     public interface IHeroSkillRuntime
     {

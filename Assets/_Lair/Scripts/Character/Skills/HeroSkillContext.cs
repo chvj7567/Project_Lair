@@ -4,12 +4,15 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# IHeroSkillContext 실구현 — CharacterRegistry.Monsters(살아있음+교전)를 SkillGeometry 로 필터링해 데미지/넉백.
-    public class HeroSkillContext : IHeroSkillContext
+    public class HeroSkillContext : IArcherSkillContext
     {
         private readonly Transform _hero;
 
         //# 영웅 공격 배율 소스 — 스킬 데미지에 PowerScale 을 입혀 근접과 일관. 생성자 1회 캐싱.
         private readonly IAttacker _heroAttacker;
+
+        //# 회피 도약 이동 소유자 — 영웅 AutoCombatAI(없으면 위치를 직접 옮긴다). 생성자 1회 캐싱(Rule 02 §5).
+        private readonly AutoCombatAI _heroAi;
 
         //# 타겟 스냅샷 재사용 버퍼 — 데미지로 몬스터 사망 시 Monsters 리스트가 수정되므로
         //# 열거(수집)와 변형(데미지/넉백)을 분리한다. 메인스레드 전용 → 재진입 없음.
@@ -19,6 +22,7 @@ namespace Lair.Character
         {
             _hero = hero;
             _heroAttacker = _hero != null ? _hero.GetComponent<LairCharacter>()?.Get<IAttacker>() : null;
+            _heroAi = _hero != null ? _hero.GetComponent<AutoCombatAI>() : null;
         }
 
         public Vector3 HeroPosition => _hero != null ? _hero.position : Vector3.zero;
@@ -79,6 +83,94 @@ namespace Lair.Character
                     return true;
             }
             return false;
+        }
+
+        public int DamageMonstersInLine(Vector3 direction, float length, float halfWidth, int amount, float knockbackStrength)
+        {
+            Vector3 origin = HeroPosition;
+            _buffer.Clear();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (Valid(e) == false)
+                    continue;
+                if (SkillGeometry.InLine(e.Transform.position, origin, direction, length, halfWidth) == false)
+                    continue;
+                _buffer.Add(e);
+            }
+            return ApplyAll(origin, amount, knockbackStrength);
+        }
+
+        public bool TryFindMonsterDensePoint(float searchRadius, float clusterRadius, out Vector3 point)
+        {
+            Vector3 origin = HeroPosition;
+            _buffer.Clear();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (Valid(e) && SkillGeometry.InSphere(e.Transform.position, origin, searchRadius))
+                {
+                    _buffer.Add(e);
+                }
+            }
+
+            point = origin;
+            int bestCount = 0;
+            float bestOriginDist = float.MaxValue;
+            for (int i = 0; i < _buffer.Count; ++i)
+            {
+                Vector3 candidate = _buffer[i].Transform.position;
+                int count = 0;
+                Vector3 sum = Vector3.zero;
+                for (int j = 0; j < _buffer.Count; ++j)
+                {
+                    Vector3 other = _buffer[j].Transform.position;
+                    if (SkillGeometry.InSphere(other, candidate, clusterRadius))
+                    {
+                        ++count;
+                        sum += other;
+                    }
+                }
+                //# 밀집도 우선, 동률이면 영웅에 가까운 지점.
+                float originDist = (candidate - origin).sqrMagnitude;
+                if (count > bestCount || (count == bestCount && originDist < bestOriginDist))
+                {
+                    bestCount = count;
+                    bestOriginDist = originDist;
+                    point = sum / count;
+                }
+            }
+            return bestCount > 0;
+        }
+
+        public int CountMonstersInRadius(float radius)
+        {
+            Vector3 origin = HeroPosition;
+            int count = 0;
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (Valid(e) && SkillGeometry.InSphere(e.Transform.position, origin, radius))
+                {
+                    ++count;
+                }
+            }
+            return count;
+        }
+
+        public Vector3 ClampToArena(Vector3 position)
+        {
+            float radius = _heroAi != null ? _heroAi.KiteArenaSoftRadius : 0f;
+            return KiteBehavior.ClampToRadius(position, radius);
+        }
+
+        public void BeginLeap(Vector3 destination, float duration)
+        {
+            if (_heroAi != null)
+            {
+                _heroAi.BeginLeap(destination, duration);
+            }
+            else if (_hero != null)
+            {
+                _hero.position = destination;
+            }
         }
 
         public Vector3 MonsterCentroid(float radius)

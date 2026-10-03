@@ -613,6 +613,18 @@ namespace Lair.Battle
                 return false;
             }
 
+            //# Kiter 영웅은 카이팅 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단(E-11 취지).
+            HeroArchetype_KiteRow kiteRow = null;
+            if (archetype.aiType == EHeroAi.Kiter.ToString())
+            {
+                kiteRow = _chapters.GetKite(archetype.heroId);
+                if (kiteRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 카이팅 설정(HeroArchetype_Kite) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
@@ -653,6 +665,17 @@ namespace Lair.Battle
                 //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
             }
+            //# 카이팅(Kiter) 영웅 AI 설정 주입 — 기사(Melee)는 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (kiteRow != null)
+            {
+                AutoCombatAI heroAi = p.GetComponent<AutoCombatAI>();
+                if (heroAi == null)
+                {
+                    Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — 카이팅 설정 불가, 전투 진입 중단");
+                    return false;
+                }
+                heroAi.ConfigureKite(KiteSettings.From(kiteRow));
+            }
             if (_heroHealth != null)
             {
                 _heroHealth.OnChanged += _vm.UpdateHeroHp;
@@ -667,7 +690,7 @@ namespace Lair.Battle
             if (skillRunner != null)
             {
                 _skillRunner = skillRunner;
-                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(EData.HeroSkillLoadout);
+                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(LoadoutKeyOf(heroKey));
                 if (loadout != null)
                 {
                     skillRunner.Bind(loadout);
@@ -713,6 +736,12 @@ namespace Lair.Battle
                 _spawnersActive = true;   //# zone 미할당 시 즉시 spawner 활성
             }
             return true;
+        }
+
+        //# 영웅별 스킬 로드아웃 SO 키 — 기사는 기존 HeroSkillLoadout, 궁수는 HeroSkillLoadout_Archer (chapter-system §1.4).
+        private static EData LoadoutKeyOf(EHero hero)
+        {
+            return hero == EHero.Archer ? EData.HeroSkillLoadout_Archer : EData.HeroSkillLoadout;
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.

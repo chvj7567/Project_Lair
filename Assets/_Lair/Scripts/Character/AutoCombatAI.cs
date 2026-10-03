@@ -65,6 +65,37 @@ namespace Lair.Character
         private Transform _currentTarget;
         private IHealth _currentTargetHealth;
 
+        //# 카이팅(궁수, chapter-system §5.3) — Kiter 영웅만 ConfigureKite 로 생성. null 이면 기사/몬스터 경로(코드 동작 불변).
+        private KiteBehavior _kite;
+        private INearestThreatProvider _threatProbe;
+
+        //# 회피 도약 이동 소유권(§5.3 #7) — 도약 중엔 AI 가 이동 명령을 내리지 않고 이 보간이 위치를 쥔다.
+        private float _leapRemain;
+        private float _leapDuration;
+        private Vector3 _leapStart;
+        private Vector3 _leapDestination;
+
+        public bool IsLeaping => _leapRemain > 0f;
+
+        //# 카이팅 아레나 소프트 반경 — 회피 도약 목적지 클램프용. 카이팅 미구성(기사)이면 0(제한 없음).
+        public float KiteArenaSoftRadius => _kite != null ? _kite.Settings.ArenaSoftRadius : 0f;
+
+        //# BattleController 가 aiType == Kiter 영웅에 HeroArchetype_Kite 설정을 주입. 풀 재사용 시 OnEnable 이 상태만 리셋.
+        public void ConfigureKite(KiteSettings settings)
+        {
+            _kite = new KiteBehavior(settings);
+        }
+
+        //# 회피 도약 시작 — duration 동안 현재 위치에서 destination 으로 선형 이동, 그동안 AI 이동 명령 중단.
+        public void BeginLeap(Vector3 destination, float duration)
+        {
+            _leapStart = transform.position;
+            _leapDestination = destination;
+            _leapDuration = Mathf.Max(0.01f, duration);
+            _leapRemain = _leapDuration;
+            _mover?.Stop();
+        }
+
         private void Awake()
         {
             LairCharacter character = GetComponent<LairCharacter>();
@@ -74,6 +105,7 @@ namespace Lair.Character
             _targetProvider = character.Get<ITargetProvider>();
             _rotator = character.Get<IRotator>();
             _attackGate = character.Get<IAttackGate>();   //# null=몬스터(보류 로직 미적용)
+            _threatProbe = character.Get<INearestThreatProvider>();   //# null=기사·몬스터(카이팅 미사용)
         }
 
         //# 풀 재사용 시 도주 상태 잔존 방지 + 초기 방향 스냅.
@@ -90,6 +122,9 @@ namespace Lair.Character
             //# 풀 재사용 시 이전 고정 타겟 잔존 방지(영웅 한정 히스테리시스).
             _currentTarget = null;
             _currentTargetHealth = null;
+            //# 카이팅 상태·도약 잔존 방지(Kiter 한정, 기사는 _kite null).
+            _kite?.Reset();
+            _leapRemain = 0f;
             //# 스폰 게이트 — 영웅(DeferStrike)만 닫고 시작. 몬스터는 게이트 검사 자체를 건너뛰므로 무관.
             _spawnGateOpen = false;
             _enabledTime = Time.time;
@@ -119,6 +154,12 @@ namespace Lair.Character
             if (_health == null || _health.IsAlive == false)
             {
                 _mover?.Stop();
+                return;
+            }
+            //# 회피 도약 중 — 이동 소유권은 도약 보간(§5.3 #7). 기사/몬스터는 _leapRemain 이 항상 0 이라 통과.
+            if (_leapRemain > 0f)
+            {
+                TickLeap();
                 return;
             }
             if (_targetProvider == null) return;
@@ -237,6 +278,13 @@ namespace Lair.Character
                 }
             }
 
+            //# 카이팅(Kiter 영웅 한정) — 공포(FleeMode)·중앙 끌림(프리팹 플래그 off) 뒤, 일반 교전/이동 앞(§5.3 #1). 기사는 _kite null 이라 아래 경로 그대로.
+            if (_kite != null)
+            {
+                UpdateKite(t, th);
+                return;
+            }
+
             float dist = Vector3.Distance(transform.position, t.position);
             float range = _attacker.Range;
 
@@ -278,6 +326,94 @@ namespace Lair.Character
                 //# Moving — 이동 목표(=타겟) 방향. 즉시 스냅(AttackAligned 위임) — 히스테리시스가 등거리 깜빡임 흡수(기획서 §2).
                 _rotator?.FaceDirection(t.position - transform.position);
                 _mover.MoveTo(t.position);
+            }
+        }
+
+        //# 도약 보간 — Time.deltaTime 기반(일시정지 중 정지). 끝나면 소유권 반환.
+        private void TickLeap()
+        {
+            _leapRemain -= Time.deltaTime;
+            float progress = 1f - Mathf.Clamp01(_leapRemain / _leapDuration);
+            Vector3 position = Vector3.Lerp(_leapStart, _leapDestination, progress);
+            position.y = transform.position.y;
+            transform.position = position;
+            _mover?.Stop();
+        }
+
+        //# 카이팅 한 프레임 — 월드 입력을 수집해 KiteBehavior 에 넘기고 상태별 이동·사격을 수행(로직은 KiteBehavior).
+        private void UpdateKite(Transform target, IHealth targetHealth)
+        {
+            Vector3 position = transform.position;
+            KiteInput input = new KiteInput
+            {
+                Position = position,
+                TargetDist = Vector3.Distance(position, target.position),
+                Range = _attacker.Range,
+                EngageBuffer = _engageBuffer,
+            };
+
+            Transform nearest = null;
+            IHealth nearestHealth = null;
+            if (_threatProbe != null && _threatProbe.TryFindNearestThreat(position, out nearest, out nearestHealth))
+            {
+                input.HasThreat = true;
+                input.NearestThreatPos = nearest.position;
+                input.NearestThreatDist = Vector3.Distance(position, nearest.position);
+            }
+            if (_targetProvider.TryGetFleeCentroid(position, _kite.Settings.ThreatRadius, out Vector3 centroid, out int count) && count > 0)
+            {
+                input.HasCentroid = true;
+                input.ThreatCentroid = centroid;
+            }
+
+            _kite.Update(Time.time, input);
+
+            switch (_kite.State)
+            {
+                case EKiteState.Approach:
+                    _engaged = false;
+                    _rotator?.FaceDirection(target.position - position);
+                    _mover.MoveTo(target.position);
+                    break;
+
+                case EKiteState.Engage:
+                    _engaged = true;
+                    _rotator?.FaceDirection(target.position - position, FacingMode.AttackAligned);
+                    _mover.Stop();
+                    TryKiteAttack(targetHealth, target, position);
+                    break;
+
+                case EKiteState.Retreat:
+                    //# 뒷걸음 — 시선은 가장 가까운 몬스터, 이동은 위협 반대. 사격 억제.
+                    if (nearest != null)
+                    {
+                        _rotator?.FaceDirection(nearest.position - position);
+                    }
+                    _mover.MoveTo(position + _kite.RetreatDirection * 5f);
+                    break;
+
+                default:
+                    //# 갇힘 — 후퇴 중단, 가장 가까운 몬스터에게 사격 허용.
+                    _mover.Stop();
+                    if (nearest != null)
+                    {
+                        _rotator?.FaceDirection(nearest.position - position, FacingMode.AttackAligned);
+                        TryKiteAttack(nearestHealth, nearest, position);
+                    }
+                    break;
+            }
+        }
+
+        //# 영웅 흐름 역전(DeferStrike) 개시 판정 — 기존 경로와 같은 호출. 사거리·쿨다운은 TryBeginAttack 이 검사.
+        private void TryKiteAttack(IHealth health, Transform target, Vector3 position)
+        {
+            if (_attacker.DeferStrike == false)
+            {
+                _attacker.TryAttack(health, position, target.position, Time.time);
+            }
+            else if (_attacker.TryBeginAttack(health, position, target.position, Time.time))
+            {
+                _attackGate?.BeginAttack();
             }
         }
 

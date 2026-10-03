@@ -43,6 +43,10 @@ namespace Lair.Character
         public static bool TryFindNearestMonster(Vector3 from, out Transform t, out IHealth h)
             => TryFindNearest(Monsters, from, out t, out h, requireEngaging: true);
 
+        //# 카이팅 전용 — Engaging 토글 무관, 살아있는 가장 가까운 몬스터.
+        public static bool TryFindNearestMonsterAny(Vector3 from, out Transform t, out IHealth h)
+            => TryFindNearest(Monsters, from, out t, out h, requireEngaging: false);
+
         //# 영웅 전용 — 선호 사분면(preferDirH AND preferDirV 둘 다 양의 방향)에 후보가 있으면 그중 최근접,
         //# 없으면 전체 최근접으로 폴백. 방향 벡터가 zero 면 해당 축 선호 없음 → 사실상 전체 최근접(카메라 null 안전).
         //# 카메라 viewport 판정은 HeroTargetProvider 가 수행해 월드 방향으로 변환 후 전달(레지스트리는 카메라 비의존).

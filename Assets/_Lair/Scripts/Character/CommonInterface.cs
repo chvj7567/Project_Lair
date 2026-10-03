@@ -111,6 +111,13 @@ namespace Lair.Character
         bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count);
     }
 
+    //# 카이팅(궁수) 전용 — 교전 토글 무관, 살아있는 가장 가까운 몬스터 조회. 영웅 타깃 제공자만 구현(기사·몬스터는 미사용).
+    //# ITargetProvider 에 메서드를 더하지 않으려 분리(기존 구현체·테스트 더블 무영향).
+    public interface INearestThreatProvider
+    {
+        bool TryFindNearestThreat(Vector3 from, out Transform target, out IHealth health);
+    }
+
     //# ===== 회전 =====
 
     //# Y축(yaw) 회전 추상. AutoCombatAI 가 상태별로 FaceDirection 호출.

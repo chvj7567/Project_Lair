@@ -113,6 +113,7 @@ namespace Lair.Data
         Stage_Rule_Trigger,
         HeroArchetype,
         HeroArchetype_Kite,
+        HeroSkillLoadout_Archer,   //# 궁수 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Archer.asset (chapter-system §1.4)
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
@@ -159,6 +160,11 @@ namespace Lair.Data
         StageBulwarkFx,     //# 수호 결계 링
         StageArrowRainFx,   //# 화살비 예고/낙하
         StageTrapFx,        //# 사냥꾼의 덫
+        //# 궁수 FX 4종 (chapter-system §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스(d2)에서 제작(append-only).
+        ArcherArrowFx,         //# 궁수 기본 공격 화살 궤적(시각 전용, 판정 없음)
+        HeroPiercingShotFx,    //# 관통 사격 직선
+        HeroArrowVolleyFx,     //# 화살 소나기 낙하 지점
+        HeroEvadeFx,           //# 회피 도약 폭발
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
