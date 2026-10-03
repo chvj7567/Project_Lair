@@ -285,13 +285,33 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void DTO_역직렬화는_fileName을_SO_이름으로_채우지_않고_Import가_JObject로_부여한다()
+        {
+            HeroSkillsDto dto = JsonConvert.DeserializeObject<HeroSkillsDto>(Root().ToString(), Settings());
+
+            foreach (HeroSkillData skill in dto.Skills)
+            {
+                Assert.IsTrue(string.IsNullOrEmpty(skill.name), "fileName 은 컨버터가 읽지 않는다(Import 가 별도 처리)");
+            }
+            Assert.IsTrue(File.ReadAllText("Assets/_Lair/Editor/JsonSync/HeroSkillSyncer.cs").Contains("parsed.name = fileName"),
+                "Import 가 fileName 으로 SO 이름을 부여하는 구조 확인");
+            DestroySkills(dto);
+        }
+
+        [Test]
         public void DTO_왕복은_스킬_6종과_로드아웃_6페이즈를_보존한다()
         {
             JObject original = Root();
             HeroSkillsDto dto = JsonConvert.DeserializeObject<HeroSkillsDto>(original.ToString(), Settings());
+            JArray originalSkills = (JArray)original["skills"];
+            //# fileName 은 DTO 역직렬화가 SO 이름으로 채우지 않는다 — HeroSkillSyncer.Import 가 JObject 로 따로 읽어 parsed.name 에 부여한다.
+            //# 왕복 검증도 Import 와 같게 이름을 부여한 뒤 직렬화한다.
+            for (int i = 0; i < dto.Skills.Count; ++i)
+            {
+                dto.Skills[i].name = (string)originalSkills[i]["fileName"];
+            }
             JObject back = JObject.Parse(JsonConvert.SerializeObject(dto, Settings()));
 
-            JArray originalSkills = (JArray)original["skills"];
             JArray backSkills = (JArray)back["skills"];
             Assert.AreEqual(6, originalSkills.Count);
             Assert.AreEqual(originalSkills.Count, backSkills.Count);

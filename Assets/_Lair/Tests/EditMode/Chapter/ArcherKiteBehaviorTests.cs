@@ -40,11 +40,25 @@ namespace Lair.Tests.EditMode
             return kite;
         }
 
+        //# 실제 프레임처럼 ObservationGapSec(0.25) 이하 간격(0.125)으로 Update 한다 - 한 번에 크게 건너뛰면 관찰 구간이 리셋돼 갇힘이 성립하지 않는다.
+        private const float Frame = 0.125f;
+
+        //# from -> to 를 Frame 간격으로 진행. 중간 프레임은 startPos, 마지막 프레임만 endPos 에 있다고 본다(판정은 구간 끝에서만 이동량을 본다).
+        private static void Run(KiteBehavior kite, float from, float to, Vector3 startPos, Vector3 endPos, float nearest = 2f, float target = 5f)
+        {
+            int steps = Mathf.RoundToInt((to - from) / Frame);
+            for (int i = 1; i <= steps; ++i)
+            {
+                Vector3 pos = i == steps ? endPos : startPos;
+                kite.Update(from + i * Frame, In(pos, nearest, target));
+            }
+        }
+
         private static KiteBehavior Cornered()
         {
             KiteBehavior kite = Retreating(0f);
-            kite.Update(0.5f, In(Vector3.zero, 2f, 5f));
-            Assert.AreEqual(EKiteState.Cornered, kite.State, "전제: 갇힘 진입(t=0.5)");
+            Run(kite, 0f, 0.5f, Vector3.zero, Vector3.zero);
+            Assert.AreEqual(EKiteState.Cornered, kite.State, "전제: 갇힘 진입(t=0.5, 프레임 간격 0.125)");
             return kite;
         }
 
@@ -284,9 +298,9 @@ namespace Lair.Tests.EditMode
         public void 갇힘_판정은_관찰_구간_이동이_minMove_미만일_때만이고_경계는_미만이다()
         {
             KiteBehavior atBoundary = Retreating(0f);
-            atBoundary.Update(0.5f, In(new Vector3(0.3f, 0f, 0f), 2f, 5f));
+            Run(atBoundary, 0f, 0.5f, Vector3.zero, new Vector3(0.3f, 0f, 0f));
             KiteBehavior below = Retreating(0f);
-            below.Update(0.5f, In(new Vector3(0.29f, 0f, 0f), 2f, 5f));
+            Run(below, 0f, 0.5f, Vector3.zero, new Vector3(0.29f, 0f, 0f));
 
             Assert.AreEqual(EKiteState.Retreat, atBoundary.State, "이동 0.3 은 갇힘 아님");
             Assert.AreEqual(EKiteState.Cornered, below.State);
@@ -307,9 +321,9 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Retreating(0f);
 
-            kite.Update(0.5f, In(new Vector3(-1f, 0f, 0f), 2f, 5f));
+            Run(kite, 0f, 0.5f, Vector3.zero, new Vector3(-1f, 0f, 0f));
             Assert.AreEqual(EKiteState.Retreat, kite.State);
-            kite.Update(1.0f, In(new Vector3(-1.1f, 0f, 0f), 2f, 5f));
+            Run(kite, 0.5f, 1.0f, new Vector3(-1f, 0f, 0f), new Vector3(-1.1f, 0f, 0f));
 
             Assert.AreEqual(EKiteState.Cornered, kite.State, "두 번째 구간 이동 0.1 < 0.3");
         }
@@ -319,7 +333,7 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Retreating(0f);
 
-            kite.Update(0.5f, In(new Vector3(0f, 5f, 0f), 2f, 5f));
+            Run(kite, 0f, 0.5f, Vector3.zero, new Vector3(0f, 5f, 0f));
 
             Assert.AreEqual(EKiteState.Cornered, kite.State);
         }
@@ -360,7 +374,7 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Cornered();
 
-            kite.Update(1.0f, In(new Vector3(0.3f, 0f, 0f), 2f, 5f));
+            Run(kite, 0.5f, 1.0f, Vector3.zero, new Vector3(0.3f, 0f, 0f));
 
             Assert.AreEqual(EKiteState.Retreat, kite.State);
             Assert.IsFalse(kite.CanShoot);
@@ -371,14 +385,14 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Cornered();
 
-            kite.Update(1.0f, In(new Vector3(0.2f, 0f, 0f), 2f, 5f));
+            Run(kite, 0.5f, 1.0f, Vector3.zero, new Vector3(0.2f, 0f, 0f));
             Assert.AreEqual(EKiteState.Cornered, kite.State);
 
-            //# 진입 지점 기준 누적은 0.4 지만 구간 기준 이동은 0.2 — 구간이 재시작됐으므로 갇힘 유지.
-            kite.Update(1.5f, In(new Vector3(0.4f, 0f, 0f), 2f, 5f));
+            //# 진입 지점 기준 누적은 0.4 지만 구간 기준 이동은 0.2 - 구간이 재시작됐으므로 갇힘 유지.
+            Run(kite, 1.0f, 1.5f, new Vector3(0.2f, 0f, 0f), new Vector3(0.4f, 0f, 0f));
             Assert.AreEqual(EKiteState.Cornered, kite.State);
 
-            kite.Update(2.0f, In(new Vector3(0.8f, 0f, 0f), 2f, 5f));
+            Run(kite, 1.5f, 2.0f, new Vector3(0.4f, 0f, 0f), new Vector3(0.8f, 0f, 0f));
             Assert.AreEqual(EKiteState.Retreat, kite.State, "마지막 구간 이동 0.4");
         }
 
@@ -387,19 +401,19 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Cornered();
 
-            kite.Update(0.8f, In(new Vector3(2f, 0f, 0f), 2f, 5f));
+            Run(kite, 0.5f, 0.75f, Vector3.zero, new Vector3(2f, 0f, 0f));
 
-            Assert.AreEqual(EKiteState.Cornered, kite.State);
+            Assert.AreEqual(EKiteState.Cornered, kite.State, "관찰 0.25초 < 0.5");
         }
 
         [Test]
         public void 재시도한_후퇴도_다시_막히면_다시_갇힘이_되는_순환이_가능하다()
         {
             KiteBehavior kite = Cornered();
-            kite.Update(1.0f, In(new Vector3(0.5f, 0f, 0f), 2f, 5f));
+            Run(kite, 0.5f, 1.0f, Vector3.zero, new Vector3(0.5f, 0f, 0f));
             Assert.AreEqual(EKiteState.Retreat, kite.State);
 
-            kite.Update(1.5f, In(new Vector3(0.5f, 0f, 0f), 2f, 5f));
+            Run(kite, 1.0f, 1.5f, new Vector3(0.5f, 0f, 0f), new Vector3(0.5f, 0f, 0f));
 
             Assert.AreEqual(EKiteState.Cornered, kite.State);
         }
@@ -425,11 +439,12 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = Retreating(0f);
 
-            for (int i = 1; i <= 10; ++i)
+            for (int i = 1; i <= 80; ++i)
             {
-                kite.Update(i * 0.5f, In(new Vector3(-i * 0.5f, 0f, 0f), 2f, 5f));
+                float t = i * Frame;
+                kite.Update(t, In(new Vector3(-t, 0f, 0f), 2f, 5f));
 
-                Assert.AreEqual(EKiteState.Retreat, kite.State, $"{i * 0.5f}초");
+                Assert.AreEqual(EKiteState.Retreat, kite.State, $"{t}초");
             }
         }
 
@@ -441,6 +456,108 @@ namespace Lair.Tests.EditMode
             kite.Update(1f, In(new Vector3(-3f, 0f, 0f), 6f, 9f));
 
             Assert.AreEqual(EKiteState.Approach, kite.State);
+        }
+
+        //# --- 관찰 간격(ObservationGapSec) / 재시도 각도(CorneredRetryAngleDeg) ---
+
+        [Test]
+        public void 관찰_간격과_재시도_각도_상수는_0_25초_60도다()
+        {
+            Assert.AreEqual(0.25f, KiteBehavior.ObservationGapSec, 0.0001f);
+            Assert.AreEqual(60f, KiteBehavior.CorneredRetryAngleDeg, 0.0001f);
+        }
+
+        [Test]
+        public void 프레임_간격이_정확히_관찰_간격이면_구간이_유지되어_갇힘이_성립한다()
+        {
+            KiteBehavior kite = Retreating(0f);
+
+            kite.Update(0.25f, In(Vector3.zero, 2f, 5f));
+            kite.Update(0.5f, In(Vector3.zero, 2f, 5f));
+
+            Assert.AreEqual(EKiteState.Cornered, kite.State, "간격 0.25 는 초과가 아니므로 리셋 없음");
+        }
+
+        [Test]
+        public void 프레임_간격이_관찰_간격을_넘으면_건너뛴_구간으로_보고_허위_갇힘이_생기지_않는다()
+        {
+            KiteBehavior kite = Retreating(0f);
+
+            //# AI 가 멈춰 있던 구간(시간 정지, 공격 모션 등) 뒤 첫 프레임 - 이동 없음이어도 갇힘이 아니다.
+            kite.Update(5f, In(Vector3.zero, 2f, 5f));
+            Assert.AreEqual(EKiteState.Retreat, kite.State);
+
+            kite.Update(5.25f, In(Vector3.zero, 2f, 5f));
+            Assert.AreEqual(EKiteState.Retreat, kite.State, "새 구간 0.25초");
+            kite.Update(5.5f, In(Vector3.zero, 2f, 5f));
+            Assert.AreEqual(EKiteState.Cornered, kite.State, "새 구간 0.5초 동안 실제로 못 움직임");
+        }
+
+        [Test]
+        public void 한_번에_크게_건너뛰면_이동이_없어도_갇힘이_되지_않는다()
+        {
+            KiteBehavior kite = Retreating(0f);
+
+            kite.Update(0.5f, In(Vector3.zero, 2f, 5f));
+
+            Assert.AreEqual(EKiteState.Retreat, kite.State);
+        }
+
+        [Test]
+        public void 갇힘_중_건너뛴_구간_뒤의_이동은_재시도_근거가_아니다()
+        {
+            KiteBehavior kite = Cornered();
+
+            kite.Update(3f, In(new Vector3(2f, 0f, 0f), 2f, 5f));
+            Run(kite, 3f, 3.5f, new Vector3(2f, 0f, 0f), new Vector3(2f, 0f, 0f));
+
+            Assert.AreEqual(EKiteState.Cornered, kite.State);
+        }
+
+        [Test]
+        public void 갇힘_중_후퇴_방향이_재시도_각도를_넘게_바뀌면_이동이_없어도_후퇴를_재시도한다()
+        {
+            KiteBehavior kite = Cornered();
+            Assert.AreEqual(-1f, kite.RetreatDirection.x, 0.001f, "전제: 갇힐 때 방향 -X");
+
+            //# 위협 중심이 -Z 쪽으로 옮겨 후퇴 방향이 +Z (-X 와 90도) - 새 탈출로.
+            for (int i = 1; i <= 4; ++i)
+            {
+                KiteInput input = In(Vector3.zero, 2f, 5f);
+                input.ThreatCentroid = new Vector3(0f, 0f, -3f);
+                kite.Update(0.5f + i * Frame, input);
+            }
+
+            Assert.AreEqual(EKiteState.Retreat, kite.State);
+        }
+
+        [Test]
+        public void 갇힘_중_후퇴_방향_변화가_재시도_각도_이내면_이동이_없는_동안_갇힘을_유지한다()
+        {
+            KiteBehavior kite = Cornered();
+
+            //# 중심이 (1,0,-1) -> 후퇴 방향 (-1,0,1)/sqrt2, -X 와 45도 < 60도.
+            for (int i = 1; i <= 4; ++i)
+            {
+                KiteInput input = In(Vector3.zero, 2f, 5f);
+                input.ThreatCentroid = new Vector3(1f, 0f, -1f);
+                kite.Update(0.5f + i * Frame, input);
+            }
+
+            Assert.AreEqual(EKiteState.Cornered, kite.State);
+        }
+
+        [Test]
+        public void Reset_뒤_첫_프레임은_관찰_구간을_새로_시작한다()
+        {
+            KiteBehavior kite = Retreating(0f);
+            kite.Reset();
+            kite.Update(0.1f, In(Vector3.zero, 2f, 5f));
+            Assert.AreEqual(EKiteState.Retreat, kite.State);
+
+            Run(kite, 0.125f, 0.625f, Vector3.zero, Vector3.zero);
+
+            Assert.AreEqual(EKiteState.Cornered, kite.State);
         }
 
         //# --- 리셋 ---

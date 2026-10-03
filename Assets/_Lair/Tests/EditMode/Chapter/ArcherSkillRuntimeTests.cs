@@ -393,6 +393,21 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 도약_목적지는_아레나_밖이면_소프트_반경으로_클램프된다_E_9()
         {
+            //# 영웅 (4,0,0), 위협 (3,0,0) -> 도약 +X, 4+4.5=8.5 -> 7. 실이동 3 >= leapDistance 의 절반(2.25) 이라 재계산 없이 클램프 결과 사용.
+            _ctx.HeroPosition = new Vector3(4f, 0f, 0f);
+            _ctx.Centroid = new Vector3(3f, 0f, 0f);
+            _ctx.NearbyCount = 3;
+            IHeroSkillRuntime runtime = _evade.CreateRuntime();
+
+            runtime.Tick(_ctx, 10f);
+
+            Assert.AreEqual(7f, _ctx.Leaps[0].Destination.x, 0.001f, "4+4.5=8.5 → 7");
+        }
+
+        [Test]
+        public void 가장자리에서_바깥으로_도약하면_클램프_후_실이동이_부족해_원점_쪽으로_재계산한다()
+        {
+            //# 영웅 (6,0,0), 위협 (5,0,0): 클램프 결과 7 은 이동 1 < 2.25 -> 원점 쪽(-X) 으로 재계산 -> 6-4.5 = 1.5.
             _ctx.HeroPosition = new Vector3(6f, 0f, 0f);
             _ctx.Centroid = new Vector3(5f, 0f, 0f);
             _ctx.NearbyCount = 3;
@@ -400,7 +415,98 @@ namespace Lair.Tests.EditMode
 
             runtime.Tick(_ctx, 10f);
 
-            Assert.AreEqual(7f, _ctx.Leaps[0].Destination.x, 0.001f, "6+4.5=10.5 → 7");
+            Assert.AreEqual(1.5f, _ctx.Leaps[0].Destination.x, 0.001f);
+            Assert.AreEqual(0f, _ctx.Leaps[0].Destination.z, 0.001f);
+        }
+
+        //# --- ComputeLeapDestination (M1) ---
+
+        private static Vector3 Clamp7(Vector3 position)
+        {
+            return KiteBehavior.ClampToRadius(position, 7f);
+        }
+
+        [Test]
+        public void 최소_도약_비율_상수는_0_5다()
+        {
+            Assert.AreEqual(0.5f, EvadeRuntime.MinLeapFraction, 0.0001f);
+        }
+
+        [Test]
+        public void 도약_목적지는_충분히_이동하면_클램프_결과를_그대로_쓴다()
+        {
+            Vector3 destination = EvadeRuntime.ComputeLeapDestination(Vector3.zero, new Vector3(1f, 0f, 0f), 4.5f, Clamp7);
+
+            Assert.AreEqual(-4.5f, destination.x, 0.001f);
+        }
+
+        [TestCase(6f, 5f, 1.5f)]
+        [TestCase(7f, 6f, 2.5f)]
+        [TestCase(6.5f, 5.5f, 2f)]
+        public void 도약_목적지는_가장자리에서_바깥_도약이면_원점_쪽으로_재계산한다(float heroX, float threatX, float expectedX)
+        {
+            Vector3 destination = EvadeRuntime.ComputeLeapDestination(new Vector3(heroX, 0f, 0f), new Vector3(threatX, 0f, 0f), 4.5f, Clamp7);
+
+            Assert.AreEqual(expectedX, destination.x, 0.001f);
+        }
+
+        [Test]
+        public void 도약_목적지의_실이동_경계는_leapDistance의_절반_이상이다()
+        {
+            //# 영웅 (5.25,0,0), 위협 (4.25,0,0): 클램프 7 -> 이동 1.75 < 2.25 -> 재계산. 영웅 (4.75,0,0): 7 -> 이동 2.25 = 경계(이상) -> 유지.
+            Vector3 recalculated = EvadeRuntime.ComputeLeapDestination(new Vector3(5.25f, 0f, 0f), new Vector3(4.25f, 0f, 0f), 4.5f, Clamp7);
+            Vector3 kept = EvadeRuntime.ComputeLeapDestination(new Vector3(4.75f, 0f, 0f), new Vector3(3.75f, 0f, 0f), 4.5f, Clamp7);
+
+            Assert.AreEqual(0.75f, recalculated.x, 0.001f, "5.25-4.5");
+            Assert.AreEqual(7f, kept.x, 0.001f);
+        }
+
+        [Test]
+        public void 도약_목적지는_옆으로_도약해도_전장_안이고_충분히_이동한다()
+        {
+            Vector3 origin = new Vector3(7f, 0f, 0f);
+
+            Vector3 destination = EvadeRuntime.ComputeLeapDestination(origin, new Vector3(7f, 0f, -2f), 4.5f, Clamp7);
+
+            Assert.LessOrEqual(new Vector2(destination.x, destination.z).magnitude, 7.001f);
+            Assert.GreaterOrEqual(Vector3.Distance(destination, origin), 4.5f * EvadeRuntime.MinLeapFraction);
+        }
+
+        [Test]
+        public void 도약_목적지는_원점에_있으면_재계산하지_않고_클램프_결과를_돌려준다()
+        {
+            //# 어디로 가도 제자리인 클램프(전장 이탈 불가 상황)에서 원점에 있으면 원점 방향이 없어 그대로.
+            Vector3 destination = EvadeRuntime.ComputeLeapDestination(Vector3.zero, new Vector3(1f, 0f, 0f), 4.5f, position => Vector3.zero);
+
+            Assert.AreEqual(Vector3.zero, destination);
+        }
+
+        [Test]
+        public void 재계산_목적지가_더_멀지_않으면_원래_클램프_결과를_유지한다()
+        {
+            Vector3 origin = new Vector3(6f, 0f, 0f);
+
+            Vector3 destination = EvadeRuntime.ComputeLeapDestination(origin, new Vector3(5f, 0f, 0f), 4.5f, position => origin);
+
+            Assert.AreEqual(origin, destination, "두 후보 모두 제자리 -> 원래 결과");
+        }
+
+        [Test]
+        public void 도약_목적지는_전장_안_어느_위치에서도_전장_밖으로_나가지_않는다()
+        {
+            for (float x = -7f; x <= 7f; x += 1.75f)
+            {
+                for (float z = -7f; z <= 7f; z += 1.75f)
+                {
+                    Vector3 origin = new Vector3(x, 0f, z);
+                    if (new Vector2(x, z).magnitude > 7f)
+                        continue;
+
+                    Vector3 destination = EvadeRuntime.ComputeLeapDestination(origin, origin + new Vector3(1f, 0f, 0.5f), 4.5f, Clamp7);
+
+                    Assert.LessOrEqual(new Vector2(destination.x, destination.z).magnitude, 7.001f, $"({x},{z})");
+                }
+            }
         }
 
         [Test]
