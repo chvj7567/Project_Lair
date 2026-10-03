@@ -63,8 +63,7 @@ namespace Lair.Character
                 return;
 
             Vector3 origin = archer.HeroPosition;
-            Vector3 dir = ComputeLeapDirection(origin, archer.MonsterCentroid(_data.TriggerRadius));
-            Vector3 destination = archer.ClampToArena(origin + dir * _data.LeapDistance);
+            Vector3 destination = ComputeLeapDestination(origin, archer.MonsterCentroid(_data.TriggerRadius), _data.LeapDistance, archer.ClampToArena);
 
             //# 출발 지점 폭발 → 도약. 폭발은 영웅이 떠나기 전 위치 기준.
             archer.DamageMonstersInRing(0f, _data.BlastRadius, _data.Damage, _data.KnockbackStrength);
@@ -89,6 +88,34 @@ namespace Lair.Character
                 away = Vector3.back;
             }
             return away.normalized;
+        }
+
+        //# 클램프 뒤 실이동이 leapDistance 의 이 비율 미만이면(가장자리에서 바깥으로 도약 → 제자리) 원점 쪽 방향을 섞어 재계산한다(E-8 탈출 취지).
+        public const float MinLeapFraction = 0.5f;
+
+        //# 도약 목적지 — 위협 반대 방향 + 클램프, 실이동이 부족하면 원점 방향을 가산한 방향으로 재계산해 더 멀리 가는 쪽을 택한다. clamp 는 컨텍스트의 아레나 클램프.
+        public static Vector3 ComputeLeapDestination(Vector3 origin, Vector3 threatCentroid, float leapDistance, System.Func<Vector3, Vector3> clamp)
+        {
+            Vector3 dir = ComputeLeapDirection(origin, threatCentroid);
+            Vector3 destination = clamp(origin + dir * leapDistance);
+            if (PlanarDistance(destination, origin) >= leapDistance * MinLeapFraction)
+                return destination;
+
+            Vector3 toOrigin = new Vector3(-origin.x, 0f, -origin.z);
+            if (toOrigin.sqrMagnitude < 0.0001f)
+                return destination;
+            toOrigin.Normalize();
+            Vector3 blended = dir + toOrigin;
+            Vector3 dir2 = blended.sqrMagnitude > 0.0001f ? blended.normalized : toOrigin;
+            Vector3 destination2 = clamp(origin + dir2 * leapDistance);
+            return PlanarDistance(destination2, origin) > PlanarDistance(destination, origin) ? destination2 : destination;
+        }
+
+        private static float PlanarDistance(Vector3 a, Vector3 b)
+        {
+            a.y = 0f;
+            b.y = 0f;
+            return Vector3.Distance(a, b);
         }
 
         private void LogMissingContext()

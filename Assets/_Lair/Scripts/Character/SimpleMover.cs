@@ -5,7 +5,7 @@ namespace Lair.Character
 {
     //# Vector3.MoveTowards 기반 단순 추적. Rigidbody 있으면 MovePosition 사용, 없으면 transform.position 폴백.
     //# _clampZone 비-null 이면 next 좌표를 BattleZone.ClampInside 로 클램프 — 영웅 한정 (몬스터는 null).
-    public class SimpleMover : MonoBehaviour, IMover
+    public class SimpleMover : MonoBehaviour, IMover, IMoveClamp
     {
         [SerializeField] private float _speed = 3f;
         //# 몬스터 캡슐 콜라이더 깊은 겹침 시 PhysX depenetration 폭발 방지 — 분리 속도 상한.
@@ -63,6 +63,12 @@ namespace Lair.Character
         public void Stop()
         {
             _moving = false;
+        }
+
+        //# IMoveClamp — 영웅 한정 zone 클램프. zone 미할당이면 입력 그대로.
+        public Vector3 ClampPosition(Vector3 position)
+        {
+            return _clampZone != null ? _clampZone.ClampInside(position) : position;
         }
 
         //# 런타임 주입 — BattleController.SpawnHero 가 Pop 직후 호출. null 도 허용 (몬스터 또는 폴백 해제).

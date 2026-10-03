@@ -632,6 +632,13 @@ namespace Lair.Battle
                 return false;
             }
 
+            //# Kiter 프리팹은 AutoCombatAI 가 필수 — Pop 전에 검증해 중단 시 풀 인스턴스가 새지 않게 한다.
+            if (kiteRow != null && prefab.GetComponent<AutoCombatAI>() == null)
+            {
+                Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — 카이팅 설정 불가, 전투 진입 중단");
+                return false;
+            }
+
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null)
                 return false;
@@ -668,13 +675,8 @@ namespace Lair.Battle
             //# 카이팅(Kiter) 영웅 AI 설정 주입 — 기사(Melee)는 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
             if (kiteRow != null)
             {
-                AutoCombatAI heroAi = p.GetComponent<AutoCombatAI>();
-                if (heroAi == null)
-                {
-                    Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — 카이팅 설정 불가, 전투 진입 중단");
-                    return false;
-                }
-                heroAi.ConfigureKite(KiteSettings.From(kiteRow));
+                //# AutoCombatAI 존재는 Pop 전에 검증됨.
+                p.GetComponent<AutoCombatAI>().ConfigureKite(KiteSettings.From(kiteRow));
             }
             if (_heroHealth != null)
             {

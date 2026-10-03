@@ -19,6 +19,8 @@ namespace Lair.Character
         private IAttacker _attacker;
         private ITargetProvider _targetProvider;
         private IRotator _rotator;
+        //# 영웅 이동 영역 클램프(BattleZone) — 도약이 SimpleMover 와 같은 경계를 지키게 한다. 몬스터는 SimpleMover 의 zone 이 null 이라 통과.
+        private IMoveClamp _moveClamp;
 
         //# 영웅 공격 게이트 (hero-animation-timing-sync §3.2). 영웅 프리팹만 부착 → 몬스터는 null(보류 미적용).
         private IAttackGate _attackGate;
@@ -86,6 +88,13 @@ namespace Lair.Character
             _kite = new KiteBehavior(settings);
         }
 
+        //# 도약 목적지 보정 — 카이팅 아레나 소프트 반경 안으로, 그리고 BattleZone 이동 경계 안으로(SimpleMover 와 같은 경계).
+        public Vector3 ClampToArena(Vector3 position)
+        {
+            Vector3 clamped = KiteBehavior.ClampToRadius(position, KiteArenaSoftRadius);
+            return _moveClamp != null ? _moveClamp.ClampPosition(clamped) : clamped;
+        }
+
         //# 회피 도약 시작 — duration 동안 현재 위치에서 destination 으로 선형 이동, 그동안 AI 이동 명령 중단.
         public void BeginLeap(Vector3 destination, float duration)
         {
@@ -106,6 +115,7 @@ namespace Lair.Character
             _rotator = character.Get<IRotator>();
             _attackGate = character.Get<IAttackGate>();   //# null=몬스터(보류 로직 미적용)
             _threatProbe = character.Get<INearestThreatProvider>();   //# null=기사·몬스터(카이팅 미사용)
+            _moveClamp = character.Get<IMoveClamp>();
         }
 
         //# 풀 재사용 시 도주 상태 잔존 방지 + 초기 방향 스냅.
@@ -156,12 +166,6 @@ namespace Lair.Character
                 _mover?.Stop();
                 return;
             }
-            //# 회피 도약 중 — 이동 소유권은 도약 보간(§5.3 #7). 기사/몬스터는 _leapRemain 이 항상 0 이라 통과.
-            if (_leapRemain > 0f)
-            {
-                TickLeap();
-                return;
-            }
             if (_targetProvider == null) return;
 
             //# A-3 비도주 프레임마다 스냅 플래그 해제 — 아래 가드(TimeStop/게이트/no-target)에 막혀도
@@ -176,6 +180,14 @@ namespace Lair.Character
             if (_attacker != null && _attacker.Enabled == false)
             {
                 _mover.Stop();
+                return;
+            }
+
+            //# 회피 도약 중 — 이동 소유권은 도약 보간(§5.3 #7). TimeStop(위 Enabled 게이트) 중엔 도달하지 못해 도약도 멈춘다.
+            //# 기사/몬스터는 _leapRemain 이 항상 0 이라 통과.
+            if (_leapRemain > 0f)
+            {
+                TickLeap();
                 return;
             }
 
@@ -336,6 +348,11 @@ namespace Lair.Character
             float progress = 1f - Mathf.Clamp01(_leapRemain / _leapDuration);
             Vector3 position = Vector3.Lerp(_leapStart, _leapDestination, progress);
             position.y = transform.position.y;
+            //# 직접 대입이 SimpleMover 의 BattleZone 클램프를 우회하지 않도록 같은 경계를 통과시킨다.
+            if (_moveClamp != null)
+            {
+                position = _moveClamp.ClampPosition(position);
+            }
             transform.position = position;
             _mover?.Stop();
         }

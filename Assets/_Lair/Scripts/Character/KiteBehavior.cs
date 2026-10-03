@@ -60,9 +60,16 @@ namespace Lair.Character
     public class KiteBehavior
     {
         private readonly KiteSettings _settings;
+        //# 프레임 간격이 이보다 크면 AI 가 건너뛴 구간(TimeStop·공격 모션·도약 등)으로 보고 갇힘 관찰 구간을 다시 시작한다 — 허위 갇힘 방지.
+        public const float ObservationGapSec = 0.25f;
+        //# 갇힘 중 위협 배치가 바뀌어 후퇴 방향이 이 각도(도) 넘게 달라지면 새 탈출로가 열렸다고 보고 후퇴를 재시도한다.
+        public const float CorneredRetryAngleDeg = 60f;
+
         private float _stateEnterTime;
         private float _checkStartTime;
         private Vector3 _checkStartPos;
+        private float _lastUpdateTime;
+        private Vector3 _corneredDirection;
 
         public KiteBehavior(KiteSettings settings)
         {
@@ -86,10 +93,20 @@ namespace Lair.Character
             _stateEnterTime = float.NegativeInfinity;
             _checkStartTime = 0f;
             _checkStartPos = Vector3.zero;
+            _lastUpdateTime = float.NegativeInfinity;
+            _corneredDirection = Vector3.zero;
         }
 
         public void Update(float now, KiteInput input)
         {
+            //# 건너뛴 구간 뒤 첫 프레임 — 관찰 구간을 지금부터 다시 센다(옛 시작 위치/시각과 비교해 즉시 갇힘 판정되는 것 방지).
+            if (now - _lastUpdateTime > ObservationGapSec)
+            {
+                _checkStartTime = now;
+                _checkStartPos = input.Position;
+            }
+            _lastUpdateTime = now;
+
             switch (State)
             {
                 case EKiteState.Approach:
@@ -157,13 +174,16 @@ namespace Lair.Character
                 return;
             }
 
-            //# 관찰 구간마다 이동(넉백 등)이 재개됐는지 확인 — 재개됐으면 후퇴를 다시 시도.
+            //# 관찰 구간마다 재시도 여부 판단 — (1) 이동(넉백 등)이 재개됐거나 (2) 위협 배치가 바뀌어 후퇴 방향이 크게 달라졌으면 후퇴를 다시 시도(영구 고착 방지).
             if (now - _checkStartTime >= _settings.CorneredCheckSec)
             {
                 float moved = PlanarDistance(input.Position, _checkStartPos);
                 _checkStartTime = now;
                 _checkStartPos = input.Position;
-                if (moved >= _settings.CorneredMinMove)
+                Vector3 candidateDir = ComputeRetreatDirection(input, _corneredDirection, _settings.ArenaSoftRadius);
+                bool directionChanged = _corneredDirection.sqrMagnitude > 0.0001f
+                    && Vector3.Angle(candidateDir, _corneredDirection) > CorneredRetryAngleDeg;
+                if (moved >= _settings.CorneredMinMove || directionChanged)
                 {
                     EnterRetreat(now, input);
                 }
@@ -184,6 +204,10 @@ namespace Lair.Character
 
         private void EnterState(EKiteState next, float now, KiteInput input)
         {
+            if (next == EKiteState.Cornered)
+            {
+                _corneredDirection = RetreatDirection;
+            }
             State = next;
             _stateEnterTime = now;
             _checkStartTime = now;

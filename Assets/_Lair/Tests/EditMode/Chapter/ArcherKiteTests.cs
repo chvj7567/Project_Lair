@@ -74,7 +74,8 @@ namespace Lair.Tests.EditMode
             kite.Update(0f, Input(Vector3.zero, 2f, 5f));
             Assert.AreEqual(EKiteState.Retreat, kite.State);
 
-            kite.Update(0.3f, Input(Vector3.zero, 2f, 5f));
+            kite.Update(0.2f, Input(Vector3.zero, 2f, 5f));
+            kite.Update(0.4f, Input(Vector3.zero, 2f, 5f));
             Assert.AreEqual(EKiteState.Retreat, kite.State, "관찰 0.5초 전");
 
             kite.Update(0.6f, Input(new Vector3(0.1f, 0f, 0f), 2f, 5f));
@@ -87,15 +88,21 @@ namespace Lair.Tests.EditMode
         {
             KiteBehavior kite = new KiteBehavior(Settings());
             kite.Update(0f, Input(Vector3.zero, 2f, 5f));
+            kite.Update(0.2f, Input(Vector3.zero, 2f, 5f));
+            kite.Update(0.4f, Input(Vector3.zero, 2f, 5f));
             kite.Update(0.6f, Input(Vector3.zero, 2f, 5f));
             Assert.AreEqual(EKiteState.Cornered, kite.State);
 
             //# 넉백 등으로 0.3 이상 이동 → 다음 관찰 구간에 후퇴 재시도.
+            kite.Update(0.8f, Input(Vector3.zero, 2f, 5f));
+            kite.Update(1.0f, Input(Vector3.zero, 2f, 5f));
             kite.Update(1.2f, Input(new Vector3(0.5f, 0f, 0f), 2f, 5f));
             Assert.AreEqual(EKiteState.Retreat, kite.State);
 
-            kite.Update(1.3f, Input(Vector3.zero, 2f, 5f));
-            kite.Update(1.7f, Input(Vector3.zero, 2f, 5f));
+            for (float t = 1.4f; t <= 2.2f; t += 0.2f)
+            {
+                kite.Update(t, Input(Vector3.zero, 2f, 5f));
+            }
             kite.Update(2.4f, Input(Vector3.zero, 6f, 5f));
             Assert.AreEqual(EKiteState.Engage, kite.State);
         }

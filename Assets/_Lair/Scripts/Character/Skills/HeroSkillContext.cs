@@ -157,8 +157,7 @@ namespace Lair.Character
 
         public Vector3 ClampToArena(Vector3 position)
         {
-            float radius = _heroAi != null ? _heroAi.KiteArenaSoftRadius : 0f;
-            return KiteBehavior.ClampToRadius(position, radius);
+            return _heroAi != null ? _heroAi.ClampToArena(position) : position;
         }
 
         public void BeginLeap(Vector3 destination, float duration)

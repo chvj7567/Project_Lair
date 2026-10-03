@@ -111,6 +111,12 @@ namespace Lair.Character
         bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count);
     }
 
+    //# 이동 가능 영역 클램프 — 영웅 SimpleMover 가 BattleZone 경계를 안다. 도약처럼 transform 을 직접 옮기는 경로가 같은 경계를 지키게 한다.
+    public interface IMoveClamp
+    {
+        Vector3 ClampPosition(Vector3 position);
+    }
+
     //# 카이팅(궁수) 전용 — 교전 토글 무관, 살아있는 가장 가까운 몬스터 조회. 영웅 타깃 제공자만 구현(기사·몬스터는 미사용).
     //# ITargetProvider 에 메서드를 더하지 않으려 분리(기존 구현체·테스트 더블 무영향).
     public interface INearestThreatProvider
