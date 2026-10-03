@@ -1,6 +1,7 @@
 using System;
 using ChvjUnityInfra;
 using Lair.Card;
+using Lair.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,6 +25,10 @@ namespace Lair.UI
         [SerializeField] private Sprite _passiveButtonSprite;
         [SerializeField] private Sprite _activeButtonSprite;
         [SerializeField] private GameObject _countBadgeBg;   //# CountBadge 뒤 배지 배경 — 배지와 함께 토글
+        //# 시너지 축 아이콘(좌상단 종류 라벨 아래) — 아이콘이 없으면 루트째 숨김(빈 박스 금지).
+        [SerializeField] private GameObject _axisIconRoot;
+        [SerializeField] private Image _axisIconBorder;
+        [SerializeField] private Image _axisIconImage;
 
         public void Bind(CardData card, Action onClick) => Bind(card, onClick, 0);
 
@@ -43,6 +48,27 @@ namespace Lair.UI
             if (_pickButtonImage != null && buttonSprite != null)
             {
                 _pickButtonImage.sprite = buttonSprite;
+            }
+        }
+
+        //# 카드 축 아이콘 — SO 에서 card.Axis 에 해당하는 Sprite 를 찾아 표시. 카드·SO·Sprite 중 하나라도 없으면 숨김.
+        public void SetAxisIcon(CardData card, SynergyVisualConfig config)
+        {
+            if (_axisIconRoot == null)
+                return;
+
+            Sprite icon = card != null && config != null ? config.GetIcon(card.Axis) : null;
+            _axisIconRoot.SetActive(icon != null);
+            if (icon == null)
+                return;
+
+            if (_axisIconImage != null)
+            {
+                _axisIconImage.sprite = icon;
+            }
+            if (_axisIconBorder != null)
+            {
+                _axisIconBorder.color = BuildSynergyPanel.AxisColor[card.Axis];
             }
         }
 

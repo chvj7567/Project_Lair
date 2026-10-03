@@ -1,5 +1,6 @@
 using System.Collections;
 using ChvjUnityInfra;
+using Lair.Card;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,9 +18,10 @@ namespace Lair.UI
         [SerializeField] private Image _axisIcon;
         [SerializeField] private Image _axisStrip;
         [SerializeField] private CanvasGroup _group;
+        //# 시너지 진행도 — 1줄 우측 장수 텍스트(축 색) + 2줄 7칸 트랙. 리디자인 표시에서만 사용.
+        [SerializeField] private CHText _countText;
+        [SerializeField] private SynergyTrack _track;
 
-        private const float DimAlpha = 0.55f;
-        private static readonly Color MarkerOff = new Color32(0x0B, 0x0E, 0x14, 0xFF);
         private bool RedesignMode => _axisIcon != null;
 
         private Color _axisColor;
@@ -80,34 +82,35 @@ namespace Lair.UI
                 _background.color = new Color(_axisColor.r, _axisColor.g, _axisColor.b, alpha);
         }
 
-        //# 리디자인 표시 — 축 이름(개수 없음), 축 문장 아이콘, 활성 Tier 만큼 축색 사각 점(나머지 어두운 점), 활성 시 왼쪽 축 색띠 / 미도달은 흐림.
+        //# 리디자인 표시(기획서 card-synergy-indicator §3.1) — 축 이름 + 장수 텍스트 + 7칸 트랙. 0장만 흐림, Tier 1 이상이면 왼쪽 축 색띠.
+        //# 매 Bind 마다 전부 재계산 — 풀 재사용 시 이전 트랙·색띠·텍스트 잔상 금지.
         private void BindRedesign(BuildSynergyCellData data)
         {
-            bool active = data.ActiveTier > 0;
+            bool strip = SynergyProgress.HasStrip(data.Count);
             if (_text != null)
             {
                 _text.SetText(data.Label);
                 _text.SetColor(_axisColor);
             }
+            if (_countText != null)
+            {
+                _countText.SetText(SynergyProgress.CountText(data.Count));
+                _countText.SetColor(_axisColor);
+            }
             _axisIcon.sprite = data.Icon;
             _axisIcon.enabled = data.Icon != null;
             if (_axisStrip != null)
             {
-                _axisStrip.gameObject.SetActive(active);
+                _axisStrip.gameObject.SetActive(strip);
                 _axisStrip.color = _axisColor;
             }
             if (_group != null)
             {
-                _group.alpha = active ? 1f : DimAlpha;
+                _group.alpha = SynergyProgress.Opacity(data.Count);
             }
-            if (_tierMarkers == null)
-                return;
-            for (int i = 0; i < _tierMarkers.Length; ++i)
+            if (_track != null)
             {
-                if (_tierMarkers[i] == null)
-                    continue;
-                _tierMarkers[i].gameObject.SetActive(true);
-                _tierMarkers[i].color = i < data.ActiveTier ? _axisColor : MarkerOff;
+                _track.Bind(data.Count, _axisColor, data.GainedCell);
             }
         }
 

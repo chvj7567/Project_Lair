@@ -50,6 +50,8 @@ namespace Lair.Battle
         private BattleClock _clock;
         private BattleStateModel _model;
         private BattleViewModel _vm;
+        private SynergyVisualConfig _synergyVisual;
+        private bool _synergyVisualTried;
 
         private CHPoolable _hero;
         private Health _heroHealth;
@@ -1207,9 +1209,12 @@ namespace Lair.Battle
 #endif
                 System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
+                SynergyVisualConfig synergyVisual = await LoadSynergyVisual();
                 CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
+                    SynergyVisual = synergyVisual,
+                    BuildCountOf = axis => _vm.GetBuildCount(axis),
                     IsPassive = entry.SourceType == TriggerQueue.Source.Passive,
                     TriggerHpPercent = PassiveTriggerService.ResolveHpPercent(_balance?.PassiveThresholds, entry.Index),
                     ActivePeriodSeconds = ActiveTriggerService.ResolvePeriodSeconds(_balance?.ActiveThresholds),
@@ -1239,6 +1244,21 @@ namespace Lair.Battle
             }
 
             _processingQueue = false;
+        }
+
+        //# 시너지 아이콘 SO — 카드 선택창 첫 오픈 시 1회 로드. 실패하면 경고 1회 후 아이콘 없이 진행.
+        private async Task<SynergyVisualConfig> LoadSynergyVisual()
+        {
+            if (_synergyVisualTried == false)
+            {
+                _synergyVisualTried = true;
+                _synergyVisual = await CHMResource.Instance.LoadAsync<SynergyVisualConfig>(EData.SynergyVisualConfig);
+                if (_synergyVisual == null)
+                {
+                    Debug.LogWarning("[BattleController] SynergyVisualConfig 로드 실패 — 카드 축 아이콘 비활성");
+                }
+            }
+            return _synergyVisual;
         }
 
         //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.

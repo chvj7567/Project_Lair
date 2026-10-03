@@ -100,3 +100,4 @@
 
 - **balance_config_asset**: `Assets/_Lair/Data/BalanceConfig.asset`
 - **card_data_folder**: `Assets/_Lair/Art/Cards/`
+- **synergy_visual_config_asset**: `Assets/_Lair/Art/Synergy/SynergyVisualConfig.asset` — 시너지 4축 아이콘 SO (`EData.SynergyVisualConfig`, Addressables 주소 `SynergyVisualConfig`)

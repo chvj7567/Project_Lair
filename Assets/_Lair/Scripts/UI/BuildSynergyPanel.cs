@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ChvjUnityInfra;
+using Lair.Card;
 using Lair.Data;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,11 +41,8 @@ namespace Lair.UI
             { EBuildAxis.Swarm,  "SWARM"  },
         };
 
-        //# 임계 단계 — 기획서 §4.1 (3/5/7장).
-        private static readonly int[] Thresholds = { 3, 5, 7 };
-
-        //# 펼친 셀·접힌 탭 점의 공통 순서(시안: TANK · SWARM · DPS · DEBUFF)
-        private static readonly EBuildAxis[] AllAxes =
+        //# 펼친 셀·접힌 탭 점·선택창 칩의 공통 순서(시안: TANK · SWARM · DPS · DEBUFF)
+        public static readonly EBuildAxis[] AllAxes =
             { EBuildAxis.Tank, EBuildAxis.Swarm, EBuildAxis.Dps, EBuildAxis.Debuff };
 
         //# 접기/펼치기(scene-2d-conversion §4.10) — 본문·접힌 탭은 프리팹 정적 자식, 전환은 즉시.
@@ -184,17 +182,8 @@ namespace Lair.UI
             foreach (EBuildAxis axis in AllAxes)
             {
                 int count = _vm.GetBuildCount(axis);
-                _dataList.Add(new BuildSynergyCellData
-                {
-                    Axis          = axis,
-                    Color         = AxisColor[axis],
-                    Label         = AxisLabel[axis],
-                    Icon          = AxisIcon(axis),
-                    Count         = count,
-                    NextThreshold = NextThreshold(count),
-                    ActiveTier    = ActiveTier(count),
-                    JustCrossed   = CrossedThreshold(_prevCounts.GetValueOrDefault(axis, 0), count),
-                });
+                _dataList.Add(BuildSynergyCellData.Create(axis, count, AxisIcon(axis),
+                    _prevCounts.GetValueOrDefault(axis, 0)));
                 _prevCounts[axis] = count;
             }
             RefreshFoldedDots();
@@ -216,31 +205,6 @@ namespace Lair.UI
                 return _swarmIcon;
             return null;
         }
-
-        //# 새 임계를 넘었는지 — prev < T <= count 인 T 존재.
-        private static bool CrossedThreshold(int prev, int count)
-        {
-            foreach (int t in Thresholds)
-                if (prev < t && count >= t) return true;
-            return false;
-        }
-
-        //# 다음 임계 — count 이상 첫 임계. 7+ 이면 -1 (다음 없음).
-        private static int NextThreshold(int count)
-        {
-            foreach (int t in Thresholds)
-                if (count < t) return t;
-            return -1;
-        }
-
-        //# 현재 활성 Tier (1·2·3). 임계 미달이면 0.
-        private static int ActiveTier(int count)
-        {
-            int tier = 0;
-            foreach (int t in Thresholds)
-                if (count >= t) ++tier;
-            return tier;
-        }
     }
 
     //# CHPoolingScrollView 의 TData — 1축 셀에 푸시되는 데이터.
@@ -254,5 +218,23 @@ namespace Lair.UI
         public int NextThreshold;   //# -1 이면 7+ 도달
         public int ActiveTier;      //# 0·1·2·3
         public bool JustCrossed;    //# 이번 갱신에서 임계를 새로 넘은 경우 펄스
+        public bool GainedCell;     //# 이번 갱신에서 장수가 늘어난 경우 — 트랙 새 칸 점멸
+
+        //# 1축 셀 데이터 조립 — HUD 패널·카드 선택창 칩 공용. prevCount 는 직전 장수(칩은 count 와 동일하게 넘김).
+        public static BuildSynergyCellData Create(EBuildAxis axis, int count, Sprite icon, int prevCount)
+        {
+            return new BuildSynergyCellData
+            {
+                Axis          = axis,
+                Color         = BuildSynergyPanel.AxisColor[axis],
+                Label         = BuildSynergyPanel.AxisLabel[axis],
+                Icon          = icon,
+                Count         = count,
+                NextThreshold = SynergyProgress.NextThreshold(count),
+                ActiveTier    = SynergyProgress.ActiveTier(count),
+                JustCrossed   = SynergyProgress.CrossedThreshold(prevCount, count),
+                GainedCell    = count > prevCount,
+            };
+        }
     }
 }
