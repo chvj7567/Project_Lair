@@ -47,8 +47,8 @@ namespace Lair.Tests.EditMode
             MetaProfile p = new MetaProfile { LordRewardGrantedLevel = 5 };
             MetaProfile r = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
 
-            //# 현 스키마 버전 4 가 왕복 직렬화로 보존되는지(카드 픽 횟수 추가로 승격).
-            Assert.AreEqual(4, r.Version);
+            //# 현 스키마 버전 5 가 왕복 직렬화로 보존되는지.
+            Assert.AreEqual(5, r.Version);
             Assert.AreEqual(5, r.LordRewardGrantedLevel);
         }
 

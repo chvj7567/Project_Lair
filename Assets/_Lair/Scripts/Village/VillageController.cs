@@ -336,6 +336,8 @@ namespace Lair.Village
         {
             MetaProfile profile = MetaSession.GetOrLoad();
             profile.CopyFrom(cloud);
+            //# v4 클라우드 문서를 v5 클라이언트가 복원하는 경우 대비 — 로드 경로와 같은 마이그레이션 재적용(chapter-system §2.2).
+            MetaProfileMigration.Apply(profile, ChapterDatabase.Current);
             MetaSession.Store?.Save(profile);
             //# 복원 성공 — 충돌 해소.
             MetaSession.CloudConflictPending = false;

@@ -10,7 +10,8 @@ namespace Lair.Village
     public class VillageViewModel
     {
         private const int MinStage = 1;
-        private const int MaxStage = 5;
+        //# 마을 캐러셀은 월드맵(슬라이스 c) 전까지 챕터 1 한정 — 진행 저장(StageProgress.MaxStage)은 챕터 전체를 가진다.
+        private const int MaxStage = StageProgress.StagesPerChapter;
 
         private readonly MetaProfile _profile;
         private readonly MetaConfig _config;
@@ -27,9 +28,9 @@ namespace Lair.Village
         {
             _profile = profile;
             _config = config;
-            //# 진입 초기 위치 = 최대 플레이 가능 스테이지(min(ClearedStage+1, 5)). 저장된 SelectedStage 는 무시(기획: 항상 최고 도전 지점부터).
+            //# 진입 초기 위치 = 최대 플레이 가능 스테이지(캐러셀 상한 MaxStage 로 클램프). 저장된 SelectedStage 는 무시(기획: 항상 최고 도전 지점부터).
             int cleared = profile != null ? profile.ClearedStage : 0;
-            _selectedStage = StageProgress.MaxPlayableStage(cleared);
+            _selectedStage = Math.Min(MaxStage, StageProgress.MaxPlayableStage(cleared));
         }
 
         //# 캐러셀 — 현재 선택 스테이지(1~5).

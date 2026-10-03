@@ -16,6 +16,14 @@ namespace Lair.Data
         [Preserve] [JsonProperty("moveSpeed")] public float MoveSpeed;
     }
 
+    //# 영웅 앵커 DTO — hp/power 만 (range/cooldown/moveSpeed 는 HeroArchetype.json 으로 이관).
+    [Preserve]
+    public class HeroAnchorDto
+    {
+        [Preserve] [JsonProperty("hp")]    public int Hp;
+        [Preserve] [JsonProperty("power")] public int Power;
+    }
+
     [Preserve]
     public class MonsterStatRowDto
     {
@@ -27,7 +35,7 @@ namespace Lair.Data
     [Preserve]
     public class BalanceConfigDto
     {
-        [Preserve] [JsonProperty("hero")]              public CharacterStatDto        Hero;
+        [Preserve] [JsonProperty("hero")]              public HeroAnchorDto          Hero;
         [Preserve] [JsonProperty("monsters")]          public List<MonsterStatRowDto> Monsters = new List<MonsterStatRowDto>();
         [Preserve] [JsonProperty("runDuration")]       public float                   RunDuration;
         [Preserve] [JsonProperty("passiveThresholds")] public float[]                 PassiveThresholds;

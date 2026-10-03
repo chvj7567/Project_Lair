@@ -55,6 +55,8 @@ namespace Lair.Battle
 
         private CHPoolable _hero;
         private Health _heroHealth;
+        //# 챕터/스테이지/영웅 직업 데이터 — Start 에서 1회 확보. null 이면 영웅 스탯 데이터 경로 skip.
+        private ChapterDatabase _chapters;
 
         //# 상태 아이콘 — ECardId→Sprite 해석 dict. HUD 에 reference 주입 후 카드 풀 로드 시점에 populate.
         //# 인스턴스 1회 생성·재할당 금지 — HUD 가 stale empty reference 를 들지 않도록(주입은 reference).
@@ -122,6 +124,9 @@ namespace Lair.Battle
             //# 매 Battle 진입(재시작 포함)마다 전투 BGM 을 0초부터 재생 — 프리웜 await 전에 정지해 마을 BGM 잔존 차단.
             CHMSound.Instance.StopAllBGM();
             CHMSound.Instance.Play(EAudio.Bgm);
+
+            //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
+            _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
 
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
@@ -397,34 +402,34 @@ namespace Lair.Battle
             _onStatusHiddenHandler = null;
         }
 
-        //# Slice C — BalanceConfig 스탯을 영웅에 적용. Pop 직후 호출.
-        //# 영웅 전용 — 글로벌 타입 모디파이어가 없다. 시그니처·동작 그대로 유지.
-        private void ApplyStats(GameObject character, BalanceConfig.CharacterStat stat)
+        //# chapter-system §2.1 — 앵커(BalanceConfig) x 직업(HeroArchetype) x 스테이지(Stage) 로 도출한 영웅 스탯을 적용. Pop 직후 1회.
+        //# 풀 재사용 복리 없음 — 매 스폰마다 앵커에서 재계산한 절대값으로 덮는다.
+        private void ApplyHeroStats(GameObject character, HeroStats stats)
         {
-            if (character == null || stat == null)
+            if (character == null)
                 return;
             Health health = character.GetComponent<Health>();
             if (health != null)
             {
-                health.SetMax(stat.Hp, resetCurrent: true);
+                health.SetMax(stats.Hp, resetCurrent: true);
             }
             MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null)
             {
-                attacker.Configure(stat.Range, stat.Cooldown, stat.Power);
+                attacker.Configure(stats.Range, stats.Cooldown, stats.Power);
             }
             SimpleMover mover = character.GetComponent<SimpleMover>();
             if (mover != null)
             {
-                mover.Speed = stat.MoveSpeed;
+                mover.Speed = stats.MoveSpeed;
             }
         }
 
-        //# hero-stage-variant — 선택 스테이지의 외형 variant 적용 + HP/공격력 배수(baseline × mul, 풀 재사용 복리 없음).
-        //# ApplyStats(baseline) 직후 1회. Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
+        //# hero-stage-variant — 선택 스테이지의 외형 variant 적용(스탯 배수는 ApplyHeroStats 가 Stage.json 값으로 처리).
+        //# Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
         private void ApplyStageVariant(GameObject hero)
         {
-            if (hero == null || _stageVariantConfig == null || _balance == null || _balance.Hero == null)
+            if (hero == null || _stageVariantConfig == null)
                 return;
 
             MetaProfile profile = MetaSession.GetOrLoad();
@@ -436,18 +441,6 @@ namespace Lair.Battle
             if (applier != null)
             {
                 applier.Apply(variant);
-            }
-
-            Health health = hero.GetComponent<Health>();
-            if (health != null)
-            {
-                health.SetMax(StageProgress.ScaleStat(_balance.Hero.Hp, variant.HpMultiplier), resetCurrent: true);
-            }
-            MeleeAttacker attacker = hero.GetComponent<MeleeAttacker>();
-            if (attacker != null)
-            {
-                attacker.Configure(_balance.Hero.Range, _balance.Hero.Cooldown,
-                    StageProgress.ScaleStat(_balance.Hero.Power, variant.PowerMultiplier));
             }
         }
 
@@ -501,10 +494,19 @@ namespace Lair.Battle
 
         private async Task SpawnHero()
         {
-            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            //# 챕터 영웅 직업 — 선택 스테이지가 속한 챕터의 heroId (chapter-system §7.4). 데이터 미로드면 기사.
+            MetaProfile stageProfile = MetaSession.GetOrLoad();
+            HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(stageProfile.SelectedStage) : null;
+            EHero heroKey = EHero.Knight;
+            if (archetype != null && System.Enum.TryParse(archetype.heroId, out EHero parsedHero))
+            {
+                heroKey = parsedHero;
+            }
+
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
-                Debug.LogError("[BattleController] Knight 프리팹 로드 실패");
+                Debug.LogError($"[BattleController] {heroKey} 프리팹 로드 실패");
                 return;
             }
 
@@ -535,10 +537,18 @@ namespace Lair.Battle
             SetupHeroAuraEvents(p.gameObject);
 
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
-            if (_balance != null)
+            if (_balance != null && _balance.Hero != null)
             {
-                ApplyStats(p.gameObject, _balance.Hero);
-                //# hero-stage-variant — ApplyStats(baseline) 직후 스테이지 외형 + 스탯 배수 반영.
+                StageRow stageRow = _chapters != null ? _chapters.GetStageByLinear(stageProfile.SelectedStage) : null;
+                if (archetype != null && stageRow != null)
+                {
+                    ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow));
+                }
+                else
+                {
+                    Debug.LogError($"[BattleController] 챕터 데이터에서 스테이지 {stageProfile.SelectedStage} 를 찾지 못함 — 영웅 프리팹 기본 스탯으로 진행");
+                }
+                //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
             }
             if (_heroHealth != null)
@@ -1034,7 +1044,7 @@ namespace Lair.Battle
                 if (result == BattleResult.Win)
                 {
                     profile.TotalWins++;
-                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(5 종점, spec §6.1). 저장은 아래 Save.
+                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(MaxStage 종점, spec §6.1). 저장은 아래 Save.
                     profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
                     if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
                     {
@@ -1102,9 +1112,11 @@ namespace Lair.Battle
             if (MetaSession.Ranking == null)
                 return;
             int clearMs = Mathf.RoundToInt(_clock.Elapsed * 1000f);
-            string hero = profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false
-                ? profile.SelectedHero
-                : EHero.Knight.ToString();
+            //# 랭킹 hero = 선택 스테이지가 속한 챕터의 heroId (chapter-system §2.3). 데이터 없으면 프로필 값 → 기사.
+            HeroArchetypeRow archetype = _chapters != null && profile != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            string hero = archetype != null
+                ? archetype.heroId
+                : (profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false ? profile.SelectedHero : EHero.Knight.ToString());
             string name = MetaProfile.ResolveDisplayName(
                 profile != null ? profile.DisplayName : null,
                 AuthTokenStore.GetOrCreateDeviceId());

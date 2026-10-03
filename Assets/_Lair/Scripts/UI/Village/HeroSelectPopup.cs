@@ -89,14 +89,14 @@ namespace Lair.UI
             }
         }
 
-        //# 스테이지 1~5 셀 — 스테이지별 초상, 잠금은 같은 초상을 어둡게 + 잠금 표기.
+        //# 챕터 1 스테이지 1~5 셀(월드맵 교체 전까지) — 스테이지별 초상, 잠금은 같은 초상을 어둡게 + 잠금 표기.
         //# profile null 이면 진행도 0, variantConfig null 이면 초상 없음(셀이 이미지를 숨김)으로 폴백.
         public static List<HeroSelectCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
         {
             List<HeroSelectCellData> list = new List<HeroSelectCellData>();
             int cleared = profile != null ? profile.ClearedStage : 0;
 
-            for (int stage = 1; stage <= StageProgress.MaxStage; ++stage)
+            for (int stage = 1; stage <= StageProgress.StagesPerChapter; ++stage)
             {
                 //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼 (기획서 §3.1).
                 bool unlocked = StageProgress.IsUnlocked(stage, cleared);

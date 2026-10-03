@@ -9,6 +9,32 @@ namespace Lair.Data
     public enum EHero
     {
         Knight,
+        Archer,   //# 챕터 2 영웅 직업 (chapter-system §5) — 값명 = HeroArchetype.json heroId
+    }
+
+    //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
+    public enum EHeroAi
+    {
+        Melee,
+        Kiter,
+    }
+
+    //# 스테이지 규칙 종류 — Stage_Rule.json ruleId 값명 (chapter-system §3.3). 규칙 실행 코드는 슬라이스 (b).
+    public enum EStageRule
+    {
+        HolySpring,
+        DenseFog,
+        SealedNest,
+        BossBulwark,
+        ArrowRain,
+        HunterTraps,
+    }
+
+    //# 챕터 배경 에셋 키 — Chapter.json backdropKey 값명 (chapter-system §7.1). 에셋 등록·교체는 슬라이스 (c)/(d).
+    public enum EBackdrop
+    {
+        Battle_Backdrop,
+        Battle_Backdrop_DarkForest,
     }
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
@@ -77,6 +103,14 @@ namespace Lair.Data
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Data/Json/LoadingStrings_Ko.json
         HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
         SynergyVisualConfig, //# 시너지 축 아이콘 SO — Art/Synergy/SynergyVisualConfig.asset
+        //# 챕터 시스템 JSON 7종 (chapter-system §1·§7.3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        Chapter,
+        Stage,
+        Stage_Rule,
+        Stage_Rule_Param,
+        Stage_Rule_Trigger,
+        HeroArchetype,
+        HeroArchetype_Kite,
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.

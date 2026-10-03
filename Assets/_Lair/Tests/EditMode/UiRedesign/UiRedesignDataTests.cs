@@ -225,7 +225,8 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(StageLeaderboard.ShouldReplace(0, 100000));
             Assert.IsTrue(StageLeaderboard.ShouldReplace(120000, 100000));
             Assert.IsFalse(StageLeaderboard.ShouldReplace(100000, 100000));
-            Assert.IsFalse(StageLeaderboard.IsValidStage(6));
+            Assert.IsTrue(StageLeaderboard.IsValidStage(6));   //# 챕터 2 구간(6~10) 유효
+            Assert.IsFalse(StageLeaderboard.IsValidStage(StageProgress.MaxStage + 1));
         }
 
         [Test]

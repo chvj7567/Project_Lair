@@ -8,10 +8,10 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 4;
+        public int Version = 5;
         public int Souls;
-        //# 스테이지 진행(hero-stage-variant 기획서 §3) — SelectedStage=마지막 선택(1~5, 기본 1),
-        //# ClearedStage=클리어한 최고 스테이지(0~5, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
+        //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
+        //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
         public int SelectedStage = 1;
         public int ClearedStage = 0;
         public int LordXp;                                       //# 누적 XP — 레벨은 LordLevelService 가 계산
@@ -235,7 +235,7 @@ namespace Lair.Meta
     [Serializable]
     public class StageRecordEntry
     {
-        public int Stage;                    //# 1~5
+        public int Stage;                    //# 선형 스테이지 번호 1~MaxStage
         public int Runs;
         public int Wins;
         public float BestClearTime = -1f;    //# 승리 기록 없으면 -1 (MetaProfile.BestClearTime 과 같은 규약)

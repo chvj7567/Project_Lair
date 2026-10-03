@@ -22,9 +22,6 @@ namespace Lair.Tests
             SerializedProperty heroProp = so.FindProperty("_hero");
             heroProp.FindPropertyRelative("Hp").intValue          = 500;
             heroProp.FindPropertyRelative("Power").intValue       = 10;
-            heroProp.FindPropertyRelative("Range").floatValue     = 3f;
-            heroProp.FindPropertyRelative("Cooldown").floatValue  = 1f;
-            heroProp.FindPropertyRelative("MoveSpeed").floatValue = 3f;
 
             so.FindProperty("_runDuration").floatValue = 300f;
 
@@ -57,19 +54,19 @@ namespace Lair.Tests
             Assert.AreEqual(500, obj["hero"]?["hp"]?.Value<int>());
         }
 
-        //# Export → hero 전체 스탯 (power/range/cooldown/moveSpeed) 포함
+        //# Export → hero 앵커 (hp/power) 만 포함 - range/cooldown/moveSpeed 는 HeroArchetype.json 으로 이관(chapter-system §1.2)
         [Test]
-        public void ExportToJson_Hero전체스탯포함()
+        public void ExportToJson_Hero앵커만포함()
         {
             string json = BalanceConfigSyncer.ExportToJson(_config);
             JObject obj = JObject.Parse(json);
             JObject hero = obj["hero"] as JObject;
 
             Assert.IsNotNull(hero, "hero 키 없음");
-            Assert.AreEqual(10,  hero["power"].Value<int>(),       "power");
-            Assert.AreEqual(3f,  hero["range"].Value<float>(),     0.001f, "range");
-            Assert.AreEqual(1f,  hero["cooldown"].Value<float>(),  0.001f, "cooldown");
-            Assert.AreEqual(3f,  hero["moveSpeed"].Value<float>(), 0.001f, "moveSpeed");
+            Assert.AreEqual(10, hero["power"].Value<int>(), "power");
+            Assert.IsNull(hero["range"], "range 는 HeroArchetype 로 이관");
+            Assert.IsNull(hero["cooldown"], "cooldown 은 HeroArchetype 로 이관");
+            Assert.IsNull(hero["moveSpeed"], "moveSpeed 는 HeroArchetype 로 이관");
         }
 
         //# Export → runDuration 포함
@@ -128,7 +125,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 999, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 999, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = new float[] { 0.9f },
@@ -140,13 +137,13 @@ namespace Lair.Tests
             Assert.AreEqual(999, _config.Hero.Hp);
         }
 
-        //# ApplyDto → hero 전체 스탯 갱신 (Power/Range/Cooldown/MoveSpeed)
+        //# ApplyDto → hero 앵커 갱신 (Hp/Power)
         [Test]
-        public void ApplyDto_Hero전체스탯갱신()
+        public void ApplyDto_Hero앵커갱신()
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 20, Range = 5f, Cooldown = 0.5f, MoveSpeed = 4f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 20 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = new float[] { 0.9f },
@@ -155,10 +152,7 @@ namespace Lair.Tests
 
             BalanceConfigSyncer.ApplyDto(dto, _config);
 
-            Assert.AreEqual(20,   _config.Hero.Power,           "Power");
-            Assert.AreEqual(5f,   _config.Hero.Range,     0.001f, "Range");
-            Assert.AreEqual(0.5f, _config.Hero.Cooldown,  0.001f, "Cooldown");
-            Assert.AreEqual(4f,   _config.Hero.MoveSpeed, 0.001f, "MoveSpeed");
+            Assert.AreEqual(20, _config.Hero.Power, "Power");
         }
 
         //# ApplyDto → runDuration 갱신
@@ -167,7 +161,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 600f,
                 PassiveThresholds = new float[] { 0.9f },
@@ -185,7 +179,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = new float[] { 0.7f, 0.5f, 0.3f, 0.1f }, //# 2 → 4 로 크기 변경
@@ -207,7 +201,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = new float[] { 0.9f },
@@ -228,7 +222,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>
                 {
                     new MonsterStatRowDto
@@ -259,7 +253,7 @@ namespace Lair.Tests
 
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>
                 {
                     new MonsterStatRowDto
@@ -292,7 +286,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>
                 {
                     new MonsterStatRowDto
@@ -330,7 +324,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = null,
@@ -346,7 +340,7 @@ namespace Lair.Tests
         {
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero = new CharacterStatDto { Hp = 500, Power = 10, Range = 3f, Cooldown = 1f, MoveSpeed = 3f },
+                Hero = new HeroAnchorDto { Hp = 500, Power = 10 },
                 Monsters = new List<MonsterStatRowDto>(),
                 RunDuration = 300f,
                 PassiveThresholds = new float[] { 0.9f },

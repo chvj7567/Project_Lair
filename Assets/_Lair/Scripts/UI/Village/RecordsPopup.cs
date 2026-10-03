@@ -182,7 +182,7 @@ namespace Lair.UI
             return $"총 출격  {profile.TotalRuns}\n승리  {profile.TotalWins}\n승률  {winRate}%\n최단 클리어  {bestClear}";
         }
 
-        //# 스테이지 1~5 행 — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
+        //# 스테이지 1~MaxStage 행(선형 번호) — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
         public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
         {
             List<RecordsStageCellData> list = new List<RecordsStageCellData>();
@@ -221,8 +221,8 @@ namespace Lair.UI
         //# 여기선 테스트 대상이라 public). 두 곳이 어긋나면 표기가 갈리므로 규약 변경 시 함께 고친다.
         public static string BuildThreat(int stage)
         {
-            int filled = Mathf.Clamp(stage, 0, StageProgress.MaxStage);
-            return new string('★', filled) + new string('☆', StageProgress.MaxStage - filled);
+            int filled = Mathf.Clamp(stage, 0, StageProgress.StagesPerChapter);
+            return new string('★', filled) + new string('☆', StageProgress.StagesPerChapter - filled);
         }
 
         //# 클리어타임 표기 — 기록 없음(-1)은 "-", 그 외 m:ss (초는 내림).

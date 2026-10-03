@@ -86,6 +86,9 @@ namespace Lair.Battle
                 Debug.LogError("[LoadingController] Strings_Ko 로드 실패 — CHText 문자열 미등록");
             }
 
+            //# 4.5 챕터/스테이지/영웅 직업 JSON 로드·검증 → ChapterDatabase.Current (실패 시 LogError, 이후 영웅 스탯 폴백 경로)
+            await ChapterDatabaseLoader.LoadAsync();
+
             //# 5. Addressables 번들 워밍 + 진행률 표시
             List<string> loadedKeys = new List<string>();
             string prevKey = string.Empty;

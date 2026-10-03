@@ -7,9 +7,10 @@ namespace Lair.Net
     public static class StageLeaderboard
     {
         public const string CollectionName = "stageLeaderboard";
-        public const int MaxStage = StageProgress.MaxStage;
+        //# 선형 스테이지 번호 상한 — 출시 챕터 수 x 5 (현재 10). 문서 ID 의 stage 는 선형 번호(chapter-system §2.3).
+        public static int MaxStage => StageProgress.MaxStage;
 
-        //# 스테이지 범위(1~5) 검증 — 범위 밖이면 서버 왕복 없이 실패/빈 목록.
+        //# 스테이지 범위(1~MaxStage) 검증 — 범위 밖이면 서버 왕복 없이 실패/빈 목록.
         public static bool IsValidStage(int stage)
         {
             return stage >= 1 && stage <= StageProgress.MaxStage;

@@ -13,15 +13,17 @@ namespace Lair.Tests.EditMode
         //# hero-2d-conversion §11 경고 — Tier 는 C# 기본값이 0 이라, 에셋에 명시하지 않으면 전 스테이지가
         //# 스테이지1 표현(오버레이 off)으로 남는다. 실제 .asset 값을 실측해 회귀 감시.
         [Test]
-        public void 실제_asset의_5엔트리는_Tier가_0부터_4까지_순서대로_채워져있다()
+        public void 실제_asset의_10엔트리는_챕터키와_Tier가_챕터마다_0부터_4까지_채워져있다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(ConfigAssetPath);
             Assert.IsNotNull(config, $"asset 로드 실패: {ConfigAssetPath}");
-            Assert.AreEqual(5, config.Stages.Count, "5스테이지 엔트리 수 불변");
+            Assert.AreEqual(10, config.Stages.Count, "챕터 2개 x 5스테이지 엔트리");
 
             for (int i = 0; i < config.Stages.Count; i++)
             {
-                Assert.AreEqual(i, config.Stages[i].Tier, $"엔트리 {i} 의 Tier == {i}");
+                Assert.AreEqual(i / 5 + 1, config.Stages[i].ChapterId, $"엔트리 {i} 의 ChapterId");
+                Assert.AreEqual(i % 5 + 1, config.Stages[i].StageIndex, $"엔트리 {i} 의 StageIndex");
+                Assert.AreEqual(i % 5, config.Stages[i].Tier, $"엔트리 {i} 의 Tier == {i % 5}");
             }
         }
 
@@ -29,6 +31,12 @@ namespace Lair.Tests.EditMode
         private static HeroStageVariantConfig MakeConfig(HeroStageVariant[] stages)
         {
             HeroStageVariantConfig cfg = ScriptableObject.CreateInstance<HeroStageVariantConfig>();
+            //# 엔트리 순서대로 선형 키(챕터 1: 1~5, 챕터 2: 6~10) 부여 - GetStage 는 키로 조회한다.
+            for (int i = 0; stages != null && i < stages.Length; i++)
+            {
+                stages[i].ChapterId = i / 5 + 1;
+                stages[i].StageIndex = i % 5 + 1;
+            }
             TestReflection.SetField(cfg, "_stages", stages);
             return cfg;
         }

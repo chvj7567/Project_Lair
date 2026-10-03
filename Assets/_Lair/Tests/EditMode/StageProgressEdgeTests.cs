@@ -17,12 +17,13 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void ResolveClearedStage_는_비정상_6이상_입력도_5로_상한한다()
+        public void ResolveClearedStage_는_비정상_MaxStage초과_입력도_MaxStage로_상한한다()
         {
-            //# SelectedStage 가 어떤 경위로 6 이 되어도 클리어 최고치는 5 를 넘지 않는다(spec §6.1).
-            Assert.AreEqual(5, StageProgress.ResolveClearedStage(3, 6));
-            Assert.AreEqual(5, StageProgress.ResolveClearedStage(5, 99));
-            Assert.AreEqual(5, StageProgress.ResolveClearedStage(5, 3)); //# 5 클리어 후 낮은 재도전 → 5 유지
+            //# SelectedStage 가 어떤 경위로 MaxStage(10) 를 넘어도 클리어 최고치는 MaxStage 를 넘지 않는다(spec §6.1, chapter-system §2.1).
+            Assert.AreEqual(StageProgress.MaxStage, StageProgress.ResolveClearedStage(3, StageProgress.MaxStage + 1));
+            Assert.AreEqual(StageProgress.MaxStage, StageProgress.ResolveClearedStage(5, 99));
+            Assert.AreEqual(7, StageProgress.ResolveClearedStage(7, 3)); //# 낮은 재도전 → 기존 유지
+            Assert.AreEqual(6, StageProgress.ResolveClearedStage(5, 6)); //# 챕터 경계를 넘어 갱신
         }
 
         [Test]
