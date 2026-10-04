@@ -39,6 +39,12 @@ namespace Lair.Character
         //# 필수 FX — SpawnAt 과 같되 에셋이 없으면 LogError(키별 1회). 궁수 스킬/화살 FX 용(기획서 E-11: 조용히 건너뛰지 않는다).
         public static void SpawnAtRequired(EVisual key, Vector3 center, float scale, Quaternion rotation)
         {
+            SpawnAtRequired(key, center, Vector3.one * scale, rotation);
+        }
+
+        //# 비균일 스케일 버전 — 직선 FX 가 길이 축(로컬 Z)만 늘고 폭은 고정되게 한다(프리팹 규격: 로컬 +Z 길이 1 단위, 폭은 월드 단위 고정).
+        public static void SpawnAtRequired(EVisual key, Vector3 center, Vector3 scale, Quaternion rotation)
+        {
             if (CHMResource.Instance == null || CHMPool.Instance == null)
                 return;
             CHMResource.Instance.Load<GameObject>(key, prefab =>
@@ -53,18 +59,18 @@ namespace Lair.Character
                     return;
                 p.transform.position = center;
                 p.transform.rotation = rotation;
-                p.transform.localScale = Vector3.one * scale;
+                p.transform.localScale = scale;
             });
         }
 
-        //# 직선 FX — origin 에서 dir 방향으로 length 만큼 늘려 배치(관통 사격·화살). 단위 길이(1) 프리팹을 length 로 스케일.
+        //# 직선 FX — origin 에서 dir 방향으로 length 만큼 배치(관통 사격·화살). 루트 스케일 = (1, 1, length): 길이 축만 늘고 폭은 프리팹 고정.
         public static void SpawnLineRequired(EVisual key, Vector3 origin, Vector3 dir, float length)
         {
             Vector3 d = dir;
             d.y = 0f;
             if (d.sqrMagnitude < 0.0001f)
                 d = Vector3.forward;
-            SpawnAtRequired(key, new Vector3(origin.x, ConeFloorLiftY, origin.z), length, Quaternion.LookRotation(d.normalized, Vector3.up));
+            SpawnAtRequired(key, new Vector3(origin.x, ConeFloorLiftY, origin.z), new Vector3(1f, 1f, length), Quaternion.LookRotation(d.normalized, Vector3.up));
         }
 
         private static readonly System.Collections.Generic.HashSet<EVisual> MissingLogged = new System.Collections.Generic.HashSet<EVisual>();
