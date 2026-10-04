@@ -98,11 +98,13 @@ namespace Lair.Village
             return HeroDisplayName(_profile != null ? _profile.SelectedHero : null);
         }
 
-        //# 영웅 표시 이름 — 현재 Knight 1종. 미지정/미등록은 원문(빈 값이면 기본 영웅명).
+        //# 영웅 표시 이름 — 기사/궁수. 미지정은 기본 영웅명(기사), 미등록은 원문. 챕터 데이터가 있으면 IntruderText 는 데이터 문구를 쓴다.
         public static string HeroDisplayName(string hero)
         {
             if (string.IsNullOrEmpty(hero) || hero == EHero.Knight.ToString())
                 return "기사";
+            if (hero == EHero.Archer.ToString())
+                return "궁수";
             return hero;
         }
 
