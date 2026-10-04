@@ -516,7 +516,10 @@ namespace Lair.Battle
             MetaProfile profile = MetaSession.GetOrLoad();
             ChapterRow chapter = _chapters.GetChapter(StageProgress.ChapterOf(profile.SelectedStage));
             if (chapter == null)
+            {
+                Debug.LogError($"[BattleController] 선택 스테이지 {profile.SelectedStage} 의 챕터 데이터 없음 — 기본 배경으로 진행");
                 return;
+            }
             if (System.Enum.TryParse(chapter.backdropKey, out EBackdrop key) == false || System.Enum.IsDefined(typeof(EBackdrop), key) == false)
             {
                 Debug.LogError($"[BattleController] 챕터 {chapter.chapterId} 의 backdropKey 가 EBackdrop 에 없음: {chapter.backdropKey}");
@@ -1440,7 +1443,6 @@ namespace Lair.Battle
             return _synergyVisual;
         }
 
-        //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.
         //# 선택 스테이지 챕터의 영웅 종류 — 데이터 없음/알 수 없는 값이면 기사(SpawnHero 가 데이터 실패를 따로 중단한다).
         private EHero SelectedHeroKey()
         {
@@ -1463,44 +1465,52 @@ namespace Lair.Battle
         private async Task WarmVisual(EVisual key, int count)
         {
             GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
-            if (fx != null)
+            if (fx == null)
             {
-                CHMPool.Instance.CreatePool(fx, count);
+                Debug.LogError($"[BattleController] 풀 워밍 FX 로드 실패: {key}");
+                return;
             }
+            CHMPool.Instance.CreatePool(fx, count);
         }
 
         //# 스테이지 규칙 → FX 키·워밍 수(chapter-system §3.4 — 덫은 trapCount 만큼 동시 표시, 사슬은 봉인 스포너 수).
-        private static void StageRuleFx(StageRuleData data, out EVisual key, out int count)
+        private static bool StageRuleFx(StageRuleData data, out EVisual key, out int count)
         {
             switch (data.RuleId)
             {
                 case EStageRule.HolySpring:
                     key = EVisual.StageSpringFx;
                     count = 1;
-                    break;
+                    return true;
                 case EStageRule.DenseFog:
                     key = EVisual.StageFogFx;
                     count = 1;
-                    break;
+                    return true;
                 case EStageRule.SealedNest:
                     key = EVisual.StageSealChainFx;
                     count = 2;
-                    break;
+                    return true;
                 case EStageRule.BossBulwark:
                     key = EVisual.StageBulwarkFx;
                     count = 1;
-                    break;
+                    return true;
                 case EStageRule.ArrowRain:
                     key = EVisual.StageArrowRainFx;
                     count = 2;
-                    break;
-                default:
+                    return true;
+                case EStageRule.HunterTraps:
                     key = EVisual.StageTrapFx;
                     count = Mathf.Max(1, Mathf.RoundToInt(data.Params["trapCount"]));
-                    break;
+                    return true;
+                default:
+                    Debug.LogError($"[BattleController] 워밍 FX 매핑이 없는 스테이지 규칙: {data.RuleId}");
+                    key = EVisual.StageTrapFx;
+                    count = 0;
+                    return false;
             }
         }
 
+        //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.
         private async Task PrewarmPools()
         {
             //# 영웅 1마리 — 선택 스테이지 챕터의 영웅(기사/궁수).
@@ -1526,7 +1536,8 @@ namespace Lair.Battle
                 int linear = MetaSession.GetOrLoad().SelectedStage;
                 foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear)))
                 {
-                    StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount);
+                    if (StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount) == false)
+                        continue;
                     await WarmVisual(ruleFx, ruleFxCount);
                 }
             }

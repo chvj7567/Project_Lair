@@ -86,6 +86,9 @@ namespace Lair.Village
         {
             EHero heroKey = ShowcaseHeroOf(_vm != null ? _vm.SelectedStage : 1);
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
+            //# await 중 씬이 파괴됐으면 배치하지 않는다 — 파괴된 transform 으로 Pop 하면 부모 없는 인스턴스가 남는다.
+            if (this == null)
+                return;
             if (prefab == null)
             {
                 Debug.LogError($"[VillageController] {heroKey} 프리팹 로드 실패 — 쇼케이스 없이 진행");
@@ -149,13 +152,21 @@ namespace Lair.Village
                 return;
             }
             _showcaseSwapping = true;
-            do
+            try
             {
-                _showcaseSwapPending = false;
-                await SwapShowcaseHero();
+                do
+                {
+                    _showcaseSwapPending = false;
+                    await SwapShowcaseHero();
+                    if (this == null)
+                        return;
+                }
+                while (_showcaseSwapPending);
             }
-            while (_showcaseSwapPending);
-            _showcaseSwapping = false;
+            finally
+            {
+                _showcaseSwapping = false;
+            }
         }
 
         //# 현재 선택 챕터의 영웅과 다르면 기존 쇼케이스를 풀에 반환하고 새 영웅을 배치(SpawnIdleHero 가 variant·홀로그램까지 적용).
@@ -168,13 +179,19 @@ namespace Lair.Village
                 ApplyShowcaseVariant();
                 return;
             }
-            if (_showcase != null)
-            {
-                CHMPool.Instance.Push(_showcase);
-                _showcase = null;
-                _showcaseApplier = null;
-            }
+            ReleaseShowcase();
             await SpawnIdleHero();
+        }
+
+        //# 쇼케이스를 영속 풀에 돌려준다 — 끈 전투 컴포넌트를 먼저 복구해 풀에 오염 상태를 남기지 않는다(Rule 03 §4).
+        private void ReleaseShowcase()
+        {
+            if (_showcase == null)
+                return;
+            SetBattleComponents(_showcase.gameObject, true);
+            CHMPool.Instance.Push(_showcase);
+            _showcase = null;
+            _showcaseApplier = null;
         }
 
         private void OnDestroy()
@@ -183,26 +200,33 @@ namespace Lair.Village
             {
                 _vm.OnStageChanged -= HandleStageChanged;
             }
+            ReleaseShowcase();
         }
 
         //# 전투 전용 컴포넌트만 끈다 — Animator/CharacterAnimationDriver 는 유지 (idle 루프).
         //# Pop 직후 1회 GetComponent — Rule 02 §5 의 Awake 1회 캐싱과 동등한 일회성 경로.
         private void DisableBattleComponents(GameObject hero)
         {
+            SetBattleComponents(hero, false);
+        }
+
+        //# 전투 컴포넌트 일괄 on/off — false 는 쇼케이스 배치, true 는 풀 반환 전 복구.
+        private void SetBattleComponents(GameObject hero, bool enabled)
+        {
             if (hero == null)
                 return;
-            foreach (AutoCombatAI ai in hero.GetComponentsInChildren<AutoCombatAI>())
+            foreach (AutoCombatAI ai in hero.GetComponentsInChildren<AutoCombatAI>(true))
             {
                 if (ai != null)
                 {
-                    ai.enabled = false;
+                    ai.enabled = enabled;
                 }
             }
-            ToggleComponent<HeroSkillRunner>(hero, false);
-            ToggleComponent<MeleeAttacker>(hero, false);
-            ToggleComponent<SimpleMover>(hero, false);
-            ToggleComponent<SimpleRotator>(hero, false);
-            ToggleComponent<HeroEntryDriver>(hero, false);
+            ToggleComponent<HeroSkillRunner>(hero, enabled);
+            ToggleComponent<MeleeAttacker>(hero, enabled);
+            ToggleComponent<SimpleMover>(hero, enabled);
+            ToggleComponent<SimpleRotator>(hero, enabled);
+            ToggleComponent<HeroEntryDriver>(hero, enabled);
         }
 
         private static void ToggleComponent<T>(GameObject go, bool enabled) where T : Behaviour
