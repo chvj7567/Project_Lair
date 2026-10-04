@@ -11,20 +11,27 @@ namespace Lair.Tests.EditMode
         [TestCase(5, 5)]
         public void 탭_범위_안_스테이지는_그대로_연다(int initial, int expected)
         {
-            Assert.AreEqual(expected, RankingPopup.ResolveInitialStage(initial, true));
+            Assert.AreEqual(expected, RankingPopup.ResolveInitialStage(initial, 5));
         }
 
         [TestCase(6)]
         [TestCase(10)]
         public void 탭_범위를_넘는_스테이지는_전체_랭킹으로_연다(int initial)
         {
-            Assert.AreEqual(0, RankingPopup.ResolveInitialStage(initial, true));
+            Assert.AreEqual(0, RankingPopup.ResolveInitialStage(initial, 5));
+        }
+
+        [Test]
+        public void 탭_수가_늘어나면_그_범위까지_그대로_연다()
+        {
+            Assert.AreEqual(8, RankingPopup.ResolveInitialStage(8, 10));
+            Assert.AreEqual(0, RankingPopup.ResolveInitialStage(11, 10));
         }
 
         [Test]
         public void 탭이_없으면_전체_랭킹으로_연다()
         {
-            Assert.AreEqual(0, RankingPopup.ResolveInitialStage(3, false));
+            Assert.AreEqual(0, RankingPopup.ResolveInitialStage(3, 0));
         }
     }
 }

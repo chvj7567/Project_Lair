@@ -41,10 +41,10 @@ namespace Lair.UI
             return Mathf.Clamp(stage, 0, StageLeaderboard.MaxStage);
         }
 
-        //# 탭(1~MaxStage)을 넘는 스테이지(2챕터 6~10)는 탭 확장 전까지 전체 랭킹(0)으로 연다.
-        public static int ResolveInitialStage(int initialStage, bool hasTabs)
+        //# 실제 스테이지 탭 수(stageTabCount)를 넘는 스테이지(2챕터 6~10)는 탭 확장 전까지 전체 랭킹(0)으로 연다.
+        public static int ResolveInitialStage(int initialStage, int stageTabCount)
         {
-            if (hasTabs == false || initialStage > StageLeaderboard.MaxStage)
+            if (stageTabCount <= 0 || initialStage > stageTabCount)
                 return 0;
             return ClampStage(initialStage);
         }
@@ -55,7 +55,7 @@ namespace Lair.UI
             {
                 //# 탭 위젯이 없으면(프리팹 배선 전) 스테이지 탭으로 진입해 갇히지 않도록 전체 랭킹으로 연다.
                 bool hasTabs = _overallTab != null && _stageTabs != null && _stageTabs.Length > 0;
-                int stage = ResolveInitialStage(rankArg.InitialStage, hasTabs);
+                int stage = ResolveInitialStage(rankArg.InitialStage, hasTabs ? _stageTabs.Length : 0);
                 WireTabs(rankArg, stage);
                 Load(rankArg, stage);
             }
