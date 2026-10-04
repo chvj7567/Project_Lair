@@ -31,6 +31,9 @@ namespace Lair.Battle
         //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
 
+        //# 전장 배경 스프라이트 렌더러(씬 'Backdrop') — 챕터 backdropKey 가 기본(Battle_Backdrop)이 아니면 시작 시 해당 스프라이트로 교체(chapter-system §7.4).
+        [SerializeField] private SpriteRenderer _backdropRenderer;
+
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
@@ -134,6 +137,7 @@ namespace Lair.Battle
 
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
+            await ApplyChapterBackdrop();
 
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
@@ -501,6 +505,34 @@ namespace Lair.Battle
             _heroAuraRunner = null;
             _onStatusShownHandler = null;
             _onStatusHiddenHandler = null;
+        }
+
+        //# 챕터 전장 배경 교체 — 기본 키(Battle_Backdrop = 씬에 배치된 1챕터 배경)는 건드리지 않아 기존 동작 불변.
+        //# 키 파싱/에셋 로드 실패는 조용히 넘기지 않고 LogError(기획서 E-11 취지) — 배경은 시각 요소라 전투는 씬 기본 배경으로 계속한다.
+        private async Task ApplyChapterBackdrop()
+        {
+            if (_chapters == null || _backdropRenderer == null)
+                return;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            ChapterRow chapter = _chapters.GetChapter(StageProgress.ChapterOf(profile.SelectedStage));
+            if (chapter == null)
+                return;
+            if (System.Enum.TryParse(chapter.backdropKey, out EBackdrop key) == false || System.Enum.IsDefined(typeof(EBackdrop), key) == false)
+            {
+                Debug.LogError($"[BattleController] 챕터 {chapter.chapterId} 의 backdropKey 가 EBackdrop 에 없음: {chapter.backdropKey}");
+                return;
+            }
+            if (key == EBackdrop.Battle_Backdrop)
+                return;
+
+            Sprite sprite = await CHMResource.Instance.LoadAsync<Sprite>(key);
+            if (sprite == null)
+            {
+                Debug.LogError($"[BattleController] 전장 배경 로드 실패: {key} — Addressables 등록(Art/Sprites/Backdrop2D, 라벨 Resource) 확인, 기본 배경으로 진행");
+                return;
+            }
+            _backdropRenderer.sprite = sprite;
         }
 
         //# chapter-system §2.1 — 앵커(BalanceConfig) x 직업(HeroArchetype) x 스테이지(Stage) 로 도출한 영웅 스탯을 적용. Pop 직후 1회.
