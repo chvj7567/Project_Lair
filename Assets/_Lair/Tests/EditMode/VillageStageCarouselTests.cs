@@ -9,7 +9,7 @@ namespace Lair.Tests.EditMode
     //# MetaConfig 는 소울/영주 게이지 전용 — 캐러셀 API 는 미사용이므로 null 주입.
     public class VillageStageCarouselTests
     {
-        //# 캐러셀을 원하는 시작 스테이지에 위치시킨다 — 초기값(최대 플레이 가능)에서 MoveStage(1~5 클램프)로 이동.
+        //# 캐러셀을 원하는 시작 스테이지에 위치시킨다 — 초기값(최대 플레이 가능)에서 MoveStage(1~출격 가능 상한 클램프)로 이동.
         //# 초기 파생 로직과 무관하게 시작 위치를 고정하므로 이동/경계 테스트는 초기값 변경에 영향받지 않는다.
         private static VillageViewModel MakeVm(int startStage, int clearedStage)
         {
@@ -19,14 +19,15 @@ namespace Lair.Tests.EditMode
             return vm;
         }
 
-        //# 진입 초기 = 최대 플레이 가능 스테이지 = min(ClearedStage+1, 5) (기획: 마지막 선택이 아니라 최고 도전 지점부터).
+        //# 진입 초기 = 최대 플레이 가능 스테이지 = min(ClearedStage+1, 출격 가능 상한) (기획: 마지막 선택이 아니라 최고 도전 지점부터).
         [Test]
         public void 초기_SelectedStage는_최대_플레이가능_스테이지다()
         {
             Assert.AreEqual(1, new VillageViewModel(new MetaProfile { ClearedStage = 0 }, null).SelectedStage);   //# 신규 유저
             Assert.AreEqual(3, new VillageViewModel(new MetaProfile { ClearedStage = 2 }, null).SelectedStage);   //# 2 클리어 → 3
-            Assert.AreEqual(5, new VillageViewModel(new MetaProfile { ClearedStage = 4 }, null).SelectedStage);   //# 4 클리어 → 5(상한)
-            Assert.AreEqual(5, new VillageViewModel(new MetaProfile { ClearedStage = 5 }, null).SelectedStage);   //# 전 클리어 → 5
+            Assert.AreEqual(5, new VillageViewModel(new MetaProfile { ClearedStage = 4 }, null).SelectedStage);   //# 4 클리어 → 5(1장 보스)
+            Assert.AreEqual(6, new VillageViewModel(new MetaProfile { ClearedStage = 5 }, null).SelectedStage);   //# 1장 클리어 → 2-1(챕터 경계 통과)
+            Assert.AreEqual(ChapterGate.PlayableStageCount, new VillageViewModel(new MetaProfile { ClearedStage = 10 }, null).SelectedStage);   //# 전 클리어 → 출격 가능 상한
         }
 
         //# 저장된 SelectedStage 는 무시된다 — 진입은 항상 최대 플레이 가능으로 시작(출격 desync 방지 계약의 근거).
@@ -35,7 +36,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile profile = new MetaProfile { SelectedStage = 1, ClearedStage = 3 };
             VillageViewModel vm = new VillageViewModel(profile, null);
-            Assert.AreEqual(4, vm.SelectedStage);   //# 저장값 1 이 아니라 min(3+1,5)=4
+            Assert.AreEqual(4, vm.SelectedStage);   //# 저장값 1 이 아니라 min(3+1, 상한)=4
         }
 
         [Test]
@@ -73,15 +74,15 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void MoveStage_5에서_다음은_클램프되어_불변이고_통지없다()
+        public void MoveStage_출격_가능_상한에서_다음은_클램프되어_불변이고_통지없다()
         {
-            VillageViewModel vm = MakeVm(5, 5);
+            VillageViewModel vm = MakeVm(ChapterGate.PlayableStageCount, 10);
             int notified = 0;
             vm.OnStageChanged += () => notified++;
 
             vm.MoveStage(1);
 
-            Assert.AreEqual(5, vm.SelectedStage); //# 상한 클램프 — 불변
+            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage); //# 상한 클램프 — 불변
             Assert.AreEqual(0, notified);         //# 실변경 없으면 통지 안 함
         }
 
@@ -99,11 +100,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void MoveStage_여러칸_delta도_1_5로_클램프된다()
+        public void MoveStage_여러칸_delta도_1과_출격_가능_상한으로_클램프된다()
         {
-            VillageViewModel vm = MakeVm(3, 5);
-            vm.MoveStage(10);
-            Assert.AreEqual(5, vm.SelectedStage);
+            VillageViewModel vm = MakeVm(3, 10);
+            vm.MoveStage(100);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage);
             vm.MoveStage(-10);
             Assert.AreEqual(1, vm.SelectedStage);
         }
@@ -117,11 +118,12 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void CanMoveNext는_스테이지5에서만_false다()
+        public void CanMoveNext는_출격_가능_상한에서만_false다()
         {
-            Assert.IsTrue(MakeVm(1, 5).CanMoveNext);
-            Assert.IsTrue(MakeVm(4, 5).CanMoveNext);
-            Assert.IsFalse(MakeVm(5, 5).CanMoveNext);
+            Assert.IsTrue(MakeVm(1, 10).CanMoveNext);
+            Assert.IsTrue(MakeVm(4, 10).CanMoveNext);
+            Assert.IsTrue(MakeVm(5, 10).CanMoveNext, "1장 보스에서는 챕터 경계를 넘어 다음(2-1)으로 갈 수 있다");
+            Assert.IsFalse(MakeVm(ChapterGate.PlayableStageCount, 10).CanMoveNext);
         }
 
         [Test]

@@ -63,32 +63,38 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 챕터_탭은_5칸이고_2장은_출격_불가라_1장_보스를_깨도_잠겨_있다()
+        public void 챕터_탭은_5칸이고_2장은_1장_보스를_깨야_열린다()
         {
-            WorldMapViewModel vm = NewVm(new MetaProfile { ClearedStage = 5 });
+            WorldMapViewModel locked = NewVm(new MetaProfile { ClearedStage = 4 });
+            WorldMapViewModel opened = NewVm(new MetaProfile { ClearedStage = 5 });
 
-            Assert.AreEqual(5, vm.Tabs.Count);
-            Assert.AreEqual("1장 지하 묘지", vm.Tabs[0].Label);
-            Assert.IsFalse(vm.Tabs[0].IsLocked);
-            Assert.AreEqual("2장 어둠의 숲", vm.Tabs[1].Label);
-            Assert.IsTrue(vm.Tabs[1].IsLocked, "ChapterGate 로 출격 불가");
-            Assert.AreEqual("준비 중", vm.Tabs[1].LockTagText);
-            Assert.IsTrue(vm.Tabs[2].IsPlaceholder);
-            Assert.AreEqual("3장 ???", vm.Tabs[2].Label);
+            Assert.AreEqual(5, opened.Tabs.Count);
+            Assert.AreEqual("1장 지하 묘지", opened.Tabs[0].Label);
+            Assert.IsFalse(opened.Tabs[0].IsLocked);
+            Assert.AreEqual("2장 어둠의 숲", opened.Tabs[1].Label);
+            Assert.IsTrue(locked.Tabs[1].IsLocked);
+            Assert.AreEqual("잠금", locked.Tabs[1].LockTagText);
+            Assert.IsFalse(opened.Tabs[1].IsLocked, "ChapterGate 가 2장까지 열려 있다");
+            Assert.AreEqual(string.Empty, opened.Tabs[1].LockTagText);
+            Assert.IsTrue(opened.Tabs[2].IsPlaceholder);
+            Assert.AreEqual("3장 ???", opened.Tabs[2].Label);
         }
 
         [Test]
-        public void 출격_불가_챕터_탭을_누르면_이동하지_않고_안내만_나온다()
+        public void 잠긴_챕터_탭을_누르면_이동하지_않고_열리는_조건을_안내하고_열리면_이동한다()
         {
-            WorldMapViewModel vm = NewVm(new MetaProfile { ClearedStage = 5 });
+            WorldMapViewModel vm = NewVm(new MetaProfile { ClearedStage = 4 });
             string notice = null;
             vm.OnNotice += message => notice = message;
 
-            bool moved = vm.SelectChapter(2);
-
-            Assert.IsFalse(moved);
+            Assert.IsFalse(vm.SelectChapter(2));
             Assert.AreEqual(1, vm.SelectedChapter);
-            Assert.AreEqual("이 챕터는 아직 출격할 수 없습니다", notice);
+            Assert.AreEqual("2장은 1장 보스를 클리어하면 열립니다", notice);
+
+            WorldMapViewModel opened = NewVm(new MetaProfile { ClearedStage = 5 });
+            Assert.IsTrue(opened.SelectChapter(2));
+            Assert.AreEqual(2, opened.SelectedChapter);
+            Assert.AreEqual("2-1", opened.DetailNumberText);
         }
 
         [Test]
@@ -190,7 +196,7 @@ namespace Lair.Tests.EditMode
             VillageViewModel vm = new VillageViewModel(new MetaProfile { ClearedStage = 10 }, null, Db(), Text);
 
             Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage, "cleared 10 이어도 출격 가능 상한으로 클램프");
-            Assert.AreEqual("STAGE 1-5", vm.StageIndicatorText);
+            Assert.AreEqual("STAGE 2-5", vm.StageIndicatorText);
             Assert.AreEqual("★★★★★", vm.StageThreatText);
             Assert.IsFalse(vm.CanMoveNext);
 
@@ -199,6 +205,9 @@ namespace Lair.Tests.EditMode
             vm.SelectStage(3);
             Assert.AreEqual("STAGE 1-3", vm.StageIndicatorText);
             Assert.AreEqual("기사 · 3단계", vm.IntruderText);
+            vm.SelectStage(7);
+            Assert.AreEqual("STAGE 2-2", vm.StageIndicatorText);
+            Assert.AreEqual("궁수 · 2단계", vm.IntruderText);
         }
 
         [Test]

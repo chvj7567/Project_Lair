@@ -157,8 +157,7 @@ namespace Lair.Battle
             _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
             _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
             MetaProfile heroProfile = MetaSession.GetOrLoad();
-            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(
-                Lair.Village.VillageViewModel.HeroDisplayName(heroProfile.SelectedHero), heroProfile.SelectedStage));
+            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(HeroTitleName(heroProfile), StageProgress.IndexOf(heroProfile.SelectedStage)));
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
@@ -1442,13 +1441,94 @@ namespace Lair.Battle
         }
 
         //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.
+        //# 선택 스테이지 챕터의 영웅 종류 — 데이터 없음/알 수 없는 값이면 기사(SpawnHero 가 데이터 실패를 따로 중단한다).
+        private EHero SelectedHeroKey()
+        {
+            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(MetaSession.GetOrLoad().SelectedStage) : null;
+            if (hero != null && System.Enum.TryParse(hero.heroId, out EHero parsed) && System.Enum.IsDefined(typeof(EHero), parsed))
+                return parsed;
+            return EHero.Knight;
+        }
+
+        //# 전투 HUD 영웅명 — 챕터 영웅 직업 데이터(문구 id)를 우선, 없으면 프로필 값 폴백. 단계는 호출부가 챕터 내 인덱스를 준다.
+        private string HeroTitleName(MetaProfile profile)
+        {
+            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            if (hero != null && CHText.StringProvider != null)
+                return CHText.StringProvider.GetString(hero.nameKey);
+            return Lair.Village.VillageViewModel.HeroDisplayName(hero != null ? hero.heroId : profile.SelectedHero);
+        }
+
+        //# 풀 사전 워밍 — 에셋이 없으면 건너뛴다(없는 에셋은 사용 지점이 LogError 로 알린다).
+        private async Task WarmVisual(EVisual key, int count)
+        {
+            GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
+            if (fx != null)
+            {
+                CHMPool.Instance.CreatePool(fx, count);
+            }
+        }
+
+        //# 스테이지 규칙 → FX 키·워밍 수(chapter-system §3.4 — 덫은 trapCount 만큼 동시 표시, 사슬은 봉인 스포너 수).
+        private static void StageRuleFx(StageRuleData data, out EVisual key, out int count)
+        {
+            switch (data.RuleId)
+            {
+                case EStageRule.HolySpring:
+                    key = EVisual.StageSpringFx;
+                    count = 1;
+                    break;
+                case EStageRule.DenseFog:
+                    key = EVisual.StageFogFx;
+                    count = 1;
+                    break;
+                case EStageRule.SealedNest:
+                    key = EVisual.StageSealChainFx;
+                    count = 2;
+                    break;
+                case EStageRule.BossBulwark:
+                    key = EVisual.StageBulwarkFx;
+                    count = 1;
+                    break;
+                case EStageRule.ArrowRain:
+                    key = EVisual.StageArrowRainFx;
+                    count = 2;
+                    break;
+                default:
+                    key = EVisual.StageTrapFx;
+                    count = Mathf.Max(1, Mathf.RoundToInt(data.Params["trapCount"]));
+                    break;
+            }
+        }
+
         private async Task PrewarmPools()
         {
-            //# 영웅 1마리
-            GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            //# 영웅 1마리 — 선택 스테이지 챕터의 영웅(기사/궁수).
+            EHero warmHero = SelectedHeroKey();
+            GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(warmHero);
             if (heroPrefab != null)
             {
                 CHMPool.Instance.CreatePool(heroPrefab, count: 1);
+            }
+
+            //# 궁수 전용 FX(화살 궤적은 매 공격, 스킬 FX 는 동시 표시 적음).
+            if (warmHero == EHero.Archer)
+            {
+                await WarmVisual(EVisual.ArcherArrowFx, 4);
+                await WarmVisual(EVisual.HeroPiercingShotFx, 2);
+                await WarmVisual(EVisual.HeroArrowVolleyFx, 2);
+                await WarmVisual(EVisual.HeroEvadeFx, 2);
+            }
+
+            //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.
+            if (_chapters != null)
+            {
+                int linear = MetaSession.GetOrLoad().SelectedStage;
+                foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear)))
+                {
+                    StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount);
+                    await WarmVisual(ruleFx, ruleFxCount);
+                }
             }
 
             //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축

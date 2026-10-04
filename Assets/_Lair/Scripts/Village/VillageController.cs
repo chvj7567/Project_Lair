@@ -25,6 +25,11 @@ namespace Lair.Village
         private VillageViewModel _vm;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
         private HeroStageVariantApplier _showcaseApplier;
+        //# 쇼케이스 영웅 인스턴스/종류 — 챕터가 바뀌면(기사↔궁수) 풀에 반환하고 새로 배치한다.
+        private CHPoolable _showcase;
+        private EHero _showcaseHero;
+        private bool _showcaseSwapping;
+        private bool _showcaseSwapPending;
 
         private async void Start()
         {
@@ -37,9 +42,11 @@ namespace Lair.Village
 
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
             //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
-            if (profile.SelectedStage != _vm.SelectedStage)
+            string showcaseHeroId = ShowcaseHeroOf(_vm.SelectedStage).ToString();
+            if (profile.SelectedStage != _vm.SelectedStage || profile.SelectedHero != showcaseHeroId)
             {
                 profile.SelectedStage = _vm.SelectedStage;
+                profile.SelectedHero = showcaseHeroId;   //# 전투 HUD/랭킹이 읽는 표시용 영웅도 선택 스테이지 챕터에 맞춘다
                 MetaSession.Store?.Save(profile);
             }
 
@@ -65,19 +72,31 @@ namespace Lair.Village
             }
         }
 
-        //# 중앙 쇼케이스 — 선택 영웅 프리팹을 CHMPool 로 배치, 전투 컴포넌트 비활성 (기획서 §8.1).
+        //# 선택 스테이지가 속한 챕터의 영웅 — 챕터 데이터가 없거나 알 수 없는 값이면 기사.
+        private static EHero ShowcaseHeroOf(int linearStage)
+        {
+            HeroArchetypeRow hero = ChapterDatabase.Current != null ? ChapterDatabase.Current.GetHeroOfLinear(linearStage) : null;
+            if (hero != null && System.Enum.TryParse(hero.heroId, out EHero parsed) && System.Enum.IsDefined(typeof(EHero), parsed))
+                return parsed;
+            return EHero.Knight;
+        }
+
+        //# 중앙 쇼케이스 — 선택 스테이지 챕터 영웅 프리팹을 CHMPool 로 배치, 전투 컴포넌트 비활성 (기획서 §8.1).
         private async Task SpawnIdleHero()
         {
-            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            EHero heroKey = ShowcaseHeroOf(_vm != null ? _vm.SelectedStage : 1);
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
-                Debug.LogError("[VillageController] Knight 프리팹 로드 실패 — 쇼케이스 없이 진행");
+                Debug.LogError($"[VillageController] {heroKey} 프리팹 로드 실패 — 쇼케이스 없이 진행");
                 return;
             }
 
             CHPoolable poolable = CHMPool.Instance.Pop(prefab, transform);
             if (poolable == null)
                 return;
+            _showcase = poolable;
+            _showcaseHero = heroKey;
 
             Vector3 pos = _heroAnchor != null ? _heroAnchor.position : Vector3.zero;
             poolable.transform.position = pos;
@@ -105,15 +124,57 @@ namespace Lair.Village
             _showcaseApplier.Apply(_stageVariantConfig.GetStage(_vm.SelectedStage));
         }
 
-        //# 캐러셀 스테이지 이동 — 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
-        private void HandleStageChanged()
+        //# 캐러셀 스테이지 이동 — SelectedStage/SelectedHero 로컬 저장(클라우드 백업 제외, 기획서 §4.5) + 쇼케이스 재스킨.
+        //# 챕터 영웅이 바뀌면(기사↔궁수) 쇼케이스 영웅을 교체한 뒤 재스킨한다. 같은 영웅이면 기존처럼 동기 재스킨.
+        private async void HandleStageChanged()
         {
-            ApplyShowcaseVariant();
             if (_vm == null)
                 return;
             MetaProfile profile = MetaSession.GetOrLoad();
             profile.SelectedStage = _vm.SelectedStage;
+            profile.SelectedHero = ShowcaseHeroOf(_vm.SelectedStage).ToString();
             MetaSession.Store?.Save(profile);
+
+            bool needSwap = _showcase == null || _showcaseHero != ShowcaseHeroOf(_vm.SelectedStage);
+            if (needSwap == false)
+            {
+                ApplyShowcaseVariant();
+                return;
+            }
+
+            //# 교체 중 또 이동하면 끝난 뒤 한 번 더 맞춘다(중복 배치 방지).
+            if (_showcaseSwapping)
+            {
+                _showcaseSwapPending = true;
+                return;
+            }
+            _showcaseSwapping = true;
+            do
+            {
+                _showcaseSwapPending = false;
+                await SwapShowcaseHero();
+            }
+            while (_showcaseSwapPending);
+            _showcaseSwapping = false;
+        }
+
+        //# 현재 선택 챕터의 영웅과 다르면 기존 쇼케이스를 풀에 반환하고 새 영웅을 배치(SpawnIdleHero 가 variant·홀로그램까지 적용).
+        private async Task SwapShowcaseHero()
+        {
+            if (_vm == null)
+                return;
+            if (_showcase != null && _showcaseHero == ShowcaseHeroOf(_vm.SelectedStage))
+            {
+                ApplyShowcaseVariant();
+                return;
+            }
+            if (_showcase != null)
+            {
+                CHMPool.Instance.Push(_showcase);
+                _showcase = null;
+                _showcaseApplier = null;
+            }
+            await SpawnIdleHero();
         }
 
         private void OnDestroy()

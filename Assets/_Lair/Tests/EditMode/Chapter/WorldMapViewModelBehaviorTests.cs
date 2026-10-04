@@ -55,10 +55,12 @@ namespace Lair.Tests.EditMode
         [TestCase(3, 99, 1, 4)]
         [TestCase(4, 5, 1, 5)]
         [TestCase(5, 5, 1, 5)]
-        [TestCase(5, 6, 1, 5)]
-        [TestCase(10, 7, 1, 5)]
-        [TestCase(10, 10, 1, 5)]
-        public void 저장된_선택이_잠금_또는_출격_불가면_출격_가능_범위의_최대_플레이_스테이지로_보정된다(int cleared, int selected, int expectedChapter, int expectedIndex)
+        [TestCase(5, 6, 2, 1)]
+        [TestCase(10, 7, 2, 2)]
+        [TestCase(10, 10, 2, 5)]
+        [TestCase(10, 11, 2, 5)]
+        [TestCase(7, 10, 2, 3)]
+        public void 저장된_선택이_잠금이면_해금된_최대_플레이_스테이지로_보정되고_해금_범위_안이면_챕터2도_유지된다(int cleared, int selected, int expectedChapter, int expectedIndex)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared, selected));
 
@@ -89,16 +91,27 @@ namespace Lair.Tests.EditMode
         //# --- 탭 ---
 
         [TestCase(0)]
-        [TestCase(5)]
-        [TestCase(10)]
-        public void 챕터2_탭은_진행도와_무관하게_출격_불가라_준비_중으로_잠겨_있다(int cleared)
+        [TestCase(4)]
+        public void 챕터2_탭은_챕터1_보스를_클리어하기_전에는_잠금_표기로_잠겨_있다(int cleared)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared));
 
             Assert.IsTrue(vm.Tabs[1].IsLocked);
-            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReady), vm.Tabs[1].LockTagText);
+            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrLocked), vm.Tabs[1].LockTagText);
             Assert.IsFalse(vm.Tabs[1].IsPlaceholder);
             Assert.IsFalse(vm.Tabs[1].IsSelected);
+        }
+
+        [TestCase(5)]
+        [TestCase(10)]
+        public void 챕터2_탭은_챕터1_보스를_클리어하면_열리고_잠금_표기가_없다(int cleared)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared));
+
+            Assert.IsFalse(vm.Tabs[1].IsLocked);
+            Assert.AreEqual(string.Empty, vm.Tabs[1].LockTagText);
+            Assert.IsFalse(vm.Tabs[1].IsPlaceholder);
+            Assert.IsFalse(vm.Tabs[1].IsSelected, "초기 선택이 챕터 1 이면 챕터 2 탭은 선택되지 않는다");
         }
 
         [Test]
@@ -170,9 +183,8 @@ namespace Lair.Tests.EditMode
         }
 
         [TestCase(0)]
-        [TestCase(5)]
-        [TestCase(10)]
-        public void 챕터2_탭_클릭은_해금_여부보다_출격_불가_안내가_우선한다(int cleared)
+        [TestCase(4)]
+        public void 챕터2_탭_클릭은_보스를_클리어하기_전에는_이동하지_않고_열리는_조건을_안내한다(int cleared)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared));
             List<string> notices = new List<string>();
@@ -183,8 +195,39 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(vm.SelectChapter(2));
 
             Assert.AreEqual(1, notices.Count);
-            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReadyHint), notices[0]);
+            Assert.AreEqual(string.Format(WorldMapTestSupport.Text(WorldMapViewModel.StrChapterLockedHint), 2, 1), notices[0]);
             Assert.AreEqual(0, changed);
+            Assert.AreEqual(1, vm.SelectedChapter);
+        }
+
+        [TestCase(5)]
+        [TestCase(10)]
+        public void 챕터2_탭_클릭은_열려_있으면_이동하고_변경_이벤트가_한번_발행된다(int cleared)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared));
+            List<string> notices = new List<string>();
+            int changed = 0;
+            vm.OnNotice += notices.Add;
+            vm.OnChanged += () => ++changed;
+
+            Assert.IsTrue(vm.SelectChapter(2));
+
+            Assert.AreEqual(0, notices.Count);
+            Assert.AreEqual(1, changed);
+            Assert.AreEqual(2, vm.SelectedChapter);
+            Assert.AreEqual(1, vm.SelectedStageIndex, "기존 인덱스 1 유지(2-1 해금)");
+            Assert.AreEqual(6, vm.SelectedLinear);
+            Assert.IsTrue(vm.Tabs[1].IsSelected);
+        }
+
+        [Test]
+        public void 챕터2에서_잠긴_인덱스가_있으면_탭_이동_시_1번으로_돌아가고_이전_챕터_인덱스를_다시_고를_수_있다()
+        {
+            WorldMapViewModel vm = NewVm(Profile(5, 5));
+
+            Assert.IsTrue(vm.SelectChapter(2));
+            Assert.AreEqual(1, vm.SelectedStageIndex, "2-5 는 잠겨 있어 1 로");
+            Assert.IsTrue(vm.SelectChapter(1));
             Assert.AreEqual(1, vm.SelectedChapter);
         }
 
