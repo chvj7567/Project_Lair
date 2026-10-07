@@ -123,7 +123,7 @@ table.spec td.l{text-align:left}
     <div class="row" id="palSel"></div>
     <p class="note" id="palDesc"></p>
     <table class="spec" id="palTbl"></table>
-    <p class="note" style="margin-top:6px">판정은 각 단계 대표색(chip)의 색상각(hue). 초록(ok) = 31° 이상, 주황(warn) = 25° 이상 31° 미만(기존 규약 25° 는 충족), 빨강(ng) = 25° 미만. 무채색은 판정 제외. 기사 유채색 = 그린 142° · 시안 199° · 퍼플 271° · 크림슨 0°. 궁수 비교 대상 = 궁수 A/B 두 안의 대표색 전부. 기사 4색과 궁수 색이 차지한 색상환의 빈 구간 중 양쪽 모두에서 31° 이상 떨어질 수 있는 곳은 인디고 230°~240° 대역뿐이다(그 외 빈 구간 폭은 56°~59° 라 한가운데도 최대 28°~29°).</p>
+    <p class="note" style="margin-top:6px">판정은 각 단계 대표색(chip)의 색상각(hue). 초록(ok) = 31° 이상, 주황(warn) = 25° 이상 31° 미만(기존 규약 25° 는 충족), 빨강(ng) = 25° 미만. 무채색은 판정 제외. 표는 토글과 무관하게 A·B 두 안을 모두 보여주며(선택된 안만 "(선택됨)" 표기), "인접 단계" 행의 B안 값(0°·3°·4°·2°)은 단색조 설계상 의도라 주황으로 표시한다. 기사 유채색 =그린 142° · 시안 199° · 퍼플 271° · 크림슨 0°. 궁수 비교 대상 = 궁수 A/B 두 안의 대표색 전부. 기사 4색과 궁수 색이 차지한 색상환의 빈 구간 중 양쪽 모두에서 31° 이상 떨어질 수 있는 곳은 인디고 230°~240° 대역뿐이다(그 외 빈 구간 폭은 56°~59° 라 한가운데도 최대 28°~29°).</p>
   </section>
 
   <div id="app">
@@ -265,7 +265,7 @@ const TH={
   {nm:'인디고',cloth:['#4338CA','#6366F1','#1E1B4B'],rim:null,glow:'#818CF8',eye:'#818CF8',chip:'#6366F1',acc:'#A5B4FC'},
   {nm:'마젠타',cloth:['#A21CAF','#D946D9','#4A044E'],rim:'#F5D0FE',glow:'#E879F9',eye:'#E879F9',chip:'#D946D9',acc:'#F0ABFC'},
   {nm:'흑요석 + 금',cloth:['#18181B','#3F3F46','#09090B'],rim:'#FDE047',glow:'#FDE047',eye:'#FDE047',chip:'#3F3F46',acc:'#FDE047'}]},
- B:{label:'B안 · 인디고 단일 색조 (심야 인디고 명도 램프)',desc:'인디고 한 색조(233°~239°)에서 명도·채도와 발광만 올린다. 기사/궁수와의 색상각이 전 단계 31° 이상으로 가장 안전하다. 약점: 인접 단계 색상각이 1°~6° 로 모여 있어 단계 구분을 실루엣·발광·파츠에 더 의존한다(궁수 B안과 같은 약점).',
+ B:{label:'B안 · 인디고 단일 색조 (심야 인디고 명도 램프)',desc:'인디고 한 색조(233°~239°)에서 명도·채도와 발광만 올린다. 기사/궁수와의 색상각이 전 단계 31° 이상으로 가장 안전하다. 약점: 인접 단계 색상각이 0°~4° 로 모여 있어 단계 구분을 실루엣·발광·파츠에 더 의존한다(궁수 B안과 같은 약점).',
   st:[
   {nm:'먹구름 인디고',cloth:['#3B3F6E','#5B5F97','#1F2147'],rim:null,glow:null,eye:'#4ADE80',chip:'#5B5F97',acc:'#8B90C9'},
   {nm:'짙은 인디고',cloth:['#4A4E8F','#6B70B8','#262A55'],rim:'#F8FAFC',glow:null,eye:'#4ADE80',chip:'#6B70B8',acc:'#A5AAE0'},
@@ -419,6 +419,8 @@ const ATK=[
  {tx:1,hr:0,lr:0,ll:0,F:{x:8.4,y:12.7,a:-10},B:{x:-2,y:12.4,a:-80}},
  {tx:1,hr:0,lr:0,ll:0,F:{x:8.6,y:12.6,a:-15},B:{x:-5.2,y:12.4,a:-105}}
 ];
+//# 5단계 칼날 왕관이 사망 회전 중 왼쪽 격자 밖으로 나가지 않게 머리를 오른쪽으로 보정하기 위한 현재 단계 값
+let CUR_T=0;
 function core(st,f){
   const P=blank(),n=ANIM[st].n;
   if(st==='idle'){
@@ -452,7 +454,7 @@ function core(st,f){
     if(f===0){P.torso.dx=0;P.head.dx=-1;P.head.rot=-14;}
     else if(f===1){P.torso.dx=0;P.torso.dy=1;P.head.dx=0;P.head.dy=1;P.head.rot=-20;P.F={x:8.6,y:13.4,a:0};P.B={x:-5.4,y:13.2,a:-100};}
     else{const s=(f-1)/6;
-      P.head.dx=Rd(-4*s);P.head.dy=Rd(1-3*s+10*s*s);P.head.rot=-20-120*s;
+      P.head.dx=(CUR_T===4)?Rd(3*s):Rd(-4*s);P.head.dy=Rd(1-3*s+10*s*s);P.head.rot=-20-120*s;
       P.torso.dx=Rd(1-s);P.torso.dy=Rd(1+5*s*s);P.torso.rot=-25*s;P.hips.dy=Rd(4*s*s);
       P.legL.dx=Rd(-2*s);P.legL.dy=Rd(2*s*s);P.legL.rot=-35*s;P.legR.dx=Rd(2*s);P.legR.dy=Rd(2*s*s);P.legR.rot=35*s;
       P.F={x:8.6+3*s,y:13.4+7*s*s,a:60*s};P.B={x:-5.4-1*s,y:13.2+7*s*s,a:-100-30*s};
@@ -592,6 +594,7 @@ function mkFrame(dest){
 const CACHE=new Map();
 function getFrame(t,st,f){
   const key=TK+'|'+t+'|'+st+'|'+f;if(CACHE.has(key))return CACHE.get(key);
+  CUR_T=t;
   const rig=rigOf(t),P=pose(st,f),dest=new Array(GW*GH).fill(null),th=TH[TK].st[t],oc=hexRgb(th.rim||OUT);
   const eyeSub=P.squint?(k,pl)=>rig.eyeKeys.has(k)?{c:hexRgb(OUT),a:1}:pl:null;
   ORDER_A.forEach(b=>{const tr=P[b]||Z();placeLayer(rig.L[b],tr,PIV[b],dest,b==='head'?eyeSub:null);});
@@ -747,7 +750,7 @@ function buildPalette(){
       let m=360;ARCH_CHIPS.forEach(c=>{const ah=hueOf(c);if(ah!==null)m=Math.min(m,angD(hh,ah));});h+='<td class="'+diffCls(m)+'">'+m.toFixed(0)+'°</td>';});
     h+='</tr><tr><td class="l">Ch3 인접 단계끼리 색상각 차이</td>';
     TH[k].st.forEach((s,i)=>{if(i===0){h+='<td>—</td>';return;}const a=hueOf(s.chip),b=hueOf(TH[k].st[i-1].chip);
-      if(a===null||b===null){h+='<td>무채색 포함</td>';return;}const d=angD(a,b);h+='<td class="'+(d>=25?'ok':'ng')+'">'+d.toFixed(0)+'°</td>';});
+      if(a===null||b===null){h+='<td>무채색 포함</td>';return;}const d=angD(a,b);h+='<td class="'+(d>=25?'ok':(k==='B'?'warn':'ng'))+'">'+d.toFixed(0)+'°'+(d<25&&k==='B'?' (단색조 의도)':'')+'</td>';});
     h+='</tr>';});
   $('palTbl').innerHTML=h;
 }
