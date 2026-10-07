@@ -10,6 +10,7 @@ namespace Lair.Data
     {
         Knight,
         Archer,   //# 챕터 2 영웅 직업 (chapter-system §5) — 값명 = HeroArchetype.json heroId
+        Assassin, //# 챕터 3 영웅 직업 (chapter-3-hero §3) — 값명 = HeroArchetype.json heroId
     }
 
     //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
@@ -17,6 +18,7 @@ namespace Lair.Data
     {
         Melee,
         Kiter,
+        Skirmisher,   //# 습격-이탈 AI (chapter-3-hero §3.3)
     }
 
     //# 스테이지 규칙 종류 — Stage_Rule.json ruleId 값명 (chapter-system §3.3). 규칙 실행 코드는 슬라이스 (b).
@@ -35,6 +37,7 @@ namespace Lair.Data
     {
         Battle_Backdrop,
         Battle_Backdrop_DarkForest,
+        Battle_Backdrop_ShadowCitadel,   //# 챕터 3 — 에셋은 슬라이스 (c)
     }
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
@@ -114,6 +117,8 @@ namespace Lair.Data
         HeroArchetype,
         HeroArchetype_Kite,
         HeroSkillLoadout_Archer,   //# 궁수 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Archer.asset (chapter-system §1.4)
+        HeroArchetype_Skirmish,    //# 암살자 습격-이탈 AI 튜닝 JSON — Data/Json/HeroArchetype_Skirmish.json (chapter-3-hero §2)
+        HeroSkillLoadout_Assassin, //# 암살자 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Assassin.asset (에셋은 슬라이스 (b))
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.

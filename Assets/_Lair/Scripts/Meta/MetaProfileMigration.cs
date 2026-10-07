@@ -4,11 +4,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 마이그레이션 (chapter-system §2.2) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage.
+    //# MetaProfile v4 → v5 → v6 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 5;
+        public const int CurrentVersion = 6;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -27,7 +27,7 @@ namespace Lair.Meta
             if (profile == null)
                 return;
 
-            //# 1) 버전 승격 — 이미 5 이상이면 유지.
+            //# 1) 버전 승격 — 이미 현재 버전 이상이면 유지.
             if (profile.Version < CurrentVersion)
             {
                 profile.Version = CurrentVersion;

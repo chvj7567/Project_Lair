@@ -54,7 +54,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, linear => linear > 5 ? "Archer" : "Knight");
 
-            Assert.AreEqual(5, p.Version);
+            Assert.AreEqual(6, p.Version);
             Assert.AreEqual(5, p.ClearedStage);
             Assert.AreEqual(5, p.SelectedStage);
             Assert.AreEqual("Knight", p.SelectedHero);

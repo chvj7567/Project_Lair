@@ -22,7 +22,8 @@ namespace Lair.Tests.EditMode
             StageRow[] stages = null,
             Stage_RuleRow[] rules = null,
             Stage_Rule_ParamRow[] ruleParams = null,
-            Stage_Rule_TriggerRow[] triggers = null)
+            Stage_Rule_TriggerRow[] triggers = null,
+            HeroArchetype_SkirmishRow[] skirmishes = null)
         {
             return ChapterDatabase.Build(
                 chapters ?? Load<ChapterRow>("Chapter"),
@@ -31,15 +32,16 @@ namespace Lair.Tests.EditMode
                 ruleParams ?? Load<Stage_Rule_ParamRow>("Stage_Rule_Param"),
                 triggers ?? Load<Stage_Rule_TriggerRow>("Stage_Rule_Trigger"),
                 Load<HeroArchetypeRow>("HeroArchetype"),
-                Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"));
+                Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
+                skirmishes ?? Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"));
         }
 
         [Test]
-        public void 실제_JSON으로_구축하면_챕터2_스테이지10_Ch1_배수가_기획서_값이다()
+        public void 실제_JSON으로_구축하면_챕터3_스테이지15_Ch1_배수가_기획서_값이다()
         {
             ChapterDatabase db = BuildFrom();
 
-            Assert.AreEqual(2, db.ChapterCount);
+            Assert.AreEqual(3, db.ChapterCount);
             float[] expectedHp = { 1.00f, 1.10f, 1.36f, 1.46f, 1.92f };
             for (int i = 0; i < 5; ++i)
             {
@@ -49,6 +51,99 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("Archer", db.GetHeroOfLinear(7).heroId);
             Assert.IsNotNull(db.GetKite("Archer"));
             Assert.IsNull(db.GetKite("Knight"));
+        }
+
+        [Test]
+        public void 실제_JSON_챕터3은_암살자_스테이지_배수가_기획서_5_3_값이다()
+        {
+            ChapterDatabase db = BuildFrom();
+
+            float[] expectedHp = { 2.06f, 2.30f, 2.54f, 2.70f, 3.20f };
+            float[] expectedPower = { 1.20f, 1.30f, 1.45f, 1.60f, 1.75f };
+            int[] expectedClearSec = { 160, 180, 200, 220, 255 };
+            for (int i = 0; i < 5; ++i)
+            {
+                StageRow stage = db.GetStage(3, i + 1);
+                Assert.AreEqual(expectedHp[i], stage.hpMultiplier, 0.0001f, $"3-{i + 1} hp");
+                Assert.AreEqual(expectedPower[i], stage.powerMultiplier, 0.0001f, $"3-{i + 1} power");
+                Assert.AreEqual(expectedClearSec[i], stage.targetClearSec, $"3-{i + 1} targetClearSec");
+            }
+            Assert.AreEqual(1121, db.GetStage(3, 1).nameKey);
+            Assert.AreEqual(1125, db.GetStage(3, 5).nameKey);
+            Assert.AreEqual("Assassin", db.GetChapter(3).heroId);
+            Assert.AreEqual("Battle_Backdrop_ShadowCitadel", db.GetChapter(3).backdropKey);
+            Assert.AreEqual("Assassin", db.GetHeroOfLinear(11).heroId);
+            Assert.AreEqual("Assassin", db.GetHeroOfLinear(15).heroId);
+        }
+
+        [Test]
+        public void 실제_JSON_암살자_직업과_습격_설정은_기획서_2_2_값이다()
+        {
+            ChapterDatabase db = BuildFrom();
+
+            HeroArchetypeRow hero = db.GetHero("Assassin");
+            Assert.AreEqual(0.70f, hero.hpScale, 0.0001f);
+            Assert.AreEqual(0.70f, hero.powerScale, 0.0001f);
+            Assert.AreEqual(1.6f, hero.range, 0.0001f);
+            Assert.AreEqual(0.7f, hero.cooldown, 0.0001f);
+            Assert.AreEqual(4.2f, hero.moveSpeed, 0.0001f);
+            Assert.AreEqual("Skirmisher", hero.aiType);
+
+            HeroArchetype_SkirmishRow skirmish = db.GetSkirmish("Assassin");
+            Assert.IsNotNull(skirmish);
+            Assert.AreEqual(9.0f, skirmish.huntRadius, 0.0001f);
+            Assert.AreEqual(1.5f, skirmish.retargetScoreMul, 0.0001f);
+            Assert.AreEqual(2.8f, skirmish.strikeWindowSec, 0.0001f);
+            Assert.AreEqual(3, skirmish.crowdCount);
+            Assert.AreEqual(2.0f, skirmish.crowdRadius, 0.0001f);
+            Assert.AreEqual(3.5f, skirmish.slipDistance, 0.0001f);
+            Assert.AreEqual(0.2f, skirmish.slipDurationSec, 0.0001f);
+            Assert.AreEqual(0.2f, skirmish.slipInvulnSec, 0.0001f);
+            Assert.AreEqual(5.0f, skirmish.slipCooldownSec, 0.0001f);
+            Assert.AreEqual(0.4f, skirmish.minDwellSec, 0.0001f);
+            Assert.AreEqual(7.0f, skirmish.arenaSoftRadius, 0.0001f);
+            Assert.IsNull(db.GetSkirmish("Knight"));
+            Assert.IsNull(db.GetSkirmish("Archer"));
+        }
+
+        [Test]
+        public void 실제_JSON_챕터3_규칙은_기획서_5_2_배정과_트리거를_따른다()
+        {
+            ChapterDatabase db = BuildFrom();
+
+            Assert.AreEqual(0, db.GetRules(3, 1).Count, "3-1 은 규칙 없음");
+            Assert.AreEqual(EStageRule.SealedNest, db.GetRules(3, 2)[0].RuleId);
+            Assert.AreEqual((float)EMonster.Plague, db.GetRules(3, 2)[0].Params["lockedSpecies"], 0.0001f);
+            Assert.AreEqual(0.60f, db.GetRules(3, 2)[0].Params["unlockHpFraction"], 0.0001f);
+            Assert.AreEqual(EStageRule.HolySpring, db.GetRules(3, 3)[0].RuleId);
+            Assert.AreEqual(EStageRule.SealedNest, db.GetRules(3, 4)[0].RuleId);
+            Assert.AreEqual((float)EMonster.Hex, db.GetRules(3, 4)[0].Params["lockedSpecies"], 0.0001f);
+            Assert.AreEqual(0.50f, db.GetRules(3, 4)[0].Params["unlockHpFraction"], 0.0001f);
+            Assert.AreEqual(EStageRule.DenseFog, db.GetRules(3, 4)[1].RuleId);
+            Assert.AreEqual(EStageRule.BossBulwark, db.GetRules(3, 5)[0].RuleId);
+            Assert.AreEqual(0.75f, db.GetRules(3, 5)[0].TriggerHpFraction, 0.0001f);
+            Assert.AreEqual(EStageRule.HunterTraps, db.GetRules(3, 5)[1].RuleId);
+            Assert.AreEqual(0.35f, db.GetRules(3, 5)[1].TriggerHpFraction, 0.0001f);
+            Assert.AreEqual(6f, db.GetRules(3, 5)[1].Params["trapCount"], 0.0001f);
+            Assert.IsFalse(db.GetRules(3, 2)[0].HasTrigger);
+        }
+
+        [Test]
+        public void Skirmisher_영웅에_습격_row가_없으면_로드_오류다()
+        {
+            ChapterDataException e = Assert.Throws<ChapterDataException>(
+                () => BuildFrom(skirmishes: new HeroArchetype_SkirmishRow[0]));
+            StringAssert.Contains("Skirmisher 인데 HeroArchetype_Skirmish row 가 없음", e.Message);
+        }
+
+        [Test]
+        public void 습격_row가_Skirmisher_아닌_영웅을_가리키면_로드_오류다()
+        {
+            HeroArchetype_SkirmishRow[] rows = Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish");
+            rows[0].heroId = "Knight";
+
+            ChapterDataException e = Assert.Throws<ChapterDataException>(() => BuildFrom(skirmishes: rows));
+            StringAssert.Contains("aiType=Skirmisher 영웅에만 존재", e.Message);
         }
 
         [Test]

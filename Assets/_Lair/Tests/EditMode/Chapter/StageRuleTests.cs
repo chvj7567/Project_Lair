@@ -236,7 +236,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 실제_JSON의_규칙_10종이_모두_팩토리로_생성된다()
+        public void 실제_JSON의_규칙_16건이_모두_팩토리로_생성된다()
         {
             ChapterDatabase db = ChapterDatabase.Build(
                 JsonArrayUtility.FromJsonArray<ChapterRow>(File.ReadAllText(JsonDir + "Chapter.json")),
@@ -245,10 +245,11 @@ namespace Lair.Tests.EditMode
                 JsonArrayUtility.FromJsonArray<Stage_Rule_ParamRow>(File.ReadAllText(JsonDir + "Stage_Rule_Param.json")),
                 JsonArrayUtility.FromJsonArray<Stage_Rule_TriggerRow>(File.ReadAllText(JsonDir + "Stage_Rule_Trigger.json")),
                 JsonArrayUtility.FromJsonArray<HeroArchetypeRow>(File.ReadAllText(JsonDir + "HeroArchetype.json")),
-                JsonArrayUtility.FromJsonArray<HeroArchetype_KiteRow>(File.ReadAllText(JsonDir + "HeroArchetype_Kite.json")));
+                JsonArrayUtility.FromJsonArray<HeroArchetype_KiteRow>(File.ReadAllText(JsonDir + "HeroArchetype_Kite.json")),
+                JsonArrayUtility.FromJsonArray<HeroArchetype_SkirmishRow>(File.ReadAllText(JsonDir + "HeroArchetype_Skirmish.json")));
 
             int created = 0;
-            for (int chapter = 1; chapter <= 2; ++chapter)
+            for (int chapter = 1; chapter <= db.ChapterCount; ++chapter)
             {
                 for (int stage = 1; stage <= 5; ++stage)
                 {
@@ -259,7 +260,7 @@ namespace Lair.Tests.EditMode
                     }
                 }
             }
-            Assert.AreEqual(10, created);
+            Assert.AreEqual(16, created);
         }
     }
 }

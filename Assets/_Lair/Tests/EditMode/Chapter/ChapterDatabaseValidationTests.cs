@@ -60,7 +60,7 @@ namespace Lair.Tests.EditMode
         public void 모든_배열이_null이면_챕터_비어있음_오류다()
         {
             ChapterDataException e = Assert.Throws<ChapterDataException>(
-                () => ChapterDatabase.Build(null, null, null, null, null, null, null));
+                () => ChapterDatabase.Build(null, null, null, null, null, null, null, null));
 
             StringAssert.Contains("Chapter.json 이 비어 있음", e.Message);
         }

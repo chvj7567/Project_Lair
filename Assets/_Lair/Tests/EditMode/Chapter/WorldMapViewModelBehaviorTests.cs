@@ -126,11 +126,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 미출시_슬롯_3_5는_자리표시자이고_장_번호_물음표_라벨이다()
+        public void 챕터_데이터가_없는_슬롯_4_5는_자리표시자이고_장_번호_물음표_라벨이다()
         {
             WorldMapViewModel vm = NewVm(Profile(10));
 
-            for (int slot = 3; slot <= 5; ++slot)
+            for (int slot = 4; slot <= 5; ++slot)
             {
                 WorldMapTabData tab = vm.Tabs[slot - 1];
                 Assert.IsTrue(tab.IsPlaceholder, $"{slot}장");
@@ -140,6 +140,28 @@ namespace Lair.Tests.EditMode
                 Assert.AreEqual($"{slot}장 ???", tab.Label);
                 Assert.AreEqual(string.Empty, tab.LockTagText);
             }
+        }
+
+        [Test]
+        public void 챕터3_탭은_데이터가_있어도_출격_게이트가_닫혀_있어_준비_중으로_잠겨_있다()
+        {
+            WorldMapViewModel vm = NewVm(Profile(10));
+
+            WorldMapTabData tab = vm.Tabs[2];
+            Assert.IsFalse(tab.IsPlaceholder);
+            Assert.IsTrue(tab.IsLocked);
+            Assert.IsFalse(tab.IsSelected);
+            Assert.AreEqual("3장 그림자 성채", tab.Label);
+            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReady), tab.LockTagText);
+        }
+
+        [Test]
+        public void 챕터3_탭을_눌러도_출격_게이트가_닫혀_있어_이동하지_않는다()
+        {
+            WorldMapViewModel vm = NewVm(Profile(10));
+
+            Assert.IsFalse(vm.SelectChapter(3));
+            Assert.AreEqual(1, vm.SelectedChapter);
         }
 
         [Test]

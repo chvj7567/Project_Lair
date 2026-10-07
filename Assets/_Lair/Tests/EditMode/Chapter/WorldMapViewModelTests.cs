@@ -25,7 +25,8 @@ namespace Lair.Tests.EditMode
             return ChapterDatabase.Build(
                 Load<ChapterRow>("Chapter"), Load<StageRow>("Stage"), Load<Stage_RuleRow>("Stage_Rule"),
                 Load<Stage_Rule_ParamRow>("Stage_Rule_Param"), Load<Stage_Rule_TriggerRow>("Stage_Rule_Trigger"),
-                Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"));
+                Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
+                Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"));
         }
 
         //# 실제 Strings_Ko — id 누락이 있으면 빈 문자열이 되어 단언이 실패한다.
@@ -76,8 +77,11 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("잠금", locked.Tabs[1].LockTagText);
             Assert.IsFalse(opened.Tabs[1].IsLocked, "ChapterGate 가 2장까지 열려 있다");
             Assert.AreEqual(string.Empty, opened.Tabs[1].LockTagText);
-            Assert.IsTrue(opened.Tabs[2].IsPlaceholder);
-            Assert.AreEqual("3장 ???", opened.Tabs[2].Label);
+            Assert.IsFalse(opened.Tabs[2].IsPlaceholder);
+            Assert.IsTrue(opened.Tabs[2].IsLocked, "챕터 3 데이터는 있지만 ChapterGate 가 닫혀 있다");
+            Assert.AreEqual("3장 그림자 성채", opened.Tabs[2].Label);
+            Assert.IsTrue(opened.Tabs[3].IsPlaceholder);
+            Assert.AreEqual("4장 ???", opened.Tabs[3].Label);
         }
 
         [Test]

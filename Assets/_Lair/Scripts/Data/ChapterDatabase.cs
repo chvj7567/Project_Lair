@@ -50,6 +50,7 @@ namespace Lair.Data
         private readonly Dictionary<long, StageRow> _stages = new Dictionary<long, StageRow>();
         private readonly Dictionary<string, HeroArchetypeRow> _heroes = new Dictionary<string, HeroArchetypeRow>();
         private readonly Dictionary<string, HeroArchetype_KiteRow> _kites = new Dictionary<string, HeroArchetype_KiteRow>();
+        private readonly Dictionary<string, HeroArchetype_SkirmishRow> _skirmishes = new Dictionary<string, HeroArchetype_SkirmishRow>();
         private readonly Dictionary<long, List<StageRuleData>> _rules = new Dictionary<long, List<StageRuleData>>();
 
         private ChapterDatabase() { }
@@ -65,13 +66,15 @@ namespace Lair.Data
             Stage_Rule_ParamRow[] ruleParams,
             Stage_Rule_TriggerRow[] triggers,
             HeroArchetypeRow[] heroes,
-            HeroArchetype_KiteRow[] kites)
+            HeroArchetype_KiteRow[] kites,
+            HeroArchetype_SkirmishRow[] skirmishes)
         {
             ChapterDatabase db = new ChapterDatabase();
             List<string> errors = new List<string>();
 
             db.AddHeroes(heroes ?? Array.Empty<HeroArchetypeRow>(), errors);
             db.AddKites(kites ?? Array.Empty<HeroArchetype_KiteRow>(), errors);
+            db.AddSkirmishes(skirmishes ?? Array.Empty<HeroArchetype_SkirmishRow>(), errors);
             db.AddChapters(chapters ?? Array.Empty<ChapterRow>(), errors);
             db.AddStages(stages ?? Array.Empty<StageRow>(), errors);
             db.AddRules(
@@ -124,6 +127,12 @@ namespace Lair.Data
         public HeroArchetype_KiteRow GetKite(string heroId)
         {
             return heroId != null && _kites.TryGetValue(heroId, out HeroArchetype_KiteRow row) ? row : null;
+        }
+
+        //# Skirmisher 영웅의 습격-이탈 설정 — 없으면 null.
+        public HeroArchetype_SkirmishRow GetSkirmish(string heroId)
+        {
+            return heroId != null && _skirmishes.TryGetValue(heroId, out HeroArchetype_SkirmishRow row) ? row : null;
         }
 
         //# 선형 스테이지 번호가 속한 챕터의 영웅 직업 — 챕터/영웅이 없으면 null.
@@ -194,6 +203,39 @@ namespace Lair.Data
                 if (pair.Value.aiType == EHeroAi.Kiter.ToString() && _kites.ContainsKey(pair.Key) == false)
                 {
                     errors.Add($"HeroArchetype[{pair.Key}] 는 Kiter 인데 HeroArchetype_Kite row 가 없음");
+                }
+            }
+        }
+
+        private void AddSkirmishes(HeroArchetype_SkirmishRow[] rows, List<string> errors)
+        {
+            foreach (HeroArchetype_SkirmishRow row in rows)
+            {
+                if (row.heroId == null || _skirmishes.ContainsKey(row.heroId))
+                {
+                    errors.Add($"HeroArchetype_Skirmish.heroId 중복/누락: {row.heroId}");
+                    continue;
+                }
+                _skirmishes.Add(row.heroId, row);
+            }
+
+            foreach (KeyValuePair<string, HeroArchetype_SkirmishRow> pair in _skirmishes)
+            {
+                if (_heroes.TryGetValue(pair.Key, out HeroArchetypeRow hero) == false)
+                {
+                    errors.Add($"HeroArchetype_Skirmish[{pair.Key}] 의 heroId 가 HeroArchetype 에 없음");
+                }
+                else if (hero.aiType != EHeroAi.Skirmisher.ToString())
+                {
+                    errors.Add($"HeroArchetype_Skirmish[{pair.Key}] 는 aiType=Skirmisher 영웅에만 존재해야 함 (현재 {hero.aiType})");
+                }
+            }
+
+            foreach (KeyValuePair<string, HeroArchetypeRow> pair in _heroes)
+            {
+                if (pair.Value.aiType == EHeroAi.Skirmisher.ToString() && _skirmishes.ContainsKey(pair.Key) == false)
+                {
+                    errors.Add($"HeroArchetype[{pair.Key}] 는 Skirmisher 인데 HeroArchetype_Skirmish row 가 없음");
                 }
             }
         }

@@ -7,11 +7,11 @@ namespace Lair.Tests.EditMode
     public class MetaProfileTests
     {
         [Test]
-        public void 새_프로필은_버전5_소울0으로_시작한다()
+        public void 새_프로필은_버전6_소울0으로_시작한다()
         {
             MetaProfile p = new MetaProfile();
-            //# 스키마 버전 5 = 챕터 구조(선형 스테이지 번호 범위 확장, chapter-system §2.2).
-            Assert.AreEqual(5, p.Version);
+            //# 스키마 버전 6 = 챕터 3 추가(진행 범위 0~15, chapter-3-hero §7.3; 5 = 챕터 구조 chapter-system §2.2).
+            Assert.AreEqual(6, p.Version);
             Assert.AreEqual(0, p.Souls);
             Assert.AreEqual(0, p.LordXp);
             //# 영주 보상 멱등 가드 초기값 1 (기획서 §4.4 / §11.3 [추가 1]).

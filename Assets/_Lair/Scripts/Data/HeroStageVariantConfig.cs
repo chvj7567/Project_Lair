@@ -25,7 +25,7 @@ namespace Lair.Data
         public int Tier;
     }
 
-    //# 챕터별 스테이지 영웅 재스킨 정본 SO (10엔트리: 1-1~1-5, 2-1~2-5). 선형 번호 또는 (챕터, 인덱스) 로 조회, HeroStageVariantApplier 가 스폰 시 적용.
+    //# 챕터별 스테이지 영웅 재스킨 정본 SO (15엔트리: 1-1~1-5, 2-1~2-5, 3-1~3-5). 선형 번호 또는 (챕터, 인덱스) 로 조회, HeroStageVariantApplier 가 스폰 시 적용.
     [CreateAssetMenu(fileName = "HeroStageVariantConfig", menuName = "Lair/HeroStageVariantConfig")]
     public class HeroStageVariantConfig : ScriptableObject
     {

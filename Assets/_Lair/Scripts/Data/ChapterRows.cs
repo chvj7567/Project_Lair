@@ -85,4 +85,22 @@ namespace Lair.Data
         public float corneredMinMove;
         public float minDwellSec;
     }
+
+    //# HeroArchetype_Skirmish.json — aiType = Skirmisher 인 영웅만 존재하는 선택적 관계 (chapter-3-hero §2.2).
+    [Serializable]
+    public class HeroArchetype_SkirmishRow
+    {
+        public string heroId;
+        public float huntRadius;
+        public float retargetScoreMul;
+        public float strikeWindowSec;
+        public int crowdCount;
+        public float crowdRadius;
+        public float slipDistance;
+        public float slipDurationSec;
+        public float slipInvulnSec;
+        public float slipCooldownSec;
+        public float minDwellSec;
+        public float arenaSoftRadius;
+    }
 }
