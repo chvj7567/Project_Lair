@@ -42,6 +42,8 @@ namespace Lair.UI
             }
             if (_portrait != null)
             {
+                //# 초상이 없는 행(미연결 챕터)은 빈 박스 대신 이미지를 숨긴다 — 풀 재사용 시 매 Bind 마다 갱신.
+                _portrait.gameObject.SetActive(data.Portrait != null);
                 _portrait.sprite = data.Portrait;
                 _portrait.color = data.PortraitTint;
             }

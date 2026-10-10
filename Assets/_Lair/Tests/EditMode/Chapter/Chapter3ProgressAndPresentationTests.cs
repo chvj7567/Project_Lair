@@ -515,22 +515,23 @@ namespace Lair.Tests.EditMode
             return new WorldMapViewModel(WorldMapTestSupport.ShippedDb(), new MetaProfile { ClearedStage = cleared, SelectedStage = selected }, WorldMapTestSupport.Text, null);
         }
 
-        [TestCase(0)]
-        [TestCase(5)]
-        [TestCase(9)]
-        [TestCase(10)]
-        [TestCase(15)]
-        public void 세번째_탭은_진행도와_무관하게_데이터가_있는_준비_중_잠금_탭이다(int cleared)
+        [TestCase(0, true)]
+        [TestCase(5, true)]
+        [TestCase(9, true)]
+        [TestCase(10, false)]
+        [TestCase(15, false)]
+        public void 세번째_탭은_2장_보스를_클리어하면_열리고_그전에는_잠금이며_준비_중_표기는_없다(int cleared, bool expectedLocked)
         {
             WorldMapViewModel vm = NewVm(cleared);
 
             WorldMapTabData tab = vm.Tabs[2];
             Assert.AreEqual(3, tab.ChapterId);
             Assert.IsFalse(tab.IsPlaceholder, "챕터 3 는 데이터가 있어 자리표시자가 아니다");
-            Assert.IsTrue(tab.IsLocked);
+            Assert.AreEqual(expectedLocked, tab.IsLocked);
             Assert.IsFalse(tab.IsSelected);
             Assert.AreEqual("3장 그림자 성채", tab.Label);
-            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReady), tab.LockTagText);
+            Assert.AreEqual(expectedLocked ? WorldMapTestSupport.Text(WorldMapViewModel.StrLocked) : string.Empty, tab.LockTagText);
+            Assert.AreNotEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReady), tab.LockTagText, "ChapterGate 가 3챕터까지 열려 준비 중 표기는 사라진다");
         }
 
         [Test]
@@ -545,12 +546,15 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 선택이_출격_가능_범위를_벗어난_저장값은_챕터3이_아니라_챕터2_보스로_보정된다()
+        public void 출격_가능_범위_안의_챕터3_저장값은_그대로_유지되고_범위_밖은_챕터3_보스로_보정된다()
         {
-            WorldMapViewModel vm = NewVm(15, 13);
+            WorldMapViewModel inside = NewVm(15, 13);
+            Assert.AreEqual(3, inside.SelectedChapter);
+            Assert.AreEqual(3, inside.SelectedStageIndex);
 
-            Assert.AreEqual(2, vm.SelectedChapter);
-            Assert.AreEqual(5, vm.SelectedStageIndex);
+            WorldMapViewModel outside = NewVm(15, 16);
+            Assert.AreEqual(3, outside.SelectedChapter, "16 은 출격 가능 상한(15) 밖 — 최대 플레이 가능으로 보정");
+            Assert.AreEqual(5, outside.SelectedStageIndex);
         }
 
         //# ===== 기록 팝업 15행 =====

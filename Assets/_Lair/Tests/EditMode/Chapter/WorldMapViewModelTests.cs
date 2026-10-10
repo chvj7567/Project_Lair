@@ -78,7 +78,8 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(opened.Tabs[1].IsLocked, "ChapterGate 가 2장까지 열려 있다");
             Assert.AreEqual(string.Empty, opened.Tabs[1].LockTagText);
             Assert.IsFalse(opened.Tabs[2].IsPlaceholder);
-            Assert.IsTrue(opened.Tabs[2].IsLocked, "챕터 3 데이터는 있지만 ChapterGate 가 닫혀 있다");
+            Assert.IsTrue(opened.Tabs[2].IsLocked, "챕터 3 는 2장 보스(진행도 10)를 클리어해야 열린다");
+            Assert.AreEqual("잠금", opened.Tabs[2].LockTagText);
             Assert.AreEqual("3장 그림자 성채", opened.Tabs[2].Label);
             Assert.IsTrue(opened.Tabs[3].IsPlaceholder);
             Assert.AreEqual("4장 ???", opened.Tabs[3].Label);

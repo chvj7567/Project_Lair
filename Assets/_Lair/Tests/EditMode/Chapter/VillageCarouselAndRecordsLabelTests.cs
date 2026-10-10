@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace Lair.Tests.EditMode
 {
     //# 마을 캐러셀 상한/초기 위치(ChapterGate 단일 소유)와 기록 팝업 10행 라벨 (chapter-system §6.4·§2.3).
-    //# 캐러셀 상한 = ChapterGate.PlayableStageCount — 값을 올리는 슬라이스 (d) 에서도 관계식은 그대로 성립해야 한다.
+    //# 캐러셀 상한 = ChapterGate.PlayableStageCount — 값이 3챕터(15)로 올라도 관계식은 그대로 성립한다(상한 시나리오는 ClearedStage = PlayableStageCount 로 만든다).
     public class VillageCarouselAndRecordsLabelTests : ChapterStaticStateTestBase
     {
         private static VillageViewModel NewVillage(MetaProfile profile, bool withChapters = true)
@@ -31,6 +31,9 @@ namespace Lair.Tests.EditMode
         [TestCase(6)]
         [TestCase(9)]
         [TestCase(10)]
+        [TestCase(11)]
+        [TestCase(14)]
+        [TestCase(15)]
         public void 초기_위치는_최대_플레이_스테이지를_출격_가능_상한으로_clamp한_값이다(int cleared)
         {
             VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = cleared });
@@ -59,9 +62,9 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 클리어가_출격_상한을_넘어도_ClearedStage는_원값을_돌려준다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
 
-            Assert.AreEqual(10, vm.ClearedStage);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.ClearedStage);
             Assert.IsFalse(vm.CanMoveNext, "상한에서는 다음 불가");
         }
 
@@ -70,7 +73,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void SelectStage는_1_하한과_출격_가능_상한으로_clamp한다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
 
             vm.SelectStage(0);
             Assert.AreEqual(1, vm.SelectedStage);
@@ -85,7 +88,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void SelectStage는_실제_변경일_때만_통지한다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
             int changed = 0;
             vm.OnStageChanged += () => ++changed;
 
@@ -104,7 +107,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void MoveStage는_상한_하한에서_더_이동하지_않고_통지하지_않는다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
             int changed = 0;
             vm.OnStageChanged += () => ++changed;
 
@@ -123,7 +126,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 이동_가능_표시는_양끝에서_꺼진다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
 
             Assert.IsFalse(vm.CanMoveNext);
             Assert.IsTrue(vm.CanMovePrev);
@@ -138,7 +141,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 인디케이터와_위협도는_선택_스테이지의_챕터_인덱스_기준이다()
         {
-            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = 10 });
+            VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount });
 
             for (int stage = 1; stage <= ChapterGate.PlayableStageCount; ++stage)
             {

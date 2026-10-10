@@ -1,4 +1,5 @@
 using Lair.Battle;
+using Lair.Data;
 using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
@@ -19,7 +20,9 @@ namespace Lair.Tests.EditMode
         public void 출격_가능_챕터_수는_1_이상이고_출시_챕터_수를_넘지_않는다()
         {
             Assert.GreaterOrEqual(ChapterGate.PlayableChapterCount, 1);
-            Assert.LessOrEqual(ChapterGate.PlayableChapterCount, StageProgress.DefaultChapterCount);
+            //# 출시 챕터 수의 단일 진실은 Chapter.json — 출격 가능 챕터는 그 안에 있어야 한다(ShippedDb 가 로더처럼 MaxStage 도 맞춘다).
+            ChapterDatabase shipped = WorldMapTestSupport.ShippedDb();
+            Assert.LessOrEqual(ChapterGate.PlayableChapterCount, shipped.ChapterCount);
             Assert.LessOrEqual(ChapterGate.PlayableStageCount, StageProgress.MaxStage);
         }
 

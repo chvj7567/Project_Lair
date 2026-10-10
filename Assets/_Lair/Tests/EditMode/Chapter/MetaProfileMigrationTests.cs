@@ -267,6 +267,31 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 챕터_데이터_로드_전_호출은_현재_버전_세이브의_진행_범위를_자르지_않는다()
+        {
+            //# 챕터 3 개방 후 Cleared > 10 인 v6 세이브가 DB 로드 전(MaxStage 가 기본 10)에 재적용돼도 보존돼야 한다(복원 CopyFrom 직후 포함).
+            MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 13, SelectedStage = 12 };
+            p.StageRecords.Add(new StageRecordEntry { Stage = 13, Runs = 1 });
+
+            MetaProfileMigration.Apply(p, (ChapterDatabase)null);
+            MetaProfileMigration.Apply(p, (Func<int, string>)null);
+
+            Assert.AreEqual(13, p.ClearedStage);
+            Assert.AreEqual(12, p.SelectedStage);
+            Assert.AreEqual(1, p.StageRecords.Count);
+        }
+
+        [Test]
+        public void 챕터_데이터_로드_전_호출도_구버전_세이브는_기본_범위로_자른다()
+        {
+            MetaProfile p = V4(99, 99, "Knight");
+
+            MetaProfileMigration.Apply(p, (ChapterDatabase)null);
+
+            Assert.AreEqual(10, p.ClearedStage, "v4/v5 는 최대 10 이라 기본 MaxStage 로 잘라도 손실이 없다");
+        }
+
+        [Test]
         public void 챕터DB_오버로드는_DB의_챕터_영웅으로_재설정한다()
         {
             ChapterDatabase db = ChapterDataSet.Valid().Build();

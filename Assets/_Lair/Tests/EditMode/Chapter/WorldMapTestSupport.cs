@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using ChvjUnityInfra;
+using Lair.Battle;
 using Lair.Data;
 
 namespace Lair.Tests.EditMode
@@ -17,7 +18,15 @@ namespace Lair.Tests.EditMode
             return JsonArrayUtility.FromJsonArray<T>(File.ReadAllText(JsonDir + name + ".json"));
         }
 
+        //# 실서비스와 같이 로드 직후 진행 범위(MaxStage)를 챕터 수에 맞춘다(ChapterDatabaseLoader 동작) — 호출 테스트는 정적 상태 격리(ChapterStaticStateTestBase)로 원복한다.
         public static ChapterDatabase ShippedDb()
+        {
+            ChapterDatabase db = BuildShipped();
+            StageProgress.ConfigureChapterCount(db.ChapterCount);
+            return db;
+        }
+
+        private static ChapterDatabase BuildShipped()
         {
             return ChapterDatabase.Build(
                 Load<ChapterRow>("Chapter"), Load<StageRow>("Stage"), Load<Stage_RuleRow>("Stage_Rule"),

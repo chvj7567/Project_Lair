@@ -750,7 +750,7 @@ namespace Lair.Battle
                 }
                 else
                 {
-                    Debug.LogWarning("[BattleController] HeroSkillLoadout 로드 실패 — 영웅 스킬 비활성");
+                    Debug.LogError($"[BattleController] {heroKey} 스킬 로드아웃({LoadoutKeyOf(heroKey)}) 로드 실패 — Addressables 등록 확인, 영웅 스킬 비활성");
                 }
             }
 

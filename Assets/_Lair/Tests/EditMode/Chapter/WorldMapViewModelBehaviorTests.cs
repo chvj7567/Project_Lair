@@ -58,9 +58,12 @@ namespace Lair.Tests.EditMode
         [TestCase(5, 6, 2, 1)]
         [TestCase(10, 7, 2, 2)]
         [TestCase(10, 10, 2, 5)]
-        [TestCase(10, 11, 2, 5)]
+        [TestCase(10, 11, 3, 1)]
+        [TestCase(10, 12, 3, 1)]
         [TestCase(7, 10, 2, 3)]
-        public void 저장된_선택이_잠금이면_해금된_최대_플레이_스테이지로_보정되고_해금_범위_안이면_챕터2도_유지된다(int cleared, int selected, int expectedChapter, int expectedIndex)
+        [TestCase(15, 15, 3, 5)]
+        [TestCase(15, 99, 3, 5)]
+        public void 저장된_선택이_잠금이면_해금된_최대_플레이_스테이지로_보정되고_해금_범위_안이면_챕터2_3도_유지된다(int cleared, int selected, int expectedChapter, int expectedIndex)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared, selected));
 
@@ -142,26 +145,50 @@ namespace Lair.Tests.EditMode
             }
         }
 
-        [Test]
-        public void 챕터3_탭은_데이터가_있어도_출격_게이트가_닫혀_있어_준비_중으로_잠겨_있다()
+        [TestCase(0)]
+        [TestCase(5)]
+        [TestCase(9)]
+        public void 챕터3_탭은_챕터2_보스를_클리어하기_전에는_잠금_표기로_잠겨_있고_준비_중은_아니다(int cleared)
         {
-            WorldMapViewModel vm = NewVm(Profile(10));
+            WorldMapViewModel vm = NewVm(Profile(cleared));
 
             WorldMapTabData tab = vm.Tabs[2];
             Assert.IsFalse(tab.IsPlaceholder);
             Assert.IsTrue(tab.IsLocked);
             Assert.IsFalse(tab.IsSelected);
             Assert.AreEqual("3장 그림자 성채", tab.Label);
-            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReady), tab.LockTagText);
+            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrLocked), tab.LockTagText);
+        }
+
+        [TestCase(10)]
+        [TestCase(15)]
+        public void 챕터3_탭은_챕터2_보스를_클리어하면_열리고_잠금_표기가_없다(int cleared)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared, 1));
+
+            WorldMapTabData tab = vm.Tabs[2];
+            Assert.IsFalse(tab.IsPlaceholder);
+            Assert.IsFalse(tab.IsLocked, "ChapterGate 가 3챕터까지 열려 있다");
+            Assert.AreEqual(string.Empty, tab.LockTagText);
+            Assert.IsFalse(tab.IsSelected, "선택이 챕터 1 이면 3장 탭은 선택되지 않는다");
         }
 
         [Test]
-        public void 챕터3_탭을_눌러도_출격_게이트가_닫혀_있어_이동하지_않는다()
+        public void 챕터3_탭을_눌러_이동하면_인덱스_1로_돌아가고_3_1_상세가_바뀐다()
         {
-            WorldMapViewModel vm = NewVm(Profile(10));
+            WorldMapViewModel vm = NewVm(Profile(10, 3));
+            int changed = 0;
+            vm.OnChanged += () => ++changed;
 
-            Assert.IsFalse(vm.SelectChapter(3));
-            Assert.AreEqual(1, vm.SelectedChapter);
+            Assert.IsTrue(vm.SelectChapter(3));
+
+            Assert.AreEqual(3, vm.SelectedChapter);
+            Assert.AreEqual(1, vm.SelectedStageIndex, "3-3 은 잠겨 있어 1 로");
+            Assert.AreEqual(11, vm.SelectedLinear);
+            Assert.AreEqual("3-1", vm.DetailNumberText);
+            Assert.AreEqual("3장 그림자 성채", vm.ChapterTitleText);
+            Assert.IsTrue(vm.Tabs[2].IsSelected);
+            Assert.AreEqual(1, changed);
         }
 
         [Test]
@@ -206,9 +233,8 @@ namespace Lair.Tests.EditMode
 
         [TestCase(0)]
         [TestCase(5)]
-        [TestCase(10)]
-        [TestCase(15)]
-        public void 챕터3_탭을_누르면_진행도와_무관하게_출격_불가_안내만_나오고_이동도_변경_이벤트도_없다(int cleared)
+        [TestCase(9)]
+        public void 챕터3_탭을_누르면_챕터2_보스를_클리어하기_전에는_열리는_조건만_안내하고_이동도_변경_이벤트도_없다(int cleared)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared));
             List<string> notices = new List<string>();
@@ -219,7 +245,7 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(vm.SelectChapter(3));
 
             Assert.AreEqual(1, notices.Count);
-            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReadyHint), notices[0]);
+            Assert.AreEqual(string.Format(WorldMapTestSupport.Text(WorldMapViewModel.StrChapterLockedHint), 3, 2), notices[0]);
             Assert.AreEqual(0, changed);
             Assert.AreEqual(1, vm.SelectedChapter);
         }
