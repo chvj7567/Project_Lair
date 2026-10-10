@@ -202,6 +202,8 @@ namespace Lair.Tests.EditMode
             miss.Tick(_ctx, 6f);
             miss.Tick(_ctx, 5.5f);
             Assert.AreEqual(1, _ctx.Teleports.Count, "6초 쿨다운 중 5.5초");
+            //# 더블의 TeleportHero 는 영웅 위치를 도착 지점(표적 앞 1.2)으로 옮긴다 - 그대로면 거리 1.2 < 2.5 라 보류되므로 다시 떨어졌다고 본다.
+            _ctx.HeroPosition = Vector3.zero;
             miss.Tick(_ctx, 0.5f);
             Assert.AreEqual(2, _ctx.Teleports.Count);
 
@@ -210,6 +212,7 @@ namespace Lair.Tests.EditMode
             kill.Tick(killCtx, 6f);
             kill.Tick(killCtx, 2.75f);
             Assert.AreEqual(1, killCtx.Teleports.Count, "환급 후 쿨다운 3초 중 2.75초");
+            killCtx.HeroPosition = Vector3.zero;
             kill.Tick(killCtx, 0.25f);
             Assert.AreEqual(2, killCtx.Teleports.Count);
         }
