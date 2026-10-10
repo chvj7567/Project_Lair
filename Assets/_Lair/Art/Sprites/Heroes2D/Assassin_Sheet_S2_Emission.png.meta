@@ -1,0 +1,4283 @@
+fileFormatVersion: 2
+guid: 92d05784cef5cef48b36fa1828425175
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 0
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 31
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 0
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49eae3a34bee3f040800000000000000
+      internalID: 4680346895606787732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_1
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4b8bff89d9513680800000000000000
+      internalID: -8777135407809983666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_2
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ea0e43f01ce2e820800000000000000
+      internalID: 2946176663799335649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_3
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76b8712536a77f260800000000000000
+      internalID: 7131303101962095463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_4
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28a7c4691586cb0b0800000000000000
+      internalID: -5711575527789397374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_5
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e061cffc5d3854df0800000000000000
+      internalID: -196606054380071410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_6
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4fe18c5b3441d51c0800000000000000
+      internalID: -4513428970510213388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_7
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e86ab98fa90f1720800000000000000
+      internalID: 2818982541291841760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_8
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2a367260286b8b40800000000000000
+      internalID: 5443559062907533869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_9
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78f9fe74ec8e9ef40800000000000000
+      internalID: 5758389571237683079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_10
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f77134ec2e2a02ac0800000000000000
+      internalID: -3881923783786555521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_11
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63d7bda96851cbf30800000000000000
+      internalID: 4592569387878939958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_12
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e0a3d88f1b5d1170800000000000000
+      internalID: 8150771091608150246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_13
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eea9a88e9505d5d60800000000000000
+      internalID: 7880543270051945198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_14
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cdb30eb9fd457990800000000000000
+      internalID: -7388913878601318974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_15
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f65c1538d74ae2f0800000000000000
+      internalID: -942862178051139851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_16
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e4df7d77c0641f90800000000000000
+      internalID: -6983850712224508699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_17
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 628acdb1d729634c0800000000000000
+      internalID: -4308094927497287642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_18
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6bb4be7c809c97a0800000000000000
+      internalID: -6369056839913129108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_19
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 576
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88989c286d0d29a50800000000000000
+      internalID: 6526508429749094792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_20
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46fc8a63127703940800000000000000
+      internalID: 5273846148185509732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_21
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 085815505ed5a3200800000000000000
+      internalID: 160543974943196544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_22
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25543eae316b01e10800000000000000
+      internalID: 2166431617426605394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_23
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bd7783804173d2a0800000000000000
+      internalID: -6713898097580737098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_24
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ea3c8d3d703e97c0800000000000000
+      internalID: -4062756499379963166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_25
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: adc5b10665f6c4fb0800000000000000
+      internalID: -4662229097465029414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_26
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a27bc21a8db53090800000000000000
+      internalID: -8055323957763804503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_27
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 690c730c48b61eb30800000000000000
+      internalID: 4314848135902380182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_28
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2293f10da18c75d00800000000000000
+      internalID: 961457062953302306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_29
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5e0300fef587b740800000000000000
+      internalID: 5167746427425853021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_30
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 157e66127334cd830800000000000000
+      internalID: 4097223665062963025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_31
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a54159e935852a40800000000000000
+      internalID: 5342823016719009185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_32
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 947c86bcb1b96f680800000000000000
+      internalID: -8721613084677322935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_33
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f8c4e9459e0474a0800000000000000
+      internalID: -6596631519838287625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_34
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fe43cd76a9b32100800000000000000
+      internalID: 82113342948462323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_35
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd2de9d094d7b0530800000000000000
+      internalID: 3822286461468594908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_36
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e61ebed548b50e970800000000000000
+      internalID: 8782119897442017646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_37
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3e07ff2cd0054720800000000000000
+      internalID: 2829668886569750078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_38
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93c551ae642064520800000000000000
+      internalID: 2685836731371314233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_39
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 504
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc91d3ff3f402ef20800000000000000
+      internalID: 3450325710524979663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_40
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ba9b107847468530800000000000000
+      internalID: 3856848507333483191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_41
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad89b44a69d87c8e0800000000000000
+      internalID: -1673213058403821350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_42
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58abb1005ecf296c0800000000000000
+      internalID: -4137967047120536955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_43
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b4130694049ea3f0800000000000000
+      internalID: -887609329127844686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_44
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2af155d3bff882820800000000000000
+      internalID: 2893721069814095778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_45
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea229799ec58df750800000000000000
+      internalID: 6340370972792136366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_46
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38abcfb613976b430800000000000000
+      internalID: 3798356588905675395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_47
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b67720f0c772f8a0800000000000000
+      internalID: -6272819660427135307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_48
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bb129c4a34627d60800000000000000
+      internalID: 7886476099034684344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_49
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6224301b88e9db8c0800000000000000
+      internalID: -3981852185603128794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_50
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31f7e560328f29b00800000000000000
+      internalID: 834001710331363091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_51
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6455281f97ca56710800000000000000
+      internalID: 1685943275262989638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_52
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 706c57d2ae3e14960800000000000000
+      internalID: 7584593842393171463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_53
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b0e6d52a51e3a110800000000000000
+      internalID: 1271107297146757305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_54
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bd0ba03b1318e900800000000000000
+      internalID: 713841548439784886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_55
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a436378b00a30ffb0800000000000000
+      internalID: -4616125843285777590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_56
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 774282d5c29dc6b40800000000000000
+      internalID: 5434957634894046327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_57
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f283b146cb9a3fb0800000000000000
+      internalID: -4667246788007984400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_58
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8eb7f0c0457cc470800000000000000
+      internalID: 8416230724624432782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_59
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 432
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbdcd0328c0f167b0800000000000000
+      internalID: -5232636549655573060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_60
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7019eed7a4221bcb0800000000000000
+      internalID: -4850057620365602553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_61
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af4d74f129162a7e0800000000000000
+      internalID: -1755733624503151366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_62
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 904bede7f72c0f920800000000000000
+      internalID: 3022129202810762249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_63
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7aa566a42c96a4570800000000000000
+      internalID: 8451683933906950823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_64
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc1a9f72fb0a5f2f0800000000000000
+      internalID: -939668204367011381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_65
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 108248a3a2120e410800000000000000
+      internalID: 1504238740795828225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_66
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ab253fdd5c5f0590800000000000000
+      internalID: -7705838879161111641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_67
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e226a1df142038a0800000000000000
+      internalID: -6327517757375634719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_68
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f13946631338c1ed0800000000000000
+      internalID: -2441932650552454369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_69
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5106188dda39fdca0800000000000000
+      internalID: -5989906604508487659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_70
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fe95cde62641bf60800000000000000
+      internalID: 8048291142099640050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_71
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6afd4d9b99c0fb9b0800000000000000
+      internalID: -5062313601753882714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_72
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b721f41fd97842430800000000000000
+      internalID: 3757277101561942651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_73
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d81f285e647d0ff20800000000000000
+      internalID: 3454497613691416973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_74
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 481c5e37508c23120800000000000000
+      internalID: 2392194277831983492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_75
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5537d297bec7e7f0800000000000000
+      internalID: -583270338883275426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_76
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72fd4678400c19d50800000000000000
+      internalID: 6742381242834280231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_77
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0503c3e5ce8921580800000000000000
+      internalID: -8857849376123637680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_78
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae5b901bbdb4fad60800000000000000
+      internalID: 7903619277998634474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_79
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 360
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f23a6da4162edaf0800000000000000
+      internalID: -369816249147182346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_80
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dfe667b82fbcf410800000000000000
+      internalID: 1512293756486217689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_81
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bfeb33cf2fdc59d0800000000000000
+      internalID: -2784105073389867087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_82
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9918ecda52a9e5ea0800000000000000
+      internalID: -5882094576678829671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_83
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79395a7ee3a02e580800000000000000
+      internalID: -8799459456637889641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_84
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8baae43ba368ca7a0800000000000000
+      internalID: -6364564586706851144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_85
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 694667d4e0bea3430800000000000000
+      internalID: 3763578885283144854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_86
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: add6b4c212e457a00800000000000000
+      internalID: 753594417038454234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_87
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6475621805b7f100800000000000000
+      internalID: 141780959558464620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_88
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09ca000b7486c6af0800000000000000
+      internalID: -401831609638015856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_89
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4585ee927bdb9130800000000000000
+      internalID: 3574692014587217227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_90
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98388ecdf39a862e0800000000000000
+      internalID: -2132268331805670519
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_91
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 661863d24d01707f0800000000000000
+      internalID: -646529518026718874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_92
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b54b0db25095eccb0800000000000000
+      internalID: -4841834670631898021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_93
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ffcc22d5317d6f20800000000000000
+      internalID: 3417512168217432050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_94
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e12160ab5342f9480800000000000000
+      internalID: -8890347326233243106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_95
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1721dfec9649303a0800000000000000
+      internalID: -6700348638431997327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_96
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55ea39f57bc90ce80800000000000000
+      internalID: -8160350213398876587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_97
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e36b8d5d914351380800000000000000
+      internalID: -9001230994663492034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_98
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1def9a74547f4ff50800000000000000
+      internalID: 6914423204847681233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_99
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 288
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67dceac0dbd9b2f50800000000000000
+      internalID: 6857748292888874358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_100
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dfc6ba07684b2e90800000000000000
+      internalID: -7049461184319795244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_101
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf8e415a8205d3d50800000000000000
+      internalID: 6718614354605172987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_102
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 523f04f97df643dc0800000000000000
+      internalID: -3660177625264884955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_103
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14d4c8ece7ded4b00800000000000000
+      internalID: 814568236510891329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_104
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee3485a1d02794060800000000000000
+      internalID: 6938202101543093230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_105
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21491f122ddcb5e40800000000000000
+      internalID: 5646332860235355154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_106
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17cb3e058118b8ca0800000000000000
+      internalID: -6013570935986865039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_107
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45c9df2015677d800800000000000000
+      internalID: 637107962610818132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_108
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d9218bf581a2bd50800000000000000
+      internalID: 6751636388204063191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_109
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0c7374f965811910800000000000000
+      internalID: 1806371615671548941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_110
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 220311eb3cefb36c0800000000000000
+      internalID: -4162453313913016286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_111
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 254c0952d8ba3da20800000000000000
+      internalID: 3085998792387904594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_112
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77a8fee316fdbd040800000000000000
+      internalID: 4673574647087729271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_113
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e5338088aff651c0800000000000000
+      internalID: -4515140477216672282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_114
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 345cc5b3d9c08ecc0800000000000000
+      internalID: -3681678825930046141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_115
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c57b330efcd0a3e50800000000000000
+      internalID: 6789754574685321052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_116
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b79ca709017229f40800000000000000
+      internalID: 5733688227692988795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_117
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2931d38ea9ba2710800000000000000
+      internalID: 1669350771081165099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_118
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2a292b8a903a01e0800000000000000
+      internalID: -2230917225090831827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_119
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 216
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a575600b3d3e2c7a0800000000000000
+      internalID: -6358269225562908838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_120
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea32e9ea0a0a9e7c0800000000000000
+      internalID: -4041522578603498578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_121
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 383b4be387211a640800000000000000
+      internalID: 5089369361562776451
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_122
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b0f6f73167e50830800000000000000
+      internalID: 4036887045744292018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_123
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ac9beae179b980d0800000000000000
+      internalID: -3419998543087428444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_124
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: faae5ccaf891c6a10800000000000000
+      internalID: 1903924847340546735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_125
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b1154fec65ee35d0800000000000000
+      internalID: -3080772839041330768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_126
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11ccfd29b1b92cae0800000000000000
+      internalID: -1530490380621984751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_127
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c3b404f410bcec30800000000000000
+      internalID: 4390077340819174339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_128
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b41c0cad6303337a0800000000000000
+      internalID: -6398717633406910133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_129
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba37ee5a969a40e0800000000000000
+      internalID: -2284848271175763267
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_130
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd14d8f0809d13e40800000000000000
+      internalID: 5634523237461082591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_131
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e54eda364d10c5e30800000000000000
+      internalID: 4493468539925947486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_132
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5080bf9c73d83efb0800000000000000
+      internalID: -4619693522000607227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_133
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 355f7b93921a03680800000000000000
+      internalID: -8777338475311008429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_134
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fecb332686fd40010800000000000000
+      internalID: 1154293043930840303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_135
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da34f9363d358fab0800000000000000
+      internalID: -4974133621056126035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_136
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef1dd85c6f24ecde0800000000000000
+      internalID: -1311036813874441730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_137
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9460c125d5d3dc90800000000000000
+      internalID: -7146133072335838054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_138
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e17c5a191ee89d90800000000000000
+      internalID: -7090655821710986776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_139
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 144
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 001a10734fd8437f0800000000000000
+      internalID: -633725567518007040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_140
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46c7babd6c9266820800000000000000
+      internalID: 2911060143207316580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_141
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2149beac6b4b66080800000000000000
+      internalID: -9194462892048804846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_142
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9124fe6f24d508590800000000000000
+      internalID: -7674031222847225319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_143
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a3b3063da071b980800000000000000
+      internalID: -8524908730397772891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_144
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5844c67eda7ff7f20800000000000000
+      internalID: 3422726568108901509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_145
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3a2037b908ab0300800000000000000
+      internalID: 219453766539160126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_146
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c31aaab1c4d73f010800000000000000
+      internalID: 1221457689782690108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_147
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e77248cf7fb58f00800000000000000
+      internalID: 1118510638012987367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_148
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d0cc9b23e71dedc0800000000000000
+      internalID: -3608201461997190959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_149
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68999cede4f98b220800000000000000
+      internalID: 2501924754098329990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_150
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 295604ab89fad85c0800000000000000
+      internalID: -4211517006026873454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_151
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8401576548ef87f00800000000000000
+      internalID: 1114920752113848392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_152
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6abb2b535b295c70800000000000000
+      internalID: 8960240570642184811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_153
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63386ba73214f7470800000000000000
+      internalID: 8394499851080336182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_154
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4019e00d094232610800000000000000
+      internalID: 1595158897403793668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_155
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b915eab60dc8fe910800000000000000
+      internalID: 1868867197169717659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_156
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 922819e4747801db0800000000000000
+      internalID: -4823206460583214551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_157
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87fc42237dc247820800000000000000
+      internalID: 2915004161586417528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_158
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ffa74fde1d05d0d0800000000000000
+      internalID: -3398795917534973963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_159
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 72
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63d5b6bb0a776bde0800000000000000
+      internalID: -1317734308736443082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_160
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed185976db8316020800000000000000
+      internalID: 2333208468092453342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_161
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8de49288be17f0750800000000000000
+      internalID: 6273358062366052056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_162
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d5a4a3ee40fa6540800000000000000
+      internalID: 5002074557765690841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_163
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8635d50aa9e099170800000000000000
+      internalID: 8185589855000810344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_164
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1429cb57bdbf668b0800000000000000
+      internalID: -5159159403114622399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_165
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05b4abf5cb42cc940800000000000000
+      internalID: 5317665651496209232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_166
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 977db601f10da2c70800000000000000
+      internalID: 8947192441562978169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_167
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83804f9357db89020800000000000000
+      internalID: 2348835516854831160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_168
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 503ad84dc7ef26180800000000000000
+      internalID: -9123450083003751675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_169
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01c3c5d36aab6e940800000000000000
+      internalID: 5325148832568982544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_170
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d14efeb734f7b4910800000000000000
+      internalID: 1822690402020353053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_171
+      rect:
+        serializedVersion: 2
+        x: 792
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b889472e32a645730800000000000000
+      internalID: 3986928272485423243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_172
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8da8359506580e30800000000000000
+      internalID: 4469917212143562123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_173
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b25e6ced27a33cc80800000000000000
+      internalID: -8303729022902803157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_174
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f7f447aa89909cc0800000000000000
+      internalID: -3706293672535066640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_175
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ba253d66c6e18560800000000000000
+      internalID: 7314381009736510132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_176
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16e0ef95b7ba10d90800000000000000
+      internalID: -7133231788499005855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_177
+      rect:
+        serializedVersion: 2
+        x: 1224
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ac96ecb132b74380800000000000000
+      internalID: -8987018604702163803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_178
+      rect:
+        serializedVersion: 2
+        x: 1296
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b25704bf23cd17f60800000000000000
+      internalID: 8030441722100086059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Assassin_Sheet_S2_Emission_179
+      rect:
+        serializedVersion: 2
+        x: 1368
+        y: 0
+        width: 72
+        height: 72
+      alignment: 9
+      pivot: {x: 0.4236, y: 0.2917}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9be22dd3e965aab80800000000000000
+      internalID: -8382792518754750791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Assassin_Sheet_S2_Emission_0: 4680346895606787732
+      Assassin_Sheet_S2_Emission_1: -8777135407809983666
+      Assassin_Sheet_S2_Emission_10: -3881923783786555521
+      Assassin_Sheet_S2_Emission_100: -7049461184319795244
+      Assassin_Sheet_S2_Emission_101: 6718614354605172987
+      Assassin_Sheet_S2_Emission_102: -3660177625264884955
+      Assassin_Sheet_S2_Emission_103: 814568236510891329
+      Assassin_Sheet_S2_Emission_104: 6938202101543093230
+      Assassin_Sheet_S2_Emission_105: 5646332860235355154
+      Assassin_Sheet_S2_Emission_106: -6013570935986865039
+      Assassin_Sheet_S2_Emission_107: 637107962610818132
+      Assassin_Sheet_S2_Emission_108: 6751636388204063191
+      Assassin_Sheet_S2_Emission_109: 1806371615671548941
+      Assassin_Sheet_S2_Emission_11: 4592569387878939958
+      Assassin_Sheet_S2_Emission_110: -4162453313913016286
+      Assassin_Sheet_S2_Emission_111: 3085998792387904594
+      Assassin_Sheet_S2_Emission_112: 4673574647087729271
+      Assassin_Sheet_S2_Emission_113: -4515140477216672282
+      Assassin_Sheet_S2_Emission_114: -3681678825930046141
+      Assassin_Sheet_S2_Emission_115: 6789754574685321052
+      Assassin_Sheet_S2_Emission_116: 5733688227692988795
+      Assassin_Sheet_S2_Emission_117: 1669350771081165099
+      Assassin_Sheet_S2_Emission_118: -2230917225090831827
+      Assassin_Sheet_S2_Emission_119: -6358269225562908838
+      Assassin_Sheet_S2_Emission_12: 8150771091608150246
+      Assassin_Sheet_S2_Emission_120: -4041522578603498578
+      Assassin_Sheet_S2_Emission_121: 5089369361562776451
+      Assassin_Sheet_S2_Emission_122: 4036887045744292018
+      Assassin_Sheet_S2_Emission_123: -3419998543087428444
+      Assassin_Sheet_S2_Emission_124: 1903924847340546735
+      Assassin_Sheet_S2_Emission_125: -3080772839041330768
+      Assassin_Sheet_S2_Emission_126: -1530490380621984751
+      Assassin_Sheet_S2_Emission_127: 4390077340819174339
+      Assassin_Sheet_S2_Emission_128: -6398717633406910133
+      Assassin_Sheet_S2_Emission_129: -2284848271175763267
+      Assassin_Sheet_S2_Emission_13: 7880543270051945198
+      Assassin_Sheet_S2_Emission_130: 5634523237461082591
+      Assassin_Sheet_S2_Emission_131: 4493468539925947486
+      Assassin_Sheet_S2_Emission_132: -4619693522000607227
+      Assassin_Sheet_S2_Emission_133: -8777338475311008429
+      Assassin_Sheet_S2_Emission_134: 1154293043930840303
+      Assassin_Sheet_S2_Emission_135: -4974133621056126035
+      Assassin_Sheet_S2_Emission_136: -1311036813874441730
+      Assassin_Sheet_S2_Emission_137: -7146133072335838054
+      Assassin_Sheet_S2_Emission_138: -7090655821710986776
+      Assassin_Sheet_S2_Emission_139: -633725567518007040
+      Assassin_Sheet_S2_Emission_14: -7388913878601318974
+      Assassin_Sheet_S2_Emission_140: 2911060143207316580
+      Assassin_Sheet_S2_Emission_141: -9194462892048804846
+      Assassin_Sheet_S2_Emission_142: -7674031222847225319
+      Assassin_Sheet_S2_Emission_143: -8524908730397772891
+      Assassin_Sheet_S2_Emission_144: 3422726568108901509
+      Assassin_Sheet_S2_Emission_145: 219453766539160126
+      Assassin_Sheet_S2_Emission_146: 1221457689782690108
+      Assassin_Sheet_S2_Emission_147: 1118510638012987367
+      Assassin_Sheet_S2_Emission_148: -3608201461997190959
+      Assassin_Sheet_S2_Emission_149: 2501924754098329990
+      Assassin_Sheet_S2_Emission_15: -942862178051139851
+      Assassin_Sheet_S2_Emission_150: -4211517006026873454
+      Assassin_Sheet_S2_Emission_151: 1114920752113848392
+      Assassin_Sheet_S2_Emission_152: 8960240570642184811
+      Assassin_Sheet_S2_Emission_153: 8394499851080336182
+      Assassin_Sheet_S2_Emission_154: 1595158897403793668
+      Assassin_Sheet_S2_Emission_155: 1868867197169717659
+      Assassin_Sheet_S2_Emission_156: -4823206460583214551
+      Assassin_Sheet_S2_Emission_157: 2915004161586417528
+      Assassin_Sheet_S2_Emission_158: -3398795917534973963
+      Assassin_Sheet_S2_Emission_159: -1317734308736443082
+      Assassin_Sheet_S2_Emission_16: -6983850712224508699
+      Assassin_Sheet_S2_Emission_160: 2333208468092453342
+      Assassin_Sheet_S2_Emission_161: 6273358062366052056
+      Assassin_Sheet_S2_Emission_162: 5002074557765690841
+      Assassin_Sheet_S2_Emission_163: 8185589855000810344
+      Assassin_Sheet_S2_Emission_164: -5159159403114622399
+      Assassin_Sheet_S2_Emission_165: 5317665651496209232
+      Assassin_Sheet_S2_Emission_166: 8947192441562978169
+      Assassin_Sheet_S2_Emission_167: 2348835516854831160
+      Assassin_Sheet_S2_Emission_168: -9123450083003751675
+      Assassin_Sheet_S2_Emission_169: 5325148832568982544
+      Assassin_Sheet_S2_Emission_17: -4308094927497287642
+      Assassin_Sheet_S2_Emission_170: 1822690402020353053
+      Assassin_Sheet_S2_Emission_171: 3986928272485423243
+      Assassin_Sheet_S2_Emission_172: 4469917212143562123
+      Assassin_Sheet_S2_Emission_173: -8303729022902803157
+      Assassin_Sheet_S2_Emission_174: -3706293672535066640
+      Assassin_Sheet_S2_Emission_175: 7314381009736510132
+      Assassin_Sheet_S2_Emission_176: -7133231788499005855
+      Assassin_Sheet_S2_Emission_177: -8987018604702163803
+      Assassin_Sheet_S2_Emission_178: 8030441722100086059
+      Assassin_Sheet_S2_Emission_179: -8382792518754750791
+      Assassin_Sheet_S2_Emission_18: -6369056839913129108
+      Assassin_Sheet_S2_Emission_19: 6526508429749094792
+      Assassin_Sheet_S2_Emission_2: 2946176663799335649
+      Assassin_Sheet_S2_Emission_20: 5273846148185509732
+      Assassin_Sheet_S2_Emission_21: 160543974943196544
+      Assassin_Sheet_S2_Emission_22: 2166431617426605394
+      Assassin_Sheet_S2_Emission_23: -6713898097580737098
+      Assassin_Sheet_S2_Emission_24: -4062756499379963166
+      Assassin_Sheet_S2_Emission_25: -4662229097465029414
+      Assassin_Sheet_S2_Emission_26: -8055323957763804503
+      Assassin_Sheet_S2_Emission_27: 4314848135902380182
+      Assassin_Sheet_S2_Emission_28: 961457062953302306
+      Assassin_Sheet_S2_Emission_29: 5167746427425853021
+      Assassin_Sheet_S2_Emission_3: 7131303101962095463
+      Assassin_Sheet_S2_Emission_30: 4097223665062963025
+      Assassin_Sheet_S2_Emission_31: 5342823016719009185
+      Assassin_Sheet_S2_Emission_32: -8721613084677322935
+      Assassin_Sheet_S2_Emission_33: -6596631519838287625
+      Assassin_Sheet_S2_Emission_34: 82113342948462323
+      Assassin_Sheet_S2_Emission_35: 3822286461468594908
+      Assassin_Sheet_S2_Emission_36: 8782119897442017646
+      Assassin_Sheet_S2_Emission_37: 2829668886569750078
+      Assassin_Sheet_S2_Emission_38: 2685836731371314233
+      Assassin_Sheet_S2_Emission_39: 3450325710524979663
+      Assassin_Sheet_S2_Emission_4: -5711575527789397374
+      Assassin_Sheet_S2_Emission_40: 3856848507333483191
+      Assassin_Sheet_S2_Emission_41: -1673213058403821350
+      Assassin_Sheet_S2_Emission_42: -4137967047120536955
+      Assassin_Sheet_S2_Emission_43: -887609329127844686
+      Assassin_Sheet_S2_Emission_44: 2893721069814095778
+      Assassin_Sheet_S2_Emission_45: 6340370972792136366
+      Assassin_Sheet_S2_Emission_46: 3798356588905675395
+      Assassin_Sheet_S2_Emission_47: -6272819660427135307
+      Assassin_Sheet_S2_Emission_48: 7886476099034684344
+      Assassin_Sheet_S2_Emission_49: -3981852185603128794
+      Assassin_Sheet_S2_Emission_5: -196606054380071410
+      Assassin_Sheet_S2_Emission_50: 834001710331363091
+      Assassin_Sheet_S2_Emission_51: 1685943275262989638
+      Assassin_Sheet_S2_Emission_52: 7584593842393171463
+      Assassin_Sheet_S2_Emission_53: 1271107297146757305
+      Assassin_Sheet_S2_Emission_54: 713841548439784886
+      Assassin_Sheet_S2_Emission_55: -4616125843285777590
+      Assassin_Sheet_S2_Emission_56: 5434957634894046327
+      Assassin_Sheet_S2_Emission_57: -4667246788007984400
+      Assassin_Sheet_S2_Emission_58: 8416230724624432782
+      Assassin_Sheet_S2_Emission_59: -5232636549655573060
+      Assassin_Sheet_S2_Emission_6: -4513428970510213388
+      Assassin_Sheet_S2_Emission_60: -4850057620365602553
+      Assassin_Sheet_S2_Emission_61: -1755733624503151366
+      Assassin_Sheet_S2_Emission_62: 3022129202810762249
+      Assassin_Sheet_S2_Emission_63: 8451683933906950823
+      Assassin_Sheet_S2_Emission_64: -939668204367011381
+      Assassin_Sheet_S2_Emission_65: 1504238740795828225
+      Assassin_Sheet_S2_Emission_66: -7705838879161111641
+      Assassin_Sheet_S2_Emission_67: -6327517757375634719
+      Assassin_Sheet_S2_Emission_68: -2441932650552454369
+      Assassin_Sheet_S2_Emission_69: -5989906604508487659
+      Assassin_Sheet_S2_Emission_7: 2818982541291841760
+      Assassin_Sheet_S2_Emission_70: 8048291142099640050
+      Assassin_Sheet_S2_Emission_71: -5062313601753882714
+      Assassin_Sheet_S2_Emission_72: 3757277101561942651
+      Assassin_Sheet_S2_Emission_73: 3454497613691416973
+      Assassin_Sheet_S2_Emission_74: 2392194277831983492
+      Assassin_Sheet_S2_Emission_75: -583270338883275426
+      Assassin_Sheet_S2_Emission_76: 6742381242834280231
+      Assassin_Sheet_S2_Emission_77: -8857849376123637680
+      Assassin_Sheet_S2_Emission_78: 7903619277998634474
+      Assassin_Sheet_S2_Emission_79: -369816249147182346
+      Assassin_Sheet_S2_Emission_8: 5443559062907533869
+      Assassin_Sheet_S2_Emission_80: 1512293756486217689
+      Assassin_Sheet_S2_Emission_81: -2784105073389867087
+      Assassin_Sheet_S2_Emission_82: -5882094576678829671
+      Assassin_Sheet_S2_Emission_83: -8799459456637889641
+      Assassin_Sheet_S2_Emission_84: -6364564586706851144
+      Assassin_Sheet_S2_Emission_85: 3763578885283144854
+      Assassin_Sheet_S2_Emission_86: 753594417038454234
+      Assassin_Sheet_S2_Emission_87: 141780959558464620
+      Assassin_Sheet_S2_Emission_88: -401831609638015856
+      Assassin_Sheet_S2_Emission_89: 3574692014587217227
+      Assassin_Sheet_S2_Emission_9: 5758389571237683079
+      Assassin_Sheet_S2_Emission_90: -2132268331805670519
+      Assassin_Sheet_S2_Emission_91: -646529518026718874
+      Assassin_Sheet_S2_Emission_92: -4841834670631898021
+      Assassin_Sheet_S2_Emission_93: 3417512168217432050
+      Assassin_Sheet_S2_Emission_94: -8890347326233243106
+      Assassin_Sheet_S2_Emission_95: -6700348638431997327
+      Assassin_Sheet_S2_Emission_96: -8160350213398876587
+      Assassin_Sheet_S2_Emission_97: -9001230994663492034
+      Assassin_Sheet_S2_Emission_98: 6914423204847681233
+      Assassin_Sheet_S2_Emission_99: 6857748292888874358
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

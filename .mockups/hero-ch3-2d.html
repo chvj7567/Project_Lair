@@ -1133,7 +1133,61 @@ function init(){
   function loop(now){const dt=Math.min(0.05,Math.max(0,(now-last)/1000))*SPD;last=now;T+=dt;cardsTick();stripTick();bfTick(dt);requestAnimationFrame(loop);}
   requestAnimationFrame(loop);
 }
+/* ---------- ?export=1 — 게임용 시트 추출(기획서 chapter-3-hero §3.4·§3.5·§7, D-C3-8) ---------- */
+//# 궁수 시안 export 와 같은 구현. A안(승인) 고정, 9행 시트(slash01/slash02 = stab 복제), HeroGroundShadow 는 기사 것을 재사용하므로 만들지 않는다.
+const EXPORT_ROWS=['idle','walk','run','slash01','slash02','stab','hit','death','spawn'];
+const rowSrc=r=>(r==='slash01'||r==='slash02')?'stab':r;
+function cellRgba(pl){return [pl.c[0],pl.c[1],pl.c[2],Math.round(255*(pl.a==null?1:pl.a))];}
+function buildSheet(t,mask){
+  const W=SHEET_COLS*GW,H=EXPORT_ROWS.length*GH,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const im=g.createImageData(W,H),d=im.data;
+  if(mask){for(let i=0;i<d.length;i+=4){d[i+3]=255;}}
+  EXPORT_ROWS.forEach((row,ri)=>{const st=rowSrc(row);for(let f=0;f<ANIM[st].n;f++){const dest=getFrame(t,st,f).dest;
+    for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;const x=f*GW+(i%GW),y=ri*GH+((i/GW)|0),o=(y*W+x)*4;
+      if(mask){if(pl.g){d[o]=255;d[o+1]=255;d[o+2]=255;}}
+      else{const c=cellRgba(pl);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=c[3];}}}});
+  g.putImageData(im,0,0);return cv;
+}
+function sheetSpec(){
+  const occ=getFrame(0,'idle',0).occ;let y0=1e9,y1=-1;for(let i=0;i<occ.length;i++){if(!occ[i])continue;const y=(i/GW)|0;if(y<y0)y0=y;if(y>y1)y1=y;}
+  const bodyH=y1-y0+1,footRow=y1+1;
+  const edge=[];for(let t=0;t<5;t++)EXPORT_ROWS.forEach(row=>{const st=rowSrc(row);for(let f=0;f<ANIM[st].n;f++){const o=getFrame(t,st,f).occ;let hit=false;
+    for(let x=0;x<GW&&!hit;x++){if(o[x]||o[(GH-1)*GW+x])hit=true;}for(let y=0;y<GH&&!hit;y++){if(o[y*GW]||o[y*GW+GW-1])hit=true;}if(hit)edge.push('S'+(t+1)+' '+row+' F'+f);}});
+  const clips={},clipEvents={};
+  EXPORT_ROWS.forEach(row=>{const st=rowSrc(row),a=ANIM[st],c={frames:a.n,fps:a.fps,animatorSpeed:a.speed,loop:!!a.loop,copyOf:row===st?null:st};
+    c.bakeEvents=[];
+    if(a.strike!=null){c.strikeFrame=strikeF(st);c.strikeClipLocalSec=+(a.strike*a.speed).toFixed(4);c.strikeRealSec=+a.strike.toFixed(4);c.bakeEvents.push({functionName:'OnAttackStrike',clipLocalSec:c.strikeClipLocalSec});}
+    if(a.end!=null){c.endFrame=endF(st);c.bakeEvents.push({functionName:'OnAttackEnd',clipLocalSec:+(a.end*a.speed).toFixed(4)});}
+    if(a.lock!=null){c.lockReleaseRealSec=a.lock;c.lockReleaseBy='HeroEntryDriver/AutoCombatAI._spawnGateFallback';}
+    if(c.bakeEvents.length>0)clipEvents[row]=c.bakeEvents;
+    clips[row]=c;});
+  return {doc:'docs/design/chapter-3-hero.md §3.4·§3.5·§7 (D-C3-8)',palette:'A',cellSize:GW,cols:SHEET_COLS,rows:EXPORT_ROWS.length,rowOrder:EXPORT_ROWS,
+    sheetSize:[SHEET_COLS*GW,EXPORT_ROWS.length*GH],indexRule:'row*20+col',
+    pixelsPerUnit:bodyH,bodyHeightDots:bodyH,
+    pivot:{x:+((AX+0.5)/GW).toFixed(4),y:+((GH-footRow)/GH).toFixed(4),note:'Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot'},
+    tiers:{Assassin_Sheet:0,Assassin_Sheet_S2:1,Assassin_Sheet_S3:2,Assassin_Sheet_S4:3,Assassin_Sheet_S5:4},
+    clips:clips,clipEvents:clipEvents,edgeClipFrames:edge};
+}
+function postBlob(name,blob){return fetch('export/'+name,{method:'POST',body:blob}).then(r=>{if(!r.ok)throw new Error(name+' HTTP '+r.status);return name;});}
+function toBlob(cv){return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/png'));}
+async function exportAll(){
+  const st=document.createElement('pre');st.id='exportStatus';st.textContent='exporting…';document.querySelector('.wrap').appendChild(st);
+  const prevTK=TK;
+  try{
+    TK='A';
+    const jobs=[];const names=['Assassin_Sheet','Assassin_Sheet_S2','Assassin_Sheet_S3','Assassin_Sheet_S4','Assassin_Sheet_S5'];
+    for(let t=0;t<5;t++){jobs.push([names[t]+'.png',buildSheet(t,false)]);jobs.push([names[t]+'_Emission.png',buildSheet(t,true)]);}
+    const spec=sheetSpec();const done=[];
+    for(const [name,cv] of jobs){done.push(await postBlob(name,await toBlob(cv)));}
+    done.push(await postBlob('Assassin_SheetSpec.json',new Blob([JSON.stringify(spec,null,2)],{type:'application/json'})));
+    st.textContent='export done '+done.length+' files\n'+done.join('\n')+'\nppu='+spec.pixelsPerUnit+' pivot='+spec.pivot.x+','+spec.pivot.y+' sheet='+spec.sheetSize.join('x')+
+      '\nedgeClipFrames='+spec.edgeClipFrames.length+(spec.edgeClipFrames.length?(' ('+spec.edgeClipFrames.slice(0,6).join(', ')+')'):'');
+  }catch(e){st.textContent='export failed: '+(e&&e.message?e.message:e);console.error(e);}
+  TK=prevTK;
+}
+const EXPORT_MODE=new URLSearchParams(location.search).get('export')==='1';
 init();
+if(EXPORT_MODE){exportAll();}
 })();
 </script>
 </body>
