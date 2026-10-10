@@ -16,7 +16,11 @@ namespace Lair.Character
         //# 영웅 한정 흐름 역전 스위치 (§B.2). 영웅 프리팹만 true. SerializeField 라 OnEnable 리셋 불요.
         [SerializeField] private bool _deferStrike;
 
-        public float Range => _range;
+        //# 영웅 스킬(연막 탄) 사거리 보정 — 기본 1(무변화). 스케일·하한은 스킬 컨텍스트가 몬스터별로 설정하고 풀 재사용 시 OnEnable 이 리셋한다.
+        public float RangeScale { get; private set; } = 1f;
+        public float RangeFloor { get; private set; }
+
+        public float Range => Mathf.Approximately(RangeScale, 1f) ? _range : Lair.Battle.MonsterRangeModifier.Compute(_range, RangeScale, RangeFloor);
         public float Cooldown => _cooldown;
         public int Power => _power;
         public bool DeferStrike => _deferStrike;
@@ -52,7 +56,16 @@ namespace Lair.Character
             _lastAttackTime = float.NegativeInfinity;
             CooldownScale = 1f;
             PowerScale = 1f;
+            RangeScale = 1f;
+            RangeFloor = 0f;
             _pendingTarget = null;
+        }
+
+        //# 사거리 보정 설정/해제 — scale 1 이면 해제.
+        public void SetRangeScale(float scale, float floor)
+        {
+            RangeScale = scale;
+            RangeFloor = floor;
         }
 
         //# 테스트 또는 런타임 동적 설정.
@@ -68,7 +81,7 @@ namespace Lair.Character
         {
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(selfPos, targetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
             if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
 
             _lastAttackTime = now;
@@ -82,7 +95,7 @@ namespace Lair.Character
         {
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(selfPos, targetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
             if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
 
             _lastAttackTime = now;
@@ -102,7 +115,7 @@ namespace Lair.Character
             if (enabled == false) return false;
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(_pendingSelfPos, _pendingTargetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
 
             ApplyDamage(target);
             return true;

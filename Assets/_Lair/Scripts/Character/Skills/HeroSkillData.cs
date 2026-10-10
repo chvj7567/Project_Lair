@@ -9,6 +9,9 @@ namespace Lair.Character
         [SerializeField] private string _displayName;
         public string DisplayName => _displayName;
 
+        //# 같은 프레임에 여러 스킬 조건이 참일 때 먼저 Tick 되는 순서 — 클수록 먼저. 기본 0(기존 스킬은 활성화 순서 유지).
+        public virtual int CastPriority => 0;
+
         //# 활성화 시 1회 호출. 이 스킬의 가변 상태 런타임 생성.
         public abstract IHeroSkillRuntime CreateRuntime();
     }

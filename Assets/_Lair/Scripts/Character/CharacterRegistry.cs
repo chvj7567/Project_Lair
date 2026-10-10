@@ -14,6 +14,8 @@ namespace Lair.Character
             //# Marching → Engaging 상태. 영웅은 무관 (Hero 검색은 무시).
             //# 풀 Pop 직후엔 false (MonsterTag.OnEnable 이 보장). BattleZone trigger 진입 시 true.
             public bool IsEngaging;
+            //# 몬스터 공격자(위협 점수용 DPS) — 등록 시 1회 캐싱. 영웅·미지정은 null.
+            public IAttacker Attacker;
         }
 
         public static readonly List<Entry> Heroes = new();
@@ -21,7 +23,14 @@ namespace Lair.Character
 
         public static void RegisterHero(Transform t, IHealth h)   => Add(Heroes, t, h);
         public static void UnregisterHero(Transform t)            => Remove(Heroes, t);
-        public static void RegisterMonster(Transform t, IHealth h)=> Add(Monsters, t, h);
+        public static void RegisterMonster(Transform t, IHealth h, IAttacker attacker = null)
+        {
+            Add(Monsters, t, h);
+            if (attacker != null && t != null && Monsters.Count > 0)
+            {
+                Monsters[Monsters.Count - 1].Attacker = attacker;
+            }
+        }
         public static void UnregisterMonster(Transform t)         => Remove(Monsters, t);
 
         //# 몬스터의 Marching/Engaging 상태 전환 — BattleZone.OnTriggerEnter 또는 MonsterTag.OnEnable 이 호출.
@@ -64,6 +73,28 @@ namespace Lair.Character
         //# 교전 들락거림이 도주 방향을 뒤집던 진동원 제거. 타겟팅용 TryGetThreatCentroidMonster(engaging=true)는 불변.
         public static bool TryGetFleeCentroidMonster(Vector3 from, float radius, out Vector3 centroid, out int count)
             => TryGetThreatCentroid(Monsters, from, radius, out centroid, out count, requireEngaging: false);
+
+        //# 습격(암살자) 위협 후보 — 반경 안 살아있는 교전 몬스터를 점수(DPS ÷ 현재 HP)와 함께 채운다. 호출 전 비운다.
+        public static bool TryGetThreatCandidates(Vector3 from, float radius, List<SkirmishCandidate> candidates)
+        {
+            candidates.Clear();
+            float sqrRadius = radius * radius;
+            foreach (Entry e in Monsters)
+            {
+                if (e.Transform == null) continue;
+                if (e.Health == null || e.Health.IsAlive == false) continue;
+                if (e.IsEngaging == false) continue;
+                if ((e.Transform.position - from).sqrMagnitude > sqrRadius) continue;
+                candidates.Add(new SkirmishCandidate
+                {
+                    Transform = e.Transform,
+                    Health = e.Health,
+                    Position = e.Transform.position,
+                    Score = SkirmishBehavior.ThreatScore(e.Attacker, e.Health),
+                });
+            }
+            return candidates.Count > 0;
+        }
 
         private static void Add(List<Entry> list, Transform t, IHealth h)
         {

@@ -170,6 +170,12 @@ namespace Lair.Data
         HeroPiercingShotFx,    //# 관통 사격 직선
         HeroArrowVolleyFx,     //# 화살 소나기 낙하 지점
         HeroEvadeFx,           //# 회피 도약 폭발
+        //# 암살자 FX 5종 (chapter-3-hero §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스(c)에서 제작(append-only).
+        AssassinSlashFx,       //# 암살자 기본 공격 베기 궤적(시각 전용)
+        HeroSlipFx,            //# 슬립(이탈) 잔상
+        HeroShadowStrikeFx,    //# 그림자 습격 순간이동 출발/도착
+        HeroBladeWhirlFx,      //# 칼날 선풍 회전 베기
+        HeroSmokeBombFx,       //# 연막 탄 지대
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).

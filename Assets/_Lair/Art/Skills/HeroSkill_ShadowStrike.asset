@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c64ae2767dea45a383f6d97ea3f16fc8, type: 3}
+  m_Name: HeroSkill_ShadowStrike
+  m_EditorClassIdentifier:
+  _displayName: "\uADF8\uB9BC\uC790 \uC2B5\uACA9"
+  _damage: 120
+  _cooldown: 6
+  _blinkRange: 9
+  _minBlinkDistance: 2.5
+  _arriveOffset: 1.2
+  _invulnerableSec: 0.3
+  _killRefundFraction: 0.5

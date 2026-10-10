@@ -35,6 +35,13 @@ namespace Lair.Character
         void SetMax(int max, bool resetCurrent = true);
     }
 
+    //# 일시 무적 부여 — 암살자 슬립·그림자 습격이 영웅 Health 에 건다. IHealth 에 더하지 않아 기존 구현체·테스트 더블 무영향.
+    public interface IInvulnerable
+    {
+        bool IsInvulnerable { get; }
+        void GrantInvulnerability(float seconds);
+    }
+
     //# 데미지 숫자 색 스탬프 수신구. 데미지 출처가 TakeDamage 직전 호출.
     //# OnChanged 가 TakeDamage 내부에서 동기 발행되므로 직전 스탬프값이 핸들러에서 읽힌다.
     public interface IDamageColorSink
@@ -122,6 +129,13 @@ namespace Lair.Character
     public interface INearestThreatProvider
     {
         bool TryFindNearestThreat(Vector3 from, out Transform target, out IHealth health);
+    }
+
+    //# 습격-이탈(암살자) 전용 — 반경 안 살아있는 몬스터를 위협 점수 후보로 조회. 교전 토글 무관. 영웅 타깃 제공자만 구현.
+    public interface ISkirmishThreatProvider
+    {
+        //# 후보를 candidates 에 채운다(호출 전 비움). 반경 안에 없으면 false.
+        bool TryGetThreatCandidates(Vector3 from, float radius, System.Collections.Generic.List<SkirmishCandidate> candidates);
     }
 
     //# ===== 회전 =====

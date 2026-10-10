@@ -659,6 +659,18 @@ namespace Lair.Battle
                 }
             }
 
+            //# Skirmisher 영웅도 습격 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단.
+            HeroArchetype_SkirmishRow skirmishRow = null;
+            if (archetype.aiType == EHeroAi.Skirmisher.ToString())
+            {
+                skirmishRow = _chapters.GetSkirmish(archetype.heroId);
+                if (skirmishRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 습격 설정(HeroArchetype_Skirmish) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
@@ -667,9 +679,9 @@ namespace Lair.Battle
             }
 
             //# Kiter 프리팹은 AutoCombatAI 가 필수 — Pop 전에 검증해 중단 시 풀 인스턴스가 새지 않게 한다.
-            if (kiteRow != null && prefab.GetComponent<AutoCombatAI>() == null)
+            if ((kiteRow != null || skirmishRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
             {
-                Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — 카이팅 설정 불가, 전투 진입 중단");
+                Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — AI 설정 불가, 전투 진입 중단");
                 return false;
             }
 
@@ -711,6 +723,11 @@ namespace Lair.Battle
             {
                 //# AutoCombatAI 존재는 Pop 전에 검증됨.
                 p.GetComponent<AutoCombatAI>().ConfigureKite(KiteSettings.From(kiteRow));
+            }
+            //# 습격-이탈(Skirmisher) 영웅 AI 설정 주입 — 기사·궁수는 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (skirmishRow != null)
+            {
+                p.GetComponent<AutoCombatAI>().ConfigureSkirmish(SkirmishSettings.From(skirmishRow));
             }
             if (_heroHealth != null)
             {
@@ -774,10 +791,18 @@ namespace Lair.Battle
             return true;
         }
 
-        //# 영웅별 스킬 로드아웃 SO 키 — 기사는 기존 HeroSkillLoadout, 궁수는 HeroSkillLoadout_Archer (chapter-system §1.4).
+        //# 영웅별 스킬 로드아웃 SO 키 — 기사는 기존 HeroSkillLoadout, 그 외는 HeroSkillLoadout_<영웅> (chapter-system §1.4).
+        //# 매핑에 없는 영웅은 기사 로드아웃으로 폴백한다(영웅 추가 시 이 표에 한 줄).
+        private static readonly System.Collections.Generic.Dictionary<EHero, EData> LoadoutKeys = new System.Collections.Generic.Dictionary<EHero, EData>
+        {
+            { EHero.Knight, EData.HeroSkillLoadout },
+            { EHero.Archer, EData.HeroSkillLoadout_Archer },
+            { EHero.Assassin, EData.HeroSkillLoadout_Assassin },
+        };
+
         private static EData LoadoutKeyOf(EHero hero)
         {
-            return hero == EHero.Archer ? EData.HeroSkillLoadout_Archer : EData.HeroSkillLoadout;
+            return LoadoutKeys.TryGetValue(hero, out EData key) ? key : EData.HeroSkillLoadout;
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.
@@ -1528,6 +1553,16 @@ namespace Lair.Battle
                 await WarmVisual(EVisual.HeroPiercingShotFx, 2);
                 await WarmVisual(EVisual.HeroArrowVolleyFx, 2);
                 await WarmVisual(EVisual.HeroEvadeFx, 2);
+            }
+
+            //# 암살자 전용 FX(기본 베기는 매 공격, 슬립·스킬 FX 는 동시 표시 적음).
+            if (warmHero == EHero.Assassin)
+            {
+                await WarmVisual(EVisual.AssassinSlashFx, 3);
+                await WarmVisual(EVisual.HeroSlipFx, 2);
+                await WarmVisual(EVisual.HeroShadowStrikeFx, 2);
+                await WarmVisual(EVisual.HeroBladeWhirlFx, 2);
+                await WarmVisual(EVisual.HeroSmokeBombFx, 1);
             }
 
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.

@@ -30,6 +30,9 @@ namespace Lair.Character
         //# 스테이지 규칙(사냥꾼의 덫) 속도 배율 — MonsterBuffService 가 SpeedScale 을 매 tick 1 로 리셋하므로 별도 채널로 곱한다. 기본 1.0.
         public float RuleSpeedScale { get; set; } = 1f;
 
+        //# 영웅 스킬(연막 탄) 속도 배율 — 규칙 채널(RuleSpeedScale)과 분리해 서로 덮어쓰지 않는다. 기본 1.0.
+        public float SkillSpeedScale { get; set; } = 1f;
+
         //# B3 — MoveTo 후 Stop 전까지 true. 출혈 카드가 영웅 이동 판정에 사용.
         public bool IsMoving => _moving;
 
@@ -51,6 +54,7 @@ namespace Lair.Character
         {
             SpeedScale = 1f;
             RuleSpeedScale = 1f;
+            SkillSpeedScale = 1f;
             _moving = false;
         }
 
@@ -83,7 +87,7 @@ namespace Lair.Character
                 return;
 
             //# [B2] effectiveSpeed = base × SpeedScale. SwarmSpeed buff 활성 시 1.3 배수.
-            float effectiveSpeed = _speed * SpeedScale * RuleSpeedScale;
+            float effectiveSpeed = _speed * SpeedScale * RuleSpeedScale * SkillSpeedScale;
             Vector3 next = Vector3.MoveTowards(transform.position, _target, effectiveSpeed * Time.fixedDeltaTime);
             //# Y 평면 고정 — 캐릭터가 카메라 각도로 떠오르지 않도록
             next.y = 0f;
