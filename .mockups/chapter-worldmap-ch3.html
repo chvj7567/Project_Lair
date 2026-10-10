@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>챕터 월드맵 팝업 목업 - 챕터 3 "그림자 성채" 탭 활성화 (1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--stone0:#10141d;--stone1:#171d2a;--stone2:#222a3b;--stone3:#313b52;--stone4:#48546e;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--soul:#5ef0b4;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum li{margin-bottom:3px}
+#sum b{color:var(--gold)}
+#sum .tagp{display:inline-block;background:#3a2f12;border:1px solid var(--gold2);color:var(--gold);padding:0 6px;font-size:11px;margin-left:4px}
+#sum .tagn{display:inline-block;background:#1b3a30;border:1px solid var(--soul);color:var(--soul);padding:0 6px;font-size:11px;margin-left:4px}
+#bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar select,#bar button{background:var(--stone3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar label{color:var(--sub)}
+#bar .grp{display:flex;gap:6px;align-items:center;padding:3px 8px;border:1px dashed #3a4258}
+#bar .grp.prop{border-color:var(--gold2)}
+#msg{color:var(--sub);flex-basis:100%}
+#hud{margin:8px 8px 0;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--sub)}
+#hudbox{position:relative;background:#10141d;border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone3),inset -3px -3px 0 var(--stone0);padding:8px 12px;display:flex;gap:10px;align-items:center}
+#hudmap{position:relative;width:96px;height:40px;background:var(--stone3);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone4),inset -3px -3px 0 var(--stone0);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--txt);cursor:pointer}
+#hudmap .dot{position:absolute;right:-7px;top:-7px;width:16px;height:16px;border-radius:50%;background:var(--blood);border:2px solid var(--ink);display:none}
+#hudmap .dot.on{display:block}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;overflow:hidden;background:#15151c}
+#bd{position:absolute;left:0;top:0;width:1280px;height:720px;image-rendering:pixelated}
+#dimmer{position:absolute;inset:0;background:rgba(0,0,0,.62)}
+.abs{position:absolute}
+.panel{position:absolute;background:var(--stone1);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone3),inset -3px -3px 0 var(--stone0)}
+.dark{background:#10141d}
+.btn{position:absolute;background:var(--stone3);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone4),inset -3px -3px 0 var(--stone0);cursor:pointer;color:var(--txt);text-align:center;display:flex;align-items:center;justify-content:center}
+.btn:active{transform:translateY(2px)}
+.btn.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27;color:#6c7385;cursor:default}
+.btn.go{background:#b8323a;box-shadow:inset 3px 3px 0 #ff7b7f,inset -3px -3px 0 #6b141d}
+.btn.go.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.lbl{color:var(--sub);font-size:13px}
+.gold{color:var(--gold)}
+.tab{position:absolute;height:44px;font-size:17px;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:var(--stone2);color:var(--sub)}
+.tab.on{background:var(--stone1);color:var(--bone);border-bottom-color:var(--stone1);box-shadow:inset 3px 3px 0 var(--stone3)}
+.tab.lockc{color:#6c7385;cursor:default}
+.tab.ph{color:#4a5266;cursor:default;background:#141824}
+.tab.blink{animation:blink 1s steps(2,end) infinite}
+@keyframes blink{0%{outline:3px solid var(--gold);outline-offset:-3px;color:var(--gold)}100%{outline:3px solid transparent;outline-offset:-3px}}
+.node{position:absolute;border:3px solid var(--ink);background:var(--stone3);box-shadow:inset 3px 3px 0 var(--stone4),inset -3px -3px 0 var(--stone0);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:var(--txt)}
+.node.boss{background:#5a2328;box-shadow:inset 3px 3px 0 #a94a52,inset -3px -3px 0 #2a0c0f}
+.node.cleared{background:#3a3a2a;box-shadow:inset 3px 3px 0 #8a7a3a,inset -3px -3px 0 #1d1d12}
+.node.locked{background:#1b1f27;box-shadow:inset -3px -3px 0 #12151b;color:#59617a;cursor:not-allowed}
+.node.sel{outline:4px solid var(--gold);outline-offset:3px}
+.tag{position:absolute;font-size:12px;line-height:16px;text-align:center}
+.rule{border-left:4px solid var(--sky);padding:2px 8px;margin:0 0 4px 0;font-size:12px;line-height:16px;color:var(--txt);background:#10141d}
+.rule b{color:var(--bone)}
+.phase{border-left:4px solid var(--blood);padding:2px 8px;margin:0 0 4px 0;font-size:12px;line-height:16px;background:#10141d}
+.phase b{color:var(--bone)}
+.sec{font-size:13px;color:var(--sub);margin:0 0 4px 0;line-height:18px}
+.portrait{position:absolute;background:#0c1017;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.portrait img{width:80%;image-rendering:pixelated}
+.portrait .fb{width:100%;height:100%;position:relative}
+.portrait .fb .hood{position:absolute;left:28px;top:20px;width:48px;height:56px;border-radius:24px 24px 6px 6px;background:#0a0d14;border:3px solid var(--ac)}
+.portrait .fb .eye{position:absolute;left:38px;top:42px;width:28px;height:5px;background:var(--ac)}
+.portrait .fb .blade{position:absolute;left:78px;top:60px;width:5px;height:34px;background:var(--ac);transform:rotate(25deg)}
+.portrait .fb .cap{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:10px;color:var(--sub)}
+.portrait.lk .fb,.portrait.lk img{filter:brightness(.4)}
+.portrait .lkx{position:absolute;inset:0;background:#000000a6;display:flex;align-items:center;justify-content:center;color:var(--bone);font-size:20px}
+#toast{position:absolute;left:400px;top:20px;width:480px;height:40px;background:#10141d;border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;z-index:20;font-size:15px}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#chk table{border-collapse:collapse;margin:4px 0}
+#chk td,#chk th{border:1px solid #2c3446;padding:2px 8px;text-align:left;font-weight:normal}
+#chk th{color:var(--bone)}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>챕터 3 "그림자 성채" 탭 활성화 목업 (침입 지도 팝업 / WorldMapPopup)</h1>
+  기존 승인 목업 <code>chapter-worldmap.html</code> 과 레이아웃·톤·좌표 동일. 바뀌는 점은 3장 탭 개방과 3-1~3-5 노드·상세. 아래 항목에 승인/수정 의견을 주세요.
+  <ol>
+    <li><b>탭 구성</b> - 탭 5칸 유지: 1장 / 2장 / <b>3장 그림자 성채</b> 개방, 4장·5장은 기존대로 "???" 자리표시자(정보 비노출). 탭 폭·간격 변경 없음.</li>
+    <li><b>3장 탭 상태 3종</b> - (a) 2장 보스 미클리어: "잠금" 보조 표기, 클릭 시 토스트 "3장은 2장 보스를 클리어하면 열립니다" (b) 해금: 정상 탭 (c) 출격 게이트 닫힘(현재 빌드): "준비 중" 표기. 아래 "출격 게이트" 토글로 (c)와 활성화 후를 비교할 수 있습니다. 이번 작업으로 (c)가 사라집니다(승격 범위 확인 필요).</li>
+    <li><b>노드 표기</b> - 2장과 동일 규약: 잠금 / 해금 / 클리어(황동 + 클리어 태그) / 선택(금색 외곽 + ▼) / 3-5 보스(96px, 적갈색, BOSS 태그). 노드 배치 좌표 변경 없음.</li>
+    <li><b>영웅 초상</b> - 상세 패널 초상은 선택 스테이지의 암살자 외형 단계(3-1 = Assassin, 3-2 = _S2, ... 3-5 = _S5)로 바뀝니다. 기사/궁수 때와 같은 방식입니다. 이 목업에서는 <code>HeroIcons/Assassin*.png</code> 를 서빙하는 경로가 없어 CSS 실루엣(단계 색)으로 대체했습니다.</li>
+    <li><b>규칙 문구</b> - 3-1 규칙 없음 / 3-2 봉인된 둥지(역병귀) / 3-3 성수 샘 / 3-4 봉인된 둥지(저주술사) + 짙은 안개 / 3-5 수호 결계(HP 75%) + 덫(HP 35%) 은 보스 페이즈 영역. 문구는 코드(StageRuleText)와 같은 템플릿에서 수치를 넣어 출력한 결과입니다. <b>신규 문구는 0건</b>(모두 Strings_Ko 기존 id).</li>
+    <li><b>3-5 상세의 "스테이지 규칙" 영역</b> - 3-5 는 상시 규칙이 없고 페이즈 2개만 있어 "특수 규칙 없음" + 보스 페이즈 2건으로 나옵니다(2-5 와 같은 패턴). 페이즈 2건이 들어가도록 규칙 영역을 세로로 이어 붙이는 흐름 배치로 했는데, 기존 목업의 고정 좌표(규칙 112px / 페이즈 96px)와 달라지므로 승인이 필요합니다.</li>
+    <li><b>챕터 해금 연출 후보</b> <span class="tagp">제안 / 이월</span> - (A) 마을 HUD 지도 버튼에 빨간 점, (B) 지도 팝업을 열었을 때 3장 탭 점멸. 둘 다 "3장을 한 번도 열어보지 않았을 때"만 표시하고 3장 탭을 누르면 해제됩니다. 방문 여부 저장 필드가 새로 필요하므로 이번 구현에 넣을지, 이월할지 결정해 주세요. 문구는 필요 없습니다.</li>
+    <li><b>챕터 배경 썸네일</b> <span class="tagp">제안</span> - 지도 영역 뒤에 <code>Battle_Backdrop_ShadowCitadel</code> 을 어둡게 깔지 여부(상단 토글). 기존 1·2장 지도는 배경 이미지가 없으므로 넣으면 챕터 간 톤이 달라집니다. 기본값은 사용 안 함.</li>
+    <li><b>범위 밖(이 목업에 없음)</b> - 기록 팝업, 랭킹 팝업, 4·5장, ★ 목표, 악몽.</li>
+  </ol>
+</div>
+<div id="bar">
+  <div class="grp"><label>진행도(ClearedStage)
+    <select id="selCleared"></select></label></div>
+  <div class="grp"><label><input type="checkbox" id="cGate" checked> 출격 게이트: 챕터 3 개방 (끄면 현재 빌드의 "준비 중")</label></div>
+  <div class="grp prop"><span class="tagp">제안 / 이월</span>
+    <label><input type="checkbox" id="cDot" checked> (A) 지도 버튼 빨간 점</label>
+    <label><input type="checkbox" id="cBlink" checked> (B) 3장 탭 점멸</label>
+    <button id="btnSeen">3장 미방문으로 되돌리기</button></div>
+  <div class="grp prop"><span class="tagp">제안</span>
+    <label><input type="checkbox" id="cBg"> 챕터 배경 썸네일</label></div>
+  <button id="btnReset">초기화</button>
+  <span id="msg">노드와 탭을 눌러 보세요 (잠금은 선택 불가)</span>
+</div>
+<div id="hud">
+  <div id="hudbox"><span>마을 HUD 일부:</span><div id="hudmap">지도<span class="dot" id="hudDot"></span></div></div>
+  <span>빨간 점은 (A) 제안의 표시 위치입니다. 눌러도 팝업은 열리지 않는 미리보기입니다(팝업은 아래에 항상 열려 있음).</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 16px 격자, 팝업 패널 (96,48) 1088x624, 마을 배경 위 dim a0.62 (기존 승인 목업과 동일). 글리프는 ◀ ▶ ★ ☆ ▼ 만 사용.<br>
+  진행도 값: 9 = 2장 보스 미클리어(3장 탭 잠금) / 10 = 2-5 클리어(3장 해금, 3-1 선택 가능) / 13 = 3-3 까지 클리어 / 15 = 전부 클리어. 선형 스테이지 번호 = (챕터-1)x5 + 인덱스.<br>
+  기록 문구의 시간·승패는 표시용 샘플 값입니다. 사용한 Strings_Ko id:
+  <table>
+    <tr><th>용도</th><th>id</th><th>문구</th></tr>
+    <tr><td>챕터명 / 테마 / 영웅</td><td>1003 / 1013 / 1023</td><td>그림자 성채 / 자객단의 침투 / 암살자</td></tr>
+    <tr><td>스테이지명</td><td>1121 ~ 1125</td><td>성채의 외벽 / 그림자 회랑 / 달빛 없는 정원 / 봉인된 서고 / 자객 수장의 은신처</td></tr>
+    <tr><td>규칙명</td><td>1201 1202 1203 1204 1206</td><td>성수 샘 / 짙은 안개 / 봉인된 둥지 / 수호 결계 / 덫</td></tr>
+    <tr><td>규칙 설명</td><td>1221 1222 1223 1224 1226</td><td>샘 / 안개 / 둥지 봉인 / 결계 / 덫 템플릿 (종명은 역병귀, 저주술사)</td></tr>
+    <tr><td>팝업 공통</td><td>1301 1302 1303 1304 1305 1306 1307 1308 1309 1310 1311 1312</td><td>침입 지도, 지도, 스테이지 규칙, 보스 페이즈, 내 기록, 기록 없음, 이 스테이지로 선택, 클리어, 잠금, 특수 규칙 없음, {0}장 {1}, {0}장 ???</td></tr>
+    <tr><td>안내</td><td>1313 1314 1315 1316 1320 1321 1322 1323 1324 1325 1326</td><td>선행 조건 / 챕터 해금 / 준비 중 안내 / 하단 문구 / 테마 줄 / 영웅 줄 / 기록 형식</td></tr>
+    <tr><td>신규 문구</td><td>-</td><td>없음 (제안 연출 (A)(B)(배경)는 문구 불필요)</td></tr>
+  </table>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const stg = $('#stage');
+
+//# 규칙 문구 템플릿 - 코드(StageRuleText)와 같은 id 문구 1221~1226 의 서식을 그대로 옮김
+const RN = {spring: '성수 샘', fog: '짙은 안개', seal: '봉인된 둥지', bulwark: '수호 결계', rain: '화살비', trap: '덫'};
+const D = {
+  spring: (p, a, h) => p + '초마다 ' + a + '초간 샘이 열려, 샘 안의 영웅이 초당 최대 HP의 ' + h + '% 회복',
+  fog: (m, n) => '몬스터 공격 사거리 x' + m + ' (최소 ' + n + ')',
+  seal: (s, h) => s + ' 둥지가 봉인되어 있다 - 영웅 HP ' + h + '% 이하에서 해제',
+  bulwark: (t, d, m) => '영웅 HP ' + t + '% 이하에서 ' + d + '초간 영웅이 받는 피해 x' + m,
+  rain: (t, i, n, g) => '영웅 HP ' + t + '% 이하에서 ' + i + '초마다 몬스터 밀집 지점에 화살비 (' + n + '회 x 피해 ' + g + ')',
+  trap: (t, n, m, g) => '영웅 HP ' + t + '% 이하에서 영웅 주변에 덫 ' + n + '개 - 몬스터 이동속도 x' + m + ', 초당 피해 ' + g
+};
+const R = (k, d) => [RN[k], d];
+
+const CH = [
+  {id: 1, name: '지하 묘지', theme: '기사단 침공', hero: '기사', stages: [
+    {n: '납골당 입구', rules: [], boss: []},
+    {n: '성수의 회랑', rules: [R('spring', D.spring(40, 8, 0.4))], boss: []},
+    {n: '안개 낀 지하수로', rules: [R('fog', D.fog(0.7, 0.8))], boss: []},
+    {n: '봉인된 지하 둥지', rules: [R('seal', D.seal('망령', 60))], boss: []},
+    {n: '기사단장의 안치소', rules: [], boss: [R('bulwark', D.bulwark(55, 15, 0.6))]}
+  ]},
+  {id: 2, name: '어둠의 숲', theme: '숲속 정찰대', hero: '궁수', stages: [
+    {n: '숲의 입구', rules: [], boss: []},
+    {n: '속삭이는 오솔길', rules: [R('seal', D.seal('환령', 70))], boss: []},
+    {n: '안개 낀 늪', rules: [R('fog', D.fog(0.7, 0.8))], boss: []},
+    {n: '수호 샘터', rules: [R('spring', D.spring(40, 8, 0.5)), R('fog', D.fog(0.7, 0.8))], boss: []},
+    {n: '사냥꾼 우두머리의 야영지', rules: [], boss: [R('rain', D.rain(75, 10, 4, 50)), R('trap', D.trap(35, 6, 0.5, 10))]}
+  ]},
+  {id: 3, name: '그림자 성채', theme: '자객단의 침투', hero: '암살자', stages: [
+    {n: '성채의 외벽', rules: [], boss: []},
+    {n: '그림자 회랑', rules: [R('seal', D.seal('역병귀', 60))], boss: []},
+    {n: '달빛 없는 정원', rules: [R('spring', D.spring(40, 8, 0.4))], boss: []},
+    {n: '봉인된 서고', rules: [R('seal', D.seal('저주술사', 50)), R('fog', D.fog(0.7, 0.8))], boss: []},
+    {n: '자객 수장의 은신처', rules: [], boss: [R('bulwark', D.bulwark(75, 15, 0.6)), R('trap', D.trap(35, 6, 0.5, 10))]}
+  ]}
+];
+const PHN = [4, 5];
+const ACCENT = ['#A1A1AA', '#14B8A0', '#6366F1', '#D946D9', '#FDE047'];
+const ICON = ['Assassin', 'Assassin_S2', 'Assassin_S3', 'Assassin_S4', 'Assassin_S5'];
+
+let st = {cleared: 10, ch: 3, sel: 1, seen3: false};
+const sel = $('#selCleared');
+[[9, '9 (2장 보스 미클리어)'], [10, '10 (2-5 클리어, 3-1 해금)'], [13, '13 (3-3 까지 클리어)'], [15, '15 (전부 클리어)']].forEach(o => {
+  const e = document.createElement('option'); e.value = o[0]; e.textContent = o[1]; sel.appendChild(e);
+});
+sel.value = st.cleared;
+
+const gateOn = () => $('#cGate').checked;
+const lin = (c, i) => (c - 1) * 5 + i;
+const chapterUnlocked = c => (c - 1) * 5 <= st.cleared;
+const chapterPlayable = c => c <= 2 || gateOn();
+const selectable = L => (L <= st.cleared + 1) && chapterPlayable(Math.floor((L - 1) / 5) + 1);
+function maxPlayable() {
+  let m = 1;
+  for (let L = 1; L <= 15; L++) if (selectable(L)) m = L;
+  return m;
+}
+function fixSel() {
+  if (selectable(lin(st.ch, st.sel)) === false) {
+    const m = maxPlayable(); st.ch = Math.floor((m - 1) / 5) + 1; st.sel = ((m - 1) % 5) + 1;
+  }
+}
+function say(s) { $('#msg').textContent = s; }
+function toast(s) {
+  const t = $('#toast'); if (t === null) return;
+  t.textContent = s; t.style.display = 'flex'; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = 'none', 2200);
+}
+function lockedHint(L) {
+  const c = Math.floor((L - 1) / 5) + 1, i = ((L - 1) % 5) + 1;
+  if (L <= st.cleared + 1 && chapterPlayable(c) === false) return '이 챕터는 아직 출격할 수 없습니다';
+  return i === 1 ? (c - 1) + '장 보스 클리어 필요' : '스테이지 ' + c + '-' + (i - 1) + ' 클리어 필요';
+}
+function sampleRecord(L) {
+  const t = 150 + (L * 37) % 140, m = Math.floor(t / 60), s = (t % 60) + 0.1 * (L % 10);
+  const wins = 3 + (L % 5);
+  return '최단 ' + m + ':' + (s < 10 ? '0' : '') + s.toFixed(1) + ' / ' + wins + '승 ' + (wins + 2 + (L % 4)) + '판';
+}
+function el(cls, x, y, w, h, html, style, parent) {
+  const d = document.createElement('div');
+  d.className = cls; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.width = w + 'px'; d.style.height = h + 'px';
+  if (html !== undefined) d.innerHTML = html;
+  if (style) d.style.cssText += ';' + style;
+  (parent || stg).appendChild(d); return d;
+}
+
+function render() {
+  fixSel();
+  stg.innerHTML = '';
+  const bd = document.createElement('img'); bd.id = 'bd'; bd.src = '/backdrop/Village_Backdrop.png'; stg.appendChild(bd);
+  el('', 0, 0, 1280, 720, '', '').id = 'dimmer';
+  const tt = document.createElement('div'); tt.id = 'toast'; stg.appendChild(tt);
+
+  const PX = 96, PY = 48, PW = 1088, PH_ = 624;
+  el('panel', PX, PY, PW, PH_, '');
+  el('panel dark', PX, PY, PW, 64, '', 'border-width:0 0 3px 0');
+  el('t', PX + 24, PY + 12, 400, 40, '침입 지도', 'font-size:30px;line-height:40px;color:var(--bone)');
+  el('t lbl', PX + 220, PY + 24, 500, 20, '챕터를 고르고 도전할 스테이지를 선택합니다', '');
+  const x = el('btn', PX + PW - 64, PY + 8, 48, 48, 'X', 'font-size:22px'); x.onclick = () => say('팝업 닫기 (dim/닫기 버튼 모두 동일)');
+
+  //# 챕터 탭 y = PY+80
+  const TY = PY + 80;
+  const blinkOn = $('#cBlink').checked && st.seen3 === false && chapterPlayable(3) && chapterUnlocked(3);
+  CH.forEach((c, k) => {
+    const play = chapterPlayable(c.id), unl = chapterUnlocked(c.id), open = play && unl;
+    const tag = play === false ? '준비 중' : (unl ? '' : '잠금');
+    const cls = 'tab' + (st.ch === c.id ? ' on' : '') + (open ? '' : ' lockc') + (c.id === 3 && blinkOn ? ' blink' : '');
+    const t = el(cls, PX + 16 + k * 208, TY, 200, 44, c.id + '장 ' + c.name + (tag ? '<span style="font-size:13px"> ' + tag + '</span>' : ''));
+    t.onclick = () => {
+      if (play === false) { toast('이 챕터는 아직 출격할 수 없습니다'); say('챕터 게이트 닫힘 - 안내만'); return; }
+      if (unl === false) { toast(c.id + '장은 ' + (c.id - 1) + '장 보스를 클리어하면 열립니다'); say('잠금 탭 - 안내만'); return; }
+      st.ch = c.id; if (c.id === 3) st.seen3 = true;
+      if (selectable(lin(st.ch, st.sel)) === false) st.sel = 1;
+      render();
+    };
+  });
+  PHN.forEach((p, k) => el('tab ph', PX + 16 + (2 + k) * 208, TY, 200, 44, p + '장 ???'));
+
+  //# 지도 영역 (좌) 640 x 392
+  const MX = PX + 16, MY = TY + 60, MW = 640, MH = 392;
+  const mp = el('panel dark', MX, MY, MW, MH, '');
+  if ($('#cBg').checked && st.ch === 3) {
+    mp.style.backgroundImage = 'linear-gradient(rgba(16,20,29,.78),rgba(16,20,29,.78)),url(/backdrop/Battle_Backdrop_ShadowCitadel.png)';
+    mp.style.backgroundSize = 'cover'; mp.style.backgroundPosition = 'center'; mp.style.imageRendering = 'pixelated';
+  }
+  const c = CH[st.ch - 1];
+  el('t', MX + 16, MY + 8, 420, 28, c.id + '장 ' + c.name, 'font-size:20px;line-height:28px;color:var(--bone)');
+  el('t lbl', MX + 16, MY + 36, 420, 20, '테마: ' + c.theme + ' / 영웅: ' + c.hero, '');
+  const pos = [[32, 200], [150, 120], [268, 200], [386, 120], [504, 164]];
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', MW); svg.setAttribute('height', MH);
+  svg.style.cssText = 'position:absolute;left:' + MX + 'px;top:' + MY + 'px;pointer-events:none';
+  const pts = pos.map((p, i) => (p[0] + (i === 4 ? 48 : 36)) + ',' + (p[1] + (i === 4 ? 48 : 36) + 40)).join(' ');
+  svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#48546e" stroke-width="4" stroke-dasharray="8 6"/>';
+  stg.appendChild(svg);
+  c.stages.forEach((s, i) => {
+    const L = lin(c.id, i + 1), isBoss = i === 4, open = selectable(L), clr = open && L <= st.cleared, on = st.sel === i + 1;
+    const size = isBoss ? 96 : 72;
+    const nx = MX + pos[i][0], ny = MY + pos[i][1] + 40;
+    const nd = el('node' + (isBoss ? ' boss' : '') + (clr ? ' cleared' : '') + (open ? '' : ' locked') + (on ? ' sel' : ''), nx, ny, size, size, open ? (c.id + '-' + (i + 1)) : '잠금', isBoss ? 'font-size:26px' : '');
+    nd.onclick = () => {
+      if (open === false) { toast(lockedHint(L)); say('잠금 노드 - 안내만'); return; }
+      st.sel = i + 1; render();
+    };
+    if (isBoss) el('tag gold', nx, ny - 20, size, 16, 'BOSS');
+    if (on) el('tag gold', nx, ny - (isBoss ? 38 : 22), size, 16, '▼');
+    if (clr) el('tag gold', nx, ny + size + 2, size, 16, '클리어');
+    el('tag lbl', nx - 24, ny + size + (clr ? 18 : 2), size + 48, 32, open ? s.n : '???', 'white-space:normal;color:' + (open ? 'var(--txt)' : '#59617a'));
+  });
+
+  //# 상세 패널 (우)
+  const DX = MX + MW + 16, DW = PX + PW - 16 - DX;
+  el('panel', DX, MY, DW, MH, '');
+  const i = st.sel, s = c.stages[i - 1], L = lin(c.id, i), open = selectable(L);
+  const port = el('portrait' + (open ? '' : ' lk'), DX + 16, MY + 16, 112, 112, '');
+  const ac = ACCENT[i - 1];
+  if (c.id === 3) {
+    const fb = '<div class="fb" style="--ac:' + ac + '"><div class="hood"></div><div class="eye"></div><div class="blade"></div><div class="cap">암살자 ' + (i === 1 ? '1' : i) + '단계 (대체 표시)</div></div>';
+    port.innerHTML = '<img alt="" src="/heroicons/' + ICON[i - 1] + '.png">' + fb;
+    const im = port.querySelector('img'), fbe = port.querySelector('.fb');
+    fbe.style.display = 'none';
+    im.onerror = () => { im.style.display = 'none'; fbe.style.display = 'block'; };
+  } else {
+    port.innerHTML = '<img alt="" src="/vicons/Icon_Heroes.png"' + (c.id === 2 ? ' style="filter:hue-rotate(110deg)"' : '') + '>';
+  }
+  if (open === false) port.insertAdjacentHTML('beforeend', '<div class="lkx">잠금</div>');
+  el('t gold', DX + 144, MY + 12, DW - 160, 20, c.id + '-' + i + (i === 5 ? '  보스' : ''), 'font-size:16px');
+  el('t', DX + 144, MY + 34, DW - 160, 32, open ? s.n : '???', 'font-size:22px;line-height:32px;color:var(--bone);overflow:visible;white-space:normal');
+  el('t gold', DX + 144, MY + 78, DW - 160, 24, '★'.repeat(i) + '☆'.repeat(5 - i), 'font-size:18px');
+  el('t lbl', DX + 144, MY + 104, DW - 160, 20, '영웅: ' + c.hero, '');
+
+  el('t lbl', DX + 16, MY + 138, DW - 32, 18, '내 기록', '');
+  el('t', DX + 16, MY + 156, DW - 32, 24, open ? (L <= st.cleared ? sampleRecord(L) : '기록 없음') : '-', 'font-size:16px;line-height:24px');
+
+  //# 규칙 + 보스 페이즈: 흐름 배치(높이 가변) y=MY+186 ~ 패널 하단
+  let h = '<div class="sec">스테이지 규칙</div>';
+  if (s.rules.length === 0) h += '<div class="rule" style="border-left-color:#48546e;color:var(--sub)">특수 규칙 없음</div>';
+  s.rules.forEach(r => h += '<div class="rule"><b>' + r[0] + '</b><br>' + r[1] + '</div>');
+  if (s.boss.length) {
+    h += '<div class="sec" style="margin-top:4px;color:var(--blood)">보스 페이즈</div>';
+    s.boss.forEach(b => h += '<div class="phase"><b>' + b[0] + '</b><br>' + b[1] + '</div>');
+  }
+  el('abs', DX + 16, MY + 186, DW - 32, 198, h, 'overflow:hidden');
+
+  //# 하단
+  const by = PY + PH_ - 64;
+  el('t lbl', PX + 24, by + 6, 640, 44, open ? '선택한 스테이지는 마을의 침입자 현상수배서에 반영됩니다. 출격은 마을에서 합니다.' : '이 스테이지는 아직 잠겨 있습니다.', 'white-space:normal;line-height:20px;font-size:13px');
+  const b = el('btn go' + (open ? '' : ' off'), DX + 16, by - 8, DW - 32, 56, open ? '이 스테이지로 선택' : lockedHint(L), 'font-size:22px');
+  b.onclick = () => {
+    if (open === false) { say('잠금 스테이지 - 선택 불가'); return; }
+    toast('선택됨: ' + c.id + '-' + i + ' ' + s.n); say('SelectedStage = ' + L + ' 저장(로컬만). 팝업 닫힘 후 마을 HUD 갱신');
+  };
+
+  //# 마을 HUD 지도 버튼 빨간 점 (A)
+  $('#hudDot').className = 'dot' + ($('#cDot').checked && st.seen3 === false && chapterPlayable(3) && chapterUnlocked(3) ? ' on' : '');
+}
+
+sel.onchange = () => { st.cleared = +sel.value; render(); };
+['#cGate', '#cDot', '#cBlink', '#cBg'].forEach(q => $(q).onchange = render);
+$('#btnSeen').onclick = () => { st.seen3 = false; render(); };
+$('#btnReset').onclick = () => { st = {cleared: 10, ch: 3, sel: 1, seen3: false}; sel.value = 10; $('#cGate').checked = true; render(); };
+
+//# 좁은 화면 대응: 1280 고정 스테이지를 창 폭에 맞춰 축소(zoom)
+function fit() {
+  const w = document.documentElement.clientWidth - 16;
+  document.getElementById('wrap').style.zoom = w < 1280 ? (w / 1280) : 1;
+}
+window.addEventListener('resize', fit);
+fit();
+render();
+</script>
+</body>
+</html>
