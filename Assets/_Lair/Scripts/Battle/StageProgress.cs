@@ -81,7 +81,7 @@ namespace Lair.Battle
             return Math.Max(1, (int)Math.Floor(baseValue * multiplier + 0.5f));
         }
 
-        //# 영웅 스탯 = 앵커 x 직업 배율 x 스테이지 배수를 1회만 round-half-up (chapter-system §2.1).
+        //# 영웅 스탯(ScaleHeroStat) = 앵커 x 직업 배율 x 스테이지 배수를 1회만 round-half-up (chapter-system §2.1).
         //# float 곱의 표현 오차(0.7f*1.3f*50 = 45.4999..)로 .5 경계가 흔들리지 않게 decimal(7자리 유효숫자 정규화)로 계산한다.
         public static int ScaleHeroStat(int anchor, float archetypeScale, float stageMultiplier)
         {

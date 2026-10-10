@@ -107,6 +107,9 @@ namespace Lair.Character
             Vector3 position = _moveClamp != null ? _moveClamp.ClampPosition(destination) : destination;
             position.y = transform.position.y;
             _leapRemain = 0f;
+            //# 공격 모션 중 순간이동하면 낡은 위치 기준 strike 가 남지 않게 취소하고 공격 락도 푼다.
+            (_attacker as IPendingStrikeCancel)?.CancelPendingStrike();
+            _attackGate?.EndAttack();
             transform.position = position;
             _mover?.Stop();
         }

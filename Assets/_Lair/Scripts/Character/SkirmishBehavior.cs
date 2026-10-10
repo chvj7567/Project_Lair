@@ -156,7 +156,7 @@ namespace Lair.Character
                 return false;
             }
 
-            //# 추적↔교전은 사거리 히스테리시스만 — 최소 유지 시간 대상 아님.
+            //# 추적↔교전 전이는 사거리 히스테리시스만 본다. 다만 EnterState 가 상태 진입 시각을 갱신하므로 교전 진입 직후 minDwellSec 동안은 슬립이 지연된다(의도).
             if (State == ESkirmishState.Engage)
             {
                 if (input.TargetDist > input.Range + input.EngageBuffer)
@@ -198,12 +198,13 @@ namespace Lair.Character
             return EvadeRuntime.ComputeLeapDestination(position, threat, distance, clamp);
         }
 
-        //# 위협 점수 = 몬스터 DPS ÷ max(1, 현재 HP). DPS = 공격력 x PowerScale ÷ 쿨다운. 공격자 없으면 0.
+        //# 위협 점수 = 몬스터 DPS ÷ max(1, 현재 HP). DPS = 공격력 x PowerScale ÷ 실효 쿨다운(버프 반영). 공격자 없으면 0.
         public static float ThreatScore(IAttacker attacker, IHealth health)
         {
             if (attacker == null || health == null)
                 return 0f;
-            float dps = attacker.Power * attacker.PowerScale / Mathf.Max(0.05f, attacker.Cooldown);
+            float cooldown = attacker is IEffectiveCooldown effective ? effective.EffectiveCooldown : attacker.Cooldown;
+            float dps = attacker.Power * attacker.PowerScale / Mathf.Max(0.05f, cooldown);
             return dps / Mathf.Max(1, health.Current);
         }
 

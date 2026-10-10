@@ -158,7 +158,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=3 엔트리 5개 추가
 | 교전 | 표적 거리 <= 1.6 | 정지 + 표적 응시 + 기본 공격(쿨다운 0.7). 교전 시간 누적 | 표적 사망 -> 표적 재선택(추적). `strikeWindowSec` 초과 또는 군중 판정 -> 슬립 |
 | 슬립 | (교전 시간 >= `strikeWindowSec`) 또는 (`crowdRadius` 안 몬스터 >= `crowdCount`), 그리고 슬립 쿨다운 경과, `minDwellSec` 경과 | 군중(반경 3.0 안) 무게중심 반대 방향으로 `slipDistance` 이동, `slipInvulnSec` 무적. 무게중심이 자기 위치와 같으면 원점 방향 | 이동 완료 -> 추적 |
 
-- **표적 선택**: `huntRadius` 안 모든 몬스터 중 `threatScore` 최대, 동점이면 가까운 몬스터. 봉인(`SealedNest`)된 종족이 필드에 없으면 후보에서 자연 제외. 후보가 없으면 가장 가까운 몬스터.
+- **표적 선택**(threatScore = 공격력 x 공격 배율 ÷ 쿨다운 ÷ max(1, 현재 HP), 쿨다운은 버프(프렌지 등) 반영 실효값): `huntRadius` 안 모든 몬스터 중 `threatScore` 최대, 동점이면 가까운 몬스터. 봉인(`SealedNest`)된 종족이 필드에 없으면 후보에서 자연 제외. 후보가 없으면 가장 가까운 몬스터.
 - **표적 유지**: 다른 몬스터 점수가 현재 표적 점수의 `retargetScoreMul`(1.5)배를 넘을 때만 교체.
 - 슬립은 스킬이 아니라 **AI 기본 행동**이다(HP 게이트 없음, 처음부터 사용). 스킬 `연막 탄`은 시전 직후 슬립을 쿨다운 무시로 1회 발동한다.
 - 중앙 끌림(`_centerPullEnabled`)은 암살자 프리팹에서 끈다.

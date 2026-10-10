@@ -40,7 +40,7 @@ namespace Lair.Battle
         //# 사거리 보정 공식 — range x mul, 단 하한 floor 아래로는 줄이지 않고 원래 사거리가 하한보다 작으면 늘리지 않는다. 안개(규칙)·연막(스킬) 공용.
         public static float Compute(float range, float mul, float floor)
         {
-            return Math.Max(Math.Min(range, floor), range * mul);
+            return Lair.Character.RangeScaleMath.Compute(range, mul, floor);
         }
     }
 }

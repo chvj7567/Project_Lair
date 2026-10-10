@@ -131,7 +131,19 @@ namespace Lair.Character
         bool TryFindNearestThreat(Vector3 from, out Transform target, out IHealth health);
     }
 
-    //# 습격-이탈(암살자) 전용 — 반경 안 살아있는 몬스터를 위협 점수 후보로 조회. 교전 토글 무관. 영웅 타깃 제공자만 구현.
+    //# 실효 쿨다운 노출 — 버프(프렌지 등 CooldownScale)가 반영된 공격 간격. IAttacker 에 더하지 않아 기존 구현체·테스트 더블 무영향(구현하지 않으면 IAttacker.Cooldown 사용).
+    public interface IEffectiveCooldown
+    {
+        float EffectiveCooldown { get; }
+    }
+
+    //# 개시된 strike(공격 모션 중 캐싱된 타격)를 취소 — 순간이동처럼 위치가 갑자기 바뀌는 이동이 낡은 위치 기준으로 판정하지 않게 한다.
+    public interface IPendingStrikeCancel
+    {
+        void CancelPendingStrike();
+    }
+
+    //# 습격-이탈(암살자) 전용 — 반경 안 살아있는 교전(Engaging) 몬스터만 위협 점수 후보로 조회(행군 중 몬스터 제외). 영웅 타깃 제공자만 구현.
     public interface ISkirmishThreatProvider
     {
         //# 후보를 candidates 에 채운다(호출 전 비움). 반경 안에 없으면 false.

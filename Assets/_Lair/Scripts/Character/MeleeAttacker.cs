@@ -7,7 +7,7 @@ namespace Lair.Character
 {
     //# 근접 공격. 인스펙터 또는 Configure 로 스탯 설정.
     //# now 는 외부 주입 (Time.time 직접 참조 금지) — 테스트 가능성 확보.
-    public class MeleeAttacker : MonoBehaviour, IAttacker
+    public class MeleeAttacker : MonoBehaviour, IAttacker, IEffectiveCooldown, IPendingStrikeCancel
     {
         [SerializeField] private float _range = 1.5f;
         [SerializeField] private float _cooldown = 1.0f;
@@ -20,8 +20,11 @@ namespace Lair.Character
         public float RangeScale { get; private set; } = 1f;
         public float RangeFloor { get; private set; }
 
-        public float Range => Mathf.Approximately(RangeScale, 1f) ? _range : Lair.Battle.MonsterRangeModifier.Compute(_range, RangeScale, RangeFloor);
+        public float Range => Mathf.Approximately(RangeScale, 1f) ? _range : RangeScaleMath.Compute(_range, RangeScale, RangeFloor);
         public float Cooldown => _cooldown;
+
+        //# 버프(CooldownScale)가 반영된 실효 쿨다운 — 위협 점수(DPS)가 실제 공격 간격을 따르게 한다.
+        public float EffectiveCooldown => _cooldown * CooldownScale;
         public int Power => _power;
         public bool DeferStrike => _deferStrike;
 
@@ -58,6 +61,12 @@ namespace Lair.Character
             PowerScale = 1f;
             RangeScale = 1f;
             RangeFloor = 0f;
+            _pendingTarget = null;
+        }
+
+        //# 보류 중인 strike 취소 — 헛스윙 처리(쿨다운은 이미 개시 시점에 기록됨).
+        public void CancelPendingStrike()
+        {
             _pendingTarget = null;
         }
 

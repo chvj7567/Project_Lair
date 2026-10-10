@@ -76,7 +76,8 @@ namespace Lair.Character
         public void TakeDamage(int amount)
         {
             if (IsAlive == false) return;
-            if (IsInvulnerable) return;
+            if (IsInvulnerable)
+                return;
             //# B3 — 받는 데미지 배율 적용
             amount = Mathf.RoundToInt(amount * DamageTakenScale);
             int next = Mathf.Max(0, Current - amount);

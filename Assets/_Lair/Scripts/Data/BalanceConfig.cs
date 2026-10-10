@@ -19,7 +19,7 @@ namespace Lair.Data
         }
 
         //# 영웅 앵커 — HP/Power 만 가진다 (chapter-system §1.2 이관 규칙). range/cooldown/moveSpeed 는 HeroArchetype.json 소관.
-        //# 실제 영웅 스탯 = ScaleStat(앵커, HeroArchetype.scale x Stage.multiplier).
+        //# 실제 영웅 스탯 = ScaleHeroStat(앵커, HeroArchetype.scale x Stage.multiplier).
         [Serializable]
         public class HeroAnchor
         {

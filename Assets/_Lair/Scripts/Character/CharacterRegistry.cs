@@ -81,10 +81,14 @@ namespace Lair.Character
             float sqrRadius = radius * radius;
             foreach (Entry e in Monsters)
             {
-                if (e.Transform == null) continue;
-                if (e.Health == null || e.Health.IsAlive == false) continue;
-                if (e.IsEngaging == false) continue;
-                if ((e.Transform.position - from).sqrMagnitude > sqrRadius) continue;
+                if (e.Transform == null)
+                    continue;
+                if (e.Health == null || e.Health.IsAlive == false)
+                    continue;
+                if (e.IsEngaging == false)
+                    continue;
+                if ((e.Transform.position - from).sqrMagnitude > sqrRadius)
+                    continue;
                 candidates.Add(new SkirmishCandidate
                 {
                     Transform = e.Transform,

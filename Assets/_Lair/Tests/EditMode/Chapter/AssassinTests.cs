@@ -16,6 +16,19 @@ namespace Lair.Tests.EditMode
         private const string SkillDir = "Assets/_Lair/Art/Skills/";
         private const string JsonPath = "Assets/_Lair/Data/Json/hero_skills.json";
 
+        //# 암살자 FX 프리팹은 아트 슬라이스 소관 - 에셋 부재 LogError(키별 1회 정적 캐시)가 실행 순서에 따라 새지 않게 격리한다.
+        [SetUp]
+        public void 암살자_FX_로그_캐시를_격리한다()
+        {
+            ArcherFxLogGuard.Suppress();
+        }
+
+        [TearDown]
+        public void 암살자_FX_로그_캐시를_원복한다()
+        {
+            ArcherFxLogGuard.Restore();
+        }
+
         private static SkirmishSettings Settings()
         {
             return new SkirmishSettings(9f, 1.5f, 2.8f, 3, 2f, 3.5f, 0.2f, 0.2f, 5f, 0.4f, 7f);
@@ -340,6 +353,34 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0, SkirmishBehavior.SelectTarget(gone, p, cur.transform, 1.5f), "현재 표적이 후보에 없으면(사망·봉인) 최상위");
             Object.DestroyImmediate(cur);
             Object.DestroyImmediate(other);
+        }
+
+        [Test]
+        public void 쿨다운_버프는_위협_점수에_반영된다()
+        {
+            GameObject m = MakeMonster(10, 1f, 100, Vector3.zero);
+            float baseScore = Score(m);
+
+            m.GetComponent<MeleeAttacker>().CooldownScale = 0.67f;   //# 프렌지 — 공격이 빨라짐
+
+            Assert.AreEqual(baseScore / 0.67f, Score(m), 0.0001f);
+            Object.DestroyImmediate(m);
+        }
+
+        [Test]
+        public void 보류_중인_strike를_취소하면_타격이_헛스윙이_된다()
+        {
+            GameObject hero = MakeMonster(10, 1f, 100, Vector3.zero);
+            GameObject target = MakeMonster(1, 1f, 100, new Vector3(1f, 0f, 0f));
+            MeleeAttacker attacker = hero.GetComponent<MeleeAttacker>();
+            Assert.IsTrue(attacker.TryBeginAttack(target.GetComponent<Health>(), Vector3.zero, new Vector3(1f, 0f, 0f), 10f));
+
+            (attacker as IPendingStrikeCancel).CancelPendingStrike();
+
+            Assert.IsFalse(attacker.TryApplyStrike(10.2f));
+            Assert.AreEqual(100, target.GetComponent<Health>().Current);
+            Object.DestroyImmediate(hero);
+            Object.DestroyImmediate(target);
         }
 
         //# ===== 레지스트리 후보 =====
