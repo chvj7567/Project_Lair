@@ -14,6 +14,8 @@ namespace Lair.Tests.EditMode
         private static readonly EVisual[] ArcherFxKeys =
         {
             EVisual.HeroPiercingShotFx, EVisual.HeroArrowVolleyFx, EVisual.HeroEvadeFx, EVisual.ArcherArrowFx,
+            //# 암살자 FX 5종 - 프리팹은 아트 슬라이스 소관이라 지금은 에셋 부재가 정상이다(같은 격리 방식).
+            EVisual.HeroSlipFx, EVisual.HeroShadowStrikeFx, EVisual.HeroBladeWhirlFx, EVisual.HeroSmokeBombFx, EVisual.AssassinSlashFx,
         };
 
         private static HashSet<EVisual> _snapshot;
