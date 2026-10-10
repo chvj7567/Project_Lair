@@ -187,7 +187,7 @@ namespace Lair.Tests.EditMode
         [TestCase(0)]
         [TestCase(99)]
         [TestCase(-1)]
-        [TestCase(3)]
+        [TestCase(4)]
         [TestCase(5)]
         public void 챕터_DB에_없는_탭을_누르면_이동도_안내도_이벤트도_없다(int chapterId)
         {
@@ -200,6 +200,26 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(vm.SelectChapter(chapterId));
 
             Assert.AreEqual(0, notices);
+            Assert.AreEqual(0, changed);
+            Assert.AreEqual(1, vm.SelectedChapter);
+        }
+
+        [TestCase(0)]
+        [TestCase(5)]
+        [TestCase(10)]
+        [TestCase(15)]
+        public void 챕터3_탭을_누르면_진행도와_무관하게_출격_불가_안내만_나오고_이동도_변경_이벤트도_없다(int cleared)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared));
+            List<string> notices = new List<string>();
+            int changed = 0;
+            vm.OnNotice += notices.Add;
+            vm.OnChanged += () => ++changed;
+
+            Assert.IsFalse(vm.SelectChapter(3));
+
+            Assert.AreEqual(1, notices.Count);
+            Assert.AreEqual(WorldMapTestSupport.Text(WorldMapViewModel.StrNotReadyHint), notices[0]);
             Assert.AreEqual(0, changed);
             Assert.AreEqual(1, vm.SelectedChapter);
         }
