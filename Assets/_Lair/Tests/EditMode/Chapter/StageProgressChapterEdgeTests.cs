@@ -179,6 +179,15 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(4, StageProgress.ScaleStat(StageProgress.ScaleStat(5, 0.5f), 1.2f), "이중 반올림이면 달라지는 기준 케이스");
         }
 
+        [TestCase(50, 0.7f, 1.3f, 46)]
+        [TestCase(50, 0.7f, 1.45f, 51)]
+        [TestCase(50, 1.0f, 1.35f, 68)]
+        [TestCase(4000, 0.8f, 1.56f, 4992)]
+        public void ScaleHeroStat_은_float_표현_오차와_무관하게_정확한_소수_곱으로_반올림한다(int anchor, float scale, float multiplier, int expected)
+        {
+            Assert.AreEqual(expected, StageProgress.ScaleHeroStat(anchor, scale, multiplier));
+        }
+
         [Test]
         public void ScaleHeroStat_은_0_5_경계에서_올림하고_최소_1을_보장한다()
         {
