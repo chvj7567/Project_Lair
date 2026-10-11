@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>빌드 상세 모달 비주얼 리디자인 시안 (BuildModalPopup, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--soul:#5ef0b4;--sky:#5aa9ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar button.on{border-color:var(--gold);color:var(--gold)}
+#bar label{color:var(--sub)}
+#msg{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:#05060a}
+#bd{position:absolute;left:0;top:0;width:1280px;height:720px;image-rendering:pixelated}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+
+/* dim */
+#dim{position:absolute;inset:0;background:#000;opacity:.6}
+/* 모달 패널 : 금테 이중 프레임 + 유리 광택 */
+#modal{position:absolute;left:320px;top:120px;width:640px;height:480px;background:linear-gradient(180deg,#1b2336f2,#0d1220f5);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink),inset 0 0 40px #00000099,0 8px 0 #0007,0 0 34px #000c,0 0 22px #f7c64a22}
+#modal::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:34px;background:linear-gradient(180deg,#ffffff17,transparent);pointer-events:none}
+.corner{position:absolute;width:12px;height:12px;border:2px solid var(--gold);filter:drop-shadow(0 0 3px #f7c64a88);z-index:6}
+.corner.tl{border-right:0;border-bottom:0}.corner.tr{border-left:0;border-bottom:0}.corner.bl{border-right:0;border-top:0}.corner.br{border-left:0;border-top:0}
+/* 타이틀 플레이트 */
+#plaque{position:absolute;left:480px;top:94px;width:320px;height:52px;z-index:8;background:linear-gradient(180deg,#2a3450,#141a2c 55%,#0f1424);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px var(--gold2),inset 0 0 0 4px var(--ink),inset 0 2px 0 4px #ffffff10,0 4px 0 #0008,0 0 18px #f7c64a44}
+#plaque .tt{position:absolute;left:0;right:0;top:0;height:46px;line-height:46px;text-align:center;font-size:22px;color:var(--bone);text-shadow:0 0 10px #f7c64a77,2px 2px 0 #000}
+.gemd{position:absolute;width:10px;height:10px;transform:rotate(45deg);background:linear-gradient(135deg,#fff0a8,#e0a21c);border:2px solid #2a1d06;box-shadow:0 0 8px #f7c64acc;z-index:9}
+/* 닫기 X : 입체 버튼 */
+#close{position:absolute;left:929px;top:107px;width:44px;height:44px;z-index:9;cursor:pointer;background:linear-gradient(180deg,#5a2630,#331219 55%,#26090f);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #c2353b,inset 0 2px 0 3px #ffffff30,inset 0 -4px 0 #15040a,0 4px 0 #0008,0 0 12px #e5484d66;color:#ffd6d8;font-size:24px;line-height:36px;text-align:center;text-shadow:0 0 8px #e5484d,1px 1px 0 #000;transition:filter .12s}
+#close:hover{filter:brightness(1.3)}
+#close:active{transform:translateY(2px)}
+/* 구분선 */
+#divider{position:absolute;left:638px;top:192px;width:4px;height:380px;background:linear-gradient(180deg,#f7c64a00,#f7c64acc 15%,#b9832a 50%,#f7c64acc 85%,#f7c64a00);box-shadow:0 0 8px #f7c64a55;z-index:2}
+/* 섹션 */
+.sec{position:absolute;width:282px;height:380px;z-index:3}
+.sec .glass{position:absolute;left:-4px;top:0;width:290px;height:380px;background:linear-gradient(180deg,#05070c88,#05070c55);border:1px solid #000;box-shadow:inset 0 0 0 1px #8a6a2c55,inset 0 0 18px #0009}
+.sec .hd{position:absolute;left:18px;top:0;height:32px;line-height:32px;font-size:22px;color:var(--bone);text-shadow:1px 1px 0 #000}
+.sec .hdia{position:absolute;left:2px;top:8px;width:10px;height:10px;transform:rotate(45deg);background:var(--k);box-shadow:0 0 8px var(--k);border:2px solid #000}
+.sec .hline{position:absolute;left:0;top:32px;width:100%;height:2px;background:linear-gradient(90deg,#f7c64acc,#f7c64a00)}
+.chip{position:absolute;right:6px;top:5px;min-width:54px;height:22px;padding:0 8px;line-height:18px;text-align:center;font-size:14px;color:var(--k);
+ background:linear-gradient(180deg,#0c111d,#070a12);border:2px solid #000;box-shadow:0 0 0 1px var(--k),inset 0 1px 0 #ffffff1a,0 0 8px color-mix(in srgb,var(--k) 45%,transparent);text-shadow:0 0 6px color-mix(in srgb,var(--k) 60%,transparent)}
+.vp{position:absolute;left:1px;top:38px;width:281px;height:342px;overflow:hidden}
+.ct{position:absolute;left:0;top:0;width:280px;will-change:transform}
+/* 스크롤바 */
+.trk{position:absolute;left:286px;top:38px;width:6px;height:342px;background:#05070c;border:1px solid #000;box-shadow:0 0 0 1px #3a4764,inset 0 0 4px #000}
+.thm{position:absolute;left:0;right:0;top:0;background:linear-gradient(90deg,#ffe58a,#e0a21c 55%,#b9832a);box-shadow:0 0 6px #f7c64aaa;cursor:pointer}
+.trk.off{opacity:.25}
+/* 카드 셀 280x80 */
+.cell{position:absolute;left:0;width:280px;height:80px}
+.cell .body{position:absolute;left:0;top:2px;width:280px;height:76px;background:linear-gradient(90deg,#1a2133ee,#0d1220ee);border:2px solid var(--ink);box-shadow:inset 0 0 0 1px #8a6a2c99,inset 0 1px 0 2px #ffffff0c,0 2px 0 #0006}
+.cell .strip{position:absolute;left:0;top:2px;width:3px;height:76px;background:var(--k);box-shadow:0 0 8px var(--k);z-index:2}
+.cell .fr{position:absolute;left:6px;top:14px;width:52px;height:52px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--k) 22%,#10151f),#07090e 78%);border:2px solid var(--k);
+ box-shadow:inset 0 0 0 1px #000,inset 0 0 10px color-mix(in srgb,var(--k) 45%,transparent),0 0 9px color-mix(in srgb,var(--k) 65%,transparent);z-index:2}
+.cell .fr img{position:absolute;left:4px;top:4px;width:40px;height:40px;image-rendering:pixelated}
+.cell .fr i{position:absolute;left:-5px;top:-5px;width:8px;height:8px;transform:rotate(45deg);background:var(--k);border:1px solid #000;box-shadow:0 0 6px var(--k)}
+.cell .nm{position:absolute;left:68px;top:6px;width:160px;height:30px;line-height:28px;font-size:17px;color:var(--bone);text-shadow:1px 1px 0 #000;z-index:2;overflow:hidden;white-space:nowrap}
+.cell .ds{position:absolute;left:68px;top:40px;width:204px;height:34px;padding:2px 6px;font-size:11px;line-height:14px;color:#d1d5db;background:linear-gradient(180deg,#05070ccc,#0a0e18cc);border:1px solid #000;box-shadow:inset 0 2px 4px #000a,0 0 0 1px #2a3248;z-index:2;overflow:hidden;display:flex;align-items:center}
+.cell .cn{position:absolute;left:230px;top:10px;min-width:42px;height:24px;padding:0 6px;line-height:20px;text-align:center;font-size:16px;color:var(--gold);z-index:3;
+ background:linear-gradient(180deg,#2a2210,#0f0b04);border:2px solid #000;box-shadow:0 0 0 1px var(--gold2),inset 0 1px 0 #f7c64a55,0 0 8px #f7c64a66;text-shadow:0 0 6px #f7c64a99,1px 1px 0 #000}
+.empty{position:absolute;left:0;top:38px;width:282px;height:342px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--sub);font-size:16px;text-shadow:1px 1px 0 #000;z-index:4}
+.empty .od{width:12px;height:12px;transform:rotate(45deg);border:2px solid #6b5a2a;background:#0a0d14;box-shadow:0 0 6px #f7c64a33}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>빌드 상세 모달(BuildModalPopup + BuildModalCardCell) 비주얼 리디자인 시안 — 현재 좌표 유지, 마감 업그레이드</h1>
+  화면 중앙 640x480 모달(좌 패시브 : 우 액티브), 섹션 282x380, 카드 셀 280x80, 타이틀 플레이트 320x52, 닫기 X 44x44의 <b>좌표·크기·문구 그대로</b> 두고, 배틀 HUD·마을 HUD·침입 지도와 같은 톤(금색 포인트 + 입체 그라데이션 + 은은한 글로우)으로 통일했습니다. 기능·문구·동작·VM 불변, 신규 문구 0건(숫자 칩 N/9·N/5는 기존 빌드 패널 값 재사용).
+  <ol>
+    <li><b>모달 패널</b> - 금테 이중 프레임 + 모서리 장식 4곳 + 상단 유리 광택 + 어두운 내측 비네트. 뒤 dim(#000 α0.6)은 그대로, 클릭 시 닫힘 동작 유지.</li>
+    <li><b>헤더</b> - 타이틀 플레이트(320x52)는 금테 이중 프레임 + 양끝 마름모 보석 + 금빛 글로우 글자. 닫기 X는 붉은 입체 버튼(눌림 2px, 호버 밝아짐).</li>
+    <li><b>섹션 헤더</b> - 종류색 마름모(패시브 녹색 / 액티브 금색) + 라벨 + 금색 페이드 구분선, 오른쪽에 <b>N/9 · N/5 칩</b>(종류색 발광 테두리). 섹션 배경은 어두운 유리 inset, 가운데 세로 구분선은 금색 그라데이션.</li>
+    <li><b>카드 셀</b> - 좌측 종류색 띠 + 일러스트 프레임(52x52, 종류색 테두리 + 안쪽/바깥 발광 + 모서리 보석), 이름은 뼈색 글자, 효과 문구는 <b>유리 inset 박스</b>(2줄 말줄임).</li>
+    <li><b>중복 배지(×N)</b> - 금테 + 어두운 유리 배지 + 금빛 글로우 글자, 2개 이상일 때만 표시. 위치(우상단)·크기 동일.</li>
+    <li><b>스크롤 영역</b> - 금색 슬림 스크롤바(6px, 트랙 흑색 + 금 그라데이션 썸). 내용이 넘칠 때만 활성, 휠/썸 드래그 가능. 빈 상태는 마름모 장식 + 기존 문구.</li>
+    <li><b>구현 메모</b> - Image 스프라이트(그라데이션·프레임·보석)와 Outline/Shadow 재사용, Rule 03 §3 BuildModalPopup/PoolingScrollView/Cell 3종 구조 유지. 셀은 80px 피치 안에서 본체를 상하 2px 안쪽으로 그려 셀 사이가 2+2px 틈새로 보임(좌표 불변). 스크롤바는 섹션 우측 바깥 2px 여유(x+284)에 배치.</li>
+  </ol>
+</div>
+<div id="bar">
+  <span>보유 카드 수</span>
+  <button id="bEmp">비어있음</button>
+  <button id="bFew" class="on">적음</button>
+  <button id="bFull">가득</button>
+  <label><input type="checkbox" id="cBd" checked> 배경 아트</label>
+  <span id="msg">카드 목록을 휠로 스크롤하거나 썸을 드래그. 가득 상태에서 패시브 9/9 · 액티브 5/5</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720. 모달 640x480 중앙 (320,120) / 타이틀 플레이트 320x52 (480,94) / 닫기 X 44x44 (929,107), 모달 우상단 바깥 13px 돌출 / 섹션 282x380 — 패시브 (348,192), 액티브 (650,192) / 섹션 헤더 h32, 스크롤 영역 y+38 h342 / 구분선 4x380 (638,192) / 카드 셀 280x80 (아이콘 프레임 52x52 @ (6,14), 이름 160x30 @ (68,6), 설명 204x34 @ (68,40), ×N 배지 44x26 우상단 @ (228,8)) / 스크롤 피치 80. 현재 대비 달라진 좌표 없음(스크롤바 트랙 6px만 섹션 우측 바깥에 추가).
+</div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);const stg=$('#stage');
+const NAMES={SpawnWisps:['도깨비불 떼','도깨비불 스포너 출력 +1'],SpawnWraith:['더 많은 망령','망령 스포너 출력 +1'],WispHpBoost:['끈질긴 도깨비불','모든 도깨비불 HP +50%'],WraithDamageBoost:['망령의 압박','모든 망령 HP +50%'],
+ ReplaceWispsToWraith:['공포의 군세','도깨비불·망령 데미지 +30% (영구)'],WallOfWisps:['단단한 살갗','도깨비불·망령 받는 데미지 -25% (영구)'],SpawnReapers:['사신 떼거리','사신 스포너 출력 +1'],
+ ReaperAtkSpeed:['신속한 사신','모든 사신 공격속도 +30%'],HexRangeBoost:['저주의 시야','모든 저주술사 사거리 +40%'],SpawnPlagues:['역병 증식','역병귀 스포너 출력 +1'],SpawnPhantoms:['환령 떼','환령 스포너 출력 +1'],
+ Multiply:['빠른 번식','환령 스포너 주기 -40% (영구)'],SpawnerHaste:['던전의 박동','모든 스포너 주기 -20% (영구)'],
+ TimeStop:['시간 정지','영웅 5초 멈춤'],Fear:['공포','영웅 3초간 도망'],Slow:['던전의 점성','영웅 -50% 이동속도, 모든 몬스터 +30% 이동속도 (10초)'],Weaken:['무력화','영웅 데미지 -50% (10초)'],
+ IronWill:['강철 의지','모든 몬스터 받는 데미지 -30% (15초)'],Frenzy:['광폭화','모든 몬스터 공속 +50% (10초)'],MarkOfDeath:['죽음의 표식','다음 5초간 영웅이 받는 데미지 +50%']};
+//# 패시브: 카테고리 그룹(Tank→Dps→Debuff→Swarm), 액티브: 픽 순서
+const SETS={
+ emp:{p:[],a:[]},
+ few:{p:[['SpawnWraith',2],['WispHpBoost',1]],a:[['TimeStop',1],['Fear',1]]},
+ full:{p:[['SpawnWraith',2],['WispHpBoost',1],['WallOfWisps',1],['SpawnReapers',2],['HexRangeBoost',1],['SpawnPlagues',1],['SpawnWisps',1]],
+       a:[['TimeStop',1],['Fear',2],['Slow',1],['Weaken',1]]}};
+let mode='few';
+const SC={p:0,a:0};
+function el(parent,cls,x,y,w,h,html,style){const d=document.createElement('div');d.className=cls;d.style.cssText=(x!==null?'left:'+x+'px;top:'+y+'px;':'')+(w!==null?'width:'+w+'px;':'')+(h!==null?'height:'+h+'px;':'')+(style||'');if(html!==undefined)d.innerHTML=html;parent.appendChild(d);return d;}
+function cell(d,i,k){
+  const n=NAMES[d[0]];
+  const c=document.createElement('div');c.className='cell';c.style.cssText='top:'+i*80+'px;--k:'+k;
+  c.innerHTML='<div class="body"></div><div class="strip"></div><div class="fr"><i></i><img src="/cardart/'+d[0]+'.png"></div><div class="nm">'+n[0]+'</div><div class="ds">'+n[1]+'</div>'+(d[1]>=2?'<div class="cn">×'+d[1]+'</div>':'');
+  return c;
+}
+function section(key,x,label,k,data,max){
+  const total=data.reduce((s,d)=>s+d[1],0);
+  const s=el(stg,'sec',x,192,282,380,'','--k:'+k);
+  el(s,'glass',null,null,null,null,'');
+  el(s,'hdia',null,null,null,null,'');
+  el(s,'hd',null,null,null,null,label);
+  el(s,'chip',null,null,null,null,total+'/'+max);
+  el(s,'hline',null,null,null,null,'');
+  if(data.length===0){
+    el(s,'empty',null,null,null,null,'<div class="od"></div><div>아직 픽한 카드가 없습니다</div><div class="od" style="width:8px;height:8px"></div>');
+    return;
+  }
+  const vp=el(s,'vp',null,null,null,null,'');
+  const ct=el(vp,'ct',null,null,null,data.length*80,'');
+  data.forEach((d,i)=>ct.appendChild(cell(d,i,k)));
+  const trk=el(s,'trk',null,null,null,null,'');
+  const thm=el(trk,'thm',null,null,null,null,'');
+  const H=342,CH=data.length*80,over=CH>H;
+  const maxS=Math.max(0,CH-H);
+  const thH=over?Math.max(28,H*H/CH):H-2;
+  thm.style.height=thH+'px';
+  if(!over)trk.classList.add('off');
+  function apply(){
+    SC[key]=Math.min(maxS,Math.max(0,SC[key]));
+    ct.style.transform='translateY('+(-SC[key])+'px)';
+    thm.style.top=(maxS?SC[key]/maxS*(H-2-thH):0)+'px';
+  }
+  apply();
+  vp.addEventListener('wheel',e=>{if(!over)return;e.preventDefault();SC[key]+=e.deltaY>0?40:-40;apply();},{passive:false});
+  thm.addEventListener('mousedown',e=>{
+    e.preventDefault();const y0=e.clientY,s0=SC[key];const z=+getComputedStyle($('#wrap')).zoom||1;
+    const mv=ev=>{SC[key]=s0+(ev.clientY-y0)/z*(maxS/Math.max(1,H-2-thH));apply();};
+    const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);};
+    addEventListener('mousemove',mv);addEventListener('mouseup',up);});
+}
+function render(){
+  stg.innerHTML='';
+  const bd=document.createElement('img');bd.id='bd';bd.src='/backdrop/Battle_Backdrop.png';bd.style.display=$('#cBd').checked?'block':'none';stg.appendChild(bd);
+  el(stg,'',null,null,null,null,'','').id='dim';
+  const m=el(stg,'',null,null,null,null,'');m.id='modal';
+  [["tl",5,5],["tr",619,5],["bl",5,459],["br",619,459]].forEach(q=>el(m,"corner "+q[0],q[1],q[2],12,12,""));
+  const pq=el(stg,'',null,null,null,null,'<div class="tt">빌드 상세</div>');pq.id='plaque';
+  el(pq,'gemd',22,17,null,null,'');el(pq,'gemd',276,17,null,null,'');
+  const cl=el(stg,'',null,null,null,null,'×');cl.id='close';
+  el(stg,'',null,null,null,null,'').id='divider';
+  el(stg,'gemd',635,372,null,null,'','z-index:4;width:12px;height:12px');
+  const S=SETS[mode];SC.p=SC.a=0;
+  section('p',348,'패시브','#5ef0b4',S.p,9);
+  section('a',650,'액티브','#f7c64a',S.a,5);
+}
+function setMode(m){mode=m;[['bEmp','emp'],['bFew','few'],['bFull','full']].forEach(([b,k])=>$('#'+b).classList.toggle('on',k===m));render();}
+$('#bEmp').onclick=()=>setMode('emp');$('#bFew').onclick=()=>setMode('few');$('#bFull').onclick=()=>setMode('full');
+$('#cBd').onchange=render;
+function fit(){const w=document.documentElement.clientWidth-16;$('#wrap').style.zoom=w<1280?w/1280:1;}
+addEventListener('resize',fit);fit();render();
+</script>
+</body>
+</html>
