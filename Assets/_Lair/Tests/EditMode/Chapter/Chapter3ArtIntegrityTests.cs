@@ -190,17 +190,21 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 암살자_공격_클립_이벤트는_궁수와_같은_타이밍이다()
+        public void 암살자_공격_종료_시각은_궁수와_같고_타격_시각은_암살자_0_200_궁수_0_300이다()
         {
             AnimationEvent[] archer = AssetDatabase.LoadAssetAtPath<AnimationClip>(AnimDir + "Archer_Stab.anim").events;
             AnimationEvent[] assassin = AssetDatabase.LoadAssetAtPath<AnimationClip>(AnimDir + "Assassin_Stab.anim").events;
 
-            Assert.AreEqual(archer.Length, assassin.Length);
-            for (int i = 0; i < archer.Length; ++i)
-            {
-                Assert.AreEqual(archer[i].functionName, assassin[i].functionName);
-                Assert.AreEqual(archer[i].time, assassin[i].time, 0.0005f);
-            }
+            Assert.AreEqual(2, archer.Length);
+            Assert.AreEqual(2, assassin.Length);
+            Assert.AreEqual("OnAttackStrike", archer[0].functionName);
+            Assert.AreEqual("OnAttackStrike", assassin[0].functionName);
+            Assert.AreEqual(0.300f, archer[0].time, 0.0005f, "궁수 타격");
+            Assert.AreEqual(0.200f, assassin[0].time, 0.0005f, "암살자 타격(D-C3-8)");
+            Assert.AreEqual("OnAttackEnd", archer[1].functionName);
+            Assert.AreEqual("OnAttackEnd", assassin[1].functionName);
+            Assert.AreEqual(archer[1].time, assassin[1].time, 0.0005f, "공격 종료 시각은 같다");
+            Assert.AreEqual(0.580f, assassin[1].time, 0.0005f);
         }
 
         [Test]

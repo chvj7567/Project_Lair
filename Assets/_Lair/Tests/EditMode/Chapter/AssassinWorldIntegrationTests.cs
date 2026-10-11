@@ -755,6 +755,9 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 매핑에_없는_영웅은_기사_로드아웃으로_폴백한다()
         {
+            //# 매핑 누락은 조용히 넘어가지 않고 오류 로그를 남긴 뒤 기사 로드아웃으로 폴백한다(의도된 오류).
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("스킬 로드아웃 매핑 없음.*기사 로드아웃으로 폴백"));
+
             Assert.AreEqual(EData.HeroSkillLoadout, LoadoutKeyOf((EHero)99));
         }
 
