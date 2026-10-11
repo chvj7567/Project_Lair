@@ -25,7 +25,7 @@ namespace Lair.UI
         //# 섹션 헤더 전용 위젯 그룹 (기획서 §1·2.1). 항목 행이면 전부 비활성.
         [SerializeField] private CHText _headerText;    //# 섹션 제목 ("스탯 강화"/"몬스터 강화")
         [SerializeField] private Image _headerBg;       //# 배너 밴드 배경 + 하단 구분선
-        [SerializeField] private Image _headerAccent;   //# 금 액센트 바 3×22 (#FBBF24)
+        [SerializeField] private Image _headerAccent;   //# 22x22 마름모 VillageHudGem (#5ef0b4)
 
         //# UI 리디자인 — 레벨 5칸 눈금, 상태 링(구매 가능=소울 / MAX=금), 구매 버튼 스프라이트 3종(soul/off/gold). 미할당이면 기존 표시 유지.
         [SerializeField] private Image[] _levelPips = new Image[0];

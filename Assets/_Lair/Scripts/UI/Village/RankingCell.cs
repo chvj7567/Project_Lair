@@ -53,9 +53,13 @@ namespace Lair.UI
         {
             ApplyBackground(false);
             if (_rankText != null)
+            {
                 _rankText.SetColor(RankDefault);
+            }
             if (_rankMedalRoot != null)
+            {
                 _rankMedalRoot.SetActive(false);
+            }
         }
 
         //# 1~3위만 메달을 켜고 순위색 rgb 로 틴트(각 Image 의 알파 보존). 그 외는 끈다.

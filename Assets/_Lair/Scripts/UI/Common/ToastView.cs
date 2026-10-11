@@ -49,7 +49,7 @@ namespace Lair.UI
             }
         }
 
-        //# 종류 색 점 갱신 — 풀 재사용 시 이전 종류 색이 남지 않도록 매 Show 마다 덮어쓴다.
+        //# 종류색(점·띠·발광) 갱신 — 풀 재사용 시 이전 종류 색이 남지 않도록 매 Show 마다 덮어쓴다.
         private void SetKind(EToastKind kind)
         {
             Color tint = UiDotPalette.ToastDot(kind);
