@@ -198,10 +198,13 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 마을_캐러셀은_출격_가능_스테이지까지만_이동하고_표기는_챕터_인덱스다()
         {
-            VillageViewModel vm = new VillageViewModel(new MetaProfile { ClearedStage = 10 }, null, Db(), Text);
+            //# 실서비스처럼 챕터 로드 직후 진행 범위(MaxStage)를 DB 챕터 수(3 -> 15)에 맞춘다 - 정적 상태는 ChapterStaticStateTestBase 가 원복.
+            ChapterDatabase db = Db();
+            StageProgress.ConfigureChapterCount(db.ChapterCount);
+            VillageViewModel vm = new VillageViewModel(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount }, null, db, Text);
 
-            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage, "cleared 10 이어도 출격 가능 상한으로 클램프");
-            Assert.AreEqual("STAGE 2-5", vm.StageIndicatorText);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage, "전 클리어면 출격 가능 상한(15)으로 클램프");
+            Assert.AreEqual("STAGE 3-5", vm.StageIndicatorText);
             Assert.AreEqual("★★★★★", vm.StageThreatText);
             Assert.IsFalse(vm.CanMoveNext);
 
@@ -213,6 +216,9 @@ namespace Lair.Tests.EditMode
             vm.SelectStage(7);
             Assert.AreEqual("STAGE 2-2", vm.StageIndicatorText);
             Assert.AreEqual("궁수 · 2단계", vm.IntruderText);
+            vm.SelectStage(12);
+            Assert.AreEqual("STAGE 3-2", vm.StageIndicatorText);
+            Assert.AreEqual("암살자 · 2단계", vm.IntruderText);
         }
 
         [Test]

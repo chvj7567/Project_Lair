@@ -122,7 +122,7 @@ namespace Lair.Tests.EditMode
             VillageViewModel vm = MakeVm(3, 10);
             vm.MoveStage(100);
             Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage);
-            vm.MoveStage(-10);
+            vm.MoveStage(-ChapterGate.PlayableStageCount - 10);
             Assert.AreEqual(1, vm.SelectedStage);
         }
 
