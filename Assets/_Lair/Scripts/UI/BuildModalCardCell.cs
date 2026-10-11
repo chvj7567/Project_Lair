@@ -16,6 +16,10 @@ namespace Lair.UI
         [SerializeField] private CHText _descText;
         //# UI 리디자인 — 종류색 링(패시브=소울 / 액티브=금). 배선되면 슬롯 프레임(_frame)은 도트 sunk 스프라이트 그대로 둔다.
         [SerializeField] private Image _kindRing;
+        //# 종류색을 칠할 장식 (띠·프레임 발광·안쪽 발광·보석). 알파는 프리팹 값 보존.
+        [SerializeField] private Image[] _kindTinted;
+        //# ×N 금테 배지 장식 — ×N 표시와 함께 토글.
+        [SerializeField] private GameObject _countBadgeDecor;
 
         //# ×N 노랑 (#FBBF24).
         private static readonly Color CountColor = new Color(0.984f, 0.749f, 0.141f, 1f);
@@ -31,6 +35,16 @@ namespace Lair.UI
             if (_kindRing != null)
             {
                 _kindRing.color = UiDotPalette.CardKind(isPassive);
+            }
+            if (_kindTinted != null)
+            {
+                Color kind = UiDotPalette.CardKind(isPassive);
+                for (int i = 0; i < _kindTinted.Length; i++)
+                {
+                    if (_kindTinted[i] == null)
+                        continue;
+                    _kindTinted[i].color = new Color(kind.r, kind.g, kind.b, _kindTinted[i].color.a);
+                }
             }
             if (_frame != null)
             {
@@ -53,9 +67,13 @@ namespace Lair.UI
                 _descText.SetText(card.Description);
                 _descText.SetColor(DescColor);
             }
+            bool show = count >= 2;
+            if (_countBadgeDecor != null)
+            {
+                _countBadgeDecor.SetActive(show);
+            }
             if (_countText != null)
             {
-                bool show = count >= 2;
                 _countText.gameObject.SetActive(show);
                 if (show)
                 {
