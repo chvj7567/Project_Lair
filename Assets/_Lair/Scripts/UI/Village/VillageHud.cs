@@ -34,6 +34,8 @@ namespace Lair.UI
         [SerializeField] private CHButton _cloudButton;         //# v0.3 — 계정(클라우드 세이브)
         [SerializeField] private GameObject _cloudConflictDot;  //# v0.3 — 클라우드 충돌 배지(기획서 §3)
         [SerializeField] private CHButton _sortieButton;
+        [SerializeField] private GameObject _sortieGlow;        //# 방어하기 붉은 맥동 글로우 — 잠금이면 숨김
+        [SerializeField] private GameObject _sortieGloss;       //# 방어하기 상단 광택 — 잠금이면 숨김
 
         //# hero-stage-variant v2 캐러셀 (기획서 §4.2·§5) — 중앙 쇼케이스 영웅을 감싸는 스테이지 선택 위젯.
         [SerializeField] private CHButton _stagePrevButton;     //# ◀ 이전 스테이지
@@ -41,7 +43,7 @@ namespace Lair.UI
         [SerializeField] private CHText _stageIndicatorText;    //# "STAGE {N}"
         [SerializeField] private CHText _stageThreatText;       //# 위협도 ★×N + ☆×(5-N)
         [SerializeField] private GameObject _stageLockOverlay;  //# 잠금 오버레이 그룹 루트(켜고/끔)
-        [SerializeField] private Image _stageLockDim;           //# 검정 반투명(α0.55) — 프리팹 값, 참조만 보유
+        [SerializeField] private Image _stageLockDim;           //# 검정 반투명(α0.72) — 프리팹 값, 참조만 보유
         [SerializeField] private CHText _stageLockLabel;        //# 중앙 "잠금"
         [SerializeField] private CHText _stageLockHintText;     //# "스테이지 {N-1} 클리어 필요"
 
@@ -145,6 +147,14 @@ namespace Lair.UI
             if (_sortieButton != null)
             {
                 _sortieButton.Interactable = unlocked;
+            }
+            if (_sortieGlow != null)
+            {
+                _sortieGlow.SetActive(unlocked);
+            }
+            if (_sortieGloss != null)
+            {
+                _sortieGloss.SetActive(unlocked);
             }
             if (_stageLockOverlay != null)
             {
