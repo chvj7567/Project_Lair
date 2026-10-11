@@ -130,9 +130,13 @@ namespace Lair.UI
                 return;
             _timerWarnState = warnState;
             if (_timerWarnGlow != null)
+            {
                 _timerWarnGlow.SetActive(warnState == 1);
+            }
             if (_timerWarnTextMotion != null)
+            {
                 _timerWarnTextMotion.SetRunning(warnState == 1);
+            }
             _timerText.SetColor(warnState == 1 ? UiDotPalette.TimerWarn : _timerNormalColor);
         }
 

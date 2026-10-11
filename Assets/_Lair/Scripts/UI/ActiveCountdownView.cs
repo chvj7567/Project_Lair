@@ -43,9 +43,13 @@ namespace Lair.UI
                 return;
             _imminentState = state;
             if (_imminentGlow != null)
+            {
                 _imminentGlow.SetActive(state == 1);
+            }
             if (_value != null)
+            {
                 _value.SetColor(state == 1 ? UiDotPalette.Gold : _valueNormalColor);
+            }
         }
     }
 }

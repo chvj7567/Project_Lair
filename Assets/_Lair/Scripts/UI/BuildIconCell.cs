@@ -35,7 +35,10 @@ namespace Lair.UI
             if (_frameImage != null) _frameImage.color = _kindRing != null ? Color.white : Color.gray;
             if (_countBg != null) _countBg.SetActive(false);
             if (_emptyHatch != null) _emptyHatch.SetActive(false);
-            if (_kindGlow != null) _kindGlow.gameObject.SetActive(false);
+            if (_kindGlow != null)
+            {
+                _kindGlow.gameObject.SetActive(false);
+            }
         }
 
         //# 종류색 링 — 패시브=소울, 액티브=금. 빈 슬롯에도 같은 색을 쓴다.
@@ -61,8 +64,14 @@ namespace Lair.UI
             }
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_emptyHatch != null) _emptyHatch.SetActive(true);
-            if (_kindGlow != null) _kindGlow.gameObject.SetActive(false);
-            if (_kindRing != null) _kindRing.color = EmptyRingColor;
+            if (_kindGlow != null)
+            {
+                _kindGlow.gameObject.SetActive(false);
+            }
+            if (_kindRing != null)
+            {
+                _kindRing.color = EmptyRingColor;
+            }
         }
 
         //# 카드 바인딩 — 프레임 색·아이콘·클릭 콜백 설정.

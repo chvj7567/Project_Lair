@@ -105,7 +105,9 @@ namespace Lair.UI
             _lowState = state;
             Sprite sprite = state == 1 ? _fillLowSprite : _fillNormalSprite;
             if (_fill != null && sprite != null)
+            {
                 _fill.sprite = sprite;
+            }
         }
 
         //# 임계(0.9 … 0.1) → 눈금 앵커 x. 남는 눈금은 숨김.
