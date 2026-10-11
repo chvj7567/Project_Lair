@@ -30,6 +30,10 @@ namespace Lair.UI
         [SerializeField] private Sprite _mineSprite;
         [SerializeField] private Image _mineRing;
 
+        //# 비주얼 폴리시 — 1~3위 메달 묶음(순위 1~3 에서만 활성) + 순위색 rgb 로 틴트할 Image(글로우·원판). 미할당이면 건너뜀.
+        [SerializeField] private GameObject _rankMedalRoot;
+        [SerializeField] private Image[] _rankMedalTinted;
+
         //# 순위 색 강조(기획서 §4) — 1/2/3위 금/은/동, 그 외 기본.
         private static readonly Color Gold = new Color(1f, 0.823f, 0.290f);       //# #FFD24A
         private static readonly Color Silver = new Color(0.788f, 0.804f, 0.823f); //# #C9CDD2
@@ -50,6 +54,29 @@ namespace Lair.UI
             ApplyBackground(false);
             if (_rankText != null)
                 _rankText.SetColor(RankDefault);
+            if (_rankMedalRoot != null)
+                _rankMedalRoot.SetActive(false);
+        }
+
+        //# 1~3위만 메달을 켜고 순위색 rgb 로 틴트(각 Image 의 알파 보존). 그 외는 끈다.
+        private void ApplyRankMedal(long rank)
+        {
+            bool podium = rank >= 1 && rank <= 3;
+            if (_rankMedalRoot != null)
+            {
+                _rankMedalRoot.SetActive(podium);
+            }
+            if (podium == false || _rankMedalTinted == null)
+                return;
+
+            Color rankColor = RankColor(rank);
+            for (int i = 0; i < _rankMedalTinted.Length; i++)
+            {
+                Image tinted = _rankMedalTinted[i];
+                if (tinted == null)
+                    continue;
+                tinted.color = new Color(rankColor.r, rankColor.g, rankColor.b, tinted.color.a);
+            }
         }
 
         //# 배경 — 스프라이트 스킨이 있으면 색은 그대로 쓰고 내 행만 스프라이트/링을 바꾼다.
@@ -78,6 +105,10 @@ namespace Lair.UI
         {
             if (entry == null)
                 return;
+            if (_rankMedalRoot != null)
+            {
+                _rankMedalRoot.SetActive(false);
+            }
             if (entry.Unranked)
             {
                 BindUnranked(entry);
@@ -86,6 +117,7 @@ namespace Lair.UI
             if (entry.Row == null)
                 return;
             RankingRowDto data = entry.Row;
+            ApplyRankMedal(data.rank);
 
             if (_rankText != null)
             {

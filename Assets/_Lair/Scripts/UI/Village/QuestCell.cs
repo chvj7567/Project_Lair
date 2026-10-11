@@ -18,6 +18,8 @@ namespace Lair.UI
         //# UI 리디자인 — 석판 스프라이트(달성은 초록 틴트) + 달성 배지 배경. 미할당이면 기존 색 방식.
         [SerializeField] private Sprite _normalSprite;
         [SerializeField] private GameObject _badgeBg;
+        //# 비주얼 폴리시 — 달성 장식 묶음(소울 띠·배지 발광). 달성일 때만 활성, 미할당이면 건너뜀.
+        [SerializeField] private GameObject _achievedDecor;
 
         private static readonly Color AchievedTint = new Color(0.72f, 1f, 0.84f, 1f);
 
@@ -59,6 +61,10 @@ namespace Lair.UI
             if (_badgeBg != null)
             {
                 _badgeBg.SetActive(data.Achieved);
+            }
+            if (_achievedDecor != null)
+            {
+                _achievedDecor.SetActive(data.Achieved);
             }
             if (_achievedBadge != null)
             {

@@ -96,6 +96,10 @@ namespace Lair.UI
             {
                 bool showBadge = data.Reached && data.IsLockedDummy == false;
                 _badgeBg.gameObject.SetActive(showBadge);
+                if (showBadge)
+                {
+                    _badgeBg.color = data.IsCurrent ? UiDotPalette.Gold : UiDotPalette.Soul;
+                }
                 Sprite badgeSprite = data.IsCurrent ? _badgeGoldSprite : _badgeSoulSprite;
                 if (showBadge && badgeSprite != null)
                 {
