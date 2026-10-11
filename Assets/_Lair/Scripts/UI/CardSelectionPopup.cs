@@ -4,6 +4,7 @@ using ChvjUnityInfra;
 using Lair.Card;
 using Lair.Data;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -31,6 +32,9 @@ namespace Lair.UI
         //# 하단 "내 시너지" 칩 4개 — BuildSynergyPanel.AllAxes 순서. 읽기 전용.
         [SerializeField] private BuildSynergyCell[] _synergyChips = new BuildSynergyCell[4];
 
+        //# 부제 글로우·칩·마름모 — 종류색 rgb 로 틴트(알파 보존). 제목 글로우 포함 5개.
+        [SerializeField] private Image[] _kindTintImages;
+
         //# 부제 문구 — 패시브는 도달한 HP 구간, 액티브는 트리거 주기.
         public static string BuildSubtitle(bool isPassive, int triggerHpPercent, int activePeriodSeconds)
         {
@@ -52,6 +56,7 @@ namespace Lair.UI
                 _subtitleText.SetColor(UiDotPalette.CardKind(sa.IsPassive));
             }
 
+            CardView.TintRgb(_kindTintImages, UiDotPalette.CardKind(sa.IsPassive));
             BindSynergyChips(sa);
 
             for (int i = 0; i < _slots.Length; ++i)
@@ -64,6 +69,10 @@ namespace Lair.UI
                     _slots[i].gameObject.SetActive(true);
                     _slots[i].SetKind(sa.IsPassive);
                     _slots[i].SetAxisIcon(card, sa.SynergyVisual);
+                    int tier = sa.BuildCountOf != null ? SynergyProgress.ActiveTier(sa.BuildCountOf(card.Axis)) : 0;
+                    _slots[i].SetAxisTier(tier);
+                    _slots[i].PressChanged -= OnSlotPressChanged;
+                    _slots[i].PressChanged += OnSlotPressChanged;
                     int pickCount = sa.PickCountOf != null ? sa.PickCountOf(card) : 0;
                     _slots[i].Bind(card, () =>
                     {
@@ -76,6 +85,27 @@ namespace Lair.UI
                 {
                     _slots[i].gameObject.SetActive(false);
                 }
+            }
+        }
+
+        //# 눌린 슬롯이 있으면 눌리지 않은 활성 슬롯을 어둡게, 없으면 전부 해제.
+        private void OnSlotPressChanged(CardView changed, bool pressed)
+        {
+            bool anyPressed = false;
+            for (int i = 0; i < _slots.Length; ++i)
+            {
+                if (_slots[i] != null && _slots[i].gameObject.activeSelf && _slots[i].IsPressed)
+                {
+                    anyPressed = true;
+                }
+            }
+
+            for (int i = 0; i < _slots.Length; ++i)
+            {
+                if (_slots[i] == null || _slots[i].gameObject.activeSelf == false)
+                    continue;
+
+                _slots[i].SetDimmed(anyPressed && _slots[i].IsPressed == false);
             }
         }
 
