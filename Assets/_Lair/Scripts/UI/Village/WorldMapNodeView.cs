@@ -21,7 +21,15 @@ namespace Lair.UI
         [SerializeField] private Sprite _bossSprite;
         [SerializeField] private Sprite _clearedSprite;
         [SerializeField] private Sprite _lockedSprite;
+        [SerializeField] private Image _glow;                //# 노드 뒤 소프트 글로우(상태별 색)
+        [SerializeField] private UILoopMotion _glowMotion;   //# 열림 보스 글로우 맥동 on/off
+        [SerializeField] private GameObject _starBadge;      //# 클리어 ★ 배지 루트
 
+        private int _chapterId;
+
+        private static readonly Color BossGlowColor = new Color32(0xe5, 0x48, 0x4d, 0xab);
+        private static readonly Color ClearedGlowColor = new Color32(0xf7, 0xc6, 0x4a, 0x78);
+        private static readonly Color ClearedLabelColor = new Color32(0x2a, 0x21, 0x08, 0xff);
         private static readonly Color LockedTextColor = new Color(0.349f, 0.380f, 0.478f, 1f);
 
         //# BOSS 태그 y 오프셋(노드 상단 기준 위로) — 기획서 §4.3. 태그 앵커는 노드 상단 중앙(하단 피벗)으로 둔다.
@@ -37,6 +45,12 @@ namespace Lair.UI
             }
         }
 
+        //# 열림 노드 틴트·글로우색에 쓸 챕터 — Show 이전에 호출한다.
+        public void SetChapter(int chapterId)
+        {
+            _chapterId = chapterId;
+        }
+
         //# 매 갱신마다 전체 상태를 덮어쓴다(이전 상태 잔존 방지).
         public void Show(WorldMapNodeData data)
         {
@@ -44,15 +58,22 @@ namespace Lair.UI
                 return;
 
             bool locked = data.State == EWorldMapNodeState.Locked;
+            bool cleared = data.State == EWorldMapNodeState.Cleared;
             if (_background != null)
             {
                 _background.sprite = PickSprite(data);
-                _background.color = Color.white;
+                bool openNormal = data.State == EWorldMapNodeState.Open && data.IsBoss == false;
+                _background.color = openNormal ? WorldMapChapterPalette.NodeOpenTint(_chapterId) : Color.white;
+            }
+            ShowGlow(data);
+            if (_starBadge != null)
+            {
+                _starBadge.SetActive(cleared);
             }
             if (_labelText != null)
             {
                 _labelText.SetText(data.LabelText);
-                _labelText.SetColor(locked ? LockedTextColor : Color.white);
+                _labelText.SetColor(locked ? LockedTextColor : (cleared ? ClearedLabelColor : Color.white));
             }
             if (_nameText != null)
             {
@@ -79,6 +100,28 @@ namespace Lair.UI
             if (_selectedMarker != null)
             {
                 _selectedMarker.SetActive(data.IsSelected);
+            }
+        }
+
+        //# 글로우 — 잠금 숨김 / 열림 일반 챕터색 / 열림 보스 붉은 맥동 / 클리어 금색 정지.
+        private void ShowGlow(WorldMapNodeData data)
+        {
+            bool bossOpen = data.State == EWorldMapNodeState.Open && data.IsBoss;
+            if (_glowMotion != null)
+            {
+                _glowMotion.SetRunning(bossOpen);
+            }
+            if (_glow == null)
+                return;
+
+            _glow.gameObject.SetActive(data.State != EWorldMapNodeState.Locked);
+            if (data.State == EWorldMapNodeState.Cleared)
+            {
+                _glow.color = ClearedGlowColor;
+            }
+            else
+            {
+                _glow.color = bossOpen ? BossGlowColor : WorldMapChapterPalette.NodeGlow(_chapterId);
             }
         }
 

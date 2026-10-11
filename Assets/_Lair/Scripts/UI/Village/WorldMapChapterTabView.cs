@@ -21,6 +21,8 @@ namespace Lair.UI
         [SerializeField] private CHText _heroText;
         [SerializeField] private GameObject _chipsRoot;
         [SerializeField] private Image[] _chips = new Image[0];
+        [SerializeField] private GameObject _selectedDecor;     //# 선택 카드 글로우 루트(카드 배경 뒤)
+        [SerializeField] private GameObject _selectedPointer;   //# 선택 카드 ▶ 루트(카드 배경 위 — UGUI 그리기 순서상 글로우와 분리)
 
         private const float NormalLabelY = 10f;
         private const float PlaceholderLabelY = 30f;
@@ -80,6 +82,14 @@ namespace Lair.UI
             ShowBadge(data);
             ShowHero(data);
             ShowChips(data);
+            if (_selectedDecor != null)
+            {
+                _selectedDecor.SetActive(data.IsSelected);
+            }
+            if (_selectedPointer != null)
+            {
+                _selectedPointer.SetActive(data.IsSelected);
+            }
             //# 미출시 슬롯은 눌러도 반응하지 않는다(정보 노출 없음). 잠금 탭은 눌러서 안내를 받는다.
             if (_button != null)
             {

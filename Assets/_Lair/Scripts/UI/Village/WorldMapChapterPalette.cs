@@ -6,6 +6,10 @@ namespace Lair.UI
     public static class WorldMapChapterPalette
     {
         public const float BannerTintAlpha = 0.53f;
+        public const float NodeOpenLightness = 0.30f;
+        public const float NodeGlowAlpha = 0.45f;
+        public const float SilhouetteDarken = 0.30f;
+        public const float SilhouetteAlpha = 0.80f;
 
         private static readonly Color[] Accents =
         {
@@ -39,6 +43,27 @@ namespace Lair.UI
             Color color = Accent(chapterId);
             color.a = BannerTintAlpha;
             return color;
+        }
+
+        //# 열림(일반) 노드 메달 틴트 — 회색조 스프라이트에 곱해지므로 Accent 를 미리 밝힌다.
+        public static Color NodeOpenTint(int chapterId)
+        {
+            Color color = Color.Lerp(Accent(chapterId), Color.white, NodeOpenLightness);
+            color.a = 1f;
+            return color;
+        }
+
+        public static Color NodeGlow(int chapterId)
+        {
+            Color color = Accent(chapterId);
+            color.a = NodeGlowAlpha;
+            return color;
+        }
+
+        public static Color Silhouette(int chapterId)
+        {
+            Color color = MapBackground(chapterId);
+            return new Color(color.r * SilhouetteDarken, color.g * SilhouetteDarken, color.b * SilhouetteDarken, SilhouetteAlpha);
         }
     }
 }

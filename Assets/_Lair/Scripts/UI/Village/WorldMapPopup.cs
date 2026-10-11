@@ -45,10 +45,17 @@ namespace Lair.UI
         [SerializeField] private Image[] _pathSolid = new Image[0];     //# 구간 k = 노드 k+1 → k+2 (클리어 실선)
         [SerializeField] private Image[] _pathDashed = new Image[0];    //# 같은 구간의 미개척 점선
         [SerializeField] private Image _bannerTint;
+        [SerializeField] private Image _mapSilhouette;                  //# 챕터별 하단 실루엣
+        [SerializeField] private Sprite[] _silhouetteSprites = new Sprite[0];   //# 인덱스 = 챕터 id − 1
+        [SerializeField] private Image _portraitGlow;                   //# 상세 초상 뒤 발광
+        [SerializeField] private GameObject _selectGlow;                //# 선택 버튼 글로우 루트(버튼 뒤)
+        [SerializeField] private GameObject _selectGloss;               //# 선택 버튼 광택 루트(버튼 위 — 그리기 순서상 글로우와 분리)
 
         //# 하단
         [SerializeField] private CHText _bottomText;
         [SerializeField] private CHButton _selectButton;
+
+        private const float PortraitGlowAlpha = 0.60f;
 
         private WorldMapViewModel _vm;
         private Func<int, Sprite> _portraitOf;
@@ -141,6 +148,7 @@ namespace Lair.UI
             {
                 if (_nodes[i] != null)
                 {
+                    _nodes[i].SetChapter(_vm.SelectedChapter);
                     _nodes[i].Show(_vm.Nodes[i]);
                 }
             }
@@ -156,6 +164,14 @@ namespace Lair.UI
                 _selectButton.SetText(_vm.SelectButtonText);
                 _selectButton.Interactable = _vm.SelectEnabled;
             }
+            if (_selectGlow != null)
+            {
+                _selectGlow.SetActive(_vm.SelectEnabled);
+            }
+            if (_selectGloss != null)
+            {
+                _selectGloss.SetActive(_vm.SelectEnabled);
+            }
         }
 
         //# 선택 챕터의 지도 배경·배너 색조와 구간 연결선(실선/점선) 갱신.
@@ -168,6 +184,17 @@ namespace Lair.UI
             if (_bannerTint != null)
             {
                 _bannerTint.color = WorldMapChapterPalette.BannerTint(_vm.SelectedChapter);
+            }
+            if (_mapSilhouette != null)
+            {
+                int silhouetteIndex = _vm.SelectedChapter - 1;
+                bool hasSilhouette = silhouetteIndex >= 0 && silhouetteIndex < _silhouetteSprites.Length;
+                _mapSilhouette.gameObject.SetActive(hasSilhouette);
+                if (hasSilhouette)
+                {
+                    _mapSilhouette.sprite = _silhouetteSprites[silhouetteIndex];
+                    _mapSilhouette.color = WorldMapChapterPalette.Silhouette(_vm.SelectedChapter);
+                }
             }
             for (int k = 0; k < _vm.Nodes.Count; ++k)
             {
@@ -210,6 +237,13 @@ namespace Lair.UI
                 Sprite portrait = _portraitOf != null ? _portraitOf(_vm.SelectedLinear) : null;
                 _detailPortrait.sprite = portrait;
                 _detailPortrait.enabled = portrait != null;
+            }
+            if (_portraitGlow != null)
+            {
+                Color glow = WorldMapChapterPalette.Accent(_vm.SelectedChapter);
+                glow.a = PortraitGlowAlpha;
+                _portraitGlow.color = glow;
+                _portraitGlow.gameObject.SetActive(_detailPortrait != null && _detailPortrait.enabled);
             }
         }
 
