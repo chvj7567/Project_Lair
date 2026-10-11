@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Lair.Character
 {
-    //# 원거리 영웅(궁수) 기본 공격 시각 FX — 판정과 분리(chapter-system §5.2). 데미지는 MeleeAttacker 가 strike 시점에 hit-scan 으로 이미 적용했고,
+    //# 영웅 기본 공격 시각 FX(궁수 화살·암살자 베기 — _fxKey 로 구분) — 판정과 분리(chapter-system §5.2). 데미지는 MeleeAttacker 가 strike 시점에 hit-scan 으로 이미 적용했고,
     //# 이 컴포넌트는 IAttacker.OnHit 을 받아 영웅→타깃 직선 화살 궤적만 띄운다. FX 에셋이 없으면 LogError(조용히 건너뛰지 않음), 판정엔 영향 없음.
     [RequireComponent(typeof(LairCharacter))]
     public class RangedHitFx : MonoBehaviour

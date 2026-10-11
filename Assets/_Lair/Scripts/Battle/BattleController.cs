@@ -753,6 +753,10 @@ namespace Lair.Battle
                     Debug.LogError($"[BattleController] {heroKey} 스킬 로드아웃({LoadoutKeyOf(heroKey)}) 로드 실패 — Addressables 등록 확인, 영웅 스킬 비활성");
                 }
             }
+            else
+            {
+                Debug.LogError($"[BattleController] {heroKey} 프리팹에 HeroSkillRunner 없음 — 영웅 스킬 비활성");
+            }
 
             //# 영웅 AutoCombatAI 비활성 — HeroEntryDriver 가 march 를 수행.
             foreach (AutoCombatAI ai in p.GetComponentsInChildren<AutoCombatAI>())
@@ -802,7 +806,10 @@ namespace Lair.Battle
 
         private static EData LoadoutKeyOf(EHero hero)
         {
-            return LoadoutKeys.TryGetValue(hero, out EData key) ? key : EData.HeroSkillLoadout;
+            if (LoadoutKeys.TryGetValue(hero, out EData key))
+                return key;
+            Debug.LogError($"[BattleController] {hero} 스킬 로드아웃 매핑 없음 — 기사 로드아웃으로 폴백(LoadoutKeys 에 등록 필요)");
+            return EData.HeroSkillLoadout;
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.

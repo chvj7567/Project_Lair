@@ -27,7 +27,7 @@ namespace Lair.Meta
             if (profile == null)
                 return;
             //# 챕터 데이터가 아직 로드되지 않았고(MaxStage 가 기본값) 이미 현재 버전이면 진행 범위를 자르지 않는다 —
-            //# 챕터 3 이후 Cleared > 10 인 v6 세이브가 로드 전 호출에서 기본 MaxStage(10)로 잘리는 경로 방어.
+            //# 챕터 3 이후 Cleared > 10 인 v6 세이브가 로드 전 호출에서 기본 MaxStage(10)로 잘리는 경로 방어. 트레이드오프: DB 로드 실패 시 비정상 v6 값은 자르지 않는다(의도).
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
