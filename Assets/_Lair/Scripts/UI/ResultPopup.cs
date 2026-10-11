@@ -61,6 +61,8 @@ namespace Lair.UI
         [SerializeField] private GameObject _rowHeroHp;
         [SerializeField] private CHText _heroHpText;
         [SerializeField] private GameObject _rays;   //# 승리 방사광 — 승리에서만 표시
+        [SerializeField] private GameObject[] _winDecor;    //# 승리 장식 묶음 (DecoWinBack · DecoWinFront) — 승리에서만 표시
+        [SerializeField] private GameObject[] _loseDecor;   //# 패배 장식 묶음 (DecoLoseBack · DecoLoseFront) — 패배에서만 표시
         [SerializeField] private CHButton _retryButton;
         [SerializeField] private CHButton _villageButton;
 
@@ -93,6 +95,9 @@ namespace Lair.UI
                 {
                     _rays.SetActive(rp.Result == BattleResult.Win);
                 }
+                //# 매 InitUI 가 두 묶음을 모두 덮어써 풀 재사용 시 이전 결과 장식이 남지 않는다.
+                SetDecorActive(_winDecor, rp.Result == BattleResult.Win);
+                SetDecorActive(_loseDecor, rp.Result == BattleResult.Lose);
 
                 if (_rewardText != null)
                 {
@@ -152,6 +157,20 @@ namespace Lair.UI
             if (_newBadge != null)
             {
                 _newBadge.SetActive(rows.ShowNewBadge);
+            }
+        }
+
+        private static void SetDecorActive(GameObject[] decor, bool active)
+        {
+            if (decor == null)
+                return;
+
+            for (int i = 0; i < decor.Length; i++)
+            {
+                if (decor[i] != null)
+                {
+                    decor[i].SetActive(active);
+                }
             }
         }
 

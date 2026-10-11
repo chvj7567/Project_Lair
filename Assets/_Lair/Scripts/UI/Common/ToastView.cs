@@ -20,6 +20,7 @@ namespace Lair.UI
         [SerializeField] private CHText _messageText;   //# 메시지 라벨
         [SerializeField] private CanvasGroup _canvasGroup;   //# 페이드용
         [SerializeField] private Image _dot;                 //# 종류 색 점 (정보=소울 / 경고=금 / 오류=피)
+        [SerializeField] private Image[] _kindTintImages;    //# 종류색 장식 (띠 · 발광 · 점 발광) — rgb 만 칠하고 알파 보존
 
         private const float HoldSeconds = 1.8f;
         private const float FadeSeconds = 0.35f;
@@ -51,9 +52,23 @@ namespace Lair.UI
         //# 종류 색 점 갱신 — 풀 재사용 시 이전 종류 색이 남지 않도록 매 Show 마다 덮어쓴다.
         private void SetKind(EToastKind kind)
         {
-            if (_dot == null)
+            Color tint = UiDotPalette.ToastDot(kind);
+            if (_dot != null)
+            {
+                _dot.color = tint;
+            }
+
+            if (_kindTintImages == null)
                 return;
-            _dot.color = UiDotPalette.ToastDot(kind);
+
+            for (int i = 0; i < _kindTintImages.Length; i++)
+            {
+                if (_kindTintImages[i] != null)
+                {
+                    Color current = _kindTintImages[i].color;
+                    _kindTintImages[i].color = new Color(tint.r, tint.g, tint.b, current.a);
+                }
+            }
         }
 
         private void OnEnable()
