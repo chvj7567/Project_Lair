@@ -3,7 +3,6 @@ using ChvjUnityInfra;
 using Lair.Card;
 using Lair.Data;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Lair.UI
@@ -93,7 +92,12 @@ namespace Lair.UI
                 _pointerRelay.HoverChanged -= OnHoverChanged;
                 _pointerRelay.PressedChanged -= OnPressedChanged;
             }
+            bool wasPressed = _pressed;
             ResetVisual();
+            if (wasPressed)
+            {
+                PressChanged?.Invoke(this, false);
+            }
         }
 
         private void Update()
@@ -238,7 +242,10 @@ namespace Lair.UI
                     _baseY = rt.anchoredPosition.y;
                     _liftActive = true;
                 }
-                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, _baseY + lift);
+                if (Mathf.Approximately(rt.anchoredPosition.y, _baseY + lift) == false)
+                {
+                    rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, _baseY + lift);
+                }
             }
             else if (_liftActive)
             {
@@ -403,24 +410,5 @@ namespace Lair.UI
             }
             _countBadge.SetText(pickCount + "/" + Lair.Card.CardPickCounter.Cap);
         }
-    }
-
-    //# PickButton 에 붙는 포인터 릴레이 — Selectable 이 이벤트를 소비해도 같은 오브젝트 핸들러는 모두 호출된다. 클릭 판정 없음.
-    public class CardPointerRelay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
-    {
-        public event Action<bool> HoverChanged;
-        public event Action<bool> PressedChanged;
-
-        public void OnPointerEnter(PointerEventData eventData) => HoverChanged?.Invoke(true);
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            HoverChanged?.Invoke(false);
-            PressedChanged?.Invoke(false);
-        }
-
-        public void OnPointerDown(PointerEventData eventData) => PressedChanged?.Invoke(true);
-
-        public void OnPointerUp(PointerEventData eventData) => PressedChanged?.Invoke(false);
     }
 }

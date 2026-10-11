@@ -3,6 +3,7 @@ using System.Reflection;
 using Lair.Tests.EditMode;
 using Lair.UI;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,8 +19,10 @@ namespace Lair.Tests.UI
         {
             for (int i = 0; i < _garbage.Count; ++i)
             {
-                if (_garbage[i] != null)
-                    Object.DestroyImmediate(_garbage[i]);
+                if (_garbage[i] == null)
+                    continue;
+
+                Object.DestroyImmediate(_garbage[i]);
             }
             _garbage.Clear();
         }
@@ -115,6 +118,21 @@ namespace Lair.Tests.UI
             Assert.AreEqual(0.7f, p.KindTint[0].color.a, 0.001f);
             p.View.SetKind(false);
             Assert.AreEqual(0.7f, p.KindTint[0].color.a, 0.001f);
+        }
+
+        [Test]
+        public void 프리팹_3카드_PickButton에_릴레이가_붙고_CardView가_참조한다()
+        {
+            GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Lair/Art/UI/CardSelectionPopup.prefab");
+            CardView[] cards = prefab.GetComponentsInChildren<CardView>(true);
+            Assert.AreEqual(3, cards.Length);
+            for (int i = 0; i < cards.Length; ++i)
+            {
+                CardPointerRelay relay = cards[i].transform.Find("PickButton").GetComponent<CardPointerRelay>();
+                Assert.IsNotNull(relay);
+                SerializedObject so = new SerializedObject(cards[i]);
+                Assert.AreEqual(relay, so.FindProperty("_pointerRelay").objectReferenceValue);
+            }
         }
 
         [Test]

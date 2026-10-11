@@ -1498,7 +1498,7 @@ MonoBehaviour:
   _pickBright: {fileID: 7483532282919608755}
   _dimOverlay: {fileID: 49540762307470153}
   _hoverGuard: {fileID: 8634798407956634913}
-  _pointerRelay: {fileID: 878281461922201914}
+  _pointerRelay: {fileID: 784009842345809780}
   _tweenSeconds: 0.16
 --- !u!1 &1116580567813130207
 GameObject:
@@ -5344,7 +5344,7 @@ GameObject:
   - component: {fileID: 6394595180931849986}
   - component: {fileID: 294492177219871935}
   - component: {fileID: 402753342983501751}
-  - component: {fileID: 5187965549749191578}
+  - component: {fileID: 4250873104305674124}
   m_Layer: 0
   m_Name: PickButton
   m_TagString: Untagged
@@ -5468,7 +5468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00ea53ccddc06c49a6e7c4417b41001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5187965549749191578
+--- !u!114 &4250873104305674124
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5477,7 +5477,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3767489671272755932}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 460c547da44e42046b23ca237e4eff6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &3939221365522350442
@@ -9704,7 +9704,7 @@ MonoBehaviour:
   _pickBright: {fileID: 6976615442319010534}
   _dimOverlay: {fileID: 7170112652140457466}
   _hoverGuard: {fileID: 6110829790091588762}
-  _pointerRelay: {fileID: 5187965549749191578}
+  _pointerRelay: {fileID: 4250873104305674124}
   _tweenSeconds: 0.16
 --- !u!1 &6718843515543350723
 GameObject:
@@ -11239,7 +11239,7 @@ GameObject:
   - component: {fileID: 7585891039332465124}
   - component: {fileID: 151741129252442712}
   - component: {fileID: 1155709209624172891}
-  - component: {fileID: 878281461922201914}
+  - component: {fileID: 784009842345809780}
   m_Layer: 0
   m_Name: PickButton
   m_TagString: Untagged
@@ -11363,7 +11363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00ea53ccddc06c49a6e7c4417b41001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &878281461922201914
+--- !u!114 &784009842345809780
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -11372,7 +11372,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7826835091221610734}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 460c547da44e42046b23ca237e4eff6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7841911697401517289
@@ -12244,7 +12244,7 @@ MonoBehaviour:
   _pickBright: {fileID: 8578066817090555339}
   _dimOverlay: {fileID: 6508842386435280226}
   _hoverGuard: {fileID: 6498187367785246480}
-  _pointerRelay: {fileID: 4549046879210313905}
+  _pointerRelay: {fileID: 3660573292050845247}
   _tweenSeconds: 0.16
 --- !u!1 &8553947523892471042
 GameObject:
@@ -13011,7 +13011,7 @@ GameObject:
   - component: {fileID: 7661988274630510956}
   - component: {fileID: 191484612813798508}
   - component: {fileID: 7704955514281877551}
-  - component: {fileID: 4549046879210313905}
+  - component: {fileID: 3660573292050845247}
   m_Layer: 0
   m_Name: PickButton
   m_TagString: Untagged
@@ -13135,7 +13135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c00ea53ccddc06c49a6e7c4417b41001, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4549046879210313905
+--- !u!114 &3660573292050845247
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -13144,7 +13144,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8818863774312865320}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 460c547da44e42046b23ca237e4eff6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &8834666093569588977
