@@ -167,6 +167,7 @@ namespace Lair.UI
                     Label     = $"{BuildSynergyPanel.AxisLabel[axis]} ({count}장)",
                     Icon      = iconOf?.Invoke(axis),
                     TierBadgeText = $"{tiers}/{Thresholds.Length}",
+                    ActiveTier = tiers,
                     IsMaxTier = tiers >= Thresholds.Length,
                     DescText  = DescribeTier(tierOf, axis, tiers, strings),
                     NextText  = BuildNextText(tierOf, axis, tiers, strings),

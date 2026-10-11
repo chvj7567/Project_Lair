@@ -17,6 +17,7 @@ namespace Lair.UI
         public bool IsMaxTier;         //# 3/3 — 미리보기 대신 "최대 단계"
         public string DescText;        //# 현재 최고 단계 설명
         public string NextText;        //# "다음: …" (최대 단계면 빈 문자열)
+        public int ActiveTier;         //# 헤더 행 전용 — 켜진 Tier 보석 개수 (효과 행은 0)
     }
 
     //# Rule 03 §3 — 풀 재사용 셀. Header/Effect 한 행 렌더.
@@ -29,6 +30,13 @@ namespace Lair.UI
         [SerializeField] private CHText _tierBadge;
         [SerializeField] private CHText _descText;
         [SerializeField] private CHText _nextText;
+        //# 비주얼 폴리시 — 배지 면 / Tier 보석 3개 / 축 색 틴트 대상(StripGlow·IconGlow·IconSlot). 미할당이면 건너뛴다.
+        [SerializeField] private Image _tierBadgeBg;
+        [SerializeField] private Image[] _tierGems;
+        [SerializeField] private Image[] _axisTintImages;
+
+        private static readonly Color GemOffColor = new Color32(0x3A, 0x47, 0x64, 0xFF);
+        private static readonly Color NextTextColor = new Color32(0x8E, 0x98, 0xAD, 0xFF);
 
         //# 비주얼 리셋을 OnEnable 에 두지 않는다 — 재오픈 SetActive(true) cascade 에서
         //# 셀 OnEnable 이 팝업 Build(Bind) 보다 늦게 돌면 Bind 결과를 빈 값으로 덮어쓰기 때문.
@@ -42,6 +50,8 @@ namespace Lair.UI
             if (_label != null)
                 _label.SetText(data.Label);
             ApplyTierInfo(data);
+            ApplyAxisTint(data);
+            ApplyTierDecor(data);
 
             //# 헤더 + 아이콘 할당 시에만 표시. 효과 행(Icon=null)·미할당이면 숨김 (기획서 §3.2).
             bool showIcon = data.RowKind == SynergyModalCellData.Kind.Header && data.Icon != null;
@@ -67,7 +77,6 @@ namespace Lair.UI
                 if (header)
                 {
                     _tierBadge.SetText(data.TierBadgeText);
-                    _tierBadge.SetColor(data.AxisColor);
                 }
             }
             if (_descText != null)
@@ -84,7 +93,50 @@ namespace Lair.UI
                 if (header)
                 {
                     _nextText.SetText(data.IsMaxTier ? "· 최대 단계" : data.NextText);
+                    _nextText.SetColor(data.IsMaxTier ? UiDotPalette.Gold : NextTextColor);
                 }
+            }
+        }
+
+        //# 축 색 틴트 — rgb 만 바꾸고 프리팹이 정한 알파는 보존.
+        private void ApplyAxisTint(SynergyModalCellData data)
+        {
+            if (_axisTintImages == null)
+                return;
+            for (int i = 0; i < _axisTintImages.Length; ++i)
+            {
+                Image image = _axisTintImages[i];
+                if (image == null)
+                    continue;
+                Color tint = data.AxisColor;
+                tint.a = image.color.a;
+                image.color = tint;
+            }
+        }
+
+        //# 헤더 행 전용 장식 — 배지 면(축 색 / 최대 단계 금색), 배지 글자 색, Tier 보석 켜짐·꺼짐.
+        private void ApplyTierDecor(SynergyModalCellData data)
+        {
+            bool header = data.RowKind == SynergyModalCellData.Kind.Header;
+            Color badgeColor = data.IsMaxTier ? UiDotPalette.Gold : data.AxisColor;
+            if (_tierBadgeBg != null)
+            {
+                _tierBadgeBg.gameObject.SetActive(header);
+                _tierBadgeBg.color = badgeColor;
+            }
+            if (header && _tierBadge != null)
+            {
+                _tierBadge.SetColor(badgeColor);
+            }
+            if (_tierGems == null)
+                return;
+            for (int i = 0; i < _tierGems.Length; ++i)
+            {
+                Image gem = _tierGems[i];
+                if (gem == null)
+                    continue;
+                gem.gameObject.SetActive(header);
+                gem.color = i < data.ActiveTier ? data.AxisColor : GemOffColor;
             }
         }
 
