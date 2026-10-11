@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>침입 지도 팝업 리디자인 시안 (WorldMapPopup, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4;--ac:#6c7bb8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#sum .new{display:inline-block;background:#3a2f12;border:1px solid var(--gold2);color:var(--gold);padding:0 6px;font-size:11px;margin-left:4px}
+#bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar select,#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar label{color:var(--sub)}
+#msg{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 30% 20%,#1d2433,#0a0c12 70%)}
+#stage::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff06 0 2px,transparent 2px 32px),repeating-linear-gradient(90deg,#ffffff06 0 2px,transparent 2px 32px)}
+#dim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.abs{position:absolute}
+.pnl{position:absolute;background:var(--s1);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--s3),inset -3px -3px 0 var(--s0)}
+.dark{background:var(--s0)}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.lbl{color:var(--sub);font-size:13px}
+.gold{color:var(--gold)}
+.btn{position:absolute;background:var(--s3);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--s4),inset -3px -3px 0 var(--s0);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn:active{transform:translateY(2px)}
+.btn.go{background:#b8323a;box-shadow:inset 3px 3px 0 #ff7b7f,inset -3px -3px 0 #6b141d;color:#fff}
+.btn.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27;color:#6c7385;cursor:default}
+
+/* 챕터 레일 */
+.card{position:absolute;height:84px;border:3px solid var(--ink);background:var(--s2);box-shadow:inset 3px 3px 0 var(--s3),inset -3px -3px 0 var(--s0);cursor:pointer;overflow:hidden}
+.card .no{position:absolute;left:0;top:0;bottom:0;width:52px;background:var(--cc,#2c3750);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;border-right:3px solid var(--ink);text-shadow:2px 2px 0 #0007}
+.card .nm{position:absolute;left:62px;top:10px;right:6px;font-size:15px;color:var(--bone);white-space:nowrap;overflow:hidden}
+.card .hr{position:absolute;left:62px;top:32px;font-size:12px;color:var(--sub)}
+.card .pips{position:absolute;left:62px;bottom:10px;display:flex;gap:4px}
+.card .pips i{width:14px;height:8px;background:#0c1017;border:1px solid var(--ink);display:block}
+.card .pips i.on{background:var(--gold)}
+.card .tg{position:absolute;right:8px;bottom:8px;font-size:11px;color:var(--sub)}
+.card.on{background:#273250;outline:3px solid var(--gold);outline-offset:-3px}
+.card.lk{background:#141924;cursor:default}
+.card.lk .no{background:#1b1f27;color:#59617a}
+.card.lk .nm{color:#6c7385}
+.card.ph{background:#10141d;cursor:default}
+.card.ph .no{background:#171b25;color:#3c4458}
+.card.ph .nm{color:#3c4458;top:30px}
+
+/* 지도 */
+#map{position:absolute;overflow:hidden;border:3px solid var(--ink);box-shadow:inset 3px 3px 0 #ffffff14}
+#map .vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,#000a 100%)}
+#map .deco{position:absolute;background:#ffffff10}
+.node{position:absolute;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;border:3px solid var(--ink);
+ background:var(--s3);box-shadow:inset 3px 3px 0 var(--s4),inset -3px -3px 0 var(--s0)}
+.node.open{background:var(--cc);box-shadow:inset 3px 3px 0 #ffffff55,inset -3px -3px 0 #0006}
+.node.cleared{background:#7a6a2c;box-shadow:inset 3px 3px 0 #e9cf72,inset -3px -3px 0 #3a3210}
+.node.boss{background:#7a2a31;box-shadow:inset 3px 3px 0 #d96b72,inset -3px -3px 0 #330c10}
+.node.boss.cleared{background:#7a6a2c}
+.node.locked{background:#171b25;box-shadow:inset -3px -3px 0 #0d1017;color:#4d556b;cursor:not-allowed;font-size:13px}
+.node.sel{outline:4px solid var(--gold);outline-offset:4px}
+.node.sel::after{content:"";position:absolute;inset:-14px;border:2px dashed #f7c64a88;animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(90deg)}}
+.tag{position:absolute;font-size:12px;line-height:16px;text-align:center;white-space:nowrap}
+.mk{position:absolute;color:var(--gold);font-size:16px;text-align:center;animation:bob 1s steps(2,end) infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+/* 상세 */
+.sec{font-size:12px;color:var(--sub);margin:8px 0 4px;letter-spacing:1px}
+.rule{border-left:4px solid var(--sky);padding:3px 8px;margin:0 0 4px;font-size:12px;line-height:16px;background:var(--s0)}
+.rule b{color:var(--bone)}
+.rule.ph{border-left-color:var(--blood)}
+.rule.none{border-left-color:var(--s4);color:var(--sub)}
+.portrait{position:absolute;background:#0c1017;border:3px solid var(--ink);overflow:hidden}
+.portrait .sil{position:absolute;left:50%;bottom:0;width:70px;height:92px;transform:translateX(-50%)}
+.sil .hood{position:absolute;left:11px;top:8px;width:48px;height:56px;border-radius:24px 24px 6px 6px;background:#0a0d14;border:3px solid var(--ac)}
+.sil .eye{position:absolute;left:21px;top:30px;width:28px;height:5px;background:var(--ac)}
+.sil .body{position:absolute;left:4px;top:62px;width:62px;height:30px;background:#0a0d14;border:3px solid var(--ac);border-bottom:0}
+.lkx{position:absolute;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;color:var(--bone);font-size:18px}
+#toast{position:absolute;left:400px;top:12px;width:480px;height:40px;background:var(--s0);border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;z-index:20;font-size:15px}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#chk table{border-collapse:collapse;margin:4px 0}
+#chk td,#chk th{border:1px solid #2c3446;padding:2px 8px;text-align:left;font-weight:normal}
+#chk th{color:var(--bone)}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>침입 지도 팝업(WorldMapPopup) 리디자인 시안</h1>
+  기존(상단 가로 탭 + 좌 지도 / 우 상세)을 <b>3단 구성: 좌 챕터 카드 레일 / 중앙 풍경 지도 / 우 상세 카드</b>로 재배치했습니다. 기능·데이터(WorldMapViewModel)는 그대로이고 표시 방식만 바뀝니다. 아래 바에서 진행도·게이트를 바꿔 상태별 모습을 확인하세요.
+  <ol>
+    <li><b>챕터 탭 → 세로 카드 레일</b> - 큰 챕터 번호 + 챕터명 + 영웅 직업 + <b>진행 칩 5칸</b><span class="new">신규 표시</span>. 잠금/준비 중은 어둡게, 4·5장은 "???" 카드(정보 비노출). 지도 위쪽 제목 줄이 없어져 지도가 커집니다.</li>
+    <li><b>지도 = 챕터 풍경 + 굽이치는 길</b> - 챕터 색조(1장 청회색 / 2장 녹색 / 3장 보라)로 배경 분위기를 바꾸고, 노드를 지그재그 경로로 배치. <b>클리어 구간은 금색 실선, 미개척 구간은 점선</b>. 선택 노드는 금색 테두리 + 회전 점선 프레임 + ▼ 마커. 보스는 더 크고 적갈색.</li>
+    <li><b>상세 = 카드형</b> - 상단 초상 배너(챕터색 그라데이션) 위에 스테이지 번호·이름·별, 그 아래 내 기록, 규칙, 보스 페이즈(적색 띠)를 흐름 배치. 기존 규칙 문구 그대로.</li>
+    <li><b>하단 바</b> - 안내 문구는 좌측, "이 스테이지로 선택" 버튼은 우측 상세 열 폭에 정렬(시선이 상세 → 버튼으로 이어짐).</li>
+    <li><b>동작 변경 없음</b> - 잠금 탭/노드 클릭 시 토스트, dim/X 닫기, 선택 확정 후 닫기 모두 동일. 신규 문구 0건(진행 칩은 문구 없는 도형). 진행 칩 값은 <code>ClearedStage</code> 로 계산 가능해 VM 에 챕터별 클리어 수 getter 만 추가하면 됩니다.</li>
+  </ol>
+</div>
+<div id="bar">
+  <label>진행도(ClearedStage) <select id="selCleared"></select></label>
+  <label><input type="checkbox" id="cGate" checked> 3장 출격 개방</label>
+  <button id="btnReset">초기화</button>
+  <span id="msg">탭·노드를 눌러 보세요</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 팝업 패널 (72,40) 1136x640, 배경 dim a0.55. 영역: 헤더 64 / 레일 (88,120) 200x472 / 지도 (304,120) 520x472 / 상세 (840,120) 352x472 / 하단 바 y=608.<br>
+  Unity 매핑(기존 필드 유지): 챕터 카드 ← <code>_tabs[5]</code>(WorldMapChapterTabView, 번호·영웅·칩 위젯 추가) · 노드 ← <code>_nodes[5]</code>(위치만 재배치, 연결선은 정적 이미지 5조각) · 제목/테마 ← <code>_chapterTitleText/_chapterThemeText</code>(지도 좌상단 오버레이) · 상세 ← 기존 <code>_detail*</code> 그대로 · 버튼 ← <code>_selectButton</code>. 신규 위젯: 진행 칩(카드당 5 Image), 지도 배경 Image(챕터 색조 틴트).
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const stg = $('#stage');
+const RN = {spring:'성수 샘',fog:'짙은 안개',seal:'봉인된 둥지',bulwark:'수호 결계',rain:'화살비',trap:'덫'};
+const D = {
+  spring:(p,a,h)=>p+'초마다 '+a+'초간 샘이 열려, 샘 안의 영웅이 초당 최대 HP의 '+h+'% 회복',
+  fog:(m,n)=>'몬스터 공격 사거리 x'+m+' (최소 '+n+')',
+  seal:(s,h)=>s+' 둥지가 봉인되어 있다 - 영웅 HP '+h+'% 이하에서 해제',
+  bulwark:(t,d,m)=>'영웅 HP '+t+'% 이하에서 '+d+'초간 영웅이 받는 피해 x'+m,
+  rain:(t,i,n,g)=>'영웅 HP '+t+'% 이하에서 '+i+'초마다 몬스터 밀집 지점에 화살비 ('+n+'회 x 피해 '+g+')',
+  trap:(t,n,m,g)=>'영웅 HP '+t+'% 이하에서 영웅 주변에 덫 '+n+'개 - 몬스터 이동속도 x'+m+', 초당 피해 '+g
+};
+const R=(k,d)=>[RN[k],d];
+const CH=[
+ {id:1,name:'지하 묘지',theme:'기사단 침공',hero:'기사',cc:'#4a6fa5',bg:'#1a2438,#0d1220',stages:[
+  {n:'납골당 입구',rules:[],boss:[]},{n:'성수의 회랑',rules:[R('spring',D.spring(40,8,0.4))],boss:[]},
+  {n:'안개 낀 지하수로',rules:[R('fog',D.fog(0.7,0.8))],boss:[]},{n:'봉인된 지하 둥지',rules:[R('seal',D.seal('망령',60))],boss:[]},
+  {n:'기사단장의 안치소',rules:[],boss:[R('bulwark',D.bulwark(55,15,0.6))]}]},
+ {id:2,name:'어둠의 숲',theme:'숲속 정찰대',hero:'궁수',cc:'#2f8a5f',bg:'#14301f,#08140d',stages:[
+  {n:'숲의 입구',rules:[],boss:[]},{n:'속삭이는 오솔길',rules:[R('seal',D.seal('환령',70))],boss:[]},
+  {n:'안개 낀 늪',rules:[R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'수호 샘터',rules:[R('spring',D.spring(40,8,0.5)),R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'사냥꾼 우두머리의 야영지',rules:[],boss:[R('rain',D.rain(75,10,4,50)),R('trap',D.trap(35,6,0.5,10))]}]},
+ {id:3,name:'그림자 성채',theme:'자객단의 침투',hero:'암살자',cc:'#7a55c8',bg:'#271a42,#0e0818',stages:[
+  {n:'성채의 외벽',rules:[],boss:[]},{n:'그림자 회랑',rules:[R('seal',D.seal('역병귀',60))],boss:[]},
+  {n:'달빛 없는 정원',rules:[R('spring',D.spring(40,8,0.4))],boss:[]},
+  {n:'봉인된 서고',rules:[R('seal',D.seal('저주술사',50)),R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'자객 수장의 은신처',rules:[],boss:[R('bulwark',D.bulwark(75,15,0.6)),R('trap',D.trap(35,6,0.5,10))]}]}
+];
+const POS=[[70,360],[190,300],[110,210],[270,190],[400,110]];   // 노드 중심(지도 로컬)
+let st={cleared:10,ch:3,sel:1};
+const sel=$('#selCleared');
+[[0,'0 (신규)'],[4,'4 (1-4 클리어)'],[9,'9 (2장 보스 미클리어)'],[10,'10 (3-1 해금)'],[13,'13 (3-3 까지)'],[15,'15 (전부 클리어)']].forEach(o=>{
+  const e=document.createElement('option');e.value=o[0];e.textContent=o[1];sel.appendChild(e);});
+sel.value=st.cleared;
+
+const gateOn=()=>$('#cGate').checked;
+const lin=(c,i)=>(c-1)*5+i;
+const unlocked=c=>(c-1)*5<=st.cleared;
+const playable=c=>c<=2||gateOn();
+const selectable=L=>L<=st.cleared+1&&playable(Math.floor((L-1)/5)+1);
+const clearedIn=c=>Math.max(0,Math.min(5,st.cleared-(c-1)*5));
+function maxPlayable(){let m=1;for(let L=1;L<=15;L++)if(selectable(L))m=L;return m;}
+function fixSel(){if(!selectable(lin(st.ch,st.sel))){const m=maxPlayable();st.ch=Math.floor((m-1)/5)+1;st.sel=((m-1)%5)+1;}}
+function say(s){$('#msg').textContent=s;}
+function toast(s){const t=$('#toast');t.textContent=s;t.style.display='flex';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2200);}
+function hint(L){const c=Math.floor((L-1)/5)+1,i=((L-1)%5)+1;
+  if(L<=st.cleared+1&&!playable(c))return '이 챕터는 아직 출격할 수 없습니다';
+  return i===1?(c-1)+'장 보스 클리어 필요':'스테이지 '+c+'-'+(i-1)+' 클리어 필요';}
+function rec(L){const t=150+(L*37)%140,m=Math.floor(t/60),s=(t%60)+0.1*(L%10),w=3+(L%5);
+  return '최단 '+m+':'+(s<10?'0':'')+s.toFixed(1)+' / '+w+'승 '+(w+2+(L%4))+'판';}
+function el(cls,x,y,w,h,html,style,parent){
+  const d=document.createElement('div');d.className=cls;d.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(style||'');
+  if(html!==undefined)d.innerHTML=html;(parent||stg).appendChild(d);return d;}
+
+function render(){
+  fixSel();stg.innerHTML='';
+  el('','0','0',1280,720,'','position:absolute;left:0;top:0').id='dim';
+  const tt=document.createElement('div');tt.id='toast';stg.appendChild(tt);
+  const PX=72,PY=40,PW=1136,PH=640;
+  el('pnl',PX,PY,PW,PH,'');
+  el('pnl dark',PX,PY,PW,64,'','border-width:0 0 3px 0');
+  el('t',PX+24,PY+12,300,40,'침입 지도','font-size:30px;line-height:40px;color:var(--bone)');
+  el('t lbl',PX+210,PY+24,600,20,'챕터를 고르고 도전할 스테이지를 선택합니다');
+  const x=el('btn',PX+PW-64,PY+8,48,48,'X','font-size:22px');x.onclick=()=>say('팝업 닫기');
+
+  const c=CH[st.ch-1];
+  const RX=88,CY=120,RW=200,CH_=472;
+  //# 챕터 레일
+  for(let k=0;k<5;k++){
+    const y=CY+k*(84+8);
+    const ch=CH[k];
+    if(!ch){el('card ph',RX,y,RW,84,'<div class="no">'+(k+1)+'</div><div class="nm">'+(k+1)+'장 ???</div>');continue;}
+    const play=playable(ch.id),unl=unlocked(ch.id),open=play&&unl,n=clearedIn(ch.id);
+    let pips='';for(let p=0;p<5;p++)pips+='<i class="'+(p<n?'on':'')+'"></i>';
+    const tag=!play?'준비 중':(!unl?'잠금':'');
+    const d=el('card'+(st.ch===ch.id?' on':'')+(open?'':' lk'),RX,y,RW,84,
+      '<div class="no">'+ch.id+'</div><div class="nm">'+ch.name+'</div><div class="hr">'+ch.hero+'</div>'+(open?'<div class="pips">'+pips+'</div>':'')+(tag?'<div class="tg">'+tag+'</div>':''),
+      '--cc:'+ch.cc);
+    d.onclick=()=>{
+      if(!play){toast('이 챕터는 아직 출격할 수 없습니다');say('게이트 닫힘 - 안내만');return;}
+      if(!unl){toast(ch.id+'장은 '+(ch.id-1)+'장 보스를 클리어하면 열립니다');say('잠금 탭 - 안내만');return;}
+      st.ch=ch.id;if(!selectable(lin(st.ch,st.sel)))st.sel=1;render();};
+  }
+
+  //# 지도
+  const MX=304,MW=520;
+  const mp=el('','','',0,0,'','');mp.id='map';
+  mp.style.cssText='left:'+MX+'px;top:'+CY+'px;width:'+MW+'px;height:'+CH_+'px;background:radial-gradient(ellipse at 70% 30%,'+c.bg.split(',')[0]+','+c.bg.split(',')[1]+' 75%);--cc:'+c.cc;
+  stg.appendChild(mp);
+  for(let i=0;i<26;i++){const s=2+((i*7)%3)*2;const d=document.createElement('div');d.className='deco';
+    d.style.cssText='left:'+((i*83)%MW)+'px;top:'+((i*131)%CH_)+'px;width:'+s+'px;height:'+s+'px;background:'+c.cc+'55';mp.appendChild(d);}
+  //# 길 SVG
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',MW);svg.setAttribute('height',CH_);svg.style.cssText='position:absolute;left:0;top:0';
+  let seg='';
+  for(let i=0;i<4;i++){
+    const a=POS[i],b=POS[i+1],clr=(lin(c.id,i+1)<=st.cleared)&&selectable(lin(c.id,i+1));
+    const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+    const cx=mx+(i%2?30:-30);
+    seg+='<path d="M'+a[0]+' '+(a[1]+30)+' Q'+cx+' '+(my+30)+' '+b[0]+' '+(b[1]+30)+'" fill="none" stroke="'+(clr?'#f7c64a':'#ffffff40')+'" stroke-width="'+(clr?5:4)+'" '+(clr?'':'stroke-dasharray="8 8"')+'/>';
+  }
+  svg.innerHTML=seg;mp.appendChild(svg);
+  const vig=document.createElement('div');vig.className='vig';mp.appendChild(vig);
+  //# 제목 오버레이
+  el('t',16,10,380,28,c.id+'장 '+c.name,'font-size:22px;line-height:28px;color:var(--bone);text-shadow:2px 2px 0 #000',mp);
+  el('t lbl',16,40,380,20,'테마: '+c.theme+' / 영웅: '+c.hero,'text-shadow:1px 1px 0 #000',mp);
+  //# 노드
+  c.stages.forEach((s,i)=>{
+    const L=lin(c.id,i+1),boss=i===4,open=selectable(L),clr=open&&L<=st.cleared,on=st.sel===i+1;
+    const sz=boss?88:64,px=POS[i][0]-sz/2,py=POS[i][1]+30-sz/2;
+    const nd=el('node'+(boss?' boss':'')+(clr?' cleared':(open?' open':''))+(open?'':' locked')+(on?' sel':''),px,py,sz,sz,
+      open?c.id+'-'+(i+1):'잠금',boss?'font-size:24px':'',mp);
+    nd.onclick=()=>{if(!open){toast(hint(L));say('잠금 노드 - 안내만');return;}st.sel=i+1;render();};
+    if(on)el('mk',px,py-26,sz,18,'▼','',mp);
+    if(boss)el('tag gold',px,py-(on?44:20),sz,16,'BOSS','',mp);
+    el('tag',px-30,py+sz+4,sz+60,16,open?s.n:'???','color:'+(open?'var(--txt)':'#59617a')+';text-shadow:1px 1px 0 #000',mp);
+    if(clr)el('tag gold',px-30,py+sz+20,sz+60,16,'클리어','text-shadow:1px 1px 0 #000',mp);
+  });
+
+  //# 상세
+  const DX=840,DW=352;
+  el('pnl',DX,CY,DW,CH_,'');
+  const i=st.sel,s=c.stages[i-1],L=lin(c.id,i),open=selectable(L);
+  const ban=el('portrait',DX+12,CY+12,DW-24,120,'','background:linear-gradient(135deg,'+c.cc+'88,#0c1017 70%);--ac:'+c.cc);
+  ban.innerHTML='<div class="sil"><div class="hood"></div><div class="eye"></div><div class="body"></div></div>'
+    +'<div class="t gold" style="left:12px;top:8px;font-size:15px;text-shadow:1px 1px 0 #000">'+c.id+'-'+i+'</div>'
+    +'<div class="t lbl" style="right:10px;bottom:6px;color:var(--bone)">영웅: '+c.hero+'</div>'
+    +(i===5?'<div class="t" style="left:12px;bottom:6px;background:#7a2a31;border:2px solid var(--ink);padding:0 8px;font-size:12px;line-height:18px">BOSS</div>':'')
+    +(open?'':'<div class="lkx">잠금</div>');
+  el('t',DX+16,CY+140,DW-120,32,open?s.n:'???','font-size:21px;line-height:32px;color:var(--bone)');
+  el('t gold',DX+DW-110,CY+144,96,24,'★'.repeat(i)+'☆'.repeat(5-i),'font-size:16px;text-align:right');
+  el('pnl dark',DX+12,CY+180,DW-24,48,'','');
+  el('t lbl',DX+24,CY+186,100,16,'내 기록','font-size:11px');
+  el('t',DX+24,CY+202,DW-48,22,open?(L<=st.cleared?rec(L):'기록 없음'):'-','font-size:15px;line-height:22px');
+  let h='<div class="sec" style="margin-top:0">스테이지 규칙</div>';
+  if(!s.rules.length)h+='<div class="rule none">특수 규칙 없음</div>';
+  s.rules.forEach(r=>h+='<div class="rule"><b>'+r[0]+'</b><br>'+r[1]+'</div>');
+  if(s.boss.length){h+='<div class="sec" style="color:var(--blood)">보스 페이즈</div>';
+    s.boss.forEach(b=>h+='<div class="rule ph"><b>'+b[0]+'</b><br>'+b[1]+'</div>');}
+  el('abs',DX+12,CY+236,DW-24,CH_-244,open?h:'<div class="sec" style="margin-top:0">스테이지 규칙</div><div class="rule none">???</div>','overflow:hidden');
+
+  //# 하단
+  const by=PY+PH-16-48;
+  el('t lbl',PX+24,by,700,48,open?'선택한 스테이지는 마을의 침입자 현상수배서에 반영됩니다. 출격은 마을에서 합니다.':'이 스테이지는 아직 잠겨 있습니다.','white-space:normal;line-height:48px;font-size:13px');
+  const b=el('btn go'+(open?'':' off'),DX,by-4,DW,56,open?'이 스테이지로 선택':hint(L),'font-size:20px');
+  b.onclick=()=>{if(!open){say('잠금 스테이지 - 선택 불가');return;}toast('선택됨: '+c.id+'-'+i+' '+s.n);say('SelectedStage = '+L+' 저장 후 닫힘');};
+}
+sel.onchange=()=>{st.cleared=+sel.value;render();};
+$('#cGate').onchange=render;
+$('#btnReset').onclick=()=>{st={cleared:10,ch:3,sel:1};sel.value=10;$('#cGate').checked=true;render();};
+function fit(){const w=document.documentElement.clientWidth-16;$('#wrap').style.zoom=w<1280?w/1280:1;}
+addEventListener('resize',fit);fit();render();
+</script>
+</body>
+</html>
