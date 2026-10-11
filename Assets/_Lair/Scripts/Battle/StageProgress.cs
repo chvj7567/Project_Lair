@@ -69,6 +69,12 @@ namespace Lair.Battle
             return IsUnlocked(ToLinear(chapterId, 1), clearedStage);
         }
 
+        //# 챕터 안 클리어 수(0~5) — 챕터 게이트와 무관하게 값만 계산한다(표시 여부는 View 가 결정).
+        public static int ClearedCountInChapter(int chapterId, int clearedStage)
+        {
+            return Math.Max(0, Math.Min(StagesPerChapter, clearedStage - (chapterId - 1) * StagesPerChapter));
+        }
+
         //# 진입 시 초기 위치 = 최대 플레이 가능 스테이지 = clearedStage+1 (1 하한·MaxStage 상한).
         public static int MaxPlayableStage(int clearedStage)
         {

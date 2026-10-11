@@ -24,6 +24,9 @@ namespace Lair.Village
         public bool IsSelected;
         public bool IsLocked;          //# 눌러도 이동 불가(진행 잠금 또는 출격 불가)
         public bool IsPlaceholder;     //# 미출시 "???" 슬롯
+        public string ChapterNameText; //# 카드 챕터명 — 개방 "그림자 성채" / 미출시 "{N}장 ???"
+        public string HeroText;        //# 카드 영웅 직업 — 영웅 row 없거나 미출시면 빈 문자열
+        public int ClearedCount;       //# 챕터 안 클리어 수 0~5 (미출시 0)
     }
 
     //# 스테이지 노드 1칸 표시 데이터.
@@ -37,6 +40,7 @@ namespace Lair.Village
         public string LabelText;       //# 해금 "{챕터}-{인덱스}" / 잠금 "잠금"
         public string NameText;        //# 해금 스테이지명 / 잠금 "???"
         public string ClearedTagText;  //# 클리어 노드만 "클리어", 그 외 빈 문자열
+        public bool NextPathCleared;   //# 이 노드 → 다음 노드 구간이 클리어 실선인지 (보스는 항상 false)
     }
 
     //# 월드맵 ViewModel — 챕터 탭·노드 상태·상세 패널 문구·선택 확정을 가공한다 (Rule 02 §6, Unity 비의존, View 를 모른다).
@@ -214,10 +218,14 @@ namespace Lair.Village
                 ChapterRow chapter = _chapters.GetChapter(slot);
                 if (chapter == null)
                 {
+                    string placeholder = string.Format(_text(StrChapterPlaceholder), slot);
                     _tabs.Add(new WorldMapTabData
                     {
                         ChapterId = slot,
-                        Label = string.Format(_text(StrChapterPlaceholder), slot),
+                        Label = placeholder,
+                        ChapterNameText = placeholder,
+                        HeroText = string.Empty,
+                        ClearedCount = 0,
                         LockTagText = string.Empty,
                         IsPlaceholder = true,
                         IsLocked = true,
@@ -227,10 +235,14 @@ namespace Lair.Village
 
                 bool playable = ChapterGate.IsChapterPlayable(slot);
                 bool unlocked = StageProgress.IsChapterUnlocked(slot, _profile.ClearedStage);
+                HeroArchetypeRow tabHero = _chapters.GetHero(chapter.heroId);
                 _tabs.Add(new WorldMapTabData
                 {
                     ChapterId = slot,
                     Label = string.Format(_text(StrChapterTitle), slot, _text(chapter.nameKey)),
+                    ChapterNameText = _text(chapter.nameKey),
+                    HeroText = tabHero != null ? _text(tabHero.nameKey) : string.Empty,
+                    ClearedCount = StageProgress.ClearedCountInChapter(slot, _profile.ClearedStage),
                     LockTagText = playable == false ? _text(StrNotReady) : (unlocked ? string.Empty : _text(StrLocked)),
                     IsSelected = slot == _chapterId,
                     IsLocked = playable == false || unlocked == false,
@@ -260,6 +272,7 @@ namespace Lair.Village
                     LabelText = selectable ? StageLabels.Number(linear) : _text(StrLocked),
                     NameText = selectable && stage != null ? _text(stage.nameKey) : "???",
                     ClearedTagText = state == EWorldMapNodeState.Cleared ? _text(StrCleared) : string.Empty,
+                    NextPathCleared = state == EWorldMapNodeState.Cleared && index < StageProgress.StagesPerChapter,
                 });
             }
         }

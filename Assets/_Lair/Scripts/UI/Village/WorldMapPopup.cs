@@ -40,6 +40,12 @@ namespace Lair.UI
         [SerializeField] private GameObject _bossPhaseRoot;     //# "보스 페이즈" 라벨 + 목록 묶음 — 보스 페이즈 없으면 숨김
         [SerializeField] private CHText _bossPhaseText;
 
+        //# 챕터 색조·연결선
+        [SerializeField] private Image _mapBackground;
+        [SerializeField] private Image[] _pathSolid = new Image[0];     //# 구간 k = 노드 k+1 → k+2 (클리어 실선)
+        [SerializeField] private Image[] _pathDashed = new Image[0];    //# 같은 구간의 미개척 점선
+        [SerializeField] private Image _bannerTint;
+
         //# 하단
         [SerializeField] private CHText _bottomText;
         [SerializeField] private CHButton _selectButton;
@@ -139,6 +145,7 @@ namespace Lair.UI
                 }
             }
 
+            RefreshChapterTone();
             SetText(_chapterTitleText, _vm.ChapterTitleText);
             SetText(_chapterThemeText, _vm.ChapterThemeText);
             RefreshDetail();
@@ -148,6 +155,31 @@ namespace Lair.UI
             {
                 _selectButton.SetText(_vm.SelectButtonText);
                 _selectButton.Interactable = _vm.SelectEnabled;
+            }
+        }
+
+        //# 선택 챕터의 지도 배경·배너 색조와 구간 연결선(실선/점선) 갱신.
+        private void RefreshChapterTone()
+        {
+            if (_mapBackground != null)
+            {
+                _mapBackground.color = WorldMapChapterPalette.MapBackground(_vm.SelectedChapter);
+            }
+            if (_bannerTint != null)
+            {
+                _bannerTint.color = WorldMapChapterPalette.BannerTint(_vm.SelectedChapter);
+            }
+            for (int k = 0; k < _vm.Nodes.Count; ++k)
+            {
+                bool cleared = _vm.Nodes[k].NextPathCleared;
+                if (k < _pathSolid.Length && _pathSolid[k] != null)
+                {
+                    _pathSolid[k].gameObject.SetActive(cleared);
+                }
+                if (k < _pathDashed.Length && _pathDashed[k] != null)
+                {
+                    _pathDashed[k].gameObject.SetActive(cleared == false);
+                }
             }
         }
 
