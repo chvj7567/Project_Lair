@@ -21,6 +21,19 @@ namespace Lair.UI
         [SerializeField] private Image[] _tickGems;
         [SerializeField] private GameObject _statusIconRow;
         [SerializeField] private Image[] _iconSlots;
+        //# 비주얼 폴리시 — 평상시/30% 이하 fill 스프라이트
+        [SerializeField] private Sprite _fillNormalSprite;
+        [SerializeField] private Sprite _fillLowSprite;
+
+        public const float LowHpRatio = 0.3f;
+
+        //# -1 미적용 / 0 평상시 / 1 낮음. 변할 때만 스프라이트 교체.
+        private int _lowState = -1;
+
+        public static bool IsLowHp(float ratio)
+        {
+            return ratio <= LowHpRatio;
+        }
 
         private static readonly Color GemOff = new Color32(0x48, 0x54, 0x6E, 0xFF);
         private static readonly Color GemOn = new Color32(0xF7, 0xC6, 0x4A, 0xFF);
@@ -44,6 +57,7 @@ namespace Lair.UI
         private void OnEnable()
         {
             _lagInitialized = false;
+            _lowState = -1;
             ClearStatusIcons();
         }
 
@@ -59,6 +73,7 @@ namespace Lair.UI
             float ratio = max > 0 ? Mathf.Clamp01((float)current / max) : 0f;
             if (_fill != null)
                 _fill.fillAmount = ratio;
+            ApplyFillSprite(IsLowHp(ratio) ? 1 : 0);
             if (_hpText != null)
                 _hpText.SetText($"{current} / {max}");
 
@@ -81,6 +96,16 @@ namespace Lair.UI
                 }
             }
             ApplyLag();
+        }
+
+        private void ApplyFillSprite(int state)
+        {
+            if (state == _lowState)
+                return;
+            _lowState = state;
+            Sprite sprite = state == 1 ? _fillLowSprite : _fillNormalSprite;
+            if (_fill != null && sprite != null)
+                _fill.sprite = sprite;
         }
 
         //# 임계(0.9 … 0.1) → 눈금 앵커 x. 남는 눈금은 숨김.

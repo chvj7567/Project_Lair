@@ -40,6 +40,10 @@ namespace Lair.UI
         //# 사용자가 BattleHud prefab 안에 BuildSynergyPanel.prefab 자식으로 배치 + 인스펙터에서 본 필드에 드래그.
         [SerializeField] private BuildSynergyPanel _synergyPanel;
 
+        //# 비주얼 폴리시 — 남은 30초 이하 경고 글로우(DecoTimerWarnGlow)와 타이머 숫자 맥동.
+        [SerializeField] private GameObject _timerWarnGlow;
+        [SerializeField] private UILoopMotion _timerWarnTextMotion;
+
         private BattleViewModel _vm;
         //# 타이머 경고 색 적용 상태 — -1 미적용 / 0 평상시 / 1 경고. 변할 때만 SetColor.
         private int _timerWarnState = -1;
@@ -125,6 +129,10 @@ namespace Lair.UI
             if (warnState == _timerWarnState)
                 return;
             _timerWarnState = warnState;
+            if (_timerWarnGlow != null)
+                _timerWarnGlow.SetActive(warnState == 1);
+            if (_timerWarnTextMotion != null)
+                _timerWarnTextMotion.SetRunning(warnState == 1);
             _timerText.SetColor(warnState == 1 ? UiDotPalette.TimerWarn : _timerNormalColor);
         }
 

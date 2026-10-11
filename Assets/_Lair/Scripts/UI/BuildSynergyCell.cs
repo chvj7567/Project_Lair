@@ -21,6 +21,8 @@ namespace Lair.UI
         //# 시너지 진행도 — 1줄 우측 장수 텍스트(축 색) + 2줄 7칸 트랙. 리디자인 표시에서만 사용.
         [SerializeField] private CHText _countText;
         [SerializeField] private SynergyTrack _track;
+        //# 비주얼 폴리시 — 활성 행 글로우(DecoRowGlow)·트랙 글로우(DecoTrackGlow). 축 색으로 칠하고 장수 1 이상일 때만 켠다.
+        [SerializeField] private Image[] _activeGlows;
 
         private bool RedesignMode => _axisIcon != null;
 
@@ -111,6 +113,16 @@ namespace Lair.UI
             if (_track != null)
             {
                 _track.Bind(data.Count, _axisColor, data.GainedCell);
+            }
+            if (_activeGlows != null)
+            {
+                for (int i = 0; i < _activeGlows.Length; i++)
+                {
+                    if (_activeGlows[i] == null)
+                        continue;
+                    _activeGlows[i].gameObject.SetActive(strip);
+                    _activeGlows[i].color = new Color(_axisColor.r, _axisColor.g, _axisColor.b, _activeGlows[i].color.a);
+                }
             }
         }
 
