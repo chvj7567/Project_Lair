@@ -37,6 +37,10 @@ namespace Lair.UI
         [SerializeField] private Sprite _buyOffSprite;
         [SerializeField] private Sprite _buyGoldSprite;
 
+        //# 비주얼 폴리시 — 항목 행 전용 장식 그룹(헤더 행에서 숨김) + 상태색을 칠할 장식 2개(발광, 띠 순서).
+        [SerializeField] private GameObject _itemDecor;
+        [SerializeField] private Image[] _stateTinted = new Image[0];
+
         //# 텍스트 블록 왼쪽 여백 — 아이콘 슬롯이 있을 때 / 없을 때.
         private const float TextLeftWithIcon = 96f;
         private const float TextLeftNoIcon = 20f;
@@ -140,6 +144,21 @@ namespace Lair.UI
                 _stateRing.gameObject.SetActive(show);
                 _stateRing.color = data.IsMax ? UiDotPalette.Gold : UiDotPalette.Soul;
             }
+            ApplyStateTint(data.IsMax ? UiDotPalette.Gold : UiDotPalette.Soul);
+        }
+
+        //# 상태 장식(발광·띠) 색 칠하기 — rgb 만 교체하고 프리팹 알파는 보존.
+        private void ApplyStateTint(Color state)
+        {
+            if (_stateTinted == null)
+                return;
+            for (int i = 0; i < _stateTinted.Length; ++i)
+            {
+                if (_stateTinted[i] == null)
+                    continue;
+                Color current = _stateTinted[i].color;
+                _stateTinted[i].color = new Color(state.r, state.g, state.b, current.a);
+            }
         }
 
         //# 종족 강화 셀의 아이콘 + 발광 프레임 표시. 글로벌 항목(Icon/Species null)이면 세 위젯 모두 숨김(풀 재사용 잔존 방지 Rule 03 §4).
@@ -229,6 +248,10 @@ namespace Lair.UI
         //# 항목 위젯 그룹 일괄 토글 — 헤더 행이면 off. 종족 아이콘/발광은 항목 행에서 BindSpeciesGlow 가 다시 세분 제어.
         private void SetItemWidgetsActive(bool on)
         {
+            if (_itemDecor != null)
+            {
+                _itemDecor.SetActive(on);
+            }
             if (_nameText != null)
             {
                 _nameText.gameObject.SetActive(on);
