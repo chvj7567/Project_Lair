@@ -92,6 +92,47 @@ namespace Lair.Character
         void ClearMonsterSlowZone();
     }
 
+    //# 광전사 스킬 3종이 추가로 쓰는 월드 기능 (chapter-4 §4). 다른 영웅 컨텍스트 인터페이스와 이름이 겹치는 멤버는 HeroSkillContext 한 구현이 함께 만족한다.
+    //# 실구현 HeroSkillContext 가 구현 — 스킬 런타임은 ctx as IBerserkerSkillContext 로 확인(없으면 LogError 후 보류).
+    public interface IBerserkerSkillContext : IHeroSkillContext
+    {
+        //# 영웅 Transform — 따라다니는 FX(피의 광란 오라) 부착용.
+        Transform HeroTransform { get; }
+
+        //# 영웅이 행동 가능한가 — 살아있고 TimeStop/침묵이 아닐 때. false 면 시전도 진행도 보류한다.
+        bool IsHeroActive { get; }
+
+        //# 영웅 중심 radius 안 살아있는 교전 몬스터 수.
+        int CountMonstersInRadius(float radius);
+
+        //# 영웅 중심 searchRadius 안에서 clusterRadius 안에 몬스터가 가장 많이 모인 지점(무게중심). 없으면 false.
+        bool TryFindMonsterDensePoint(float searchRadius, float clusterRadius, out Vector3 point);
+
+        //# 도약 목적지를 전장(소프트 반경 + 이동 경계) 안으로 클램프.
+        Vector3 ClampToArena(Vector3 position);
+
+        //# 도약 — duration 동안 destination 으로 이동하고 그동안 AI 이동 명령을 잠근다.
+        void BeginLeap(Vector3 destination, float duration);
+
+        //# seconds 동안 영웅 무적.
+        void GrantHeroInvulnerability(float seconds);
+
+        //# 영웅 받는 피해 배율 곱연산 누적. 해제는 역수(1/mul)로 호출.
+        void MultiplyHeroDamageTaken(float mul);
+
+        //# 영웅 공격 쿨다운 배율 곱연산 누적(작을수록 빠름). 해제는 역수(1/mul)로 호출.
+        void MultiplyHeroAttackCooldown(float mul);
+
+        //# 군집 목표 재평가를 seconds 동안 중단(갈고리로 군집이 갑자기 커져도 목표가 바뀌지 않게).
+        void SuspendHeroRetarget(float seconds);
+
+        //# 영웅 중심 radius 안 가까운 순 최대 maxTargets 마리에 damage(+영웅 공격 배율)를 주고, 영웅 pullToDistance 거리까지 durationSec 에 걸쳐 당긴다. 당긴 수 반환.
+        int BeginMonsterPull(float radius, int maxTargets, float pullToDistance, float durationSec, int damage);
+
+        //# 진행 중인 당김을 dt 만큼 진행(매 프레임 호출).
+        void TickMonsterPull(float dt);
+    }
+
     //# 활성화된 스킬 1개의 가변 상태(쿨다운 타이머·궤도 각도). HeroSkillData.CreateRuntime() 이 생성.
     public interface IHeroSkillRuntime
     {

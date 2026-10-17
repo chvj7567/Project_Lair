@@ -103,6 +103,44 @@
       "triggerMonsterCount": 4,
       "triggerRadius": 2.4,
       "displayName": "연막 탄"
+    },
+    {
+      "$type": "CrushingLeapSkillData",
+      "fileName": "HeroSkill_CrushingLeap",
+      "damage": 90,
+      "cooldown": 7.0,
+      "leapRange": 8.0,
+      "minLeapDistance": 3.0,
+      "leapDurationSec": 0.3,
+      "invulnerableSec": 0.3,
+      "slamRadius": 2.6,
+      "knockbackStrength": 1.5,
+      "clusterRadius": 2.2,
+      "displayName": "분쇄 도약"
+    },
+    {
+      "$type": "ChainPullSkillData",
+      "fileName": "HeroSkill_ChainPull",
+      "damage": 40,
+      "cooldown": 10.0,
+      "pullRadius": 5.0,
+      "maxTargets": 6,
+      "pullToDistance": 1.5,
+      "pullDurationSec": 0.4,
+      "triggerMonsterCount": 4,
+      "triggerRadius": 5.0,
+      "displayName": "사슬 갈고리"
+    },
+    {
+      "$type": "BloodFrenzySkillData",
+      "fileName": "HeroSkill_BloodFrenzy",
+      "durationSec": 6.0,
+      "attackCooldownMul": 0.6,
+      "damageTakenMul": 1.2,
+      "cooldown": 18.0,
+      "triggerMonsterCount": 3,
+      "triggerRadius": 2.2,
+      "displayName": "피의 광란"
     }
   ],
   "loadout": [
@@ -150,6 +188,21 @@
       "heroId": "Assassin",
       "hpFraction": 0.45,
       "skill": "HeroSkill_SmokeBomb"
+    },
+    {
+      "heroId": "Berserker",
+      "hpFraction": 0.85,
+      "skill": "HeroSkill_CrushingLeap"
+    },
+    {
+      "heroId": "Berserker",
+      "hpFraction": 0.65,
+      "skill": "HeroSkill_ChainPull"
+    },
+    {
+      "heroId": "Berserker",
+      "hpFraction": 0.45,
+      "skill": "HeroSkill_BloodFrenzy"
     }
   ]
 }

@@ -671,6 +671,20 @@ namespace Lair.Battle
                 }
             }
 
+            //# Charger 영웅도 군집 돌진 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단.
+            HeroArchetype_ChargeRow chargeRow = null;
+            if (archetype.aiType == EHeroAi.Charger.ToString())
+            {
+                chargeRow = _chapters.GetCharge(archetype.heroId);
+                if (chargeRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 군집 돌진 설정(HeroArchetype_Charge) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+            //# 범위 베기 설정은 선택 — row 가 있는 영웅만 기본 공격이 범위 판정(없으면 단일 판정 그대로).
+            HeroArchetype_CleaveRow cleaveRow = _chapters.GetCleave(archetype.heroId);
+
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
@@ -679,7 +693,7 @@ namespace Lair.Battle
             }
 
             //# Kiter 프리팹은 AutoCombatAI 가 필수 — Pop 전에 검증해 중단 시 풀 인스턴스가 새지 않게 한다.
-            if ((kiteRow != null || skirmishRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
+            if ((kiteRow != null || skirmishRow != null || chargeRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
             {
                 Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — AI 설정 불가, 전투 진입 중단");
                 return false;
@@ -728,6 +742,24 @@ namespace Lair.Battle
             if (skirmishRow != null)
             {
                 p.GetComponent<AutoCombatAI>().ConfigureSkirmish(SkirmishSettings.From(skirmishRow));
+            }
+            //# 군집 돌진(Charger) 영웅 AI 설정 주입 — 그 외 영웅은 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (chargeRow != null)
+            {
+                p.GetComponent<AutoCombatAI>().ConfigureCharge(ChargeSettings.From(chargeRow));
+            }
+            //# 범위 베기 — row 가 있는 영웅만 MeleeAttacker 에 주입(풀 재사용이라 스폰마다).
+            if (cleaveRow != null)
+            {
+                MeleeAttacker heroAttacker = p.GetComponent<MeleeAttacker>();
+                if (heroAttacker != null)
+                {
+                    heroAttacker.ConfigureCleave(CleaveSettings.From(cleaveRow), new RegistryCleaveTargets());
+                }
+                else
+                {
+                    Debug.LogError($"[BattleController] {heroKey} 프리팹에 MeleeAttacker 없음 — 범위 베기 비활성");
+                }
             }
             if (_heroHealth != null)
             {
@@ -802,6 +834,7 @@ namespace Lair.Battle
             { EHero.Knight, EData.HeroSkillLoadout },
             { EHero.Archer, EData.HeroSkillLoadout_Archer },
             { EHero.Assassin, EData.HeroSkillLoadout_Assassin },
+            { EHero.Berserker, EData.HeroSkillLoadout_Berserker },
         };
 
         private static EData LoadoutKeyOf(EHero hero)
@@ -1570,6 +1603,15 @@ namespace Lair.Battle
                 await WarmVisual(EVisual.HeroShadowStrikeFx, 2);
                 await WarmVisual(EVisual.HeroBladeWhirlFx, 2);
                 await WarmVisual(EVisual.HeroSmokeBombFx, 1);
+            }
+
+            //# 광전사 전용 FX(범위 베기는 매 공격, 스킬 FX 는 동시 표시 적음, 광란 오라는 영웅 부착 1개).
+            if (warmHero == EHero.Berserker)
+            {
+                await WarmVisual(EVisual.BerserkerSlashFx, 3);
+                await WarmVisual(EVisual.HeroCrushingLeapFx, 2);
+                await WarmVisual(EVisual.HeroChainPullFx, 2);
+                await WarmVisual(EVisual.HeroBloodFrenzyFx, 1);
             }
 
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.

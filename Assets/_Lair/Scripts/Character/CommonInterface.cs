@@ -150,6 +150,20 @@ namespace Lair.Character
         bool TryGetThreatCandidates(Vector3 from, float radius, System.Collections.Generic.List<SkirmishCandidate> candidates);
     }
 
+    //# 군집 돌진(광전사) 전용 — 반경 안 살아있는 교전 몬스터를 목표 후보로 조회. 영웅 타깃 제공자만 구현.
+    public interface IClusterTargetProvider
+    {
+        //# 후보를 candidates 에 채운다(호출 전 비움). 반경 안에 없으면 false.
+        bool TryGetClusterCandidates(Vector3 from, float radius, System.Collections.Generic.List<ClusterCandidate> candidates);
+    }
+
+    //# 범위 베기(광전사) 전용 — center 반경 안 살아있는 교전 몬스터를 가까운 순으로 최대 maxTargets 마리 조회. MeleeAttacker 가 월드(레지스트리)를 모르게 주입한다.
+    public interface ICleaveTargetSource
+    {
+        //# results 를 비우고 채운다(가까운 순). 채운 수 반환.
+        int CollectNearest(Vector3 center, float radius, int maxTargets, System.Collections.Generic.List<IHealth> results);
+    }
+
     //# ===== 회전 =====
 
     //# Y축(yaw) 회전 추상. AutoCombatAI 가 상태별로 FaceDirection 호출.

@@ -86,6 +86,25 @@ namespace Lair.Character
         private readonly System.Collections.Generic.List<SkirmishCandidate> _skirmishCandidates = new System.Collections.Generic.List<SkirmishCandidate>();
         private Transform _skirmishTarget;
 
+        //# 군집 돌진(광전사, chapter-4 §3.3) — Charger 영웅만 ConfigureCharge 로 생성. null 이면 기사/궁수/암살자/몬스터 경로(코드 동작 불변).
+        private ChargeBehavior _charge;
+        private IClusterTargetProvider _clusterProbe;
+        private readonly System.Collections.Generic.List<ClusterCandidate> _chargeCandidates = new System.Collections.Generic.List<ClusterCandidate>();
+        private Transform _chargeTarget;
+        private IHealth _chargeHealth;
+
+        //# BattleController 가 aiType == Charger 영웅에 HeroArchetype_Charge 설정을 주입. 풀 재사용 시 OnEnable 이 상태만 리셋.
+        public void ConfigureCharge(ChargeSettings settings)
+        {
+            _charge = new ChargeBehavior(settings);
+        }
+
+        //# 스킬(사슬 갈고리)이 군집을 키운 직후 목표 교체를 seconds 동안 막는다 — Charger 가 아니면 무동작.
+        public void SuspendRetarget(float seconds)
+        {
+            _charge?.SuspendRetarget(Time.time, seconds);
+        }
+
         //# 슬립 아레나 소프트 반경 — 미구성(기사/궁수)이면 0(제한 없음).
         public float SkirmishArenaSoftRadius => _skirmish != null ? _skirmish.Settings.ArenaSoftRadius : 0f;
 
@@ -126,7 +145,7 @@ namespace Lair.Character
         //# 도약 목적지 보정 — 카이팅 아레나 소프트 반경 안으로, 그리고 BattleZone 이동 경계 안으로(SimpleMover 와 같은 경계).
         public Vector3 ClampToArena(Vector3 position)
         {
-            float softRadius = _skirmish != null ? SkirmishArenaSoftRadius : KiteArenaSoftRadius;
+            float softRadius = _skirmish != null ? SkirmishArenaSoftRadius : _charge != null ? _charge.Settings.ArenaSoftRadius : KiteArenaSoftRadius;
             Vector3 clamped = KiteBehavior.ClampToRadius(position, softRadius);
             return _moveClamp != null ? _moveClamp.ClampPosition(clamped) : clamped;
         }
@@ -153,6 +172,7 @@ namespace Lair.Character
             _threatProbe = character.Get<INearestThreatProvider>();   //# null=기사·몬스터(카이팅 미사용)
             _moveClamp = character.Get<IMoveClamp>();
             _skirmishProbe = character.Get<ISkirmishThreatProvider>();   //# null=기사·궁수·몬스터
+            _clusterProbe = character.Get<IClusterTargetProvider>();   //# null=기사·궁수·암살자·몬스터
             _invulnerable = character.Get<IInvulnerable>();
         }
 
@@ -175,6 +195,10 @@ namespace Lair.Character
             //# 습격 상태·표적 잔존 방지(Skirmisher 한정).
             _skirmish?.Reset();
             _skirmishTarget = null;
+            //# 군집 돌진 상태·목표 잔존 방지(Charger 한정).
+            _charge?.Reset();
+            _chargeTarget = null;
+            _chargeHealth = null;
             _leapRemain = 0f;
             //# 스폰 게이트 — 영웅(DeferStrike)만 닫고 시작. 몬스터는 게이트 검사 자체를 건너뛰므로 무관.
             _spawnGateOpen = false;
@@ -309,7 +333,8 @@ namespace Lair.Character
 
             //# B 영웅 중앙 끌림 — 사망/TimeStop/스폰·공격 게이트 통과 + 비도주 상태에서만.
             //# 3초 주기 중 첫 1초 창은 중앙(원점 XZ)으로 이동 우선·공격 보류. deadzone 안이면 창 미발동(이동만 생략).
-            if (_centerPullEnabled)
+            //# 광전사(Charger)는 중앙 끌림을 쓰지 않는다 — 프리팹 플래그가 켜져 있어도 군집 돌진이 이동을 쥔다.
+            if (_centerPullEnabled && _charge == null)
             {
                 _centerPullTimer += Time.deltaTime;
                 if (_centerPullTimer >= _centerPullInterval)
@@ -342,6 +367,13 @@ namespace Lair.Character
             if (_skirmish != null)
             {
                 UpdateSkirmish(t, th);
+                return;
+            }
+
+            //# 군집 돌진(Charger 영웅 한정) — 같은 자리. 기사·궁수·암살자는 _charge null 이라 아래 경로 그대로.
+            if (_charge != null)
+            {
+                UpdateCharge(t, th);
                 return;
             }
 
@@ -531,6 +563,63 @@ namespace Lair.Character
                     _engaged = false;
                     _rotator?.FaceDirection(target.position - position);
                     _mover.MoveTo(target.position);
+                    break;
+            }
+        }
+
+        //# 군집 돌진 한 프레임 — 목표(군집 점수) 선정 후 ChargeBehavior 에 넘기고 상태별 이동·공격을 수행(로직은 ChargeBehavior).
+        //# 군집 조회 불가(프로브 없음)이면 최근접 몬스터를 목표로 폴백한다.
+        private void UpdateCharge(Transform nearest, IHealth nearestHealth)
+        {
+            Vector3 position = transform.position;
+            bool invalid = _chargeTarget == null || _chargeHealth == null || _chargeHealth.IsAlive == false
+                || _chargeTarget.gameObject.activeInHierarchy == false;
+            Transform previous = _chargeTarget;
+
+            if (_clusterProbe == null)
+            {
+                _chargeTarget = nearest;
+                _chargeHealth = nearestHealth;
+            }
+            else if (_charge.ShouldReevaluate(Time.time, invalid))
+            {
+                int index = -1;
+                if (_clusterProbe.TryGetClusterCandidates(position, _charge.Settings.HuntRadius, _chargeCandidates))
+                {
+                    index = _charge.SelectTarget(_chargeCandidates, position, invalid ? null : _chargeTarget);
+                }
+                _chargeTarget = index >= 0 ? _chargeCandidates[index].Transform : null;
+                _chargeHealth = index >= 0 ? _chargeCandidates[index].Health : null;
+            }
+
+            ChargeInput input = new ChargeInput
+            {
+                HasTarget = _chargeTarget != null && _chargeHealth != null && _chargeHealth.IsAlive,
+                TargetChanged = _chargeTarget != previous,
+                TargetDist = _chargeTarget != null ? Vector3.Distance(position, _chargeTarget.position) : 0f,
+                Range = _attacker.Range,
+                EngageBuffer = _engageBuffer,
+            };
+            _charge.Update(Time.time, input);
+
+            switch (_charge.State)
+            {
+                case EChargeState.Engage:
+                    _engaged = true;
+                    _rotator?.FaceDirection(_chargeTarget.position - position, FacingMode.AttackAligned);
+                    _mover.Stop();
+                    TryKiteAttack(_chargeHealth, _chargeTarget, position);
+                    break;
+
+                case EChargeState.Move:
+                    _engaged = false;
+                    _rotator?.FaceDirection(_chargeTarget.position - position);
+                    _mover.MoveTo(KiteBehavior.ClampToRadius(_chargeTarget.position, _charge.Settings.ArenaSoftRadius));
+                    break;
+
+                default:
+                    _engaged = false;
+                    _mover.Stop();
                     break;
             }
         }

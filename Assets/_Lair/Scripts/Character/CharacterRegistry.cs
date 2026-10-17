@@ -100,6 +100,26 @@ namespace Lair.Character
             return candidates.Count > 0;
         }
 
+        //# 군집 돌진(광전사) 목표 후보 — 반경 안 살아있는 교전 몬스터의 현재 위치(카드로 변동된 필드 반영). 호출 전 비운다.
+        public static bool TryGetClusterCandidates(Vector3 from, float radius, List<ClusterCandidate> candidates)
+        {
+            candidates.Clear();
+            float sqrRadius = radius * radius;
+            foreach (Entry e in Monsters)
+            {
+                if (e.Transform == null)
+                    continue;
+                if (e.Health == null || e.Health.IsAlive == false)
+                    continue;
+                if (e.IsEngaging == false)
+                    continue;
+                if ((e.Transform.position - from).sqrMagnitude > sqrRadius)
+                    continue;
+                candidates.Add(new ClusterCandidate { Transform = e.Transform, Health = e.Health, Position = e.Transform.position });
+            }
+            return candidates.Count > 0;
+        }
+
         private static void Add(List<Entry> list, Transform t, IHealth h)
         {
             if (t == null) return;

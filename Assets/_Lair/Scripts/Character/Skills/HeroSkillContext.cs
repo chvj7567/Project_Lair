@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# IHeroSkillContext 실구현 — CharacterRegistry.Monsters(살아있음+교전)를 SkillGeometry 로 필터링해 데미지/넉백.
-    public class HeroSkillContext : IArcherSkillContext, IAssassinSkillContext
+    public class HeroSkillContext : IArcherSkillContext, IAssassinSkillContext, IBerserkerSkillContext
     {
         private readonly Transform _hero;
 
@@ -18,6 +18,20 @@ namespace Lair.Character
         private readonly Health _heroHealth;
         private readonly IInvulnerable _heroInvulnerable;
         private readonly float _heroColliderRadius;
+
+        //# 광전사 스킬용 — 영웅 공격 쿨다운 배율(MeleeAttacker.CooldownScale)·진행 중 당김 목록. 생성자 1회 캐싱.
+        private readonly MeleeAttacker _heroMelee;
+        private readonly List<PullState> _pulls = new List<PullState>();
+
+        private sealed class PullState
+        {
+            public Transform Transform;
+            public IHealth Health;
+            public Vector3 Start;
+            public Vector3 Destination;
+            public float Elapsed;
+            public float Duration;
+        }
 
         //# 연막 지대 영향권 — 매 프레임 갱신. Transform → (이동, 공격자, 충돌 반경) 1회 캐시, 영향받는 몬스터 목록.
         private readonly Dictionary<Transform, SlowTargets> _slowCache = new Dictionary<Transform, SlowTargets>();
@@ -41,8 +55,11 @@ namespace Lair.Character
             _heroAi = _hero != null ? _hero.GetComponent<AutoCombatAI>() : null;
             _heroHealth = _hero != null ? _hero.GetComponent<Health>() : null;
             _heroInvulnerable = _heroHealth;
+            _heroMelee = _hero != null ? _hero.GetComponent<MeleeAttacker>() : null;
             _heroColliderRadius = _hero != null ? ColliderRadiusOf(_hero) : 0f;
         }
+
+        public Transform HeroTransform => _hero;
 
         public Vector3 HeroPosition => _hero != null ? _hero.position : Vector3.zero;
 
@@ -234,6 +251,85 @@ namespace Lair.Character
             if (_heroHealth != null)
             {
                 _heroHealth.DamageTakenScale *= mul;
+            }
+        }
+
+        public void MultiplyHeroAttackCooldown(float mul)
+        {
+            if (_heroMelee != null)
+            {
+                _heroMelee.CooldownScale *= mul;
+            }
+        }
+
+        public void SuspendHeroRetarget(float seconds)
+        {
+            _heroAi?.SuspendRetarget(seconds);
+        }
+
+        public int BeginMonsterPull(float radius, int maxTargets, float pullToDistance, float durationSec, int damage)
+        {
+            Vector3 origin = HeroPosition;
+            _buffer.Clear();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (Valid(e) && SkillGeometry.InSphere(e.Transform.position, origin, radius))
+                {
+                    _buffer.Add(e);
+                }
+            }
+            _buffer.Sort((a, b) => (a.Transform.position - origin).sqrMagnitude.CompareTo((b.Transform.position - origin).sqrMagnitude));
+            if (_buffer.Count > maxTargets)
+            {
+                _buffer.RemoveRange(maxTargets, _buffer.Count - maxTargets);
+            }
+
+            //# 피해(영웅 공격 배율) 후 생존자만 당긴다 — 이미 pullToDistance 안쪽이면 제자리.
+            float scale = _heroAttacker != null ? _heroAttacker.PowerScale : 1f;
+            int scaledAmount = Mathf.RoundToInt(damage * scale);
+            int pulled = 0;
+            foreach (CharacterRegistry.Entry e in _buffer)
+            {
+                if (Valid(e) == false)
+                    continue;
+                Vector3 start = e.Transform.position;
+                Apply(e, origin, scaledAmount, 0f);
+                ++pulled;
+                if (e.Health.IsAlive == false)
+                    continue;
+                Vector3 away = start - origin;
+                away.y = 0f;
+                if (away.magnitude <= pullToDistance)
+                    continue;
+                _pulls.Add(new PullState
+                {
+                    Transform = e.Transform,
+                    Health = e.Health,
+                    Start = start,
+                    Destination = new Vector3(origin.x, start.y, origin.z) + away.normalized * pullToDistance,
+                    Duration = Mathf.Max(0.01f, durationSec),
+                });
+            }
+            return pulled;
+        }
+
+        public void TickMonsterPull(float dt)
+        {
+            for (int i = _pulls.Count - 1; i >= 0; --i)
+            {
+                PullState pull = _pulls[i];
+                //# 사망/풀 반환된 몬스터는 목록에서 제거.
+                if (pull.Transform == null || pull.Transform.gameObject.activeInHierarchy == false || pull.Health.IsAlive == false)
+                {
+                    _pulls.RemoveAt(i);
+                    continue;
+                }
+                pull.Elapsed += dt;
+                pull.Transform.position = Vector3.Lerp(pull.Start, pull.Destination, Mathf.Clamp01(pull.Elapsed / pull.Duration));
+                if (pull.Elapsed >= pull.Duration)
+                {
+                    _pulls.RemoveAt(i);
+                }
             }
         }
 

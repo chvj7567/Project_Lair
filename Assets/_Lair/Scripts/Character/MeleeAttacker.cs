@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Data;
 using UnityEngine;
@@ -46,6 +47,11 @@ namespace Lair.Character
         //# 데미지 숫자 대표색. AttackJuice 가 OnEnable 에 몸체색(영웅은 흰색) 주입. 기본 백색.
         public Color DamageColor { get; set; } = Color.white;
 
+        //# 범위 베기(광전사) — ConfigureCleave 로 주입된 영웅만 strike 가 범위 판정. null 이면 단일 판정(기사·궁수·암살자·몬스터 불변).
+        private CleaveSettings? _cleave;
+        private ICleaveTargetSource _cleaveSource;
+        private readonly List<IHealth> _cleaveTargets = new List<IHealth>();
+
         private float _lastAttackTime = float.NegativeInfinity;
 
         //# 영웅 흐름 역전 — TryBeginAttack 가 캐싱한 strike 대상. TryApplyStrike 가 소비.
@@ -75,6 +81,13 @@ namespace Lair.Character
         {
             RangeScale = scale;
             RangeFloor = floor;
+        }
+
+        //# BattleController 가 HeroArchetype_Cleave row 가 있는 영웅에만 호출. 풀 재사용 시 스폰마다 다시 주입한다.
+        public void ConfigureCleave(CleaveSettings settings, ICleaveTargetSource source)
+        {
+            _cleave = settings;
+            _cleaveSource = source;
         }
 
         //# 테스트 또는 런타임 동적 설정.
@@ -126,22 +139,55 @@ namespace Lair.Character
             float dist = Vector3.Distance(_pendingSelfPos, _pendingTargetPos);
             if (dist > Range) return false;
 
-            ApplyDamage(target);
+            if (_cleave.HasValue && _cleaveSource != null)
+            {
+                ApplyCleave(target, _cleave.Value);
+            }
+            else
+            {
+                ApplyDamage(target);
+            }
             return true;
+        }
+
+        //# 범위 베기 — 영웅 중심 반경 안 가까운 순 최대 N마리, 첫 대상 100% · 나머지 SecondaryMul. 대상이 없으면(목표가 레지스트리 밖) 단일 판정.
+        //# OnHit 은 베기 1회당 1번(첫 대상) — 피격 연출·애니 구독자가 대상 수만큼 중복 발화하지 않게.
+        private void ApplyCleave(IHealth primary, CleaveSettings cleave)
+        {
+            Vector3 center = transform.position;
+            if (_cleaveSource.CollectNearest(center, cleave.Radius, cleave.MaxTargets, _cleaveTargets) == 0)
+            {
+                ApplyDamage(primary);
+                return;
+            }
+
+            HeroSkillFx.SpawnAt(EVisual.BerserkerSlashFx, center, 1f);
+            for (int i = 0; i < _cleaveTargets.Count; ++i)
+            {
+                DealDamage(_cleaveTargets[i], cleave.DamageMulOf(i));
+            }
+            OnHit?.Invoke(_cleaveTargets[0]);
+            CHMSound.Instance?.Play(EAudio.Hit);
         }
 
         //# 데미지 색 스탬프 + TakeDamage[PowerScale] + OnHit. 즉시/strike 공통.
         //# PowerScale 은 호출 시점에 읽힘 — strike 경로면 strike 순간 배율(§2.4-a).
         private void ApplyDamage(IHealth target)
         {
+            DealDamage(target, 1f);
+            OnHit?.Invoke(target);
+            //# 데미지 임팩트 SFX — 영웅·몬스터 근접 공격 공통 경로. 5분 자동전투 동안 빈번(후속 throttle 검토 여지).
+            CHMSound.Instance?.Play(EAudio.Hit);
+        }
+
+        //# 데미지 색 스탬프 + TakeDamage[PowerScale x mul 단일 반올림]. 단일/범위 공통.
+        private void DealDamage(IHealth target, float mul)
+        {
             //# 데미지 숫자 색 스탬프 — TakeDamage 가 OnChanged 를 동기 발행하기 전에 찍어야 한다.
             if (target is Component tc && tc != null)
                 tc.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(DamageColor);
 
-            target.TakeDamage(Mathf.RoundToInt(_power * PowerScale));
-            OnHit?.Invoke(target);
-            //# 데미지 임팩트 SFX — 영웅·몬스터 근접 공격 공통 경로. 5분 자동전투 동안 빈번(후속 throttle 검토 여지).
-            CHMSound.Instance?.Play(EAudio.Hit);
+            target.TakeDamage(Mathf.RoundToInt(_power * PowerScale * mul));
         }
     }
 }
