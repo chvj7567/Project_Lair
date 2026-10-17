@@ -41,13 +41,14 @@ ul{margin:6px 0 0;padding-left:18px;font-size:13px}li{margin:2px 0}
 <div class="ctl"><button id="hudBtn" class="on">HUD 영역 표시</button></div>
 <div class="stage"><canvas id="c4" width="800" height="352"></canvas><div class="hud" id="hud" style="display:block"></div></div>
 <ul>
-<li><b>상단 벽</b> - 철판 벽돌 + 가로 파이프 + 금 코니스. 굴뚝 기둥 4개의 화구에서 불꽃이 깜빡임</li>
-<li><b>걸이 장식</b> - 금 테두리 철 방패 문장 3개가 엠버로 호흡</li>
-<li><b>바닥</b> - 동심원 벽돌 + 금 인레이 + 용암 균열 9줄이 엠버로 맥동, 중심 반사광은 엠버(LIFT 130,58,28)</li>
-<li><b>룬 링 / 제단</b> - 룬 링 점선이 천천히 회전, 중앙 이중 링은 엠버 발광 (3장은 바이올렛)</li>
-<li><b>입자</b> - 불씨가 위로 빠르게 솟음(소울 먼지의 1.8배, 세로 2px) + 연기 덩어리가 바닥을 가로지름 + 열 아지랑이 띠 10줄</li>
-<li><b>분출</b> - 4~8초마다 용광로 분출 플래시(3장 번개와 같은 주기 구조). 림을 따라 도는 불씨 3개</li>
-<li>HUD 가독성을 위해 가장자리·상단은 어둡게 유지. 6개 스포너 슬롯 자리는 어두운 금 링만 표시</li>
+<li><b>상단 벽</b> — 리벳 철판 + 구리 파이프(이음 플랜지) + 금 코니스. 굴뚝 기둥 4개 대신 <b>아치형 화구 4개</b>(쇠창살 너머 불길이 일렁임, 4~8초마다 한 곳이 크게 분출하며 불똥을 뿜음)</li>
+<li><b>양옆</b> — 철 프레임 안을 흘러내리는 <b>용암 폭포</b> 2줄(도트 단위로 아래로 흐름), 오른쪽은 시너지 패널 뒤라 한 단계 어둡게</li>
+<li><b>투기장 바닥</b> — 동심원 벽돌(적갈 석재) + 금 인레이 + <b>도트 용암 균열 7줄(가지 포함)</b>. 균열 안쪽에서 바깥으로 빛이 흘러가며 맥동</li>
+<li><b>중앙 제단</b> — 룬 링 대신 <b>용광로 쇠창살 구덩이</b>: 창살 아래 쇳물이 끓으며 밝기가 오르내림, 바깥 룬 점선은 엠버로 천천히 회전</li>
+<li><b>림</b> — 금 리벳 12개 + 철 환기구 8개(불똥이 간헐적으로 튐)</li>
+<li><b>주변</b> — 재·슬래그 바닥에 식어가는 불씨가 깜빡임, 아래쪽 모루·주괴·쇠사슬 실루엣</li>
+<li><b>입자</b> — 불똥(밝은 노랑 → 주황 → 적색으로 식으며 상승), 천장 쪽 검은 연기, 열 아지랑이(용암 폭포·중앙 주변만)</li>
+<li>HUD 가독성을 위해 가장자리·상단은 어둡게 유지하고 발광은 화구·균열·폭포에만 모았다. 6개 스포너 자리는 어두운 금 링만 표시</li>
 </ul>
 </section>
 
@@ -55,7 +56,7 @@ ul{margin:6px 0 0;padding-left:18px;font-size:13px}li{margin:2px 0}
 <h2>비교: 3장 그림자 성채(현행) vs 4장 불꽃의 용광로(신규)</h2>
 <div class="pair">
 <div><div class="stage"><canvas id="c3" width="800" height="352"></canvas></div><p class="cap">3장 - 바이올렛 181,140,255 / 도깨비불 / 번개</p></div>
-<div><div class="stage"><canvas id="c4b" width="800" height="352"></canvas></div><p class="cap">4장 - 엠버 255,106,61 / 불씨 / 용광로 분출</p></div>
+<div><div class="stage"><canvas id="c4b" width="800" height="352"></canvas></div><p class="cap">4장 - 엠버 255,106,61 / 화구 · 용암 폭포 · 도트 균열 · 쇠창살 구덩이 · 불똥</p></div>
 </div>
 <ul>
 <li>발광 색상각: 1장 소울 그린 / 2장 라임 / 3장 바이올렛 / 4장 엠버 주홍(14°) - 서로 겹치지 않고 UI 금(43°)과도 구분</li>
@@ -132,7 +133,166 @@ function arena(g,ch,R){
  for(let i=0;i<70;i++){const a=R()*7,r=Math.sqrt(R())*.85;g.fillStyle=R()<.3?'rgba(120,30,40,.35)':'rgba(0,0,0,.25)';g.fillRect(Math.round(cx+Math.cos(a)*rx*r),Math.round(cy+Math.sin(a)*ry*r),1+(R()*3|0),1)}
 }
 const SLOTS=[0,60,120,180,240,300].map(a=>[cx+Math.cos(a*Math.PI/180)*rx*.78,cy+Math.sin(a*Math.PI/180)*ry*.78]);
+
+/* ===================== 4장 불꽃의 용광로 — 도트 단위 구현 ===================== */
+const px=(g,x,y,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,1,1)};
+const box=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,w|0,h|0)};
+//# 픽셀 선(안티앨리어싱 없음)
+function pline(g,x0,y0,x1,y1,c){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;g.fillStyle=c;for(;;){g.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+const FURN=[66,270,525,730];
+const VENTS=[22.5,67.5,112.5,157.5,202.5,247.5,292.5,337.5].map(a=>[cx+Math.cos(a*Math.PI/180)*rx*.965,cy+Math.sin(a*Math.PI/180)*ry*.965]);
+const PIT={r:30,ry:13};
+//# 용암 균열 — 중심 근처에서 바깥으로 뻗는 들쭉날쭉한 선 + 가지. 픽셀 목록에 중심부터의 거리(d)를 담아 흐름 맥동에 쓴다.
+const CRACKS=(()=>{const R=rng(101),list=[];
+ function grow(x,y,ang,len,depth){const pts=[[x,y]];
+  for(let i=0;i<len;i++){ang+=(R()-.5)*.8;const st=3+R()*4;x+=Math.cos(ang)*st;y+=Math.sin(ang)*st*.42;
+   const ex=(x-cx)/rx,ey=(y-cy)/ry;if(ex*ex+ey*ey>.76)break;pts.push([x,y]);
+   if(depth<2&&i>1&&R()<.22)grow(x,y,ang+(R()<.5?-1:1)*(.55+R()*.5),Math.max(2,Math.floor(len*.45)),depth+1);}
+  list.push({pts:pts,depth:depth});}
+ for(let i=0;i<7;i++){const a=i/7*Math.PI*2+.35+R()*.35;grow(cx+Math.cos(a)*(PIT.r+6),cy+Math.sin(a)*(PIT.ry+3),a,9+Math.floor(R()*7),0);}
+ list.forEach(c=>{const P=[];let acc=0;for(let i=0;i<c.pts.length-1;i++){const a=c.pts[i],b=c.pts[i+1],n=Math.max(1,Math.round(Math.max(Math.abs(b[0]-a[0]),Math.abs(b[1]-a[1]))));
+   for(let k=0;k<n;k++)P.push([Math.round(a[0]+(b[0]-a[0])*k/n),Math.round(a[1]+(b[1]-a[1])*k/n),acc+k]);acc+=n;}c.px=P;});
+ return list;})();
+//# 화구 아치 마스크(폭 22, 높이 18, 위 반원)
+function inArch(x,y,ax,ay){const w=11,h=18;if(y<ay||y>=ay+h||x<ax-w||x>=ax+w)return false;const top=ay+w;if(y>=top)return true;const dx=x-ax+.5,dy=y-top+.5;return dx*dx+dy*dy<=w*w;}
+
+function surround4(g,T,R){
+ box(g,0,0,BW,BH,T.bg);
+ //# 상단 벽: 리벳 철판
+ for(let y=0;y<28;y+=14)for(let x=-(y/14%2)*20;x<BW;x+=40){const c=mix(T.A,T.B,.25+R()*.55);box(g,x,y,39,13,rgb(c));box(g,x,y,39,1,'rgba(255,220,200,.06)');box(g,x,y+12,39,1,'rgba(0,0,0,.35)');
+   for(const [rx_,ry_] of [[2,2],[36,2],[2,10],[36,10]]){px(g,x+rx_,y+ry_,'#5a463e');px(g,x+rx_,y+ry_+1,'#1a1012')}}
+ //# 구리 파이프 + 플랜지
+ box(g,0,3,BW,4,'#7a3e22');box(g,0,3,BW,1,'#c07a48');box(g,0,6,BW,1,'#3e1c10');
+ for(let x=34;x<BW;x+=96){box(g,x,2,4,6,'#5a2e1a');box(g,x,2,4,1,'#d08a58');box(g,x+1,1,2,1,'#3e1c10')}
+ //# 화구 4개 — 아치 테두리(내화 벽돌) + 어두운 안쪽(불길은 동적) + 쇠창살은 동적 뒤에 다시 그린다
+ for(const fx of FURN){const ay=9;
+  for(let y=ay-2;y<ay+20;y++)for(let x=fx-14;x<fx+14;x++){const o=inArch(x,y,fx,ay-2)&&!inArch(x,y,fx,ay)||(y>=ay+18&&y<ay+20&&Math.abs(x-fx)<14);
+    if(o)px(g,x,y,(x+y)%3===0?'#6a3a2a':'#4a2a20');}
+  for(let y=ay;y<ay+18;y++)for(let x=fx-11;x<fx+11;x++){if(inArch(x,y,fx,ay))px(g,x,y,'#120706');}
+  box(g,fx-13,ay+18,26,1,rgb(GOLD2));}
+ //# 양옆 용암 폭포 프레임(흐름은 동적)
+ for(const [x0,dark] of [[14,0],[762,1]]){box(g,x0-6,38,30,BH-38,'#140b0b');box(g,x0-6,38,2,BH-38,'#3a2826');box(g,x0+22,38,2,BH-38,'#0a0505');
+   box(g,x0,38,18,BH-38,'#2a0a04');for(let y=48;y<BH;y+=26){box(g,x0-6,y,30,2,'#3a2826');px(g,x0-4,y,'#8a6a4a');px(g,x0+21,y,'#8a6a4a')}}
+ //# 재·슬래그 바닥(투기장 바깥 고리)
+ for(let i=0;i<1400;i++){const a=R()*Math.PI*2,r=1.04+R()*.34,x=Math.round(cx+Math.cos(a)*rx*r),y=Math.round(cy+Math.sin(a)*ry*r);if(x<40||x>BW-42||y<40)continue;
+   const k=R();px(g,x,y,k<.55?'#1e1414':k<.85?'#2a1c1a':'#3a2622');}
+ //# 아래 실루엣: 모루 · 주괴 · 쇠사슬
+ const anvil=(ax,ay,c)=>{box(g,ax-12,ay,24,4,c);box(g,ax-16,ay,4,2,c);box(g,ax-6,ay+4,12,4,c);box(g,ax-9,ay+8,18,3,c);box(g,ax-12,ay+11,24,3,c);box(g,ax-12,ay,24,1,'#3a2a28')};
+ anvil(118,BH-15,'#120b0b');anvil(688,BH-15,'#120b0b');
+ for(const [ix,iy] of [[160,BH-6],[172,BH-6],[166,BH-10],[640,BH-6],[652,BH-6]]){box(g,ix,iy,10,4,'#1a0f0d');box(g,ix,iy,10,1,'#4a2e22')}
+ for(let k=0;k<14;k++){const x=210+k*7,y=BH-4-Math.round(Math.sin(k/13*Math.PI)*5);box(g,x,y,5,3,'#161010');px(g,x+1,y,'#3a2a28')}
+ for(let k=0;k<12;k++){const x=520+k*7,y=BH-4-Math.round(Math.sin(k/11*Math.PI)*4);box(g,x,y,5,3,'#161010');px(g,x+1,y,'#3a2a28')}
+ //# 상단 금 코니스(UI풍 공통)
+ box(g,0,28,BW,3,rgb(T.M));box(g,0,31,BW,1,rgb(GOLD2));box(g,0,32,BW,1,rgb(mix(GOLD2,GOLD,.5)));box(g,0,33,BW,2,rgb(T.RL));box(g,0,35,BW,3,'#0a0606');
+ const sh=g.createLinearGradient(0,38,0,80);sh.addColorStop(0,'rgba(0,0,0,.6)');sh.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sh;g.fillRect(0,38,BW,42);
+}
+function arena4(g,T,R){
+ g.fillStyle='#0b0606';g.beginPath();g.ellipse(cx,cy+8,rx+1,ry+1,0,0,7);g.fill();
+ g.fillStyle=T.SIDE;g.beginPath();g.ellipse(cx,cy+6,rx,ry,0,0,7);g.fill();
+ //# 측면 벽 세로 줄눈
+ for(let k=0;k<64;k++){const a=Math.PI*(k/63),x=Math.round(cx+Math.cos(a)*rx),y=Math.round(cy+Math.sin(a)*ry);box(g,x,y+1,1,5,'rgba(0,0,0,.35)')}
+ const id=g.createImageData(BW,BH),d=id.data;
+ for(let y=0;y<BH;y++)for(let x=0;x<BW;x++){
+  const dx=(x-cx)/rx,dy=(y-cy)/ry,r=Math.hypot(dx,dy);if(r>1)continue;let c;
+  if(r>0.945){c=mix(T.RL,T.RH,dy<0?.75:.2+((r-.945)/.055)*.2);if(r>.985)c=mix(c,T.M,.55)}
+  else{const rr=r/.945,ring=Math.floor(rr*14),fr=rr*14-ring,ang=Math.atan2(dy,dx)/(Math.PI*2)+.5,segs=Math.max(8,Math.round(ring*4.4)+6),sa=ang*segs,seg=Math.floor(sa),h=hash(ring,seg);
+   c=mix(T.A,T.B,.15+h*.7);if(fr<.1||(sa-seg)<.05)c=mix(c,T.M,.6);else if(fr>.9)c=mix(c,T.RL,.18);
+   //# 그을음 얼룩 + 중심 열기 반사
+   if(hash(ring*3+7,seg*5+1)>.86)c=mix(c,[18,10,10],.35);
+   c=mix(c,T.LIFT,Math.max(0,1-rr*1.3)*.34);c=mix(c,T.M,Math.max(0,(rr-.7)/.3)*.35)}
+  if(r>.895&&r<.905)c=mix(c,GOLD2,.85);
+  const i=(y*BW+x)*4;d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];d[i+3]=255}
+ const t=document.createElement('canvas');t.width=BW;t.height=BH;t.getContext('2d').putImageData(id,0,0);g.drawImage(t,0,0);
+ for(let k=0;k<12;k++){const a=k/12*Math.PI*2,x=Math.round(cx+Math.cos(a)*rx*.965),y=Math.round(cy+Math.sin(a)*ry*.965);box(g,x-1,y-1,3,2,rgb(GOLD));box(g,x-1,y+1,3,1,rgb(GOLD2))}
+ //# 환기구 8개
+ for(const [vx,vy] of VENTS){box(g,vx-4,vy-2,9,4,'#120a0a');box(g,vx-4,vy-2,9,1,'#5a463e');for(let k=0;k<3;k++)box(g,vx-3+k*3,vy-1,1,2,'#3a1006')}
+ //# 균열 정적: 어두운 홈(본선 2px 깊이) — 발광은 동적
+ CRACKS.forEach(c=>c.px.forEach(p=>{px(g,p[0],p[1],'#1a0604');if(c.depth===0)px(g,p[0],p[1]+1,'#2a0e08')}));
+ //# 중앙 용광로 구덩이: 어두운 쇳물 바닥 + 돌 테두리(쇠창살은 동적 위)
+ for(let y=-PIT.ry-3;y<=PIT.ry+3;y++)for(let x=-PIT.r-4;x<=PIT.r+4;x++){const e=(x*x)/((PIT.r+4)*(PIT.r+4))+(y*y)/((PIT.ry+3)*(PIT.ry+3)),e2=(x*x)/(PIT.r*PIT.r)+(y*y)/(PIT.ry*PIT.ry);
+   if(e2<=1)px(g,cx+x,cy+y,'#2a0804');else if(e<=1)px(g,cx+x,cy+y,(x+y)%4===0?'#5a463e':'#3a2c2a');}
+ for(let i=0;i<70;i++){const a=R()*7,r=.25+Math.sqrt(R())*.6;px(g,cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r,R()<.35?'rgba(120,40,20,.5)':'rgba(0,0,0,.3)')}
+}
+//# 쇠창살 오버레이(구덩이 · 화구) — 발광 위에 다시 그려 창살 사이로만 빛이 보이게
+function grates4(){const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');
+ for(let y=-PIT.ry;y<=PIT.ry;y++)for(let x=-PIT.r;x<=PIT.r;x++){if((x*x)/(PIT.r*PIT.r)+(y*y)/(PIT.ry*PIT.ry)>1)continue;
+   if(((x+PIT.r)%6===0)||((y+PIT.ry)%5===0))px(g,cx+x,cy+y,(y+PIT.ry)%5===0?'#3a2a28':'#241818');}
+ for(const fx of FURN){for(let y=9;y<27;y++)for(let x=fx-11;x<fx+11;x++){if(!inArch(x,y,fx,9))continue;if((x-fx+11)%4===0)px(g,x,y,'#2a1c1a');}box(g,fx-11,20,22,1,'#3a2a28');}
+ return c;}
+//# 균열 발광 블러 소스
+function crackGlow4(){const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');
+ CRACKS.forEach(k=>k.px.forEach(p=>{g.fillStyle='rgb(255,110,50)';g.fillRect(p[0]-1,p[1]-1,3,3)}));
+ //# 블러는 한 번만 굽는다(프레임마다 filter 를 걸지 않음)
+ const b=document.createElement('canvas');b.width=BW;b.height=BH;const bg=b.getContext('2d');bg.filter='blur(3px)';bg.drawImage(c,0,0);return b;}
+
+function makeScene4(T){
+ const R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');
+ surround4(g,T,R);arena4(g,T,R);
+ const GR=grates4(),CG=crackGlow4();
+ const P=Array.from({length:70},()=>({x:0,y:-10,vx:0,vy:0,life:0,max:1}));
+ const spawnSpark=(p,x,y,burst)=>{p.x=x;p.y=y;p.vx=(Math.random()-.5)*(burst?1.6:.35);p.vy=-(burst?.9+Math.random()*1.2:.35+Math.random()*.55);p.life=0;p.max=burst?40+Math.random()*30:110+Math.random()*90;};
+ let pi=0;const emit=(x,y,b)=>{spawnSpark(P[pi],x,y,b);pi=(pi+1)%P.length;};
+ for(let i=0;i<P.length;i++){spawnSpark(P[i],Math.random()*BW,BH*Math.random(),false);P[i].life=Math.random()*P[i].max;}
+ const ash=[];for(let i=0;i<60;i++){const a=Math.random()*7,r=1.05+Math.random()*.3;ash.push({x:Math.round(cx+Math.cos(a)*rx*r),y:Math.round(cy+Math.sin(a)*ry*r),p:Math.random()*7});}
+ const smoke=Array.from({length:6},(_,i)=>({x:i*150,y:44+(i%3)*6,v:.12+Math.random()*.1}));
+ let pour={i:-1,t0:-9},nextPour=2500,ventT=0;
+ const sparkCol=k=>k<.25?'255,240,170':k<.55?'255,170,80':k<.8?'240,100,40':'160,40,20';
+ //# 도트 발광 버퍼 — 픽셀마다 fillRect 를 부르면 프레임당 0.9초가 걸려 ImageData 에 한 번에 쓴다
+ const FX=document.createElement('canvas');FX.width=BW;FX.height=BH;const fxg=FX.getContext('2d'),buf=fxg.createImageData(BW,BH),bd=buf.data;
+ const HOT=[255,225,150],MID=[255,140,60],LOW=[200,60,20];
+ const put=(x,y,v,hi,mi)=>{if(v<=0)return;const c=v>hi?HOT:v>mi?MID:LOW,i=((y|0)*BW+(x|0))*4,a=Math.min(255,v*255|0);bd[i]=c[0];bd[i+1]=c[1];bd[i+2]=c[2];bd[i+3]=a;};
+ return function(c,t){
+  c.globalCompositeOperation='source-over';c.drawImage(st,0,0);
+  const pul=.6+.4*Math.sin(t/900);
+  //# 연기(발광 전, 어둡게)
+  for(const s of smoke){s.x+=s.v;if(s.x>BW+140)s.x=-140;glow(c,s.x,s.y,90,'20,12,12',.35)}
+  c.globalCompositeOperation='lighter';
+  bd.fill(0);
+  //# 화구 불길 + 분출
+  if(t>nextPour){pour={i:Math.floor(Math.random()*4),t0:t};nextPour=t+4000+Math.random()*4000;}
+  FURN.forEach((fx,i)=>{const pk=pour.i===i?Math.max(0,1-(t-pour.t0)/900):0,f=.65+.35*Math.sin(t/110+fx)+pk*.8;
+   for(let y=9;y<27;y++)for(let x=fx-11;x<fx+11;x++){if(!inArch(x,y,fx,9))continue;const h=(27-y)/18,n=.5+.5*Math.sin(x*1.7+t/90+y*.9);const v=(1-h)*.8*f+n*.25*f;
+     if(v>.15)put(x,y,v,.7,.45);}
+   glow(c,fx,20,40+pk*30,T.GL,.28*f);
+   if(pk>.8&&Math.random()<.6)for(let k=0;k<3;k++)emit(fx+(Math.random()-.5)*14,26,true);});
+  //# 용암 폭포 흐름(도트, 세로 줄기 + 아래로 흐르는 띠)
+  for(const [x0,dark] of [[14,0],[762,1]]){const m=dark?.6:1;
+   for(let y=38;y<BH;y++)for(let x=x0;x<x0+18;x++){const col=x-x0,edge=Math.min(col,17-col),n=.28*Math.sin(col*1.9+1.3)+.22*Math.sin((y-t/28)*.16+col*.35)+.18*Math.sin((y-t/17)*.37-col*.2);
+     put(x,y,(.42+n+(edge<2?-.18:0))*m*.9,.75,.5);}
+   glow(c,x0+9,BH*.55,70,T.GL,.12*m);}
+  //# 균열 도트 흐름(중심 → 바깥)
+  CRACKS.forEach(k=>k.px.forEach(p=>{const w=.5+.5*Math.sin(t/260-p[2]/5);put(p[0],p[1],(k.depth===0?.45:.3)+.55*w,.85,.6);}));
+  //# 구덩이 쇳물
+  const boil=.55+.45*Math.sin(t/500)*Math.sin(t/170);
+  for(let y=-PIT.ry;y<=PIT.ry;y++)for(let x=-PIT.r;x<=PIT.r;x++){const e=(x*x)/(PIT.r*PIT.r)+(y*y)/(PIT.ry*PIT.ry);if(e>1)continue;
+    const n=.5+.5*Math.sin(x*.9+t/210)*Math.cos(y*1.3-t/330);put(cx+x,cy+y,(1-e*.6)*(.5+.4*boil)+n*.25,.85,.6);}
+  fxg.putImageData(buf,0,0);c.drawImage(FX,0,0);
+  //# 균열 블러 글로우
+  c.save();c.globalAlpha=.22+.18*pul;c.drawImage(CG,0,0);c.restore();
+  glow(c,cx,cy,80,T.GL,.12+.10*boil);
+  //# 바깥 룬 점선(엠버, 천천히 회전)
+  for(let k=0;k<48;k++){const a=k/48*Math.PI*2+t/9000,x=cx+Math.cos(a)*rx*.55,y=cy+Math.sin(a)*ry*.55,l=.5+.5*Math.sin(t/600+k);c.fillStyle='rgba('+T.GL+','+(.12+.28*l*pul).toFixed(2)+')';c.fillRect(Math.round(x),Math.round(y),2,1)}
+  //# 스포너 자리
+  for(const [x,y] of SLOTS){ell(c,x,y+4,12,5,'rgba(247,198,74,.5)',1);}
+  //# 재 속 불씨 깜빡임
+  for(const a of ash){const v=Math.max(0,Math.sin(t/700+a.p*3));if(v>.6){c.fillStyle='rgba(255,120,50,'+((v-.6)*1.6).toFixed(2)+')';c.fillRect(a.x,a.y,1,1);}}
+  //# 환기구 불똥
+  ventT+=1;if(ventT%18===0){const v=VENTS[Math.floor(Math.random()*VENTS.length)];emit(v[0],v[1]-2,true);}
+  //# 불똥 입자
+  for(const p of P){p.life++;if(p.life>p.max||p.y<-4){spawnSpark(p,40+Math.random()*(BW-80),BH-10-Math.random()*60,false);}
+    p.x+=p.vx+Math.sin(t/500+p.max)*.08;p.y+=p.vy;p.vy*=.995;const k=p.life/p.max;c.fillStyle='rgba('+sparkCol(k)+','+(1-k*.7).toFixed(2)+')';c.fillRect(Math.round(p.x),Math.round(p.y),1,k<.5?2:1);}
+  //# 열 아지랑이(폭포 · 중앙 주변만)
+  for(let k=0;k<6;k++){const yy=cy-30+k*12+Math.sin(t/480+k)*2;c.fillStyle='rgba(255,150,90,'+(.02+.015*Math.sin(t/700+k)).toFixed(3)+')';c.fillRect(cx-90,yy,180,3);}
+  c.globalCompositeOperation='source-over';
+  c.drawImage(GR,0,0);
+  const v=c.createRadialGradient(cx,BH/2,BH*.28,cx,BH/2,BW*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(4,2,2,.6)');c.fillStyle=v;c.fillRect(0,0,BW,BH);
+ };
+}
+//# 정적 베이스(PNG 추출용) — 승인 후 사용: 균열·화구·구덩이·폭포를 정적 밝기로 굽는다
+window.__ch4Static=function(){const T=TH[4],R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');surround4(g,T,R);arena4(g,T,R);g.drawImage(grates4(),0,0);return st;};
+
 function makeScene(ch){
+ if(ch==4)return makeScene4(TH[4]);
  const T=TH[ch],R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');
  surround(g,ch,R);arena(g,ch,R);
  const P=[];for(let i=0;i<60;i++)P.push({x:Math.random()*BW,y:Math.random()*BH,s:.1+Math.random()*.25,p:Math.random()*6,c:Math.random()<.8?T.GL:T.GL2});
