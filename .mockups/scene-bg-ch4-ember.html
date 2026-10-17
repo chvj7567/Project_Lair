@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>배틀 배경 4장 불꽃의 용광로 - 3장 대비 신규 시안</title>
+<style>
+:root{--bg:#0b0d12;--fg:#e5e7eb;--muted:#9ca3af;--line:#262b36;--card:#141821;--acc:#ff6a3d;--gold:#f7c64a;--gold2:#b9832a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0}h2{font-size:17px;margin:0 0 6px}
+p.sub{color:var(--muted);font-size:13.5px;margin:0 0 6px}
+section{margin:26px 0;padding-top:12px;border-top:1px solid var(--line)}
+.stage{position:relative;width:100%;background:#000;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stage canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cap{font-size:12.5px;color:var(--muted);margin:4px 0 0}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.ctl button{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:4px 10px;font:inherit;font-size:12.5px;min-height:30px;cursor:pointer}
+.ctl button.on{background:var(--acc);border-color:var(--acc);color:#07090e}
+ul{margin:6px 0 0;padding-left:18px;font-size:13px}li{margin:2px 0}
+.sw{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.sw span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);font-family:ui-monospace,monospace}
+.sw i{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);display:inline-block}
+.hud{position:absolute;inset:0;pointer-events:none;display:none}
+.hud div{position:absolute;border:2px dashed rgba(255,255,255,.55);background:rgba(8,11,18,.45);font:10px monospace;color:#fff;padding:2px 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>배틀 배경 4장 "불꽃의 용광로" - 3장 대비 신규 시안</h1>
+<p class="sub">1600x704 도트(캔버스 800x352 의 2배 확대). 기존 UI풍(금 코니스 · 림 리벳 · 발광 · 비네트)을 유지하고 장별 팔레트와 연출만 바꾼다. 위: 4장 단독, 아래: 3장(현행)과 4장을 같은 코드로 나란히 렌더. 기획서 <code>docs/design/chapter-4.md</code> §6.</p>
+<div class="sw">
+<span><i style="background:#241a1c"></i>A 석재</span><span><i style="background:#372729"></i>B 석재</span><span><i style="background:#7a5a52"></i>림 하이</span><span><i style="background:#4d3a3a"></i>림 로우</span>
+<span><i style="background:#ff6a3d"></i>엠버 GL</span><span><i style="background:#f7c64a"></i>금 GL2</span><span><i style="background:#b9832a"></i>금 코니스</span>
+</div>
+
+<section>
+<h2>4장 단독 (HUD 영역 가이드 토글)</h2>
+<div class="ctl"><button id="hudBtn" class="on">HUD 영역 표시</button></div>
+<div class="stage"><canvas id="c4" width="800" height="352"></canvas><div class="hud" id="hud" style="display:block"></div></div>
+<ul>
+<li><b>상단 벽</b> - 철판 벽돌 + 가로 파이프 + 금 코니스. 굴뚝 기둥 4개의 화구에서 불꽃이 깜빡임</li>
+<li><b>걸이 장식</b> - 금 테두리 철 방패 문장 3개가 엠버로 호흡</li>
+<li><b>바닥</b> - 동심원 벽돌 + 금 인레이 + 용암 균열 9줄이 엠버로 맥동, 중심 반사광은 엠버(LIFT 130,58,28)</li>
+<li><b>룬 링 / 제단</b> - 룬 링 점선이 천천히 회전, 중앙 이중 링은 엠버 발광 (3장은 바이올렛)</li>
+<li><b>입자</b> - 불씨가 위로 빠르게 솟음(소울 먼지의 1.8배, 세로 2px) + 연기 덩어리가 바닥을 가로지름 + 열 아지랑이 띠 10줄</li>
+<li><b>분출</b> - 4~8초마다 용광로 분출 플래시(3장 번개와 같은 주기 구조). 림을 따라 도는 불씨 3개</li>
+<li>HUD 가독성을 위해 가장자리·상단은 어둡게 유지. 6개 스포너 슬롯 자리는 어두운 금 링만 표시</li>
+</ul>
+</section>
+
+<section>
+<h2>비교: 3장 그림자 성채(현행) vs 4장 불꽃의 용광로(신규)</h2>
+<div class="pair">
+<div><div class="stage"><canvas id="c3" width="800" height="352"></canvas></div><p class="cap">3장 - 바이올렛 181,140,255 / 도깨비불 / 번개</p></div>
+<div><div class="stage"><canvas id="c4b" width="800" height="352"></canvas></div><p class="cap">4장 - 엠버 255,106,61 / 불씨 / 용광로 분출</p></div>
+</div>
+<ul>
+<li>발광 색상각: 1장 소울 그린 / 2장 라임 / 3장 바이올렛 / 4장 엠버 주홍(14°) - 서로 겹치지 않고 UI 금(43°)과도 구분</li>
+<li>3장 코드(<code>scene-bg-battle-chapters.html</code> 의 <code>TH</code> / <code>surround</code> / <code>arena</code> / <code>makeScene</code>)를 그대로 복사하고 <code>TH[4]</code> 만 추가해 구조 일관성을 확인</li>
+</ul>
+</section>
+<p class="sub">승인 시 다음 단계: <code>Battle_Backdrop_EmberForge.png</code> 정적 베이스 추출 -> Unity 교체 (기획서 §6.1 규격).</p>
+</div>
+
+<script>
+const rng=s=>()=>(s=(s*1664525+1013904223)>>>0)/4294967296;
+const hash=(a,b)=>{let h=(a*374761393+b*668265263)>>>0;h=(h^(h>>>13))*1274126177>>>0;return((h^(h>>>16))>>>0)/4294967296};
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const rgb=c=>`rgb(${c.map(v=>Math.round(v)).join(',')})`;
+const GOLD=hex('#f7c64a'),GOLD2=hex('#b9832a');
+const BW=800,BH=352,cx=400,cy=182,rx=310,ry=130;
+function glow(g,x,y,r,col,a){const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,`rgba(${col},${a})`);q.addColorStop(1,`rgba(${col},0)`);g.fillStyle=q;g.fillRect(x-r,y-r,r*2,r*2)}
+function ell(g,x,y,rw,rh,col,lw){g.strokeStyle=col;g.lineWidth=lw;g.beginPath();g.ellipse(x,y,rw,rh,0,0,7);g.stroke()}
+
+//# 장별 테마 (3장은 scene-bg-battle-chapters.html 과 동일 값, 4장 신규)
+const TH={
+ 3:{bg:'#07060f',A:hex('#1b1a30'),B:hex('#2a284a'),M:hex('#0c0b18'),RH:hex('#5c5a88'),RL:hex('#3c3a62'),SIDE:'#18162a',LIFT:[90,70,150],GL:'181,140,255',GL2:'247,198,74',seed:19},
+ 4:{bg:'#0b0606',A:hex('#241a1c'),B:hex('#372729'),M:hex('#150d0e'),RH:hex('#7a5a52'),RL:hex('#4d3a3a'),SIDE:'#201516',LIFT:[130,58,28],GL:'255,106,61',GL2:'247,198,74',seed:23}
+};
+//# 용암 균열 폴리라인 (4장, 시드 고정)
+const CR=(()=>{const R=rng(77),a=[];for(let i=0;i<9;i++){let ang=R()*7,r=.12+R()*.2;const pts=[];for(let k=0;k<7;k++){pts.push([cx+Math.cos(ang)*rx*r,cy+Math.sin(ang)*ry*r]);ang+=(R()-.5)*.7;r+=.08+R()*.07}a.push(pts)}return a})();
+function strokePts(g,pts){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke()}
+
+function surround(g,ch,R){
+ const T=TH[ch];g.fillStyle=T.bg;g.fillRect(0,0,BW,BH);
+ if(ch==3){ //# 성벽 + 기둥 (원본 복사)
+  g.fillStyle='#0e0d1c';for(let x=0;x<BW;x+=22){g.fillRect(x,0,14,7)}
+  for(let y=7;y<30;y+=7)for(let x=-((y/7)%2)*8;x<BW;x+=16){g.fillStyle=rgb(mix(T.A,T.B,R()*.8));g.fillRect(x,y,15,6);g.fillStyle='rgba(255,255,255,.04)';g.fillRect(x,y,15,1)}
+  for(const px of [66,270,525,730]){g.fillStyle=rgb(T.RL);g.fillRect(px-5,0,10,31);g.fillStyle=rgb(T.RH);g.fillRect(px-5,0,1,31);g.fillStyle=rgb(GOLD2);g.fillRect(px-6,6,12,1);g.fillRect(px-6,26,12,1)}
+  for(const [x0,w] of [[0,28],[40,26],[742,26],[772,28]]){g.fillStyle=rgb(mix(T.M,T.A,.7));g.fillRect(x0,0,w,BH);for(let y=14;y<BH;y+=30){g.fillStyle='rgba(255,255,255,.05)';g.fillRect(x0,y,w,1);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x0,y+1,w,1)}}
+  g.fillStyle='#0a0914';for(let x=0;x<BW;x+=36){const r=5+hash(x,5)*8;g.beginPath();g.arc(x,BH,r,Math.PI,0);g.fill()}
+ }
+ if(ch==4){ //# 용광로 벽 - 철판 벽돌 + 가로 파이프 + 굴뚝 기둥
+  for(let y=0;y<28;y+=7)for(let x=-((y/7)%2)*8;x<BW;x+=16){g.fillStyle=rgb(mix(T.A,T.B,R()*.8));g.fillRect(x,y,15,6);g.fillStyle='rgba(255,255,255,.04)';g.fillRect(x,y,15,1)}
+  g.fillStyle='#2b2022';g.fillRect(0,12,BW,4);g.fillStyle=rgb(T.RL);g.fillRect(0,12,BW,1);
+  for(let x=20;x<BW;x+=70){g.fillStyle='#6a4a40';g.fillRect(x,10,4,8);g.fillStyle=rgb(GOLD2);g.fillRect(x,13,4,1)}
+  for(const px of [66,270,525,730]){g.fillStyle=rgb(T.RL);g.fillRect(px-5,0,10,31);g.fillStyle=rgb(T.RH);g.fillRect(px-5,0,1,31);g.fillStyle=rgb(GOLD2);g.fillRect(px-6,6,12,1);g.fillRect(px-6,26,12,1);g.fillStyle='#0d0808';g.fillRect(px-3,14,6,8)}
+  for(const [x0,w] of [[0,28],[40,26],[742,26],[772,28]]){g.fillStyle=rgb(mix(T.M,T.A,.7));g.fillRect(x0,0,w,BH);for(let y=14;y<BH;y+=30){g.fillStyle='rgba(255,255,255,.05)';g.fillRect(x0,y,w,1);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x0,y+1,w,1);g.fillStyle='rgba(247,198,74,.35)';g.fillRect(x0+3,y+4,1,1);g.fillRect(x0+w-4,y+4,1,1)}}
+  g.fillStyle='#0a0606';for(let x=0;x<BW;x+=36){const r=5+hash(x,9)*8;g.beginPath();g.arc(x,BH,r,Math.PI,0);g.fill()}
+ }
+ //# 상단 금 코니스 (UI풍 공통)
+ g.fillStyle=rgb(T.M);g.fillRect(0,28,BW,3);g.fillStyle=rgb(GOLD2);g.fillRect(0,31,BW,1);g.fillStyle=rgb(mix(GOLD2,GOLD,.5));g.fillRect(0,32,BW,1);g.fillStyle=rgb(T.RL);g.fillRect(0,33,BW,2);g.fillStyle='#0a0d15';g.fillRect(0,35,BW,3);
+ const sh=g.createLinearGradient(0,38,0,80);sh.addColorStop(0,'rgba(0,0,0,.6)');sh.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sh;g.fillRect(0,38,BW,42);
+ if(ch==3){for(const bx of [150,400,650]){g.fillStyle=rgb(GOLD2);g.fillRect(bx-9,8,18,1);g.fillStyle='#5a2480';g.fillRect(bx-8,9,16,24);g.fillStyle='#3a1658';g.fillRect(bx-8,9,2,24);g.fillStyle='#0a0914';g.beginPath();g.moveTo(bx-8,33);g.lineTo(bx,27);g.lineTo(bx+8,33);g.fill();g.fillStyle=rgb(GOLD);g.fillRect(bx-1,15,3,7);g.fillRect(bx-3,17,7,3)}}
+ if(ch==4){for(const bx of [150,400,650]){ //# 철 방패 문장 - 금 테두리
+   g.fillStyle=rgb(GOLD2);g.fillRect(bx-9,8,18,1);g.fillStyle='#3a2a2c';g.fillRect(bx-8,9,16,22);g.fillStyle='#241a1c';g.fillRect(bx-8,9,2,22);g.fillStyle='#0a0606';g.beginPath();g.moveTo(bx-8,31);g.lineTo(bx,38);g.lineTo(bx+8,31);g.fill();
+   g.fillStyle=rgb(GOLD2);g.fillRect(bx-8,9,16,1);g.fillRect(bx-8,30,16,1);g.fillStyle='#6a2a18';g.fillRect(bx-1,15,3,10);g.fillRect(bx-4,19,9,3)}}
+ //# 링 주변 장식 입자
+ if(ch==3)for(let i=0;i<380;i++){const a=R()*7,r=1.06+R()*.22;g.fillStyle=R()<.7?'rgba(110,100,255,.55)':'rgba(190,120,230,.5)';g.fillRect(Math.round(cx+Math.cos(a)*rx*r),Math.round(cy+Math.sin(a)*ry*r),1,1)}
+ if(ch==4)for(let i=0;i<380;i++){const a=R()*7,r=1.06+R()*.22;g.fillStyle=R()<.7?'rgba(220,100,50,.5)':'rgba(120,70,60,.55)';g.fillRect(Math.round(cx+Math.cos(a)*rx*r),Math.round(cy+Math.sin(a)*ry*r),1,1)}
+}
+function arena(g,ch,R){
+ const T=TH[ch];
+ g.fillStyle='#0b0f18';g.beginPath();g.ellipse(cx,cy+8,rx+1,ry+1,0,0,7);g.fill();
+ g.fillStyle=T.SIDE;g.beginPath();g.ellipse(cx,cy+6,rx,ry,0,0,7);g.fill();
+ const id=g.createImageData(BW,BH),d=id.data;
+ for(let y=0;y<BH;y++)for(let x=0;x<BW;x++){
+  const dx=(x-cx)/rx,dy=(y-cy)/ry,r=Math.hypot(dx,dy);if(r>1)continue;let c;
+  if(r>0.945){c=mix(T.RL,T.RH,dy<0?.75:.2+((r-.945)/.055)*.2);if(r>.985)c=mix(c,T.M,.55)}
+  else{const rr=r/.945,ring=Math.floor(rr*14),fr=rr*14-ring,ang=Math.atan2(dy,dx)/(Math.PI*2)+.5,segs=Math.max(8,Math.round(ring*4.4)+6),sa=ang*segs,seg=Math.floor(sa),h=hash(ring,seg);
+   c=mix(T.A,T.B,.15+h*.7);if(fr<.1||(sa-seg)<.05)c=mix(c,T.M,.6);else if(fr>.9)c=mix(c,T.RL,.18);
+   c=mix(c,T.LIFT,Math.max(0,1-rr*1.25)*.30);c=mix(c,T.M,Math.max(0,(rr-.7)/.3)*.35)}
+  if(r>.895&&r<.905)c=mix(c,GOLD2,.85);
+  const i=(y*BW+x)*4;d[i]=c[0];d[i+1]=c[1];d[i+2]=c[2];d[i+3]=255}
+ const t=document.createElement('canvas');t.width=BW;t.height=BH;t.getContext('2d').putImageData(id,0,0);g.drawImage(t,0,0);
+ for(let k=0;k<12;k++){const a=k/12*Math.PI*2,x=Math.round(cx+Math.cos(a)*rx*.965),y=Math.round(cy+Math.sin(a)*ry*.965);g.fillStyle=rgb(GOLD);g.fillRect(x-1,y-1,3,2);g.fillStyle=rgb(GOLD2);g.fillRect(x-1,y+1,3,1)}
+ if(ch==4){g.strokeStyle='rgba(120,36,14,.7)';g.lineWidth=1.2;for(const p of CR)strokePts(g,p)} //# 용암 균열 정적 베이스
+ for(let i=0;i<70;i++){const a=R()*7,r=Math.sqrt(R())*.85;g.fillStyle=R()<.3?'rgba(120,30,40,.35)':'rgba(0,0,0,.25)';g.fillRect(Math.round(cx+Math.cos(a)*rx*r),Math.round(cy+Math.sin(a)*ry*r),1+(R()*3|0),1)}
+}
+const SLOTS=[0,60,120,180,240,300].map(a=>[cx+Math.cos(a*Math.PI/180)*rx*.78,cy+Math.sin(a*Math.PI/180)*ry*.78]);
+function makeScene(ch){
+ const T=TH[ch],R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');
+ surround(g,ch,R);arena(g,ch,R);
+ const P=[];for(let i=0;i<60;i++)P.push({x:Math.random()*BW,y:Math.random()*BH,s:.1+Math.random()*.25,p:Math.random()*6,c:Math.random()<.8?T.GL:T.GL2});
+ const smoke=Array.from({length:5},(_,i)=>({x:i*180,y:BH-44+(i%3)*8,v:.25+Math.random()*.2}));
+ let flash=0,nextFlash=3000;
+ return function(c,t){
+  c.globalCompositeOperation='source-over';c.drawImage(st,0,0);c.globalCompositeOperation='lighter';
+  const pul=.6+.4*Math.sin(t/900);
+  //# 공통: 룬 링 + 중앙 제단
+  for(let k=0;k<48;k++){const a=k/48*Math.PI*2+t/9000,x=cx+Math.cos(a)*rx*.55,y=cy+Math.sin(a)*ry*.55,l=.5+.5*Math.sin(t/600+k);c.fillStyle=`rgba(${T.GL},${.14+.32*l*pul})`;c.fillRect(Math.round(x),Math.round(y),2,1)}
+  ell(c,cx,cy,rx*.13,ry*.13,`rgba(${T.GL},${.5+.4*pul})`,1.5);ell(c,cx,cy,rx*.085,ry*.085,`rgba(${T.GL},${.3+.3*pul})`,1);glow(c,cx,cy,70,T.GL,.10+.08*pul);
+  for(const [x,y] of SLOTS){ell(c,x,y+4,12,5,'rgba(247,198,74,.55)',1);glow(c,x,y,18,'247,198,74',.05)}
+  if(ch==3){
+   for(const bx of [150,400,650]){const l=.5+.5*Math.sin(t/800+bx);glow(c,bx,20,24,'247,198,74',.10+.10*l);c.fillStyle=`rgba(247,198,74,${.35+.35*l})`;c.fillRect(bx-1,15,3,7);c.fillRect(bx-3,17,7,3)}
+   for(let i=0;i<3;i++){const a=t/3500+i*2.09,x=cx+Math.cos(a)*rx*.97,y=cy+Math.sin(a)*ry*.97;glow(c,x,y,22,'150,130,255',.34);c.fillStyle='rgba(210,200,255,.9)';c.fillRect(Math.round(x)-1,Math.round(y)-1,3,3)}
+   if(t>nextFlash){flash=1;nextFlash=t+4000+Math.random()*4000}
+   if(flash>0){c.fillStyle=`rgba(200,180,255,${.22*flash})`;c.fillRect(0,0,BW,60);glow(c,Math.random()*BW,20,90,'190,170,255',.25*flash);flash-=.05}
+   for(let i=0;i<4;i++){const x=((t/60+i*220)%1000)-120,a=.05+.02*Math.sin(t/1500+i);glow(c,x,BH-40+i*6,120,'150,130,220',a)}
+   for(const e of P){e.y-=e.s*1.6;e.x+=Math.sin(t/1400+e.p)*.15;if(e.y<-4){e.y=BH+4;e.x=Math.random()*BW}c.fillStyle=`rgba(${e.c},${.25+.35*Math.sin(t/500+e.p)**2})`;c.fillRect(Math.round(e.x),Math.round(e.y),1,2)}
+  }
+  if(ch==4){
+   //# 굴뚝 화구 불꽃
+   for(const px of [66,270,525,730]){const f=.7+.3*Math.sin(t/110+px);glow(c,px,18,38,T.GL,.34*f);c.fillStyle=`rgba(255,170,90,${.85*f})`;c.fillRect(px-2,15,4,6);c.fillStyle=`rgba(255,240,200,${.8*f})`;c.fillRect(px-1,17,2,3)}
+   //# 방패 문장 호흡
+   for(const bx of [150,400,650]){const l=.5+.5*Math.sin(t/800+bx);glow(c,bx,20,24,T.GL,.10+.10*l);c.fillStyle=`rgba(255,106,61,${.35+.35*l})`;c.fillRect(bx-1,15,3,10);c.fillRect(bx-4,19,9,3)}
+   //# 용암 균열 맥동
+   c.lineWidth=1.2;c.strokeStyle=`rgba(255,106,61,${.25+.45*pul})`;for(const p of CR)strokePts(c,p);
+   //# 림 순회 불씨
+   for(let i=0;i<3;i++){const a=t/3500+i*2.09,x=cx+Math.cos(a)*rx*.97,y=cy+Math.sin(a)*ry*.97;glow(c,x,y,22,'255,130,70',.34);c.fillStyle='rgba(255,220,170,.9)';c.fillRect(Math.round(x)-1,Math.round(y)-1,3,3)}
+   //# 열 아지랑이 띠
+   for(let k=0;k<10;k++){c.fillStyle=`rgba(255,150,90,${.025+.02*Math.sin(t/700+k)})`;c.fillRect(0,60+k*26+Math.sin(t/500+k)*3,BW,6)}
+   //# 용광로 분출 플래시
+   if(t>nextFlash){flash=1;nextFlash=t+4000+Math.random()*4000}
+   if(flash>0){c.fillStyle=`rgba(255,150,80,${.22*flash})`;c.fillRect(0,0,BW,60);glow(c,Math.random()*BW,20,90,'255,140,70',.25*flash);flash-=.05}
+   //# 연기 덩어리
+   for(const s of smoke){s.x+=s.v;if(s.x>BW+120)s.x=-120;glow(c,s.x,s.y,110,'120,90,80',.05)}
+   //# 불씨 입자 - 소울 먼지의 1.8배 속도, 세로 2px
+   for(const e of P){e.y-=e.s*1.8*1.6;e.x+=Math.sin(t/900+e.p)*.25;if(e.y<-4){e.y=BH+4;e.x=Math.random()*BW}c.fillStyle=`rgba(${e.c},${.3+.4*Math.sin(t/300+e.p)**2})`;c.fillRect(Math.round(e.x),Math.round(e.y),1,2)}
+  }
+  c.globalCompositeOperation='source-over';
+  const v=c.createRadialGradient(cx,BH/2,BH*.28,cx,BH/2,BW*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(2,4,10,.62)');c.fillStyle=v;c.fillRect(0,0,BW,BH);
+ }
+}
+//# 페이지 조립
+const draws=[['c4',4],['c3',3],['c4b',4]].map(([id,ch])=>[document.getElementById(id).getContext('2d'),makeScene(ch)]);
+//# HUD 영역 가이드 (scene-bg-ui-style.html 과 같은 비율)
+const hud=document.getElementById('hud');
+hud.innerHTML=[[18.5,2.5,8.5,9,'남은 시간'],[28,2.5,45,7,'영웅 HP'],[73.5,2.5,9,9,'액티브'],[86,17,13,50,'시너지·빌드'],[10.5,89,80,10,'몬스터 슬롯']].map(([x,y,w,h,t])=>`<div style="left:${x}%;top:${y}%;width:${w}%;height:${h}%">${t}</div>`).join('');
+const hb=document.getElementById('hudBtn');
+hb.onclick=()=>{const on=hud.style.display==='none';hud.style.display=on?'block':'none';hb.classList.toggle('on',on)};
+requestAnimationFrame(function f(t){draws.forEach(([c,d])=>d(c,t));requestAnimationFrame(f)});
+</script>
+</body>
+</html>
