@@ -1108,7 +1108,7 @@ async function exportAll(){
 }
 const EXPORT_MODE=new URLSearchParams(location.search).get('export')==='1';
 init();
-if(EXPORT_MODE){exportAll();}
+if(EXPORT_MODE){window.__api={getFrame:getFrame,GW:GW,GH:GH,AX:AX,AY:AY,CS:CS};exportAll();}
 })();
 </script>
 </body>

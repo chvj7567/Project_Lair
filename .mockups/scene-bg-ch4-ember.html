@@ -289,6 +289,18 @@ function makeScene4(T){
  };
 }
 //# 정적 베이스(PNG 추출용) — 승인 후 사용: 균열·화구·구덩이·폭포를 정적 밝기로 굽는다
+//# 승인 후 PNG 용 — 게임에 동적 연출이 아직 없으므로 균열·폭포·구덩이·화구를 중간 밝기로 정적 발광시켜 굽는다(쇠창살·비네트는 호출 측)
+window.__ch4Baked=function(){const T=TH[4],R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');surround4(g,T,R);arena4(g,T,R);
+ const FXc=document.createElement('canvas');FXc.width=BW;FXc.height=BH;const fg=FXc.getContext('2d'),buf=fg.createImageData(BW,BH),bd=buf.data;
+ const put=(x,y,v,hi,mi)=>{if(v<=0)return;const c=v>hi?[255,225,150]:v>mi?[255,140,60]:[200,60,20],i=((y|0)*BW+(x|0))*4;bd[i]=c[0];bd[i+1]=c[1];bd[i+2]=c[2];bd[i+3]=Math.min(255,v*255|0);};
+ for(const [x0,dark] of [[14,0],[762,1]]){const m=dark?.6:1;for(let y=38;y<BH;y++)for(let x=x0;x<x0+18;x++){const col=x-x0,edge=Math.min(col,17-col),n=.28*Math.sin(col*1.9+1.3)+.22*Math.sin(y*.16+col*.35)+.18*Math.sin(y*.37-col*.2);put(x,y,(.42+n+(edge<2?-.18:0))*m*.9,.75,.5);}}
+ CRACKS.forEach(k=>k.px.forEach(p=>put(p[0],p[1],(k.depth===0?.55:.4)+.25*Math.sin(p[2]/5),.85,.6)));
+ for(let y=-PIT.ry;y<=PIT.ry;y++)for(let x=-PIT.r;x<=PIT.r;x++){const e=(x*x)/(PIT.r*PIT.r)+(y*y)/(PIT.ry*PIT.ry);if(e>1)continue;put(cx+x,cy+y,(1-e*.6)*.7+.2*Math.sin(x*.9)*Math.cos(y*1.3),.85,.6);}
+ FURN.forEach(fx=>{for(let y=9;y<27;y++)for(let x=fx-11;x<fx+11;x++){if(!inArch(x,y,fx,9))continue;const h=(27-y)/18;put(x,y,(1-h)*.7+.2*Math.sin(x*1.7+y*.9),.7,.45);}});
+ fg.putImageData(buf,0,0);g.globalCompositeOperation='lighter';g.drawImage(FXc,0,0);
+ const cg=crackGlow4();g.globalAlpha=.3;g.drawImage(cg,0,0);g.globalAlpha=1;
+ for(const fx of FURN)glow(g,fx,20,40,T.GL,.3);for(const x0 of [14,762])glow(g,x0+9,BH*.55,70,T.GL,.12);glow(g,cx,cy,80,T.GL,.2);
+ g.globalCompositeOperation='source-over';g.drawImage(grates4(),0,0);return st;};
 window.__ch4Static=function(){const T=TH[4],R=rng(T.seed),st=document.createElement('canvas');st.width=BW;st.height=BH;const g=st.getContext('2d');surround4(g,T,R);arena4(g,T,R);g.drawImage(grates4(),0,0);return st;};
 
 function makeScene(ch){
