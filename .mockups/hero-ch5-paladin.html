@@ -1,0 +1,1044 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>성기사 영웅 2D 시안 (서리 대성당 · 챕터 5 · 부위 리그 프레임)</title>
+<style>
+:root{--bg:#eef0f3;--fg:#111827;--muted:#4b5563;--line:#d3d7de;--card:#ffffff;--game:#1F2937;--panel:#262626;--acc:#FBBF24;--txt:#F9FAFB;--sub:#9CA3AF}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0f14;--fg:#e5e7eb;--muted:#9ca3af;--line:#2a2f3a;--card:#171a21}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;line-height:1.45;overflow-x:hidden}
+.wrap{max-width:1120px;margin:0 auto;padding:12px}
+h1{font-size:21px;margin:2px 0 4px}
+h2{font-size:16px;margin:0 0 6px}
+h3{font-size:14px;margin:12px 0 6px}
+p{margin:0 0 8px}
+code{word-break:break-all}
+.lead{color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px}
+.lbl{font-size:12px;color:var(--muted)}
+.btn{appearance:none;border:1.5px solid #fff;background:var(--panel);color:#fff;border-radius:8px;padding:4px 9px;font:inherit;font-size:12.5px;line-height:1.2;min-height:30px;cursor:pointer}
+.btn:hover{filter:brightness(1.2)}
+.btn.on{background:var(--acc);border-color:var(--acc);color:#111}
+.btn.sm{font-size:11.5px;padding:2px 6px;min-height:26px;border-width:1px}
+.note{font-size:12px;color:var(--muted)}
+.ok{color:#16a34a}
+.warn{color:#d97706;font-weight:700}
+.ng{color:#dc2626;font-weight:700}
+ul.dec{margin:4px 0 0;padding-left:18px;font-size:12.5px}
+ul.dec li{margin:2px 0}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+.dungeon{background:
+  radial-gradient(ellipse 60% 18% at 50% 88%,rgba(150,220,255,.18),transparent 70%),
+  radial-gradient(ellipse 30% 40% at 50% 0%,rgba(170,225,255,.10),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.30) 0 2px,transparent 2px 24px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 40px),
+  linear-gradient(#1c2838,#141d2a 70%,#0c121b)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.card{background:var(--game);border:2px solid rgba(255,255,255,.18);border-radius:10px;color:var(--txt);min-width:0;overflow:hidden}
+.card .hd{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:6px 8px 0}
+.card .nm{font-size:15px;white-space:nowrap}
+.ax{font-size:10.5px;padding:1px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.5);white-space:nowrap}
+.card .st{font-size:10.5px;color:var(--sub);padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage{position:relative;height:300px;margin:4px 6px 2px;border-radius:8px;overflow:hidden}
+.pup{position:absolute;left:50%;transform-origin:50% 100%}
+.pup canvas{position:absolute;left:0;top:0}
+.pup canvas.glow{filter:blur(3px) brightness(1.6);mix-blend-mode:screen;opacity:.9}
+.fi{font-size:11px;color:var(--sub);padding:0 8px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi b{color:var(--acc);font-weight:normal}
+.sb{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:5px 6px}
+.evt{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-size:12px;font-weight:700;pointer-events:none;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap}
+.lad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.lc{position:relative;height:340px;border-radius:8px;overflow:hidden}
+.lc.sil{background:#e5e7eb}
+.lc .cap{position:absolute;left:6px;right:6px;bottom:4px;font-size:10.5px;color:#E5E7EB;line-height:1.3;text-shadow:0 0 3px #000}
+.lc.sil .cap{color:#111;text-shadow:none}
+table.spec{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+table.spec th,table.spec td{border:1px solid var(--line);padding:4px 3px;text-align:center;overflow-wrap:anywhere}
+table.spec td.l{text-align:left}
+.bf{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden}
+.bfhud{position:absolute;left:8px;top:6px;font-size:11px;color:#e5e7eb;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px;z-index:5;white-space:nowrap}
+.tl{margin:6px 0 16px}
+.tl .bar{position:relative;height:26px;background:#1F2937;border-radius:6px}
+.tl .tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.18)}
+.tl .mk{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px}
+.tl .mkl{position:absolute;top:28px;font-size:10.5px;white-space:nowrap;transform:translateX(-50%)}
+.tl .head{font-size:12px;margin-bottom:3px}
+.strip{display:flex;flex-wrap:wrap;gap:6px}
+.fr{width:92px;background:#1F2937;border:2px solid transparent;border-radius:8px;padding:3px 2px;color:#E5E7EB;font-size:10.5px;text-align:center}
+.fr canvas{width:86px;height:86px;display:block;margin:0 auto 2px}
+.fr.hit{border-color:#FBBF24}
+.fr.end{border-color:#22D3EE}
+.fr.cur{box-shadow:inset 0 0 0 2px #fff}
+.prevbox{position:relative;width:200px;height:230px;border-radius:8px;overflow:hidden;flex:none}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid rgba(128,128,128,.6);vertical-align:middle;margin-right:3px}
+.alt{border:2px solid var(--acc)}
+.warnbox{border:2px solid #dc2626;background:rgba(220,38,38,.07)}
+.cmpwrap{overflow-x:auto}
+.cmpwrap canvas{display:block;max-width:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>성기사 영웅 2D 시안 · 서리 대성당(챕터 5) · 부위 리그 프레임 애니메이션</h1>
+  <p class="lead">Project Lair · 챕터 5 합의용 시안. 기사 · 궁수 · 암살자 · 광전사와 <b>같은 규격</b>(셀 72px · 20열×9행 · pivot (0.4236, 0.2917))과 <b>같은 부위 리그</b>로 <b>같은 해골 세계관의 서리 성기사</b>를 도트로 그린다. 철퇴 팔·방패 팔과 내려찍기 궤적은 프레임마다 계산해 한 장씩 굽는다. 6장 비교는 게임 초상 PNG(<code>.mockups/_cmp/icon_*.png</code>)를 쓰므로 <code>node .mockups/server.js</code> 로 열어야 한다.</p>
+  <div class="tags">
+    <span class="tag">철퇴 + 큰 연 방패 + 날개 투구 + 휘장(타바드) + 긴 망토</span><span class="tag">공격 = slash01 9프레임 15fps · strike F3 · 총 0.6s</span><span class="tag">디버프 정화 · 받는 디버프 지속 ×0.6</span><span class="tag">스킬 3종 FX 시안</span><span class="tag">5단계 1.30배 확대(보스)</span><span class="tag">팔레트 A/B 2안</span>
+  </div>
+
+  <section class="box warnbox">
+    <h2>시안 단계 — 챕터 5 승격 전 (CLAUDE.md §8: Ch5 금지)</h2>
+    <p class="note" style="margin:0">챕터 5 는 아직 v0.3 범위로 승격되지 않았다. 이 파일은 컨셉 합의용 시안이며 구현·에셋 추출(<code>?export=1</code>)·데이터 작업은 하지 않는다. 아래 수치는 모두 초안이고, 승격 후 game-designer 기획서와 G0/G1 검증에서 확정한다.</p>
+  </section>
+
+  <section class="box">
+    <h2>콘셉트 한눈에 — 챕터 5 "서리 대성당" · 영웅 성기사</h2>
+    <table class="spec">
+      <tr><th style="width:90px">구분</th><th>기사 (Ch1)</th><th>궁수 (Ch2)</th><th>암살자 (Ch3)</th><th>광전사 (Ch4)</th><th>성기사 (Ch5)</th></tr>
+      <tr><td>전투 방식</td><td class="l">정면 근접, 중앙 끌림</td><td class="l">카이팅(후퇴)</td><td class="l">습격 + 슬립 이탈</td><td class="l">최대 군집 돌진 + 범위 베기</td><td class="l"><b>가장 가까운 몬스터와 정면 교전 · 방패로 버티며 디버프를 정화</b></td></tr>
+      <tr><td>hpScale / powerScale</td><td>1.00 / 1.00</td><td>0.80 / 0.80</td><td>0.70 / 0.70</td><td>1.25 / 0.60</td><td><b>1.10 / 0.85</b></td></tr>
+      <tr><td>range / cooldown / moveSpeed</td><td>1.5 / 1.0 / 3.0</td><td>6.0 / 1.0 / 3.2</td><td>1.6 / 0.7 / 4.2</td><td>1.8 / 1.2 / 3.4</td><td><b>1.6 / 1.1 / 2.9</b></td></tr>
+      <tr><td>aiType</td><td>Melee</td><td>Kiter</td><td>Skirmisher</td><td>Charger</td><td><b>Guardian (신규 — 근접 + 디버프 반응)</b></td></tr>
+      <tr><td>고유 패시브</td><td class="l">—</td><td class="l">—</td><td class="l">—</td><td class="l">범위 베기</td><td class="l"><b>받는 디버프(둔화·독·공포·약화) 지속 ×0.6</b></td></tr>
+      <tr><td>빌드 압박</td><td class="l">—</td><td class="l">Tank 약</td><td class="l">Dps 약</td><td class="l">Swarm 약</td><td class="l"><b>Debuff 약</b> — 네 축이 한 번씩 돈다</td></tr>
+      <tr><td>스킬 85/65/45%</td><td class="l">돌진 · 노바 · 칼날</td><td class="l">관통 · 소나기 · 도약</td><td class="l">습격 · 선풍 · 연막</td><td class="l">도약 · 갈고리 · 광란</td><td class="l"><b>심판의 망치 · 정화의 빛 · 성역</b></td></tr>
+    </table>
+    <h3>챕터 5 스테이지 (규칙은 기존 6종 재사용 · 수치는 초안)</h3>
+    <table class="spec">
+      <tr><th>스테이지</th><th>규칙</th><th>targetClearSec</th><th>hpMultiplier</th><th>powerMultiplier</th><th>ScaleMultiplier</th></tr>
+      <tr><td>5-1 얼어붙은 회랑</td><td>없음 (톱니 골)</td><td>170</td><td>1.60</td><td>1.35</td><td>1.00</td></tr>
+      <tr><td>5-2 침묵의 성가대석</td><td>SealedNest(Hex, 0.60)</td><td>190</td><td>1.72</td><td>1.45</td><td>1.00</td></tr>
+      <tr><td>5-3 고해의 예배당</td><td>DenseFog</td><td>210</td><td>1.92</td><td>1.60</td><td>1.00</td></tr>
+      <tr><td>5-4 얼음 성물 보관소</td><td>HolySpring + SealedNest(Plague, 0.55)</td><td>230</td><td>2.02</td><td>1.75</td><td>1.00</td></tr>
+      <tr><td>5-5 서리 대주교의 제단</td><td>BossBulwark(0.70) + HunterTraps(0.35)</td><td>260</td><td>2.40</td><td>1.90</td><td>1.30</td></tr>
+    </table>
+    <h3>스킬 3종 (초안)</h3>
+    <table class="spec">
+      <tr><th>게이트</th><th>스킬</th><th>효과</th></tr>
+      <tr><td>85%</td><td>심판의 망치</td><td class="l">가장 가까운 군집 위로 빛의 망치가 떨어져 반경 2.4 피해 110 + 0.6초 기절, 쿨 6.0s</td></tr>
+      <tr><td>65%</td><td>정화의 빛</td><td class="l">영웅에게 걸린 디버프 3개 이상이면 전부 해제 + 최대 HP 8% 회복, 쿨 12.0s — 디버프 빌드가 가장 크게 손해</td></tr>
+      <tr><td>45%</td><td>성역</td><td class="l">6.0초간 받는 피해 ×0.6, 반경 2.6 안 몬스터 이동 ×0.7, 쿨 18.0s</td></tr>
+    </table>
+  </section>
+
+  <section class="box alt">
+    <h2>0. 사용자 선택 — 성기사 팔레트 2안 (아래 모든 화면이 선택안으로 바뀐다)</h2>
+    <div class="row" id="palSel"></div>
+    <p class="note" id="palDesc"></p>
+    <table class="spec" id="palTbl"></table>
+    <p class="note" style="margin-top:6px">판정은 각 단계 대표색(chip)·발광색의 색상각(hue). 초록(ok) = 31° 이상, 주황(warn) = 25° 이상 31° 미만, 빨강(ng) = 25° 미만. 무채색은 판정 제외. 비교 대상 = 기존 네 영웅의 점유 색상각(기사 0°·142°·199°·271° / 궁수 36.4°·37.7°·82.7°·328.6° / 암살자 171.2°·238.7°·300° / 광전사 112.8°·220.0°·213.1°·27.0°·13.9°).</p>
+  </section>
+
+  <div id="app">
+  <section class="box">
+    <h2>1. 스테이지 카드 — 상태별 프레임 애니메이션 (5-1 ~ 5-5)</h2>
+    <div class="row">
+      <button class="btn on" id="autoBtn">전체 동시 재생: 켜짐</button>
+      <span class="lbl">재생 속도</span>
+      <button class="btn sm on" data-spd="1">×1</button><button class="btn sm" data-spd="0.5">×0.5</button><button class="btn sm" data-spd="0.25">×0.25</button>
+    </div>
+    <div class="row" id="allStates"><span class="lbl">전체 상태</span></div>
+    <div class="cards" id="cards"></div>
+    <p class="note" style="margin-top:8px">●STRIKE = <code>OnAttackStrike</code>(철퇴가 바닥을 내려찍는 순간, F3, 0.200s) · ◆공격 종료 = 0.580s(F8). 공격 모션 0.600s 는 쿨다운 1.1s 안에 들어간다. F4 의 성광 충격 링은 연출 전용(추가 데미지 없음).</p>
+  </section>
+
+  <section class="box">
+    <h2>2. 프레임 스트립 — 한 장씩 확인</h2>
+    <div class="row" id="stSg"></div>
+    <div class="row" id="stSt"></div>
+    <div class="row" style="align-items:flex-start;flex-wrap:nowrap;gap:10px">
+      <div class="prevbox dungeon" id="stPrev"></div>
+      <p class="note" id="stInfo" style="margin:0"></p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <p class="note" style="margin-top:6px">노란 테두리 = strike 프레임(F3), 청록 테두리 = 공격 종료 이벤트 프레임(F8), 흰 테두리 = 지금 재생 중인 프레임.</p>
+    <p class="note" id="clipChk"></p>
+  </section>
+
+  <section class="box">
+    <h2>3. 성장 사다리 — 같은 뼈 성기사, 단계별 파츠 (대기 F0)</h2>
+    <div class="row" id="ladMode"></div>
+    <div class="lad" id="ladder"></div>
+    <h3>실루엣 검증 (hero-2d-conversion §3.3 R2'·R3' 와 같은 기준)</h3>
+    <p class="note">S1 실루엣 = 5-1 대기 F0(몸 높이 <span id="h1px"></span>셀). 돌출은 몸 48px 규격 환산, 판정은 반올림 전 값, 미달은 빨강.</p>
+    <table class="spec" id="metTbl"></table>
+    <h3>파츠 변화 (직전 단계 대비)</h3>
+    <table class="spec" id="partTbl"></table>
+  </section>
+
+  <section class="box">
+    <h2>4. 전투 미니 프리뷰 — 정면 교전 + 디버프 정화 + 스킬 3종</h2>
+    <div class="row" id="bfStage"></div>
+    <div class="row">
+      <button class="btn sm" id="bLeap">심판의 망치 (쿨 6.0s)</button>
+      <button class="btn sm" id="bPull">정화의 빛 (쿨 12.0s)</button>
+      <button class="btn sm" id="bFrenzy">성역 (쿨 18.0s)</button>
+      <button class="btn sm on" id="bAuto">스킬 자동 시전: 켜짐</button>
+      <button class="btn sm on" id="bRing">범위 링: 켜짐</button>
+      <button class="btn sm" id="bReset">다시 시작</button>
+    </div>
+    <div class="bf dungeon" id="bf"><div class="bfhud" id="bfhud"></div></div>
+    <p class="note" id="bfStat" style="margin-top:6px"></p>
+    <p class="note">금색 점선 = 공격 사거리 1.6 · 청백 실선 = 성역 반경 2.6. 보라 몬스터(디버퍼)가 근접하면 영웅 머리 위에 디버프 점(보라)이 쌓이고, 3개가 되면 정화의 빛이 전부 지운다. 고유 패시브로 디버프 지속이 ×0.6 이라 쌓여도 금방 빠진다 — 디버프 빌드의 효율이 떨어지는 것을 눈으로 보는 프리뷰. 몬스터는 데모 블록(청회 탱커 6HP / 붉은 근접 3 / 보라 디버퍼 2 / 연두 스웜 1)이며 실제 몬스터 시안이 아니다.</p>
+  </section>
+
+  <section class="box">
+    <h2>5. 클립 타이밍 · 시트 규격</h2>
+    <div id="timelines"></div>
+    <table class="spec" id="specTbl"></table>
+    <h3>시트 레이아웃 (Knight/Archer/Assassin/Berserker 와 같은 20열×9행, 1440×648)</h3>
+    <table class="spec" id="sheetTbl"></table>
+  </section>
+
+  <section class="box">
+    <h2>6. 기사 · 궁수 · 암살자 · 광전사 · 성기사 — 실루엣 구분 (같은 도트 크기, 발 기준 정렬)</h2>
+    <div class="row" id="cmpMode"></div>
+    <div class="cmpwrap dungeon" style="border-radius:10px"><canvas id="cmpCv" width="1120" height="600"></canvas></div>
+    <p class="note" id="cmpNote" style="margin-top:6px"></p>
+    <table class="spec" id="featTbl"></table>
+  </section>
+
+  <section class="box">
+    <h2>7. 핵심 결정 요약</h2>
+    <ul class="dec">
+      <li>같은 "해골" 세계관: 뼈 색 · 형광 눈 · 검은 외곽선 유지. 정체성은 <b>몸 앞을 가리는 큰 연 방패 + 한 손 철퇴 + 날개 투구 + 십자 휘장 + 바닥까지 끌리는 망토</b>. 다섯 직업 중 유일하게 방패를 든다.</li>
+      <li>공격 = slash01 9프레임 15fps(0.600s): F0 철퇴 들기 → F1~F2 머리 위로 크게 감기 → <b>F3 앞으로 내려찍기 = strike</b> → F4 성광 충격 링(연출) → F5~F7 복귀 → F8 = 대기 F0. 방패는 공격 내내 앞을 가린다.</li>
+      <li>5단계: 머리(사슬 두건 → 코가드 투구 + 깃털 → 통투구 + 작은 날개 → 큰 날개 투구 + 후광 → 날개 왕관 + 큰 후광) · 방패(둥근 목방패 → 연 방패 → 문장 발광 → 대형 → 태양 문장 거대 방패) · 철퇴(곤봉 → 날 철퇴 → 발광 → 대형 → 성광 전쟁망치) · 망토(짧음 → 긴 망토 → 털 깃 → 이중 → 날개 망토).</li>
+      <li>5단계 규약은 기존과 같다: 외곽선 베이크(5-2 #F8FAFC · 5-4 팔레트별 · 5-5 #FDE047), 발광(5-3~5-5), 5-5 만 루트 스케일 1.30.</li>
+    </ul>
+  </section>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const GW=72,GH=72,CS=4,AX=30,AY=28,SHEET_COLS=20;
+const OUT='#0A0D14';
+const STATES=['idle','walk','run','stab','hit','death','spawn'];
+const SKO={idle:'대기',walk:'걷기',run:'질주',stab:'공격',hit:'피격',death:'사망',spawn:'등장'};
+//# 기획서 §3.4·§3.6 — stab = 공격 9프레임 15fps, strike F3(이벤트 0.200s), 종료 이벤트 0.580s(제안). spawn 락 1.8s 는 기사와 동일 fallback.
+const ANIM={
+ idle:{n:8,fps:8,speed:1,loop:true},
+ walk:{n:8,fps:10,speed:1,loop:true},
+ run:{n:8,fps:14,speed:1,loop:true},
+ stab:{n:9,fps:15,speed:1,strike:0.200,end:0.580},
+ hit:{n:6,fps:12,speed:1},
+ death:{n:8,fps:10,speed:1},
+ spawn:{n:16,fps:12,speed:1,lock:1.8}
+};
+const realLen=st=>(ANIM[st].n/ANIM[st].fps)/ANIM[st].speed;
+const strikeF=st=>ANIM[st].strike!=null?Math.floor(ANIM[st].strike*ANIM[st].speed*ANIM[st].fps+1e-6):-1;
+const endF=st=>ANIM[st].end!=null?Math.floor(ANIM[st].end*ANIM[st].speed*ANIM[st].fps+1e-6):-1;
+function frameAt(st,t){const a=ANIM[st];let f=Math.floor(t*a.fps*a.speed+1e-6);if(a.loop){f=((f%a.n)+a.n)%a.n;}else if(f>=a.n)f=a.n-1;return Math.max(0,f);}
+
+/* ---------- 도형 헬퍼 (상대 좌표: 눈 중심 = 원점, 오른쪽 +X, 아래 +Y) ---------- */
+const E=(cx,cy,rx,ry)=>(X,Y)=>{const a=(X-cx)/rx,b=(Y-cy)/ry;return a*a+b*b<=1;};
+const C=(cx,cy,r)=>E(cx,cy,r,r);
+const R=(x0,y0,x1,y1)=>(X,Y)=>X>=x0&&X<x1&&Y>=y0&&Y<y1;
+const PL=pts=>(X,Y)=>{let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const xi=pts[i][0],yi=pts[i][1],xj=pts[j][0],yj=pts[j][1];if(((yi>Y)!==(yj>Y))&&(X<(xj-xi)*(Y-yi)/(yj-yi)+xi))c=!c;}return c;};
+const U=(...fs)=>(X,Y)=>{for(let i=0;i<fs.length;i++){if(fs[i](X,Y))return true;}return false;};
+const DF=(a,b)=>(X,Y)=>a(X,Y)&&!b(X,Y);
+function segD(px,py,ax,ay,bx,by){const vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay,L2=vx*vx+vy*vy||1,t=Math.max(0,Math.min(1,(vx*wx+vy*wy)/L2)),dx=px-(ax+vx*t),dy=py-(ay+vy*t);return Math.sqrt(dx*dx+dy*dy);}
+const LN=(pts,w)=>(X,Y)=>{for(let i=0;i<pts.length-1;i++){if(segD(X,Y,pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1])<=w/2)return true;}return false;};
+const mir=pts=>pts.map(p=>[1-p[0],p[1]]);
+function QD(bx,by,tx,ty,hw){const dx=tx-bx,dy=ty-by,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L,hm=hw*1.18;
+  return PL([[bx+nx*hw,by+ny*hw],[tx+nx*hm,ty+ny*hm],[tx-nx*hm,ty-ny*hm],[bx-nx*hw,by-ny*hw]]);}
+const hexRgb=c=>[parseInt(c.substr(1,2),16),parseInt(c.substr(3,2),16),parseInt(c.substr(5,2),16)];
+function hash(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
+function hueOf(hex){const v=hexRgb(hex).map(x=>x/255),r=v[0],g=v[1],b=v[2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(d<0.12)return null;
+  let h;if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;return h;}
+const angD=(a,b)=>{const d=Math.abs(a-b);return Math.min(d,360-d);};
+const lumOf=hex=>{const c=hexRgb(hex);return 0.299*c[0]+0.587*c[1]+0.114*c[2];};
+
+/* ---------- 팔레트 2안 + 단계 구조 ---------- */
+const BONE=['#E8E0C8','#F5EDE4','#B8A99A'],LEATH=['#7A5230','#9C7248','#4E3419'],BELT=['#4E3419','#7A5230','#2A1C0E'],
+  BOOT2=['#3F2A17','#6B4A2B','#24160A'],GOLD=['#FBBF24','#FDE68A','#B45309'],SK='#3A3228',
+  STEEL=['#94A3B8','#E2E8F0','#475569'],IRON=['#52525B','#A1A1AA','#27272A'],MAIL=['#6B7280','#9CA3AF','#374151'],
+  WOOD=['#7A5230','#9C7248','#4E3419'],WING=['#E5E7EB','#FFFFFF','#9CA3AF'];
+//# 기존 네 영웅이 점유한 유채색 색상각
+const OCC=[['기사',[0,142,199,271]],['궁수',[36.4,37.7,82.7,328.6]],['암살자',[171.2,238.7,300]],['광전사',[112.8,220.0,213.1,27.0,13.9]]];
+const TH={
+ A:{label:'A안 · 백은 + 금 (무채색 몸 · 금 장식 · 서리 발광) — 권장',desc:'휘장·망토를 백은 명도 램프로 두고 금 장식과 서리 청 발광만 유채색으로 쓴다. 몸 색은 무채색이라 기존 네 영웅과의 색상각 충돌이 없다. 약점: 인접 단계 색 차이가 명도뿐이라 단계 구분을 실루엣(날개·후광·방패 크기)과 발광에 의존한다.',
+  st:[
+  {nm:'잿빛 은',cloth:['#9CA3AF','#D1D5DB','#4B5563'],cape:['#6B7280','#9CA3AF','#374151'],rim:null,glow:null,eye:'#4ADE80',chip:'#9CA3AF',acc:'#D1D5DB'},
+  {nm:'백은',cloth:['#CBD5E1','#F1F5F9','#64748B'],cape:['#94A3B8','#CBD5E1','#475569'],rim:'#F8FAFC',glow:null,eye:'#4ADE80',chip:'#CBD5E1',acc:'#FDE68A'},
+  {nm:'서리 백은',cloth:['#E2E8F0','#FFFFFF','#94A3B8'],cape:['#CBD5E1','#F1F5F9','#64748B'],rim:null,glow:'#7DD3FC',eye:'#BAE6FD',chip:'#E2E8F0',acc:'#7DD3FC'},
+  {nm:'순백 + 금',cloth:['#F1F5F9','#FFFFFF','#A3B1C2'],cape:['#E2E8F0','#FFFFFF','#94A3B8'],rim:'#FDE68A',glow:'#A5F3FC',eye:'#E0F2FE',chip:'#F1F5F9',acc:'#FBBF24'},
+  {nm:'광휘 + 금',cloth:['#FFFFFF','#FFFFFF','#B6C2D1'],cape:['#F8FAFC','#FFFFFF','#A3B1C2'],rim:'#FDE047',glow:'#FDE047',eye:'#FEF9C3',chip:'#FFFFFF',acc:'#FBBF24'}]},
+ B:{label:'B안 · 사파이어 휘장 (청색 휘장·망토 + 은 갑주)',desc:'휘장·망토를 사파이어 청으로 칠해 한눈에 "서리 성기사" 로 읽힌다. 약점: 청색 대역(205°~215°)이 기사 시안(199°)·광전사 강청(220°)과 25° 안으로 들어와 표의 빨강 칸이 생긴다.',
+  st:[
+  {nm:'잿빛 청',cloth:['#4B6584','#6B88AA','#2C3E55'],cape:['#3B5170','#5B7598','#22324A'],rim:null,glow:null,eye:'#4ADE80',chip:'#6B88AA',acc:'#D1D5DB'},
+  {nm:'사파이어',cloth:['#2F5FA8','#4B7BC8','#1B3A6E'],cape:['#24508F','#3E6BB3','#14305C'],rim:'#F8FAFC',glow:null,eye:'#4ADE80',chip:'#4B7BC8',acc:'#FDE68A'},
+  {nm:'서리 사파이어',cloth:['#3B82C4','#60A5E0','#1E4F85'],cape:['#2F6FAE','#4F8FCF','#1A4677'],rim:null,glow:'#7DD3FC',eye:'#BAE6FD',chip:'#60A5E0',acc:'#7DD3FC'},
+  {nm:'빙청 + 금',cloth:['#5BA3D9','#8CC4EC','#2E6A9C'],cape:['#4A92C8','#78B4E0','#275C8A'],rim:'#FDE68A',glow:'#A5F3FC',eye:'#E0F2FE',chip:'#8CC4EC',acc:'#FBBF24'},
+  {nm:'심청 + 금',cloth:['#1E3A5F','#35577F','#0F2038'],cape:['#16304F','#2A4A70','#0B1A2E'],rim:'#FDE047',glow:'#FDE047',eye:'#FEF9C3',chip:'#35577F',acc:'#FBBF24'}]}
+};
+let TK='A';
+//# mc: 철퇴(L = 자루, hr = 머리 반경, hammer = 전쟁망치) · sh: 방패(w·h = 반폭·반높이, kite = 연 방패)
+const STG=[
+ {id:'5-1',nm:'얼어붙은 회랑',sub:'사슬 두건 · 둥근 목방패 · 곤봉',hp:1.60,pw:1.35,tier:0,scale:1,emis:0,mc:{L:8.0,hr:1.9,col:'#8A6440',flange:0,glow:0,hammer:0},sh:{w:3.6,h:3.8,kite:0}},
+ {id:'5-2',nm:'침묵의 성가대석',sub:'코가드 투구 + 깃털 · 연 방패 · 날 철퇴',hp:1.72,pw:1.45,tier:1,scale:1,emis:0,mc:{L:8.8,hr:2.3,col:'#94A3B8',flange:1,glow:0,hammer:0},sh:{w:3.9,h:5.4,kite:1}},
+ {id:'5-3',nm:'고해의 예배당',sub:'통투구 + 작은 날개 · 문장 발광 방패 · 발광 철퇴',hp:1.92,pw:1.60,tier:2,scale:1,emis:1.5,mc:{L:9.4,hr:2.5,col:'#CBD5E1',flange:1,glow:1,hammer:0},sh:{w:4.2,h:5.9,kite:1}},
+ {id:'5-4',nm:'얼음 성물 보관소',sub:'큰 날개 투구 + 후광 · 대형 방패 · 대형 철퇴',hp:2.02,pw:1.75,tier:3,scale:1,emis:2.2,mc:{L:10.2,hr:2.9,col:'#E2E8F0',flange:1,glow:1,hammer:0},sh:{w:4.7,h:6.6,kite:1}},
+ {id:'5-5',nm:'서리 대주교의 제단',sub:'날개 왕관 + 큰 후광 · 태양 문장 거대 방패 · 성광 전쟁망치',hp:2.40,pw:1.90,tier:4,scale:1.30,emis:3.2,mc:{L:11.2,hr:3.2,col:'#F8FAFC',flange:0,glow:1,hammer:1},sh:{w:5.4,h:7.4,kite:1}}
+];
+const PARTCHG=['기준형 — 사슬 두건(얼굴만 노출) · 잿빛 휘장(십자) · 사슬 갑옷 · 짧은 망토 · 둥근 목방패(금 테) · 나무 곤봉 · 가죽 장화',
+ '코가드 투구 + 깃털 장식(+5셀) · 연 방패(금 십자) · 날 철퇴 · 긴 망토 · 금 어깨 장식 · 철 장화 · 림 #F8FAFC',
+ '통투구(십자 눈구멍) + 작은 날개 한 쌍(+7셀) · 방패 문장 발광 · 발광 철퇴 머리 · 망토 털 깃 · 눈 발광 + 서리 입자',
+ '큰 날개 투구(+10셀) + 머리 뒤 후광 고리 · 대형 연 방패 · 대형 철퇴 · 이중 망토 · 금 견갑 · 림 팔레트색',
+ '날개 왕관(+15셀) + 큰 후광 · 태양 문장 거대 방패 · 성광 전쟁망치 · 날개 모양 망토 · 금 휘장 테 · 금 림 · 바닥 성광 오라 · 루트 스케일 ×1.30'];
+
+/* ---------- 부위 · 피벗 ---------- */
+const ALLB=['cape','back','quiver','legR','legL','hips','torso','drape','head','fx'];
+const ORDER_A=['cape','back','legR','legL','hips','torso','drape','head'];
+const PIV={head:[0.5,4.8],drape:[0.5,4.8],torso:[0.5,10],back:[0.5,10],hips:[0.5,14.5],legL:[-1.4,16.5],legR:[2.4,16.5],cape:[-3.6,6.4],fx:[0,0]};
+
+/* ---------- 단계 파츠(수작업 도형) ---------- */
+const CAPE5=[
+ PL([[-3.6,4.6],[-6.0,5.0],[-7.4,10.6],[-6.6,13.2],[-4.2,12.6],[-3.6,9.6]]),
+ PL([[-3.6,4.4],[-6.8,4.8],[-8.6,12.0],[-9.0,19.6],[-7.2,18.8],[-5.6,20.2],[-4.2,15.0]]),
+ PL([[-3.6,4.2],[-7.4,4.4],[-9.6,12.4],[-10.4,20.6],[-8.4,19.8],[-6.6,21.2],[-4.4,16.0]]),
+ PL([[-3.6,4.0],[-8.2,4.0],[-11.0,12.4],[-12.4,21.4],[-10.0,20.6],[-8.0,21.8],[-5.6,20.6],[-4.4,16.4]]),
+ PL([[-3.6,3.8],[-9.0,3.0],[-14.0,8.0],[-16.0,15.0],[-15.0,21.6],[-12.6,20.2],[-10.6,21.8],[-8.0,20.4],[-5.8,21.6],[-4.4,16.4]])];
+const WINGP=(sc)=>{const pts=[[-3.4,-3.0],[-6.0*sc,-5.2*sc],[-9.6*sc,-6.0*sc],[-8.4*sc,-4.2*sc],[-10.0*sc,-3.2*sc],[-7.6*sc,-2.4*sc],[-8.4*sc,-1.0*sc],[-5.0,-1.0]];return U(PL(pts),PL(mir(pts)));};
+function stageParts(t,th){
+  const cl=th.cloth,ca=th.cape,P=[],add=(...a)=>a.forEach(x=>P.push(x));
+  //# 1) 망토(맨 뒤) + 털 깃
+  add({f:CAPE5[t],pal:ca,b:'cape'});
+  if(t>=3){add({f:PL([[-3.8,7.0],[-7.6,8.6],[-9.2,15.0],[-7.4,14.2],[-4.4,10.6]]),pal:[ca[1],ca[0],ca[2]],b:'cape'});}
+  if(t===4){add({f:U(C(-15.0,21.0,0.6),C(-10.6,21.2,0.6),C(-5.8,21.0,0.6)),pal:[th.glow],b:'cape',glow:1,noOut:1});}
+  //# 2) 후광(머리 뒤, 등 레이어)
+  if(t>=3){const r=t===4?8.6:6.4;add({f:DF(C(0.5,-3.2,r),C(0.5,-3.2,r-1.1)),pal:t===4?GOLD:[th.glow],b:'back',glow:1,noOut:t===4?0:1});
+    if(t===4){for(let k=0;k<12;k++){const a=k/12*Math.PI*2;add({f:C(0.5+Math.cos(a)*(r+1.2),-3.2+Math.sin(a)*(r+1.2),0.55),pal:[th.glow],b:'back',glow:1,noOut:1});}}}
+  //# 3) 다리 + 장화
+  const BT=t===0?LEATH:IRON;
+  add({f:R(-2.4,16.6,-0.6,20.4),pal:BONE,b:'legL'},{f:R(-3.4,20,-0.2,22),pal:BT,b:'legL'},
+      {f:R(1.4,16.6,3.2,20.4),pal:BONE,b:'legR'},{f:R(1.0,20,4.6,22),pal:BT,b:'legR'});
+  add({f:R(-2.6,17.0,-0.4,19.4),pal:MAIL,b:'legL'},{f:R(1.2,17.0,3.4,19.4),pal:MAIL,b:'legR'});
+  if(t>=1){add({f:E(-1.5,17.4,1.4,1.0),pal:STEEL,b:'legL'},{f:E(2.3,17.4,1.4,1.0),pal:STEEL,b:'legR'});}
+  //# 4) 골반 + 휘장 아랫자락 + 허리띠
+  add({f:E(0.5,14.2,3.4,1.7),pal:BONE,b:'hips'},{f:R(-3.4,13.6,4.4,17.6),pal:MAIL,b:'hips'});
+  const tab=DF(PL([[-1.8,13.4],[2.8,13.4],[3.2,19.4],[0.5,18.4],[-2.2,19.4]]),R(-9,99,9,100));
+  add({f:tab,pal:cl,b:'hips'},{f:R(0.1,14.4,0.9,18.4),pal:[th.acc],b:'hips'});
+  if(t===4){add({f:LN([[-2.2,19.2],[0.5,18.2],[3.2,19.2]],0.7),pal:GOLD,b:'hips'});}
+  add({f:R(-3.6,12.9,4.6,14.2),pal:t>=3?GOLD:BELT,b:'hips'},{f:R(0,12.9,1.0,14.2),pal:STEEL,b:'hips'});
+  //# 5) 몸통: 사슬 갑옷 + 휘장(십자 문장) + 견갑
+  add({f:E(0.5,9.8,4.2,4.1),pal:MAIL,b:'torso'},{f:E(0.5,6.4,5.8,1.5),pal:MAIL,b:'torso'});
+  add({f:U(...[[-2,8],[0,8],[2,8],[4,8],[-3,10],[-1,10],[1,10],[3,10],[-2,12],[0,12],[2,12]].map(p=>C(p[0]+0.5,p[1],0.35))),pal:['#4B5563'],b:'torso'});
+  add({f:PL([[-2.2,6.4],[3.2,6.4],[3.6,13.4],[-2.6,13.4]]),pal:cl,b:'torso'});
+  add({f:U(R(0.0,7.4,1.0,12.6),R(-1.4,8.8,2.4,9.8)),pal:[th.acc],b:'torso'});
+  if(t>=2){add({f:C(0.5,9.3,0.6),pal:[th.glow],b:'torso',glow:1,noOut:1});}
+  const PF=[null,E(5.8,6.2,2.4,1.8),E(6.0,6.0,2.7,2.0),E(6.2,5.8,3.1,2.3),E(6.6,5.6,3.6,2.7)];
+  if(PF[t]){add({f:PF[t],pal:t>=3?GOLD:STEEL,b:'torso'});}
+  if(t>=1){add({f:E(-4.6,6.4,2.2,1.6),pal:[STEEL[2],STEEL[0],STEEL[2]],b:'torso'});}
+  //# 6) 머리: 해골 + 두건/투구 + 날개 · 깃털 + 얼굴
+  add({f:E(0.5,0.3,4.2,4.6),pal:BONE,b:'head'},{f:R(-1.9,3.6,2.9,5.2),pal:BONE,b:'head'});
+  const face=U(E(0.5,0.6,3.4,3.4),R(-2.4,0,3.4,4.4));
+  if(t===0){add({f:DF(E(0.5,-0.4,5.4,5.6),face),pal:MAIL,b:'head'},{f:R(-4.6,4.0,5.6,6.0),pal:MAIL,b:'head'},
+              {f:U(...[[-3,-3],[-1,-4],[1,-4],[3,-3],[-4,-1],[4,-1]].map(p=>C(p[0]+0.5,p[1],0.35))),pal:['#4B5563'],b:'head'});}
+  else if(t===1){add({f:DF(E(0.5,-1.2,5.0,4.8),R(-9,-0.4,11,9)),pal:STEEL,b:'head'},{f:R(-4.6,-1.4,5.6,-0.4),pal:GOLD,b:'head'},{f:R(0,-0.4,1,2.4),pal:STEEL,b:'head'},
+              {f:LN([[0.5,-5.6],[-1.2,-8.4],[-3.6,-9.6],[-6.0,-9.0]],1.6),pal:[th.acc,'#FFFFFF','#B45309'],b:'head'});}
+  else {const helm=DF(U(E(0.5,-0.6,5.0,5.4),R(-4.5,-0.6,5.5,4.4)),U(R(-3.2,-0.2,4.2,1.0),R(0,1.0,1,3.4)));
+    add({f:helm,pal:STEEL,b:'head'},{f:R(-4.6,-2.6,5.6,-1.8),pal:GOLD,b:'head'},{f:R(0,-5.6,1,-2.6),pal:GOLD,b:'head'});
+    if(t===2){add({f:WINGP(0.9),pal:WING,b:'head'});}
+    if(t===3){add({f:WINGP(1.35),pal:WING,b:'head'},{f:U(C(-12.4,-7.8,0.8),C(13.4,-7.8,0.8)),pal:[th.glow],b:'head',glow:1,noOut:1});}
+    if(t===4){add({f:WINGP(1.75),pal:WING,b:'head'},{f:U(PL([[-3.0,-5.0],[-2.4,-8.6],[-1.2,-6.0],[0.5,-10.4],[2.2,-6.0],[3.4,-8.6],[4.0,-5.0]])),pal:GOLD,b:'head'},
+                  {f:U(C(0.5,-10.2,0.8),C(-16.4,-10.2,0.8),C(17.4,-10.2,0.8)),pal:[th.glow],b:'head',glow:1,noOut:1});}}
+  if(t<=1){add({f:R(0,1.9,1,3.1),pal:[OUT],b:'head'},
+      {f:U(E(-1.5,0.3,1.35,1.4),E(2.5,0.3,1.35,1.4)),pal:[OUT],b:'head'},
+      {f:U(C(-1.5,0.4,0.75),C(2.5,0.4,0.75)),pal:[th.eye],b:'head',glow:1,noOut:1,eye:1},
+      {f:U(R(-1.0,4.0,-0.5,5.0),R(0.3,4.0,0.8,5.0),R(1.6,4.0,2.1,5.0)),pal:[SK],b:'head'});}
+  else {add({f:U(R(-3.2,-0.2,4.2,1.0),R(0,1.0,1,3.4)),pal:[OUT],b:'head'},
+      {f:U(C(-1.5,0.4,0.6),C(2.5,0.4,0.6)),pal:[th.eye],b:'head',glow:1,noOut:1,eye:1});}
+  //# 7) 서리 입자 · 오라
+  if(t===2){add({f:U(C(-12,4,0.6),C(-9,-6,0.5),C(12,16,0.6)),pal:[th.glow],b:'fx',glow:1,noOut:1});}
+  if(t===3){add({f:U(C(-14,3,0.7),C(-10,-8,0.6),C(13,16,0.7),C(15,0,0.6),C(-15,16,0.6)),pal:[th.glow],b:'fx',glow:1,noOut:1});}
+  if(t===4){add({f:U(C(-18,2,0.8),C(-12,-12,0.7),C(15,17,0.8),C(18,-2,0.7),C(-18,15,0.6),C(10,-14,0.6)),pal:[th.glow],b:'fx',glow:1,noOut:1},
+                {f:E(0.5,21.0,10,1.3),pal:[th.glow],b:'fx',glow:1,noOut:1,alpha:0.4});}
+  return P;
+}
+
+/* ---------- 리그 구축(부위별 셀 레이어) ---------- */
+function bakeRig(parts){
+  const L={};ALLB.forEach(b=>L[b]=new Map());
+  const reg=new Int16Array(GW*GH).fill(-1);
+  parts.forEach((p,k)=>{for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){if(p.f(gx+0.5-AX,gy+0.5-AY))reg[gy*GW+gx]=k;}});
+  const same=(gx,gy,r)=>gx>=0&&gy>=0&&gx<GW&&gy<GH&&reg[gy*GW+gx]===r;
+  const eyeKeys=new Set();
+  for(let gy=0;gy<GH;gy++)for(let gx=0;gx<GW;gx++){
+    const r=reg[gy*GW+gx];if(r<0)continue;const p=parts[r],pal=p.pal;let c=pal[0];
+    if(pal.length>2){if(same(gx+1,gy,r)===false||same(gx,gy+1,r)===false)c=pal[2];else if(same(gx-1,gy,r)===false||same(gx,gy-1,r)===false)c=pal[1];}
+    const k=gy*GW+gx;L[p.b].set(k,{c:hexRgb(c),a:p.alpha||1,g:p.glow?1:0,noOut:p.noOut?1:0});
+    if(p.eye)eyeKeys.add(k);
+  }
+  return {L:L,eyeKeys:eyeKeys};
+}
+const RIGS={};
+function rigOf(t){
+  const key=TK+t;if(RIGS[key])return RIGS[key];
+  RIGS[key]=bakeRig(stageParts(t,TH[TK].st[t]));return RIGS[key];
+}
+
+/* ---------- 자세(상태별 프레임 파라미터) ---------- */
+const Z=()=>({dx:0,dy:0,rot:0});
+const Rd=Math.round;
+//# A = 철퇴를 쥔 앞손 위치 + 자루 각도(0=오른쪽, -90=위) · S = 방패 중심(뒷손이 손잡이를 쥔다)
+let CUR_T=0;
+const IA={x:7.0,y:11.6,a:-58},IS={x:-4.6,y:11.4};
+function blank(){const P={squint:false,dissolve:0,capeX:0,capeRot:0,fxdy:0,flash:0,A:{x:IA.x,y:IA.y,a:IA.a},S:{x:IS.x,y:IS.y,rot:0}};
+  ['torso','hips','head','legL','legR'].forEach(b=>P[b]=Z());return P;}
+//# 공격(slash01) — F0 들기 → F1~F2 머리 위로 감기 → F3 내려찍기 = strike → F4 성광 충격 링 → F5~F7 복귀 → F8 = 대기 F0
+const ATK=[
+ {tx:0,ty:0,hr:-2,lr:0,ll:0,A:{x:6.2,y:9.0,a:-100}},
+ {tx:-1,ty:0,hr:-5,lr:-1,ll:1,A:{x:4.6,y:3.6,a:-150}},
+ {tx:-1,ty:0,hr:-7,lr:-1,ll:1,A:{x:3.6,y:2.6,a:-175}},
+ {tx:3,ty:1,hr:7,lr:3,ll:-3,A:{x:9.4,y:10.6,a:40},flash:2},
+ {tx:3,ty:1,hr:5,lr:3,ll:-3,A:{x:9.8,y:11.2,a:52},flash:1},
+ {tx:2,ty:0,hr:2,lr:2,ll:-2,A:{x:8.6,y:11.0,a:12}},
+ {tx:1,ty:0,hr:0,lr:1,ll:-1,A:{x:7.8,y:11.2,a:-26}},
+ {tx:0,ty:0,hr:0,lr:0,ll:0,A:{x:7.2,y:11.4,a:-48}},
+ null
+];
+function core(st,f){
+  const P=blank(),n=ANIM[st].n;
+  if(st==='idle'){
+    const br=[0,0,-1,-1,-1,0,0,0];
+    P.torso.dy=br[f];P.head.dy=br[(f+7)%8];
+    P.A={x:IA.x,y:IA.y+br[f],a:IA.a+[0,1,2,2,1,0,-1,-1][f]};P.S={x:IS.x,y:IS.y+br[f],rot:0};
+    P.capeRot=[0,1,2,2,1,0,-1,-1][f];P.fxdy=-Rd(1.5*Math.sin(Math.PI*2*f/n));P.squint=(f===6);
+  } else if(st==='walk'||st==='run'){
+    const run=st==='run',ph=Math.PI*2*f/n,s=Math.sin(ph),amp=run?2.2:1.3;
+    const lL=Rd(amp*s),bob=-Rd((run?1:0.5)+(run?1:0.5)*Math.cos(2*ph));
+    P.legL.dx=lL;P.legR.dx=-lL;P.legL.dy=s>0.35?-1:0;P.legR.dy=s<-0.35?-1:0;
+    const lean=run?2:1;
+    P.torso.dx=lean;P.torso.dy=bob;P.hips.dx=Rd(lean/2);P.hips.dy=bob;P.head.dx=lean;P.head.dy=bob;P.head.rot=run?3:1;
+    P.A={x:IA.x+lean+(run?0.6:0.4)*s,y:IA.y-0.4+bob,a:run?-30+4*s:-52+4*s};P.S={x:IS.x+lean+1.0,y:IS.y-0.6+bob,rot:run?-8:-4};
+    P.capeRot=(run?10:4)+3*Math.sin(ph-0.9);P.fxdy=-Rd(1.5*s);
+  } else if(st==='stab'){
+    if(f===8)return P;
+    const k=ATK[f];
+    P.torso.dx=k.tx;P.torso.dy=k.ty;P.hips.dx=Rd(k.tx/2);P.hips.dy=k.ty;P.head.dx=k.tx;P.head.dy=k.ty;P.head.rot=k.hr;
+    P.legR.dx=k.lr;P.legL.dx=k.ll;
+    P.A={x:k.A.x,y:k.A.y,a:k.A.a};P.S={x:IS.x+k.tx+(f>=3&&f<6?1.0:0),y:IS.y+k.ty-(f>=1&&f<3?0.6:0),rot:f>=3&&f<6?-6:0};P.flash=k.flash||0;
+    P.capeRot=(f>=3&&f<6)?8:(f>=1&&f<3?-4:0);
+  } else if(st==='hit'){
+    const H=[{tx:-1,hr:-12,sq:1},{tx:-2,hr:-16,sq:1},{tx:-1,hr:-8,sq:1},{hr:-3},{},{}][f]||{};
+    const t=H.tx||0,lo=f<3;
+    P.torso.dx=t;P.hips.dx=Rd(t/2);P.head.dx=t;P.head.rot=H.hr||0;P.squint=!!H.sq;
+    P.A={x:IA.x+t,y:IA.y+(lo?0.8:0),a:IA.a+(lo?-12:0)};P.S={x:IS.x+t+(lo?1.2:0),y:IS.y-(lo?0.8:0),rot:lo?-10:0};
+    P.capeX=t;
+  } else if(st==='death'){
+    P.squint=true;
+    if(f===0){P.head.dx=-1;P.head.rot=-14;}
+    else if(f===1){P.torso.dy=1;P.head.dy=1;P.head.rot=-20;P.A={x:IA.x+0.4,y:IA.y+1.2,a:IA.a+18};P.S={x:IS.x,y:IS.y+1.0,rot:6};}
+    else{const s=(f-1)/6;
+      P.head.dx=(CUR_T>=3)?Rd(3*s):Rd(-4*s);P.head.dy=Rd(1-3*s+10*s*s);P.head.rot=-20-110*s;
+      P.torso.dx=Rd(-s);P.torso.dy=Rd(1+5*s*s);P.torso.rot=-25*s;P.hips.dy=Rd(4*s*s);
+      P.legL.dx=Rd(-2*s);P.legL.dy=Rd(2*s*s);P.legL.rot=-35*s;P.legR.dx=Rd(2*s);P.legR.dy=Rd(2*s*s);P.legR.rot=35*s;
+      P.A={x:IA.x+0.4+3*s,y:IA.y+1.2+(19.6-IA.y-1.2)*s*s,a:IA.a+18+70*s};P.S={x:IS.x-1.2*s,y:IS.y+1.0+(18.0-IS.y-1.0)*s*s,rot:6+80*s};
+      P.capeRot=-20*s;P.dissolve=[0,0,0.05,0.15,0.3,0.5,0.7,0.9][f];}
+  } else if(st==='spawn'){
+    if(f<=11){const s=1-f/11;
+      P.head.dx=Rd(-3*s);P.head.dy=Rd(6*s);P.head.rot=-60*s;
+      P.torso.dy=Rd(5*s);P.torso.rot=-20*s;P.hips.dy=Rd(3*s);
+      P.legL.dy=Rd(1.5*s);P.legL.rot=-25*s;P.legR.dy=Rd(1.5*s);P.legR.rot=25*s;
+      P.A={x:IA.x+3*s,y:IA.y+(19.6-IA.y)*s*s,a:IA.a+88*s};P.S={x:IS.x-1.2*s,y:IS.y+(18.0-IS.y)*s*s,rot:86*s};
+      P.dissolve=0.85*s;P.squint=s>0.3;}
+    else if(f===12){P.head.dy=-1;P.torso.dy=-1;P.A={x:IA.x,y:IA.y-0.8,a:IA.a};P.S={x:IS.x,y:IS.y-0.8,rot:0};}
+    else {P.squint=(f===14);}
+  }
+  return P;
+}
+function pose(st,f){
+  const a=ANIM[st],n=a.n,P=core(st,f),pf=a.loop?(f-1+n)%n:Math.max(0,f-1),Q=core(st,pf);
+  P.cape={dx:Q.torso.dx+Rd(P.capeX),dy:Q.torso.dy,rot:Q.torso.rot+P.capeRot};
+  P.drape={dx:Q.head.dx,dy:Q.head.dy,rot:Q.head.rot};
+  P.back={dx:P.head.dx,dy:P.head.dy,rot:0};
+  P.fx={dx:0,dy:P.fxdy,rot:0};
+  return P;
+}
+
+/* ---------- 프레임 베이크 ---------- */
+function placeLayer(layer,tr,piv,dest,sub){
+  if(layer.size===0)return;
+  const dx=tr.dx|0,dy=tr.dy|0,th=(tr.rot||0)*Math.PI/180;
+  if(Math.abs(th)<1e-4){layer.forEach((pl,k)=>{const gx=k%GW+dx,gy=((k/GW)|0)+dy;if(gx<0||gy<0||gx>=GW||gy>=GH)return;dest[gy*GW+gx]=sub?sub(k,pl):pl;});return;}
+  const px=AX+piv[0],py=AY+piv[1],c=Math.cos(th),s=Math.sin(th);
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  layer.forEach((pl,k)=>{const x=k%GW,y=(k/GW)|0;for(const o of [[0,0],[1,0],[0,1],[1,1]]){const vx=x+o[0]-px,vy=y+o[1]-py,rx=px+vx*c-vy*s,ry=py+vx*s+vy*c;if(rx<x0)x0=rx;if(rx>x1)x1=rx;if(ry<y0)y0=ry;if(ry>y1)y1=ry;}});
+  for(let gy=Math.floor(y0);gy<=Math.ceil(y1);gy++)for(let gx=Math.floor(x0);gx<=Math.ceil(x1);gx++){
+    const ox=gx+dx,oy=gy+dy;if(ox<0||oy<0||ox>=GW||oy>=GH)continue;
+    const vx=gx+0.5-px,vy=gy+0.5-py,sx=Math.floor(px+vx*c+vy*s),sy=Math.floor(py-vx*s+vy*c);
+    if(sx<0||sy<0||sx>=GW||sy>=GH)continue;const k=sy*GW+sx,pl=layer.get(k);if(pl===undefined)continue;
+    dest[oy*GW+ox]=sub?sub(k,pl):pl;}
+}
+function sameFill(a,b){return a.c[0]===b.c[0]&&a.c[1]===b.c[1]&&a.c[2]===b.c[2]&&!!a.g===!!b.g;}
+function fillInteriorHoles(dest){
+  for(let pass=0;pass<6;pass++){
+    const fills=[];
+    for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){
+      const i=y*GW+x;if(dest[i])continue;
+      const nb=[];
+      if(x>0&&dest[i-1])nb.push(dest[i-1]);
+      if(x<GW-1&&dest[i+1])nb.push(dest[i+1]);
+      if(y>0&&dest[i-GW])nb.push(dest[i-GW]);
+      if(y<GH-1&&dest[i+GW])nb.push(dest[i+GW]);
+      if(nb.length<3)continue;
+      let best=nb[0],bc=0;
+      for(let a=0;a<nb.length;a++){let c=0;for(let b=0;b<nb.length;b++){if(sameFill(nb[a],nb[b]))c++;}if(c>bc){bc=c;best=nb[a];}}
+      fills.push([i,best]);
+    }
+    if(fills.length===0)break;
+    fills.forEach(f=>{dest[f[0]]=f[1];});
+  }
+}
+function outlinePass(dest,oc){
+  const add=[];
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x;if(dest[i])continue;
+    let hit=false;
+    if(x>0&&dest[i-1]&&dest[i-1].noOut!==1)hit=true;
+    else if(x<GW-1&&dest[i+1]&&dest[i+1].noOut!==1)hit=true;
+    else if(y>0&&dest[i-GW]&&dest[i-GW].noOut!==1)hit=true;
+    else if(y<GH-1&&dest[i+GW]&&dest[i+GW].noOut!==1)hit=true;
+    if(hit)add.push(i);}
+  add.forEach(i=>{dest[i]={c:oc,a:1,noOut:0};});
+}
+function putPx(dest,gx,gy,pl){if(gx<0||gy<0||gx>=GW||gy>=GH)return;dest[gy*GW+gx]=pl;}
+function cellsNear(pts,w,fn){
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  pts.forEach(p=>{if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];});
+  const r=w/2+1,gx0=Math.max(0,Math.floor(x0-r+AX)),gx1=Math.min(GW-1,Math.ceil(x1+r+AX)),gy0=Math.max(0,Math.floor(y0-r+AY)),gy1=Math.min(GH-1,Math.ceil(y1+r+AY));
+  for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++){
+    const X=gx+0.5-AX,Y=gy+0.5-AY;let m=1e9;
+    if(pts.length===1){m=Math.hypot(X-pts[0][0],Y-pts[0][1]);}
+    else{for(let i=0;i<pts.length-1;i++){const d=segD(X,Y,pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1]);if(d<m)m=d;}}
+    if(m<=w/2)fn(gx,gy);
+  }
+}
+function limb(dest,parts,oc){
+  parts.forEach(p=>{if(p.ol)cellsNear(p.pts,p.w+2*p.ol,(gx,gy)=>putPx(dest,gx,gy,{c:oc,a:1,noOut:0}));});
+  parts.forEach(p=>{const rgb=hexRgb(p.col);cellsNear(p.pts,p.w,(gx,gy)=>putPx(dest,gx,gy,{c:rgb,a:p.a==null?1:p.a,g:p.g?1:0,noOut:p.noOut?1:0}));});
+}
+//# 2본 IK — 어깨 S, 손 H, 팔 마디 l1/l2, down=true 면 팔꿈치가 아래쪽
+function ik(S,H,l1,l2,mode){
+  const dx=H[0]-S[0],dy=H[1]-S[1],d=Math.hypot(dx,dy)||1,dd=Math.min(d,l1+l2-0.05);
+  const a=(l1*l1-l2*l2+dd*dd)/(2*dd),h=Math.sqrt(Math.max(0,l1*l1-a*a)),ux=dx/d,uy=dy/d;
+  const mx=S[0]+ux*a,my=S[1]+uy*a,nx=-uy,ny=ux,e1=[mx+nx*h,my+ny*h],e2=[mx-nx*h,my-ny*h];
+  let E_;
+  if(mode==='down')E_=(e1[1]>=e2[1]?e1:e2);
+  else if(mode==='up')E_=(e1[1]<=e2[1]?e1:e2);
+  else E_=(e1[0]<=e2[0]?e1:e2);
+  return {E:E_,H:[S[0]+ux*dd,S[1]+uy*dd]};
+}
+const armFore=(t,th)=>['#6B7280','#94A3B8',th.cloth[2],th.cloth[2],'#FBBF24'][t];
+function arc(cx,cy,r,a0,a1,n){const p=[];for(let i=0;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;p.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}return p;}
+function polyFill(dest,pts,col,opt,oc){
+  const f=PL(pts);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;pts.forEach(p=>{if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];});
+  const gx0=Math.max(0,Math.floor(x0-2+AX)),gx1=Math.min(GW-1,Math.ceil(x1+2+AX)),gy0=Math.max(0,Math.floor(y0-2+AY)),gy1=Math.min(GH-1,Math.ceil(y1+2+AY));
+  const ins=(gx,gy)=>f(gx+0.5-AX,gy+0.5-AY),rgb=hexRgb(col);
+  if(opt.ol){for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++){if(ins(gx,gy))continue;if(ins(gx-1,gy)||ins(gx+1,gy)||ins(gx,gy-1)||ins(gx,gy+1))putPx(dest,gx,gy,{c:oc,a:1,noOut:0});}}
+  for(let gy=gy0;gy<=gy1;gy++)for(let gx=gx0;gx<=gx1;gx++){if(ins(gx,gy))putPx(dest,gx,gy,{c:rgb,a:opt.a==null?1:opt.a,g:opt.g?1:0,noOut:opt.noOut?1:0});}
+}
+const rotPts=(pts,c,deg)=>{const r=deg*Math.PI/180,co=Math.cos(r),si=Math.sin(r);return pts.map(p=>[c[0]+(p[0]-c[0])*co-(p[1]-c[1])*si,c[1]+(p[0]-c[0])*si+(p[1]-c[1])*co]);};
+//# 방패 — 중심 S 에 연(kite)/둥근 방패, 금 테 + 십자(5단계는 태양) 문장
+function shield(dest,S,sh,th,t,oc){
+  const c=[S.x,S.y],w=sh.w,h=sh.h;
+  let outer;
+  if(sh.kite){outer=[[c[0]-w,c[1]-h*0.62],[c[0]-w*0.7,c[1]-h*0.86],[c[0],c[1]-h],[c[0]+w*0.7,c[1]-h*0.86],[c[0]+w,c[1]-h*0.62],[c[0]+w*0.86,c[1]+h*0.1],[c[0]+w*0.4,c[1]+h*0.66],[c[0],c[1]+h],[c[0]-w*0.4,c[1]+h*0.66],[c[0]-w*0.86,c[1]+h*0.1]];}
+  else{outer=[];for(let k=0;k<16;k++){const a=k/16*Math.PI*2;outer.push([c[0]+Math.cos(a)*w,c[1]+Math.sin(a)*h]);}}
+  outer=rotPts(outer,c,S.rot||0);
+  const inner=outer.map(p=>[c[0]+(p[0]-c[0])*0.78,c[1]+(p[1]-c[1])*0.8]);
+  polyFill(dest,outer,t===0?'#B45309':'#FBBF24',{ol:1},oc);
+  polyFill(dest,inner,t===0?'#7A5230':th.cloth[0],{},oc);
+  //# 문장
+  const v=rotPts([[c[0],c[1]-h*0.6],[c[0],c[1]+h*0.62]],c,S.rot||0),hb=rotPts([[c[0]-w*0.52,c[1]-h*0.18],[c[0]+w*0.52,c[1]-h*0.18]],c,S.rot||0);
+  if(t===4){for(let k=0;k<8;k++){const a=k/8*Math.PI*2;limb(dest,[{pts:[[c[0]+Math.cos(a)*1.2,c[1]+Math.sin(a)*1.2],[c[0]+Math.cos(a)*w*0.6,c[1]+Math.sin(a)*h*0.5]],w:0.9,col:'#FDE047',g:1,noOut:1}],oc);}
+    limb(dest,[{pts:[c],w:2.6,col:'#FBBF24'}],oc);limb(dest,[{pts:[c],w:1.4,col:'#FFFFFF',g:1,noOut:1}],oc);}
+  else{const col=t===0?'#D6B98C':th.acc;limb(dest,[{pts:v,w:1.1,col:col,g:t>=2?1:0,noOut:t>=2?1:0},{pts:hb,w:1.1,col:col,g:t>=2?1:0,noOut:t>=2?1:0}],oc);}
+}
+//# 철퇴 — 앞손 A 에서 자루를 뻗고 끝에 머리(날 철퇴/곤봉/전쟁망치)
+function mace(dest,A,mc,th,oc){
+  const a=A.a*Math.PI/180,dx=Math.cos(a),dy=Math.sin(a),nx=-dy,ny=dx;
+  const pom=[A.x-dx*1.4,A.y-dy*1.4],top=[A.x+dx*mc.L,A.y+dy*mc.L];
+  limb(dest,[{pts:[pom,top],w:1.3,col:mc.hammer?'#3F3F46':'#6B4A2B',ol:1}],oc);
+  limb(dest,[{pts:[pom],w:1.8,col:'#FBBF24',ol:1}],oc);
+  if(mc.hammer){const hw=mc.hr*1.25,hl=mc.hr*0.9;
+    const box=[[top[0]-nx*hw-dx*hl,top[1]-ny*hw-dy*hl],[top[0]+nx*hw-dx*hl,top[1]+ny*hw-dy*hl],[top[0]+nx*hw+dx*hl,top[1]+ny*hw+dy*hl],[top[0]-nx*hw+dx*hl,top[1]-ny*hw+dy*hl]];
+    polyFill(dest,box,mc.col,{ol:1},oc);
+    limb(dest,[{pts:[[top[0]-nx*hw*0.9,top[1]-ny*hw*0.9],[top[0]+nx*hw*0.9,top[1]+ny*hw*0.9]],w:0.9,col:'#FBBF24'}],oc);
+    limb(dest,[{pts:[[top[0]+nx*hw,top[1]+ny*hw]],w:1.6,col:th.glow||'#FDE047',g:1,noOut:1},{pts:[[top[0]-nx*hw,top[1]-ny*hw]],w:1.6,col:th.glow||'#FDE047',g:1,noOut:1}],oc);}
+  else{limb(dest,[{pts:[top],w:mc.hr*2,col:mc.col,ol:1}],oc);
+    if(mc.flange){for(let k=0;k<6;k++){const b=k/6*Math.PI*2;limb(dest,[{pts:[[top[0]+Math.cos(b)*mc.hr*0.5,top[1]+Math.sin(b)*mc.hr*0.5],[top[0]+Math.cos(b)*(mc.hr+0.9),top[1]+Math.sin(b)*(mc.hr+0.9)]],w:0.9,col:'#E2E8F0',ol:1}],oc);}}
+    limb(dest,[{pts:[[top[0]-mc.hr*0.35,top[1]-mc.hr*0.35]],w:Math.max(0.8,mc.hr*0.6),col:'#FFFFFF'}],oc);
+    if(mc.glow){limb(dest,[{pts:[top],w:mc.hr*1.1,col:th.glow,g:1,noOut:1,a:0.9}],oc);}}
+}
+//# 팔 · 방패 · 철퇴 · 궤적 — 프레임마다 계산(뒷팔 → 방패 → 앞팔 → 철퇴 순)
+function drawDynamic(dest,t,P,rimc){
+  const oc=hexRgb(OUT);
+  const cf=STG[t],th=TH[TK].st[t],A=P.A,S=P.S;
+  const tx=P.torso.dx,ty=P.torso.dy,Sb=[5.0+tx,6.2+ty],Sd=[-3.8+tx,6.2+ty];
+  const hB=[S.x+0.6,S.y],hF=[A.x,A.y];
+  const lB=Math.max(3.8,Math.min(4.8,Math.hypot(hB[0]-Sd[0],hB[1]-Sd[1])/2+0.9)),lF=Math.max(3.8,Math.min(4.8,Math.hypot(hF[0]-Sb[0],hF[1]-Sb[1])/2+0.9));
+  const kB=ik(Sd,hB,lB,lB,'down'),kF=ik(Sb,hF,lF,lF,'down'),fo=armFore(t,th);
+  limb(dest,[{pts:[Sd,kB.E],w:2.0,col:'#9CA3AF',ol:1},{pts:[kB.E,kB.H],w:1.8,col:fo,ol:1}],oc);
+  shield(dest,S,cf.sh,th,t,oc);
+  limb(dest,[{pts:[Sb,kF.E],w:2.0,col:'#9CA3AF',ol:1},{pts:[kF.E,kF.H],w:1.8,col:fo,ol:1}],oc);
+  mace(dest,A,cf.mc,th,oc);
+  limb(dest,[{pts:[kF.H],w:2.2,col:'#E8E0C8',ol:1}],oc);
+  const g=th.glow||'#BAE6FD';
+  const a=A.a*Math.PI/180,top=[A.x+Math.cos(a)*cf.mc.L,A.y+Math.sin(a)*cf.mc.L];
+  if(P.flash===2){limb(dest,[{pts:arc(A.x-1.5,A.y-1.5,cf.mc.L+0.8,-150,45,14),w:2.2,col:g,g:1,noOut:1,a:0.85},{pts:arc(A.x-1.5,A.y-1.5,cf.mc.L-0.6,-140,40,12),w:0.9,col:'#FFFFFF',g:1,noOut:1,a:0.8}],oc);}
+  if(P.flash===1){const gy=21.4;limb(dest,[{pts:arc(top[0],gy,4.2,180,360,14).map(p=>[p[0],gy+(p[1]-gy)*0.35]),w:1.4,col:g,g:1,noOut:1,a:0.85},{pts:arc(top[0],gy,4.2,0,180,14).map(p=>[p[0],gy+(p[1]-gy)*0.35]),w:1.4,col:g,g:1,noOut:1,a:0.85},
+    {pts:[[top[0],gy-1],[top[0],gy-7]],w:1.0,col:'#FFFFFF',g:1,noOut:1,a:0.7}],oc);}
+}
+function mkFrame(dest){
+  const occ=new Uint8Array(GW*GH);for(let i=0;i<dest.length;i++){if(dest[i])occ[i]=1;}
+  const fr={occ:occ,dest:dest,_cv:null,_gl:null};
+  Object.defineProperty(fr,'cv',{get(){if(!fr._cv)renderFrame(fr);return fr._cv;}});
+  Object.defineProperty(fr,'gl',{get(){if(!fr._gl)renderFrame(fr);return fr._gl;}});
+  return fr;
+}
+const CACHE=new Map();
+function getFrame(t,st,f){
+  const key=TK+'|'+t+'|'+st+'|'+f;if(CACHE.has(key))return CACHE.get(key);
+  CUR_T=t;
+  const rig=rigOf(t),P=pose(st,f),dest=new Array(GW*GH).fill(null),th=TH[TK].st[t],oc=hexRgb(th.rim||OUT);
+  const eyeSub=P.squint?(k,pl)=>rig.eyeKeys.has(k)?{c:hexRgb(OUT),a:1}:pl:null;
+  ORDER_A.forEach(b=>{const tr=P[b]||Z();placeLayer(rig.L[b],tr,PIV[b],dest,b==='head'?eyeSub:null);});
+  fillInteriorHoles(dest);
+  drawDynamic(dest,t,P,oc);
+  placeLayer(rig.L.fx,P.fx,PIV.fx,dest,null);
+  outlinePass(dest,oc);
+  if(P.dissolve>0){
+    const dust=[];
+    for(let i=0;i<dest.length;i++){if(!dest[i])continue;const x=i%GW,y=(i/GW)|0;if(hash(x,y)<P.dissolve){dest[i]=null;if(hash(x+7.3,y+3.1)<0.25){const yy=y-1-Math.floor(hash(x+3.7,y+11.2)*6*P.dissolve);if(yy>=0)dust.push(yy*GW+x);}}}
+    dust.forEach(i=>{if(!dest[i])dest[i]={c:[232,224,200],a:0.55,noOut:1};});
+  }
+  const fr=mkFrame(dest);
+  CACHE.set(key,fr);return fr;
+}
+function renderFrame(fr){
+  const dest=fr.dest,W=GW*CS,H=GH*CS,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const gv=document.createElement('canvas');gv.width=W;gv.height=H;const gg=gv.getContext('2d');
+  const im=g.createImageData(W,H),gm=gg.createImageData(W,H);
+  for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;const gx=i%GW,gy=(i/GW)|0;
+    for(let yy=0;yy<CS;yy++)for(let xx=0;xx<CS;xx++){const d=((gy*CS+yy)*W+gx*CS+xx)*4;
+      im.data[d]=pl.c[0];im.data[d+1]=pl.c[1];im.data[d+2]=pl.c[2];im.data[d+3]=Math.round(255*(pl.a==null?1:pl.a));
+      if(pl.g){gm.data[d]=pl.c[0];gm.data[d+1]=pl.c[1];gm.data[d+2]=pl.c[2];gm.data[d+3]=255;}}}
+  g.putImageData(im,0,0);gg.putImageData(gm,0,0);
+  fr._cv=cv;fr._gl=gv;
+}
+
+/* ---------- 재생기(DOM 액터) ---------- */
+let T=0,SPD=1;
+function mkActor(host,t,scale,bottomPad){
+  const d=document.createElement('div');d.className='pup';
+  const W=GW*CS,H=GH*CS,sc=scale*STG[t].scale,w=W*sc,h=H*sc;
+  const a=document.createElement('canvas');a.width=W;a.height=H;const b=document.createElement('canvas');b.width=W;b.height=H;b.className='glow';
+  [a,b].forEach(c=>{c.style.width=w+'px';c.style.height=h+'px';d.appendChild(c);});
+  d.style.width=w+'px';d.style.height=h+'px';
+  const footY=51*CS*sc;d.style.bottom=(bottomPad-(h-footY))+'px';d.style.marginLeft=(-(AX+0.5)*CS*sc)+'px';
+  d.style.transformOrigin=((AX+0.5)*CS*sc)+'px '+footY+'px';
+  const ev=document.createElement('div');ev.className='evt';host.appendChild(ev);host.appendChild(d);
+  return {el:d,a:a.getContext('2d'),b:b.getContext('2d'),ev:ev,t:t,st:'idle',t0:0,f:-1,gone:false,inv:-1,wf:-9,evShown:'',endShown:false,evT:-9,lockAt:null,lockSt:null};
+}
+function play(p,st,now){p.st=st;p.t0=now;p.gone=false;p.evShown='';p.endShown=false;p.f=-1;if(st==='hit')p.inv=now+0.1;
+  if(ANIM[st].lock!=null){p.lockAt=now+ANIM[st].lock;p.lockSt=st;}else if(st!=='idle'){p.lockAt=null;}}
+function showEv(p,text,color,now){p.ev.textContent=text;p.ev.style.color=color;p.evT=now;}
+function tickActor(p,now){
+  const a=ANIM[p.st],t=now-p.t0,L=realLen(p.st);
+  if(a.strike!=null&&p.evShown===''&&t>=a.strike){p.evShown='s';p.wf=now;showEv(p,'●STRIKE '+a.strike.toFixed(3)+'s','#FBBF24',now);}
+  if(a.end!=null&&p.endShown===false&&t>=a.end){p.endShown=true;showEv(p,'◆공격 종료 '+a.end.toFixed(3)+'s','#22D3EE',now);}
+  if(p.lockAt!=null&&now>=p.lockAt){showEv(p,'◆스폰 게이트 '+ANIM[p.lockSt].lock.toFixed(3)+'s','#22D3EE',now);p.lockAt=null;}
+  if(!a.loop&&t>=L){if(p.st==='death'){p.gone=true;}else{play(p,'idle',now);return tickActor(p,now);}}
+  const f=frameAt(p.st,Math.min(t,L-1e-6));
+  if(f!==p.f){const fr=getFrame(p.t,p.st,f);p.a.clearRect(0,0,GW*CS,GH*CS);p.a.drawImage(fr.cv,0,0);p.b.clearRect(0,0,GW*CS,GH*CS);p.b.drawImage(fr.gl,0,0);p.f=f;}
+  let s=1,fl='';const kp=(now-p.wf)/0.12;if(kp>=0&&kp<1){s=1+0.08*Math.sin(kp*Math.PI);fl='brightness('+(1+0.6*Math.sin(kp*Math.PI)).toFixed(2)+')';}
+  if(now<p.inv)fl='invert(1)';
+  p.el.style.transform=s!==1?'scale('+s.toFixed(3)+')':'';p.el.style.filter=fl;p.el.style.opacity=p.gone?0:1;
+  const ke=(now-p.evT)/0.7;p.ev.style.opacity=(ke>=0&&ke<1)?(1-ke).toFixed(2):0;
+}
+function chips(host,list,cur,label,onPick){
+  host.innerHTML='<span class="lbl">'+label+'</span>';
+  list.forEach(v=>{const b=document.createElement('button');b.className='btn sm'+(v[0]===cur?' on':'');b.textContent=v[1];
+    b.addEventListener('click',()=>{host.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));onPick(v[0]);});host.appendChild(b);});
+}
+const stCol=t=>{const c=TH[TK].st[t].chip;return {bg:c,fg:lumOf(c)>140?'#111':'#fff'};};
+
+/* ---------- 섹션 구성 ---------- */
+let CARDS=[],auto=true,seq0=0,stT=0,stSt='stab',stP=null,ladMode='color',cmpMode='color',H1=31;
+const SEQ=[['spawn',1.9],['idle',1.6],['walk',1.6],['run',1.2],['stab',0.7],['stab',0.7],['hit',0.7],['idle',0.6],['death',1.3]];
+const SEQT=SEQ.reduce((s,x)=>s+x[1],0);
+
+function diffCls(m){return m>=31?'ok':(m>=25?'warn':'ng');}
+function occMin(hh){let m=360,who='';OCC.forEach(o=>o[1].forEach(v=>{const d=angD(hh,v);if(d<m){m=d;who=o[0]+' '+v+'°';}}));return [m,who];}
+function buildPalette(){
+  chips($('palSel'),[['A',TH.A.label],['B',TH.B.label]],TK,'팔레트',v=>{TK=v;rebuildAll();});
+  $('palDesc').textContent=TH[TK].desc;
+  let h='<tr><th style="width:120px">단계</th>';for(let t=0;t<5;t++)h+='<th>'+STG[t].id+'</th>';h+='</tr>';
+  ['A','B'].forEach(k=>{
+    h+='<tr><td class="l"><b>'+k+'안</b>'+(k===TK?' (선택됨)':'')+'</td>';
+    TH[k].st.forEach(s=>{h+='<td><span class="sw" style="background:'+s.chip+'"></span>'+s.nm+'<br><small>'+s.chip+(s.glow?' · 발광 '+s.glow:'')+(s.rim?' · 림 '+s.rim:'')+'</small></td>';});
+    h+='</tr><tr><td class="l">휘장 색 — 기존 네 영웅 점유 색상각과 최소 차이</td>';
+    TH[k].st.forEach(s=>{const hh=hueOf(s.chip);if(hh===null){h+='<td>무채색(판정 제외)</td>';return;}const r=occMin(hh);h+='<td class="'+diffCls(r[0])+'">'+r[0].toFixed(1)+'°<br><small>hue '+hh.toFixed(1)+' · 최근접 '+r[1]+'</small></td>';});
+    h+='</tr><tr><td class="l">발광색 — 최소 차이(참고, 면적 작음)</td>';
+    TH[k].st.forEach(s=>{if(s.glow==null){h+='<td>—</td>';return;}const hh=hueOf(s.glow);if(hh===null){h+='<td>무채색</td>';return;}const r=occMin(hh);h+='<td>'+r[0].toFixed(1)+'°<br><small>hue '+hh.toFixed(1)+'</small></td>';});
+    h+='</tr><tr><td class="l">인접 단계끼리 몸 색 차이</td>';
+    TH[k].st.forEach((s,i)=>{if(i===0){h+='<td>—</td>';return;}const a=hueOf(s.chip),b=hueOf(TH[k].st[i-1].chip);
+      if(a===null||b===null){const la=lumOf(s.chip),lb=lumOf(TH[k].st[i-1].chip);h+='<td>무채색 포함 · 명도차 '+Math.abs(la-lb).toFixed(0)+'</td>';return;}const d=angD(a,b);h+='<td class="'+(d>=25?'ok':'warn')+'">'+d.toFixed(0)+'°</td>';});
+    h+='</tr>';});
+  $('palTbl').innerHTML=h;
+}
+
+function buildCards(){
+  const host=$('cards');host.innerHTML='';CARDS=[];
+  for(let t=0;t<5;t++){
+    const sc=stCol(t),c=document.createElement('div');c.className='card';
+    c.innerHTML='<div class="hd"><div><span class="nm">'+STG[t].id+' '+STG[t].nm+'</span></div><span class="ax" style="background:'+sc.bg+';color:'+sc.fg+'">'+TH[TK].st[t].nm+'</span></div>'+
+      '<div class="st">'+STG[t].sub+' · HP×'+STG[t].hp.toFixed(2)+' · Pow×'+STG[t].pw.toFixed(2)+(STG[t].scale!==1?' · 스케일×'+STG[t].scale.toFixed(2):'')+'</div>'+
+      '<div class="stage dungeon"></div><div class="fi"></div>'+
+      '<div class="sb">'+STATES.map(s=>'<button class="btn sm" data-s="'+s+'">'+SKO[s]+'</button>').join('')+'</div>';
+    host.appendChild(c);
+    const p=mkActor(c.querySelector('.stage'),t,0.74,24);
+    const cd={p:p,fi:c.querySelector('.fi'),auto:true,slot:-1,last:''};
+    c.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{cd.auto=false;play(p,b.dataset.s,T);}));
+    CARDS.push(cd);
+  }
+  seq0=T;
+}
+function cardsTick(){
+  if(auto){const e=((T-seq0)%SEQT+SEQT)%SEQT;let acc=0,idx=0;for(let i=0;i<SEQ.length;i++){if(e<acc+SEQ[i][1]){idx=i;break;}acc+=SEQ[i][1];}
+    CARDS.forEach(cd=>{if(cd.auto&&cd.slot!==idx){cd.slot=idx;play(cd.p,SEQ[idx][0],T);}});}
+  CARDS.forEach(cd=>{const p=cd.p,a=ANIM[p.st];
+    tickActor(p,T);
+    let s=SKO[p.st]+' F'+Math.max(0,p.f)+'/'+a.n+' · '+a.fps+'fps · '+realLen(p.st).toFixed(3)+'s';
+    if(a.strike!=null)s+=' · <b>strike F'+strikeF(p.st)+'</b>';
+    if(p.gone)s='사망 완료(마지막 프레임 유지) → 0.8s 후 풀 반환';
+    if(s!==cd.last){cd.fi.innerHTML=s;cd.last=s;}});
+}
+
+function buildStrip(){
+  const a=ANIM[stSt],sf=strikeF(stSt),ef=endF(stSt),host=$('strip');host.innerHTML='';
+  for(let f=0;f<a.n;f++){const d=document.createElement('div');d.className='fr'+(f===sf?' hit':'')+(f===ef?' end':'');d.dataset.f=f;
+    const cv=document.createElement('canvas');cv.width=GW*CS;cv.height=GH*CS;cv.getContext('2d').drawImage(getFrame(stT,stSt,f).cv,0,0);d.appendChild(cv);
+    const lb=document.createElement('div');lb.innerHTML='F'+f+' · '+((f/a.fps)/a.speed).toFixed(3)+'s'+(f===sf?'<br>●STRIKE':'')+(f===ef?'<br>◆종료':'');d.appendChild(lb);host.appendChild(d);}
+  const pb=$('stPrev');pb.innerHTML='';stP=mkActor(pb,stT,0.7,14);play(stP,stSt,T);
+  $('stInfo').innerHTML=STG[stT].id+' '+SKO[stSt]+' — '+a.n+'프레임 × '+a.fps+'fps = '+realLen(stSt).toFixed(3)+'s · '+(a.loop?'루프':'1회')+
+    (sf>=0?' · OnAttackStrike '+a.strike.toFixed(3)+'s(F'+sf+')':'')+(ef>=0?' · 공격 종료 이벤트 '+a.end.toFixed(3)+'s(F'+ef+', 제안)':'')+
+    (a.lock!=null?' · 스폰 게이트 '+a.lock.toFixed(3)+'s(fallback, 클립 뒤 대기 모션)':'')+(stSt==='death'?' · 끝나면 0.8s 후 풀 반환':'');
+}
+function stripTick(){if(!stP)return;if(!ANIM[stSt].loop&&(stP.gone||stP.st!==stSt)){play(stP,stSt,T);}tickActor(stP,T);
+  const cur=stP.st===stSt?stP.f:-1;$('strip').querySelectorAll('.fr').forEach(el=>el.classList.toggle('cur',Number(el.dataset.f)===cur));}
+
+function bbox(m){let x0=1e9,y0=1e9,x1=-1,y1=-1,n=0;for(let i=0;i<m.length;i++){if(!m[i])continue;n++;const x=i%GW,y=(i/GW)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}return {x0:x0,y0:y0,x1:x1,y1:y1,n:n};}
+function buildLadder(){
+  const host=$('ladder');host.innerHTML='';
+  for(let t=0;t<5;t++){
+    const c=document.createElement('div');c.className='lc '+(ladMode==='sil'?'sil':'dungeon');host.appendChild(c);
+    const fr=getFrame(t,'idle',0),sc=0.8*STG[t].scale,W=GW*CS,H=GH*CS;
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+    if(ladMode==='sil'){g.fillStyle='#111';for(let i=0;i<fr.occ.length;i++){if(fr.occ[i])g.fillRect((i%GW)*CS,((i/GW)|0)*CS,CS,CS);}}
+    else g.drawImage(fr.cv,0,0);
+    const footY=51*CS*sc;
+    cv.style.cssText='position:absolute;left:50%;bottom:'+(40-(H*sc-footY))+'px;width:'+(W*sc)+'px;height:'+(H*sc)+'px;margin-left:'+(-(AX+0.5)*CS*sc)+'px';
+    c.appendChild(cv);
+    if(ladMode!=='sil'){const gl=document.createElement('canvas');gl.width=W;gl.height=H;gl.getContext('2d').drawImage(fr.gl,0,0);gl.style.cssText=cv.style.cssText+';filter:blur(3px) brightness(1.6);mix-blend-mode:screen;opacity:.9';c.appendChild(gl);}
+    const cap=document.createElement('div');cap.className='cap';cap.innerHTML='<b>'+STG[t].id+'</b> '+TH[TK].st[t].nm+'<br>'+STG[t].sub;c.appendChild(cap);
+  }
+}
+function buildMetrics(){
+  const m1=getFrame(0,'idle',0).occ,b1=bbox(m1),f=48/(b1.y1-b1.y0+1);H1=b1.y1-b1.y0+1;$('h1px').textContent=H1;
+  const RT=[10,18,30,45],PT=[4,6,9,14],f1=v=>(Math.floor(v*10)/10).toFixed(1),rows=[];
+  for(let t=1;t<5;t++){const m=getFrame(t,'idle',0).occ,b=bbox(m);let out=0;for(let i=0;i<m.length;i++){if(m[i]&&!m1[i])out++;}
+    rows.push({inc:100*out/b1.n,pro:Math.max(b1.y0-b.y0,b1.x0-b.x0,b.x1-b1.x1,0)*f});}
+  let h='<tr><th>항목</th><th>5-2</th><th>5-3</th><th>5-4</th><th>5-5</th></tr><tr><td>R3\' 실루엣 증가율<br><small>기준 ≥10/18/30/45%</small></td>';
+  rows.forEach((r,k)=>{h+='<td class="'+(r.inc>=RT[k]?'ok':'ng')+'">'+f1(r.inc)+'%</td>';});
+  h+='</tr><tr><td>R2\' 최대 돌출<br><small>기준 ≥4/6/9/14 텍셀(48px 환산)</small></td>';
+  rows.forEach((r,k)=>{h+='<td class="'+(r.pro>=PT[k]?'ok':'ng')+'">'+f1(r.pro)+'</td>';});
+  $('metTbl').innerHTML=h+'</tr>';
+  let p='<tr><th style="width:60px">단계</th><th>파츠 변화</th></tr>';
+  PARTCHG.forEach((s,i)=>{p+='<tr><td>'+STG[i].id+'</td><td class="l">'+s+'</td></tr>';});
+  $('partTbl').innerHTML=p;
+}
+
+/* ---------- 전투 미니 프리뷰 — 정면 교전 + 디버프 정화 ---------- */
+const SM=1.6;
+const MK={tank:{w:7,h:7,col:'#64748B',spd:0.7,hp:6},mid:{w:5,h:6,col:'#F87171',spd:1.3,hp:3},debuff:{w:4,h:6,col:'#C084FC',spd:1.5,hp:2},swarm:{w:3,h:4,col:'#A3E635',spd:1.6,hp:1}};
+let bfT=0,SIM=null,BFC=null,showRing=true,skAuto=true;
+function litePlay(l,st,now){l.st=st;l.t0=now;}
+function simInit(){
+  SIM={hero:{x:0,z:0,hp:100,face:1,tgt:null,cd:0,shotT0:-9,struck:true,moving:false,mul:1,sanct:-9,deb:[]},
+    mons:[],fx:[],spawnT:1.5,cdSk:[0,0,0],banner:{text:'',t0:-9},lite:{st:'idle',t0:T},kills:0,cleanse:0,debTot:0,ko:0};
+  for(let i=0;i<6;i++)spawnMon();
+}
+function spawnMon(){const r=Math.random(),kind=r<0.18?'tank':(r<0.45?'mid':(r<0.75?'debuff':'swarm')),a=Math.random()*Math.PI*2,R_=6.5;
+  SIM.mons.push({x:Math.cos(a)*R_,z:Math.sin(a)*R_,kind:kind,hp:MK[kind].hp,max:MK[kind].hp,flash:-9,stun:-9,dcd:1.2});}
+function bfBuild(){
+  const host=$('bf');host.querySelectorAll('canvas').forEach(e=>e.remove());
+  const cv=document.createElement('canvas');cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%';
+  host.appendChild(cv);cv.width=host.clientWidth;cv.height=host.clientHeight;BFC=cv;simInit();
+}
+const dist2=(ax,az,bx,bz)=>Math.hypot(ax-bx,az-bz);
+function countNear(x,z,r){let n=0;SIM.mons.forEach(m=>{if(m.hp>0&&dist2(x,z,m.x,m.z)<=r)n++;});return n;}
+function damage(m,v,now){m.hp-=v;m.flash=now;if(m.hp<=0){SIM.fx.push({type:'puff',x:m.x,z:m.z,t0:now,dur:0.35});SIM.kills++;}}
+function banner(text){SIM.banner={text:text,t0:T};}
+function koReset(){const S=SIM,h=S.hero;S.ko++;h.hp=100;h.deb=[];h.mul=1;h.sanct=-9;S.mons=[];for(let i=0;i<5;i++)spawnMon();banner('쓰러짐 → 자동 리셋');}
+function hurt(v){const h=SIM.hero;h.hp-=v*h.mul*(1+0.12*h.deb.length);if(h.hp<=0)koReset();}
+//# 심판의 망치 — 가장 붐비는 몬스터 위로 낙하, 반경 2.4 피해 + 기절
+function castLeap(){const S=SIM,h=S.hero,now=T;if(now<S.cdSk[0])return false;let best=null,bs=0;
+  S.mons.forEach(m=>{if(m.hp<=0||dist2(h.x,h.z,m.x,m.z)>7)return;const sc=countNear(m.x,m.z,2.4);if(sc>bs){bs=sc;best=m;}});if(best===null)return false;
+  S.fx.push({type:'hammer',x:best.x,z:best.z,t0:now,dur:0.55});S.mons.forEach(m=>{if(m.hp>0&&dist2(best.x,best.z,m.x,m.z)<=2.4){damage(m,2,now);m.stun=now+0.6;}});
+  S.cdSk[0]=now+6.0;banner('심판의 망치');return true;}
+//# 정화의 빛 — 디버프 3개 이상이면 전부 해제 + 회복
+function castPull(){const S=SIM,h=S.hero,now=T;if(now<S.cdSk[1]||h.deb.length<1)return false;
+  S.cleanse+=h.deb.length;h.deb=[];h.hp=Math.min(100,h.hp+8);S.fx.push({type:'pillar',x:h.x,z:h.z,t0:now,dur:0.7});S.cdSk[1]=now+12.0;banner('정화의 빛');return true;}
+//# 성역 — 6초간 받는 피해 ×0.6, 주변 몬스터 둔화
+function castFrenzy(){const S=SIM,h=S.hero,now=T;if(now<S.cdSk[2])return false;h.sanct=now+6.0;h.mul=0.6;S.cdSk[2]=now+18.0;banner('성역');return true;}
+function bfUpdate(dt){
+  const S=SIM,h=S.hero,now=T;
+  S.spawnT-=dt;if(S.spawnT<=0&&S.mons.length<12){spawnMon();S.spawnT=1.1;}
+  h.hp=Math.min(100,h.hp+0.8*dt);
+  if(h.sanct>0&&now>=h.sanct){h.sanct=-9;h.mul=1;}
+  //# 디버프 지속 — 고유 패시브 ×0.6(기본 5초 → 3초)
+  h.deb=h.deb.filter(d=>now<d);
+  S.mons.forEach(m=>{
+    if(m.hp<=0||now<m.stun)return;
+    const k=MK[m.kind],dx=h.x-m.x,dz=h.z-m.z,d=Math.hypot(dx,dz)||1,slow=(h.sanct>0&&d<=2.6)?0.7:1;
+    if(d>1.0){m.x+=dx/d*k.spd*slow*dt;m.z+=dz/d*k.spd*slow*dt;}else{hurt(1.8*dt);}
+    if(m.kind==='debuff'&&d<=2.2){m.dcd-=dt;if(m.dcd<=0){m.dcd=1.6;if(h.deb.length<5){h.deb.push(now+3.0);S.debTot++;}S.fx.push({type:'curse',x0:m.x,z0:m.z,t0:now,dur:0.25});}}
+  });
+  const swinging=now<h.shotT0+0.6;h.moving=false;
+  if(swinging===false){
+    if(h.tgt===null||h.tgt.hp<=0||S.mons.indexOf(h.tgt)<0){let b=null,bd=1e9;S.mons.forEach(m=>{const d=dist2(h.x,h.z,m.x,m.z);if(m.hp>0&&d<bd){bd=d;b=m;}});h.tgt=b;}
+    if(skAuto){if(h.deb.length>=3&&now>=S.cdSk[1])castPull();else if(h.hp<50&&now>=S.cdSk[2])castFrenzy();else if(now>=S.cdSk[0]&&countNear(h.x,h.z,6)>=3)castLeap();}
+    if(h.tgt){const d=dist2(h.x,h.z,h.tgt.x,h.tgt.z);h.face=h.tgt.x>=h.x?1:-1;
+      if(d>1.6){h.x+=(h.tgt.x-h.x)/d*2.9*dt;h.z+=(h.tgt.z-h.z)/d*2.9*dt;h.moving=true;}
+      else if(now>=h.cd){h.shotT0=now;h.cd=now+1.1;h.struck=false;litePlay(S.lite,'stab',now);}}
+  }
+  const rr=Math.hypot(h.x,h.z);if(rr>7.0){h.x*=7.0/rr;h.z*=7.0/rr;}
+  if(h.struck===false&&now>=h.shotT0+0.2){h.struck=true;const tg=h.tgt;if(tg&&tg.hp>0&&dist2(h.x,h.z,tg.x,tg.z)<=2.2){damage(tg,1.3,now);S.fx.push({type:'smash',x:tg.x,z:tg.z,t0:now,dur:0.3});}}
+  S.fx=S.fx.filter(f=>now-f.t0<f.dur);S.mons=S.mons.filter(m=>m.hp>0);
+  const l=S.lite;
+  if(swinging&&l.st==='stab'){}
+  else if(h.moving){if(l.st!=='run')litePlay(l,'run',now);}
+  else if(l.st!=='idle'&&(l.st==='run'||(l.st==='stab'&&now>=h.shotT0+0.6))){litePlay(l,'idle',now);}
+  $('bfhud').textContent=STG[bfT].id+' 성기사 · HP '+Math.max(0,Math.round(h.hp))+' · 디버프 '+h.deb.length+(h.sanct>0?' · 성역':'')+' · 몬스터 '+S.mons.length;
+  $('bfStat').innerHTML='처치 <b>'+S.kills+'</b> · 받은 디버프 <b>'+S.debTot+'</b>개 중 정화로 지운 것 <b>'+S.cleanse+'</b>개 · 쓰러짐 <b>'+S.ko+'</b>회 — 디버프는 패시브로 3초만 유지되고 3개가 쌓이면 정화된다. 연출 확인용 단순 모델.';
+}
+function bfDraw(){
+  const cv=BFC,ctx=cv.getContext('2d'),S=SIM,h=S.hero,now=T;
+  if(cv.width!==$('bf').clientWidth||cv.height!==$('bf').clientHeight){cv.width=$('bf').clientWidth;cv.height=$('bf').clientHeight;}
+  const W=cv.width,Hh=cv.height,ppu=Hh/12.8,cx=W/2,cy=Hh*0.52;
+  const sx=x=>cx+x*ppu,sy=z=>cy+z*ppu*0.8;
+  ctx.clearRect(0,0,W,Hh);
+  const ell=(x,z,r,col,dash,lw)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw||1.2;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.ellipse(sx(x),sy(z),r*ppu,r*ppu*0.8,0,0,Math.PI*2);ctx.stroke();ctx.restore();};
+  ell(0,0,7.6,'rgba(200,230,255,.16)',[2,4],1);
+  if(showRing){ell(h.x,h.z,1.6,'rgba(251,191,36,.85)',[6,5]);}
+  if(h.sanct>0){ctx.save();ctx.fillStyle='rgba(170,225,255,.12)';ctx.beginPath();ctx.ellipse(sx(h.x),sy(h.z),2.6*ppu,2.6*ppu*0.8,0,0,Math.PI*2);ctx.fill();ctx.restore();ell(h.x,h.z,2.6,'rgba(200,240,255,.8)',[],1.6);}
+  const mu=SM*ppu/31*3;
+  S.fx.forEach(f=>{const k=(now-f.t0)/f.dur;
+    if(f.type==='hammer'){ctx.save();ctx.fillStyle='rgba(255,240,180,'+(0.4*(1-k)).toFixed(2)+')';ctx.beginPath();ctx.ellipse(sx(f.x),sy(f.z),2.4*ppu,2.4*ppu*0.8,0,0,Math.PI*2);ctx.fill();ctx.restore();ell(f.x,f.z,2.4*Math.min(1,k*1.6),'rgba(253,224,71,'+(1-k).toFixed(2)+')',[],3);
+      const hy=sy(f.z)-ppu*(3.5*(1-Math.min(1,k*2.2)));ctx.fillStyle='rgba(255,250,220,'+(1-k).toFixed(2)+')';ctx.fillRect(sx(f.x)-ppu*0.5,hy-ppu*0.6,ppu,ppu*0.6);ctx.fillRect(sx(f.x)-ppu*0.08,hy-ppu*1.6,ppu*0.16,ppu);}
+    if(f.type==='pillar'){ctx.save();const g=ctx.createLinearGradient(0,sy(f.z)-ppu*5,0,sy(f.z));g.addColorStop(0,'rgba(200,240,255,0)');g.addColorStop(1,'rgba(200,240,255,'+(0.6*(1-k)).toFixed(2)+')');ctx.fillStyle=g;ctx.fillRect(sx(f.x)-ppu*0.9,sy(f.z)-ppu*5,ppu*1.8,ppu*5);ctx.restore();}
+    if(f.type==='puff'){ctx.fillStyle='rgba(232,224,200,'+(0.7*(1-k)).toFixed(2)+')';ctx.beginPath();ctx.arc(sx(f.x),sy(f.z)-ppu*0.4,ppu*(0.3+0.5*k),0,Math.PI*2);ctx.fill();}});
+  const items=S.mons.map(m=>({z:m.z,m:m}));items.push({z:h.z,hero:true});items.sort((a,b)=>a.z-b.z);
+  items.forEach(it=>{
+    if(it.hero){drawHero(ctx,sx(h.x),sy(h.z),ppu);return;}
+    const m=it.m,k=MK[m.kind],x=sx(m.x),y=sy(m.z),w=k.w*mu,hh=k.h*mu;
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x,y,w*0.55,w*0.2,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=(now-m.flash<0.1)?'#FFFFFF':(now<m.stun?'#FDE68A':k.col);ctx.fillRect(x-w/2,y-hh,w,hh);ctx.fillRect(x-w/2+mu,y-hh-mu,w-2*mu,mu);
+    ctx.fillStyle='#0A0D14';ctx.fillRect(x-w/2+mu*0.8,y-hh+mu*1.0,mu*0.8,mu*0.8);ctx.fillRect(x+w/2-mu*1.6,y-hh+mu*1.0,mu*0.8,mu*0.8);
+    for(let i=0;i<m.max;i++){ctx.fillStyle=i<m.hp?'#4ADE80':'#374151';ctx.fillRect(x-m.max*mu*0.3+i*mu*0.6,y-hh-mu*2.4,mu*0.5,mu*0.5);}
+  });
+  S.fx.forEach(f=>{const k=(now-f.t0)/f.dur;
+    if(f.type==='curse'){ctx.strokeStyle='rgba(192,132,252,'+(1-k).toFixed(2)+')';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx(f.x0),sy(f.z0)-ppu*0.6);ctx.lineTo(sx(h.x),sy(h.z)-ppu*1.2);ctx.stroke();}
+    if(f.type==='smash'){ell(f.x,f.z,0.5+1.2*k,'rgba(186,230,253,'+(1-k).toFixed(2)+')',[],3);}});
+  if(now-S.banner.t0<1.0){ctx.save();ctx.globalAlpha=1-(now-S.banner.t0);ctx.fillStyle='#BAE6FD';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(S.banner.text,W/2,26);ctx.restore();}
+}
+function drawHero(ctx,x,y,ppu){
+  const S=SIM,h=S.hero,l=S.lite,now=T;
+  let t=now-l.t0,st=l.st;const a=ANIM[st],L=realLen(st);
+  if(a.loop!==true&&t>=L){t=L-1e-6;}
+  const f=frameAt(st,Math.max(0,t)),fr=getFrame(bfT,st,f);
+  const s=SM*ppu/(H1*CS)*STG[bfT].scale;
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(x,y,ppu*0.75*SM,ppu*0.24*SM,0,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(x,y);ctx.scale(h.face*s,s);ctx.drawImage(fr.cv,-(AX+0.5)*CS,-51*CS);
+  ctx.globalCompositeOperation='screen';ctx.filter='blur(3px) brightness(1.6)';ctx.globalAlpha=0.9;ctx.drawImage(fr.gl,-(AX+0.5)*CS,-51*CS);ctx.restore();
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(x-ppu*0.9,y-ppu*5.6,ppu*1.8,ppu*0.22);ctx.fillStyle=h.hp>35?'#4ADE80':'#EF4444';ctx.fillRect(x-ppu*0.9,y-ppu*5.6,ppu*1.8*Math.max(0,h.hp)/100,ppu*0.22);
+  for(let i=0;i<h.deb.length;i++){ctx.fillStyle='#C084FC';ctx.beginPath();ctx.arc(x-ppu*0.6+i*ppu*0.3,y-ppu*6.1,ppu*0.11,0,Math.PI*2);ctx.fill();}
+}
+function bfTick(dt){if(SIM===null||BFC===null)return;bfUpdate(dt);bfDraw();}
+
+/* ---------- 클립 타이밍 · 시트 규격 ---------- */
+function buildTiming(){
+  const px=(s,span)=>(100*s/span).toFixed(2);
+  let h='';
+  [['stab',1.1],['spawn',1.9]].forEach(x=>{const st=x[0],SPAN=x[1],a=ANIM[st],L=realLen(st);
+    h+='<div class="tl"><div class="head"><b>'+SKO[st]+'</b> '+a.n+'프레임 × '+a.fps+'fps = 클립 '+L.toFixed(3)+'s'+(st==='stab'?' → 쿨다운 1.1s 대비 여유 '+(1.1-L).toFixed(1)+'s':' → 대기 → 스폰 게이트 '+a.lock.toFixed(3)+'s')+'</div><div class="bar">';
+    for(let f=0;f<=a.n;f++)h+='<div class="tick" style="left:'+px(f/a.fps,SPAN)+'%"></div>';
+    h+='<div class="mk" style="left:'+px(L,SPAN)+'%;background:#6B7280"></div>';
+    if(a.strike!=null)h+='<div class="mk" style="left:'+px(a.strike,SPAN)+'%;background:#FBBF24"></div><div class="mkl" style="left:'+px(a.strike,SPAN)+'%;color:#b45309">●STRIKE '+a.strike.toFixed(3)+'s · F'+strikeF(st)+'</div>';
+    if(a.end!=null)h+='<div class="mk" style="left:'+px(a.end,SPAN)+'%;background:#22D3EE"></div><div class="mkl" style="left:'+Math.min(88,+px(a.end,SPAN))+'%;color:#0e7490;top:44px">◆종료 '+a.end.toFixed(3)+'s(제안)</div>';
+    if(a.lock!=null)h+='<div class="mk" style="left:'+px(a.lock,SPAN)+'%;background:#22D3EE"></div><div class="mkl" style="left:'+Math.min(88,+px(a.lock,SPAN))+'%;color:#0e7490">◆게이트 '+a.lock.toFixed(3)+'s(fallback)</div>';
+    h+='</div></div>';});
+  $('timelines').innerHTML=h;
+  let t='<tr><th>상태</th><th>프레임×fps</th><th>길이</th><th>이벤트</th></tr>';
+  STATES.forEach(st=>{const a=ANIM[st];let ev=a.loop?'루프':'—';
+    if(a.strike!=null)ev='OnAttackStrike '+a.strike.toFixed(3)+'s(F'+strikeF(st)+') · 종료 이벤트 '+a.end.toFixed(3)+'s(제안)';
+    else if(a.lock!=null)ev='이벤트 없음 · 스폰 게이트 '+a.lock.toFixed(3)+'s(fallback)';
+    t+='<tr><td>'+SKO[st]+'</td><td>'+a.n+'×'+a.fps+'</td><td>'+realLen(st).toFixed(3)+'s</td><td class="l">'+ev+'</td></tr>';});
+  $('specTbl').innerHTML=t;
+  const occ=getFrame(0,'idle',0).occ,bb=bbox(occ),footRow=bb.y1+1,bodyH=bb.y1-bb.y0+1;
+  const rows=[['idle',8,'idle'],['walk',8,'walk'],['run',8,'run'],['slash01',9,'공격 원본'],['slash02',9,'slash01 행 복제(D-C4-6)'],['stab',9,'slash01 행 복제(D-C4-6)'],['hit',6,'hit'],['death',8,'death'],['spawn',16,'spawn']];
+  let s='<tr><th>행</th><th>이름</th><th>프레임</th><th>출처</th></tr>';
+  rows.forEach((r,i)=>{s+='<tr><td>'+i+'</td><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="l">'+r[2]+'</td></tr>';});
+  s+='<tr><td colspan="4" class="l">시트 '+(SHEET_COLS*GW)+'×'+(9*GH)+' · 셀 '+GW+'px · 색인 = 행×20+열 · <b>실측 PPU '+bodyH+'</b>(5-1 대기 F0 몸 높이, 기사 시트 PPU 31 과 '+(bodyH===31?'<span class="ok">일치</span>':'<span class="ng">불일치</span>')+') · <b>실측 pivot ('+((AX+0.5)/GW).toFixed(4)+', '+((GH-footRow)/GH).toFixed(4)+')</b>(기사 (0.4236, 0.2917) 와 '+((((AX+0.5)/GW).toFixed(4)==='0.4236'&&((GH-footRow)/GH).toFixed(4)==='0.2917')?'<span class="ok">일치</span>':'<span class="ng">불일치</span>')+')</td></tr>';
+  $('sheetTbl').innerHTML=s;
+}
+
+/* ---------- 기사 · 궁수 · 암살자 비교 (게임 초상 PNG = 같은 72×72 셀 · 4px 대기 F0) ---------- */
+const ICON_LIST=['Knight','Archer','Assassin','Berserker','Knight_S5','Archer_S5','Assassin_S5','Berserker_S5'];
+let ICONS={};
+function loadImg(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(src);im.src=src;});}
+//# 초상 PNG 는 1도트 = 6px(셀 48 크롭 ×6) — 시안 프레임(1도트 = 4px)과 맞추려 4/6 으로 줄이고 알파 bbox 바닥을 발로 맞춘다
+const ICON_PX=6;
+function bboxOf(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.drawImage(img,0,0);const d=g.getImageData(0,0,c.width,c.height).data;let x0=1e9,y0=1e9,x1=-1,y1=-1;for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){if(d[(y*c.width+x)*4+3]>10){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}return {x0:x0,y0:y0,x1:x1,y1:y1};}
+function silOf(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.drawImage(img,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#111';g.fillRect(0,0,c.width,c.height);return c;}
+function buildCompare(){
+  const cv=$('cmpCv'),g=cv.getContext('2d'),W=cv.width,H=cv.height;
+  g.clearRect(0,0,W,H);g.imageSmoothingEnabled=false;
+  if(cmpMode==='sil'){g.fillStyle='#e5e7eb';g.fillRect(0,0,W,H);}
+  g.font='12px sans-serif';g.textAlign='center';
+  const lab=(x,y,txt)=>{g.fillStyle=cmpMode==='sil'?'#111':'#E5E7EB';g.fillText(txt,x,y);};
+  const rows=[{base:250,items:[['Knight','기사 1-1',1],['Archer','궁수 2-1',1],['Assassin','암살자 3-1',1],['Berserker','광전사 4-1',1],[0,'성기사 5-1',1],[2,'성기사 5-3',1]]},
+              {base:H-30,items:[['Knight_S5','기사 1-5 (×1.4)',1.4],['Archer_S5','궁수 2-5 (×1.25)',1.25],['Assassin_S5','암살자 3-5 (×1.2)',1.2],['Berserker_S5','광전사 4-5 (×1.35)',1.35],[4,'성기사 5-5 (×1.3)',1.3]]}];
+  rows.forEach((row,ri)=>{
+    row.items.forEach((it,i)=>{
+      const cxp=95+i*186,base=row.base;
+      g.save();g.translate(cxp,base);g.scale(it[2]*0.92,it[2]*0.92);
+      if(typeof it[0]==='string'){const im=ICONS[it[0]];
+        if(im){const bb=im.bb,k=CS/ICON_PX;g.imageSmoothingEnabled=false;g.drawImage(cmpMode==='sil'?silOf(im.im):im.im,-((bb.x0+bb.x1)/2)*k,-(bb.y1+1)*k,im.im.width*k,im.im.height*k);}
+        else{g.fillStyle='#9CA3AF';g.fillText('서버 필요',0,-60);}}
+      else{const fr=getFrame(it[0],'idle',0);
+        if(cmpMode==='sil'){g.fillStyle='#111';for(let k=0;k<fr.occ.length;k++){if(fr.occ[k])g.fillRect((k%GW)*CS-(AX+0.5)*CS,((k/GW)|0)*CS-51*CS,CS,CS);}}
+        else{g.drawImage(fr.cv,-(AX+0.5)*CS,-51*CS);g.save();g.globalCompositeOperation='screen';g.filter='blur(3px) brightness(1.6)';g.globalAlpha=0.9;g.drawImage(fr.gl,-(AX+0.5)*CS,-51*CS);g.restore();}}
+      g.restore();
+      lab(cxp,base+16,it[1]);
+    });
+  });
+  $('cmpNote').textContent=Object.keys(ICONS).length?'기사 · 궁수 · 암살자는 실제 게임 초상 PNG(HeroIcons — 1도트 = 6px 크롭)를 1도트 = 4px 로 줄여 같은 도트 크기로 그렸다(×0.92, 발 기준 정렬). 성기사는 이 시안의 리그 프레임. 몸 높이: 기존 영웅 31도트, 성기사 '+H1+'도트.':'기존 영웅 초상은 node .mockups/server.js 로 열 때만 표시된다(.mockups/_cmp/icon_*.png 읽기). 광전사 실루엣은 그대로 확인 가능.';
+}
+function buildFeat(){
+  const rows=[['머리','낮은 캡 → 왕관','뾰족 후드 · 사슴뿔','복면 두건 → 칼날 왕관','상투 → 쌍뿔 → 3쌍 왕관 뿔','<b>사슬 두건 → 코가드 + 깃털 → 통투구 + 날개 → 큰 날개 + 후광 → 날개 왕관</b>'],
+    ['무기 실루엣','한 손 대각 검','세로 활','쌍단검','세워 든 양날 도끼','<b>몸 앞을 가리는 큰 연 방패 + 한 손 철퇴(유일한 방패 직업)</b>'],
+    ['등 뒤','망토','화살통','날리는 목도리','모피 · 사슬','<b>바닥까지 끌리는 긴 망토 · 후광 고리</b>'],
+    ['공격','베기','사격','찌르기','수평 회전 베기','<b>머리 위로 감아 내려찍기 + 성광 충격 링</b>'],
+    ['5단계','화염 대검 · 1.4배','깃털 대망토 · 1.25배','칼날 왕관 · 1.20배','3쌍 왕관 뿔 · 1.35배','<b>날개 왕관 + 큰 후광 · 태양 문장 방패 · 성광 전쟁망치 · 1.30배</b>']];
+  let h='<tr><th style="width:70px">구분</th><th>기사</th><th>궁수</th><th>암살자</th><th>광전사</th><th>성기사</th></tr>';
+  rows.forEach(r=>{h+='<tr><td>'+r[0]+'</td><td class="l">'+r[1]+'</td><td class="l">'+r[2]+'</td><td class="l">'+r[3]+'</td><td class="l">'+r[4]+'</td><td class="l">'+r[5]+'</td></tr>';});
+  $('featTbl').innerHTML=h;
+}
+
+function buildEdgeCheck(){
+  setTimeout(()=>{const bad=[];
+    for(let t=0;t<5;t++)STATES.forEach(st=>{for(let f=0;f<ANIM[st].n;f++){const o=getFrame(t,st,f).occ;let hit=false;
+      for(let x=0;x<GW&&!hit;x++){if(o[x]||o[(GH-1)*GW+x])hit=true;}for(let y=0;y<GH&&!hit;y++){if(o[y*GW]||o[y*GW+GW-1])hit=true;}
+      if(hit)bad.push(STG[t].id+' '+SKO[st]+' F'+f);}});
+    const total=5*STATES.reduce((s,st)=>s+ANIM[st].n,0);
+    $('clipChk').innerHTML=bad.length?('<span class="ng">작업 격자 가장자리 닿음 '+bad.length+'건</span> — '+bad.slice(0,6).join(', ')):'<span class="ok">전 단계×상태×프레임('+total+'장) 72×72 셀 가장자리 클리핑 0건</span>';
+  },400);
+}
+
+function rebuildAll(){
+  buildPalette();buildCards();buildStrip();buildLadder();buildMetrics();buildTiming();buildCompare();bfBuild();buildEdgeCheck();
+}
+function init(){
+  const ab=$('autoBtn');
+  function setAuto(on){auto=on;ab.classList.toggle('on',on);ab.textContent='전체 동시 재생: '+(on?'켜짐':'꺼짐');if(on){seq0=T;CARDS.forEach(cd=>{cd.auto=true;cd.slot=-1;});}}
+  ab.addEventListener('click',()=>setAuto(!auto));
+  STATES.forEach(s=>{const b=document.createElement('button');b.className='btn sm';b.textContent=SKO[s];b.addEventListener('click',()=>{setAuto(false);CARDS.forEach(cd=>play(cd.p,s,T));});$('allStates').appendChild(b);});
+  document.querySelectorAll('[data-spd]').forEach(b=>b.addEventListener('click',()=>{SPD=Number(b.dataset.spd);document.querySelectorAll('[data-spd]').forEach(x=>x.classList.toggle('on',x===b));}));
+  chips($('stSg'),[0,1,2,3,4].map(t=>[t,STG[t].id]),stT,'스테이지',v=>{stT=Number(v);buildStrip();});
+  chips($('stSt'),STATES.map(s=>[s,SKO[s]]),stSt,'상태',v=>{stSt=v;buildStrip();});
+  chips($('ladMode'),[['color','컬러'],['sil','실루엣만']],ladMode,'보기',v=>{ladMode=v;buildLadder();});
+  chips($('bfStage'),[0,1,2,3,4].map(t=>[t,STG[t].id]),bfT,'스테이지',v=>{bfT=Number(v);bfBuild();});
+  chips($('cmpMode'),[['color','컬러'],['sil','실루엣만']],cmpMode,'보기',v=>{cmpMode=v;buildCompare();});
+  $('bLeap').addEventListener('click',()=>{if(SIM)castLeap();});
+  $('bPull').addEventListener('click',()=>{if(SIM)castPull();});
+  $('bFrenzy').addEventListener('click',()=>{if(SIM)castFrenzy();});
+  $('bAuto').addEventListener('click',()=>{skAuto=!skAuto;$('bAuto').classList.toggle('on',skAuto);$('bAuto').textContent='스킬 자동 시전: '+(skAuto?'켜짐':'꺼짐');});
+  $('bRing').addEventListener('click',()=>{showRing=!showRing;$('bRing').classList.toggle('on',showRing);$('bRing').textContent='범위 링: '+(showRing?'켜짐':'꺼짐');});
+  $('bReset').addEventListener('click',()=>bfBuild());
+  buildFeat();
+  rebuildAll();
+  Promise.all(ICON_LIST.map(n=>loadImg('_cmp/icon_'+n+'.png').then(im=>{ICONS[n]={im:im,bb:bboxOf(im)};}).catch(()=>{}))).then(()=>buildCompare());
+  let last=performance.now();
+  function loop(now){const dt=Math.min(0.05,Math.max(0,(now-last)/1000))*SPD;last=now;T+=dt;cardsTick();stripTick();bfTick(dt);requestAnimationFrame(loop);}
+  requestAnimationFrame(loop);
+}
+/* ---------- ?export=1 — 게임용 시트 추출(기획서 chapter-3-hero §3.4·§3.5·§7, D-C3-8) ---------- */
+//# 궁수 시안 export 와 같은 구현. A안(승인) 고정, 9행 시트(slash01/slash02 = stab 복제), HeroGroundShadow 는 기사 것을 재사용하므로 만들지 않는다.
+const EXPORT_ROWS=['idle','walk','run','slash01','slash02','stab','hit','death','spawn'];
+const rowSrc=r=>(r==='slash01'||r==='slash02')?'stab':r;
+function cellRgba(pl){return [pl.c[0],pl.c[1],pl.c[2],Math.round(255*(pl.a==null?1:pl.a))];}
+function buildSheet(t,mask){
+  const W=SHEET_COLS*GW,H=EXPORT_ROWS.length*GH,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const im=g.createImageData(W,H),d=im.data;
+  if(mask){for(let i=0;i<d.length;i+=4){d[i+3]=255;}}
+  EXPORT_ROWS.forEach((row,ri)=>{const st=rowSrc(row);for(let f=0;f<ANIM[st].n;f++){const dest=getFrame(t,st,f).dest;
+    for(let i=0;i<dest.length;i++){const pl=dest[i];if(!pl)continue;const x=f*GW+(i%GW),y=ri*GH+((i/GW)|0),o=(y*W+x)*4;
+      if(mask){if(pl.g){d[o]=255;d[o+1]=255;d[o+2]=255;}}
+      else{const c=cellRgba(pl);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=c[3];}}}});
+  g.putImageData(im,0,0);return cv;
+}
+function sheetSpec(){
+  const occ=getFrame(0,'idle',0).occ;let y0=1e9,y1=-1;for(let i=0;i<occ.length;i++){if(!occ[i])continue;const y=(i/GW)|0;if(y<y0)y0=y;if(y>y1)y1=y;}
+  const bodyH=y1-y0+1,footRow=y1+1;
+  const edge=[];for(let t=0;t<5;t++)EXPORT_ROWS.forEach(row=>{const st=rowSrc(row);for(let f=0;f<ANIM[st].n;f++){const o=getFrame(t,st,f).occ;let hit=false;
+    for(let x=0;x<GW&&!hit;x++){if(o[x]||o[(GH-1)*GW+x])hit=true;}for(let y=0;y<GH&&!hit;y++){if(o[y*GW]||o[y*GW+GW-1])hit=true;}if(hit)edge.push('S'+(t+1)+' '+row+' F'+f);}});
+  const clips={},clipEvents={};
+  EXPORT_ROWS.forEach(row=>{const st=rowSrc(row),a=ANIM[st],c={frames:a.n,fps:a.fps,animatorSpeed:a.speed,loop:!!a.loop,copyOf:row===st?null:st};
+    c.bakeEvents=[];
+    if(a.strike!=null){c.strikeFrame=strikeF(st);c.strikeClipLocalSec=+(a.strike*a.speed).toFixed(4);c.strikeRealSec=+a.strike.toFixed(4);c.bakeEvents.push({functionName:'OnAttackStrike',clipLocalSec:c.strikeClipLocalSec});}
+    if(a.end!=null){c.endFrame=endF(st);c.bakeEvents.push({functionName:'OnAttackEnd',clipLocalSec:+(a.end*a.speed).toFixed(4)});}
+    if(a.lock!=null){c.lockReleaseRealSec=a.lock;c.lockReleaseBy='HeroEntryDriver/AutoCombatAI._spawnGateFallback';}
+    if(c.bakeEvents.length>0)clipEvents[row]=c.bakeEvents;
+    clips[row]=c;});
+  return {doc:'docs/design/chapter-4.md §3.4·§3.5 (D-C4-6)',palette:'A',cellSize:GW,cols:SHEET_COLS,rows:EXPORT_ROWS.length,rowOrder:EXPORT_ROWS,
+    sheetSize:[SHEET_COLS*GW,EXPORT_ROWS.length*GH],indexRule:'row*20+col',
+    pixelsPerUnit:bodyH,bodyHeightDots:bodyH,
+    pivot:{x:+((AX+0.5)/GW).toFixed(4),y:+((GH-footRow)/GH).toFixed(4),note:'Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot'},
+    tiers:{Berserker_Sheet:0,Berserker_Sheet_S2:1,Berserker_Sheet_S3:2,Berserker_Sheet_S4:3,Berserker_Sheet_S5:4},
+    clips:clips,clipEvents:clipEvents,edgeClipFrames:edge};
+}
+function postBlob(name,blob){return fetch('export/'+name,{method:'POST',body:blob}).then(r=>{if(!r.ok)throw new Error(name+' HTTP '+r.status);return name;});}
+function toBlob(cv){return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/png'));}
+async function exportAll(){
+  const st=document.createElement('pre');st.id='exportStatus';st.textContent='exporting…';document.querySelector('.wrap').appendChild(st);
+  const prevTK=TK;
+  try{
+    TK='A';
+    const jobs=[];const names=['Berserker_Sheet','Berserker_Sheet_S2','Berserker_Sheet_S3','Berserker_Sheet_S4','Berserker_Sheet_S5'];
+    for(let t=0;t<5;t++){jobs.push([names[t]+'.png',buildSheet(t,false)]);jobs.push([names[t]+'_Emission.png',buildSheet(t,true)]);}
+    const spec=sheetSpec();const done=[];
+    for(const [name,cv] of jobs){done.push(await postBlob(name,await toBlob(cv)));}
+    done.push(await postBlob('Berserker_SheetSpec.json',new Blob([JSON.stringify(spec,null,2)],{type:'application/json'})));
+    st.textContent='export done '+done.length+' files\n'+done.join('\n')+'\nppu='+spec.pixelsPerUnit+' pivot='+spec.pivot.x+','+spec.pivot.y+' sheet='+spec.sheetSize.join('x')+
+      '\nedgeClipFrames='+spec.edgeClipFrames.length+(spec.edgeClipFrames.length?(' ('+spec.edgeClipFrames.slice(0,6).join(', ')+')'):'');
+  }catch(e){st.textContent='export failed: '+(e&&e.message?e.message:e);console.error(e);}
+  TK=prevTK;
+}
+const EXPORT_MODE=new URLSearchParams(location.search).get('export')==='1';
+init();
+if(EXPORT_MODE){document.body.insertAdjacentHTML('beforeend','<pre>챕터 5 승격 전 — 시트 추출 비활성</pre>');}
+})();
+</script>
+</body>
+</html>
