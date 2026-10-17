@@ -482,6 +482,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 ### 7.4 에셋 키 / 데이터 파일 (파일명 = Enum 값명)
 
 - JSON(`Assets/_Lair/Data/Json/`): `HeroArchetype_Guard.json`(1 row), `HeroArchetype_DebuffResist.json`(1 row), `Chapter.json`(row 5), `Stage.json`(5 row), `Stage_Rule.json` / `Stage_Rule_Param.json` / `Stage_Rule_Trigger.json`(§5.2), `HeroArchetype.json`(Paladin), `hero_skills.json`(스킬 3종 + loadout 3 row), `Strings_Ko.json`(1005 / 1015 / 1025 / 1141~1145).
+- **스킬 SO 생성 방식**: 스킬 SO 는 메인이 `HeroSkillSyncer.Import` 를 직접 호출해 만든다. `HeroSkillSyncer` 가 있는 `Lair.Editor.JsonSync` 어셈블리는 자동 참조가 아니라서, 4장 때 일회용 빌더에서 호출하면 컴파일 에러가 났다.
 - SO: `HeroSkillLoadout_Paladin.asset`, 스킬 SO `HeroSkill_JudgmentHammer.asset` `HeroSkill_PurifyingLight.asset` `HeroSkill_Sanctuary.asset`(`Art/Skills/`), `HeroStageVariantConfig.asset`(ChapterId=5 엔트리 5개: `Tier` 0~4, `UseEmission` false/false/true/true/true, `EmissionIntensity` 0/0/1.5/2.2/3.2, `ScaleMultiplier` 1/1/1/1/1.30).
 - 프리팹: `Paladin.prefab`(`Art/Characters/`, Knight 프리팹과 같은 컴포넌트 구성, `_centerPullEnabled` off), `EVisual` 3종 FX(`Art/FX/`).
 - 스프라이트·배경: §7.1, `Backdrop2D_SheetSpec.json` 엔트리 1개.
@@ -491,7 +492,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 
 ## 8. 영향 범위 체크리스트 (챕터 4 개방 기준)
 
-> 작성 근거: 이 에이전트는 Bash 가 없어 커밋 `2eadb0d` diff 를 직접 열지 못했다. 아래는 **chapter-4.md §8 체크리스트 + 현행 코드 grep**(`ChapterGate.cs` · `StageProgress.cs` · `WorldMapViewModel.cs` · `BattleController.cs` · `ChapterDatabase.cs` · 테스트 폴더)으로 도출했다. 메인은 `git show --stat 2eadb0d` 로 누락 파일이 없는지 대조할 것.
+> 작성 근거: **chapter-4.md §8 체크리스트 + 현행 코드 grep**(`ChapterGate.cs` · `StageProgress.cs` · `WorldMapViewModel.cs` · `BattleController.cs` · `ChapterDatabase.cs` · 테스트 폴더)으로 도출했다. 이후 메인이 `git show --stat 2eadb0d` 와 대조해 누락된 테스트 8개를 §8.1 에 보강했다.
 
 | # | 대상 | 변경 | 근거 |
 |---|---|---|---|
@@ -526,6 +527,16 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 | `HeroStatTableRegressionTests` | Paladin `ScaleHeroStat(50, 0.85, 1.40)` = 60 · `(.., 1.80)` = 77 (.5 경계) |
 | `Chapter4ArtIntegrityTests` · `Backdrop2DImportTests` · `DotSceneRegressionTests` | 신규 `Chapter5ArtIntegrityTests`(시트 5장 + 에미션 + 초상 + 배경)로 복제, 배경 임포트 목록에 FrostCathedral |
 | `UiRedesignDataTests` | 챕터 수 의존 단정 점검 |
+| `ArcherDataConsistencyTests` | 스킬 수·로드아웃 영웅 수 하드코딩 갱신: 12종 -> **15종**, 4영웅 -> **5영웅** (4장 때 9 -> 12, 3 -> 4) |
+| `ArcherTestSupport` | FX 로그 격리 키 목록에 `HeroJudgmentHammerFx` · `HeroPurifyingLightFx` · `HeroSanctuaryFx` 추가 |
+| `AssassinWorldIntegrationTests` | `HeroSkillSyncer.LoadoutPaths` 경로 수 4 -> **5** |
+| `Chapter3DataValidationTests` | 챕터 범위로 규칙 row 수를 세는 단정 - 챕터 5 row 추가 후 범위·기대값 점검 |
+| `Chapter4BerserkerLogicTests` | 갱신 대상은 아님. 신앙의 가호(부착 경로 보정)·Guardian 분기 추가 후 광전사 경로가 그대로인지 확인하는 회귀 |
+| `Chapter4OpenedWorldTests` (전체) | 39행만이 아니라 게이트 4 / 20 단정 전체(37~39행 포함)를 5 / 25 로 갱신하거나 "챕터 4 시점 스냅샷"으로 분리 |
+| `HeroStageVariantConfigTests` | 정본 엔트리 수 20 -> **25** (ChapterId=5 엔트리 5개) |
+| `WorldMapTestSupport` | `ShippedDb` / `FullDb` 의 챕터 수 처리(5챕터 = `ChapterSlotCount` 와 같아 자리표시자 없는 DB) 점검 |
+
+> 위 8개 파일은 메인이 `git show --stat 2eadb0d`(챕터 4 개방 커밋)와 대조해 확인한, 실제로 바뀐 파일이다.
 
 ---
 
