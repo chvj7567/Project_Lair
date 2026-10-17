@@ -41,6 +41,8 @@ namespace Lair.Tests.EditMode
         public List<HeroArchetype_SkirmishRow> Skirmishes = new List<HeroArchetype_SkirmishRow>();
         public List<HeroArchetype_ChargeRow> Charges = new List<HeroArchetype_ChargeRow>();
         public List<HeroArchetype_CleaveRow> Cleaves = new List<HeroArchetype_CleaveRow>();
+        public List<HeroArchetype_GuardRow> Guards = new List<HeroArchetype_GuardRow>();
+        public List<HeroArchetype_DebuffResistRow> DebuffResists = new List<HeroArchetype_DebuffResistRow>();
 
         //# 기획서 §3.4 규칙별 필수 파라미터 키 (production 의 표와 독립으로 다시 적어 둔 기대값).
         public static string[] RequiredKeys(string ruleId)
@@ -116,7 +118,7 @@ namespace Lair.Tests.EditMode
             return ChapterDatabase.Build(
                 Chapters.ToArray(), Stages.ToArray(), Rules.ToArray(), Params.ToArray(),
                 Triggers.ToArray(), Heroes.ToArray(), Kites.ToArray(), Skirmishes.ToArray(),
-                Charges.ToArray(), Cleaves.ToArray());
+                Charges.ToArray(), Cleaves.ToArray(), Guards.ToArray(), DebuffResists.ToArray());
         }
     }
 }

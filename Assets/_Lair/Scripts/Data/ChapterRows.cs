@@ -126,4 +126,21 @@ namespace Lair.Data
         public int cleaveMaxTargets;
         public float cleaveSecondaryMul;
     }
+
+    //# HeroArchetype_Guard.json — aiType = Guardian 인 영웅만 존재하는 선택적 관계 (chapter-5 §2.2).
+    [Serializable]
+    public class HeroArchetype_GuardRow
+    {
+        public string heroId;
+        public float retributionLockSec;
+    }
+
+    //# HeroArchetype_DebuffResist.json — 디버프 저항 패시브를 가진 영웅만 존재하는 선택적 관계 (chapter-5 §2.2).
+    [Serializable]
+    public class HeroArchetype_DebuffResistRow
+    {
+        public string heroId;
+        public float durationMul;
+        public float penaltyMul;
+    }
 }

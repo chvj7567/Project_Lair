@@ -20,7 +20,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 실제_JSON_챕터4는_광전사_스테이지_규칙_돌진_베기_설정을_갖고_MaxStage는_20이다()
         {
-            ChapterDatabase db = WorldMapTestSupport.FullDb();
+            //# 챕터 4 시점 스냅샷 — 챕터 5 데이터가 들어와도 개방 범위로 한정(분할 d 에서 정리).
+            ChapterDatabase db = WorldMapTestSupport.PlayableDb();
             StageProgress.ConfigureChapterCount(db.ChapterCount);
 
             Assert.AreEqual(4, db.ChapterCount);

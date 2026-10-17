@@ -35,7 +35,8 @@ namespace Lair.Tests.EditMode
                 Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
                 skirmishes ?? Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
                 Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"),
-                Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"));
+                Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"),
+                Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"));
         }
 
         [Test]
@@ -43,7 +44,7 @@ namespace Lair.Tests.EditMode
         {
             ChapterDatabase db = BuildFrom();
 
-            Assert.AreEqual(4, db.ChapterCount);
+            Assert.AreEqual(5, db.ChapterCount);
             float[] expectedHp = { 1.00f, 1.10f, 1.36f, 1.46f, 1.92f };
             for (int i = 0; i < 5; ++i)
             {

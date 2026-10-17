@@ -236,7 +236,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 실제_JSON의_규칙_22건이_모두_팩토리로_생성된다()
+        public void 실제_JSON의_규칙_28건이_모두_팩토리로_생성된다()
         {
             ChapterDatabase db = ChapterDatabase.Build(
                 JsonArrayUtility.FromJsonArray<ChapterRow>(File.ReadAllText(JsonDir + "Chapter.json")),
@@ -248,7 +248,9 @@ namespace Lair.Tests.EditMode
                 JsonArrayUtility.FromJsonArray<HeroArchetype_KiteRow>(File.ReadAllText(JsonDir + "HeroArchetype_Kite.json")),
                 JsonArrayUtility.FromJsonArray<HeroArchetype_SkirmishRow>(File.ReadAllText(JsonDir + "HeroArchetype_Skirmish.json")),
                 JsonArrayUtility.FromJsonArray<HeroArchetype_ChargeRow>(File.ReadAllText(JsonDir + "HeroArchetype_Charge.json")),
-                JsonArrayUtility.FromJsonArray<HeroArchetype_CleaveRow>(File.ReadAllText(JsonDir + "HeroArchetype_Cleave.json")));
+                JsonArrayUtility.FromJsonArray<HeroArchetype_CleaveRow>(File.ReadAllText(JsonDir + "HeroArchetype_Cleave.json")),
+                JsonArrayUtility.FromJsonArray<HeroArchetype_GuardRow>(File.ReadAllText(JsonDir + "HeroArchetype_Guard.json")),
+                JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(File.ReadAllText(JsonDir + "HeroArchetype_DebuffResist.json")));
 
             int created = 0;
             for (int chapter = 1; chapter <= db.ChapterCount; ++chapter)
@@ -262,7 +264,7 @@ namespace Lair.Tests.EditMode
                     }
                 }
             }
-            Assert.AreEqual(22, created);
+            Assert.AreEqual(28, created);
         }
     }
 }

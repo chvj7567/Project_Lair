@@ -22,7 +22,7 @@ namespace Lair.Tests.EditMode
 
         private static ChapterDatabase Db()
         {
-            return WorldMapTestSupport.FullDb();
+            return WorldMapTestSupport.PlayableDb();
         }
 
         //# 실제 Strings_Ko — id 누락이 있으면 빈 문자열이 되어 단언이 실패한다.

@@ -53,6 +53,8 @@ namespace Lair.Data
         private readonly Dictionary<string, HeroArchetype_SkirmishRow> _skirmishes = new Dictionary<string, HeroArchetype_SkirmishRow>();
         private readonly Dictionary<string, HeroArchetype_ChargeRow> _charges = new Dictionary<string, HeroArchetype_ChargeRow>();
         private readonly Dictionary<string, HeroArchetype_CleaveRow> _cleaves = new Dictionary<string, HeroArchetype_CleaveRow>();
+        private readonly Dictionary<string, HeroArchetype_GuardRow> _guards = new Dictionary<string, HeroArchetype_GuardRow>();
+        private readonly Dictionary<string, HeroArchetype_DebuffResistRow> _debuffResists = new Dictionary<string, HeroArchetype_DebuffResistRow>();
         private readonly Dictionary<long, List<StageRuleData>> _rules = new Dictionary<long, List<StageRuleData>>();
 
         private ChapterDatabase() { }
@@ -71,7 +73,9 @@ namespace Lair.Data
             HeroArchetype_KiteRow[] kites,
             HeroArchetype_SkirmishRow[] skirmishes,
             HeroArchetype_ChargeRow[] charges = null,
-            HeroArchetype_CleaveRow[] cleaves = null)
+            HeroArchetype_CleaveRow[] cleaves = null,
+            HeroArchetype_GuardRow[] guards = null,
+            HeroArchetype_DebuffResistRow[] debuffResists = null)
         {
             ChapterDatabase db = new ChapterDatabase();
             List<string> errors = new List<string>();
@@ -81,6 +85,8 @@ namespace Lair.Data
             db.AddSkirmishes(skirmishes ?? Array.Empty<HeroArchetype_SkirmishRow>(), errors);
             db.AddCharges(charges ?? Array.Empty<HeroArchetype_ChargeRow>(), errors);
             db.AddCleaves(cleaves ?? Array.Empty<HeroArchetype_CleaveRow>(), errors);
+            db.AddGuards(guards ?? Array.Empty<HeroArchetype_GuardRow>(), errors);
+            db.AddDebuffResists(debuffResists ?? Array.Empty<HeroArchetype_DebuffResistRow>(), errors);
             db.AddChapters(chapters ?? Array.Empty<ChapterRow>(), errors);
             db.AddStages(stages ?? Array.Empty<StageRow>(), errors);
             db.AddRules(
@@ -151,6 +157,18 @@ namespace Lair.Data
         public HeroArchetype_CleaveRow GetCleave(string heroId)
         {
             return heroId != null && _cleaves.TryGetValue(heroId, out HeroArchetype_CleaveRow row) ? row : null;
+        }
+
+        //# Guardian 영웅의 응징 표적 설정 — 없으면 null.
+        public HeroArchetype_GuardRow GetGuard(string heroId)
+        {
+            return heroId != null && _guards.TryGetValue(heroId, out HeroArchetype_GuardRow row) ? row : null;
+        }
+
+        //# 디버프 저항 패시브 영웅의 저항 설정 — 없으면 null(저항 없음).
+        public HeroArchetype_DebuffResistRow GetDebuffResist(string heroId)
+        {
+            return heroId != null && _debuffResists.TryGetValue(heroId, out HeroArchetype_DebuffResistRow row) ? row : null;
         }
 
         //# 선형 스테이지 번호가 속한 챕터의 영웅 직업 — 챕터/영웅이 없으면 null.
@@ -322,6 +340,69 @@ namespace Lair.Data
                 if (row.cleaveRadius <= 0f || row.cleaveMaxTargets < 1 || row.cleaveSecondaryMul < 0f || row.cleaveSecondaryMul > 1f)
                 {
                     errors.Add($"HeroArchetype_Cleave[{pair.Key}] cleaveRadius>0, cleaveMaxTargets>=1, cleaveSecondaryMul 0~1 이어야 함");
+                }
+            }
+        }
+
+        private void AddGuards(HeroArchetype_GuardRow[] rows, List<string> errors)
+        {
+            foreach (HeroArchetype_GuardRow row in rows)
+            {
+                if (row.heroId == null || _guards.ContainsKey(row.heroId))
+                {
+                    errors.Add($"HeroArchetype_Guard.heroId 중복/누락: {row.heroId}");
+                    continue;
+                }
+                _guards.Add(row.heroId, row);
+            }
+
+            foreach (KeyValuePair<string, HeroArchetype_GuardRow> pair in _guards)
+            {
+                if (_heroes.TryGetValue(pair.Key, out HeroArchetypeRow hero) == false)
+                {
+                    errors.Add($"HeroArchetype_Guard[{pair.Key}] 의 heroId 가 HeroArchetype 에 없음");
+                }
+                else if (hero.aiType != EHeroAi.Guardian.ToString())
+                {
+                    errors.Add($"HeroArchetype_Guard[{pair.Key}] 는 aiType=Guardian 영웅에만 존재해야 함 (현재 {hero.aiType})");
+                }
+                if (pair.Value.retributionLockSec <= 0f)
+                {
+                    errors.Add($"HeroArchetype_Guard[{pair.Key}] retributionLockSec 는 0 보다 커야 함");
+                }
+            }
+
+            foreach (KeyValuePair<string, HeroArchetypeRow> pair in _heroes)
+            {
+                if (pair.Value.aiType == EHeroAi.Guardian.ToString() && _guards.ContainsKey(pair.Key) == false)
+                {
+                    errors.Add($"HeroArchetype[{pair.Key}] 는 Guardian 인데 HeroArchetype_Guard row 가 없음");
+                }
+            }
+        }
+
+        private void AddDebuffResists(HeroArchetype_DebuffResistRow[] rows, List<string> errors)
+        {
+            foreach (HeroArchetype_DebuffResistRow row in rows)
+            {
+                if (row.heroId == null || _debuffResists.ContainsKey(row.heroId))
+                {
+                    errors.Add($"HeroArchetype_DebuffResist.heroId 중복/누락: {row.heroId}");
+                    continue;
+                }
+                _debuffResists.Add(row.heroId, row);
+            }
+
+            foreach (KeyValuePair<string, HeroArchetype_DebuffResistRow> pair in _debuffResists)
+            {
+                HeroArchetype_DebuffResistRow row = pair.Value;
+                if (_heroes.ContainsKey(pair.Key) == false)
+                {
+                    errors.Add($"HeroArchetype_DebuffResist[{pair.Key}] 의 heroId 가 HeroArchetype 에 없음");
+                }
+                if (row.durationMul <= 0f || row.durationMul > 1f || row.penaltyMul < 0f || row.penaltyMul > 1f)
+                {
+                    errors.Add($"HeroArchetype_DebuffResist[{pair.Key}] durationMul 은 0 초과 1 이하, penaltyMul 은 0 이상 1 이하여야 함");
                 }
             }
         }
