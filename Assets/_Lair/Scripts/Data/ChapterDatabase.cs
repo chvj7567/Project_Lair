@@ -51,6 +51,8 @@ namespace Lair.Data
         private readonly Dictionary<string, HeroArchetypeRow> _heroes = new Dictionary<string, HeroArchetypeRow>();
         private readonly Dictionary<string, HeroArchetype_KiteRow> _kites = new Dictionary<string, HeroArchetype_KiteRow>();
         private readonly Dictionary<string, HeroArchetype_SkirmishRow> _skirmishes = new Dictionary<string, HeroArchetype_SkirmishRow>();
+        private readonly Dictionary<string, HeroArchetype_ChargeRow> _charges = new Dictionary<string, HeroArchetype_ChargeRow>();
+        private readonly Dictionary<string, HeroArchetype_CleaveRow> _cleaves = new Dictionary<string, HeroArchetype_CleaveRow>();
         private readonly Dictionary<long, List<StageRuleData>> _rules = new Dictionary<long, List<StageRuleData>>();
 
         private ChapterDatabase() { }
@@ -67,7 +69,9 @@ namespace Lair.Data
             Stage_Rule_TriggerRow[] triggers,
             HeroArchetypeRow[] heroes,
             HeroArchetype_KiteRow[] kites,
-            HeroArchetype_SkirmishRow[] skirmishes)
+            HeroArchetype_SkirmishRow[] skirmishes,
+            HeroArchetype_ChargeRow[] charges = null,
+            HeroArchetype_CleaveRow[] cleaves = null)
         {
             ChapterDatabase db = new ChapterDatabase();
             List<string> errors = new List<string>();
@@ -75,6 +79,8 @@ namespace Lair.Data
             db.AddHeroes(heroes ?? Array.Empty<HeroArchetypeRow>(), errors);
             db.AddKites(kites ?? Array.Empty<HeroArchetype_KiteRow>(), errors);
             db.AddSkirmishes(skirmishes ?? Array.Empty<HeroArchetype_SkirmishRow>(), errors);
+            db.AddCharges(charges ?? Array.Empty<HeroArchetype_ChargeRow>(), errors);
+            db.AddCleaves(cleaves ?? Array.Empty<HeroArchetype_CleaveRow>(), errors);
             db.AddChapters(chapters ?? Array.Empty<ChapterRow>(), errors);
             db.AddStages(stages ?? Array.Empty<StageRow>(), errors);
             db.AddRules(
@@ -133,6 +139,18 @@ namespace Lair.Data
         public HeroArchetype_SkirmishRow GetSkirmish(string heroId)
         {
             return heroId != null && _skirmishes.TryGetValue(heroId, out HeroArchetype_SkirmishRow row) ? row : null;
+        }
+
+        //# Charger 영웅의 군집 돌진 설정 — 없으면 null.
+        public HeroArchetype_ChargeRow GetCharge(string heroId)
+        {
+            return heroId != null && _charges.TryGetValue(heroId, out HeroArchetype_ChargeRow row) ? row : null;
+        }
+
+        //# 범위 베기 기본 공격 영웅의 베기 설정 — 없으면 null(단일 판정).
+        public HeroArchetype_CleaveRow GetCleave(string heroId)
+        {
+            return heroId != null && _cleaves.TryGetValue(heroId, out HeroArchetype_CleaveRow row) ? row : null;
         }
 
         //# 선형 스테이지 번호가 속한 챕터의 영웅 직업 — 챕터/영웅이 없으면 null.
@@ -236,6 +254,74 @@ namespace Lair.Data
                 if (pair.Value.aiType == EHeroAi.Skirmisher.ToString() && _skirmishes.ContainsKey(pair.Key) == false)
                 {
                     errors.Add($"HeroArchetype[{pair.Key}] 는 Skirmisher 인데 HeroArchetype_Skirmish row 가 없음");
+                }
+            }
+        }
+
+        private void AddCharges(HeroArchetype_ChargeRow[] rows, List<string> errors)
+        {
+            foreach (HeroArchetype_ChargeRow row in rows)
+            {
+                if (row.heroId == null || _charges.ContainsKey(row.heroId))
+                {
+                    errors.Add($"HeroArchetype_Charge.heroId 중복/누락: {row.heroId}");
+                    continue;
+                }
+                _charges.Add(row.heroId, row);
+            }
+
+            foreach (KeyValuePair<string, HeroArchetype_ChargeRow> pair in _charges)
+            {
+                HeroArchetype_ChargeRow row = pair.Value;
+                if (_heroes.TryGetValue(pair.Key, out HeroArchetypeRow hero) == false)
+                {
+                    errors.Add($"HeroArchetype_Charge[{pair.Key}] 의 heroId 가 HeroArchetype 에 없음");
+                }
+                else if (hero.aiType != EHeroAi.Charger.ToString())
+                {
+                    errors.Add($"HeroArchetype_Charge[{pair.Key}] 는 aiType=Charger 영웅에만 존재해야 함 (현재 {hero.aiType})");
+                }
+                if (row.huntRadius <= 0f || row.clusterRadius <= 0f || row.arenaSoftRadius <= 0f)
+                {
+                    errors.Add($"HeroArchetype_Charge[{pair.Key}] 반경(huntRadius/clusterRadius/arenaSoftRadius)은 0 보다 커야 함");
+                }
+                if (row.retargetCountMargin < 1 || row.retargetIntervalSec <= 0f || row.minDwellSec < 0f)
+                {
+                    errors.Add($"HeroArchetype_Charge[{pair.Key}] retargetCountMargin>=1, retargetIntervalSec>0, minDwellSec>=0 이어야 함");
+                }
+            }
+
+            foreach (KeyValuePair<string, HeroArchetypeRow> pair in _heroes)
+            {
+                if (pair.Value.aiType == EHeroAi.Charger.ToString() && _charges.ContainsKey(pair.Key) == false)
+                {
+                    errors.Add($"HeroArchetype[{pair.Key}] 는 Charger 인데 HeroArchetype_Charge row 가 없음");
+                }
+            }
+        }
+
+        private void AddCleaves(HeroArchetype_CleaveRow[] rows, List<string> errors)
+        {
+            foreach (HeroArchetype_CleaveRow row in rows)
+            {
+                if (row.heroId == null || _cleaves.ContainsKey(row.heroId))
+                {
+                    errors.Add($"HeroArchetype_Cleave.heroId 중복/누락: {row.heroId}");
+                    continue;
+                }
+                _cleaves.Add(row.heroId, row);
+            }
+
+            foreach (KeyValuePair<string, HeroArchetype_CleaveRow> pair in _cleaves)
+            {
+                HeroArchetype_CleaveRow row = pair.Value;
+                if (_heroes.ContainsKey(pair.Key) == false)
+                {
+                    errors.Add($"HeroArchetype_Cleave[{pair.Key}] 의 heroId 가 HeroArchetype 에 없음");
+                }
+                if (row.cleaveRadius <= 0f || row.cleaveMaxTargets < 1 || row.cleaveSecondaryMul < 0f || row.cleaveSecondaryMul > 1f)
+                {
+                    errors.Add($"HeroArchetype_Cleave[{pair.Key}] cleaveRadius>0, cleaveMaxTargets>=1, cleaveSecondaryMul 0~1 이어야 함");
                 }
             }
         }

@@ -103,4 +103,27 @@ namespace Lair.Data
         public float minDwellSec;
         public float arenaSoftRadius;
     }
+
+    //# HeroArchetype_Charge.json — aiType = Charger 인 영웅만 존재하는 선택적 관계 (chapter-4 §2.2).
+    [Serializable]
+    public class HeroArchetype_ChargeRow
+    {
+        public string heroId;
+        public float huntRadius;
+        public float clusterRadius;
+        public int retargetCountMargin;
+        public float retargetIntervalSec;
+        public float minDwellSec;
+        public float arenaSoftRadius;
+    }
+
+    //# HeroArchetype_Cleave.json — 기본 공격이 범위 베기인 영웅만 존재하는 선택적 관계 (chapter-4 §2.2).
+    [Serializable]
+    public class HeroArchetype_CleaveRow
+    {
+        public string heroId;
+        public float cleaveRadius;
+        public int cleaveMaxTargets;
+        public float cleaveSecondaryMul;
+    }
 }

@@ -33,7 +33,9 @@ namespace Lair.Tests.EditMode
                 triggers ?? Load<Stage_Rule_TriggerRow>("Stage_Rule_Trigger"),
                 Load<HeroArchetypeRow>("HeroArchetype"),
                 Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
-                skirmishes ?? Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"));
+                skirmishes ?? Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
+                Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"),
+                Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"));
         }
 
         [Test]
@@ -41,7 +43,7 @@ namespace Lair.Tests.EditMode
         {
             ChapterDatabase db = BuildFrom();
 
-            Assert.AreEqual(3, db.ChapterCount);
+            Assert.AreEqual(4, db.ChapterCount);
             float[] expectedHp = { 1.00f, 1.10f, 1.36f, 1.46f, 1.92f };
             for (int i = 0; i < 5; ++i)
             {

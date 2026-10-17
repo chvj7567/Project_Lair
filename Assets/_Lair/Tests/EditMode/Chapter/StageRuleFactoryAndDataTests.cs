@@ -26,7 +26,8 @@ namespace Lair.Tests.EditMode
                 Load<ChapterRow>("Chapter"), Load<StageRow>("Stage"), Load<Stage_RuleRow>("Stage_Rule"),
                 Load<Stage_Rule_ParamRow>("Stage_Rule_Param"), Load<Stage_Rule_TriggerRow>("Stage_Rule_Trigger"),
                 Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
-                Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"));
+                Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
+                Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"), Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"));
         }
 
         //# --- StageRuleParams ---

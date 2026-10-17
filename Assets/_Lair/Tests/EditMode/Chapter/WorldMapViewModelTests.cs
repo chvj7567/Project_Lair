@@ -22,11 +22,7 @@ namespace Lair.Tests.EditMode
 
         private static ChapterDatabase Db()
         {
-            return ChapterDatabase.Build(
-                Load<ChapterRow>("Chapter"), Load<StageRow>("Stage"), Load<Stage_RuleRow>("Stage_Rule"),
-                Load<Stage_Rule_ParamRow>("Stage_Rule_Param"), Load<Stage_Rule_TriggerRow>("Stage_Rule_Trigger"),
-                Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
-                Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"));
+            return WorldMapTestSupport.PlayableDb();
         }
 
         //# 실제 Strings_Ko — id 누락이 있으면 빈 문자열이 되어 단언이 실패한다.

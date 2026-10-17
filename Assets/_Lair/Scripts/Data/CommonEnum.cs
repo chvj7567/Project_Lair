@@ -11,6 +11,7 @@ namespace Lair.Data
         Knight,
         Archer,   //# 챕터 2 영웅 직업 (chapter-system §5) — 값명 = HeroArchetype.json heroId
         Assassin, //# 챕터 3 영웅 직업 (chapter-3-hero §3) — 값명 = HeroArchetype.json heroId
+        Berserker, //# 챕터 4 영웅 직업 (chapter-4 §3) — 값명 = HeroArchetype.json heroId
     }
 
     //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
@@ -19,6 +20,7 @@ namespace Lair.Data
         Melee,
         Kiter,
         Skirmisher,   //# 습격-이탈 AI (chapter-3-hero §3.3)
+        Charger,      //# 군집 돌진 AI (chapter-4 §3.3)
     }
 
     //# 스테이지 규칙 종류 — Stage_Rule.json ruleId 값명 (chapter-system §3.3). 규칙 실행 코드는 슬라이스 (b).
@@ -38,6 +40,7 @@ namespace Lair.Data
         Battle_Backdrop,
         Battle_Backdrop_DarkForest,
         Battle_Backdrop_ShadowCitadel,   //# 챕터 3 — 에셋은 슬라이스 (c)
+        Battle_Backdrop_EmberForge,      //# 챕터 4 — 에셋은 슬라이스 (c)
     }
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
@@ -119,6 +122,9 @@ namespace Lair.Data
         HeroSkillLoadout_Archer,   //# 궁수 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Archer.asset (chapter-system §1.4)
         HeroArchetype_Skirmish,    //# 암살자 습격-이탈 AI 튜닝 JSON — Data/Json/HeroArchetype_Skirmish.json (chapter-3-hero §2)
         HeroSkillLoadout_Assassin, //# 암살자 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Assassin.asset (에셋은 슬라이스 (b))
+        HeroArchetype_Charge,      //# 광전사 군집 돌진 AI 튜닝 JSON — Data/Json/HeroArchetype_Charge.json (chapter-4 §2)
+        HeroArchetype_Cleave,      //# 광전사 범위 베기 설정 JSON — Data/Json/HeroArchetype_Cleave.json (chapter-4 §2)
+        HeroSkillLoadout_Berserker, //# 광전사 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Berserker.asset (에셋은 슬라이스 (b))
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
@@ -176,6 +182,11 @@ namespace Lair.Data
         HeroShadowStrikeFx,    //# 그림자 습격 순간이동 출발/도착
         HeroBladeWhirlFx,      //# 칼날 선풍 회전 베기
         HeroSmokeBombFx,       //# 연막 탄 지대
+        //# 광전사 FX 4종 (chapter-4 §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스(c)에서 제작(append-only).
+        BerserkerSlashFx,      //# 광전사 범위 베기 원호(시각 전용)
+        HeroCrushingLeapFx,    //# 분쇄 도약 착지 충격
+        HeroChainPullFx,       //# 사슬 갈고리 당김
+        HeroBloodFrenzyFx,     //# 피의 광란 오라
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
