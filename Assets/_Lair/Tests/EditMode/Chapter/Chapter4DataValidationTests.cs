@@ -38,7 +38,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(4, db.GetCleave("Berserker").cleaveMaxTargets);
             Assert.IsNull(db.GetCharge("Knight"));
             Assert.IsNull(db.GetCleave("Knight"));
-            Assert.AreEqual(ChapterGate.PlayableChapterCount, 3, "게이트 상향은 분할 (d)");
+            Assert.AreEqual(db.ChapterCount, ChapterGate.PlayableChapterCount);
         }
 
         [Test]

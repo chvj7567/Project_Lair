@@ -9,12 +9,12 @@ namespace Lair.Battle
         //# 챕터당 스테이지 수 — 5 고정(chapter-system D-7). 보스 = stageIndex 5.
         public const int StagesPerChapter = 5;
 
-        //# 챕터 수 기본값(2) — Chapter.json 로드 전/테스트용 값으로 기존 테스트의 기본 범위(10)를 보존한다. 실서비스는 로드 시 ConfigureChapterCount(Chapter.json row 수, 현재 3)로 덮는다.
+        //# 챕터 수 기본값(2) — Chapter.json 로드 전/테스트용 값으로 기존 테스트의 기본 범위(10)를 보존한다. 실서비스는 로드 시 ConfigureChapterCount(Chapter.json row 수, 현재 4)로 덮는다.
         public const int DefaultChapterCount = 2;
 
         private static int _chapterCount = DefaultChapterCount;
 
-        //# 출시 챕터 수 x 5 (Chapter.json 3행 로드 후 15). Chapter.json row 수 기반 런타임 값.
+        //# 출시 챕터 수 x 5 (Chapter.json 4행 로드 후 20). Chapter.json row 수 기반 런타임 값.
         public static int MaxStage => _chapterCount * StagesPerChapter;
 
         public static int ChapterCount => _chapterCount;

@@ -53,10 +53,10 @@ namespace Lair.Tests.EditMode
         //# ===== ChapterGate 경계 =====
 
         [Test]
-        public void 출격_가능_챕터는_3이고_출시_챕터_수와_같다()
+        public void 출격_가능_챕터는_4이고_출시_챕터_수와_같다()
         {
-            Assert.AreEqual(3, ChapterGate.PlayableChapterCount);
-            Assert.AreEqual(15, ChapterGate.PlayableStageCount);
+            Assert.AreEqual(4, ChapterGate.PlayableChapterCount);
+            Assert.AreEqual(20, ChapterGate.PlayableStageCount);
             Assert.AreEqual(WorldMapTestSupport.ShippedDb().ChapterCount, ChapterGate.PlayableChapterCount, "데이터에 있는 챕터는 모두 열려 있다");
             Assert.AreEqual(ChapterGate.PlayableStageCount, StageProgress.MaxStage);
         }
@@ -65,9 +65,9 @@ namespace Lair.Tests.EditMode
         [TestCase(1, true)]
         [TestCase(2, true)]
         [TestCase(3, true)]
-        [TestCase(4, false)]
+        [TestCase(4, true)]
         [TestCase(5, false)]
-        public void 챕터_출격_가능_경계는_1부터_3까지다(int chapter, bool expected)
+        public void 챕터_출격_가능_경계는_1부터_4까지다(int chapter, bool expected)
         {
             Assert.AreEqual(expected, ChapterGate.IsChapterPlayable(chapter));
         }
@@ -76,9 +76,10 @@ namespace Lair.Tests.EditMode
         [TestCase(10, true)]
         [TestCase(11, true)]
         [TestCase(15, true)]
-        [TestCase(16, false)]
-        [TestCase(25, false)]
-        public void 스테이지_출격_가능_경계는_1부터_15까지다(int linear, bool expected)
+        [TestCase(16, true)]
+        [TestCase(20, true)]
+        [TestCase(21, false)]
+        public void 스테이지_출격_가능_경계는_1부터_20까지다(int linear, bool expected)
         {
             Assert.AreEqual(expected, ChapterGate.IsStagePlayable(linear));
         }
@@ -267,8 +268,8 @@ namespace Lair.Tests.EditMode
 
         [TestCase(10, 12, 3, 1)]
         [TestCase(12, 99, 3, 3)]
-        [TestCase(15, 99, 3, 5)]
-        [TestCase(15, 0, 3, 5)]
+        [TestCase(15, 99, 4, 1)]
+        [TestCase(15, 0, 4, 1)]
         public void 저장된_선택이_범위를_벗어나면_해금_상한으로_보정되어_챕터3로_시작한다(int cleared, int selected, int chapter, int index)
         {
             WorldMapViewModel vm = NewVm(cleared, selected);
@@ -303,20 +304,20 @@ namespace Lair.Tests.EditMode
         [TestCase(9, 10)]
         [TestCase(10, 11)]
         [TestCase(14, 15)]
-        [TestCase(15, 15)]
-        [TestCase(99, 15)]
-        public void 캐러셀_초기_위치는_최대_플레이_스테이지를_15로_clamp한다(int cleared, int expected)
+        [TestCase(15, 16)]
+        [TestCase(99, 20)]
+        public void 캐러셀_초기_위치는_최대_플레이_스테이지를_20으로_clamp한다(int cleared, int expected)
         {
             Assert.AreEqual(expected, NewVillage(cleared).SelectedStage);
         }
 
         [Test]
-        public void 캐러셀은_15에서_더_이동하지_않고_챕터_경계_5_6_10_11을_그대로_통과한다()
+        public void 캐러셀은_20에서_더_이동하지_않고_챕터_경계_5_6_10_11을_그대로_통과한다()
         {
-            VillageViewModel vm = NewVillage(15);
+            VillageViewModel vm = NewVillage(20);
             Assert.IsFalse(vm.CanMoveNext);
             vm.MoveStage(1);
-            Assert.AreEqual(15, vm.SelectedStage);
+            Assert.AreEqual(20, vm.SelectedStage);
 
             vm.SelectStage(10);
             vm.MoveStage(1);
@@ -375,7 +376,7 @@ namespace Lair.Tests.EditMode
 
         [TestCase(0)]
         [TestCase(-3)]
-        [TestCase(16)]
+        [TestCase(21)]
         [TestCase(99)]
         public void 쇼케이스_영웅은_범위_밖_선형_번호에서_예외없이_기사로_폴백한다(int linear)
         {
@@ -426,8 +427,8 @@ namespace Lair.Tests.EditMode
             List<RecordsStageCellData> withConfig = RecordsPopup.BuildCellData(profile, config, WorldMapTestSupport.Text);
             List<RecordsStageCellData> withoutConfig = RecordsPopup.BuildCellData(profile, null, WorldMapTestSupport.Text);
 
-            Assert.AreEqual(15, withConfig.Count);
-            for (int i = 0; i < 15; ++i)
+            Assert.AreEqual(20, withConfig.Count);
+            for (int i = 0; i < 20; ++i)
             {
                 Assert.IsNotNull(withConfig[i].Portrait, $"행 {i + 1}");
                 Assert.AreSame(config.GetStage(i + 1).Portrait, withConfig[i].Portrait);
@@ -525,8 +526,8 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
 
-            Assert.AreEqual(15, p.ClearedStage);
-            Assert.AreEqual(15, p.SelectedStage);
+            Assert.AreEqual(20, p.ClearedStage);
+            Assert.AreEqual(20, p.SelectedStage);
         }
 
         [TestCase(5)]

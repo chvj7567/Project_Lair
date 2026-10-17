@@ -44,13 +44,13 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 로더와_같이_DB_챕터_수로_구성하면_MaxStage가_15가_된다()
+        public void 로더와_같이_DB_챕터_수로_구성하면_MaxStage가_20이_된다()
         {
             StageProgress.ConfigureChapterCount(StageProgress.DefaultChapterCount);
 
             StageProgress.ConfigureChapterCount(WorldMapTestSupport.ShippedDb().ChapterCount);
 
-            Assert.AreEqual(15, StageProgress.MaxStage);
+            Assert.AreEqual(20, StageProgress.MaxStage);
         }
 
         [TestCase(10, 2, 5)]
@@ -122,6 +122,14 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(6, MetaProfileMigration.CurrentVersion);
         }
 
+        //# 챕터 3 시점 스냅샷 — 전체 데이터에 진행 범위만 3챕터(15)로 맞춘다(챕터 4 개방 후에도 15 경계 검증 유지).
+        private static ChapterDatabase Ch3Db()
+        {
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
+            StageProgress.ConfigureChapterCount(3);
+            return db;
+        }
+
         [TestCase(0, 1, 1)]
         [TestCase(5, 5, 5)]
         [TestCase(10, 10, 10)]
@@ -181,7 +189,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { Version = 5, ClearedStage = cleared };
 
-            MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
+            MetaProfileMigration.Apply(p, Ch3Db());
 
             Assert.AreEqual(expected, p.ClearedStage);
         }
@@ -195,7 +203,7 @@ namespace Lair.Tests.EditMode
                 p.StageRecords.Add(new StageRecordEntry { Stage = stage, Runs = 1 });
             }
 
-            MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
+            MetaProfileMigration.Apply(p, Ch3Db());
 
             List<int> kept = new List<int>();
             foreach (StageRecordEntry entry in p.StageRecords)
@@ -285,7 +293,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void Store_Load_v5_세이브의_챕터3_범위_전적은_보존되고_범위_밖은_제거된다()
         {
-            ChapterDatabase.Current = WorldMapTestSupport.ShippedDb();
+            ChapterDatabase.Current = Ch3Db();
             MetaProfile v5 = V5(10, 10);
             v5.StageRecords.Add(new StageRecordEntry { Stage = 11, Runs = 2 });
             v5.StageRecords.Add(new StageRecordEntry { Stage = 16, Runs = 2 });
@@ -382,11 +390,11 @@ namespace Lair.Tests.EditMode
         //# ===== HeroStageVariantConfig 15엔트리 =====
 
         [Test]
-        public void 영웅_재스킨_정본은_15엔트리이고_선형_11_15가_챕터3_엔트리다()
+        public void 영웅_재스킨_정본은_20엔트리이고_선형_11_15가_챕터3_엔트리다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
 
-            Assert.AreEqual(15, config.Stages.Count);
+            Assert.AreEqual(20, config.Stages.Count);
             for (int linear = 11; linear <= 15; ++linear)
             {
                 HeroStageVariant variant = config.GetStage(linear);
@@ -396,17 +404,17 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 영웅_재스킨_조회는_16_이상을_마지막_엔트리로_클램프한다()
+        public void 영웅_재스킨_조회는_21_이상을_마지막_엔트리로_클램프한다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
 
-            Assert.AreEqual(5, config.GetStage(16).StageIndex);
-            Assert.AreEqual(3, config.GetStage(16).ChapterId);
-            Assert.AreEqual(3, config.GetStage(int.MaxValue).ChapterId);
+            Assert.AreEqual(5, config.GetStage(21).StageIndex);
+            Assert.AreEqual(4, config.GetStage(21).ChapterId);
+            Assert.AreEqual(4, config.GetStage(int.MaxValue).ChapterId);
         }
 
         [Test]
-        public void 영웅_재스킨_엔트리는_15개_키가_모두_서로_다르다()
+        public void 영웅_재스킨_엔트리는_20개_키가_모두_서로_다르다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
             HashSet<int> keys = new HashSet<int>();
@@ -416,8 +424,8 @@ namespace Lair.Tests.EditMode
                 keys.Add(StageProgress.ToLinear(variant.ChapterId, variant.StageIndex));
             }
 
-            Assert.AreEqual(15, keys.Count);
-            for (int linear = 1; linear <= 15; ++linear)
+            Assert.AreEqual(20, keys.Count);
+            for (int linear = 1; linear <= 20; ++linear)
             {
                 Assert.IsTrue(keys.Contains(linear), $"linear {linear} 엔트리 없음");
             }
@@ -535,26 +543,26 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 네번째_다섯번째_탭은_자리표시자로_남는다()
+        public void 네번째_탭은_챕터4이고_다섯번째_탭만_자리표시자로_남는다()
         {
             WorldMapViewModel vm = NewVm(15);
 
-            Assert.IsTrue(vm.Tabs[3].IsPlaceholder);
+            Assert.IsFalse(vm.Tabs[3].IsPlaceholder, "챕터 4 는 데이터가 있어 자리표시자가 아니다");
             Assert.IsTrue(vm.Tabs[4].IsPlaceholder);
-            Assert.AreEqual("4장 ???", vm.Tabs[3].Label);
+            Assert.AreEqual("4장 불꽃의 용광로", vm.Tabs[3].Label);
             Assert.AreEqual("5장 ???", vm.Tabs[4].Label);
         }
 
         [Test]
-        public void 출격_가능_범위_안의_챕터3_저장값은_그대로_유지되고_범위_밖은_챕터3_보스로_보정된다()
+        public void 출격_가능_범위_안의_챕터3_저장값은_그대로_유지되고_범위_밖은_최대_플레이_가능으로_보정된다()
         {
             WorldMapViewModel inside = NewVm(15, 13);
             Assert.AreEqual(3, inside.SelectedChapter);
             Assert.AreEqual(3, inside.SelectedStageIndex);
 
-            WorldMapViewModel outside = NewVm(15, 16);
-            Assert.AreEqual(3, outside.SelectedChapter, "16 은 출격 가능 상한(15) 밖 — 최대 플레이 가능으로 보정");
-            Assert.AreEqual(5, outside.SelectedStageIndex);
+            WorldMapViewModel outside = NewVm(15, 21);
+            Assert.AreEqual(4, outside.SelectedChapter, "21 은 출격 가능 상한(20) 밖 — 최대 플레이 가능(16)으로 보정");
+            Assert.AreEqual(1, outside.SelectedStageIndex);
         }
 
         //# ===== 기록 팝업 15행 =====

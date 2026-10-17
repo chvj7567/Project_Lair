@@ -242,6 +242,8 @@ namespace Lair.Tests.EditMode
             triggered = 0;
             foreach (ChapterRow chapter in db.Chapters)
             {
+                if (chapter.chapterId > 3)
+                    continue;
                 for (int stage = 1; stage <= 5; ++stage)
                 {
                     foreach (StageRuleData data in db.GetRules(chapter.chapterId, stage))

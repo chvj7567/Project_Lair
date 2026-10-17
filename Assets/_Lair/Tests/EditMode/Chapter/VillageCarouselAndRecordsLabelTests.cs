@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace Lair.Tests.EditMode
 {
     //# 마을 캐러셀 상한/초기 위치(ChapterGate 단일 소유)와 기록 팝업 10행 라벨 (chapter-system §6.4·§2.3).
-    //# 캐러셀 상한 = ChapterGate.PlayableStageCount — 값이 3챕터(15)로 올라도 관계식은 그대로 성립한다(상한 시나리오는 ClearedStage = PlayableStageCount 로 만든다).
+    //# 캐러셀 상한 = ChapterGate.PlayableStageCount — 값이 4챕터(20)로 올라도 관계식은 그대로 성립한다(상한 시나리오는 ClearedStage = PlayableStageCount 로 만든다).
     public class VillageCarouselAndRecordsLabelTests : ChapterStaticStateTestBase
     {
         private static VillageViewModel NewVillage(MetaProfile profile, bool withChapters = true)
@@ -34,6 +34,9 @@ namespace Lair.Tests.EditMode
         [TestCase(11)]
         [TestCase(14)]
         [TestCase(15)]
+        [TestCase(16)]
+        [TestCase(19)]
+        [TestCase(20)]
         public void 초기_위치는_최대_플레이_스테이지를_출격_가능_상한으로_clamp한_값이다(int cleared)
         {
             VillageViewModel vm = NewVillage(new MetaProfile { ClearedStage = cleared });

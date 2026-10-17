@@ -17,6 +17,9 @@ namespace Lair.Tests.EditMode
         private static readonly int[] AssassinHp = { 5768, 6440, 7112, 7560, 8960 };
         private static readonly int[] AssassinPower = { 42, 46, 51, 56, 61 };
 
+        private static readonly int[] BerserkerHp = { 6400, 6750, 7750, 8100, 9350 };
+        private static readonly int[] BerserkerPower = { 39, 42, 47, 51, 56 };
+
         private static void AssertTable(string heroId, int chapterId, int[] expectedHp, int[] expectedPower)
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
@@ -50,14 +53,20 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 선형_번호_1부터_15까지_영웅이_챕터_영웅으로_도출되고_스탯이_표와_같다()
+        public void 광전사_챕터4_다섯_스테이지_HP와_공격력_표가_기획서_값이다_소수_경계_0_5는_올림()
+        {
+            AssertTable("Berserker", 4, BerserkerHp, BerserkerPower);
+        }
+
+        [Test]
+        public void 선형_번호_1부터_20까지_영웅이_챕터_영웅으로_도출되고_스탯이_표와_같다()
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
-            int[][] hp = { KnightHp, ArcherHp, AssassinHp };
-            int[][] power = { KnightPower, ArcherPower, AssassinPower };
-            string[] heroes = { "Knight", "Archer", "Assassin" };
+            int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp };
+            int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower };
+            string[] heroes = { "Knight", "Archer", "Assassin", "Berserker" };
 
-            for (int linear = 1; linear <= 15; ++linear)
+            for (int linear = 1; linear <= 20; ++linear)
             {
                 int chapter = StageProgress.ChapterOf(linear);
                 int index = StageProgress.IndexOf(linear);
@@ -73,10 +82,10 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 공격력_체력은_챕터_안에서_스테이지가_올라갈수록_단조_증가한다()
         {
-            for (int chapter = 0; chapter < 3; ++chapter)
+            for (int chapter = 0; chapter < 4; ++chapter)
             {
-                int[][] hp = { KnightHp, ArcherHp, AssassinHp };
-                int[][] power = { KnightPower, ArcherPower, AssassinPower };
+                int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp };
+                int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower };
                 for (int i = 1; i < 5; ++i)
                 {
                     Assert.Greater(hp[chapter][i], hp[chapter][i - 1], $"챕터 {chapter + 1} HP {i}");

@@ -100,11 +100,11 @@ namespace Lair.Tests.EditMode
         [TestCase(0)]
         [TestCase(10)]
         [TestCase(15)]
-        public void 미출시_슬롯_4_5는_클리어_수_0_영웅_빈_문자열_챕터명은_Label과_같다(int cleared)
+        public void 미출시_슬롯_5는_클리어_수_0_영웅_빈_문자열_챕터명은_Label과_같다(int cleared)
         {
             WorldMapViewModel vm = NewVm(cleared);
 
-            for (int slot = 4; slot <= 5; ++slot)
+            for (int slot = 5; slot <= 5; ++slot)
             {
                 WorldMapTabData tab = vm.Tabs[slot - 1];
                 Assert.IsTrue(tab.IsPlaceholder, $"{slot}장");
@@ -125,6 +125,8 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(WorldMapTestSupport.Text(1002), vm.Tabs[1].ChapterNameText);
             Assert.AreEqual("그림자 성채", vm.Tabs[2].ChapterNameText);
             Assert.AreEqual("3장 그림자 성채", vm.Tabs[2].Label);
+            Assert.AreEqual("불꽃의 용광로", vm.Tabs[3].ChapterNameText);
+            Assert.AreEqual("4장 불꽃의 용광로", vm.Tabs[3].Label);
         }
 
         [Test]
@@ -135,6 +137,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("기사", vm.Tabs[0].HeroText);
             Assert.AreEqual("궁수", vm.Tabs[1].HeroText);
             Assert.AreEqual("암살자", vm.Tabs[2].HeroText);
+            Assert.AreEqual("광전사", vm.Tabs[3].HeroText);
         }
 
         [TestCase(0)]
@@ -290,10 +293,10 @@ namespace Lair.Tests.EditMode
         [Test]
         public void NextPathCleared는_모든_조합에서_클리어이면서_보스가_아닌_노드와_같다()
         {
-            for (int cleared = 0; cleared <= 15; ++cleared)
+            for (int cleared = 0; cleared <= 20; ++cleared)
             {
                 WorldMapViewModel vm = NewVm(cleared, 1);
-                for (int chapter = 1; chapter <= 3; ++chapter)
+                for (int chapter = 1; chapter <= 4; ++chapter)
                 {
                     if (StageProgress.IsChapterUnlocked(chapter, cleared) == false)
                         continue;

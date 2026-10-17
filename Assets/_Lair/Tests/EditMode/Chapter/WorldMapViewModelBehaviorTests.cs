@@ -62,7 +62,7 @@ namespace Lair.Tests.EditMode
         [TestCase(10, 12, 3, 1)]
         [TestCase(7, 10, 2, 3)]
         [TestCase(15, 15, 3, 5)]
-        [TestCase(15, 99, 3, 5)]
+        [TestCase(15, 99, 4, 1)]
         public void 저장된_선택이_잠금이면_해금된_최대_플레이_스테이지로_보정되고_해금_범위_안이면_챕터2_3도_유지된다(int cleared, int selected, int expectedChapter, int expectedIndex)
         {
             WorldMapViewModel vm = NewVm(Profile(cleared, selected));
@@ -129,11 +129,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 챕터_데이터가_없는_슬롯_4_5는_자리표시자이고_장_번호_물음표_라벨이다()
+        public void 챕터_데이터가_없는_슬롯_5는_자리표시자이고_장_번호_물음표_라벨이다()
         {
             WorldMapViewModel vm = NewVm(Profile(10));
 
-            for (int slot = 4; slot <= 5; ++slot)
+            for (int slot = 5; slot <= 5; ++slot)
             {
                 WorldMapTabData tab = vm.Tabs[slot - 1];
                 Assert.IsTrue(tab.IsPlaceholder, $"{slot}장");
@@ -143,6 +143,21 @@ namespace Lair.Tests.EditMode
                 Assert.AreEqual($"{slot}장 ???", tab.Label);
                 Assert.AreEqual(string.Empty, tab.LockTagText);
             }
+        }
+
+        [TestCase(0, true)]
+        [TestCase(14, true)]
+        [TestCase(15, false)]
+        public void 챕터4_탭은_챕터3_보스를_클리어하면_열리고_준비_중은_아니다(int cleared, bool expectedLocked)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared, 1));
+
+            WorldMapTabData tab = vm.Tabs[3];
+            Assert.AreEqual(4, tab.ChapterId);
+            Assert.IsFalse(tab.IsPlaceholder);
+            Assert.AreEqual(expectedLocked, tab.IsLocked);
+            Assert.AreEqual("4장 불꽃의 용광로", tab.Label);
+            Assert.AreEqual(expectedLocked ? WorldMapTestSupport.Text(WorldMapViewModel.StrLocked) : string.Empty, tab.LockTagText);
         }
 
         [TestCase(0)]
@@ -214,8 +229,8 @@ namespace Lair.Tests.EditMode
         [TestCase(0)]
         [TestCase(99)]
         [TestCase(-1)]
-        [TestCase(4)]
         [TestCase(5)]
+        [TestCase(6)]
         public void 챕터_DB에_없는_탭을_누르면_이동도_안내도_이벤트도_없다(int chapterId)
         {
             WorldMapViewModel vm = NewVm(Profile(10));

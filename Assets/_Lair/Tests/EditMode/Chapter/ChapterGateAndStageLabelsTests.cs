@@ -64,7 +64,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 스테이지_판정과_챕터_판정은_일관된다()
         {
-            for (int linear = -2; linear <= 15; ++linear)
+            for (int linear = -2; linear <= 25; ++linear)
             {
                 bool stagePlayable = ChapterGate.IsStagePlayable(linear);
                 bool chapterPlayable = linear >= 1 && ChapterGate.IsChapterPlayable(StageProgress.ChapterOf(linear));
@@ -92,6 +92,8 @@ namespace Lair.Tests.EditMode
         [TestCase(10, "2-5")]
         [TestCase(11, "3-1")]
         [TestCase(15, "3-5")]
+        [TestCase(16, "4-1")]
+        [TestCase(20, "4-5")]
         public void 번호는_챕터_하이픈_인덱스다(int linear, string expected)
         {
             Assert.AreEqual(expected, StageLabels.Number(linear));
@@ -165,6 +167,7 @@ namespace Lair.Tests.EditMode
 
         [TestCase(6, "1장 보스 클리어 필요")]
         [TestCase(11, "2장 보스 클리어 필요")]
+        [TestCase(16, "3장 보스 클리어 필요")]
         public void 챕터의_첫_스테이지는_직전_챕터_보스_클리어를_안내한다(int linear, string expected)
         {
             Assert.AreEqual(expected, StageLabels.UnlockHint(linear, WorldMapTestSupport.Text));

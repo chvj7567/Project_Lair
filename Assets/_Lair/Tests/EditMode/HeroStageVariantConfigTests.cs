@@ -13,11 +13,11 @@ namespace Lair.Tests.EditMode
         //# hero-2d-conversion §11 경고 — Tier 는 C# 기본값이 0 이라, 에셋에 명시하지 않으면 전 스테이지가
         //# 스테이지1 표현(오버레이 off)으로 남는다. 실제 .asset 값을 실측해 회귀 감시.
         [Test]
-        public void 실제_asset의_15엔트리는_챕터키와_Tier가_챕터마다_0부터_4까지_채워져있다()
+        public void 실제_asset의_20엔트리는_챕터키와_Tier가_챕터마다_0부터_4까지_채워져있다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(ConfigAssetPath);
             Assert.IsNotNull(config, $"asset 로드 실패: {ConfigAssetPath}");
-            Assert.AreEqual(15, config.Stages.Count, "챕터 3개 x 5스테이지 엔트리");
+            Assert.AreEqual(20, config.Stages.Count, "챕터 4개 x 5스테이지 엔트리");
 
             for (int i = 0; i < config.Stages.Count; i++)
             {
