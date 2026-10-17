@@ -194,6 +194,7 @@ MonoBehaviour:
   - {fileID: 8386184284373549174, guid: 29d8f75cff64bba4381175143c51bf02, type: 3}
   - {fileID: -6588713614300598955, guid: 29d8f75cff64bba4381175143c51bf02, type: 3}
   - {fileID: 8319792752633189595, guid: 29d8f75cff64bba4381175143c51bf02, type: 3}
+  _tier4Frames: []
 --- !u!1 &2460667971394367309
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,7 +572,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1279345155
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &4539335887763169968
@@ -612,6 +613,7 @@ GameObject:
   - component: {fileID: 4172776548586001766}
   - component: {fileID: 133207673890385847}
   - component: {fileID: 7496696248116699211}
+  - component: {fileID: 5456594912345928652}
   m_Layer: 0
   m_Name: Wraith
   m_TagString: Untagged
@@ -905,6 +907,18 @@ MonoBehaviour:
   _runSpeed: 2
   _hitReactionCooldown: 0.4
   _attackSuppressWindow: 0.5
+--- !u!210 &5456594912345928652
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1001 &5742229614982760781
 PrefabInstance:
   m_ObjectHideFlags: 0

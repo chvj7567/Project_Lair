@@ -25,6 +25,15 @@ namespace Lair.UI
         [SerializeField] private CHText _timeText;
         [SerializeField] private CHText _heroText;
 
+        //# UI 리디자인 — 일반 행 Px_PanelDark / 내 행 Px_Panel + 소울 링. 미할당이면 기존 반투명 배경 방식.
+        [SerializeField] private Sprite _normalSprite;
+        [SerializeField] private Sprite _mineSprite;
+        [SerializeField] private Image _mineRing;
+
+        //# 비주얼 폴리시 — 1~3위 메달 묶음(순위 1~3 에서만 활성) + 순위색 rgb 로 틴트할 Image(글로우·원판). 미할당이면 건너뜀.
+        [SerializeField] private GameObject _rankMedalRoot;
+        [SerializeField] private Image[] _rankMedalTinted;
+
         //# 순위 색 강조(기획서 §4) — 1/2/3위 금/은/동, 그 외 기본.
         private static readonly Color Gold = new Color(1f, 0.823f, 0.290f);       //# #FFD24A
         private static readonly Color Silver = new Color(0.788f, 0.804f, 0.823f); //# #C9CDD2
@@ -42,16 +51,68 @@ namespace Lair.UI
         //# 풀 재사용 리셋 — 이전 행의 강조 잔존 방지(Rule 03 §4).
         private void OnEnable()
         {
-            if (_background != null)
-                _background.color = NormalBg;
+            ApplyBackground(false);
             if (_rankText != null)
+            {
                 _rankText.SetColor(RankDefault);
+            }
+            if (_rankMedalRoot != null)
+            {
+                _rankMedalRoot.SetActive(false);
+            }
+        }
+
+        //# 1~3위만 메달을 켜고 순위색 rgb 로 틴트(각 Image 의 알파 보존). 그 외는 끈다.
+        private void ApplyRankMedal(long rank)
+        {
+            bool podium = rank >= 1 && rank <= 3;
+            if (_rankMedalRoot != null)
+            {
+                _rankMedalRoot.SetActive(podium);
+            }
+            if (podium == false || _rankMedalTinted == null)
+                return;
+
+            Color rankColor = RankColor(rank);
+            for (int i = 0; i < _rankMedalTinted.Length; i++)
+            {
+                Image tinted = _rankMedalTinted[i];
+                if (tinted == null)
+                    continue;
+                tinted.color = new Color(rankColor.r, rankColor.g, rankColor.b, tinted.color.a);
+            }
+        }
+
+        //# 배경 — 스프라이트 스킨이 있으면 색은 그대로 쓰고 내 행만 스프라이트/링을 바꾼다.
+        private void ApplyBackground(bool mine)
+        {
+            if (_background != null)
+            {
+                if (_normalSprite != null)
+                {
+                    _background.sprite = mine && _mineSprite != null ? _mineSprite : _normalSprite;
+                    _background.color = Color.white;
+                }
+                else
+                {
+                    _background.color = mine ? MineBg : NormalBg;
+                }
+            }
+            if (_mineRing != null)
+            {
+                _mineRing.gameObject.SetActive(mine);
+                _mineRing.color = UiDotPalette.Soul;
+            }
         }
 
         public void Bind(RankingRowEntry entry)
         {
             if (entry == null)
                 return;
+            if (_rankMedalRoot != null)
+            {
+                _rankMedalRoot.SetActive(false);
+            }
             if (entry.Unranked)
             {
                 BindUnranked(entry);
@@ -60,6 +121,7 @@ namespace Lair.UI
             if (entry.Row == null)
                 return;
             RankingRowDto data = entry.Row;
+            ApplyRankMedal(data.rank);
 
             if (_rankText != null)
             {
@@ -75,8 +137,7 @@ namespace Lair.UI
                 _timeText.SetText(FormatMs(data.clearTimeMs));
             if (_heroText != null)
                 _heroText.SetText(data.hero);
-            if (_background != null)
-                _background.color = entry.IsMine ? MineBg : NormalBg;
+            ApplyBackground(entry.IsMine);
         }
 
         //# 미등재 표시 — 정상 경로가 건드리는 위젯 전부를 덮는다(프리팹 authoring 잔상/가짜 기록 방지).
@@ -96,8 +157,7 @@ namespace Lair.UI
                 _timeText.SetText(UnrankedValueLabel);
             if (_heroText != null)
                 _heroText.SetText(UnrankedValueLabel);
-            if (_background != null)
-                _background.color = entry.IsMine ? MineBg : NormalBg;
+            ApplyBackground(entry.IsMine);
         }
 
         private static Color RankColor(long rank)

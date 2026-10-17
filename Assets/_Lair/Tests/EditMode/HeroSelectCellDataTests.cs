@@ -40,7 +40,7 @@ namespace Lair.Tests.EditMode
         //# 스테이지 1~5 에 서로 다른 초상을 주입 — 셀 n 이 stage n 의 초상을 집는지(인덱스 매핑) 구분하기 위함.
         private Sprite[] NewDistinctPortraits()
         {
-            Sprite[] portraits = new Sprite[StageProgress.MaxStage];
+            Sprite[] portraits = new Sprite[StageProgress.StagesPerChapter];
             for (int i = 0; i < portraits.Length; ++i)
             {
                 portraits[i] = NewSprite();
@@ -56,7 +56,7 @@ namespace Lair.Tests.EditMode
             HeroStageVariant[] stages = new HeroStageVariant[portraits.Length];
             for (int i = 0; i < portraits.Length; ++i)
             {
-                stages[i] = new HeroStageVariant { Portrait = portraits[i] };
+                stages[i] = new HeroStageVariant { ChapterId = i / 5 + 1, StageIndex = i % 5 + 1, Portrait = portraits[i] };
             }
             TestReflection.SetField(cfg, "_stages", stages);
             return cfg;
@@ -72,7 +72,7 @@ namespace Lair.Tests.EditMode
 
             List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(profile, variantConfig);
 
-            Assert.AreEqual(StageProgress.MaxStage, list.Count);
+            Assert.AreEqual(StageProgress.StagesPerChapter, list.Count);
             for (int i = 0; i < list.Count; ++i)
             {
                 int stage = i + 1;
@@ -99,7 +99,7 @@ namespace Lair.Tests.EditMode
             //# profile null(진행도 0 취급) + variantConfig null → 폴백: 5셀, 1만 해금, 초상 null(셀이 이미지를 숨김).
             List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(null, null);
 
-            Assert.AreEqual(StageProgress.MaxStage, list.Count);
+            Assert.AreEqual(StageProgress.StagesPerChapter, list.Count);
             Assert.IsFalse(list[0].IsLocked);
             Assert.AreEqual(Color.white, list[0].PortraitTint);
             for (int i = 0; i < list.Count; ++i)
@@ -125,7 +125,7 @@ namespace Lair.Tests.EditMode
             //# profile 만 null → cleared 0 취급. variantConfig 는 살아있으므로 초상 폴백(null)은 일어나면 안 된다.
             List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(null, variantConfig);
 
-            Assert.AreEqual(StageProgress.MaxStage, list.Count);
+            Assert.AreEqual(StageProgress.StagesPerChapter, list.Count);
             Assert.IsFalse(list[0].IsLocked, "진행도 0 이면 스테이지 1 만 해금");
             Assert.AreSame(portraits[0], list[0].Portrait, "profile 폴백이 초상까지 지우면 안 된다");
             for (int i = 1; i < list.Count; ++i)
@@ -144,7 +144,7 @@ namespace Lair.Tests.EditMode
 
             List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(profile, null);
 
-            Assert.AreEqual(StageProgress.MaxStage, list.Count);
+            Assert.AreEqual(StageProgress.StagesPerChapter, list.Count);
             for (int i = 0; i < list.Count; ++i)
             {
                 int stage = i + 1;
@@ -178,7 +178,7 @@ namespace Lair.Tests.EditMode
 
                 List<HeroSelectCellData> list = HeroSelectPopup.BuildCellData(profile, variantConfig);
 
-                Assert.AreEqual(StageProgress.MaxStage, list.Count);
+                Assert.AreEqual(StageProgress.StagesPerChapter, list.Count);
                 for (int i = 0; i < list.Count; ++i)
                 {
                     Assert.IsFalse(list[i].IsLocked, $"cleared={cleared} 에서 스테이지 {i + 1} 은 해금이어야 한다");

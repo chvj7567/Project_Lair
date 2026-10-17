@@ -35,6 +35,13 @@ namespace Lair.Character
         void SetMax(int max, bool resetCurrent = true);
     }
 
+    //# 일시 무적 부여 — 암살자 슬립·그림자 습격이 영웅 Health 에 건다. IHealth 에 더하지 않아 기존 구현체·테스트 더블 무영향.
+    public interface IInvulnerable
+    {
+        bool IsInvulnerable { get; }
+        void GrantInvulnerability(float seconds);
+    }
+
     //# 데미지 숫자 색 스탬프 수신구. 데미지 출처가 TakeDamage 직전 호출.
     //# OnChanged 가 TakeDamage 내부에서 동기 발행되므로 직전 스탬프값이 핸들러에서 읽힌다.
     public interface IDamageColorSink
@@ -111,6 +118,38 @@ namespace Lair.Character
         bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count);
     }
 
+    //# 이동 가능 영역 클램프 — 영웅 SimpleMover 가 BattleZone 경계를 안다. 도약처럼 transform 을 직접 옮기는 경로가 같은 경계를 지키게 한다.
+    public interface IMoveClamp
+    {
+        Vector3 ClampPosition(Vector3 position);
+    }
+
+    //# 카이팅(궁수) 전용 — 교전 토글 무관, 살아있는 가장 가까운 몬스터 조회. 영웅 타깃 제공자만 구현(기사·몬스터는 미사용).
+    //# ITargetProvider 에 메서드를 더하지 않으려 분리(기존 구현체·테스트 더블 무영향).
+    public interface INearestThreatProvider
+    {
+        bool TryFindNearestThreat(Vector3 from, out Transform target, out IHealth health);
+    }
+
+    //# 실효 쿨다운 노출 — 버프(프렌지 등 CooldownScale)가 반영된 공격 간격. IAttacker 에 더하지 않아 기존 구현체·테스트 더블 무영향(구현하지 않으면 IAttacker.Cooldown 사용).
+    public interface IEffectiveCooldown
+    {
+        float EffectiveCooldown { get; }
+    }
+
+    //# 개시된 strike(공격 모션 중 캐싱된 타격)를 취소 — 순간이동처럼 위치가 갑자기 바뀌는 이동이 낡은 위치 기준으로 판정하지 않게 한다.
+    public interface IPendingStrikeCancel
+    {
+        void CancelPendingStrike();
+    }
+
+    //# 습격-이탈(암살자) 전용 — 반경 안 살아있는 교전(Engaging) 몬스터만 위협 점수 후보로 조회(행군 중 몬스터 제외). 영웅 타깃 제공자만 구현.
+    public interface ISkirmishThreatProvider
+    {
+        //# 후보를 candidates 에 채운다(호출 전 비움). 반경 안에 없으면 false.
+        bool TryGetThreatCandidates(Vector3 from, float radius, System.Collections.Generic.List<SkirmishCandidate> candidates);
+    }
+
     //# ===== 회전 =====
 
     //# Y축(yaw) 회전 추상. AutoCombatAI 가 상태별로 FaceDirection 호출.
@@ -143,5 +182,17 @@ namespace Lair.Character
         void TriggerHit();
         void SetDead(bool dead);
         void TriggerSpawn();
+    }
+
+    //# ===== FX 시트 재생 =====
+
+    //# 도트 시트 FX 루트 파사드(SpriteSheetFx)의 외부 진입점. 소비자는 궤도 블레이드(SetLoopPhase)뿐이나 Rule 02 §10 에 따라 미리 정의.
+    public interface ISpriteSheetFx
+    {
+        int CurrentFrame { get; }
+        bool IsFinished { get; }
+        event Action Finished;
+        //# 0~1(순환) 위상으로 프레임을 직접 지정. 범위 밖·음수 입력은 frac 로 접는다.
+        void SetLoopPhase(float normalized);
     }
 }

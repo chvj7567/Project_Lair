@@ -5,7 +5,7 @@ namespace Lair.Character
 {
     //# IHealth 구현체. 본 슬라이스 한정 POCO + MonoBehaviour 양립.
     //# Unity 컴포넌트로 사용 시: GameObject 에 AddComponent.
-    public class Health : MonoBehaviour, IHealth
+    public class Health : MonoBehaviour, IHealth, IInvulnerable
     {
         [SerializeField] private int _max = 100;
 
@@ -42,8 +42,20 @@ namespace Lair.Character
             }
         }
 
+        //# 무적 종료 시각(Time.time 기준) — 암살자 슬립/그림자 습격(chapter-3-hero §3.3·§4). 보호막 배율(DamageTakenScale)과 독립이라 틱 재설정에 안 지워진다.
+        private float _invulnerableUntil = float.NegativeInfinity;
+        public bool IsInvulnerable => Time.time < _invulnerableUntil;
+
         public event Action<int, int> OnChanged;
         public event Action OnDied;
+
+        //# seconds 동안 데미지 무시. 이미 더 긴 무적이 있으면 유지.
+        public void GrantInvulnerability(float seconds)
+        {
+            if (seconds <= 0f)
+                return;
+            _invulnerableUntil = Mathf.Max(_invulnerableUntil, Time.time + seconds);
+        }
 
         //# MonoBehaviour 라이프사이클 — 인스펙터 _max 로 초기화.
         private void Awake()
@@ -58,11 +70,14 @@ namespace Lair.Character
             if (Current <= 0) Current = _max;
             DamageTakenScale = 1f;
             _hpMaxScale = 1f;
+            _invulnerableUntil = float.NegativeInfinity;
         }
 
         public void TakeDamage(int amount)
         {
             if (IsAlive == false) return;
+            if (IsInvulnerable)
+                return;
             //# B3 — 받는 데미지 배율 적용
             amount = Mathf.RoundToInt(amount * DamageTakenScale);
             int next = Mathf.Max(0, Current - amount);

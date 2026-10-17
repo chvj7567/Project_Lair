@@ -15,6 +15,16 @@ namespace Lair.EditorTools
         private const string JsonPath    = "Assets/_Lair/Data/Json/hero_skills.json";
         private const string SkillDir    = "Assets/_Lair/Art/Skills";
         private const string LoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout.asset";
+        private const string ArcherLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Archer.asset";
+        private const string AssassinLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Assassin.asset";
+
+        //# 영웅별 로드아웃 SO 경로 — heroId(EHero 값명) → .asset. 새 영웅 직업이 생기면 여기에 한 줄 추가.
+        private static readonly KeyValuePair<string, string>[] LoadoutPaths =
+        {
+            new KeyValuePair<string, string>("Knight", LoadoutPath),
+            new KeyValuePair<string, string>("Archer", ArcherLoadoutPath),
+            new KeyValuePair<string, string>("Assassin", AssassinLoadoutPath),
+        };
 
         private static JsonSerializerSettings Settings()
         {
@@ -35,12 +45,14 @@ namespace Lair.EditorTools
                     skills.Add(s);
             }
 
-            HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(LoadoutPath);
             List<HeroSkillPhaseDto> phases = new List<HeroSkillPhaseDto>();
-            if (loadout != null)
+            foreach (KeyValuePair<string, string> entry in LoadoutPaths)
             {
-                foreach (HeroSkillLoadout.Phase p in loadout.Phases)
-                    phases.Add(new HeroSkillPhaseDto { HpFraction = p.HpFraction, Skill = p.Skill != null ? p.Skill.name : null });
+                HeroSkillLoadout heroLoadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(entry.Value);
+                if (heroLoadout == null)
+                    continue;
+                foreach (HeroSkillLoadout.Phase p in heroLoadout.Phases)
+                    phases.Add(new HeroSkillPhaseDto { HeroId = entry.Key, HpFraction = p.HpFraction, Skill = p.Skill != null ? p.Skill.name : null });
             }
 
             HeroSkillsDto dto = new HeroSkillsDto { Skills = skills, Loadout = phases };
@@ -86,18 +98,29 @@ namespace Lair.EditorTools
 
             //# 로드아웃 — fileName ref 로 스킬 연결.
             HeroSkillsDto dto = JsonConvert.DeserializeObject<HeroSkillsDto>(json, Settings());
-            HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(LoadoutPath);
-            if (loadout != null)
+            foreach (KeyValuePair<string, string> entry in LoadoutPaths)
             {
+                List<HeroSkillPhaseDto> heroPhases = dto.Loadout.Where(p => p.HeroId == entry.Key).ToList();
+                if (heroPhases.Count == 0)
+                    continue;
+
+                HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(entry.Value);
+                if (loadout == null)
+                {
+                    //# 새 영웅 로드아웃 — 처음 가져올 때 SO 를 만든다.
+                    loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+                    AssetDatabase.CreateAsset(loadout, entry.Value);
+                }
+
                 SerializedObject so = new SerializedObject(loadout);
                 SerializedProperty phases = so.FindProperty("_phases");
                 phases.ClearArray();
-                for (int i = 0; i < dto.Loadout.Count; ++i)
+                for (int i = 0; i < heroPhases.Count; ++i)
                 {
                     phases.InsertArrayElementAtIndex(i);
                     SerializedProperty el = phases.GetArrayElementAtIndex(i);
-                    el.FindPropertyRelative("HpFraction").floatValue = dto.Loadout[i].HpFraction;
-                    HeroSkillData s = AssetDatabase.LoadAssetAtPath<HeroSkillData>($"{SkillDir}/{dto.Loadout[i].Skill}.asset");
+                    el.FindPropertyRelative("HpFraction").floatValue = heroPhases[i].HpFraction;
+                    HeroSkillData s = AssetDatabase.LoadAssetAtPath<HeroSkillData>($"{SkillDir}/{heroPhases[i].Skill}.asset");
                     el.FindPropertyRelative("Skill").objectReferenceValue = s;
                 }
                 so.ApplyModifiedPropertiesWithoutUndo();

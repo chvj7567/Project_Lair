@@ -5,7 +5,7 @@ namespace Lair.Character
 {
     //# Vector3.MoveTowards 기반 단순 추적. Rigidbody 있으면 MovePosition 사용, 없으면 transform.position 폴백.
     //# _clampZone 비-null 이면 next 좌표를 BattleZone.ClampInside 로 클램프 — 영웅 한정 (몬스터는 null).
-    public class SimpleMover : MonoBehaviour, IMover
+    public class SimpleMover : MonoBehaviour, IMover, IMoveClamp
     {
         [SerializeField] private float _speed = 3f;
         //# 몬스터 캡슐 콜라이더 깊은 겹침 시 PhysX depenetration 폭발 방지 — 분리 속도 상한.
@@ -27,6 +27,12 @@ namespace Lair.Character
         //# 기본 1.0. SwarmSpeed buff 활성 중 1.3 곱연산 → FixedUpdate 의 effectiveSpeed 계산에 반영.
         public float SpeedScale { get; set; } = 1f;
 
+        //# 스테이지 규칙(사냥꾼의 덫) 속도 배율 — MonsterBuffService 가 SpeedScale 을 매 tick 1 로 리셋하므로 별도 채널로 곱한다. 기본 1.0.
+        public float RuleSpeedScale { get; set; } = 1f;
+
+        //# 영웅 스킬(연막 탄) 속도 배율 — 규칙 채널(RuleSpeedScale)과 분리해 서로 덮어쓰지 않는다. 기본 1.0.
+        public float SkillSpeedScale { get; set; } = 1f;
+
         //# B3 — MoveTo 후 Stop 전까지 true. 출혈 카드가 영웅 이동 판정에 사용.
         public bool IsMoving => _moving;
 
@@ -47,6 +53,8 @@ namespace Lair.Character
         private void OnEnable()
         {
             SpeedScale = 1f;
+            RuleSpeedScale = 1f;
+            SkillSpeedScale = 1f;
             _moving = false;
         }
 
@@ -61,6 +69,12 @@ namespace Lair.Character
             _moving = false;
         }
 
+        //# IMoveClamp — 영웅 한정 zone 클램프. zone 미할당이면 입력 그대로.
+        public Vector3 ClampPosition(Vector3 position)
+        {
+            return _clampZone != null ? _clampZone.ClampInside(position) : position;
+        }
+
         //# 런타임 주입 — BattleController.SpawnHero 가 Pop 직후 호출. null 도 허용 (몬스터 또는 폴백 해제).
         public void BindClampZone(BattleZone zone)
         {
@@ -73,7 +87,7 @@ namespace Lair.Character
                 return;
 
             //# [B2] effectiveSpeed = base × SpeedScale. SwarmSpeed buff 활성 시 1.3 배수.
-            float effectiveSpeed = _speed * SpeedScale;
+            float effectiveSpeed = _speed * SpeedScale * RuleSpeedScale * SkillSpeedScale;
             Vector3 next = Vector3.MoveTowards(transform.position, _target, effectiveSpeed * Time.fixedDeltaTime);
             //# Y 평면 고정 — 캐릭터가 카메라 각도로 떠오르지 않도록
             next.y = 0f;

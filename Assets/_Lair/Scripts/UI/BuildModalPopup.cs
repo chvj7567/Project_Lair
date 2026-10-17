@@ -22,6 +22,8 @@ namespace Lair.UI
         [SerializeField] private BuildModalCardPoolingScrollView _activeScrollView;  //# 우 섹션 CHPoolingScrollView
         [SerializeField] private CHText _passiveEmptyText;                           //# 빈 상태 라벨 (패시브)
         [SerializeField] private CHText _activeEmptyText;                            //# 빈 상태 라벨 (액티브)
+        [SerializeField] private CHText _passiveCountText;                           //# 헤더 개수 칩 (패시브 N/최대)
+        [SerializeField] private CHText _activeCountText;                            //# 헤더 개수 칩 (액티브 N/최대)
 
         //# OnEnable / OnBuildChanged 양쪽이 참조하므로 필드로 보관.
         private BattleViewModel _vm;
@@ -120,6 +122,16 @@ namespace Lair.UI
             //# CHPoolingScrollView 가 자체로 풀 인스턴스 생성·재바인딩 처리 — 단일 호출.
             if (_passiveScrollView != null) _passiveScrollView.SetItemList(passive);
             if (_activeScrollView  != null) _activeScrollView.SetItemList(active);
+
+            //# 개수 칩 — BuildPanel.RefreshCounts 와 같은 VM 프로퍼티(단일 진실).
+            if (_passiveCountText != null)
+            {
+                _passiveCountText.SetText($"{vm.PassivePickCount}/{vm.PassiveTriggerTotal}");
+            }
+            if (_activeCountText != null)
+            {
+                _activeCountText.SetText($"{vm.ActivePickCount}/{vm.ActiveTriggerTotal}");
+            }
         }
 
         //# 카드 리뉴얼 v0.6 — 구 카테고리 → EBuildAxis 자리 치환 (Phase 1 임시).

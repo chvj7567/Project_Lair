@@ -7,13 +7,19 @@ namespace Lair.Character
     public class MonsterTargetProvider : MonoBehaviour, ITargetProvider
     {
         private IHealth _selfHealth;
+        private IAttacker _selfAttacker;
 
-        private void Awake() => _selfHealth = GetComponent<LairCharacter>().Get<IHealth>();
+        private void Awake()
+        {
+            LairCharacter character = GetComponent<LairCharacter>();
+            _selfHealth = character.Get<IHealth>();
+            _selfAttacker = character.Get<IAttacker>();
+        }
 
         private void OnEnable()
         {
             if (_selfHealth != null)
-                CharacterRegistry.RegisterMonster(transform, _selfHealth);
+                CharacterRegistry.RegisterMonster(transform, _selfHealth, _selfAttacker);
         }
 
         private void OnDisable()

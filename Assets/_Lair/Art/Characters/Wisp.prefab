@@ -25,6 +25,7 @@ GameObject:
   - component: {fileID: 3920321758007987453}
   - component: {fileID: 1075002273630455223}
   - component: {fileID: 1700321658755884652}
+  - component: {fileID: 8368412272666824359}
   m_Layer: 0
   m_Name: Wisp
   m_TagString: Untagged
@@ -318,6 +319,18 @@ MonoBehaviour:
   _runSpeed: 2
   _hitReactionCooldown: 0.4
   _attackSuppressWindow: 0.5
+--- !u!210 &8368412272666824359
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1 &2936127519744827137
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,7 +389,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1279345155
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &811663116482661974
@@ -905,6 +918,7 @@ MonoBehaviour:
   - {fileID: -4487042485051495932, guid: 9e1d46c1919993c48b5d7af6f48febf1, type: 3}
   - {fileID: 8561805946624673508, guid: 9e1d46c1919993c48b5d7af6f48febf1, type: 3}
   - {fileID: 1593366409025015017, guid: 9e1d46c1919993c48b5d7af6f48febf1, type: 3}
+  _tier4Frames: []
 --- !u!1001 &9043783132631203
 PrefabInstance:
   m_ObjectHideFlags: 0

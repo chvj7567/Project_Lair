@@ -17,6 +17,10 @@ namespace Lair.UI
         [SerializeField] private Image _glowOverlay;        //# 아이콘 뒤 종족색 발광 아우라 (§3)
         [SerializeField] private RectTransform _iconRect;   //# 스케일 대상 = _icon 의 RectTransform (§4)
 
+        //# UI 리디자인 — 석판 스프라이트(해금 Px_Panel / 잠금 더미 Px_PanelDark). 미할당이면 기존 색 방식.
+        [SerializeField] private Sprite _normalSprite;
+        [SerializeField] private Sprite _dummySprite;
+
         //# 레벨→시각 매핑·4채널 적용은 공유 SoT EnhanceLevelVisual 로 이관 (기획서 §2 — 도감·상태 셀 drift 방지).
 
         private static readonly Color NormalBg = new Color(0.122f, 0.161f, 0.216f, 0.95f);
@@ -31,7 +35,16 @@ namespace Lair.UI
 
             if (_background != null)
             {
-                _background.color = data.IsLockedDummy ? DummyBg : NormalBg;
+                Sprite skin = data.IsLockedDummy ? _dummySprite : _normalSprite;
+                if (skin != null)
+                {
+                    _background.sprite = skin;
+                    _background.color = Color.white;
+                }
+                else
+                {
+                    _background.color = data.IsLockedDummy ? DummyBg : NormalBg;
+                }
             }
 
             bool showIcon = data.IsLockedDummy == false;

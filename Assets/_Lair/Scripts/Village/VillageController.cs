@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
+using Lair.Battle;
 using Lair.Card;
 using Lair.Character;
 using Lair.Data;
@@ -24,6 +25,11 @@ namespace Lair.Village
         private VillageViewModel _vm;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
         private HeroStageVariantApplier _showcaseApplier;
+        //# 쇼케이스 영웅 인스턴스/종류 — 챕터가 바뀌면(기사↔궁수) 풀에 반환하고 새로 배치한다.
+        private CHPoolable _showcase;
+        private EHero _showcaseHero;
+        private bool _showcaseSwapping;
+        private bool _showcaseSwapPending;
 
         private async void Start()
         {
@@ -32,13 +38,15 @@ namespace Lair.Village
             CHMSound.Instance.Play(EAudio.VillageBgm);
 
             MetaProfile profile = MetaSession.GetOrLoad();
-            _vm = new VillageViewModel(profile, _metaConfig);
+            _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
 
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
             //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
-            if (profile.SelectedStage != _vm.SelectedStage)
+            string showcaseHeroId = ShowcaseHeroOf(_vm.SelectedStage).ToString();
+            if (profile.SelectedStage != _vm.SelectedStage || profile.SelectedHero != showcaseHeroId)
             {
                 profile.SelectedStage = _vm.SelectedStage;
+                profile.SelectedHero = showcaseHeroId;   //# 전투 HUD/랭킹이 읽는 표시용 영웅도 선택 스테이지 챕터에 맞춘다
                 MetaSession.Store?.Save(profile);
             }
 
@@ -51,26 +59,47 @@ namespace Lair.Village
             _vm.OnStageChanged += HandleStageChanged;
 
             UIBase hud = await CHMUI.Instance.ShowUIAsync(EUI.VillageHud,
-                new VillageHudArg { Vm = _vm, OnOpenMenu = OpenMenu, OnSortie = Sortie });
+                new VillageHudArg
+                {
+                    Vm = _vm,
+                    OnOpenMenu = OpenMenu,
+                    OnSortie = Sortie,
+                    PortraitOf = stage => _stageVariantConfig != null ? _stageVariantConfig.GetStage(stage).Portrait : null,
+                });
             if (hud == null)
             {
                 Debug.LogError("[VillageController] VillageHud 표시 실패(프리팹 로드/캔버스 확보 불가)");
             }
         }
 
-        //# 중앙 쇼케이스 — 선택 영웅 프리팹을 CHMPool 로 배치, 전투 컴포넌트 비활성 (기획서 §8.1).
+        //# 선택 스테이지가 속한 챕터의 영웅 — 챕터 데이터가 없거나 알 수 없는 값이면 기사.
+        private static EHero ShowcaseHeroOf(int linearStage)
+        {
+            HeroArchetypeRow hero = ChapterDatabase.Current != null ? ChapterDatabase.Current.GetHeroOfLinear(linearStage) : null;
+            if (hero != null && System.Enum.TryParse(hero.heroId, out EHero parsed) && System.Enum.IsDefined(typeof(EHero), parsed))
+                return parsed;
+            return EHero.Knight;
+        }
+
+        //# 중앙 쇼케이스 — 선택 스테이지 챕터 영웅 프리팹을 CHMPool 로 배치, 전투 컴포넌트 비활성 (기획서 §8.1).
         private async Task SpawnIdleHero()
         {
-            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            EHero heroKey = ShowcaseHeroOf(_vm != null ? _vm.SelectedStage : 1);
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
+            //# await 중 씬이 파괴됐으면 배치하지 않는다 — 파괴된 transform 으로 Pop 하면 부모 없는 인스턴스가 남는다.
+            if (this == null)
+                return;
             if (prefab == null)
             {
-                Debug.LogError("[VillageController] Knight 프리팹 로드 실패 — 쇼케이스 없이 진행");
+                Debug.LogError($"[VillageController] {heroKey} 프리팹 로드 실패 — 쇼케이스 없이 진행");
                 return;
             }
 
             CHPoolable poolable = CHMPool.Instance.Pop(prefab, transform);
             if (poolable == null)
                 return;
+            _showcase = poolable;
+            _showcaseHero = heroKey;
 
             Vector3 pos = _heroAnchor != null ? _heroAnchor.position : Vector3.zero;
             poolable.transform.position = pos;
@@ -81,6 +110,13 @@ namespace Lair.Village
             //# 캐러셀 — 쇼케이스 applier 캐싱 후 현재 SelectedStage 외형 즉시 반영(기획서 §4.1). 전투 컴포넌트 off 여도 재스킨은 성립(§6).
             _showcaseApplier = poolable.gameObject.GetComponent<HeroStageVariantApplier>();
             ApplyShowcaseVariant();
+
+            //# 투영진 위 푸른 홀로그램(scene-2d-conversion §5.5) — 조명 안 받는 반투명 머티리얼, 영웅 조명·그림자 숨김
+            HeroHologramMode hologram = poolable.gameObject.GetComponent<HeroHologramMode>();
+            if (hologram != null)
+            {
+                hologram.SetHologram(true);
+            }
         }
 
         //# 현재 VM.SelectedStage 의 variant 를 쇼케이스 영웅에 적용. config/applier 미비 시 무동작(가드).
@@ -91,15 +127,71 @@ namespace Lair.Village
             _showcaseApplier.Apply(_stageVariantConfig.GetStage(_vm.SelectedStage));
         }
 
-        //# 캐러셀 스테이지 이동 — 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
-        private void HandleStageChanged()
+        //# 캐러셀 스테이지 이동 — SelectedStage/SelectedHero 로컬 저장(클라우드 백업 제외, 기획서 §4.5) + 쇼케이스 재스킨.
+        //# 챕터 영웅이 바뀌면(기사↔궁수) 쇼케이스 영웅을 교체한 뒤 재스킨한다. 같은 영웅이면 기존처럼 동기 재스킨.
+        private async void HandleStageChanged()
         {
-            ApplyShowcaseVariant();
             if (_vm == null)
                 return;
             MetaProfile profile = MetaSession.GetOrLoad();
             profile.SelectedStage = _vm.SelectedStage;
+            profile.SelectedHero = ShowcaseHeroOf(_vm.SelectedStage).ToString();
             MetaSession.Store?.Save(profile);
+
+            bool needSwap = _showcase == null || _showcaseHero != ShowcaseHeroOf(_vm.SelectedStage);
+            if (needSwap == false)
+            {
+                ApplyShowcaseVariant();
+                return;
+            }
+
+            //# 교체 중 또 이동하면 끝난 뒤 한 번 더 맞춘다(중복 배치 방지).
+            if (_showcaseSwapping)
+            {
+                _showcaseSwapPending = true;
+                return;
+            }
+            _showcaseSwapping = true;
+            try
+            {
+                do
+                {
+                    _showcaseSwapPending = false;
+                    await SwapShowcaseHero();
+                    if (this == null)
+                        return;
+                }
+                while (_showcaseSwapPending);
+            }
+            finally
+            {
+                _showcaseSwapping = false;
+            }
+        }
+
+        //# 현재 선택 챕터의 영웅과 다르면 기존 쇼케이스를 풀에 반환하고 새 영웅을 배치(SpawnIdleHero 가 variant·홀로그램까지 적용).
+        private async Task SwapShowcaseHero()
+        {
+            if (_vm == null)
+                return;
+            if (_showcase != null && _showcaseHero == ShowcaseHeroOf(_vm.SelectedStage))
+            {
+                ApplyShowcaseVariant();
+                return;
+            }
+            ReleaseShowcase();
+            await SpawnIdleHero();
+        }
+
+        //# 쇼케이스를 영속 풀에 돌려준다 — 끈 전투 컴포넌트를 먼저 복구해 풀에 오염 상태를 남기지 않는다(Rule 03 §4).
+        private void ReleaseShowcase()
+        {
+            if (_showcase == null)
+                return;
+            SetBattleComponents(_showcase.gameObject, true);
+            CHMPool.Instance.Push(_showcase);
+            _showcase = null;
+            _showcaseApplier = null;
         }
 
         private void OnDestroy()
@@ -108,26 +200,33 @@ namespace Lair.Village
             {
                 _vm.OnStageChanged -= HandleStageChanged;
             }
+            ReleaseShowcase();
         }
 
         //# 전투 전용 컴포넌트만 끈다 — Animator/CharacterAnimationDriver 는 유지 (idle 루프).
         //# Pop 직후 1회 GetComponent — Rule 02 §5 의 Awake 1회 캐싱과 동등한 일회성 경로.
         private void DisableBattleComponents(GameObject hero)
         {
+            SetBattleComponents(hero, false);
+        }
+
+        //# 전투 컴포넌트 일괄 on/off — false 는 쇼케이스 배치, true 는 풀 반환 전 복구.
+        private void SetBattleComponents(GameObject hero, bool enabled)
+        {
             if (hero == null)
                 return;
-            foreach (AutoCombatAI ai in hero.GetComponentsInChildren<AutoCombatAI>())
+            foreach (AutoCombatAI ai in hero.GetComponentsInChildren<AutoCombatAI>(true))
             {
                 if (ai != null)
                 {
-                    ai.enabled = false;
+                    ai.enabled = enabled;
                 }
             }
-            ToggleComponent<HeroSkillRunner>(hero, false);
-            ToggleComponent<MeleeAttacker>(hero, false);
-            ToggleComponent<SimpleMover>(hero, false);
-            ToggleComponent<SimpleRotator>(hero, false);
-            ToggleComponent<HeroEntryDriver>(hero, false);
+            ToggleComponent<HeroSkillRunner>(hero, enabled);
+            ToggleComponent<MeleeAttacker>(hero, enabled);
+            ToggleComponent<SimpleMover>(hero, enabled);
+            ToggleComponent<SimpleRotator>(hero, enabled);
+            ToggleComponent<HeroEntryDriver>(hero, enabled);
         }
 
         private static void ToggleComponent<T>(GameObject go, bool enabled) where T : Behaviour
@@ -178,10 +277,16 @@ namespace Lair.Village
                     {
                         Profile = profile,
                         VariantConfig = _stageVariantConfig,
+                        AllCards = await LoadAllCardsAsync(),
                     });
                     break;
 
+                case EUI.WorldMapPopup:
+                    await OpenWorldMap(profile);
+                    break;
+
                 case EUI.HeroSelectPopup:
+                    //# (구) 표시 전용 — 월드맵으로 대체됐고 HUD 는 더 이상 열지 않는다. 호환용으로 남김.
                     //# 표시 전용 — 스테이지 1~5 영웅 외형 나열. 실제 스테이지 선택은 마을 캐러셀 담당(기획서 §4).
                     await CHMUI.Instance.ShowUIAsync(EUI.HeroSelectPopup, new HeroSelectPopupArg
                     {
@@ -206,6 +311,9 @@ namespace Lair.Village
                         MyBestClearTime = profile.BestClearTime,
                         //# 미등재 표기용 닉네임 — 상단 HUD 와 같은 해석 경로(VM) 재사용, 두 곳이 다른 이름을 보이면 안 된다.
                         MyDisplayName = _vm.DisplayName,
+                        //# 스테이지 탭 — 현재 캐러셀 스테이지에서 열고, 내 행 시간 fallback 은 스테이지 전적 최단.
+                        InitialStage = _vm.SelectedStage,
+                        MyStageBestClearTime = stage => profile.GetStageRecord(stage).BestClearTime,
                     });
                     break;
 
@@ -215,21 +323,59 @@ namespace Lair.Village
             }
         }
 
+        //# 침입 지도 — 챕터 데이터가 없으면 안내만(조용히 열지 않음). 선택 확정은 VM 이 선형 번호를 돌려주면 캐러셀 VM 으로 반영한다.
+        private async Task OpenWorldMap(MetaProfile profile)
+        {
+            ChapterDatabase chapters = ChapterDatabase.Current;
+            if (chapters == null)
+            {
+                Debug.LogError("[VillageController] 챕터 데이터 미로드 — 월드맵을 열 수 없음");
+                ToastView.Show(LookupString(WorldMapViewModel.StrNotReady), EToastKind.Error);
+                return;
+            }
+
+            //# 확정 → 캐러셀 이동(OnStageChanged 구독이 SelectedStage 로컬 저장 + 쇼케이스 재스킨, 클라우드 백업 호출 없음).
+            WorldMapViewModel worldMapVm = new WorldMapViewModel(chapters, profile, LookupString, linear => _vm?.SelectStage(linear));
+            await CHMUI.Instance.ShowUIAsync(EUI.WorldMapPopup, new WorldMapPopupArg
+            {
+                ViewModel = worldMapVm,
+                PortraitOf = linear => _stageVariantConfig != null ? _stageVariantConfig.GetStage(linear).Portrait : null,
+            });
+        }
+
+        //# Strings_Ko 조회 — CHText 와 같은 테이블. 미등록이면 빈 문자열.
+        private static string LookupString(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
         //# 클라우드 팝업 — 연결상태/표시명/복원/충돌 권유를 콜백으로 주입(기획서 §5).
         private async Task OpenCloud(MetaProfile profile)
         {
             //# 충돌 권유는 세션당 1회만 노출(기획서 §3) — 게이트 판정·플래그 set 은 MetaSession 으로 추출.
             bool showConflict = MetaSession.TryConsumeConflictPrompt();
 
+            //# 충돌 비교 칸 — 충돌 감지 시점엔 서버 프로필을 받아 두지 않으므로(PutSave 트랜잭션은 버전만 본다) 권유를 띄울 때 1회 읽는다.
+            SaveSummary localSummary = null;
+            SaveSummary cloudSummary = null;
+            if (showConflict && MetaSession.Cloud != null)
+            {
+                MetaProfile cloud = await MetaSession.Cloud.RestoreAsync();
+                localSummary = SaveSummary.From(profile, _metaConfig);
+                cloudSummary = SaveSummary.From(cloud, _metaConfig);
+            }
+
             await CHMUI.Instance.ShowUIAsync(EUI.CloudPopup, new CloudPopupArg
             {
                 IsConnected = MetaSession.IsCloudConnected,
-                DisplayName = profile.DisplayName,
+                DisplayName = _vm.DisplayName,   //# 상단바와 같은 해석 경로(미설정 시 기본명)
                 ConflictPending = showConflict,
                 OnRestore = RestoreFromCloud,
                 OnChangeName = ChangeDisplayName,
                 OnConflictRestore = RestoreFromCloud,
                 OnConflictLater = () => { },   //# 로컬 유지·배지 유지(기획서 §3)
+                LocalSummary = localSummary,
+                CloudSummary = cloudSummary,
             });
         }
 
@@ -241,14 +387,14 @@ namespace Lair.Village
             string normalized = MetaProfile.NormalizeDisplayName(name);
             if (string.IsNullOrEmpty(normalized))
             {
-                ToastView.Show("표시명을 확인해 주세요.");
+                ToastView.Show("표시명을 확인해 주세요.", EToastKind.Warning);
                 return DisplayNameResult.Of(DisplayNameStatus.Invalid);
             }
 
             //# 오프라인 단축 — Api 미구성이면 doomed 요청 없이 즉시 오프라인 통지(RestoreFromCloud 와 동일 가드 패턴).
             if (MetaSession.Api == null)
             {
-                ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.", EToastKind.Error);
                 return DisplayNameResult.Of(DisplayNameStatus.Offline);
             }
 
@@ -263,13 +409,13 @@ namespace Lair.Village
                     ToastView.Show("표시명을 변경했습니다.");
                     break;
                 case DisplayNameStatus.Taken:
-                    ToastView.Show("이미 사용 중인 이름입니다.");
+                    ToastView.Show("이미 사용 중인 이름입니다.", EToastKind.Warning);
                     break;
                 case DisplayNameStatus.Invalid:
-                    ToastView.Show("표시명을 확인해 주세요.");
+                    ToastView.Show("표시명을 확인해 주세요.", EToastKind.Warning);
                     break;
                 default:
-                    ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.");
+                    ToastView.Show("오프라인 상태입니다. 잠시 후 다시 시도해 주세요.", EToastKind.Error);
                     break;
             }
             return result;
@@ -280,7 +426,7 @@ namespace Lair.Village
         {
             if (MetaSession.Cloud == null)
             {
-                ToastView.Show("오프라인 상태입니다. 클라우드 기능을 사용할 수 없습니다.");
+                ToastView.Show("오프라인 상태입니다. 클라우드 기능을 사용할 수 없습니다.", EToastKind.Error);
                 return;
             }
 
@@ -307,6 +453,8 @@ namespace Lair.Village
         {
             MetaProfile profile = MetaSession.GetOrLoad();
             profile.CopyFrom(cloud);
+            //# v4 클라우드 문서를 v5 클라이언트가 복원하는 경우 대비 — 로드 경로와 같은 마이그레이션 재적용(chapter-system §2.2).
+            MetaProfileMigration.Apply(profile, ChapterDatabase.Current);
             MetaSession.Store?.Save(profile);
             //# 복원 성공 — 충돌 해소.
             MetaSession.CloudConflictPending = false;
@@ -317,13 +465,7 @@ namespace Lair.Village
         //# 도감 — 카드 풀 2종을 로드해 전체 카드 목록을 Arg 로 전달 (조우/픽 판정은 프로필).
         private async Task OpenCodex(MetaProfile profile)
         {
-            List<CardData> cards = new List<CardData>();
-            CardPool passive = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
-            if (passive != null)
-                cards.AddRange(passive.Cards);
-            CardPool active = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
-            if (active != null)
-                cards.AddRange(active.Cards);
+            List<CardData> cards = await LoadAllCardsAsync();
 
             await CHMUI.Instance.ShowUIAsync(EUI.CodexPopup, new CodexPopupArg
             {
@@ -331,6 +473,19 @@ namespace Lair.Village
                 Config = _metaConfig,
                 AllCards = cards,
             });
+        }
+
+        //# 패시브+액티브 카드 풀 전체 — 도감·기록(가장 많이 픽한 카드 이름)이 공유한다.
+        private async Task<List<CardData>> LoadAllCardsAsync()
+        {
+            List<CardData> cards = new List<CardData>();
+            CardPool passive = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
+            if (passive != null)
+                cards.AddRange(passive.Cards);
+            CardPool active = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
+            if (active != null)
+                cards.AddRange(active.Cards);
+            return cards;
         }
 
         //# 상점 구매 등 프로필 변경 시 — 즉시 저장 (spec §5.7) + 상단바 갱신 + 클라우드 백업(best-effort).
@@ -359,6 +514,12 @@ namespace Lair.Village
         {
             if (_vm == null || _vm.IsCurrentStageUnlocked == false)
                 return;
+            //# 출격 불가 챕터(ChapterGate)는 오류 대신 명시적 안내 — 월드맵·캐러셀이 1차로 막고 여기는 방어 가드.
+            if (ChapterGate.IsStagePlayable(_vm.SelectedStage) == false)
+            {
+                ToastView.Show(LookupString(WorldMapViewModel.StrNotReadyHint), EToastKind.Warning);
+                return;
+            }
             SceneManager.LoadScene(EScene.Battle.ToString());
         }
     }

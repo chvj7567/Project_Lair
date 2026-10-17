@@ -25,6 +25,7 @@ GameObject:
   - component: {fileID: 4646066876761576739}
   - component: {fileID: 5735830089872495940}
   - component: {fileID: 8979745637072283330}
+  - component: {fileID: 2383508471572082702}
   m_Layer: 0
   m_Name: Hex
   m_TagString: Untagged
@@ -318,6 +319,18 @@ MonoBehaviour:
   _runSpeed: 2
   _hitReactionCooldown: 0.4
   _attackSuppressWindow: 0.5
+--- !u!210 &2383508471572082702
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881501178030039518}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_SortAtRoot: 0
 --- !u!1 &2554397842026582751
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,7 +389,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1279345155
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &8400843602719281522
@@ -819,6 +832,7 @@ MonoBehaviour:
   - {fileID: 1611007449538113588, guid: a14205d1e9d00db448bb4d4511d579c0, type: 3}
   - {fileID: 8733168879727947230, guid: a14205d1e9d00db448bb4d4511d579c0, type: 3}
   - {fileID: -348520835632110831, guid: a14205d1e9d00db448bb4d4511d579c0, type: 3}
+  _tier4Frames: []
 --- !u!1 &9044489320964503258
 GameObject:
   m_ObjectHideFlags: 0

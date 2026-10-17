@@ -14,13 +14,14 @@ namespace Lair.UI
     //# Bind(snapshot, progress, onClick) 로 받아, 스냅샷은 이벤트 수신 시 교체하고
     public class SpawnerStatusCell : MonoBehaviour
     {
-        //# Cool 진행 바 색 (#60A5FA), Warm (#F97316), Background (#374151) — 기획서 §3.1.
-        public static readonly Color CoolColor = new Color(0.376f, 0.647f, 0.980f, 1f);
-        public static readonly Color WarmColor = new Color(0.976f, 0.451f, 0.086f, 1f);
-        public static readonly Color BarBackgroundColor = new Color(0.216f, 0.255f, 0.318f, 1f);
+        //# 진행 바 채움색 = 종족 발광색(몬스터 강화 발광·제단과 같은 색, scene-2d-conversion §4.5). Cool/Warm 2색 규칙은 폐기.
+        public static Color GaugeColor(EMonster type) => SpeciesVisual.SpeciesGlowColor(type);
 
-        //# Threshold (기획서 §3.1). 0.70 경계는 Warm (>= threshold).
-        public const float WarmThreshold = 0.7f;
+        //# 남은 초 — 정수 올림 "Ns"(좁은 칸에서 글자 폭이 흔들리지 않게).
+        public static string RemainingText(float seconds) => $"{Mathf.CeilToInt(Mathf.Max(0f, seconds))}s";
+
+        //# 왼쪽 색띠 = 그 종이 속한 빌드 축 색(BuildSynergyPanel.AxisColor).
+        public static Color ChipColor(EMonster type) => BuildSynergyPanel.AxisColor[SpeciesVisual.SpeciesAxis(type)];
 
         //# 셀 배경 테두리 기본 색 — 투명 (종색은 RebindSnapshot 에서 설정).
         public static readonly Color InactiveBorderColor = new Color(0f, 0f, 0f, 0f);
@@ -44,6 +45,8 @@ namespace Lair.UI
         //# lv0 에서 칩까지 통째로 숨기려면 이 부모를 셀이 직접 토글한다(기획서 §10 "칩 배경 + 자식 CHText").
         [SerializeField] private GameObject _levelBadgeRoot;
         [SerializeField] private RectTransform _iconRect; //# 스케일 대상 = 중앙 Icon 의 RectTransform (기획서 §5)
+        //# UI 리디자인 — 최대 레벨(Lv5) 금테. 미할당이면 건너뛴다.
+        [SerializeField] private Image _maxLevelRing;
 
         //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
         [SerializeField] private Sprite _wispIcon;
@@ -53,11 +56,16 @@ namespace Lair.UI
         [SerializeField] private Sprite _plagueIcon;
         [SerializeField] private Sprite _phantomIcon;
 
+        //# 봉인 표기 문구 id — "봉인 - 영웅 HP {0}% 이하 해제" (Strings_Ko 1319).
+        private const int SealTextStringId = 1319;
+
         //# 클릭 리스너 수명 관리 (BuildIconCell 선례 패턴).
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
         //# 매 프레임 폴링 대상.
         private ISpawnerProgress _progressSource;
+        //# 봉인 상태 폴링 소스 — progress 가 같은 객체(Spawner)면 함께 확보, 아니면 null(봉인 표기 없음).
+        private ISpawnerLockState _lockSource;
         //# 현재 표시 스냅샷 캐시 (이벤트 갱신 시 RebindSnapshot 만 호출).
         private BattleViewModel.SpawnerSnapshot _snapshot;
 
@@ -75,8 +83,9 @@ namespace Lair.UI
                 _icon.color = Color.white;
                 _icon.gameObject.SetActive(false);
             }
-            //# 색칩은 v1.1 에서 중앙 아이콘에 역할 이관 — 항상 숨김 (Rule 03 §4 잔존 방지).
+            //# 색칩은 리디자인에서 왼쪽 종색 띠로 부활 — 바인드 전엔 숨겨 잔존 방지 (Rule 03 §4).
             if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+            if (_maxLevelRing != null) _maxLevelRing.gameObject.SetActive(false);
             //# 테두리 색은 RebindSnapshot 에서 종색으로 설정 — 기본 투명으로 초기화.
             if (_border != null) _border.color = InactiveBorderColor;
 
@@ -100,6 +109,7 @@ namespace Lair.UI
         public void Bind(BattleViewModel.SpawnerSnapshot snapshot, ISpawnerProgress progress, Action<int> onClick)
         {
             _progressSource = progress;
+            _lockSource = progress as ISpawnerLockState;
             RebindSnapshot(snapshot);
 
             if (_button != null && onClick != null)
@@ -118,8 +128,12 @@ namespace Lair.UI
             //# 테두리 — 종 대표색 프레임 (v1.1). 색칩 대신 셀 외곽이 종색을 담당.
             if (_border != null) _border.color = SpeciesColor(snapshot.CurrentType);
 
-            //# 색칩 — v1.1 중앙 아이콘으로 역할 이관, 숨김 유지.
-            if (_colorChip != null) _colorChip.gameObject.SetActive(false);
+            //# 색칩 — 왼쪽 종색 띠(리디자인). 종 대표색으로 칠해 표시한다.
+            if (_colorChip != null)
+            {
+                _colorChip.color = ChipColor(snapshot.CurrentType);
+                _colorChip.gameObject.SetActive(true);
+            }
 
             //# 중앙 아이콘 — 종 스프라이트. 누락 시 숨김 (테두리 색만으로 종 식별 fallback).
             Sprite iconSprite = SpeciesSprite(snapshot.CurrentType);
@@ -160,6 +174,11 @@ namespace Lair.UI
             {
                 _levelBadgeRoot.SetActive(lv > 0);
             }
+            if (_maxLevelRing != null)
+            {
+                _maxLevelRing.gameObject.SetActive(lv >= EnhanceLevelVisual.MaxLevel);
+                _maxLevelRing.color = new Color(0.969f, 0.776f, 0.290f, 1f);
+            }
         }
 
         //# 매 프레임 Progress 폴링 — VM 이벤트 우회 (기획서 §4.3·§4.6).
@@ -168,14 +187,25 @@ namespace Lair.UI
             if (_progressSource == null || _progressFill == null) return;
             float p = _progressSource.Progress;
             _progressFill.fillAmount = p;
-            _progressFill.color = p < WarmThreshold ? CoolColor : WarmColor;
+            if (_snapshot != null)
+            {
+                _progressFill.color = GaugeColor(_snapshot.CurrentType);
+            }
             if (_periodText != null)
             {
-                //# 남은 초 소수점 첫째자리 (예: 2.5s). RemainingSeconds 는 Spawner 에서 0 클램프됨.
-                //# 한국어 로캘에서 소수점이 콤마로 찍히지 않도록 InvariantCulture 고정.
-                string remain = _progressSource.RemainingSeconds.ToString("F1", CultureInfo.InvariantCulture);
-                _periodText.SetText($"{remain}s");
+                _periodText.SetText(PeriodLabel());
             }
+        }
+
+        //# 남은 초 — 봉인 중이고 해제 HP% 가 있으면 "봉인 - 영웅 HP {x}% 이하 해제" 로 대체(스테이지 규칙 SealedNest, chapter-system §3.4).
+        private string PeriodLabel()
+        {
+            bool sealedNow = _lockSource != null && _lockSource.IsLocked;
+            if (sealedNow && _snapshot != null && _snapshot.SealUnlockHpPercent > 0 && CHText.StringProvider != null)
+            {
+                return string.Format(CHText.StringProvider.GetString(SealTextStringId), _snapshot.SealUnlockHpPercent);
+            }
+            return RemainingText(_progressSource.RemainingSeconds);
         }
 
         //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.

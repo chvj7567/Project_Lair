@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>침입 지도 팝업 비주얼 폴리시 v2 (WorldMapPopup, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4;--ac:#6c7bb8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#sum .new{display:inline-block;background:#3a2f12;border:1px solid var(--gold2);color:var(--gold);padding:0 6px;font-size:11px;margin-left:4px}
+#bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar select,#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar label{color:var(--sub)}
+#msg{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 30% 20%,#1d2433,#0a0c12 70%)}
+#stage::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff06 0 2px,transparent 2px 32px),repeating-linear-gradient(90deg,#ffffff06 0 2px,transparent 2px 32px)}
+#dim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.abs{position:absolute}
+.pnl{position:absolute;background:var(--s1);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--s3),inset -3px -3px 0 var(--s0)}
+.dark{background:var(--s0)}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.lbl{color:var(--sub);font-size:13px}
+.gold{color:var(--gold)}
+.btn{position:absolute;background:var(--s3);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--s4),inset -3px -3px 0 var(--s0);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn:active{transform:translateY(2px)}
+.btn.go{background:#b8323a;box-shadow:inset 3px 3px 0 #ff7b7f,inset -3px -3px 0 #6b141d;color:#fff}
+.btn.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27;color:#6c7385;cursor:default}
+
+/* 챕터 레일 */
+.card{position:absolute;height:84px;border:3px solid var(--ink);background:var(--s2);box-shadow:inset 3px 3px 0 var(--s3),inset -3px -3px 0 var(--s0);cursor:pointer;overflow:hidden}
+.card .no{position:absolute;left:0;top:0;bottom:0;width:52px;background:var(--cc,#2c3750);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;border-right:3px solid var(--ink);text-shadow:2px 2px 0 #0007}
+.card .nm{position:absolute;left:62px;top:10px;right:6px;font-size:15px;color:var(--bone);white-space:nowrap;overflow:hidden}
+.card .hr{position:absolute;left:62px;top:32px;font-size:12px;color:var(--sub)}
+.card .pips{position:absolute;left:62px;bottom:10px;display:flex;gap:4px}
+.card .pips i{width:14px;height:8px;background:#0c1017;border:1px solid var(--ink);display:block}
+.card .pips i.on{background:var(--gold)}
+.card .tg{position:absolute;right:8px;bottom:8px;font-size:11px;color:var(--sub)}
+.card.on{background:#273250;outline:3px solid var(--gold);outline-offset:-3px}
+.card.lk{background:#141924;cursor:default}
+.card.lk .no{background:#1b1f27;color:#59617a}
+.card.lk .nm{color:#6c7385}
+.card.ph{background:#10141d;cursor:default}
+.card.ph .no{background:#171b25;color:#3c4458}
+.card.ph .nm{color:#3c4458;top:30px}
+
+/* 지도 */
+#map{position:absolute;overflow:hidden;border:3px solid var(--ink);box-shadow:inset 3px 3px 0 #ffffff14}
+#map .vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,#000a 100%)}
+#map .deco{position:absolute;background:#ffffff10}
+.node{position:absolute;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;border:3px solid var(--ink);
+ background:var(--s3);box-shadow:inset 3px 3px 0 var(--s4),inset -3px -3px 0 var(--s0)}
+.node.open{background:var(--cc);box-shadow:inset 3px 3px 0 #ffffff55,inset -3px -3px 0 #0006}
+.node.cleared{background:#7a6a2c;box-shadow:inset 3px 3px 0 #e9cf72,inset -3px -3px 0 #3a3210}
+.node.boss{background:#7a2a31;box-shadow:inset 3px 3px 0 #d96b72,inset -3px -3px 0 #330c10}
+.node.boss.cleared{background:#7a6a2c}
+.node.locked{background:#171b25;box-shadow:inset -3px -3px 0 #0d1017;color:#4d556b;cursor:not-allowed;font-size:13px}
+.node.sel{outline:4px solid var(--gold);outline-offset:4px}
+.node.sel::after{content:"";position:absolute;inset:-14px;border:2px dashed #f7c64a88;animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(90deg)}}
+.tag{position:absolute;font-size:12px;line-height:16px;text-align:center;white-space:nowrap}
+.mk{position:absolute;color:var(--gold);font-size:16px;text-align:center;animation:bob 1s steps(2,end) infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+/* 상세 */
+.sec{font-size:12px;color:var(--sub);margin:8px 0 4px;letter-spacing:1px}
+.rule{border-left:4px solid var(--sky);padding:3px 8px;margin:0 0 4px;font-size:12px;line-height:16px;background:var(--s0)}
+.rule b{color:var(--bone)}
+.rule.ph{border-left-color:var(--blood)}
+.rule.none{border-left-color:var(--s4);color:var(--sub)}
+.portrait{position:absolute;background:#0c1017;border:3px solid var(--ink);overflow:hidden}
+.portrait .sil{position:absolute;left:50%;bottom:0;width:70px;height:92px;transform:translateX(-50%)}
+.sil .hood{position:absolute;left:11px;top:8px;width:48px;height:56px;border-radius:24px 24px 6px 6px;background:#0a0d14;border:3px solid var(--ac)}
+.sil .eye{position:absolute;left:21px;top:30px;width:28px;height:5px;background:var(--ac)}
+.sil .body{position:absolute;left:4px;top:62px;width:62px;height:30px;background:#0a0d14;border:3px solid var(--ac);border-bottom:0}
+.lkx{position:absolute;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;color:var(--bone);font-size:18px}
+#toast{position:absolute;left:400px;top:12px;width:480px;height:40px;background:var(--s0);border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;z-index:20;font-size:15px}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#chk table{border-collapse:collapse;margin:4px 0}
+#chk td,#chk th{border:1px solid #2c3446;padding:2px 8px;text-align:left;font-weight:normal}
+#chk th{color:var(--bone)}
+
+/* ===== v2 비주얼 폴리시 오버라이드 ===== */
+#stage{background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 75%)}
+.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 8px 0 #0006}
+.pnl.dark{background:linear-gradient(180deg,#0f1420,#0b0f18);box-shadow:inset 0 0 0 2px #232c42}
+#frame{box-shadow:inset 0 0 0 2px #6b5a2a,inset 0 0 0 4px var(--ink),inset 0 0 0 6px #3a4764,0 10px 0 #0007,0 0 60px #000a !important}
+.corner{position:absolute;width:22px;height:22px;border:3px solid var(--gold);z-index:3;filter:drop-shadow(0 0 4px #f7c64a88)}
+.corner.tl{border-right:0;border-bottom:0}.corner.tr{border-left:0;border-bottom:0}.corner.bl{border-right:0;border-top:0}.corner.br{border-left:0;border-top:0}
+#hdr{background:linear-gradient(180deg,#232c44,#10151f) !important}
+.rune{position:absolute;height:3px;background:linear-gradient(90deg,var(--gold),transparent)}
+.dia{position:absolute;width:10px;height:10px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+.btn{background:linear-gradient(180deg,#3a4664,#2a3350);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a}
+.btn.go{background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 22px #e5484d66;text-shadow:2px 2px 0 #0008;letter-spacing:2px}
+.btn.go:hover{filter:brightness(1.12)}
+.btn.go::before{content:"";position:absolute;left:8px;right:8px;top:6px;height:10px;background:linear-gradient(180deg,#ffffff40,transparent);pointer-events:none}
+.btn.off{background:#232834;box-shadow:inset 0 -3px 0 #151922;text-shadow:none;letter-spacing:0}
+.btn.off::before{display:none}
+.card{background:linear-gradient(90deg,#222c44,#171d2e);box-shadow:inset 0 2px 0 #3d4b6e,inset 0 -3px 0 #0b0e16;transition:transform .12s}
+.card:hover:not(.lk):not(.ph){transform:translateX(3px)}
+.card .no{background:linear-gradient(135deg,color-mix(in srgb,var(--cc) 75%,#fff),var(--cc) 55%,color-mix(in srgb,var(--cc) 55%,#000));box-shadow:inset 0 2px 0 #ffffff55,inset 0 -3px 0 #0005;font-size:32px}
+.card.lk .no,.card.ph .no{background:#1b1f27}
+.card .nm{font-size:16px}
+.card .pips i{width:15px;height:9px;transform:skewX(-20deg);background:#0a0d14;border:1px solid #000}
+.card .pips i.on{background:linear-gradient(180deg,#ffe58a,#e0a21c);box-shadow:0 0 6px #f7c64aaa}
+.card.on{background:linear-gradient(90deg,#3a4a7a,#232c4a);outline:3px solid var(--gold);box-shadow:0 0 18px #f7c64a55,inset 0 2px 0 #7e90c4}
+.card.on::after{content:"▶";position:absolute;right:6px;top:30px;color:var(--gold);font-size:18px;text-shadow:0 0 8px var(--gold);animation:nudge 1s steps(2,end) infinite}
+@keyframes nudge{50%{transform:translateX(3px)}}
+.card.lk{background:linear-gradient(90deg,#161b27,#10141d)}
+.card.ph{background:#0d1118}
+#map{box-shadow:inset 0 0 0 2px #ffffff18,inset 0 0 40px #000}
+#map .vig{background:radial-gradient(ellipse at center,transparent 40%,#000c 100%)}
+.fog{position:absolute;left:-10%;width:120%;height:70px;background:linear-gradient(180deg,transparent,#ffffff0d,transparent);filter:blur(6px);animation:drift 14s linear infinite alternate}
+@keyframes drift{to{transform:translateX(40px)}}
+.msil{position:absolute;bottom:0;background:#05070bcc}
+.moon{position:absolute;right:28px;top:56px;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe8,#d9cfa0 70%);box-shadow:0 0 40px 10px #fff2b844}
+.node{border-radius:50%;border-width:4px;box-shadow:inset 0 3px 0 #ffffff66,inset 0 -5px 0 #0006,0 5px 0 #0008,0 0 16px color-mix(in srgb,var(--cc) 45%,transparent);text-shadow:2px 2px 0 #0008;font-size:22px}
+.node.open{background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--cc) 60%,#fff),var(--cc) 60%)}
+.node.cleared{background:radial-gradient(circle at 35% 30%,#f3dc86,#a8892e 65%);box-shadow:inset 0 3px 0 #fff3b0,inset 0 -5px 0 #4a3d0e,0 5px 0 #0008,0 0 18px #f7c64a77;color:#2a2108;text-shadow:1px 1px 0 #fff6}
+.node.cleared::before{content:"★";position:absolute;right:-6px;top:-8px;font-size:18px;color:#fff;text-shadow:0 0 6px var(--gold),2px 2px 0 #000;z-index:2}
+.node.boss{background:radial-gradient(circle at 35% 30%,#e0646c,#8a2229 65%);box-shadow:inset 0 3px 0 #ffb0b4,inset 0 -6px 0 #3a0a0e,0 6px 0 #0008,0 0 30px #e5484daa;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 3px 0 #ffb0b4,inset 0 -6px 0 #3a0a0e,0 6px 0 #0008,0 0 44px #e5484dff}}
+.node.boss.cleared{animation:none;background:radial-gradient(circle at 35% 30%,#f3dc86,#a8892e 65%)}
+.node.locked{background:radial-gradient(circle at 35% 30%,#262c3c,#141822);box-shadow:inset 0 -4px 0 #0a0c12,0 4px 0 #0008;animation:none;color:#5a627a}
+.node.sel{outline:none}
+.node.sel::after{inset:-12px;border:3px dashed #f7c64acc;border-radius:50%;animation:spin 8s linear infinite;filter:drop-shadow(0 0 6px #f7c64a)}
+.mk{filter:drop-shadow(0 0 6px var(--gold));font-size:18px}
+.tag.name{background:#05070bbb;padding:1px 6px;border:1px solid #ffffff22;overflow:hidden}
+.portrait{box-shadow:inset 0 0 0 2px #ffffff22,inset 0 -30px 40px #000a}
+.portrait .sil{transform:translateX(-50%) scale(1.2);transform-origin:bottom;filter:drop-shadow(0 0 12px var(--ac))}
+.ndiv{position:absolute;height:2px;background:linear-gradient(90deg,var(--gold),#f7c64a00)}
+.chip{position:absolute;border:2px solid #ffffff18;background:linear-gradient(180deg,#0d121c,#090c14);box-shadow:inset 0 2px 0 #00000088}
+.rule{background:linear-gradient(90deg,#1b2740,#0e131f);border-left:5px solid var(--sky);padding:4px 10px;box-shadow:0 2px 0 #0006}
+.rule.ph{background:linear-gradient(90deg,#3a1a20,#150b10);border-left-color:var(--blood)}
+.rule.none{background:#0e131f;color:var(--sub)}
+.sec{display:flex;align-items:center;gap:8px;color:var(--bone);font-size:12px}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#ffffff33,transparent)}
+.lbl{color:#9aa5bd}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>침입 지도 팝업 비주얼 폴리시 v2 — 레이아웃 동일, 마감만 업그레이드</h1>
+  기존(상단 가로 탭 + 좌 지도 / 우 상세)을 <b>3단 구성: 좌 챕터 카드 레일 / 중앙 풍경 지도 / 우 상세 카드</b>로 재배치했습니다. 기능·데이터(WorldMapViewModel)는 그대로이고 표시 방식만 바뀝니다. 아래 바에서 진행도·게이트를 바꿔 상태별 모습을 확인하세요.
+  <ol>
+    <li><b>프레임</b> - 금색 이중 테두리 + 네 모서리 금색 장식 + 제목 글로우와 룬 라인. 헤더는 그라데이션.</li>
+    <li><b>챕터 카드</b> - 번호 배지에 입체 그라데이션, 진행 칩을 <b>사선 보석</b>(클리어 시 금빛 발광)으로, 선택 카드는 금색 글로우 + ▶ 포인터.</li>
+    <li><b>지도</b> - 챕터별 실루엣(1장 성벽, 2장 숲, 3장 성채 첨탑) + 달 + 흐르는 안개 + 비네트. 노드는 <b>원형 메달리온</b>(클리어는 금빛 + ★ 뱃지, 보스는 붉게 맥동), 길은 금색 발광 실선 / 점 점선, 노드 이름은 반투명 명패.</li>
+    <li><b>상세</b> - 초상 실루엣에 챕터색 발광, 이름 아래 금색 구분선, 규칙·페이즈는 그라데이션 띠, 섹션 라벨에 구분선.</li>
+    <li><b>버튼</b> - 광택 하이라이트 + 붉은 글로우 CTA. 잠금 시 무광 회색.</li>
+    <li><b>구현 메모</b> - 모두 Unity 에서 Image(그라데이션/실루엣 스프라이트)·Outline/Shadow 로 구현 가능. 안개 이동·보스 맥동·회전 프레임은 단순 트윈이며 부담되면 정적으로 대체 가능. 레이아웃·좌표·문구·동작은 v1 과 동일.</li>
+  </ol>
+</div>
+<div id="bar">
+  <label>진행도(ClearedStage) <select id="selCleared"></select></label>
+  <label><input type="checkbox" id="cGate" checked> 3장 출격 개방</label>
+  <button id="btnReset">초기화</button>
+  <span id="msg">탭·노드를 눌러 보세요</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 팝업 패널 (72,40) 1136x640, 배경 dim a0.55. 영역: 헤더 64 / 레일 (88,120) 200x472 / 지도 (304,120) 520x472 / 상세 (840,120) 352x472 / 하단 바 y=608.<br>
+  Unity 매핑(기존 필드 유지): 챕터 카드 ← <code>_tabs[5]</code>(WorldMapChapterTabView, 번호·영웅·칩 위젯 추가) · 노드 ← <code>_nodes[5]</code>(위치만 재배치, 연결선은 정적 이미지 5조각) · 제목/테마 ← <code>_chapterTitleText/_chapterThemeText</code>(지도 좌상단 오버레이) · 상세 ← 기존 <code>_detail*</code> 그대로 · 버튼 ← <code>_selectButton</code>. 신규 위젯: 진행 칩(카드당 5 Image), 지도 배경 Image(챕터 색조 틴트).
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const stg = $('#stage');
+const RN = {spring:'성수 샘',fog:'짙은 안개',seal:'봉인된 둥지',bulwark:'수호 결계',rain:'화살비',trap:'덫'};
+const D = {
+  spring:(p,a,h)=>p+'초마다 '+a+'초간 샘이 열려, 샘 안의 영웅이 초당 최대 HP의 '+h+'% 회복',
+  fog:(m,n)=>'몬스터 공격 사거리 x'+m+' (최소 '+n+')',
+  seal:(s,h)=>s+' 둥지가 봉인되어 있다 - 영웅 HP '+h+'% 이하에서 해제',
+  bulwark:(t,d,m)=>'영웅 HP '+t+'% 이하에서 '+d+'초간 영웅이 받는 피해 x'+m,
+  rain:(t,i,n,g)=>'영웅 HP '+t+'% 이하에서 '+i+'초마다 몬스터 밀집 지점에 화살비 ('+n+'회 x 피해 '+g+')',
+  trap:(t,n,m,g)=>'영웅 HP '+t+'% 이하에서 영웅 주변에 덫 '+n+'개 - 몬스터 이동속도 x'+m+', 초당 피해 '+g
+};
+const R=(k,d)=>[RN[k],d];
+const CH=[
+ {id:1,name:'지하 묘지',theme:'기사단 침공',hero:'기사',cc:'#4a6fa5',bg:'#1a2438,#0d1220',stages:[
+  {n:'납골당 입구',rules:[],boss:[]},{n:'성수의 회랑',rules:[R('spring',D.spring(40,8,0.4))],boss:[]},
+  {n:'안개 낀 지하수로',rules:[R('fog',D.fog(0.7,0.8))],boss:[]},{n:'봉인된 지하 둥지',rules:[R('seal',D.seal('망령',60))],boss:[]},
+  {n:'기사단장의 안치소',rules:[],boss:[R('bulwark',D.bulwark(55,15,0.6))]}]},
+ {id:2,name:'어둠의 숲',theme:'숲속 정찰대',hero:'궁수',cc:'#2f8a5f',bg:'#14301f,#08140d',stages:[
+  {n:'숲의 입구',rules:[],boss:[]},{n:'속삭이는 오솔길',rules:[R('seal',D.seal('환령',70))],boss:[]},
+  {n:'안개 낀 늪',rules:[R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'수호 샘터',rules:[R('spring',D.spring(40,8,0.5)),R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'사냥꾼 우두머리의 야영지',rules:[],boss:[R('rain',D.rain(75,10,4,50)),R('trap',D.trap(35,6,0.5,10))]}]},
+ {id:3,name:'그림자 성채',theme:'자객단의 침투',hero:'암살자',cc:'#7a55c8',bg:'#271a42,#0e0818',stages:[
+  {n:'성채의 외벽',rules:[],boss:[]},{n:'그림자 회랑',rules:[R('seal',D.seal('역병귀',60))],boss:[]},
+  {n:'달빛 없는 정원',rules:[R('spring',D.spring(40,8,0.4))],boss:[]},
+  {n:'봉인된 서고',rules:[R('seal',D.seal('저주술사',50)),R('fog',D.fog(0.7,0.8))],boss:[]},
+  {n:'자객 수장의 은신처',rules:[],boss:[R('bulwark',D.bulwark(75,15,0.6)),R('trap',D.trap(35,6,0.5,10))]}]}
+];
+const POS=[[70,360],[190,300],[110,210],[270,190],[400,110]];   // 노드 중심(지도 로컬)
+let st={cleared:10,ch:3,sel:1};
+const sel=$('#selCleared');
+[[0,'0 (신규)'],[4,'4 (1-4 클리어)'],[9,'9 (2장 보스 미클리어)'],[10,'10 (3-1 해금)'],[13,'13 (3-3 까지)'],[15,'15 (전부 클리어)']].forEach(o=>{
+  const e=document.createElement('option');e.value=o[0];e.textContent=o[1];sel.appendChild(e);});
+sel.value=st.cleared;
+
+const gateOn=()=>$('#cGate').checked;
+const lin=(c,i)=>(c-1)*5+i;
+const unlocked=c=>(c-1)*5<=st.cleared;
+const playable=c=>c<=2||gateOn();
+const selectable=L=>L<=st.cleared+1&&playable(Math.floor((L-1)/5)+1);
+const clearedIn=c=>Math.max(0,Math.min(5,st.cleared-(c-1)*5));
+function maxPlayable(){let m=1;for(let L=1;L<=15;L++)if(selectable(L))m=L;return m;}
+function fixSel(){if(!selectable(lin(st.ch,st.sel))){const m=maxPlayable();st.ch=Math.floor((m-1)/5)+1;st.sel=((m-1)%5)+1;}}
+function say(s){$('#msg').textContent=s;}
+function toast(s){const t=$('#toast');t.textContent=s;t.style.display='flex';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2200);}
+function hint(L){const c=Math.floor((L-1)/5)+1,i=((L-1)%5)+1;
+  if(L<=st.cleared+1&&!playable(c))return '이 챕터는 아직 출격할 수 없습니다';
+  return i===1?(c-1)+'장 보스 클리어 필요':'스테이지 '+c+'-'+(i-1)+' 클리어 필요';}
+function rec(L){const t=150+(L*37)%140,m=Math.floor(t/60),s=(t%60)+0.1*(L%10),w=3+(L%5);
+  return '최단 '+m+':'+(s<10?'0':'')+s.toFixed(1)+' / '+w+'승 '+(w+2+(L%4))+'판';}
+function el(cls,x,y,w,h,html,style,parent){
+  const d=document.createElement('div');d.className=cls;d.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(style||'');
+  if(html!==undefined)d.innerHTML=html;(parent||stg).appendChild(d);return d;}
+
+function render(){
+  fixSel();stg.innerHTML='';
+  el('','0','0',1280,720,'','position:absolute;left:0;top:0').id='dim';
+  const tt=document.createElement('div');tt.id='toast';stg.appendChild(tt);
+  const PX=72,PY=40,PW=1136,PH=640;
+  el('pnl',PX,PY,PW,PH,'').id='frame';
+  el('pnl dark',PX,PY,PW,64,'','border-width:0 0 3px 0').id='hdr';
+  [['tl',PX+6,PY+6],['tr',PX+PW-28,PY+6],['bl',PX+6,PY+PH-28],['br',PX+PW-28,PY+PH-28]].forEach(q=>el('corner '+q[0],q[1],q[2],22,22,''));
+  el('rune',PX+24,PY+54,180,3,'');el('dia',PX+204,PY+51,10,10,'');
+  el('t',PX+24,PY+12,300,40,'침입 지도','font-size:30px;line-height:40px;color:var(--bone);text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000');
+  el('t lbl',PX+210,PY+24,600,20,'챕터를 고르고 도전할 스테이지를 선택합니다');
+  const x=el('btn',PX+PW-64,PY+8,48,48,'X','font-size:22px');x.onclick=()=>say('팝업 닫기');
+
+  const c=CH[st.ch-1];
+  const RX=88,CY=120,RW=200,CH_=472;
+  //# 챕터 레일
+  for(let k=0;k<5;k++){
+    const y=CY+k*(84+8);
+    const ch=CH[k];
+    if(!ch){el('card ph',RX,y,RW,84,'<div class="no">'+(k+1)+'</div><div class="nm">'+(k+1)+'장 ???</div>');continue;}
+    const play=playable(ch.id),unl=unlocked(ch.id),open=play&&unl,n=clearedIn(ch.id);
+    let pips='';for(let p=0;p<5;p++)pips+='<i class="'+(p<n?'on':'')+'"></i>';
+    const tag=!play?'준비 중':(!unl?'잠금':'');
+    const d=el('card'+(st.ch===ch.id?' on':'')+(open?'':' lk'),RX,y,RW,84,
+      '<div class="no">'+ch.id+'</div><div class="nm">'+ch.name+'</div><div class="hr">'+ch.hero+'</div>'+(open?'<div class="pips">'+pips+'</div>':'')+(tag?'<div class="tg">'+tag+'</div>':''),
+      '--cc:'+ch.cc);
+    d.onclick=()=>{
+      if(!play){toast('이 챕터는 아직 출격할 수 없습니다');say('게이트 닫힘 - 안내만');return;}
+      if(!unl){toast(ch.id+'장은 '+(ch.id-1)+'장 보스를 클리어하면 열립니다');say('잠금 탭 - 안내만');return;}
+      st.ch=ch.id;if(!selectable(lin(st.ch,st.sel)))st.sel=1;render();};
+  }
+
+  //# 지도
+  const MX=304,MW=520;
+  const mp=el('','','',0,0,'','');mp.id='map';
+  mp.style.cssText='left:'+MX+'px;top:'+CY+'px;width:'+MW+'px;height:'+CH_+'px;background:radial-gradient(ellipse at 70% 30%,'+c.bg.split(',')[0]+','+c.bg.split(',')[1]+' 75%);--cc:'+c.cc;
+  stg.appendChild(mp);
+  for(let i=0;i<26;i++){const s=2+((i*7)%3)*2;const d=document.createElement('div');d.className='deco';
+    d.style.cssText='left:'+((i*83)%MW)+'px;top:'+((i*131)%CH_)+'px;width:'+s+'px;height:'+s+'px;background:'+c.cc+'55';mp.appendChild(d);}
+  const sils={1:[[0,150,40],[60,110,60],[150,170,36],[300,130,50],[380,190,44],[470,120,52]],2:[[10,200,30],[70,150,26],[130,220,32],[250,170,28],[330,230,34],[420,160,30],[480,210,32]],3:[[0,170,70],[90,230,44],[190,140,80],[300,200,50],[380,260,56],[450,150,70]]}[c.id];
+  const moon=document.createElement('div');moon.className='moon';mp.appendChild(moon);
+  sils.forEach(q=>{const d=document.createElement('div');d.className='msil';d.style.cssText='left:'+q[0]+'px;width:'+q[2]+'px;height:'+q[1]+'px;'+(c.id===2?'clip-path:polygon(50% 0,100% 100%,0 100%)':c.id===3?'clip-path:polygon(0 100%,0 18%,18% 18%,18% 0,36% 0,36% 18%,64% 18%,64% 0,82% 0,82% 18%,100% 18%,100% 100%)':'clip-path:polygon(0 100%,0 40%,50% 0,100% 40%,100% 100%)');mp.appendChild(d);});
+  [90,220,330].forEach(y=>{const f=document.createElement('div');f.className='fog';f.style.top=y+'px';mp.appendChild(f);});
+  //# 길 SVG
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',MW);svg.setAttribute('height',CH_);svg.style.cssText='position:absolute;left:0;top:0';
+  let seg='';
+  for(let i=0;i<4;i++){
+    const a=POS[i],b=POS[i+1],clr=(lin(c.id,i+1)<=st.cleared)&&selectable(lin(c.id,i+1));
+    const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+    const cx=mx+(i%2?30:-30);
+    seg+='<path d="M'+a[0]+' '+(a[1]+30)+' Q'+cx+' '+(my+30)+' '+b[0]+' '+(b[1]+30)+'" fill="none" stroke="'+(clr?'#f7c64a':'#ffffff55')+'" stroke-width="'+(clr?6:4)+'" stroke-linecap="round" '+(clr?'style="filter:drop-shadow(0 0 5px #f7c64a)"':'stroke-dasharray="2 10"')+'/>';
+  }
+  svg.innerHTML=seg;mp.appendChild(svg);
+  const vig=document.createElement('div');vig.className='vig';mp.appendChild(vig);
+  //# 제목 오버레이
+  el('t',16,10,380,28,c.id+'장 '+c.name,'font-size:22px;line-height:28px;color:var(--bone);text-shadow:2px 2px 0 #000',mp);
+  el('t lbl',16,40,380,20,'테마: '+c.theme+' / 영웅: '+c.hero,'text-shadow:1px 1px 0 #000',mp);
+  //# 노드
+  c.stages.forEach((s,i)=>{
+    const L=lin(c.id,i+1),boss=i===4,open=selectable(L),clr=open&&L<=st.cleared,on=st.sel===i+1;
+    const sz=boss?88:64,px=POS[i][0]-sz/2,py=POS[i][1]+30-sz/2;
+    const nd=el('node'+(boss?' boss':'')+(clr?' cleared':(open?' open':''))+(open?'':' locked')+(on?' sel':''),px,py,sz,sz,
+      open?c.id+'-'+(i+1):'잠금',boss?'font-size:24px':'',mp);
+    nd.onclick=()=>{if(!open){toast(hint(L));say('잠금 노드 - 안내만');return;}st.sel=i+1;render();};
+    if(on)el('mk',px,py-26,sz,18,'▼','',mp);
+    if(boss)el('tag gold',px,py-(on?44:20),sz,16,'BOSS','',mp);
+    el('tag name',px-30+((sz+60-Math.min(sz+60,(open?s.n.length*12+16:40)))/2),py+sz+6,Math.min(sz+60,(open?s.n.length*12+16:40)),18,open?s.n:'???','color:'+(open?'var(--txt)':'#59617a')+';text-shadow:1px 1px 0 #000',mp);
+    if(clr)el('tag gold',px-30,py+sz+28,sz+60,16,'클리어','text-shadow:1px 1px 0 #000',mp);
+  });
+
+  //# 상세
+  const DX=840,DW=352;
+  el('pnl',DX,CY,DW,CH_,'');
+  const i=st.sel,s=c.stages[i-1],L=lin(c.id,i),open=selectable(L);
+  const ban=el('portrait',DX+12,CY+12,DW-24,120,'','background:linear-gradient(135deg,'+c.cc+'88,#0c1017 70%);--ac:'+c.cc);
+  ban.innerHTML='<div class="sil"><div class="hood"></div><div class="eye"></div><div class="body"></div></div>'
+    +'<div class="t gold" style="left:12px;top:8px;font-size:15px;text-shadow:1px 1px 0 #000">'+c.id+'-'+i+'</div>'
+    +'<div class="t lbl" style="right:10px;bottom:6px;color:var(--bone)">영웅: '+c.hero+'</div>'
+    +(i===5?'<div class="t" style="left:12px;bottom:6px;background:#7a2a31;border:2px solid var(--ink);padding:0 8px;font-size:12px;line-height:18px">BOSS</div>':'')
+    +(open?'':'<div class="lkx">잠금</div>');
+  el('ndiv',DX+16,CY+174,DW-32,2,'');
+  el('t',DX+16,CY+140,DW-120,32,open?s.n:'???','font-size:21px;line-height:32px;color:var(--bone)');
+  el('t gold',DX+DW-110,CY+144,96,24,'★'.repeat(i)+'☆'.repeat(5-i),'font-size:16px;text-align:right');
+  el('chip',DX+12,CY+182,DW-24,46,'','');
+  el('t lbl',DX+24,CY+186,100,16,'내 기록','font-size:11px');
+  el('t',DX+24,CY+202,DW-48,22,open?(L<=st.cleared?rec(L):'기록 없음'):'-','font-size:15px;line-height:22px');
+  let h='<div class="sec" style="margin-top:0">스테이지 규칙</div>';
+  if(!s.rules.length)h+='<div class="rule none">특수 규칙 없음</div>';
+  s.rules.forEach(r=>h+='<div class="rule"><b>'+r[0]+'</b><br>'+r[1]+'</div>');
+  if(s.boss.length){h+='<div class="sec" style="color:var(--blood)">보스 페이즈</div>';
+    s.boss.forEach(b=>h+='<div class="rule ph"><b>'+b[0]+'</b><br>'+b[1]+'</div>');}
+  el('abs',DX+12,CY+236,DW-24,CH_-244,open?h:'<div class="sec" style="margin-top:0">스테이지 규칙</div><div class="rule none">???</div>','overflow:hidden');
+
+  //# 하단
+  const by=PY+PH-16-48;
+  el('t lbl',PX+24,by,700,48,open?'선택한 스테이지는 마을의 침입자 현상수배서에 반영됩니다. 출격은 마을에서 합니다.':'이 스테이지는 아직 잠겨 있습니다.','white-space:normal;line-height:48px;font-size:13px');
+  const b=el('btn go'+(open?'':' off'),DX,by-4,DW,56,open?'이 스테이지로 선택':hint(L),'font-size:20px');
+  b.onclick=()=>{if(!open){say('잠금 스테이지 - 선택 불가');return;}toast('선택됨: '+c.id+'-'+i+' '+s.n);say('SelectedStage = '+L+' 저장 후 닫힘');};
+}
+sel.onchange=()=>{st.cleared=+sel.value;render();};
+$('#cGate').onchange=render;
+$('#btnReset').onclick=()=>{st={cleared:10,ch:3,sel:1};sel.value=10;$('#cGate').checked=true;render();};
+function fit(){const w=document.documentElement.clientWidth-16;$('#wrap').style.zoom=w<1280?w/1280:1;}
+addEventListener('resize',fit);fit();render();
+</script>
+</body>
+</html>

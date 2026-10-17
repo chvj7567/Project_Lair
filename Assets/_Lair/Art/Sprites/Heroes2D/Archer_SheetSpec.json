@@ -1,0 +1,189 @@
+{
+  "doc": "docs/design/chapter-system.md §5.5·§5.6 (D-14·D-15)",
+  "palette": "A",
+  "cellSize": 72,
+  "cols": 20,
+  "rows": 9,
+  "rowOrder": [
+    "idle",
+    "walk",
+    "run",
+    "slash01",
+    "slash02",
+    "stab",
+    "hit",
+    "death",
+    "spawn"
+  ],
+  "sheetSize": [
+    1440,
+    648
+  ],
+  "indexRule": "row*20+col",
+  "pixelsPerUnit": 31,
+  "bodyHeightDots": 31,
+  "pivot": {
+    "x": 0.4236,
+    "y": 0.2917,
+    "note": "Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot"
+  },
+  "tiers": {
+    "Archer_Sheet": 0,
+    "Archer_Sheet_S2": 1,
+    "Archer_Sheet_S3": 2,
+    "Archer_Sheet_S4": 3,
+    "Archer_Sheet_S5": 4
+  },
+  "clips": {
+    "idle": {
+      "frames": 8,
+      "fps": 8,
+      "animatorSpeed": 1,
+      "loop": true,
+      "copyOf": null,
+      "bakeEvents": []
+    },
+    "walk": {
+      "frames": 8,
+      "fps": 10,
+      "animatorSpeed": 1,
+      "loop": true,
+      "copyOf": null,
+      "bakeEvents": []
+    },
+    "run": {
+      "frames": 8,
+      "fps": 14,
+      "animatorSpeed": 1,
+      "loop": true,
+      "copyOf": null,
+      "bakeEvents": []
+    },
+    "slash01": {
+      "frames": 9,
+      "fps": 15,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": "stab",
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.3
+        },
+        {
+          "functionName": "OnAttackEnd",
+          "clipLocalSec": 0.58
+        }
+      ],
+      "strikeFrame": 4,
+      "strikeClipLocalSec": 0.3,
+      "strikeRealSec": 0.3,
+      "endFrame": 8
+    },
+    "slash02": {
+      "frames": 9,
+      "fps": 15,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": "stab",
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.3
+        },
+        {
+          "functionName": "OnAttackEnd",
+          "clipLocalSec": 0.58
+        }
+      ],
+      "strikeFrame": 4,
+      "strikeClipLocalSec": 0.3,
+      "strikeRealSec": 0.3,
+      "endFrame": 8
+    },
+    "stab": {
+      "frames": 9,
+      "fps": 15,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": null,
+      "bakeEvents": [
+        {
+          "functionName": "OnAttackStrike",
+          "clipLocalSec": 0.3
+        },
+        {
+          "functionName": "OnAttackEnd",
+          "clipLocalSec": 0.58
+        }
+      ],
+      "strikeFrame": 4,
+      "strikeClipLocalSec": 0.3,
+      "strikeRealSec": 0.3,
+      "endFrame": 8
+    },
+    "hit": {
+      "frames": 6,
+      "fps": 12,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": null,
+      "bakeEvents": []
+    },
+    "death": {
+      "frames": 8,
+      "fps": 10,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": null,
+      "bakeEvents": []
+    },
+    "spawn": {
+      "frames": 16,
+      "fps": 12,
+      "animatorSpeed": 1,
+      "loop": false,
+      "copyOf": null,
+      "bakeEvents": [],
+      "lockReleaseRealSec": 1.8,
+      "lockReleaseBy": "HeroEntryDriver/AutoCombatAI._spawnGateFallback"
+    }
+  },
+  "clipEvents": {
+    "slash01": [
+      {
+        "functionName": "OnAttackStrike",
+        "clipLocalSec": 0.3
+      },
+      {
+        "functionName": "OnAttackEnd",
+        "clipLocalSec": 0.58
+      }
+    ],
+    "slash02": [
+      {
+        "functionName": "OnAttackStrike",
+        "clipLocalSec": 0.3
+      },
+      {
+        "functionName": "OnAttackEnd",
+        "clipLocalSec": 0.58
+      }
+    ],
+    "stab": [
+      {
+        "functionName": "OnAttackStrike",
+        "clipLocalSec": 0.3
+      },
+      {
+        "functionName": "OnAttackEnd",
+        "clipLocalSec": 0.58
+      }
+    ]
+  },
+  "edgeClipFrames": [
+    "S5 death F4",
+    "S5 death F5",
+    "S5 death F6"
+  ]
+}

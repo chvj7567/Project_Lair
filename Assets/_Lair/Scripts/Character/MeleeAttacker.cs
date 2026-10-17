@@ -7,7 +7,7 @@ namespace Lair.Character
 {
     //# 근접 공격. 인스펙터 또는 Configure 로 스탯 설정.
     //# now 는 외부 주입 (Time.time 직접 참조 금지) — 테스트 가능성 확보.
-    public class MeleeAttacker : MonoBehaviour, IAttacker
+    public class MeleeAttacker : MonoBehaviour, IAttacker, IEffectiveCooldown, IPendingStrikeCancel
     {
         [SerializeField] private float _range = 1.5f;
         [SerializeField] private float _cooldown = 1.0f;
@@ -16,8 +16,15 @@ namespace Lair.Character
         //# 영웅 한정 흐름 역전 스위치 (§B.2). 영웅 프리팹만 true. SerializeField 라 OnEnable 리셋 불요.
         [SerializeField] private bool _deferStrike;
 
-        public float Range => _range;
+        //# 영웅 스킬(연막 탄) 사거리 보정 — 기본 1(무변화). 스케일·하한은 스킬 컨텍스트가 몬스터별로 설정하고 풀 재사용 시 OnEnable 이 리셋한다.
+        public float RangeScale { get; private set; } = 1f;
+        public float RangeFloor { get; private set; }
+
+        public float Range => Mathf.Approximately(RangeScale, 1f) ? _range : RangeScaleMath.Compute(_range, RangeScale, RangeFloor);
         public float Cooldown => _cooldown;
+
+        //# 버프(CooldownScale)가 반영된 실효 쿨다운 — 위협 점수(DPS)가 실제 공격 간격을 따르게 한다.
+        public float EffectiveCooldown => _cooldown * CooldownScale;
         public int Power => _power;
         public bool DeferStrike => _deferStrike;
 
@@ -52,7 +59,22 @@ namespace Lair.Character
             _lastAttackTime = float.NegativeInfinity;
             CooldownScale = 1f;
             PowerScale = 1f;
+            RangeScale = 1f;
+            RangeFloor = 0f;
             _pendingTarget = null;
+        }
+
+        //# 보류 중인 strike 취소 — 헛스윙 처리(쿨다운은 이미 개시 시점에 기록됨).
+        public void CancelPendingStrike()
+        {
+            _pendingTarget = null;
+        }
+
+        //# 사거리 보정 설정/해제 — scale 1 이면 해제.
+        public void SetRangeScale(float scale, float floor)
+        {
+            RangeScale = scale;
+            RangeFloor = floor;
         }
 
         //# 테스트 또는 런타임 동적 설정.
@@ -68,7 +90,7 @@ namespace Lair.Character
         {
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(selfPos, targetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
             if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
 
             _lastAttackTime = now;
@@ -82,7 +104,7 @@ namespace Lair.Character
         {
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(selfPos, targetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
             if (now - _lastAttackTime < _cooldown * CooldownScale) return false;
 
             _lastAttackTime = now;
@@ -102,7 +124,7 @@ namespace Lair.Character
             if (enabled == false) return false;
             if (target == null || target.IsAlive == false) return false;
             float dist = Vector3.Distance(_pendingSelfPos, _pendingTargetPos);
-            if (dist > _range) return false;
+            if (dist > Range) return false;
 
             ApplyDamage(target);
             return true;

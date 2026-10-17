@@ -21,5 +21,14 @@ namespace Lair.Net
 
         public Task<List<RankingRowDto>> GetMyRankAsync()
             => _api.GetMyRankAsync();
+
+        public Task<bool> SubmitStageAsync(int stage, int clearTimeMs, string hero, string displayName)
+            => _api.SubmitStageScoreAsync(stage, clearTimeMs, hero, displayName);
+
+        public Task<List<RankingRowDto>> GetStageTopAsync(int stage, int top)
+            => _api.GetStageTopAsync(stage, top);
+
+        public Task<List<RankingRowDto>> GetMyStageRankAsync(int stage)
+            => _api.GetMyStageRankAsync(stage);
     }
 }

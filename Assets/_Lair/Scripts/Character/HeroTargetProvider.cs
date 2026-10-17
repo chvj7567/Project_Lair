@@ -5,7 +5,7 @@ namespace Lair.Character
     //# 영웅용 — Monsters 레지스트리에서 최근접 살아있는 적 검색.
     //# OnEnable 시 자기 자신을 Heroes 레지스트리에 등록.
     [RequireComponent(typeof(LairCharacter))]
-    public class HeroTargetProvider : MonoBehaviour, ITargetProvider
+    public class HeroTargetProvider : MonoBehaviour, ITargetProvider, INearestThreatProvider, ISkirmishThreatProvider
     {
         private IHealth _selfHealth;
         //# Camera.main 은 내부적으로 tag 검색 — Awake 1회 캐싱(Rule 02 §5).
@@ -57,6 +57,14 @@ namespace Lair.Character
 
         public bool TryGetThreatCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)
             => CharacterRegistry.TryGetThreatCentroidMonster(from, radius, out centroid, out count);
+
+        //# 카이팅(궁수) — 교전 토글 무관 최근접 위협. 기사 경로는 호출하지 않는다.
+        public bool TryFindNearestThreat(Vector3 from, out Transform target, out IHealth health)
+            => CharacterRegistry.TryFindNearestMonsterAny(from, out target, out health);
+
+        //# 습격(암살자) — 반경 안 교전 몬스터를 위협 점수 후보로. 기사·궁수 경로는 호출하지 않는다.
+        public bool TryGetThreatCandidates(Vector3 from, float radius, System.Collections.Generic.List<SkirmishCandidate> candidates)
+            => CharacterRegistry.TryGetThreatCandidates(from, radius, candidates);
 
         //# 도주 안정화(A-1) — Engaging 무관 변형. 교전 토글 진동원 제거.
         public bool TryGetFleeCentroid(Vector3 from, float radius, out Vector3 centroid, out int count)

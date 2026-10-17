@@ -254,29 +254,7 @@ namespace Lair.Net
         {
             try
             {
-                List<RankingRowDto> rows = new List<RankingRowDto>();
-                //# 유령 문서(clearTimeMs 없음/0)를 쿼리 단계에서 배제 — Limit 이 필터보다 먼저 걸리면
-                //# 유령이 top 개 이상일 때 진짜 기록이 통째로 잘려나간다(표시 단계 가드만으론 못 막음).
-                QuerySnapshot snap = await Db.Collection(LeaderboardCollection)
-                    .WhereGreaterThan("clearTimeMs", 0)
-                    .OrderBy("clearTimeMs")
-                    .Limit(top)
-                    .GetSnapshotAsync();
-                int rank = 1;
-                foreach (DocumentSnapshot doc in snap.Documents)
-                {
-                    RankingRowDto row = ToRow(doc);
-                    if (row == null)
-                        continue;
-                    //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
-                    if (CloudSaveConflict.IsRankedClearTime(row.clearTimeMs) == false)
-                        continue;
-                    //# 쿼리가 rank 를 내려주지 않는다 — clearTimeMs 오름차순 순서 = 순위(1부터).
-                    row.rank = rank;
-                    rank++;
-                    rows.Add(row);
-                }
-                return rows;
+                return await ReadTopAsync(Db.Collection(LeaderboardCollection), top);
             }
             catch (System.Exception e)
             {
@@ -284,6 +262,34 @@ namespace Lair.Net
                 //# 계약(ILairApiClient) — 실패 시 빈 리스트. 열거 도중 예외가 나도 부분 리스트를 흘리지 않는다.
                 return new List<RankingRowDto>();
             }
+        }
+
+        //# 전체/스테이지 Top N 공용 조회 — scope 는 컬렉션 또는 stage 필터가 걸린 쿼리. 예외는 호출부가 빈 리스트로 흡수.
+        //# 유령 문서(clearTimeMs 없음/0)를 쿼리 단계에서 배제 — Limit 이 필터보다 먼저 걸리면
+        //# 유령이 top 개 이상일 때 진짜 기록이 통째로 잘려나간다(표시 단계 가드만으론 못 막음).
+        private static async Task<List<RankingRowDto>> ReadTopAsync(Query scope, int top)
+        {
+            List<RankingRowDto> rows = new List<RankingRowDto>();
+            QuerySnapshot snap = await scope
+                .WhereGreaterThan("clearTimeMs", 0)
+                .OrderBy("clearTimeMs")
+                .Limit(top)
+                .GetSnapshotAsync();
+            int rank = 1;
+            foreach (DocumentSnapshot doc in snap.Documents)
+            {
+                RankingRowDto row = ToRow(doc);
+                if (row == null)
+                    continue;
+                //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
+                if (CloudSaveConflict.IsRankedClearTime(row.clearTimeMs) == false)
+                    continue;
+                //# 쿼리가 rank 를 내려주지 않는다 — clearTimeMs 오름차순 순서 = 순위(1부터).
+                row.rank = rank;
+                rank++;
+                rows.Add(row);
+            }
+            return rows;
         }
 
         //# 리더보드 문서 → 행 DTO. 필드 누락은 기본값으로 흡수(흐름을 막지 않는다).
@@ -308,23 +314,97 @@ namespace Lair.Net
             try
             {
                 DocumentSnapshot mine = await Db.Collection(LeaderboardCollection).Document(uid).GetSnapshotAsync();
-                RankingRowDto myRow = ToRow(mine);
-                //# clearTimeMs<=0 은 유효한 클리어 기록이 아님(유령 문서) — 거짓 "1위 00:00" 방지.
-                if (myRow == null || CloudSaveConflict.IsRankedClearTime(myRow.clearTimeMs) == false)
-                    return new List<RankingRowDto>();
-
-                //# 유령 문서는 clearTimeMs=0 이라 항상 "나보다 빠름"으로 잡혀 순위를 부풀린다 — 집계에서도 배제.
-                AggregateQuerySnapshot agg = await Db.Collection(LeaderboardCollection)
-                    .WhereGreaterThan("clearTimeMs", 0)
-                    .WhereLessThan("clearTimeMs", myRow.clearTimeMs)
-                    .Count
-                    .GetSnapshotAsync(AggregateSource.Server);
-                myRow.rank = agg.Count + 1;
-                return new List<RankingRowDto> { myRow };
+                return await ReadMyRankAsync(Db.Collection(LeaderboardCollection), mine);
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[FirebaseSdkApiClient] 내 순위 조회 실패: {e.Message}");
+                return new List<RankingRowDto>();
+            }
+        }
+
+        //# 전체/스테이지 내 순위 공용 — mine 은 내 문서. 유효 기록이 없으면 빈 리스트.
+        private static async Task<List<RankingRowDto>> ReadMyRankAsync(Query scope, DocumentSnapshot mine)
+        {
+            RankingRowDto myRow = ToRow(mine);
+            //# clearTimeMs<=0 은 유효한 클리어 기록이 아님(유령 문서) — 거짓 "1위 00:00" 방지.
+            if (myRow == null || CloudSaveConflict.IsRankedClearTime(myRow.clearTimeMs) == false)
+                return new List<RankingRowDto>();
+
+            //# 유령 문서는 clearTimeMs=0 이라 항상 "나보다 빠름"으로 잡혀 순위를 부풀린다 — 집계에서도 배제.
+            AggregateQuerySnapshot agg = await scope
+                .WhereGreaterThan("clearTimeMs", 0)
+                .WhereLessThan("clearTimeMs", myRow.clearTimeMs)
+                .Count
+                .GetSnapshotAsync(AggregateSource.Server);
+            myRow.rank = agg.Count + 1;
+            return new List<RankingRowDto> { myRow };
+        }
+
+        //# 스테이지별 랭킹 제출 — stageLeaderboard/{stage}_{uid}. 기존 최단보다 빠를 때만 트랜잭션으로 갱신(느린 기록이 덮지 않게).
+        public async Task<bool> SubmitStageScoreAsync(int stage, int clearTimeMs, string hero, string displayName)
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid) || StageLeaderboard.IsValidStage(stage) == false || clearTimeMs <= 0)
+                return false;
+            Dictionary<string, object> fields = new Dictionary<string, object>
+            {
+                { "uid", uid },
+                { "stage", stage },
+                { "displayName", displayName ?? string.Empty },
+                { "clearTimeMs", clearTimeMs },
+                { "hero", hero ?? string.Empty },
+            };
+            try
+            {
+                DocumentReference doc = Db.Collection(StageLeaderboard.CollectionName).Document(StageLeaderboard.DocId(stage, uid));
+                await Db.RunTransactionAsync(async transaction =>
+                {
+                    DocumentSnapshot snap = await transaction.GetSnapshotAsync(doc);
+                    long existing = snap.Exists && snap.ContainsField("clearTimeMs") ? snap.GetValue<long>("clearTimeMs") : 0;
+                    if (StageLeaderboard.ShouldReplace(existing, clearTimeMs) == false)
+                        return;
+                    transaction.Set(doc, fields);
+                });
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 스테이지 랭킹 제출 실패: {e.Message}");
+                return false;
+            }
+        }
+
+        //# 스테이지 Top N — stage == N + clearTimeMs 오름차순(복합 인덱스는 콘솔 소관). 인덱스 미생성 등 실패는 빈 리스트로 폴백.
+        public async Task<List<RankingRowDto>> GetStageTopAsync(int stage, int top)
+        {
+            if (StageLeaderboard.IsValidStage(stage) == false)
+                return new List<RankingRowDto>();
+            try
+            {
+                return await ReadTopAsync(Db.Collection(StageLeaderboard.CollectionName).WhereEqualTo("stage", stage), top);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 스테이지 랭킹 조회 실패: {e.Message}");
+                return new List<RankingRowDto>();
+            }
+        }
+
+        public async Task<List<RankingRowDto>> GetMyStageRankAsync(int stage)
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid) || StageLeaderboard.IsValidStage(stage) == false)
+                return new List<RankingRowDto>();
+            try
+            {
+                CollectionReference collection = Db.Collection(StageLeaderboard.CollectionName);
+                DocumentSnapshot mine = await collection.Document(StageLeaderboard.DocId(stage, uid)).GetSnapshotAsync();
+                return await ReadMyRankAsync(collection.WhereEqualTo("stage", stage), mine);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 내 스테이지 순위 조회 실패: {e.Message}");
                 return new List<RankingRowDto>();
             }
         }

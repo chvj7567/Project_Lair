@@ -82,14 +82,38 @@ namespace Lair.Tests.UI
             Assert.AreEqual("?", SpeciesVisual.SpeciesName((EMonster)999));
         }
 
-        //# ===== 진행 바 임계값 상수 =====
+        //# ===== 2D 전환 HUD(scene-2d-conversion §4.5) — Cool/Warm 2색 폐기, 게이지 = 종족 발광색, 남은 초 = 정수 올림 =====
 
-        //# Cool/Warm 경계 0.70 — 기획서 §3.1 락. WarmThreshold 가 변경되면 시각 피드백 깨짐.
-        [Test]
-        public void WarmThreshold_0점70_고정()
+        [TestCase(EMonster.Wisp)]
+        [TestCase(EMonster.Wraith)]
+        [TestCase(EMonster.Reaper)]
+        [TestCase(EMonster.Hex)]
+        [TestCase(EMonster.Plague)]
+        [TestCase(EMonster.Phantom)]
+        public void 게이지_색은_종족_발광색이다(EMonster type)
         {
-            Assert.AreEqual(0.7f, SpawnerStatusCell.WarmThreshold, 0.0001f,
-                "Cool→Warm 임계값 0.70 — 기획서 §3.1");
+            Assert.AreEqual(SpeciesVisual.SpeciesGlowColor(type), SpawnerStatusCell.GaugeColor(type));
+        }
+
+        [TestCase(0f, "0s")]
+        [TestCase(0.1f, "1s")]
+        [TestCase(2.5f, "3s")]
+        [TestCase(12f, "12s")]
+        [TestCase(-1f, "0s")]
+        public void 남은_초는_정수_올림이다(float seconds, string expected)
+        {
+            Assert.AreEqual(expected, SpawnerStatusCell.RemainingText(seconds));
+        }
+
+        [Test]
+        public void 종족_빌드_축_매핑_6종()
+        {
+            Assert.AreEqual(EBuildAxis.Tank, SpeciesVisual.SpeciesAxis(EMonster.Wisp));
+            Assert.AreEqual(EBuildAxis.Tank, SpeciesVisual.SpeciesAxis(EMonster.Wraith));
+            Assert.AreEqual(EBuildAxis.Dps, SpeciesVisual.SpeciesAxis(EMonster.Reaper));
+            Assert.AreEqual(EBuildAxis.Dps, SpeciesVisual.SpeciesAxis(EMonster.Hex));
+            Assert.AreEqual(EBuildAxis.Debuff, SpeciesVisual.SpeciesAxis(EMonster.Plague));
+            Assert.AreEqual(EBuildAxis.Swarm, SpeciesVisual.SpeciesAxis(EMonster.Phantom));
         }
     }
 }

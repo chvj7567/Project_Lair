@@ -24,6 +24,25 @@ namespace Lair.Tests.Character
             if (_mat != null) Object.DestroyImmediate(_mat);
         }
 
+        //# HitFlash.Awake 의 CacheRenderers 는 renderer.material 을 부르는데, EditMode 에선 그 접근이 에러 로그를 남긴다.
+        //# 그래서 Awake 를 거치지 않고 Awake 가 만드는 결과(_health·머티리얼 인스턴스·원본색)를 같은 필드에 직접 주입한다.
+        //# mat 은 렌더러에 sharedMaterial 로 넣은 테스트 소유 인스턴스라 production 의 인스턴스화 결과와 동일한 역할이다.
+        private static void PrimeCachedRenderers(HitFlash flash, Health health, Material mat)
+        {
+            FieldInfo healthField = typeof(HitFlash).GetField("_health", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo matsField = typeof(HitFlash).GetField("_matInstances", BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo colorsField = typeof(HitFlash).GetField("_originalColors", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo readColor = typeof(HitFlash).GetMethod("ReadColor", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(healthField, "HitFlash._health 필드 존재 — 시그니처 변경 감지");
+            Assert.IsNotNull(matsField, "HitFlash._matInstances 필드 존재 — 시그니처 변경 감지");
+            Assert.IsNotNull(colorsField, "HitFlash._originalColors 필드 존재 — 시그니처 변경 감지");
+            Assert.IsNotNull(readColor, "HitFlash.ReadColor 메서드 존재 — 시그니처 변경 감지");
+
+            healthField.SetValue(flash, health);
+            ((System.Collections.Generic.List<Material>)matsField.GetValue(flash)).Add(mat);
+            ((System.Collections.Generic.List<Color>)colorsField.GetValue(flash)).Add((Color)readColor.Invoke(null, new object[] { mat }));
+        }
+
         private static void InvokeVoid(object target, string method)
         {
             MethodInfo mi = target.GetType().GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance);
@@ -53,12 +72,12 @@ namespace Lair.Tests.Character
             rd.sharedMaterial = _mat;
 
             HitFlash flash = _go.AddComponent<HitFlash>();
-            InvokeVoid(flash, "Awake");     //# CacheRenderers — .material 인스턴스화 + 원본색 캐시
+            PrimeCachedRenderers(flash, health, _mat);   //# Awake(CacheRenderers) 결과 주입
             InvokeVoid(health, "Awake");
             InvokeVoid(flash, "Start");     //# _lastHp 캐시
             InvokeVoid(flash, "OnEnable");
 
-            instanceMat = rd.material;      //# CacheRenderers 가 이미 인스턴스화한 것과 동일 인스턴스
+            instanceMat = _mat;
             return flash;
         }
 
@@ -139,12 +158,12 @@ namespace Lair.Tests.Character
             rd.sharedMaterial = _mat;
 
             HitFlash flash = _go.AddComponent<HitFlash>();
-            InvokeVoid(flash, "Awake");
+            PrimeCachedRenderers(flash, health, _mat);   //# Awake(CacheRenderers) 결과 주입
             InvokeVoid(health, "Awake");
             InvokeVoid(flash, "Start");
             InvokeVoid(flash, "OnEnable");
 
-            Material instance = rd.material;
+            Material instance = rd.sharedMaterial;
             InvokeVoid(flash, "ApplyInvertedColors");
 
             Color inverted = new Color(1f - original.r, 1f - original.g, 1f - original.b, original.a);

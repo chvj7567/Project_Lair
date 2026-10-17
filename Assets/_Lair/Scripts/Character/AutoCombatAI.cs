@@ -19,6 +19,8 @@ namespace Lair.Character
         private IAttacker _attacker;
         private ITargetProvider _targetProvider;
         private IRotator _rotator;
+        //# 영웅 이동 영역 클램프(BattleZone) — 도약이 SimpleMover 와 같은 경계를 지키게 한다. 몬스터는 SimpleMover 의 zone 이 null 이라 통과.
+        private IMoveClamp _moveClamp;
 
         //# 영웅 공격 게이트 (hero-animation-timing-sync §3.2). 영웅 프리팹만 부착 → 몬스터는 null(보류 미적용).
         private IAttackGate _attackGate;
@@ -65,6 +67,80 @@ namespace Lair.Character
         private Transform _currentTarget;
         private IHealth _currentTargetHealth;
 
+        //# 카이팅(궁수, chapter-system §5.3) — Kiter 영웅만 ConfigureKite 로 생성. null 이면 기사/몬스터 경로(코드 동작 불변).
+        private KiteBehavior _kite;
+        private INearestThreatProvider _threatProbe;
+
+        //# 회피 도약 이동 소유권(§5.3 #7) — 도약 중엔 AI 가 이동 명령을 내리지 않고 이 보간이 위치를 쥔다.
+        private float _leapRemain;
+        private float _leapDuration;
+        private Vector3 _leapStart;
+        private Vector3 _leapDestination;
+
+        public bool IsLeaping => _leapRemain > 0f;
+
+        //# 습격-이탈(암살자, chapter-3-hero §3.3) — Skirmisher 영웅만 ConfigureSkirmish 로 생성. null 이면 기사/궁수/몬스터 경로(코드 동작 불변).
+        private SkirmishBehavior _skirmish;
+        private ISkirmishThreatProvider _skirmishProbe;
+        private IInvulnerable _invulnerable;
+        private readonly System.Collections.Generic.List<SkirmishCandidate> _skirmishCandidates = new System.Collections.Generic.List<SkirmishCandidate>();
+        private Transform _skirmishTarget;
+
+        //# 슬립 아레나 소프트 반경 — 미구성(기사/궁수)이면 0(제한 없음).
+        public float SkirmishArenaSoftRadius => _skirmish != null ? _skirmish.Settings.ArenaSoftRadius : 0f;
+
+        //# BattleController 가 aiType == Skirmisher 영웅에 HeroArchetype_Skirmish 설정을 주입. 풀 재사용 시 OnEnable 이 상태만 리셋.
+        public void ConfigureSkirmish(SkirmishSettings settings)
+        {
+            _skirmish = new SkirmishBehavior(settings);
+        }
+
+        //# 스킬(연막 탄)이 시전 직후 슬립을 쿨다운 무시로 1회 요청 — Skirmisher 가 아니면 무동작.
+        public void RequestSlip()
+        {
+            _skirmish?.RequestForcedSlip();
+        }
+
+        //# 순간이동(그림자 습격) — 진행 중 도약을 끊고 destination(이동 경계 안으로 보정)으로 즉시 이동.
+        public void Teleport(Vector3 destination)
+        {
+            Vector3 position = _moveClamp != null ? _moveClamp.ClampPosition(destination) : destination;
+            position.y = transform.position.y;
+            _leapRemain = 0f;
+            //# 공격 모션 중 순간이동하면 낡은 위치 기준 strike 가 남지 않게 취소하고 공격 락도 푼다.
+            (_attacker as IPendingStrikeCancel)?.CancelPendingStrike();
+            _attackGate?.EndAttack();
+            transform.position = position;
+            _mover?.Stop();
+        }
+
+        //# 카이팅 아레나 소프트 반경 — 회피 도약 목적지 클램프용. 카이팅 미구성(기사)이면 0(제한 없음).
+        public float KiteArenaSoftRadius => _kite != null ? _kite.Settings.ArenaSoftRadius : 0f;
+
+        //# BattleController 가 aiType == Kiter 영웅에 HeroArchetype_Kite 설정을 주입. 풀 재사용 시 OnEnable 이 상태만 리셋.
+        public void ConfigureKite(KiteSettings settings)
+        {
+            _kite = new KiteBehavior(settings);
+        }
+
+        //# 도약 목적지 보정 — 카이팅 아레나 소프트 반경 안으로, 그리고 BattleZone 이동 경계 안으로(SimpleMover 와 같은 경계).
+        public Vector3 ClampToArena(Vector3 position)
+        {
+            float softRadius = _skirmish != null ? SkirmishArenaSoftRadius : KiteArenaSoftRadius;
+            Vector3 clamped = KiteBehavior.ClampToRadius(position, softRadius);
+            return _moveClamp != null ? _moveClamp.ClampPosition(clamped) : clamped;
+        }
+
+        //# 회피 도약 시작 — duration 동안 현재 위치에서 destination 으로 선형 이동, 그동안 AI 이동 명령 중단.
+        public void BeginLeap(Vector3 destination, float duration)
+        {
+            _leapStart = transform.position;
+            _leapDestination = destination;
+            _leapDuration = Mathf.Max(0.01f, duration);
+            _leapRemain = _leapDuration;
+            _mover?.Stop();
+        }
+
         private void Awake()
         {
             LairCharacter character = GetComponent<LairCharacter>();
@@ -74,6 +150,10 @@ namespace Lair.Character
             _targetProvider = character.Get<ITargetProvider>();
             _rotator = character.Get<IRotator>();
             _attackGate = character.Get<IAttackGate>();   //# null=몬스터(보류 로직 미적용)
+            _threatProbe = character.Get<INearestThreatProvider>();   //# null=기사·몬스터(카이팅 미사용)
+            _moveClamp = character.Get<IMoveClamp>();
+            _skirmishProbe = character.Get<ISkirmishThreatProvider>();   //# null=기사·궁수·몬스터
+            _invulnerable = character.Get<IInvulnerable>();
         }
 
         //# 풀 재사용 시 도주 상태 잔존 방지 + 초기 방향 스냅.
@@ -90,6 +170,12 @@ namespace Lair.Character
             //# 풀 재사용 시 이전 고정 타겟 잔존 방지(영웅 한정 히스테리시스).
             _currentTarget = null;
             _currentTargetHealth = null;
+            //# 카이팅 상태·도약 잔존 방지(Kiter 한정, 기사는 _kite null).
+            _kite?.Reset();
+            //# 습격 상태·표적 잔존 방지(Skirmisher 한정).
+            _skirmish?.Reset();
+            _skirmishTarget = null;
+            _leapRemain = 0f;
             //# 스폰 게이트 — 영웅(DeferStrike)만 닫고 시작. 몬스터는 게이트 검사 자체를 건너뛰므로 무관.
             _spawnGateOpen = false;
             _enabledTime = Time.time;
@@ -135,6 +221,14 @@ namespace Lair.Character
             if (_attacker != null && _attacker.Enabled == false)
             {
                 _mover.Stop();
+                return;
+            }
+
+            //# 회피 도약 중 — 이동 소유권은 도약 보간(§5.3 #7). TimeStop(위 Enabled 게이트) 중엔 도달하지 못해 도약도 멈춘다.
+            //# 기사/몬스터는 _leapRemain 이 항상 0 이라 통과.
+            if (_leapRemain > 0f)
+            {
+                TickLeap();
                 return;
             }
 
@@ -237,6 +331,20 @@ namespace Lair.Character
                 }
             }
 
+            //# 카이팅(Kiter 영웅 한정) — 공포(FleeMode)·중앙 끌림(프리팹 플래그 off) 뒤, 일반 교전/이동 앞(§5.3 #1). 기사는 _kite null 이라 아래 경로 그대로.
+            if (_kite != null)
+            {
+                UpdateKite(t, th);
+                return;
+            }
+
+            //# 습격-이탈(Skirmisher 영웅 한정) — 같은 자리(교전/이동 앞). 기사·궁수는 _skirmish null 이라 아래 경로 그대로.
+            if (_skirmish != null)
+            {
+                UpdateSkirmish(t, th);
+                return;
+            }
+
             float dist = Vector3.Distance(transform.position, t.position);
             float range = _attacker.Range;
 
@@ -278,6 +386,182 @@ namespace Lair.Character
                 //# Moving — 이동 목표(=타겟) 방향. 즉시 스냅(AttackAligned 위임) — 히스테리시스가 등거리 깜빡임 흡수(기획서 §2).
                 _rotator?.FaceDirection(t.position - transform.position);
                 _mover.MoveTo(t.position);
+            }
+        }
+
+        //# 도약 보간 — Time.deltaTime 기반(일시정지 중 정지). 끝나면 소유권 반환.
+        private void TickLeap()
+        {
+            _leapRemain -= Time.deltaTime;
+            float progress = 1f - Mathf.Clamp01(_leapRemain / _leapDuration);
+            Vector3 position = Vector3.Lerp(_leapStart, _leapDestination, progress);
+            position.y = transform.position.y;
+            //# 직접 대입이 SimpleMover 의 BattleZone 클램프를 우회하지 않도록 같은 경계를 통과시킨다.
+            if (_moveClamp != null)
+            {
+                position = _moveClamp.ClampPosition(position);
+            }
+            transform.position = position;
+            _mover?.Stop();
+        }
+
+        //# 카이팅 한 프레임 — 월드 입력을 수집해 KiteBehavior 에 넘기고 상태별 이동·사격을 수행(로직은 KiteBehavior).
+        private void UpdateKite(Transform target, IHealth targetHealth)
+        {
+            Vector3 position = transform.position;
+            KiteInput input = new KiteInput
+            {
+                Position = position,
+                TargetDist = Vector3.Distance(position, target.position),
+                Range = _attacker.Range,
+                EngageBuffer = _engageBuffer,
+            };
+
+            Transform nearest = null;
+            IHealth nearestHealth = null;
+            if (_threatProbe != null && _threatProbe.TryFindNearestThreat(position, out nearest, out nearestHealth))
+            {
+                input.HasThreat = true;
+                input.NearestThreatPos = nearest.position;
+                input.NearestThreatDist = Vector3.Distance(position, nearest.position);
+            }
+            if (_targetProvider.TryGetFleeCentroid(position, _kite.Settings.ThreatRadius, out Vector3 centroid, out int count) && count > 0)
+            {
+                input.HasCentroid = true;
+                input.ThreatCentroid = centroid;
+            }
+
+            _kite.Update(Time.time, input);
+
+            switch (_kite.State)
+            {
+                case EKiteState.Approach:
+                    _engaged = false;
+                    _rotator?.FaceDirection(target.position - position);
+                    _mover.MoveTo(target.position);
+                    break;
+
+                case EKiteState.Engage:
+                    _engaged = true;
+                    _rotator?.FaceDirection(target.position - position, FacingMode.AttackAligned);
+                    _mover.Stop();
+                    TryKiteAttack(targetHealth, target, position);
+                    break;
+
+                case EKiteState.Retreat:
+                    //# 뒷걸음 — 시선은 가장 가까운 몬스터, 이동은 위협 반대. 사격 억제.
+                    if (nearest != null)
+                    {
+                        _rotator?.FaceDirection(nearest.position - position);
+                    }
+                    _mover.MoveTo(position + _kite.RetreatDirection * 5f);
+                    break;
+
+                default:
+                    //# 갇힘 — 후퇴 중단, 가장 가까운 몬스터에게 사격 허용.
+                    _mover.Stop();
+                    if (nearest != null)
+                    {
+                        _rotator?.FaceDirection(nearest.position - position, FacingMode.AttackAligned);
+                        TryKiteAttack(nearestHealth, nearest, position);
+                    }
+                    break;
+            }
+        }
+
+        //# 습격-이탈 한 프레임 — 표적 점수 선정 + 월드 입력 수집 후 SkirmishBehavior 에 넘기고 상태별 이동·공격을 수행(로직은 SkirmishBehavior).
+        private void UpdateSkirmish(Transform nearest, IHealth nearestHealth)
+        {
+            Vector3 position = transform.position;
+            Transform target = nearest;
+            IHealth targetHealth = nearestHealth;
+            if (_skirmishProbe != null && _skirmishProbe.TryGetThreatCandidates(position, _skirmish.Settings.HuntRadius, _skirmishCandidates))
+            {
+                int index = SkirmishBehavior.SelectTarget(_skirmishCandidates, position, _skirmishTarget, _skirmish.Settings.RetargetScoreMul);
+                if (index >= 0)
+                {
+                    target = _skirmishCandidates[index].Transform;
+                    targetHealth = _skirmishCandidates[index].Health;
+                }
+            }
+
+            SkirmishInput input = new SkirmishInput
+            {
+                Position = position,
+                HasTarget = target != null,
+                TargetChanged = target != _skirmishTarget,
+                TargetDist = target != null ? Vector3.Distance(position, target.position) : 0f,
+                Range = _attacker.Range,
+                EngageBuffer = _engageBuffer,
+            };
+            _skirmishTarget = target;
+
+            if (_targetProvider.TryGetFleeCentroid(position, _skirmish.Settings.CrowdRadius, out Vector3 crowdCentroid, out int crowdCount))
+            {
+                input.CrowdCount = crowdCount;
+            }
+            if (_targetProvider.TryGetFleeCentroid(position, SkirmishBehavior.CentroidRadius, out Vector3 centroid, out int count) && count > 0)
+            {
+                input.HasCentroid = true;
+                input.Centroid = centroid;
+            }
+
+            if (_skirmish.Update(Time.time, input))
+            {
+                BeginSlip(input);
+                return;
+            }
+
+            if (target == null)
+            {
+                _mover.Stop();
+                return;
+            }
+
+            switch (_skirmish.State)
+            {
+                case ESkirmishState.Engage:
+                    _engaged = true;
+                    _rotator?.FaceDirection(target.position - position, FacingMode.AttackAligned);
+                    _mover.Stop();
+                    TryKiteAttack(targetHealth, target, position);
+                    break;
+
+                default:
+                    _engaged = false;
+                    _rotator?.FaceDirection(target.position - position);
+                    _mover.MoveTo(target.position);
+                    break;
+            }
+        }
+
+        //# 슬립 시작 — 군중 반대 방향으로 slipDuration 도약 + slipInvuln 무적 + 잔상 FX. 이동 소유권은 도약 보간(TimeStop 중엔 Update 게이트가 막는다).
+        private void BeginSlip(SkirmishInput input)
+        {
+            SkirmishSettings settings = _skirmish.Settings;
+            Vector3 origin = transform.position;
+            Vector3 destination = SkirmishBehavior.ComputeSlipDestination(origin, input.HasCentroid, input.Centroid, settings.SlipDistance, ClampToArena);
+            Vector3 away = destination - origin;
+            away.y = 0f;
+            if (away.sqrMagnitude > 0.0001f)
+            {
+                _rotator?.FaceDirection(away);
+            }
+            _invulnerable?.GrantInvulnerability(settings.SlipInvulnSec);
+            HeroSkillFx.SpawnAtRequired(EVisual.HeroSlipFx, origin, 1f, Quaternion.identity);
+            BeginLeap(destination, settings.SlipDurationSec);
+        }
+
+        //# 영웅 흐름 역전(DeferStrike) 개시 판정 — 기존 경로와 같은 호출. 사거리·쿨다운은 TryBeginAttack 이 검사.
+        private void TryKiteAttack(IHealth health, Transform target, Vector3 position)
+        {
+            if (_attacker.DeferStrike == false)
+            {
+                _attacker.TryAttack(health, position, target.position, Time.time);
+            }
+            else if (_attacker.TryBeginAttack(health, position, target.position, Time.time))
+            {
+                _attackGate?.BeginAttack();
             }
         }
 

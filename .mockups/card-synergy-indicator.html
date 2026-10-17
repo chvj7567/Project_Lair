@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시너지 진행도 시안 (범위 축소판)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
+<style>
+:root{
+  --bg:#0b0d12;--fg:#e5e7eb;--muted:#9ca3af;--line:#262b36;--card:#141821;
+  --ink:#07090e;--stone0:#10141d;--stone1:#171d2a;--stone2:#222a3b;--stone3:#313b52;--stone4:#48546e;
+  --bone:#e8e1cf;--bone2:#b9b09a;--txt:#eef1f6;--sub:#8e98ad;
+  --soul:#5ef0b4;--soul2:#1f9e74;--gold:#f7c64a;--gold2:#b9832a;
+  --px:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.45}
+img{image-rendering:pixelated}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0}
+p.lead{color:var(--muted);font-size:13.5px;margin:0 0 10px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 12px;border:1px solid var(--line);background:var(--card);border-radius:10px;margin:8px 0}
+.ctl .ax{display:flex;align-items:center;gap:6px;font-size:13px}
+.ctl button,.tabs button{font:inherit;font-size:13px;color:var(--fg);background:#1c2230;border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tabs button.on{background:#2a3550;border-color:#5b6b95}
+.note{font-size:12.5px;color:var(--muted);margin:8px 0}
+.note b{color:var(--fg)}
+.fit{overflow-x:auto;border-radius:10px;border:1px solid var(--line)}
+.screen{width:960px;height:540px;position:relative;overflow:hidden;
+  font-family:"Galmuri11","Galmuri9","Noto Sans KR",monospace;color:var(--txt);font-size:14px;line-height:1.3}
+.tray{display:flex;gap:30px;padding:16px;border-radius:10px;border:1px solid var(--line);margin-top:10px;
+  background:repeating-conic-gradient(#1a1f2a 0 25%,#151922 0 50%) 0 0/16px 16px;font-family:"Galmuri11","Galmuri9","Noto Sans KR",monospace;font-size:14px;color:var(--txt)}
+.tray .cap{font-family:"Noto Sans KR";font-size:11px;color:#9aa3b5;margin-bottom:6px}
+.hide{display:none}
+.pxbox{position:relative;background:var(--stone2);
+  box-shadow:0 calc(var(--px)*-1) 0 0 var(--ink),0 var(--px) 0 0 var(--ink),calc(var(--px)*-1) 0 0 0 var(--ink),var(--px) 0 0 0 var(--ink),
+  inset 0 var(--px) 0 0 var(--stone4),inset 0 calc(var(--px)*-1) 0 0 var(--stone0),inset var(--px) 0 0 0 var(--stone3),inset calc(var(--px)*-1) 0 0 0 var(--stone0)}
+.pxbox.dark{background:var(--stone1);
+  box-shadow:0 calc(var(--px)*-1) 0 0 var(--ink),0 var(--px) 0 0 var(--ink),calc(var(--px)*-1) 0 0 0 var(--ink),var(--px) 0 0 0 var(--ink),
+  inset 0 var(--px) 0 0 var(--ink),inset 0 calc(var(--px)*2) 0 0 rgba(0,0,0,.25),inset 0 calc(var(--px)*-1) 0 0 var(--stone3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;min-height:40px;cursor:pointer;font:inherit;color:#effff8;border:0;background:var(--soul2);
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 0 var(--soul),inset 0 -5px 0 0 #0e5a41}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;background:var(--ink);color:var(--gold);box-shadow:0 0 0 2px var(--gold2)}
+.bg-arena{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 55% at 50% 55%,rgba(255,255,255,.04),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 36px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 36px),
+  linear-gradient(#232a36,#1b212c)}
+.dim{position:absolute;inset:0;background:rgba(4,6,10,.72)}
+
+/*# 7칸 진행 트랙: 3·5·7번째 칸이 Tier 칸 */
+.trk{display:flex;gap:2px}
+.trk i{display:block;width:19px;height:7px;background:#0b0e14;box-shadow:0 0 0 1px var(--ink)}
+.trk i.m{box-shadow:0 0 0 2px var(--bone2)}
+.trk i.f{background:var(--c)}
+.trk i.f.m{box-shadow:0 0 0 2px var(--bone),0 0 0 4px var(--ink)}
+.trk i.nw{animation:newcell .6s steps(3) 1}
+@keyframes newcell{0%{background:#fff}100%{background:var(--c)}}
+.glyph svg{display:block;width:100%;height:100%}
+
+/*# 시너지 행 (HUD 패널 = 선택창 칩 공용 위젯) */
+.sync{display:flex;flex-direction:column;gap:4px;padding:5px 8px;font-size:12px;height:44px;width:170px}
+.sync .l1{display:flex;align-items:center;gap:8px;height:22px}
+.sync .si{width:22px;height:22px;flex:none}
+.sync .nm{flex:1}
+.sync .ct{font-size:12px;color:var(--c)}
+.sync.on{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 3px 0 0 0 var(--c)}
+.sync.dimmed{opacity:.55}
+.sync.old{flex-direction:row;align-items:center;gap:8px;height:32px}
+.sync.old .mk{display:flex;gap:3px}
+.sync.old .mk i{width:9px;height:9px;background:#0b0e14;box-shadow:0 0 0 2px var(--ink)}
+.sync.old .mk i.on{background:var(--c)}
+
+/*# 전투 HUD */
+.timer{position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:6px 22px 8px;font-size:30px;color:var(--bone);text-align:center;min-width:150px}
+.timer small{display:block;font-size:10px;letter-spacing:3px;color:var(--sub);margin-top:-2px}
+.syn{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;width:170px}
+.synhd{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 2px}
+.build{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px;padding:8px 10px}
+.bsec{display:flex;flex-direction:column;gap:5px}
+.bsec .lb{font-size:10px;letter-spacing:2px;color:var(--sub);display:flex;align-items:center;gap:6px}
+.bsec .lb::before{content:"";width:7px;height:7px;background:var(--c)}
+.bsec .icons{display:flex;gap:6px}
+.bic{width:44px;height:44px;position:relative;padding:3px;background:#0c1017;box-shadow:0 0 0 3px var(--ink),inset 0 0 0 2px var(--c)}
+.bic img{width:100%;height:100%;object-fit:cover}
+.bic .n{position:absolute;right:-5px;bottom:-6px;font-size:10px;padding:0 3px;background:var(--ink);color:var(--gold)}
+.bic.emp{background:repeating-linear-gradient(45deg,#11151d 0 3px,#0c1017 3px 6px);box-shadow:0 0 0 3px var(--ink),inset 0 0 0 2px #232a37}
+.bsep{width:3px;background:var(--ink)}
+
+/*# 카드 선택창 (기존 레이아웃 그대로) */
+.cs-title{position:absolute;left:0;right:0;top:26px;text-align:center}
+.cs-title .t{font-size:26px;color:var(--bone);text-shadow:3px 3px 0 var(--ink)}
+.cs-title .s{font-size:12px;letter-spacing:2px;color:var(--soul)}
+.cards{position:absolute;left:0;right:0;top:92px;display:flex;justify-content:center;gap:28px}
+.cardv{width:210px;display:flex;flex-direction:column;padding:6px;background:var(--stone1);position:relative;cursor:pointer;
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 3px var(--soul),inset 0 0 0 6px var(--ink)}
+.cardv .art{height:200px;margin:6px 6px 0;position:relative;overflow:hidden;box-shadow:0 0 0 2px var(--ink)}
+.cardv .art img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.cardv .art::after{content:"";position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(transparent,rgba(8,10,16,.95))}
+.cardv .kind{position:absolute;left:10px;top:10px;z-index:2;font-size:10px;letter-spacing:2px;padding:2px 6px;background:var(--ink);color:var(--soul)}
+.cardv .cb{position:absolute;right:10px;top:10px;z-index:2}
+/*# 신규: 카드 축 아이콘 — 좌상단 패시브 라벨 바로 아래, 24x24(도안 12x12 의 2배) + 축 색 2px 테두리 */
+.cardv .axi{position:absolute;left:10px;top:36px;z-index:2;width:28px;height:28px;padding:2px;background:#0c1017;box-shadow:0 0 0 2px var(--ink),inset 0 0 0 2px var(--c)}
+.cardv .nm{font-size:17px;color:var(--bone);text-align:center;margin:-26px 0 0;position:relative;z-index:2;text-shadow:2px 2px 0 var(--ink)}
+.cardv .ds{font-size:12.5px;color:#cfd5e2;text-align:center;min-height:52px;padding:8px 10px 6px;display:flex;align-items:center;justify-content:center}
+.cardv .btn{margin:0 8px 8px}
+.chips{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:12px}
+.chips .cap2{position:absolute;left:0;right:0;top:-18px;text-align:center;font-size:10px;letter-spacing:2px;color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>시너지 진행도 시안 (범위 축소판)</h1>
+  <p class="lead">기획서 <code>docs/design/card-synergy-indicator.md</code> 합의용. 카드 이미지는 <code>/cardart/</code> 에서 읽으므로 <b>http://localhost:8777/card-synergy-indicator.html</b> 로 여세요. 범위: ① 카드 선택창 하단 "내 시너지" 4칩 ② 배틀 HUD 우상단 시너지 패널 ③ 카드 모서리 축 아이콘 1개.</p>
+  <div class="ctl" id="ctl"></div>
+  <div class="tabs" id="tabs"><button data-t="pick" class="on">카드 선택창</button><button data-t="hud">전투 HUD</button></div>
+
+  <section id="v-pick">
+    <div class="fit"><div class="screen" id="scr-pick"></div></div>
+    <p class="note">카드 레이아웃(폭 210·일러스트 200)은 그대로이고, 왼쪽 위 <b>패시브 라벨 바로 아래</b>에 축 아이콘 하나만 추가했습니다(24×24, 텍스트·진행도 없음). 오른쪽 위 <code>1/3</code> 배지와 겹치지 않습니다. 하단 4칩은 HUD 시너지 패널과 같은 위젯입니다. 카드를 누르면 해당 축 장수가 +1 되어 칩이 바뀝니다(시안용 동작, 실제 게임에서 칩은 읽기 전용).</p>
+  </section>
+  <section id="v-hud" class="hide">
+    <div class="fit"><div class="screen" id="scr-hud"></div></div>
+    <div class="tray" id="oldnew"></div>
+    <p class="note"><b>오른쪽 위 시너지 패널</b>: 점 3개 대신 7칸 트랙(3·5·7번째 칸 = Tier 칸, 흰 테두리)과 <code>장수/다음 임계</code> 숫자(Tier 활성 시 <code>T1</code> 등 부착, 7장 이상은 <code>7+ T3</code>)를 보여 줍니다. <b>0장만 흐리게</b>, 1~2장은 흐리지 않습니다. 아래 비교는 변경 전/후입니다. 빌드 바는 기존 그대로입니다.</p>
+  </section>
+</div>
+<script>
+const PAL={k:'#07090e',b:'#e8e1cf',s:'#b9b09a',g:'#f7c64a',o:'#b9832a',t:'#5ef0b4',d:'#1f9e74',r:'#e5484d',p:'#b58cff',w:'#8e98ad'};
+const GL={
+shield:['kkkkkkkkkkkk','kbbbbbbbbbsk','kbwwwwwwwwsk','kbwwwbbwwwsk','kbwwwbbwwwsk','kbwbbbbbbwsk','kbwwwbbwwwsk','.kbwwbbwwsk.','.kbwwwwwwsk.','..kbwwwwsk..','...kbwwsk...','....kkkk....'],
+sword:['.........kkk','........kbbk','.......kbbsk','......kbbsk.','.....kbbsk..','.k..kbbsk...','kgk.kbsk....','.kgkbsk.....','..kgkk......','.kokgk......','kok.kgk.....','kk...k......'],
+swarm:['..kkk.......','.kttdk..kkk.','.ktkdk.kttdk','.kttdk.ktkdk','..kkk..kttdk','.......kkkk.','...kkk......','..kttdk.kkk.','..ktkdkkttdk','..kttdkktkdk','..kdkdkkttdk','...k.k..kkk.'],
+curse:['...kkkkkk...','..kppppppk..','.kppppppppk.','.kpkkppkkpk.','.kpkbppkbpk.','.kppppppppk.','..kpppkppk..','...kpppppk..','...kpkpkpk..','....kkkkk...','.k........k.','kpk......kpk']};
+function gl(n){let r='';GL[n].forEach((row,y)=>[...row].forEach((c,x)=>{if(c!=='.')r+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`}));
+  return `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${r}</svg>`}
+const AXES=['tank','swarm','dps','debuff'];
+const AX={tank:{n:'TANK',c:'#5aa9ff',g:'shield'},swarm:{n:'SWARM',c:'#7be36a',g:'swarm'},dps:{n:'DPS',c:'#ff6b5a',g:'sword'},debuff:{n:'DEBUFF',c:'#c08bff',g:'curse'}};
+const TH=[3,5,7];
+const tierOf=c=>TH.filter(t=>c>=t).length;
+const nextOf=c=>TH.find(t=>c<t)||-1;
+const POOL=[
+ {id:'SpawnWraith',nm:'더 많은 망령',ds:'망령 스포너 출력 +1',ax:'tank'},
+ {id:'WispHpBoost',nm:'끈질긴 도깨비불',ds:'도깨비불 HP 증가',ax:'tank'},
+ {id:'SpawnPhantoms',nm:'더 많은 환령',ds:'환령 스포너 출력 +1',ax:'swarm'},
+ {id:'SpawnerHaste',nm:'던전의 박동',ds:'모든 스포너 주기 -20% (영구)',ax:'swarm'},
+ {id:'HexRangeBoost',nm:'저주의 시야',ds:'모든 저주술사 사거리 +40%',ax:'dps'},
+ {id:'ReaperAtkSpeed',nm:'사신의 질주',ds:'사신 공격 속도 증가',ax:'dps'},
+ {id:'SpawnPlagues',nm:'더 많은 역병귀',ds:'역병귀 스포너 출력 +1',ax:'debuff'},
+ {id:'PlagueSlowBoost',nm:'끈적한 역병',ds:'역병귀 둔화 강화',ax:'debuff'}];
+const byId=id=>POOL.find(p=>p.id===id);
+const S={counts:{tank:2,swarm:3,dps:1,debuff:0},
+ passive:[{id:'SpawnWisps',n:2},{id:'SpawnerHaste',n:1},{id:'WispHpBoost',n:1},{id:'ReaperAtkSpeed',n:1}],
+ active:[{id:'IronWill',n:1}],choices:['SpawnWraith','SpawnPhantoms','SpawnPlagues']};
+function trk(c,color,nw){let h=`<div class="trk" style="--c:${color}">`;
+ for(let i=0;i<7;i++){const m=(i===2||i===4||i===6)?' m':'';let k=i<c?' f':'';if(nw&&i===c-1)k+=' nw';h+=`<i class="${(k+m).trim()}"></i>`}return h+'</div>'}
+function syncRow(ax,nw,c0){const c=c0===undefined?S.counts[ax]:c0,A=AX[ax],t=tierOf(c),n=nextOf(c);
+ const ct=c>=7?`${c}+ T3`:`${c}/${n}${t>0?` T${t}`:''}`;
+ return`<div class="pxbox sync ${t>0?'on':''} ${c===0?'dimmed':''}" style="--c:${A.c}"><div class="l1"><span class="si glyph">${gl(A.g)}</span><span class="nm">${A.n}</span><span class="ct">${ct}</span></div>${trk(c,A.c,nw===ax)}</div>`}
+function oldRow(ax){const t=tierOf(S.counts[ax]),A=AX[ax];
+ return`<div class="pxbox sync old ${t>0?'on':'dimmed'}" style="--c:${A.c}"><span class="si glyph">${gl(A.g)}</span><span class="nm">${A.n}</span><span class="mk">${[0,1,2].map(i=>`<i class="${i<t?'on':''}"></i>`).join('')}</span></div>`}
+function cardHtml(c,badge){const A=AX[c.ax];
+ return`<div class="cardv" data-pick="${c.id}"><span class="kind">패시브</span><span class="badge cb">${badge}</span>
+  <span class="axi glyph" style="--c:${A.c}">${gl(A.g)}</span>
+  <div class="art"><img src="/cardart/${c.id}.png"></div><div class="nm">${c.nm}</div><div class="ds">${c.ds}</div><button class="btn">선택</button></div>`}
+function bic(e,col){return`<div class="bic" style="--c:${col}"><img src="/cardart/${e.id}.png">${e.n>=2?`<span class="n">×${e.n}</span>`:''}</div>`}
+function pad(l,min,col){let h=l.map(e=>bic(e,col)).join('');for(let i=l.length;i<min;i++)h+=`<div class="bic emp" style="--c:${col}"></div>`;return h}
+function renderPick(){
+ document.getElementById('scr-pick').innerHTML=`<div class="bg-arena"></div><div class="dim"></div>
+  <div class="cs-title"><div class="t">카드 선택</div><div class="s">패시브 · 영웅 HP 60% 도달</div></div>
+  <div class="cards">${S.choices.map((id,i)=>cardHtml(byId(id),i===2?'':'1/3')).join('')}</div>
+  <div class="chips"><div class="cap2">내 시너지</div>${AXES.map(a=>syncRow(a)).join('')}</div>`;
+ document.querySelectorAll('[data-pick]').forEach(el=>el.onclick=()=>pick(el.dataset.pick));
+ document.querySelectorAll('#scr-pick .cb').forEach(b=>{if(!b.textContent)b.remove()});
+}
+function renderHud(nw){
+ document.getElementById('scr-hud').innerHTML=`<div class="bg-arena"></div>
+  <div class="pxbox dark timer">2:37<small>남은 시간</small></div>
+  <div class="syn"><div class="synhd"><span>시너지</span><span>상세 ›</span></div>${AXES.map(a=>syncRow(a,nw)).join('')}</div>
+  <div class="pxbox dark build">
+   <div class="bsec" style="--c:var(--soul)"><div class="lb">패시브</div><div class="icons">${pad(S.passive,9,'var(--soul)')}</div></div><div class="bsep"></div>
+   <div class="bsec" style="--c:var(--gold)"><div class="lb">액티브</div><div class="icons">${pad(S.active,5,'var(--gold)')}</div></div></div>
+  <div style="position:absolute;left:14px;top:14px;font-size:11px;color:var(--sub);line-height:1.5">스포너 현황·영웅·HP 바 등<br>다른 HUD 요소는 이 시안에서 생략</div>`;
+ document.getElementById('oldnew').innerHTML=`<div><div class="cap">변경 전 (점 3개, 숫자 없음)</div><div style="display:flex;flex-direction:column;gap:6px">${AXES.map(oldRow).join('')}</div></div><div><div class="cap">변경 후</div><div style="display:flex;flex-direction:column;gap:6px">${AXES.map(a=>syncRow(a)).join('')}</div></div>`;
+}
+function pick(id){const c=byId(id);S.counts[c.ax]++;
+ const e=S.passive.find(x=>x.id===id);if(e)e.n++;else S.passive.push({id,n:1});
+ reroll();renderAll(c.ax)}
+function reroll(){const ids=POOL.map(p=>p.id).sort(()=>Math.random()-.5);const out=[],used=new Set();
+ for(const id of ids){const a=byId(id).ax;if(!used.has(a)&&out.length<3){out.push(id);used.add(a)}}S.choices=out}
+function renderCtl(){document.getElementById('ctl').innerHTML=AXES.map(a=>`<span class="ax" style="color:${AX[a].c}">${AX[a].n} <button data-a="${a}" data-d="-1">−</button><b style="color:var(--fg);min-width:16px;text-align:center">${S.counts[a]}</b><button data-a="${a}" data-d="1">＋</button></span>`).join('')
+ +`<button id="p7">TANK 7장</button><button id="p0">전부 0장</button><button id="pd">기본값</button>`;
+ document.querySelectorAll('#ctl [data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;S.counts[a]=Math.max(0,Math.min(9,S.counts[a]+(+b.dataset.d)));renderAll()});
+ document.getElementById('p7').onclick=()=>{S.counts.tank=7;renderAll()};
+ document.getElementById('p0').onclick=()=>{S.counts={tank:0,swarm:0,dps:0,debuff:0};renderAll()};
+ document.getElementById('pd').onclick=()=>{S.counts={tank:2,swarm:3,dps:1,debuff:0};renderAll()}}
+function renderAll(nw){renderPick();renderHud(nw);renderCtl()}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+ ['pick','hud'].forEach(t=>document.getElementById('v-'+t).classList.toggle('hide',t!==b.dataset.t))});
+renderAll();
+</script>
+</body>
+</html>

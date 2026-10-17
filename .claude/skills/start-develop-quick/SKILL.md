@@ -9,7 +9,7 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 
 사용자가 **명시적으로 호출했거나, 메인 오케스트레이터가 제시한 후보 중 사용자가 선택한 경우에만** 발동한다. 이 프로젝트의 협업 흐름 4종 중 가장 가볍다 — `gameplay-programmer` 만 돌린다.
 
-오타 · 리네임 · 문구·색상값 변경 · 단일 함수 안의 소규모 버그 수정 같은 **사소한 수정** 전용. 본격 기능 · 머지 대상 · 회귀 위험 있는 변경은 `start-develop` 또는 `start-develop-auto` / `start-develop-simple` 을 쓴다.
+오타 · 리네임 · 문구·색상값 변경 · 단일 함수 안의 소규모 버그 수정 같은 **사소한 수정** 전용. 본격 기능 · 머지 대상 · 회귀 위험 있는 변경은 `start-develop` 또는 `start-develop-auto` 를 쓴다.
 
 메인 오케스트레이터는 **직접 코드를 짜지 않는다** (Rule 00 "메인 오케스트레이터 행동 규칙"). 각 단계를 해당 서브에이전트에 위임한다.
 
@@ -38,7 +38,7 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 ## 규칙
 
 - 코딩 룰(`.claude/rules/00~04`) 과 `project.md` 의 현재 단계 범위(`stage` · `stage_goal` · `concept_doc`) 는 그대로 적용된다. 단계가 빠질 뿐 룰이 사라진 게 아니다.
-- `test-engineer` 를 스킵한다. 회귀 위험은 gameplay-programmer 의 자체 스모크 확인에 의존하며, 본격 회귀 테스트가 필요한 작업이면 본 스킬 대신 `start-develop-simple` 이상을 사용한다.
+- `test-engineer` 를 스킵한다. 회귀 위험은 gameplay-programmer 의 자체 스모크 확인에 의존하며, 본격 회귀 테스트가 필요한 작업이면 본 스킬 대신 `start-develop-auto` 이상을 사용한다.
 - `qa-simulator` 도 포함하지 않는다. 밸런스 의심이 생기면 마무리 후 사용자에게 별도 호출을 제안한다.
 
 ## 사용 시점 가이드
@@ -47,7 +47,6 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 |---|---|
 | 본격 기능, 사람 검토 게이트 필요 | `start-develop` |
 | 본격 기능, 승인 게이트 없이 자동 진행 | `start-develop-auto` |
-| 버릴 수도 있는 프로토타입, 가장 빠르게 | `start-develop-simple` |
 | **사소한 수정 · 작은 버그 수정 · 리네임 · 문구 변경** | **`start-develop-quick` (이 스킬)** |
 
 ## 에이전트 세션 관리

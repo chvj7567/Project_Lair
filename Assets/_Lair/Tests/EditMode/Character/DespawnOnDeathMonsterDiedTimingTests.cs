@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Lair.Character;
 
 namespace Lair.Tests.Character
@@ -18,6 +20,13 @@ namespace Lair.Tests.Character
         public void TearDown()
         {
             if (_go != null) Object.DestroyImmediate(_go);
+        }
+
+        //# 풀(CHPoolable) 없는 몬스터는 DespawnNow 가 Destroy 로 폴백 — EditMode 에선 Destroy 가 에러 로그만 남기고 무동작(정리는 TearDown 의 DestroyImmediate).
+        //# 지연 0 으로 HandleDied 를 부르는 테스트는 그 에러 1건을 명시적으로 기대한다(검증 대상은 MonsterDied 발행 시점).
+        private static void ExpectEditModeDestroyError()
+        {
+            LogAssert.Expect(LogType.Error, new Regex("Destroy may not be called from edit mode"));
         }
 
         private static void InvokeHandleDied(DespawnOnDeath component)
@@ -66,6 +75,7 @@ namespace Lair.Tests.Character
             _go = new GameObject("MonsterUT", typeof(Health), typeof(MonsterTag));
             DespawnOnDeath despawn = _go.AddComponent<DespawnOnDeath>();
             SetDelay(despawn, 0f);
+            ExpectEditModeDestroyError();
 
             bool fired = false;
             void Handler(Vector3 pos) => fired = true;
@@ -98,6 +108,10 @@ namespace Lair.Tests.Character
             Health health = _go.GetComponent<Health>();
             DespawnOnDeath despawn = _go.AddComponent<DespawnOnDeath>();
             SetDelay(despawn, delay);
+            if (delay <= 0f)
+            {
+                ExpectEditModeDestroyError();
+            }
 
             InvokeVoid(health, "Awake");     //# Current = Max
             InvokeVoid(despawn, "Awake");    //# _health 캐시
@@ -125,6 +139,7 @@ namespace Lair.Tests.Character
             _go = new GameObject("HeroUT", typeof(Health));   //# MonsterTag 미부착
             DespawnOnDeath despawn = _go.AddComponent<DespawnOnDeath>();
             SetDelay(despawn, 0f);
+            ExpectEditModeDestroyError();
 
             bool fired = false;
             void Handler(Vector3 pos) => fired = true;

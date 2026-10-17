@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>마을 HUD 비주얼 리디자인 시안 (VillageHud, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--soul:#5ef0b4;--sky:#5aa9ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar label{color:var(--sub)}
+#msg{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:#15151c}
+#bd{position:absolute;left:0;top:0;width:1280px;height:720px;image-rendering:pixelated}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.lbl{color:#9aa5bd;font-size:12px}
+.gold{color:var(--gold)}.soul{color:var(--soul)}
+.v{font-size:22px;color:var(--txt);text-shadow:2px 2px 0 #000a}
+/* 패널 */
+.pnl{position:absolute;background:linear-gradient(180deg,#1a2132,#111726);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 6px 0 #0006}
+.pnl.glass{background:linear-gradient(180deg,#1a2132ee,#111726ee)}
+.corner{position:absolute;width:16px;height:16px;border:3px solid var(--gold);filter:drop-shadow(0 0 4px #f7c64a88);z-index:3}
+.corner.tl{border-right:0;border-bottom:0}.corner.tr{border-left:0;border-bottom:0}.corner.bl{border-right:0;border-top:0}.corner.br{border-left:0;border-top:0}
+/* 상단바 */
+#top{position:absolute;left:0;top:0;width:1280px;height:88px;background:linear-gradient(180deg,#27304a,#0f131e 85%);border-bottom:3px solid var(--ink);box-shadow:0 3px 0 #6b5a2a,0 8px 18px #000a;z-index:2}
+.avatar{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a5a86,#1b2236 70%);border:3px solid var(--ink);box-shadow:0 0 0 3px #b9832a,0 0 14px #f7c64a66,inset 0 3px 0 #ffffff33;z-index:3;overflow:hidden}
+.avatar img{width:40px;margin:7px;image-rendering:pixelated}
+.xp{position:absolute;height:16px;background:#080b12;border:2px solid var(--ink);box-shadow:inset 0 2px 0 #000a,0 0 0 1px #3a4764;z-index:3;overflow:hidden}
+.xp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ffe58a,#e0a21c 55%,#b9832a);box-shadow:0 0 8px #f7c64aaa}
+.xp i::after{content:"";position:absolute;left:0;right:0;top:1px;height:3px;background:#ffffff66}
+.soulchip{position:absolute;background:linear-gradient(180deg,#0b1a17,#07100e);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #1f9e7466,0 0 14px #5ef0b422;z-index:3}
+.cbtn{position:absolute;z-index:3}
+.reddot{position:absolute;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a8e,#c02a30);border:2px solid var(--ink);box-shadow:0 0 10px #e5484d;animation:pls 1.4s ease-in-out infinite}
+@keyframes pls{50%{transform:scale(1.18)}}
+/* 버튼 */
+.btn{position:absolute;background:linear-gradient(180deg,#3a4664,#262e48);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #7080aa,inset 0 -4px 0 #11172a,0 4px 0 #0007;cursor:pointer;color:var(--txt);text-align:center;transition:transform .1s}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.btn:active{transform:translateY(2px)}
+.btn .lb{position:absolute;left:0;right:0;bottom:8px;font-size:20px;line-height:28px;text-shadow:2px 2px 0 #000a}
+.btn .ico{position:absolute;left:50%;top:12px;width:56px;height:56px;margin-left:-28px;border-radius:50%;background:radial-gradient(circle,#ffffff22,transparent 70%);display:flex;align-items:center;justify-content:center}
+.btn .ico img{width:44px;height:44px;image-rendering:pixelated;filter:drop-shadow(0 2px 0 #000a)}
+.tile.on{outline:3px solid var(--gold);outline-offset:-3px}
+.cta{background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -5px 0 #5a0f17,0 0 24px #e5484d77,0 4px 0 #0007;font-size:30px;letter-spacing:2px;text-shadow:2px 2px 0 #0009;animation:glow 2.2s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -5px 0 #5a0f17,0 0 40px #e5484dcc,0 4px 0 #0007}}
+.cta::before{content:"";position:absolute;left:10px;right:10px;top:6px;height:12px;background:linear-gradient(180deg,#ffffff44,transparent);pointer-events:none}
+.cta.off{background:#232834;box-shadow:inset 0 -4px 0 #151922,0 4px 0 #0007;color:#6c7385;text-shadow:none;animation:none;letter-spacing:0;cursor:default}
+.cta.off::before{display:none}
+.arrow{position:absolute;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#3a4664,#262e48);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #7080aa,inset 0 -4px 0 #11172a,0 4px 0 #0007,0 0 14px #f7c64a33;color:var(--gold);text-shadow:0 0 8px var(--gold);cursor:pointer}
+.arrow:hover{filter:brightness(1.2)}
+.arrow.dis{opacity:.35;cursor:default;box-shadow:inset 0 -4px 0 #11172a;text-shadow:none}
+/* 전적 */
+.rec{position:absolute}
+.rec .bul{position:absolute;left:0;top:5px;width:8px;height:8px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 6px var(--gold)}
+.sepl{position:absolute;height:2px;background:linear-gradient(90deg,#f7c64a99,#f7c64a00)}
+/* 스테이지 카드 */
+.dots{position:absolute;display:flex;gap:6px}
+.dots i{width:13px;height:13px;transform:rotate(45deg);background:#0a0d14;border:2px solid #000;display:block}
+.dots i.on{background:linear-gradient(135deg,#ffe58a,#e0a21c);box-shadow:0 0 8px #f7c64acc}
+.lock{position:absolute;background:#000000b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:5;font-size:15px}
+.poster{position:absolute;background:#07090e;box-shadow:3px 3px 0 #04060a,0 0 18px #0009}
+.title{text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000}
+.ndiv{position:absolute;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>마을 HUD(VillageHud) 비주얼 리디자인 시안 — 현재 배치 유지, 마감 업그레이드</h1>
+  현재 사용자 에디터 배치(좌상단 메뉴 / 우상단 전적 / 우하단 침입자 카드 / 하단 중앙 영웅·방어하기, 홀로그램 영웅 중앙 노출)는 <b>좌표 그대로</b> 두고, 침입 지도 v2 와 같은 톤(금색 포인트 + 입체 그라데이션 + 은은한 글로우)으로 통일했습니다. 기능·문구·VM 불변.
+  <ol>
+    <li><b>상단바</b> - 그라데이션 + 하단 금색 라인. 영주 아바타는 금테 메달리온, 경험치 바는 금빛 광택 게이지, 소울은 녹색 테두리 칩, 계정 버튼 빨간 점은 맥동.</li>
+    <li><b>메뉴 타일 6종</b> - 입체 그라데이션 버튼 + 아이콘 뒤 은은한 원형 후광, 호버 시 살짝 떠오름. (지도 버튼은 침입 지도 아이콘 사용 — 기존 영웅 아이콘 슬롯)</li>
+    <li><b>전적 패널</b> - 금테 이중 프레임 + 모서리 장식, 항목마다 금색 마름모 불릿, 항목 사이 금색 구분선.</li>
+    <li><b>침입자 카드</b> - 같은 프레임. STAGE 제목 글로우 + 위협도 ★ 발광, 5칸 점은 <b>마름모 보석</b>(선택 단계까지 금빛 발광). 현상수배서·◀▶ 화살표(금색 쉐브론 + 은은한 발광) 위치는 동일.</li>
+    <li><b>하단 CTA</b> - 방어하기는 광택 + 붉은 글로우가 천천히 숨 쉬듯 맥동(잠금 시 무광 회색), 영웅 버튼은 일반 입체 버튼.</li>
+    <li><b>구현 메모</b> - Image 스프라이트(그라데이션·프레임·보석)와 Outline/Shadow, 단순 트윈(맥동)으로 구현 가능. 침입 지도 v2 에서 만든 프레임/그라데이션/모서리 스프라이트와 <code>UILoopMotion</code> 재사용. 레이아웃·문구·동작 변경 없음.</li>
+  </ol>
+</div>
+<div id="bar">
+  <span>스테이지</span><button id="sPrev">◀</button><span id="sNo">1</span><button id="sNext">▶</button>
+  <span>(해금: 스테이지 3까지)</span>
+  <label><input type="checkbox" id="cBd" checked> 배경 아트</label>
+  <span id="msg">버튼을 눌러 보세요</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 16px 격자. 상단바 h88 / 메뉴 112x112 2열3행 (16,104) 피치 128 / 전적 256x216 (1008,104) / ◀▶ 48x68 (416,326)·(816,326) / 침입자 카드 340x324 (924,380) / 영웅 100x72 (470,632) · 방어하기 232x72 (578,632). 홀로그램 영웅 영역(x520~760, y277~470)은 비움.
+</div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);const stg=$('#stage');
+const UNLOCKED=3;let stage=1;
+const ICON={Lord:'Icon_Castle',Shop:'Icon_Shop',Codex:'Icon_Codex',Quest:'Icon_Quest',Records:'Icon_Records',Ranking:'Icon_Rank',Hero:'Icon_Heroes',Cloud:'Icon_Account'};
+const NAME={Lord:'영주성',Shop:'상점',Codex:'도감',Quest:'퀘스트',Records:'기록',Ranking:'랭킹',Hero:'지도',Cloud:'계정'};
+const THREAT=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+function el(cls,x,y,w,h,html,style){const d=document.createElement('div');d.className=cls;d.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(style||'');if(html!==undefined)d.innerHTML=html;stg.appendChild(d);return d;}
+function text(x,y,w,h,s,cls,style){return el('t '+(cls||''),x,y,w,h,s,'line-height:'+h+'px;'+(style||''));}
+function say(s){$('#msg').textContent=s;}
+function corners(x,y,w,h){[['tl',x+5,y+5],['tr',x+w-21,y+5],['bl',x+5,y+h-21],['br',x+w-21,y+h-21]].forEach(q=>el('corner '+q[0],q[1],q[2],16,16,'','z-index:3'));}
+function tile(k,x,y){
+  const b=el('btn tile',x,y,112,112,'<div class="ico"><img src="/vicons/'+ICON[k]+'.png"></div><div class="lb">'+NAME[k]+'</div>');
+  b.onclick=()=>say(NAME[k]+' 팝업 열기 (기존 동작 그대로)');return b;}
+
+function render(){
+  stg.innerHTML='';
+  const bd=document.createElement('img');bd.id='bd';bd.src='/backdrop/Village_Backdrop.png';bd.style.display=$('#cBd').checked?'block':'none';stg.appendChild(bd);
+  //# 홀로그램 영웅 자리(참고)
+  el('abs',592,277,96,160,'홀로그램<br>영웅','border:1px dashed #5aa9ff88;background:linear-gradient(#5aa9ff22,#5aa9ff08);color:#9cc8ff;font-size:11px;display:flex;align-items:center;justify-content:center;text-align:center');
+
+  //# 상단바
+  const top=document.createElement('div');top.id='top';stg.appendChild(top);
+  el('avatar',20,14,60,60,'<img src="/vicons/Icon_Castle.png">');
+  text(96,2,220,30,'닉네임','v','z-index:3');
+  text(96,32,220,18,'영주 Lv 3','gold','z-index:3;font-size:15px;text-shadow:1px 1px 0 #000');
+  el('xp',96,58,170,16,'<i style="width:62%"></i>');
+  text(480,6,320,46,'영주의 둥지','v title','text-align:center;font-size:33px;color:var(--bone);z-index:3');
+  text(480,62,320,18,'LAIR OF THE LORD','lbl','text-align:center;z-index:3;letter-spacing:4px');
+  el('abs',500,54,280,2,'','background:linear-gradient(90deg,transparent,#f7c64a99,transparent);z-index:3');
+  el('soulchip',900,20,232,48,'<img src="/vicons/Glyph_Soul.png" style="position:absolute;left:12px;top:11px;width:20px;image-rendering:pixelated;filter:drop-shadow(0 0 6px #5ef0b4)">');
+  text(932,20,190,48,'1,234 소울','v soul','z-index:4;text-align:right;text-shadow:0 0 10px #5ef0b455,2px 2px 0 #000');
+  const c=el('btn cbtn',1148,18,112,52,'<img src="/vicons/Icon_Account.png" style="position:absolute;left:10px;top:4px;width:38px;height:38px;image-rendering:pixelated"><div class="lb" style="left:46px;right:auto;bottom:10px;font-size:17px">계정</div>');
+  c.onclick=()=>say('계정 팝업 열기');
+  c.appendChild(Object.assign(document.createElement('div'),{className:'reddot',style:'right:-8px;top:-8px'}));
+
+  //# 좌 메뉴
+  [['Lord',0,0],['Shop',1,0],['Codex',0,1],['Quest',1,1],['Records',0,2],['Ranking',1,2]].forEach(a=>tile(a[0],16+a[1]*128,104+a[2]*128));
+
+  //# 전적 패널
+  el('pnl glass',1008,104,256,216,'');corners(1008,104,256,216);
+  const vals=['기사 · '+stage+'단계',stage<=UNLOCKED?'3:42.1':'-',stage<=UNLOCKED?'7승 · 11판':'0승 · 0판'];
+  const lbs=['이번 침입자','최단 방어','이 스테이지 전적'];
+  for(let i=0;i<3;i++){
+    const y=104+16+i*64;
+    el('rec',1030,y+2,220,60,'<div class="bul"></div><div class="lbl" style="margin-left:18px">'+lbs[i]+'</div><div class="v" style="margin-left:18px;margin-top:4px">'+vals[i]+'</div>');
+    if(i<2)el('sepl',1030,y+60,210,2,'');
+  }
+
+  //# ◀▶
+  const a1=el('arrow'+(stage<=1?' dis':''),416,326,48,68,'◀','font-size:34px');
+  const a2=el('arrow'+(stage>=5?' dis':''),816,326,48,68,'▶','font-size:34px');
+  a1.onclick=()=>move(-1);a2.onclick=()=>move(1);
+
+  //# 침입자 카드
+  const px=924,py=380;
+  el('pnl glass',px,py,340,324,'');corners(px,py,340,324);
+  text(px+36,py+12,268,31,'STAGE '+stage,'v title','text-align:center;color:var(--bone)');
+  text(px+70,py+45,201,20,THREAT(stage),'gold','text-align:center;font-size:15px;text-shadow:0 0 8px #f7c64a88,1px 1px 0 #000');
+  el('ndiv',px+60,py+68,220,2,'');
+  const qx=px+72,qy=py+76;
+  el('poster',qx,qy,196,208-4,'');
+  el('abs',qx+4,qy+4,188,196,'','background:#d8c49a;background-image:repeating-linear-gradient(45deg,#b39a6628 0 2px,transparent 2px 4px);box-shadow:inset 0 0 0 2px #b39a66,inset 0 0 24px #7a5a2a66');
+  el('abs',qx+14,qy+28,168,164,'','background:radial-gradient(circle at 50% 40%,#3a2c1c,#1a120a);border:2px solid #3a2f22');
+  el('abs',qx+18,qy+32,160,156,'<img src="/vicons/Icon_Shield.png" style="width:60%;image-rendering:pixelated;filter:drop-shadow(0 0 10px #e5484d88)">','display:flex;align-items:center;justify-content:center');
+  text(qx+23,qy+8,150,20,'침입자','','text-align:center;font-size:15px;color:#3a2f22;font-weight:700;letter-spacing:2px');
+  [[6,6],[182,6],[6,190],[182,190]].forEach(n=>el('abs',qx+n[0],qy+n[1],8,8,'','background:radial-gradient(circle at 35% 30%,#8a98bc,#48546e);border:2px solid #07090e;border-radius:50%'));
+  let ds='';for(let i=0;i<5;i++)ds+='<i class="'+(i<stage?'on':'')+'"></i>';
+  el('dots',px+123,py+296,94,14,ds);
+  if(stage>UNLOCKED)el('lock',px+6,py+6,328,312,'<div style="color:var(--bone)">잠금</div><div style="color:var(--sub)">스테이지 '+(stage-1)+' 클리어 필요</div>');
+
+  //# 하단
+  const h=el('btn',470,632,100,72,'<img src="/vicons/Icon_Heroes.png" style="position:absolute;left:8px;top:14px;width:38px;height:38px;image-rendering:pixelated"><div class="lb" style="left:46px;right:auto;bottom:20px;font-size:19px">영웅</div>');
+  h.onclick=()=>say('영웅 선택 팝업(기존 동작)');
+  const s=el('btn cta'+(stage>UNLOCKED?' off':''),578,632,232,72,'<div style="line-height:66px">방어하기</div>');
+  s.onclick=()=>say(stage>UNLOCKED?'잠금 스테이지 — 출격 불가(기존 동작)':'출격(기존 동작)');
+}
+function move(d){const n=stage+d;if(n<1||n>5)return;stage=n;$('#sNo').textContent=n;render();}
+$('#sPrev').onclick=()=>move(-1);$('#sNext').onclick=()=>move(1);$('#cBd').onchange=render;
+function fit(){const w=document.documentElement.clientWidth-16;$('#wrap').style.zoom=w<1280?w/1280:1;}
+addEventListener('resize',fit);fit();render();
+</script>
+</body>
+</html>

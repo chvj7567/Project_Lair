@@ -11,6 +11,12 @@ namespace Lair.Tests.EditMode
         private static HeroStageVariantConfig MakeConfig(HeroStageVariant[] stages)
         {
             HeroStageVariantConfig cfg = ScriptableObject.CreateInstance<HeroStageVariantConfig>();
+            //# 엔트리 순서대로 선형 키(1~5 = 챕터 1) 부여 - GetStage 는 (챕터, 인덱스) 키로 조회한다.
+            for (int i = 0; stages != null && i < stages.Length; i++)
+            {
+                stages[i].ChapterId = i / 5 + 1;
+                stages[i].StageIndex = i % 5 + 1;
+            }
             TestReflection.SetField(cfg, "_stages", stages);
             return cfg;
         }
@@ -19,11 +25,11 @@ namespace Lair.Tests.EditMode
         {
             return new[]
             {
-                new HeroStageVariant { HpMultiplier = 1.00f },
-                new HeroStageVariant { HpMultiplier = 1.25f },
-                new HeroStageVariant { HpMultiplier = 1.55f },
-                new HeroStageVariant { HpMultiplier = 1.90f },
-                new HeroStageVariant { HpMultiplier = 2.30f },
+                new HeroStageVariant { ScaleMultiplier = 1.00f },
+                new HeroStageVariant { ScaleMultiplier = 1.25f },
+                new HeroStageVariant { ScaleMultiplier = 1.55f },
+                new HeroStageVariant { ScaleMultiplier = 1.90f },
+                new HeroStageVariant { ScaleMultiplier = 2.30f },
             };
         }
 
@@ -31,7 +37,7 @@ namespace Lair.Tests.EditMode
         public void GetStage_는_음수면_1스테이지로_클램프한다()
         {
             HeroStageVariantConfig cfg = MakeConfig(FiveStages());
-            Assert.AreEqual(1.00f, cfg.GetStage(-100).HpMultiplier);
+            Assert.AreEqual(1.00f, cfg.GetStage(-100).ScaleMultiplier);
         }
 
         [Test]
@@ -39,16 +45,16 @@ namespace Lair.Tests.EditMode
         {
             HeroStageVariantConfig cfg = MakeConfig(FiveStages());
             //# 5스테이지 목록에서 int.Max → 인덱스 클램프 → 5번째(2.30) 반환. 오버플로 없음.
-            Assert.AreEqual(2.30f, cfg.GetStage(int.MaxValue).HpMultiplier);
+            Assert.AreEqual(2.30f, cfg.GetStage(int.MaxValue).ScaleMultiplier);
         }
 
         [Test]
         public void GetStage_5스테이지_경계_1과5는_정확히_해당스테이지_6은_5로_클램프()
         {
             HeroStageVariantConfig cfg = MakeConfig(FiveStages());
-            Assert.AreEqual(1.00f, cfg.GetStage(1).HpMultiplier); //# 하한 정확
-            Assert.AreEqual(2.30f, cfg.GetStage(5).HpMultiplier); //# 상한 정확
-            Assert.AreEqual(2.30f, cfg.GetStage(6).HpMultiplier); //# 종점 초과 → 5로 클램프
+            Assert.AreEqual(1.00f, cfg.GetStage(1).ScaleMultiplier); //# 하한 정확
+            Assert.AreEqual(2.30f, cfg.GetStage(5).ScaleMultiplier); //# 상한 정확
+            Assert.AreEqual(2.30f, cfg.GetStage(6).ScaleMultiplier); //# 종점 초과 → 5로 클램프
         }
 
         [Test]
@@ -59,7 +65,6 @@ namespace Lair.Tests.EditMode
             HeroStageVariant v = cfg.GetStage(1);
             Assert.IsNotNull(v);
             Assert.AreEqual(1f, v.ScaleMultiplier);
-            Assert.AreEqual(1f, v.HpMultiplier);
         }
     }
 }

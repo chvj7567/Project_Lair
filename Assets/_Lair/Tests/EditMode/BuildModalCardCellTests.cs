@@ -68,5 +68,44 @@ namespace Lair.Tests.EditMode
 
             Object.DestroyImmediate(card);
         }
+
+        [Test]
+        public void Bind_종류색_장식에_rgb만_칠하고_알파는_보존()
+        {
+            Image deco = new GameObject("Deco").AddComponent<Image>();
+            deco.transform.SetParent(_cellGo.transform, false);
+            deco.color = new Color(1f, 1f, 1f, 0.65f);
+            typeof(BuildModalCardCell)
+                .GetField("_kindTinted", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(_cell, new Image[] { deco, null });
+            CardData card = MakeCard(null);
+
+            _cell.Bind(card, 1, true);
+            Assert.AreEqual(UiDotPalette.CardKind(true).g, deco.color.g, 0.005f);
+            Assert.AreEqual(0.65f, deco.color.a, 0.005f);
+
+            _cell.Bind(card, 1, false);
+            Assert.AreEqual(UiDotPalette.CardKind(false).b, deco.color.b, 0.005f);
+
+            Object.DestroyImmediate(card);
+        }
+
+        [Test]
+        public void Bind_배지장식은_2장이상일때만_켜지고_풀재사용시_꺼진다()
+        {
+            GameObject badge = new GameObject("Badge");
+            badge.transform.SetParent(_cellGo.transform, false);
+            typeof(BuildModalCardCell)
+                .GetField("_countBadgeDecor", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(_cell, badge);
+            CardData card = MakeCard(null);
+
+            _cell.Bind(card, 2, true);
+            Assert.IsTrue(badge.activeSelf);
+            _cell.Bind(card, 1, true);
+            Assert.IsFalse(badge.activeSelf);
+
+            Object.DestroyImmediate(card);
+        }
     }
 }

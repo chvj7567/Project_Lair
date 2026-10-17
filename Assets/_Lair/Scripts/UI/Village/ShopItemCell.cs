@@ -25,7 +25,25 @@ namespace Lair.UI
         //# 섹션 헤더 전용 위젯 그룹 (기획서 §1·2.1). 항목 행이면 전부 비활성.
         [SerializeField] private CHText _headerText;    //# 섹션 제목 ("스탯 강화"/"몬스터 강화")
         [SerializeField] private Image _headerBg;       //# 배너 밴드 배경 + 하단 구분선
-        [SerializeField] private Image _headerAccent;   //# 금 액센트 바 3×22 (#FBBF24)
+        [SerializeField] private Image _headerAccent;   //# 22x22 마름모 VillageHudGem (#5ef0b4)
+
+        //# UI 리디자인 — 레벨 5칸 눈금, 상태 링(구매 가능=소울 / MAX=금), 구매 버튼 스프라이트 3종(soul/off/gold). 미할당이면 기존 표시 유지.
+        [SerializeField] private Image[] _levelPips = new Image[0];
+        [SerializeField] private Image _stateRing;
+        [SerializeField] private GameObject _iconSlot;        //# 종족 아이콘 슬롯 — 스탯 항목(아이콘 없음)에선 숨긴다
+        [SerializeField] private RectTransform[] _textBlock = new RectTransform[0];   //# 슬롯이 없으면 왼쪽으로 당길 이름/설명/눈금
+        [SerializeField] private Image _buyButtonImage;
+        [SerializeField] private Sprite _buySoulSprite;
+        [SerializeField] private Sprite _buyOffSprite;
+        [SerializeField] private Sprite _buyGoldSprite;
+
+        //# 비주얼 폴리시 — 항목 행 전용 장식 그룹(헤더 행에서 숨김) + 상태색을 칠할 장식 2개(발광, 띠 순서).
+        [SerializeField] private GameObject _itemDecor;
+        [SerializeField] private Image[] _stateTinted = new Image[0];
+
+        //# 텍스트 블록 왼쪽 여백 — 아이콘 슬롯이 있을 때 / 없을 때.
+        private const float TextLeftWithIcon = 96f;
+        private const float TextLeftNoIcon = 20f;
 
         //# 다음 Lv 힌트 링 알파 배수 (§5.2 — ≈0.35×).
         private const float HintRingAlpha = 0.35f;
@@ -92,16 +110,62 @@ namespace Lair.UI
                 //# 버튼 문구 치환 — 구매 / 만렙 / 소울 부족 (기획서 §7). 프리팹 _buyLabel 은 stringID 미사용 전제.
                 string label = data.IsMax ? "만렙" : data.CanBuy ? "구매" : "소울 부족";
                 _buyLabel.SetText(label);
-                _buyLabel.SetColor(data.CanBuy ? BuyableColor : DisabledColor);
+                _buyLabel.SetColor(data.IsMax ? new Color32(0x07, 0x09, 0x0E, 0xFF) : data.CanBuy ? Color.white : DisabledColor);
             }
+            ApplyLevelPips(data);
+            ApplyBuyState(data);
 
             BindSpeciesGlow(data);
+        }
+
+        //# 레벨 5칸 눈금 — Level 칸까지 금색, 나머지 stone4. MaxLevel 을 넘는 칸은 숨긴다.
+        private void ApplyLevelPips(ShopItemCellData data)
+        {
+            for (int i = 0; i < _levelPips.Length; ++i)
+            {
+                if (_levelPips[i] == null)
+                    continue;
+                _levelPips[i].gameObject.SetActive(i < data.MaxLevel);
+                _levelPips[i].color = i < data.Level ? UiDotPalette.Gold : UiDotPalette.Stone4;
+            }
+        }
+
+        //# 구매 상태 스킨 — 구매 가능=soul 버튼 + 소울 링, 만렙=금 버튼 + 금 링, 소울 부족=off 버튼.
+        private void ApplyBuyState(ShopItemCellData data)
+        {
+            Sprite sprite = data.IsMax ? _buyGoldSprite : data.CanBuy ? _buySoulSprite : _buyOffSprite;
+            if (_buyButtonImage != null && sprite != null)
+            {
+                _buyButtonImage.sprite = sprite;
+            }
+            if (_stateRing != null)
+            {
+                bool show = data.CanBuy || data.IsMax;
+                _stateRing.gameObject.SetActive(show);
+                _stateRing.color = data.IsMax ? UiDotPalette.Gold : UiDotPalette.Soul;
+            }
+            ApplyStateTint(data.IsMax ? UiDotPalette.Gold : UiDotPalette.Soul);
+        }
+
+        //# 상태 장식(발광·띠) 색 칠하기 — rgb 만 교체하고 프리팹 알파는 보존.
+        private void ApplyStateTint(Color state)
+        {
+            if (_stateTinted == null)
+                return;
+            for (int i = 0; i < _stateTinted.Length; ++i)
+            {
+                if (_stateTinted[i] == null)
+                    continue;
+                Color current = _stateTinted[i].color;
+                _stateTinted[i].color = new Color(state.r, state.g, state.b, current.a);
+            }
         }
 
         //# 종족 강화 셀의 아이콘 + 발광 프레임 표시. 글로벌 항목(Icon/Species null)이면 세 위젯 모두 숨김(풀 재사용 잔존 방지 Rule 03 §4).
         private void BindSpeciesGlow(ShopItemCellData data)
         {
             bool isSpecies = data.Icon != null && data.Species.HasValue && data.MaxLevel > 0;
+            ApplyIconSlot(isSpecies);
 
             if (_iconImage != null)
             {
@@ -146,6 +210,24 @@ namespace Lair.UI
             }
         }
 
+        //# 아이콘 슬롯 표시 + 텍스트 블록 좌측 여백 — 슬롯이 없으면 텍스트 영역을 넓힌다.
+        private void ApplyIconSlot(bool hasIcon)
+        {
+            if (_iconSlot != null)
+            {
+                _iconSlot.SetActive(hasIcon);
+            }
+            float left = hasIcon ? TextLeftWithIcon : TextLeftNoIcon;
+            for (int i = 0; i < _textBlock.Length; ++i)
+            {
+                if (_textBlock[i] == null)
+                    continue;
+                Vector2 position = _textBlock[i].anchoredPosition;
+                position.x = left;
+                _textBlock[i].anchoredPosition = position;
+            }
+        }
+
         //# 헤더 그룹 3위젯 일괄 토글 (기획서 §1·2.1).
         private void SetHeaderWidgetsActive(bool on)
         {
@@ -166,13 +248,33 @@ namespace Lair.UI
         //# 항목 위젯 그룹 일괄 토글 — 헤더 행이면 off. 종족 아이콘/발광은 항목 행에서 BindSpeciesGlow 가 다시 세분 제어.
         private void SetItemWidgetsActive(bool on)
         {
+            if (_itemDecor != null)
+            {
+                _itemDecor.SetActive(on);
+            }
             if (_nameText != null)
             {
                 _nameText.gameObject.SetActive(on);
             }
             if (_levelText != null)
             {
-                _levelText.gameObject.SetActive(on);
+                //# 눈금이 배선되면 "Lv N/5" 텍스트는 눈금이 대체한다.
+                _levelText.gameObject.SetActive(on && _levelPips.Length == 0);
+            }
+            for (int i = 0; i < _levelPips.Length; ++i)
+            {
+                if (_levelPips[i] != null)
+                {
+                    _levelPips[i].gameObject.SetActive(on);
+                }
+            }
+            if (_stateRing != null && on == false)
+            {
+                _stateRing.gameObject.SetActive(false);
+            }
+            if (_iconSlot != null && on == false)
+            {
+                _iconSlot.SetActive(false);
             }
             if (_descText != null)
             {

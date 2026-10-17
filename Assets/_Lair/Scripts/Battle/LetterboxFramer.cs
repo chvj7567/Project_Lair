@@ -23,6 +23,10 @@ namespace Lair.Battle
         //# 16:9 박스에 맞춰 ScreenSpaceCamera 로 렌더할 UI 캔버스.
         [SerializeField] private Canvas _uiCanvas;
 
+        //# 켜면 레터박스 띠에도 같은 월드(배경·조명)를 이어 그린다 — 와이드 화면에서 좌우 빈 띠 대신 투기장 주변이 보이게.
+        //# 배경 카메라가 게임 카메라의 자세·직교 크기를 매 프레임 따라 한다(UI 는 16:9 박스 안에만 그려짐).
+        [SerializeField] private bool _renderWorldInBars;
+
         //# 마지막으로 적용한 화면 크기 — 변동 시에만 재계산.
         private int _lastWidth;
         private int _lastHeight;
@@ -45,8 +49,9 @@ namespace Lair.Battle
 
             //# 표준 Camera API 만 사용 — URP/빌트인 무관하게 단색 클리어 전용으로 동작.
             _backgroundCamera.clearFlags = CameraClearFlags.SolidColor;
-            _backgroundCamera.backgroundColor = _letterboxColor;
-            _backgroundCamera.cullingMask = 0;
+            bool mirror = _renderWorldInBars && _gameCamera != null;
+            _backgroundCamera.backgroundColor = mirror ? _gameCamera.backgroundColor : _letterboxColor;
+            _backgroundCamera.cullingMask = mirror ? ~0 : 0;
             _backgroundCamera.rect = new Rect(0f, 0f, 1f, 1f);
 
             //# depth 가 작을수록 먼저 렌더 → 배경을 게임 카메라보다 먼저 그려 띠를 깐다.
@@ -58,6 +63,20 @@ namespace Lair.Battle
             {
                 _backgroundCamera.depth = -2f;
             }
+        }
+
+        //# 게임 카메라가 이번 프레임에 움직인 뒤(흔들림 포함) 배경 카메라가 같은 자세로 따라간다.
+        private void LateUpdate()
+        {
+            if (_renderWorldInBars == false || _backgroundCamera == null || _gameCamera == null)
+                return;
+            Transform g = _gameCamera.transform;
+            _backgroundCamera.transform.SetPositionAndRotation(g.position, g.rotation);
+            _backgroundCamera.orthographic = _gameCamera.orthographic;
+            _backgroundCamera.orthographicSize = _gameCamera.orthographicSize;
+            _backgroundCamera.nearClipPlane = _gameCamera.nearClipPlane;
+            _backgroundCamera.farClipPlane = _gameCamera.farClipPlane;
+            _backgroundCamera.fieldOfView = _gameCamera.fieldOfView;
         }
 
         private void Update()

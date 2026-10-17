@@ -31,6 +31,9 @@ namespace Lair.Battle
         //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
 
+        //# 전장 배경 스프라이트 렌더러(씬 'Backdrop') — 챕터 backdropKey 가 기본(Battle_Backdrop)이 아니면 시작 시 해당 스프라이트로 교체(chapter-system §7.4).
+        [SerializeField] private SpriteRenderer _backdropRenderer;
+
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
@@ -50,9 +53,20 @@ namespace Lair.Battle
         private BattleClock _clock;
         private BattleStateModel _model;
         private BattleViewModel _vm;
+        private SynergyVisualConfig _synergyVisual;
+        private bool _synergyVisualTried;
 
         private CHPoolable _hero;
         private Health _heroHealth;
+        //# 챕터/스테이지/영웅 직업 데이터 — Start 에서 1회 확보. null 이면 영웅 스탯 데이터 경로 skip.
+        private ChapterDatabase _chapters;
+        //# 스테이지 규칙(chapter-system §3) — 규칙이 있는 스테이지에서만 러너 생성. 없으면 null(기존 동작 불변).
+        private StageRuleRunner _ruleRunner;
+        //# 짙은 안개 사거리 규칙 — 비활성이면 ApplyMonsterStats 가 사거리를 그대로 통과시킨다.
+        private readonly MonsterRangeModifier _rangeModifier = new MonsterRangeModifier();
+        //# 안개 하한용 콜라이더 반경 캐시(E-7) — 영웅은 규칙 시작 시 1회, 몬스터는 종별 첫 적용 시 1회 측정.
+        private float _heroColliderRadius;
+        private readonly Dictionary<EMonster, float> _monsterColliderRadius = new Dictionary<EMonster, float>();
 
         //# 상태 아이콘 — ECardId→Sprite 해석 dict. HUD 에 reference 주입 후 카드 풀 로드 시점에 populate.
         //# 인스턴스 1회 생성·재할당 금지 — HUD 가 stale empty reference 를 들지 않도록(주입은 reference).
@@ -71,6 +85,8 @@ namespace Lair.Battle
         //# B1 신규
         private PauseService _pause;
         private PassiveTriggerService _passiveTriggers;
+        //# 오른쪽 열 패널 접힘 상태 VM — HUD 에 BattleHudArg 로 전달(scene-2d-conversion §4.10).
+        private HudLayoutViewModel _hudLayout;
         private TriggerQueue _queue;
         private CardDeck _passiveDeck;
         private IBattleContext _ctx;
@@ -119,6 +135,10 @@ namespace Lair.Battle
             CHMSound.Instance.StopAllBGM();
             CHMSound.Instance.Play(EAudio.Bgm);
 
+            //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
+            _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
+            await ApplyChapterBackdrop();
+
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
 
@@ -134,20 +154,32 @@ namespace Lair.Battle
                 _model.TotalSeconds = _balance.RunDuration;
             }
             _vm = new BattleViewModel(_model);
+            _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
+            _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
+            MetaProfile heroProfile = MetaSession.GetOrLoad();
+            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(HeroTitleName(heroProfile), StageProgress.IndexOf(heroProfile.SelectedStage)));
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
-            await SpawnHero();
+            bool heroSpawned = await SpawnHero();
+            if (heroSpawned == false)
+                return;
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             BindSpawners();
+            //# 스테이지 규칙 — 첫 스포너 Tick 전에 활성해야 봉인이 첫 스폰보다 앞선다(Start 의 이후 await 중 Update 가 돈다).
+            if (SetupStageRules() == false)
+                return;
 
             //# v0.2 메타 — 상점 영구 업그레이드를 전투 시작 배율로 적용 (BindSpawners 의 base 주기 주입 뒤, 첫 스폰 전).
             ApplyMetaBonuses();
 
+            //# 스포너가 영웅 쪽으로 당겨진 만큼 첫 스폰만 늦춰 몬스터 도착 시각을 보존(scene-2d-conversion §3.5.4) — 메타 배율 반영 뒤 1회.
+            ApplyFirstSpawnDelays();
+
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
-                new BattleHudArg { ViewModel = _vm, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
+                new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
             if (hudUI == null)
             {
                 Debug.LogError("[BattleController] BattleHud UI 표시 실패(프리팹 로드/캔버스 확보 불가) — HUD 없이 부팅 계속");
@@ -165,6 +197,7 @@ namespace Lair.Battle
                 _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance?.PassiveThresholds);
                 _passiveTriggers.OnTriggered += idx =>
                 {
+                    _vm?.MarkPassiveTriggered(idx);
                     _queue.Enqueue(TriggerQueue.Source.Passive, idx);
                     TryProcessNext();
                 };
@@ -215,6 +248,11 @@ namespace Lair.Battle
             _clock = new BattleClock(_model.TotalSeconds);
             _clock.OnTick   += _vm.UpdateTimer;
             _clock.OnTimeUp += () => EndBattle(BattleResult.Lose);
+            //# 스테이지 규칙 갱신은 BattleClock 틱 — 카드 선택 일시정지 중엔 dt=0 이라 러너가 활성·갱신을 미룬다.
+            if (_ruleRunner != null)
+            {
+                _clock.OnTick += _ruleRunner.Tick;
+            }
             //# 폴백 분기(zone 미할당)는 즉시 시작.
             if (_zone == null)
             {
@@ -340,8 +378,92 @@ namespace Lair.Battle
             {
                 _skillRunner.OnSkillUnlocked -= HandleSkillUnlocked;
             }
+            _ruleRunner?.Shutdown();
             _vm?.DetachSpawners();
             TeardownHeroAuraEvents();
+        }
+
+        //# 스테이지 규칙 러너 구성·시작 — Stage_Rule 이 없으면(1-1 등) 아무것도 만들지 않는다. 실패 시 false(전투 진입 중단).
+        private bool SetupStageRules()
+        {
+            if (_chapters == null || _heroHealth == null || _hero == null)
+                return true;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            IReadOnlyList<StageRuleData> rules = _chapters.GetRules(
+                StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage));
+            if (rules.Count == 0)
+                return true;
+
+            _heroColliderRadius = ColliderRadiusOf(_hero.gameObject);
+            try
+            {
+                StageRuleContext ctx = new StageRuleContext(
+                    _heroHealth, _hero.transform, _spawners, _zone, _rangeModifier, ReapplyAllMonsterStats,
+                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider);
+                _ruleRunner = new StageRuleRunner(ctx, _heroHealth, rules);
+                _ruleRunner.Start();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[BattleController] 스테이지 규칙 구성 실패 — 전투 진입 중단: {e}");
+                _ruleRunner = null;
+                return false;
+            }
+            return true;
+        }
+
+        //# 영웅 + 몬스터 콜라이더 반경 합 — 안개 사거리 하한(E-7). 몬스터 반경은 종별 캐시.
+        private float CollisionDistanceOf(GameObject monster, EMonster key)
+        {
+            if (_monsterColliderRadius.TryGetValue(key, out float radius) == false)
+            {
+                radius = ColliderRadiusOf(monster);
+                _monsterColliderRadius[key] = radius;
+            }
+            return _heroColliderRadius + radius;
+        }
+
+        //# 프리팹 CapsuleCollider 반경 x 월드 스케일(XZ 최대). 콜라이더가 없으면 LogError 후 0 — 하한이 minRange 로만 걸린다.
+        private static float ColliderRadiusOf(GameObject go)
+        {
+            CapsuleCollider capsule = go.GetComponentInChildren<CapsuleCollider>();
+            if (capsule == null)
+            {
+                Debug.LogError($"[BattleController] {go.name} 에 CapsuleCollider 가 없어 안개 사거리 하한 충돌 거리를 구하지 못함");
+                return 0f;
+            }
+            Vector3 scale = capsule.transform.lossyScale;
+            return capsule.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+        }
+
+        //# 스포너 상태 UI 봉인 표기용 — 현재 스테이지의 봉인된 둥지가 species 를 봉인하면 해제 HP%(정수), 아니면 0. 규칙 데이터에서 읽는다.
+        public int GetSealUnlockHpPercent(EMonster species)
+        {
+            if (_chapters == null)
+                return 0;
+            MetaProfile profile = MetaSession.GetOrLoad();
+            foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
+            {
+                int percent = SealedNestInfo.UnlockHpPercent(data, species);
+                if (percent > 0)
+                    return percent;
+            }
+            return 0;
+        }
+
+        //# 사거리 규칙 변경 시 필드 몬스터 전원에 소급 — RegisterMonsterTypeBuff 와 같은 resetCurrent:false(현재 HP 보존).
+        private void ReapplyAllMonsterStats()
+        {
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null)
+                    continue;
+                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
+                if (tag == null)
+                    continue;
+                ApplyMonsterStats(e.Transform.gameObject, tag.Key, resetCurrent: false);
+            }
         }
 
         //# 상태 아이콘 — 영웅 HeroAuraRunner 이벤트를 VM 으로 forward 구독.
@@ -384,34 +506,65 @@ namespace Lair.Battle
             _onStatusHiddenHandler = null;
         }
 
-        //# Slice C — BalanceConfig 스탯을 영웅에 적용. Pop 직후 호출.
-        //# 영웅 전용 — 글로벌 타입 모디파이어가 없다. 시그니처·동작 그대로 유지.
-        private void ApplyStats(GameObject character, BalanceConfig.CharacterStat stat)
+        //# 챕터 전장 배경 교체 — 기본 키(Battle_Backdrop = 씬에 배치된 1챕터 배경)는 건드리지 않아 기존 동작 불변.
+        //# 키 파싱/에셋 로드 실패는 조용히 넘기지 않고 LogError(기획서 E-11 취지) — 배경은 시각 요소라 전투는 씬 기본 배경으로 계속한다.
+        private async Task ApplyChapterBackdrop()
         {
-            if (character == null || stat == null)
+            if (_chapters == null || _backdropRenderer == null)
+                return;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            ChapterRow chapter = _chapters.GetChapter(StageProgress.ChapterOf(profile.SelectedStage));
+            if (chapter == null)
+            {
+                Debug.LogError($"[BattleController] 선택 스테이지 {profile.SelectedStage} 의 챕터 데이터 없음 — 기본 배경으로 진행");
+                return;
+            }
+            if (System.Enum.TryParse(chapter.backdropKey, out EBackdrop key) == false || System.Enum.IsDefined(typeof(EBackdrop), key) == false)
+            {
+                Debug.LogError($"[BattleController] 챕터 {chapter.chapterId} 의 backdropKey 가 EBackdrop 에 없음: {chapter.backdropKey}");
+                return;
+            }
+            if (key == EBackdrop.Battle_Backdrop)
+                return;
+
+            Sprite sprite = await CHMResource.Instance.LoadAsync<Sprite>(key);
+            if (sprite == null)
+            {
+                Debug.LogError($"[BattleController] 전장 배경 로드 실패: {key} — Addressables 등록(Art/Sprites/Backdrop2D, 라벨 Resource) 확인, 기본 배경으로 진행");
+                return;
+            }
+            _backdropRenderer.sprite = sprite;
+        }
+
+        //# chapter-system §2.1 — 앵커(BalanceConfig) x 직업(HeroArchetype) x 스테이지(Stage) 로 도출한 영웅 스탯을 적용. Pop 직후 1회.
+        //# 풀 재사용 복리 없음 — 매 스폰마다 앵커에서 재계산한 절대값으로 덮는다.
+        private void ApplyHeroStats(GameObject character, HeroStats stats)
+        {
+            if (character == null)
                 return;
             Health health = character.GetComponent<Health>();
             if (health != null)
             {
-                health.SetMax(stat.Hp, resetCurrent: true);
+                health.SetMax(stats.Hp, resetCurrent: true);
             }
             MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null)
             {
-                attacker.Configure(stat.Range, stat.Cooldown, stat.Power);
+                attacker.Configure(stats.Range, stats.Cooldown, stats.Power);
             }
             SimpleMover mover = character.GetComponent<SimpleMover>();
             if (mover != null)
             {
-                mover.Speed = stat.MoveSpeed;
+                mover.Speed = stats.MoveSpeed;
             }
         }
 
-        //# hero-stage-variant — 선택 스테이지의 외형 variant 적용 + HP/공격력 배수(baseline × mul, 풀 재사용 복리 없음).
-        //# ApplyStats(baseline) 직후 1회. Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
+        //# hero-stage-variant — 선택 스테이지의 외형 variant 적용(스탯 배수는 ApplyHeroStats 가 Stage.json 값으로 처리).
+        //# Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
         private void ApplyStageVariant(GameObject hero)
         {
-            if (hero == null || _stageVariantConfig == null || _balance == null || _balance.Hero == null)
+            if (hero == null || _stageVariantConfig == null)
                 return;
 
             MetaProfile profile = MetaSession.GetOrLoad();
@@ -423,18 +576,6 @@ namespace Lair.Battle
             if (applier != null)
             {
                 applier.Apply(variant);
-            }
-
-            Health health = hero.GetComponent<Health>();
-            if (health != null)
-            {
-                health.SetMax(StageProgress.ScaleStat(_balance.Hero.Hp, variant.HpMultiplier), resetCurrent: true);
-            }
-            MeleeAttacker attacker = hero.GetComponent<MeleeAttacker>();
-            if (attacker != null)
-            {
-                attacker.Configure(_balance.Hero.Range, _balance.Hero.Cooldown,
-                    StageProgress.ScaleStat(_balance.Hero.Power, variant.PowerMultiplier));
             }
         }
 
@@ -458,8 +599,14 @@ namespace Lair.Battle
             MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
             if (attacker != null)
             {
+                //# 사거리 = raw x 카드 배율, 그 뒤 마지막으로 스테이지 규칙(짙은 안개) — 규칙 비활성이면 값 불변.
+                float range = raw.Range * mul.RangeMul;
+                if (_rangeModifier.IsActive)
+                {
+                    range = _rangeModifier.Apply(range, CollisionDistanceOf(character, key));
+                }
                 attacker.Configure(
-                    raw.Range * mul.RangeMul,
+                    range,
                     Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
                     Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
             }
@@ -486,18 +633,61 @@ namespace Lair.Battle
             }
         }
 
-        private async Task SpawnHero()
+        //# 영웅 스폰 — 챕터 데이터/직업/스테이지 조회나 프리팹 로드에 실패하면 false(전투 진입 중단). 조용한 폴백 금지(chapter-system E-11).
+        private async Task<bool> SpawnHero()
         {
-            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            //# 챕터 영웅 직업·스테이지 — 선택 스테이지가 속한 챕터 기준 (chapter-system §7.4).
+            MetaProfile stageProfile = MetaSession.GetOrLoad();
+            HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(stageProfile.SelectedStage) : null;
+            StageRow stageRow = _chapters != null ? _chapters.GetStageByLinear(stageProfile.SelectedStage) : null;
+            if (archetype == null || stageRow == null || System.Enum.TryParse(archetype.heroId, out EHero heroKey) == false
+                || System.Enum.IsDefined(typeof(EHero), heroKey) == false)
+            {
+                Debug.LogError($"[BattleController] 챕터 데이터에서 스테이지 {stageProfile.SelectedStage} 의 영웅/스테이지를 찾지 못함 — 전투 진입 중단");
+                return false;
+            }
+
+            //# Kiter 영웅은 카이팅 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단(E-11 취지).
+            HeroArchetype_KiteRow kiteRow = null;
+            if (archetype.aiType == EHeroAi.Kiter.ToString())
+            {
+                kiteRow = _chapters.GetKite(archetype.heroId);
+                if (kiteRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 카이팅 설정(HeroArchetype_Kite) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+
+            //# Skirmisher 영웅도 습격 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단.
+            HeroArchetype_SkirmishRow skirmishRow = null;
+            if (archetype.aiType == EHeroAi.Skirmisher.ToString())
+            {
+                skirmishRow = _chapters.GetSkirmish(archetype.heroId);
+                if (skirmishRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 습격 설정(HeroArchetype_Skirmish) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+
+            GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
             if (prefab == null)
             {
-                Debug.LogError("[BattleController] Knight 프리팹 로드 실패");
-                return;
+                Debug.LogError($"[BattleController] {heroKey} 프리팹 로드 실패 — 전투 진입 중단");
+                return false;
+            }
+
+            //# Kiter 프리팹은 AutoCombatAI 가 필수 — Pop 전에 검증해 중단 시 풀 인스턴스가 새지 않게 한다.
+            if ((kiteRow != null || skirmishRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
+            {
+                Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — AI 설정 불가, 전투 진입 중단");
+                return false;
             }
 
             CHPoolable p = CHMPool.Instance.Pop(prefab, transform);
             if (p == null)
-                return;
+                return false;
             //# 우선순위 — BattleZone.HeroEntryPoint > _heroSpawn > Vector3.zero.
             Vector3 spawnPos;
             if (_zone != null && _zone.HeroEntryPoint != null)
@@ -522,11 +712,22 @@ namespace Lair.Battle
             SetupHeroAuraEvents(p.gameObject);
 
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
-            if (_balance != null)
+            if (_balance != null && _balance.Hero != null)
             {
-                ApplyStats(p.gameObject, _balance.Hero);
-                //# hero-stage-variant — ApplyStats(baseline) 직후 스테이지 외형 + 스탯 배수 반영.
+                ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow));
+                //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
+            }
+            //# 카이팅(Kiter) 영웅 AI 설정 주입 — 기사(Melee)는 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (kiteRow != null)
+            {
+                //# AutoCombatAI 존재는 Pop 전에 검증됨.
+                p.GetComponent<AutoCombatAI>().ConfigureKite(KiteSettings.From(kiteRow));
+            }
+            //# 습격-이탈(Skirmisher) 영웅 AI 설정 주입 — 기사·궁수는 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (skirmishRow != null)
+            {
+                p.GetComponent<AutoCombatAI>().ConfigureSkirmish(SkirmishSettings.From(skirmishRow));
             }
             if (_heroHealth != null)
             {
@@ -542,15 +743,19 @@ namespace Lair.Battle
             if (skillRunner != null)
             {
                 _skillRunner = skillRunner;
-                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(EData.HeroSkillLoadout);
+                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(LoadoutKeyOf(heroKey));
                 if (loadout != null)
                 {
                     skillRunner.Bind(loadout);
                 }
                 else
                 {
-                    Debug.LogWarning("[BattleController] HeroSkillLoadout 로드 실패 — 영웅 스킬 비활성");
+                    Debug.LogError($"[BattleController] {heroKey} 스킬 로드아웃({LoadoutKeyOf(heroKey)}) 로드 실패 — Addressables 등록 확인, 영웅 스킬 비활성");
                 }
+            }
+            else
+            {
+                Debug.LogError($"[BattleController] {heroKey} 프리팹에 HeroSkillRunner 없음 — 영웅 스킬 비활성");
             }
 
             //# 영웅 AutoCombatAI 비활성 — HeroEntryDriver 가 march 를 수행.
@@ -587,6 +792,24 @@ namespace Lair.Battle
                 _ = EnableHeroAIAfterDelay(3f);
                 _spawnersActive = true;   //# zone 미할당 시 즉시 spawner 활성
             }
+            return true;
+        }
+
+        //# 영웅별 스킬 로드아웃 SO 키 — 기사는 기존 HeroSkillLoadout, 그 외는 HeroSkillLoadout_<영웅> (chapter-system §1.4).
+        //# 매핑에 없는 영웅은 기사 로드아웃으로 폴백한다(영웅 추가 시 이 표에 한 줄).
+        private static readonly System.Collections.Generic.Dictionary<EHero, EData> LoadoutKeys = new System.Collections.Generic.Dictionary<EHero, EData>
+        {
+            { EHero.Knight, EData.HeroSkillLoadout },
+            { EHero.Archer, EData.HeroSkillLoadout_Archer },
+            { EHero.Assassin, EData.HeroSkillLoadout_Assassin },
+        };
+
+        private static EData LoadoutKeyOf(EHero hero)
+        {
+            if (LoadoutKeys.TryGetValue(hero, out EData key))
+                return key;
+            Debug.LogError($"[BattleController] {hero} 스킬 로드아웃 매핑 없음 — 기사 로드아웃으로 폴백(LoadoutKeys 에 등록 필요)");
+            return EData.HeroSkillLoadout;
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.
@@ -656,6 +879,28 @@ namespace Lair.Battle
             _spawnersActive = true;
             //# VM 이 초기 스냅샷 폴링 + 이벤트 구독을 시작. Detach 는 OnDestroy 에서.
             _vm?.AttachSpawners(_spawners, this);
+        }
+
+        //# 스포너별 첫 스폰 지연 — 그 스포너 위치에서 BattleZone 중심까지 XZ 거리 D 와 출력 종의 실효 사거리·이동속도로 계산.
+        private void ApplyFirstSpawnDelays()
+        {
+            if (_spawners == null || _balance == null || _zone == null)
+                return;
+            Vector3 center = _zone.transform.position;
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp == null)
+                    continue;
+                BalanceConfig.CharacterStat raw = _balance.GetMonster(sp.CurrentType);
+                if (raw == null)
+                    continue;
+                StatMultiplier mul = _typeModifiers.TryGetValue(sp.CurrentType, out StatMultiplier m) ? m : StatMultiplier.Identity;
+                Vector3 d = sp.transform.position - center;
+                float distance = new Vector2(d.x, d.z).magnitude;
+                sp.SetFirstSpawnDelay(SpawnTravelCompensation.FirstSpawnDelay(
+                    SpawnTravelCompensation.LegacyRadius, distance, raw.Range * mul.RangeMul,
+                    raw.MoveSpeed * mul.MoveSpeedMul, SpawnTravelCompensation.DelayScale));
+            }
         }
 
         //# v0.2 메타 — 상점 레벨 → 종 스탯 배율(_typeModifiers) + 스포너 주기 일괄 적용 (기획서 §3.2 / plan Task 3.1).
@@ -962,6 +1207,8 @@ namespace Lair.Battle
             if (_model.Result != BattleResult.None)
                 return;   //# 중복 방지
             _clock.Stop();
+            //# 스테이지 규칙 전원 비활성 — 부수효과 원복 + FX 풀 반환(E-6). 결과 확정(_vm.EndBattle) 전 동기 실행.
+            _ruleRunner?.Shutdown();
 
             //# Slice C — 한 판 결과 기록 (생존 몬스터 수 집계)
             int aliveMonsters = 0;
@@ -980,6 +1227,7 @@ namespace Lair.Battle
             int xpGained = 0;
             int lordLevelUp = 0;
             int lordRewardSouls = 0;
+            bool isNewBest = false;
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
             if (_metaConfig != null)
             {
@@ -991,12 +1239,14 @@ namespace Lair.Battle
                 profile.Souls += reward.Souls;
                 profile.LordXp += reward.Xp;
                 profile.TotalRuns++;
+                //# 신기록 판정 — RecordStageRun 이 최단을 덮기 "전에" 이전 기록과 비교해야 한다(결과 팝업 NEW 배지).
+                isNewBest = profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
                 profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 if (result == BattleResult.Win)
                 {
                     profile.TotalWins++;
-                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(5 종점, spec §6.1). 저장은 아래 Save.
+                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(MaxStage 종점, spec §6.1). 저장은 아래 Save.
                     profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
                     if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
                     {
@@ -1011,6 +1261,9 @@ namespace Lair.Battle
                     profile.AddDistinct(profile.SeenMonsters, seen.ToString());
                 foreach (ECardId pick in _runPicks)
                     profile.AddDistinct(profile.PickedCards, pick.ToString());
+                //# 카드별 누적 픽 횟수 — 같은 판 중첩 픽은 픽한 횟수만큼 +N (기록 팝업 "가장 많이 픽한 카드").
+                foreach (ECardId pick in _runPicks)
+                    profile.AddCardPick(pick.ToString());
 
                 //# 영주 보상 자동 수령 — 멱등 가드 (기획서 §4.4). LordLevel=0 이면 결과 팝업 영주 줄 생략 (§9.2).
                 int levelAfter = LordLevelService.LevelFromXp(profile.LordXp, _metaConfig);
@@ -1047,6 +1300,10 @@ namespace Lair.Battle
                 LordLevel = lordLevelUp,
                 LordRewardSouls = lordRewardSouls,
                 NewlyAchieved = newlyAchieved,
+                ClearTime = _clock.Elapsed,
+                IsNewBest = isNewBest,
+                //# 남은 HP 비율 — 패배 화면 "영웅 남은 HP" 줄 (깎은 비율의 여집합).
+                HeroHpRatio = 1f - GetHeroDamagedRatio(),
             });
         }
 
@@ -1057,13 +1314,17 @@ namespace Lair.Battle
             if (MetaSession.Ranking == null)
                 return;
             int clearMs = Mathf.RoundToInt(_clock.Elapsed * 1000f);
-            string hero = profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false
-                ? profile.SelectedHero
-                : EHero.Knight.ToString();
+            //# 랭킹 hero = 선택 스테이지가 속한 챕터의 heroId (chapter-system §2.3). 데이터 없으면 프로필 값 → 기사.
+            HeroArchetypeRow archetype = _chapters != null && profile != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            string hero = archetype != null
+                ? archetype.heroId
+                : (profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false ? profile.SelectedHero : EHero.Knight.ToString());
             string name = MetaProfile.ResolveDisplayName(
                 profile != null ? profile.DisplayName : null,
                 AuthTokenStore.GetOrCreateDeviceId());
             await MetaSession.Ranking.SubmitAsync(clearMs, hero, name);
+            //# 스테이지별 랭킹 — 서버가 스테이지 기존 최단보다 빠를 때만 갱신한다(느린 기록이 덮지 않음).
+            await MetaSession.Ranking.SubmitStageAsync(profile != null ? profile.SelectedStage : 1, clearMs, hero, name);
         }
 
         //# v0.2 메타 — 영웅 최대 HP 대비 깎은 비율 0~1 (패배 부분 보상 입력).
@@ -1162,9 +1423,15 @@ namespace Lair.Battle
 #endif
                 System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
+                SynergyVisualConfig synergyVisual = await LoadSynergyVisual();
                 CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
+                    SynergyVisual = synergyVisual,
+                    BuildCountOf = axis => _vm.GetBuildCount(axis),
+                    IsPassive = entry.SourceType == TriggerQueue.Source.Passive,
+                    TriggerHpPercent = PassiveTriggerService.ResolveHpPercent(_balance?.PassiveThresholds, entry.Index),
+                    ActivePeriodSeconds = ActiveTriggerService.ResolvePeriodSeconds(_balance?.ActiveThresholds),
                     PickCountOf = c => _pickCounter.GetCount(c.Id),   //# 배지 N/3 — 픽 전 누적값
                     OnPicked = card =>
                     {
@@ -1193,14 +1460,128 @@ namespace Lair.Battle
             _processingQueue = false;
         }
 
+        //# 시너지 아이콘 SO — 카드 선택창 첫 오픈 시 1회 로드. 실패하면 경고 1회 후 아이콘 없이 진행.
+        private async Task<SynergyVisualConfig> LoadSynergyVisual()
+        {
+            if (_synergyVisualTried == false)
+            {
+                _synergyVisualTried = true;
+                _synergyVisual = await CHMResource.Instance.LoadAsync<SynergyVisualConfig>(EData.SynergyVisualConfig);
+                if (_synergyVisual == null)
+                {
+                    Debug.LogWarning("[BattleController] SynergyVisualConfig 로드 실패 — 카드 축 아이콘 비활성");
+                }
+            }
+            return _synergyVisual;
+        }
+
+        //# 선택 스테이지 챕터의 영웅 종류 — 데이터 없음/알 수 없는 값이면 기사(SpawnHero 가 데이터 실패를 따로 중단한다).
+        private EHero SelectedHeroKey()
+        {
+            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(MetaSession.GetOrLoad().SelectedStage) : null;
+            if (hero != null && System.Enum.TryParse(hero.heroId, out EHero parsed) && System.Enum.IsDefined(typeof(EHero), parsed))
+                return parsed;
+            return EHero.Knight;
+        }
+
+        //# 전투 HUD 영웅명 — 챕터 영웅 직업 데이터(문구 id)를 우선, 없으면 프로필 값 폴백. 단계는 호출부가 챕터 내 인덱스를 준다.
+        private string HeroTitleName(MetaProfile profile)
+        {
+            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            if (hero != null && CHText.StringProvider != null)
+                return CHText.StringProvider.GetString(hero.nameKey);
+            return Lair.Village.VillageViewModel.HeroDisplayName(hero != null ? hero.heroId : profile.SelectedHero);
+        }
+
+        //# 풀 사전 워밍 — 에셋이 없으면 건너뛴다(없는 에셋은 사용 지점이 LogError 로 알린다).
+        private async Task WarmVisual(EVisual key, int count)
+        {
+            GameObject fx = await CHMResource.Instance.LoadAsync<GameObject>(key);
+            if (fx == null)
+            {
+                Debug.LogError($"[BattleController] 풀 워밍 FX 로드 실패: {key}");
+                return;
+            }
+            CHMPool.Instance.CreatePool(fx, count);
+        }
+
+        //# 스테이지 규칙 → FX 키·워밍 수(chapter-system §3.4 — 덫은 trapCount 만큼 동시 표시, 사슬은 봉인 스포너 수).
+        private static bool StageRuleFx(StageRuleData data, out EVisual key, out int count)
+        {
+            switch (data.RuleId)
+            {
+                case EStageRule.HolySpring:
+                    key = EVisual.StageSpringFx;
+                    count = 1;
+                    return true;
+                case EStageRule.DenseFog:
+                    key = EVisual.StageFogFx;
+                    count = 1;
+                    return true;
+                case EStageRule.SealedNest:
+                    key = EVisual.StageSealChainFx;
+                    count = 2;
+                    return true;
+                case EStageRule.BossBulwark:
+                    key = EVisual.StageBulwarkFx;
+                    count = 1;
+                    return true;
+                case EStageRule.ArrowRain:
+                    key = EVisual.StageArrowRainFx;
+                    count = 2;
+                    return true;
+                case EStageRule.HunterTraps:
+                    key = EVisual.StageTrapFx;
+                    count = Mathf.Max(1, Mathf.RoundToInt(data.Params["trapCount"]));
+                    return true;
+                default:
+                    Debug.LogError($"[BattleController] 워밍 FX 매핑이 없는 스테이지 규칙: {data.RuleId}");
+                    key = EVisual.StageTrapFx;
+                    count = 0;
+                    return false;
+            }
+        }
+
         //# Rule 12 — 알려진 풀 대상을 미리 CreatePool 로 비축. 첫 Pop spike 방지.
         private async Task PrewarmPools()
         {
-            //# 영웅 1마리
-            GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(EHero.Knight);
+            //# 영웅 1마리 — 선택 스테이지 챕터의 영웅(기사/궁수).
+            EHero warmHero = SelectedHeroKey();
+            GameObject heroPrefab = await CHMResource.Instance.LoadAsync<GameObject>(warmHero);
             if (heroPrefab != null)
             {
                 CHMPool.Instance.CreatePool(heroPrefab, count: 1);
+            }
+
+            //# 궁수 전용 FX(화살 궤적은 매 공격, 스킬 FX 는 동시 표시 적음).
+            if (warmHero == EHero.Archer)
+            {
+                await WarmVisual(EVisual.ArcherArrowFx, 4);
+                await WarmVisual(EVisual.HeroPiercingShotFx, 2);
+                await WarmVisual(EVisual.HeroArrowVolleyFx, 2);
+                await WarmVisual(EVisual.HeroEvadeFx, 2);
+            }
+
+            //# 암살자 전용 FX(기본 베기는 매 공격, 슬립·스킬 FX 는 동시 표시 적음).
+            if (warmHero == EHero.Assassin)
+            {
+                await WarmVisual(EVisual.AssassinSlashFx, 3);
+                await WarmVisual(EVisual.HeroSlipFx, 2);
+                await WarmVisual(EVisual.HeroShadowStrikeFx, 2);
+                await WarmVisual(EVisual.HeroBladeWhirlFx, 2);
+                await WarmVisual(EVisual.HeroSmokeBombFx, 1);
+            }
+
+            //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.
+            if (_chapters != null)
+            {
+                int linear = MetaSession.GetOrLoad().SelectedStage;
+                foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear)))
+                {
+                    if (StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount) == false)
+                        continue;
+                    await WarmVisual(ruleFx, ruleFxCount);
+                }
             }
 
             //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축

@@ -39,6 +39,7 @@ namespace Lair.UI
         [SerializeField] private Toggle _cardTab;
         [SerializeField] private CodexPoolingScrollView _monsterScrollView;   //# 4열 (기획서 §6)
         [SerializeField] private CodexPoolingScrollView _cardScrollView;      //# 6열
+        [SerializeField] private CHText _collectedText;   //# 탭 옆 "수집 5 / 6" — 위젯 연결은 프리팹 단계
 
         //# 종 → 도감 아이콘 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹과 주소 충돌 방지).
         [SerializeField] private Sprite _wispIcon;
@@ -135,20 +136,49 @@ namespace Lair.UI
                 LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
             }
 
+            List<CodexCellData> cells = _showCards
+                ? BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards)
+                : BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon);
+            if (_collectedText != null)
+            {
+                _collectedText.SetText(BuildCollectedText(cells));
+            }
+
             if (_showCards)
             {
                 if (_cardScrollView != null)
                 {
-                    _cardScrollView.SetItemList(BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards));
+                    _cardScrollView.SetItemList(cells);
                 }
             }
             else
             {
                 if (_monsterScrollView != null)
                 {
-                    _monsterScrollView.SetItemList(BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon));
+                    _monsterScrollView.SetItemList(cells);
                 }
             }
+        }
+
+        //# "수집 5 / 6" — 잠금 더미는 분모에서 제외, 해금(Unlocked)만 분자.
+        public static string BuildCollectedText(List<CodexCellData> cells)
+        {
+            int total = 0;
+            int collected = 0;
+            if (cells != null)
+            {
+                foreach (CodexCellData cell in cells)
+                {
+                    if (cell == null || cell.IsLockedDummy)
+                        continue;
+                    total++;
+                    if (cell.Unlocked)
+                    {
+                        collected++;
+                    }
+                }
+            }
+            return $"수집 {collected} / {total}";
         }
 
         //# 종 → 도감 아이콘 매핑 (인스펙터 직접 참조). 미할당이면 null → 색칩 fallback.

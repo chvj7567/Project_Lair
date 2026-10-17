@@ -13,6 +13,15 @@ namespace Lair.UI
         [SerializeField] private Image _frameImage;
         [SerializeField] private CHText _countText;
         [SerializeField] private CHButton _button;
+        //# UI 리디자인 — 종류색 링(패시브=소울 / 액티브=금)과 빈 슬롯 빗금. 위젯 연결은 프리팹 단계.
+        [SerializeField] private Image _kindRing;
+        [SerializeField] private GameObject _emptyHatch;
+        [SerializeField] private GameObject _countBg;   //# ×N 배지 배경 — SetCount 와 함께 토글
+        //# 비주얼 폴리시 — 종류색 발광. 빈 슬롯·풀 리셋 시 비활성.
+        [SerializeField] private Image _kindGlow;
+
+        private const float KindGlowAlpha = 0.55f;
+        private static readonly Color EmptyRingColor = new Color32(0x26, 0x2D, 0x40, 0xFF);
         //# 클릭 리스너 수명 관리 — OnEnable 에서 Clear 해 풀 재사용 시 리스너 누적 방지.
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
 
@@ -22,7 +31,47 @@ namespace Lair.UI
             _disposable.Clear();
             if (_countText != null) _countText.gameObject.SetActive(false);
             if (_iconImage != null) _iconImage.sprite = null;
-            if (_frameImage != null) _frameImage.color = Color.gray;
+            //# 링이 종류색을 담당하면(리디자인) 슬롯 프레임은 도트 sunk 스프라이트 그대로(흰색).
+            if (_frameImage != null) _frameImage.color = _kindRing != null ? Color.white : Color.gray;
+            if (_countBg != null) _countBg.SetActive(false);
+            if (_emptyHatch != null) _emptyHatch.SetActive(false);
+            if (_kindGlow != null)
+            {
+                _kindGlow.gameObject.SetActive(false);
+            }
+        }
+
+        //# 종류색 링 — 패시브=소울, 액티브=금. 빈 슬롯에도 같은 색을 쓴다.
+        public void SetKind(bool isPassive)
+        {
+            Color kind = UiDotPalette.CardKind(isPassive);
+            if (_kindGlow != null)
+            {
+                _kindGlow.color = new Color(kind.r, kind.g, kind.b, KindGlowAlpha);
+                _kindGlow.gameObject.SetActive(true);
+            }
+            if (_kindRing == null) return;
+            _kindRing.color = kind;
+        }
+
+        //# 빈 슬롯 — 아이콘·배지를 숨기고 빗금만 표시.
+        public void SetEmpty()
+        {
+            if (_iconImage != null)
+            {
+                _iconImage.sprite = null;
+                _iconImage.enabled = false;
+            }
+            if (_countText != null) _countText.gameObject.SetActive(false);
+            if (_emptyHatch != null) _emptyHatch.SetActive(true);
+            if (_kindGlow != null)
+            {
+                _kindGlow.gameObject.SetActive(false);
+            }
+            if (_kindRing != null)
+            {
+                _kindRing.color = EmptyRingColor;
+            }
         }
 
         //# 카드 바인딩 — 프레임 색·아이콘·클릭 콜백 설정.
@@ -33,7 +82,7 @@ namespace Lair.UI
             if (_frameImage != null)
             {
                 //# 카드 ID 기준 단일 출처 — 종 색/영웅 백색/몬스터 전체 시안.
-                _frameImage.color = CardBorderColors.BorderColorOf(card.Id);
+                _frameImage.color = _kindRing != null ? Color.white : CardBorderColors.BorderColorOf(card.Id);
             }
             if (_iconImage != null)
             {
@@ -67,6 +116,7 @@ namespace Lair.UI
         {
             if (_countText == null) return;
             bool show = count >= 2;
+            if (_countBg != null) _countBg.SetActive(show);
             _countText.gameObject.SetActive(show);
             if (show) _countText.SetText($"×{count}");
         }

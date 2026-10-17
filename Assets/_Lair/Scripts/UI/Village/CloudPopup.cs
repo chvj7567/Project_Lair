@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
+using Lair.Meta;
 using Lair.Net;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -19,6 +21,9 @@ namespace Lair.UI
         public Func<string, Task<DisplayNameResult>> OnChangeName;
         public Action OnConflictRestore;  //# 충돌 권유 "클라우드로 복원" 클릭
         public Action OnConflictLater;    //# 충돌 권유 "나중에" 클릭
+        //# 충돌 비교 칸(제안 3) — 이 기기 / 클라우드 요약. 클라우드 조회 실패 등으로 null 이면 비교 칸을 숨긴다.
+        public SaveSummary LocalSummary;
+        public SaveSummary CloudSummary;
     }
 
     //# 클라우드 — 복원·표시명·충돌 권유 통합 팝업(기획서 §5). 표시·입력만(Rule 02 §6).
@@ -40,6 +45,12 @@ namespace Lair.UI
         [SerializeField] private CHButton _conflictRestoreButton;
         [SerializeField] private CHButton _conflictLaterButton;
         [SerializeField] private GameObject _conflictDot;    //# 빨간 dot 배지
+        //# UI 리디자인 충돌 비교 칸 — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        [SerializeField] private Image _connectionGlow;     //# 연결 점 후광 — 점과 같은 rgb 로 틴트(알파 보존)
+        [SerializeField] private Image _connectionDot;       //# 연결 상태 점 — 연결됨=소울 / 오프라인=피
+        [SerializeField] private GameObject _conflictCompare;
+        [SerializeField] private CHText _conflictLocalText;  //# "영주 Lv 7 · 1,240 소울" (이 기기)
+        [SerializeField] private CHText _conflictCloudText;  //# 클라우드
 
         //# 표시명 변경 서버 왕복 중 중복 클릭 차단(재진입 가드).
         private bool _isChangingName;
@@ -52,6 +63,16 @@ namespace Lair.UI
 
             if (_connectionText != null)
                 _connectionText.SetText(cloudArg.IsConnected ? "연결됨" : "오프라인");
+
+            if (_connectionDot != null)
+            {
+                _connectionDot.color = cloudArg.IsConnected ? UiDotPalette.Soul : UiDotPalette.Blood;
+            }
+            if (_connectionGlow != null)
+            {
+                Color glowRgb = cloudArg.IsConnected ? UiDotPalette.Soul : UiDotPalette.Blood;
+                _connectionGlow.color = new Color(glowRgb.r, glowRgb.g, glowRgb.b, _connectionGlow.color.a);
+            }
 
             RefreshDisplayName(cloudArg.DisplayName);
             SetNameEditActive(false);
@@ -110,13 +131,12 @@ namespace Lair.UI
             _nameConfirmButton.Interactable = interactable;
         }
 
-        //# 표시명 라벨 갱신 — 빈 값이면 안내(기본명 자체는 제출 시 결정, 여기선 미설정 표기).
+        //# 표시명 라벨 갱신 — 기본명 해석은 호출부(VillageViewModel/MetaProfile.ResolveDisplayName)에서 끝난 값을 표시만 한다.
         private void RefreshDisplayName(string displayName)
         {
             if (_displayNameText == null)
                 return;
-            string shown = string.IsNullOrEmpty(displayName) ? "(미설정 — 기본명 사용)" : displayName;
-            _displayNameText.SetText("표시명: ", shown);
+            _displayNameText.SetText("표시명: ", displayName);
         }
 
         private void SetNameEditActive(bool active)
@@ -128,6 +148,26 @@ namespace Lair.UI
                 _nameEditGroup.SetActive(active);
         }
 
+        //# 두 세이브 비교 — 양쪽 요약이 모두 있을 때만 표시(클라우드 조회 실패면 숨김).
+        private void SetupConflictCompare(CloudPopupArg arg)
+        {
+            bool show = arg.LocalSummary != null && arg.CloudSummary != null;
+            if (_conflictCompare != null)
+            {
+                _conflictCompare.SetActive(show);
+            }
+            if (show == false)
+                return;
+            if (_conflictLocalText != null)
+            {
+                _conflictLocalText.SetText(arg.LocalSummary.ToDisplayText());
+            }
+            if (_conflictCloudText != null)
+            {
+                _conflictCloudText.SetText(arg.CloudSummary.ToDisplayText());
+            }
+        }
+
         private void SetupConflict(CloudPopupArg arg)
         {
             if (_conflictDot != null)
@@ -137,6 +177,8 @@ namespace Lair.UI
 
             if (arg.ConflictPending == false)
                 return;
+
+            SetupConflictCompare(arg);
 
             if (_conflictText != null)
                 _conflictText.SetText("다른 기기의 진행이 클라우드에 더 최신으로 저장되어 있습니다. 클라우드 데이터로 복원하면 지금 기기의 진행은 사라질 수 있습니다.");

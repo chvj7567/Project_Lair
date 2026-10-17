@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Battle;
+using Lair.Card;
 using Lair.Data;
 using Lair.Meta;
 using UnityEngine;
@@ -13,6 +15,18 @@ namespace Lair.UI
     {
         public MetaProfile Profile;
         public HeroStageVariantConfig VariantConfig;
+        //# "가장 많이 픽한 카드" 이름 조회용 — 패시브+액티브 전체 카드. null/누락이면 카드 ID 를 그대로 표기.
+        public List<CardData> AllCards = new List<CardData>();
+    }
+
+    //# 통계 타일 5칸의 표시 확정값 — 기록 팝업 상단 (BodyText 를 대체).
+    public struct RecordsStatTilesData
+    {
+        public string RunsText;      //# "42"
+        public string WinsText;      //# "27"
+        public string RateText;      //# "64%"
+        public string BestText;      //# "2:58"  (기록 없으면 "-")
+        public string TopCardText;   //# "시간 정지 ×31" (기록 없으면 "-")
     }
 
     //# 스테이지 한 행의 표시 확정값 — 셀은 계산하지 않는다(spec §6.2).
@@ -36,7 +50,12 @@ namespace Lair.UI
     {
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
-        [SerializeField] private CHText _bodyText;                             //# 상단 총계
+        //# UI 리디자인 통계 타일 5칸 — 값 텍스트. 위젯 연결은 프리팹 단계, 미할당이면 건너뛴다.
+        [SerializeField] private CHText _statRunsText;
+        [SerializeField] private CHText _statWinsText;
+        [SerializeField] private CHText _statRateText;
+        [SerializeField] private CHText _statBestText;
+        [SerializeField] private CHText _statTopCardText;
         [SerializeField] private RecordsStagePoolingScrollView _scrollView;
 
         //# 잠금 행 어둠 비율 — 캐러셀/영웅 목록의 잠금 톤과 동일.
@@ -90,14 +109,64 @@ namespace Lair.UI
             if (_arg == null)
                 return;
 
-            if (_bodyText != null)
-            {
-                _bodyText.SetText(BuildBody(_arg.Profile));
-            }
+            RecordsStatTilesData tiles = BuildStatTiles(_arg.Profile, _arg.AllCards);
+            SetTileText(_statRunsText, tiles.RunsText);
+            SetTileText(_statWinsText, tiles.WinsText);
+            SetTileText(_statRateText, tiles.RateText);
+            SetTileText(_statBestText, tiles.BestText);
+            SetTileText(_statTopCardText, tiles.TopCardText);
             if (_scrollView != null)
             {
                 _scrollView.SetItemList(BuildCellData(_arg.Profile, _arg.VariantConfig));
             }
+        }
+
+        private static void SetTileText(CHText label, string text)
+        {
+            if (label != null)
+            {
+                label.SetText(text);
+            }
+        }
+
+        //# 통계 타일 5칸 — 총계 산식은 BuildBody 와 동일(승률 반올림, 최단은 m:ss). profile null 이면 0/"-".
+        public static RecordsStatTilesData BuildStatTiles(MetaProfile profile, List<CardData> allCards)
+        {
+            if (profile == null)
+                return new RecordsStatTilesData { RunsText = "0", WinsText = "0", RateText = "0%", BestText = "-", TopCardText = "-" };
+
+            int winRate = profile.TotalRuns > 0
+                ? Mathf.RoundToInt(profile.TotalWins * 100f / profile.TotalRuns)
+                : 0;
+            return new RecordsStatTilesData
+            {
+                RunsText = profile.TotalRuns.ToString(),
+                WinsText = profile.TotalWins.ToString(),
+                RateText = $"{winRate}%",
+                BestText = FormatClearTime(profile.BestClearTime),
+                TopCardText = BuildTopCardText(profile, allCards),
+            };
+        }
+
+        //# 가장 많이 픽한 카드 "이름 ×N" — 동률은 카드 ID 사전순(MetaProfile.GetMostPickedCard). 기록 없으면 "-".
+        public static string BuildTopCardText(MetaProfile profile, List<CardData> allCards)
+        {
+            CardPickCountEntry top = profile != null ? profile.GetMostPickedCard() : null;
+            if (top == null)
+                return "-";
+            string name = top.CardId;
+            if (allCards != null)
+            {
+                foreach (CardData card in allCards)
+                {
+                    if (card != null && card.Id.ToString() == top.CardId)
+                    {
+                        name = card.DisplayName;
+                        break;
+                    }
+                }
+            }
+            return $"{name} ×{top.Count}";
         }
 
         //# 상단 총계 — 산식(BestClearTime 소스)은 유지, 표기는 스테이지 행과 동일한 m:ss.
@@ -114,14 +183,17 @@ namespace Lair.UI
             return $"총 출격  {profile.TotalRuns}\n승리  {profile.TotalWins}\n승률  {winRate}%\n최단 클리어  {bestClear}";
         }
 
-        //# 스테이지 1~5 행 — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
-        public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig)
+        //# 기록 행 상한 — 선형 스테이지 전체(챕터 수 x 5).
+        public static int VisibleStageCount => StageProgress.MaxStage;
+
+        //# 스테이지 1~VisibleStageCount 행(선형 번호) — 해금은 전적, 잠금은 해금 조건. profile null 이면 진행도 0, config null 이면 초상 없음 폴백.
+        public static List<RecordsStageCellData> BuildCellData(MetaProfile profile, HeroStageVariantConfig variantConfig, Func<int, string> text = null)
         {
             List<RecordsStageCellData> list = new List<RecordsStageCellData>();
             int cleared = profile != null ? profile.ClearedStage : 0;
             int selected = profile != null ? profile.SelectedStage : 0;
 
-            for (int stage = 1; stage <= StageProgress.MaxStage; ++stage)
+            for (int stage = 1; stage <= VisibleStageCount; ++stage)
             {
                 //# 해금 판정은 캐러셀과 같은 단일 소유 헬퍼.
                 bool unlocked = StageProgress.IsUnlocked(stage, cleared);
@@ -138,23 +210,27 @@ namespace Lair.UI
                     IsSelected = unlocked && stage == selected,
                     Portrait = portrait,
                     PortraitTint = unlocked ? Color.white : Color.Lerp(Color.white, Color.black, LockedDimRatio),
-                    StageText = $"STAGE {stage}",
-                    ThreatText = BuildThreat(stage),
+                    StageText = $"STAGE {StageLabels.Number(stage)}",
+                    ThreatText = BuildThreat(StageProgress.IndexOf(stage)),
                     WinText = unlocked ? $"{record.Wins}승" : string.Empty,
                     RunRateText = unlocked ? $"{record.Runs}판 · {rate}%" : string.Empty,
                     BestText = unlocked ? $"최단 {FormatClearTime(record.BestClearTime)}" : string.Empty,
-                    LockHintText = unlocked ? string.Empty : $"스테이지 {stage - 1} 클리어 필요",
+                    LockHintText = unlocked ? string.Empty : StageLabels.UnlockHint(stage, text ?? LookupString),
                 });
             }
             return list;
         }
 
-        //# 위협도 — 채운 별 N + 빈 별 (5-N). VillageHud.BuildThreat 과 같은 규약(저쪽은 private static,
-        //# 여기선 테스트 대상이라 public). 두 곳이 어긋나면 표기가 갈리므로 규약 변경 시 함께 고친다.
-        public static string BuildThreat(int stage)
+        //# Strings_Ko 조회 — 호출부가 text 를 안 넘기면 CHText 와 같은 테이블(미등록이면 빈 문자열).
+        private static string LookupString(int id)
         {
-            int filled = Mathf.Clamp(stage, 0, StageProgress.MaxStage);
-            return new string('★', filled) + new string('☆', StageProgress.MaxStage - filled);
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
+        //# 위협도 — 챕터 내 인덱스 기준 채운 별 N + 빈 별 (5-N). 표기 규약은 StageLabels.Stars 단일 소유(마을 HUD 와 공유).
+        public static string BuildThreat(int stageIndex)
+        {
+            return StageLabels.Stars(stageIndex);
         }
 
         //# 클리어타임 표기 — 기록 없음(-1)은 "-", 그 외 m:ss (초는 내림).

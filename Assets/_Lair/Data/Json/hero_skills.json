@@ -30,20 +30,126 @@
       "bladeCount": 3,
       "rotationSpeedDeg": 180.0,
       "displayName": "수호의 칼날"
+    },
+    {
+      "$type": "PiercingShotSkillData",
+      "fileName": "HeroSkill_PiercingShot",
+      "damage": 70,
+      "cooldown": 4.0,
+      "lineLength": 9.0,
+      "lineHalfWidth": 0.6,
+      "knockbackStrength": 0.5,
+      "centroidRadius": 8.0,
+      "displayName": "관통 사격"
+    },
+    {
+      "$type": "ArrowVolleySkillData",
+      "fileName": "HeroSkill_ArrowVolley",
+      "damagePerTick": 40,
+      "tickCount": 3,
+      "tickIntervalSec": 0.5,
+      "radius": 2.8,
+      "cooldown": 8.0,
+      "targetSearchRadius": 7.0,
+      "displayName": "화살 소나기"
+    },
+    {
+      "$type": "EvadeSkillData",
+      "fileName": "HeroSkill_Evade",
+      "damage": 30,
+      "cooldown": 10.0,
+      "leapDistance": 4.5,
+      "leapDurationSec": 0.25,
+      "blastRadius": 2.0,
+      "knockbackStrength": 2.5,
+      "triggerMonsterCount": 3,
+      "triggerRadius": 2.0,
+      "displayName": "회피 도약"
+    },
+    {
+      "$type": "ShadowStrikeSkillData",
+      "fileName": "HeroSkill_ShadowStrike",
+      "damage": 120,
+      "cooldown": 6.0,
+      "blinkRange": 9.0,
+      "minBlinkDistance": 2.5,
+      "arriveOffset": 1.2,
+      "invulnerableSec": 0.3,
+      "killRefundFraction": 0.5,
+      "displayName": "그림자 습격"
+    },
+    {
+      "$type": "BladeWhirlSkillData",
+      "fileName": "HeroSkill_BladeWhirl",
+      "damagePerTick": 35,
+      "tickCount": 4,
+      "tickIntervalSec": 0.3,
+      "radius": 2.4,
+      "cooldown": 9.0,
+      "damageTakenMul": 0.7,
+      "triggerMonsterCount": 2,
+      "triggerRadius": 2.4,
+      "displayName": "칼날 선풍"
+    },
+    {
+      "$type": "SmokeBombSkillData",
+      "fileName": "HeroSkill_SmokeBomb",
+      "radius": 3.0,
+      "durationSec": 3.0,
+      "monsterSpeedMul": 0.6,
+      "monsterRangeMul": 0.5,
+      "monsterMinRange": 0.8,
+      "cooldown": 12.0,
+      "triggerMonsterCount": 4,
+      "triggerRadius": 2.4,
+      "displayName": "연막 탄"
     }
   ],
   "loadout": [
     {
+      "heroId": "Knight",
       "hpFraction": 0.85,
       "skill": "HeroSkill_DashStrike"
     },
     {
+      "heroId": "Knight",
       "hpFraction": 0.65,
       "skill": "HeroSkill_AoeNova"
     },
     {
+      "heroId": "Knight",
       "hpFraction": 0.45,
       "skill": "HeroSkill_OrbitingBlade"
+    },
+    {
+      "heroId": "Archer",
+      "hpFraction": 0.85,
+      "skill": "HeroSkill_PiercingShot"
+    },
+    {
+      "heroId": "Archer",
+      "hpFraction": 0.65,
+      "skill": "HeroSkill_ArrowVolley"
+    },
+    {
+      "heroId": "Archer",
+      "hpFraction": 0.45,
+      "skill": "HeroSkill_Evade"
+    },
+    {
+      "heroId": "Assassin",
+      "hpFraction": 0.85,
+      "skill": "HeroSkill_ShadowStrike"
+    },
+    {
+      "heroId": "Assassin",
+      "hpFraction": 0.65,
+      "skill": "HeroSkill_BladeWhirl"
+    },
+    {
+      "heroId": "Assassin",
+      "hpFraction": 0.45,
+      "skill": "HeroSkill_SmokeBomb"
     }
   ]
 }

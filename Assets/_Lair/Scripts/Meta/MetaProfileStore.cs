@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Meta
@@ -28,7 +29,16 @@ namespace Lair.Meta
                     return new MetaProfile();
 
                 MetaProfile profile = JsonUtility.FromJson<MetaProfile>(File.ReadAllText(FilePath));
-                return profile ?? new MetaProfile();
+                if (profile == null)
+                    return new MetaProfile();
+
+                //# 구버전(v5 이하) → v6 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3), 디스크엔 다음 Save 때 반영.
+                //# ChapterDatabase.Current 가 null 이면 5단계(SelectedHero 재설정)만 건너뛰고 Version 은 현재 버전이 된다.
+                if (profile.Version < MetaProfileMigration.CurrentVersion)
+                {
+                    MetaProfileMigration.Apply(profile, ChapterDatabase.Current);
+                }
+                return profile;
             }
             catch (Exception e)
             {

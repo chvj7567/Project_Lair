@@ -16,6 +16,8 @@ namespace Lair.Character
         private IHeroSkillContext _ctx;
 
         private readonly List<IHeroSkillRuntime> _active = new();
+        //# _active 와 같은 순서의 CastPriority — 클수록 앞(동시 조건 우선순위, chapter-3-hero §4).
+        private readonly List<int> _activePriority = new();
         private readonly List<int> _newly = new();
 
         //# 해금 순간 발행 — BattleController 가 구독해 컷인 컨트롤러로 라우팅. 미구독 안전(null).
@@ -60,7 +62,13 @@ namespace Lair.Character
                 HeroSkillData data = _loadout.Phases[_newly[i]].Skill;
                 if (data != null)
                 {
-                    _active.Add(data.CreateRuntime());
+                    int insertAt = _active.Count;
+                    while (insertAt > 0 && _activePriority[insertAt - 1] < data.CastPriority)
+                    {
+                        --insertAt;
+                    }
+                    _active.Insert(insertAt, data.CreateRuntime());
+                    _activePriority.Insert(insertAt, data.CastPriority);
                     OnSkillUnlocked?.Invoke(data);   //# 컷인 트리거 (정지 중에도 다음 프레임까지 무해)
                 }
             }
@@ -75,6 +83,7 @@ namespace Lair.Character
             for (int i = 0; i < _active.Count; ++i)
                 _active[i].OnDeactivate();
             _active.Clear();
+            _activePriority.Clear();
         }
     }
 }

@@ -19,6 +19,18 @@ namespace Lair.Data
             _                => Color.white,
         };
 
+        //# 종족 → 빌드 축 — 스포너 칸 색띠 등 HUD 가 읽는 단일 SoT(scene-2d-conversion §4.5).
+        public static EBuildAxis SpeciesAxis(EMonster species) => species switch
+        {
+            EMonster.Wisp    => EBuildAxis.Tank,
+            EMonster.Wraith  => EBuildAxis.Tank,
+            EMonster.Reaper  => EBuildAxis.Dps,
+            EMonster.Hex     => EBuildAxis.Dps,
+            EMonster.Plague  => EBuildAxis.Debuff,
+            EMonster.Phantom => EBuildAxis.Swarm,
+            _                => EBuildAxis.Tank,
+        };
+
         //# 종족 한글 표시명 단일 SoT — 인게임 모든 표기(스포너 상태·도감 등). 상점 §7 DisplayName 철자와 일치.
         //# 주의: EMonster 값 이름(에셋 키·SeenMonsters 저장)은 영어 그대로 — 여기는 사람이 읽는 표기만.
         public static string SpeciesName(EMonster species) => species switch

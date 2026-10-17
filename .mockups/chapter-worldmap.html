@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>챕터 월드맵 팝업 목업 (1280x720) - HeroSelectPopup 확장</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--stone0:#10141d;--stone1:#171d2a;--stone2:#222a3b;--stone3:#313b52;--stone4:#48546e;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--soul:#5ef0b4;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar select,#bar button{background:var(--stone3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar label{color:var(--sub)}
+#msg{margin-left:auto;color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;overflow:hidden;background:#15151c}
+#bd{position:absolute;left:0;top:0;width:1280px;height:720px;image-rendering:pixelated}
+#dimmer{position:absolute;inset:0;background:rgba(0,0,0,.62)}
+.abs{position:absolute}
+.panel{position:absolute;background:var(--stone1);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone3),inset -3px -3px 0 var(--stone0)}
+.dark{background:#10141d}
+.btn{position:absolute;background:var(--stone3);border:3px solid var(--ink);box-shadow:inset 3px 3px 0 var(--stone4),inset -3px -3px 0 var(--stone0);cursor:pointer;color:var(--txt);text-align:center;display:flex;align-items:center;justify-content:center}
+.btn:active{transform:translateY(2px)}
+.btn.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27;color:#6c7385;cursor:default}
+.btn.go{background:#b8323a;box-shadow:inset 3px 3px 0 #ff7b7f,inset -3px -3px 0 #6b141d}
+.btn.go.off{background:#2a2f3a;box-shadow:inset -3px -3px 0 #1b1f27}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.lbl{color:var(--sub);font-size:13px}
+.gold{color:var(--gold)}
+.tab{position:absolute;height:44px;font-size:17px;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:var(--stone2);color:var(--sub)}
+.tab.on{background:var(--stone1);color:var(--bone);border-bottom-color:var(--stone1);box-shadow:inset 3px 3px 0 var(--stone3)}
+.tab.lockc{color:#6c7385;cursor:default}
+.tab.ph{color:#4a5266;cursor:default;background:#141824}
+.node{position:absolute;border:3px solid var(--ink);background:var(--stone3);box-shadow:inset 3px 3px 0 var(--stone4),inset -3px -3px 0 var(--stone0);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:var(--txt)}
+.node.boss{background:#5a2328;box-shadow:inset 3px 3px 0 #a94a52,inset -3px -3px 0 #2a0c0f}
+.node.cleared{background:#3a3a2a;box-shadow:inset 3px 3px 0 #8a7a3a,inset -3px -3px 0 #1d1d12}
+.node.locked{background:#1b1f27;box-shadow:inset -3px -3px 0 #12151b;color:#59617a;cursor:not-allowed}
+.node.sel{outline:4px solid var(--gold);outline-offset:3px}
+.tag{position:absolute;font-size:12px;line-height:16px;text-align:center}
+.chip{display:inline-block;border:2px solid var(--ink);background:var(--stone2);padding:2px 8px;margin:0 6px 6px 0;font-size:14px;color:var(--bone)}
+.rule{border-left:4px solid var(--sky);padding:2px 8px;margin:0 0 6px 0;font-size:13px;line-height:18px;color:var(--txt);background:#10141d}
+.rule b{color:var(--bone)}
+.phase{border-left:4px solid var(--blood);padding:2px 8px;margin:0 0 6px 0;font-size:13px;line-height:18px;background:#10141d}
+.portrait{position:absolute;background:#0c1017;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.portrait img{width:60%;image-rendering:pixelated}
+.portrait.lk img{filter:brightness(.45)}
+.portrait .lk{position:absolute;inset:0;background:#000000a6;display:flex;align-items:center;justify-content:center;color:var(--bone);font-size:20px}
+#toast{position:absolute;left:440px;top:20px;width:400px;height:40px;background:#10141d;border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;z-index:20;font-size:16px}
+#chk{padding:6px 12px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7}
+</style>
+</head>
+<body>
+<div id="bar">
+  <label>클리어한 최고 스테이지(ClearedStage)
+    <select id="selCleared"></select>
+  </label>
+  <label><input type="checkbox" id="cBoss" checked> 보스 페이즈 표시</label>
+  <button id="btnReset">초기화</button>
+  <span id="msg">노드를 눌러 스테이지를 선택해 보세요 (잠금 노드는 선택 불가)</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 16px 격자. 팝업 패널 (96,48) 1088x624. 배경은 마을 배경 위 dim α0.62 (기존 팝업 dim 관례). 영웅 초상은 목업에서 Icon_Heroes 로 대체(실제는 HeroStageVariantConfig 의 Portrait).<br>
+  상태: 잠금(어둡게+잠금 라벨) / 해금(기본) / 클리어(황동색+클리어 태그) / 선택(금색 외곽선+▼). 보스 노드는 96px 크기+적갈색. 챕터 탭: 2개 개방, 3~5장은 "???" 비활성(정보 노출 없음).<br>
+  글리프는 ◀ ▶ ★ ☆ ▼ 만 사용(NotoSansKR 확인 대상, hero-stage-variant §4.3과 동일 글리프 집합 + ▼). 체크/자물쇠 이모지 미사용.
+</div>
+<script>
+'use strict';
+const W = 1280, H = 720;
+const $ = s => document.querySelector(s);
+const stg = $('#stage');
+
+const CH = [
+  {id: 1, name: '지하 묘지', theme: '기사단 침공', hero: '기사', stages: [
+    {n: '납골당 입구', rules: [], boss: []},
+    {n: '성수의 회랑', rules: [['성수 샘', '40초마다 8초간 샘이 열려, 샘 안(반경 3.0)의 영웅이 초당 최대 HP의 0.4% 회복']], boss: []},
+    {n: '안개 낀 지하수로', rules: [['짙은 안개', '몬스터 공격 사거리 x0.7 (최소 0.8)']], boss: []},
+    {n: '봉인된 지하 둥지', rules: [['봉인된 둥지', '망령(Wraith) 둥지 봉인 - 영웅 HP 60% 이하에서 해제']], boss: []},
+    {n: '기사단장의 안치소', rules: [], boss: [['HP 55%', '수호 결계 - 15초간 영웅 받는 피해 -40% (1회)']]}
+  ]},
+  {id: 2, name: '어둠의 숲', theme: '숲속 정찰대', hero: '궁수', stages: [
+    {n: '숲의 입구', rules: [], boss: []},
+    {n: '속삭이는 오솔길', rules: [['봉인된 둥지', '환령(Phantom) 둥지 봉인 - 영웅 HP 70% 이하에서 해제']], boss: []},
+    {n: '안개 낀 늪', rules: [['짙은 안개', '몬스터 공격 사거리 x0.7 (최소 0.8)']], boss: []},
+    {n: '수호 샘터', rules: [['성수 샘', '40초마다 8초간 샘이 열려, 샘 안의 영웅이 초당 최대 HP의 0.5% 회복'], ['짙은 안개', '몬스터 공격 사거리 x0.7 (최소 0.8)']], boss: []},
+    {n: '사냥꾼 우두머리의 야영지', rules: [], boss: [['HP 75%', '화살비 - 10초마다 몬스터 밀집 지점에 4연속 낙하 (반경 3.5)'], ['HP 35%', '사냥꾼의 덫 - 영웅 주변 6곳에 덫, 걸린 몬스터는 느려지고 피해']]}
+  ]}
+];
+const PH = [3, 4, 5];
+let st = {cleared: 3, ch: 1, sel: 1};
+
+const sel = $('#selCleared');
+for (let i = 0; i <= 10; i++) {
+  const o = document.createElement('option'); o.value = i; o.textContent = i + (i === 0 ? ' (신규)' : (i === 5 ? ' (1장 보스 클리어)' : (i === 10 ? ' (전체)' : ''))); sel.appendChild(o);
+}
+sel.value = st.cleared;
+sel.onchange = () => { st.cleared = +sel.value; fixSel(); render(); };
+$('#cBoss').onchange = render;
+$('#btnReset').onclick = () => { st = {cleared: 0, ch: 1, sel: 1}; sel.value = 0; render(); };
+
+const lin = (c, i) => (c - 1) * 5 + i;
+const unlocked = L => L <= st.cleared + 1;
+function fixSel() { if (unlocked(lin(st.ch, st.sel)) === false) { st.ch = 1; st.sel = 1; } }
+
+function el(cls, x, y, w, h, html, style, parent) {
+  const d = document.createElement('div');
+  d.className = cls; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.width = w + 'px'; d.style.height = h + 'px';
+  if (html !== undefined) d.innerHTML = html;
+  if (style) d.style.cssText += ';' + style;
+  (parent || stg).appendChild(d); return d;
+}
+function say(s) { $('#msg').textContent = s; }
+function toast(s) { const t = $('#toast'); t.textContent = s; t.style.display = 'flex'; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = 'none', 1800); }
+
+function render() {
+  stg.innerHTML = '';
+  const bd = document.createElement('img'); bd.id = 'bd'; bd.src = '/backdrop/Village_Backdrop.png'; stg.appendChild(bd);
+  el('', 0, 0, W, H, '', '', stg).id = 'dimmer';
+  const tt = document.createElement('div'); tt.id = 'toast'; stg.appendChild(tt);
+
+  const PX = 96, PY = 48, PW = 1088, PH_ = 624;
+  el('panel', PX, PY, PW, PH_, '');
+  //# 타이틀 바
+  el('panel dark', PX, PY, PW, 64, '', 'border-width:0 0 3px 0');
+  el('t', PX + 24, PY + 12, 400, 40, '침입 지도', '', 'font-size:30px;line-height:40px;color:var(--bone)');
+  el('t lbl', PX + 220, PY + 24, 500, 20, '챕터를 고르고 도전할 스테이지를 선택합니다', '');
+  const x = el('btn', PX + PW - 64, PY + 8, 48, 48, '✕'.replace('✕', 'X'), 'font-size:22px'); x.onclick = () => say('팝업 닫기 (dim/닫기 버튼 모두 동일)');
+
+  //# 챕터 탭 y = PY+80
+  const TY = PY + 80;
+  CH.forEach((c, k) => {
+    const first = lin(c.id, 1);
+    const open = unlocked(first);
+    const t = el('tab' + (st.ch === c.id ? ' on' : '') + (open ? '' : ' lockc'), PX + 16 + k * 208, TY, 200, 44, c.id + '장 ' + c.name + (open ? '' : '<span style="font-size:13px"> 잠금</span>'));
+    t.onclick = () => {
+      if (open === false) { say(c.id + '장은 ' + (c.id - 1) + '장 보스를 클리어하면 열립니다'); return; }
+      st.ch = c.id; st.sel = Math.min(st.sel, 5); if (unlocked(lin(st.ch, st.sel)) === false) st.sel = 1; render();
+    };
+  });
+  PH.forEach((p, k) => el('tab ph', PX + 16 + (2 + k) * 208, TY, 200, 44, p + '장 ???'));
+
+  //# 지도 영역 (좌) x=PX+16, y=TY+60, 640 x 380
+  const MX = PX + 16, MY = TY + 60, MW = 640, MH = 392;
+  el('panel dark', MX, MY, MW, MH, '');
+  const c = CH[st.ch - 1];
+  el('t', MX + 16, MY + 8, 420, 28, c.id + '장 ' + c.name, '', 'font-size:20px;line-height:28px;color:var(--bone)');
+  el('t lbl', MX + 16, MY + 36, 420, 20, '테마: ' + c.theme + ' / 영웅: ' + c.hero, '');
+  //# 노드 좌표 (지도 내부 상대)
+  const pos = [[32, 200], [150, 120], [268, 200], [386, 120], [504, 164]];
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', MW); svg.setAttribute('height', MH);
+  svg.style.cssText = 'position:absolute;left:' + MX + 'px;top:' + MY + 'px;pointer-events:none';
+  let pts = pos.map((p, i) => (p[0] + (i === 4 ? 48 : 36)) + ',' + (p[1] + (i === 4 ? 48 : 36) + 40)).join(' ');
+  svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#48546e" stroke-width="4" stroke-dasharray="8 6"/>';
+  stg.appendChild(svg);
+  c.stages.forEach((s, i) => {
+    const L = lin(c.id, i + 1), isBoss = i === 4, open = unlocked(L), clr = L <= st.cleared, on = st.sel === i + 1;
+    const size = isBoss ? 96 : 72;
+    const nx = MX + pos[i][0], ny = MY + pos[i][1] + 40;
+    const nd = el('node' + (isBoss ? ' boss' : '') + (clr ? ' cleared' : '') + (open ? '' : ' locked') + (on ? ' sel' : ''), nx, ny, size, size, open ? (c.id + '-' + (i + 1)) : '잠금', isBoss ? 'font-size:26px' : '');
+    nd.onclick = () => {
+      if (open === false) { const pl = L - 1; say('스테이지 ' + (Math.floor((pl - 1) / 5) + 1) + '-' + (((pl - 1) % 5) + 1) + ' 클리어 필요'); return; }
+      st.sel = i + 1; render();
+    };
+    if (isBoss) el('tag gold', nx, ny - 20, size, 16, 'BOSS');
+    if (on) el('tag gold', nx, ny - (isBoss ? 38 : 22), size, 16, '▼');
+    if (clr) el('tag gold', nx, ny + size + 2, size, 16, '클리어');
+    el('tag lbl', nx - 24, ny + size + (clr ? 18 : 2), size + 48, 32, open ? s.n : '???', '', 'white-space:normal;color:' + (open ? 'var(--txt)' : '#59617a'));
+  });
+
+  //# 상세 패널 (우) x=PX+16+640+16, w=400
+  const DX = MX + MW + 16, DW = PX + PW - 16 - DX;
+  el('panel', DX, MY - 60 + 60, DW, MH, '');
+  const i = st.sel, s = c.stages[i - 1], L = lin(c.id, i), open = unlocked(L);
+  const port = el('portrait' + (open ? '' : ' lk'), DX + 16, MY + 16, 112, 112, '<img src="/vicons/Icon_Heroes.png"' + (c.id === 2 ? ' style="filter:hue-rotate(110deg)"' : '') + '>');
+  if (open === false) port.innerHTML += '<div class="lk">잠금</div>';
+  el('t gold', DX + 144, MY + 12, DW - 160, 20, c.id + '-' + i + (i === 5 ? '  보스' : ''), '', 'font-size:16px');
+  el('t', DX + 144, MY + 34, DW - 160, 32, s.n, '', 'font-size:22px;line-height:32px;color:var(--bone);overflow:visible;white-space:normal');
+  el('t gold', DX + 144, MY + 78, DW - 160, 24, '★'.repeat(i) + '☆'.repeat(5 - i), '', 'font-size:18px');
+  el('t lbl', DX + 144, MY + 104, DW - 160, 20, '영웅: ' + c.hero, '');
+
+  const rec = open ? (L <= st.cleared ? '최단 3:42.1  /  7승 11판' : '기록 없음') : '-';
+  el('t lbl', DX + 16, MY + 140, DW - 32, 18, '내 기록', '');
+  el('t', DX + 16, MY + 158, DW - 32, 24, rec, '', 'font-size:16px;line-height:24px');
+
+  el('t lbl', DX + 16, MY + 190, DW - 32, 18, '스테이지 규칙', '');
+  let rh = '';
+  if (s.rules.length === 0) rh = '<div class="rule" style="border-left-color:#48546e;color:var(--sub)">특수 규칙 없음</div>';
+  s.rules.forEach(r => rh += '<div class="rule"><b>' + r[0] + '</b><br>' + r[1] + '</div>');
+  el('abs', DX + 16, MY + 210, DW - 32, 112, rh, 'overflow:hidden');
+  if ($('#cBoss').checked && s.boss.length) {
+    el('t lbl', DX + 16, MY + 270, DW - 32, 18, '보스 페이즈', '', 'color:var(--blood)');
+    let ph = ''; s.boss.forEach(b => ph += '<div class="phase"><b>' + b[0] + '</b> ' + b[1] + '</div>');
+    el('abs', DX + 16, MY + 290, DW - 32, 96, ph, 'overflow:hidden');
+  }
+
+  //# 하단: 선택 버튼 (패널 하단 영역)
+  const by = PY + PH_ - 64;
+  el('t lbl', PX + 24, by + 6, 640, 44, open ? '선택한 스테이지는 마을의 침입자 현상수배서에 반영됩니다. 출격은 마을에서 합니다.' : '이 스테이지는 아직 잠겨 있습니다.', '', 'white-space:normal;line-height:20px;font-size:13px');
+  const hint = open ? '' : (L === 6 ? '1장 보스 클리어 필요' : '스테이지 ' + c.id + '-' + (i - 1) + ' 클리어 필요');
+  const b = el('btn go' + (open ? '' : ' off'), DX + 16, by - 8, DW - 32, 56, open ? '이 스테이지로 선택' : hint, 'font-size:22px');
+  b.onclick = () => {
+    if (open === false) { say('잠금 스테이지 - 선택 불가'); return; }
+    toast('선택됨: ' + c.id + '-' + i + ' ' + s.n); say('SelectedStage = ' + L + ' 저장(로컬만). 팝업 닫힘 후 마을 HUD 갱신');
+  };
+}
+render();
+</script>
+</body>
+</html>

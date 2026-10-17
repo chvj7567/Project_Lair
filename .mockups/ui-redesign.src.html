@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI 리디자인 시안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
+<style>
+:root{
+  --bg:#eef0f3;--fg:#111827;--muted:#4b5563;--line:#d3d7de;--card:#ffffff;
+  /*# 게임 UI 팔레트 — 도트 던전 */
+  --ink:#07090e;--stone0:#10141d;--stone1:#171d2a;--stone2:#222a3b;--stone3:#313b52;--stone4:#48546e;
+  --bone:#e8e1cf;--bone2:#b9b09a;--txt:#eef1f6;--sub:#8e98ad;
+  --soul:#5ef0b4;--soul2:#1f9e74;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--blood2:#8e1f2a;
+  --curse:#b58cff;--curse2:#5b3aa6;
+  --tank:#5aa9ff;--dps:#ff6b5a;--swarm:#7be36a;--debuff:#c08bff;
+  --px:3px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d12;--fg:#e5e7eb;--muted:#9ca3af;--line:#262b36;--card:#141821}}
+:root[data-theme="dark"]{--bg:#0b0d12;--fg:#e5e7eb;--muted:#9ca3af;--line:#262b36;--card:#141821}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.45;overflow-x:hidden}
+img{image-rendering:pixelated}
+.wrap{max-width:1040px;margin:0 auto;padding:16px}
+header.top h1{font-size:22px;margin:4px 0}
+header.top p{color:var(--muted);font-size:13.5px;margin:0 0 6px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+nav.toc a{font-size:12.5px;color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--card);padding:3px 9px;border-radius:999px}
+nav.toc a:hover{border-color:var(--muted)}
+h2.grp{font-size:17px;margin:28px 0 4px;padding-top:6px;border-top:1px solid var(--line)}
+section.sc{margin:14px 0 22px}
+.sc .hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:0 0 6px}
+.sc .hd h3{font-size:15px;margin:0}
+.sc .hd code{font-size:12px;color:var(--muted)}
+.sc .hd .tags{display:flex;gap:4px;flex-wrap:wrap}
+.sc .hd .tags span{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--muted)}
+.sc .note{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.sc .note b{color:var(--fg)}
+.fit{width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line)}
+.screen{width:960px;height:540px;position:relative;transform-origin:0 0;overflow:hidden;
+  font-family:"Galmuri11","Galmuri9","Noto Sans KR",monospace;color:var(--txt);font-size:14px;line-height:1.3}
+.tray{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;padding:16px;border-radius:10px;border:1px solid var(--line);
+  background:repeating-conic-gradient(#1a1f2a 0 25%,#151922 0 50%) 0 0/16px 16px;
+  font-family:"Galmuri11","Galmuri9","Noto Sans KR",monospace;color:var(--txt);font-size:14px;line-height:1.3}
+.tray figure{margin:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.tray figcaption{font-family:"Noto Sans KR",system-ui,sans-serif;font-size:11px;color:#9aa3b5}
+
+/*# ---------- 공통 도트 프리미티브 ---------- */
+.pxbox{position:relative;background:var(--stone2);
+  box-shadow:0 calc(var(--px)*-1) 0 0 var(--ink),0 var(--px) 0 0 var(--ink),calc(var(--px)*-1) 0 0 0 var(--ink),var(--px) 0 0 0 var(--ink),
+  inset 0 var(--px) 0 0 var(--stone4),inset 0 calc(var(--px)*-1) 0 0 var(--stone0),inset var(--px) 0 0 0 var(--stone3),inset calc(var(--px)*-1) 0 0 0 var(--stone0)}
+.pxbox.dark{background:var(--stone1);
+  box-shadow:0 calc(var(--px)*-1) 0 0 var(--ink),0 var(--px) 0 0 var(--ink),calc(var(--px)*-1) 0 0 0 var(--ink),var(--px) 0 0 0 var(--ink),
+  inset 0 var(--px) 0 0 var(--ink),inset 0 calc(var(--px)*2) 0 0 rgba(0,0,0,.25),inset 0 calc(var(--px)*-1) 0 0 var(--stone3)}
+.pxbox.sunk{background:#0c1017;
+  box-shadow:0 calc(var(--px)*-1) 0 0 var(--stone0),0 var(--px) 0 0 var(--stone3),calc(var(--px)*-1) 0 0 0 var(--stone0),var(--px) 0 0 0 var(--stone3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;min-height:40px;cursor:pointer;
+  font:inherit;color:var(--txt);border:0;background:var(--stone3);position:relative;white-space:nowrap;
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),
+  inset 0 3px 0 0 var(--stone4),inset 0 -5px 0 0 var(--stone1)}
+.btn:hover{filter:brightness(1.12)}
+.btn:active{transform:translateY(2px)}
+.btn.soul{background:var(--soul2);color:#04140e;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 0 var(--soul),inset 0 -5px 0 0 #0e5a41}
+.btn.soul{color:#effff8}
+.btn.gold{background:#d89a2e;color:#1d1204;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 0 #ffe08a,inset 0 -5px 0 0 #8a5a14}
+.btn.blood{background:#b8323a;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 0 #ff7b7f,inset 0 -5px 0 0 #6b141d}
+.btn.off{background:#2a2f3a;color:#667085;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 -3px 0 0 #1b1f27}
+.btn.sm{min-height:30px;padding:4px 10px;font-size:12px}
+.xbtn{position:absolute;top:-10px;right:-10px;width:34px;height:34px;min-height:0;padding:0;font-size:18px;z-index:3;background:var(--blood2);
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 0 var(--blood),inset 0 -4px 0 0 #4a0d14}
+.soulcoin{display:inline-block;width:12px;height:12px;background:var(--soul);vertical-align:-1px;
+  clip-path:polygon(33% 0,67% 0,67% 17%,83% 17%,83% 33%,100% 33%,100% 67%,83% 67%,83% 83%,67% 83%,67% 100%,33% 100%,33% 83%,17% 83%,17% 67%,0 67%,0 33%,17% 33%,17% 17%,33% 17%);
+  box-shadow:inset -3px -3px 0 var(--soul2)}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;background:var(--ink);color:var(--gold);box-shadow:0 0 0 2px var(--gold2)}
+.badge.soul{color:var(--soul);box-shadow:0 0 0 2px var(--soul2)}
+.badge.red{color:#fff;background:var(--blood);box-shadow:0 0 0 2px var(--ink)}
+.stars{color:var(--gold);letter-spacing:1px;text-shadow:2px 2px 0 var(--ink)}
+.stars i{font-style:normal;color:#3a4256}
+.bar{height:12px;background:#0b0e14;position:relative;box-shadow:0 0 0 2px var(--ink),inset 0 2px 0 #000}
+.bar>b{position:absolute;left:0;top:0;bottom:0;background:var(--soul);box-shadow:inset 0 -4px 0 var(--soul2),inset 0 2px 0 #b6ffe0}
+.bar.gold>b{background:var(--gold);box-shadow:inset 0 -4px 0 var(--gold2),inset 0 2px 0 #fff0b8}
+.bar.red>b{background:var(--blood);box-shadow:inset 0 -4px 0 var(--blood2),inset 0 2px 0 #ff9a9d}
+.bar.seg{background-image:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),rgba(0,0,0,.6) calc(10% - 2px) 10%)}
+.bar.seg>b{background-image:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),rgba(0,0,0,.45) calc(10% - 2px) 10%)}
+.ico{width:100%;height:100%;object-fit:contain;display:block}
+.shadowtxt{text-shadow:2px 2px 0 var(--ink)}
+
+/*# ---------- 배경 ---------- */
+.bg-hall{position:absolute;inset:0;background:
+  radial-gradient(ellipse 55% 40% at 50% 62%,rgba(94,240,180,.10),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 3px,transparent 3px 30px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 3px,transparent 3px 60px),
+  linear-gradient(#1a2130,#121824 60%,#0b0f17)}
+.bg-hall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;
+  background:repeating-linear-gradient(90deg,#141a25 0 48px,#111620 48px 96px),#121722;
+  box-shadow:inset 0 6px 0 #0a0d13}
+.bg-arena{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 55% at 50% 55%,rgba(255,255,255,.04),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 2px,transparent 2px 36px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 36px),
+  linear-gradient(#232a36,#1b212c)}
+.dim{position:absolute;inset:0;background:rgba(4,6,10,.72)}
+.dim.pat{background:rgba(4,6,10,.72) repeating-linear-gradient(45deg,rgba(255,255,255,.015) 0 3px,transparent 3px 6px)}
+
+/*# ---------- 모달 공통 ---------- */
+.modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:46px 22px 20px}
+.plaque{position:absolute;left:50%;top:-18px;transform:translateX(-50%);padding:8px 28px;font-size:18px;white-space:nowrap;color:var(--bone);
+  background:#3a2f22;text-shadow:2px 2px 0 var(--ink);
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 #6b563b,inset 0 -4px 0 #231a11}
+.plaque::before,.plaque::after{content:"";position:absolute;top:50%;width:9px;height:9px;margin-top:-4px;background:var(--gold);box-shadow:0 0 0 3px var(--ink)}
+.plaque::before{left:9px}.plaque::after{right:9px}
+.scroll{overflow:hidden;position:relative}
+.scroll::after{content:"";position:absolute;right:2px;top:6px;width:6px;height:38%;background:var(--stone4);box-shadow:0 0 0 2px var(--ink)}
+.empty{color:var(--sub);font-size:13px;text-align:center;padding:14px 0}
+
+/*# ---------- Village HUD ---------- */
+.vh-top{position:absolute;left:0;right:0;top:0;height:64px;display:flex;align-items:center;gap:14px;padding:0 16px;
+  background:linear-gradient(#0c1018,#0c1018cc);box-shadow:0 3px 0 var(--ink),0 6px 0 rgba(0,0,0,.3)}
+.lord{display:flex;align-items:center;gap:10px}
+.lord .face{width:44px;height:44px;padding:3px}
+.lord .nm{font-size:14px}
+.lord .lv{font-size:12px;color:var(--gold)}
+.lord .bar{width:150px;height:8px;margin-top:4px}
+.vname{flex:1;text-align:center;font-size:20px;color:var(--bone);letter-spacing:2px}
+.vname small{display:block;font-size:10px;letter-spacing:4px;color:var(--sub)}
+.soulpill{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:15px;color:var(--soul)}
+.acct{position:relative}
+.reddot{position:absolute;top:-7px;right:-7px;width:13px;height:13px;background:var(--blood);box-shadow:0 0 0 3px var(--ink);z-index:2}
+.vh-menu{position:absolute;left:16px;top:86px;display:grid;grid-template-columns:repeat(2,82px);gap:14px}
+.mbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:82px;font-size:13px;color:var(--bone);position:relative}
+.mbtn .gl{width:34px;height:34px}
+.vh-stage{position:absolute;left:230px;right:220px;top:84px;bottom:92px;display:flex;align-items:center;justify-content:center;gap:12px}
+.arrow{width:44px;height:64px;min-height:0;font-size:18px}
+.stagecard{width:380px;height:100%;display:flex;flex-direction:column;align-items:center;padding:14px 10px 12px;position:relative}
+.stagecard .st{font-size:12px;letter-spacing:3px;color:var(--sub)}
+.stagecard .sn{font-size:22px;color:var(--bone)}
+.stagecard .pic{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;
+  background:radial-gradient(ellipse 45% 12% at 50% 90%,rgba(0,0,0,.6),transparent 70%),radial-gradient(ellipse 40% 50% at 50% 60%,rgba(229,72,77,.18),transparent 70%)}
+.stagecard .pic img{height:190px}
+.stagecard .dots{display:flex;gap:6px;margin-top:6px}
+.stagecard .dots i{width:8px;height:8px;background:var(--stone4);box-shadow:0 0 0 2px var(--ink)}
+.stagecard .dots i.on{background:var(--gold)}
+.vh-right{position:absolute;right:16px;top:86px;width:190px;display:flex;flex-direction:column;gap:10px;padding:12px;font-size:12px}
+.vh-right .k{color:var(--sub)}
+.vh-right .v{font-size:15px}
+.vh-bottom{position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:16px;align-items:flex-end}
+.sortie{min-width:260px;min-height:62px;font-size:22px;letter-spacing:4px}
+.lockov{position:absolute;inset:14px 10px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(5,7,11,.78)}
+.lockico{width:30px;height:28px;background:var(--stone4);position:relative;box-shadow:0 0 0 3px var(--ink)}
+.lockico::before{content:"";position:absolute;left:6px;top:-16px;width:12px;height:14px;border:3px solid var(--stone4);border-bottom:0;box-shadow:0 -3px 0 0 var(--ink)}
+
+/*# ---------- Battle HUD ---------- */
+.timer{position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:6px 22px 8px;font-size:30px;color:var(--bone);text-align:center;min-width:150px}
+.timer small{display:block;font-size:10px;letter-spacing:3px;color:var(--sub);margin-top:-2px}
+.timer.warn{color:#ff8a8d}
+.spawners{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:9px;width:206px}
+.spc{display:flex;gap:8px;padding:6px 8px 7px 12px;position:relative}
+.spc .chip{position:absolute;left:0;top:0;bottom:0;width:5px}
+.spc .icon{width:44px;height:44px;flex:none;position:relative;padding:2px}
+.spc .icon .lvb{position:absolute;left:-4px;bottom:-6px;font-size:9px;padding:1px 3px}
+.spc .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.spc .row1{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.spc .cnt{color:var(--gold);font-size:13px}
+.spc .row2{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--sub)}
+.spc .row2 .bar{flex:1;height:7px}
+.spc.maxlv .icon{box-shadow:0 0 0 2px var(--gold),0 0 12px rgba(247,198,74,.5)}
+.syn{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;width:170px}
+.synhd{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 2px}
+.sync{display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px}
+.sync .si{width:22px;height:22px;flex:none}
+.sync .nm{flex:1}
+.sync .mk{display:flex;gap:3px}
+.sync .mk i{width:9px;height:9px;background:#0b0e14;box-shadow:0 0 0 2px var(--ink)}
+.sync.on{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 3px 0 0 0 var(--c)}
+.sync .mk i.on{background:var(--c)}
+.sync.dimmed{opacity:.55}
+.build{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px;padding:8px 10px}
+.bsec{display:flex;flex-direction:column;gap:5px}
+.bsec .lb{font-size:10px;letter-spacing:2px;color:var(--sub);display:flex;align-items:center;gap:6px}
+.bsec .lb::before{content:"";width:7px;height:7px;background:var(--c)}
+.bsec .icons{display:flex;gap:6px}
+.bic{width:44px;height:44px;position:relative;padding:3px;background:#0c1017;box-shadow:0 0 0 3px var(--ink),inset 0 0 0 2px var(--c)}
+.bic img{width:100%;height:100%;object-fit:cover}
+.bic .n{position:absolute;right:-5px;bottom:-6px;font-size:10px;padding:0 3px;background:var(--ink);color:var(--gold)}
+.bic.emp{background:repeating-linear-gradient(45deg,#11151d 0 3px,#0c1017 3px 6px);box-shadow:0 0 0 3px var(--ink),inset 0 0 0 2px #232a37}
+.bsep{width:3px;background:var(--ink)}
+.hero{position:absolute;left:590px;top:190px;display:flex;flex-direction:column;align-items:center}
+.hero img{width:120px;height:120px}
+.hpbar{width:132px;display:flex;flex-direction:column;gap:3px}
+.hpbar .bar{height:11px}
+.hpbar .t{font-size:10px;text-align:center;color:var(--bone);margin-top:-15px;position:relative;text-shadow:1px 1px 0 var(--ink)}
+.hpbar .st{display:flex;gap:2px;justify-content:center;margin-top:2px}
+.hpbar .st i{width:18px;height:18px;background-size:cover;background-position:center;box-shadow:0 0 0 2px var(--ink)}
+.mob{position:absolute;width:56px;height:56px}
+.banner{position:absolute;left:0;right:0;top:340px;height:62px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg,transparent,rgba(12,5,20,.92) 18%,rgba(12,5,20,.92) 82%,transparent);font-size:20px;color:var(--bone)}
+.banner::before,.banner::after{content:"";position:absolute;left:12%;right:12%;height:3px;background:linear-gradient(90deg,transparent,var(--curse),transparent)}
+.banner::before{top:0}.banner::after{bottom:0}
+.banner em{font-style:normal;color:var(--curse)}
+.banner .tag{font-size:11px;letter-spacing:3px;color:var(--curse);margin-right:14px;padding:2px 6px;box-shadow:0 0 0 2px var(--curse2)}
+
+/*# ---------- 카드 ---------- */
+.cards{position:absolute;left:0;right:0;top:92px;display:flex;justify-content:center;gap:28px}
+.cardv{width:210px;display:flex;flex-direction:column;padding:6px;background:var(--stone1);position:relative;
+  box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 3px var(--c),inset 0 0 0 6px var(--ink)}
+.cardv .art{height:200px;margin:6px 6px 0;position:relative;overflow:hidden;box-shadow:0 0 0 2px var(--ink)}
+.cardv .art img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.cardv .art::after{content:"";position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(transparent,rgba(8,10,16,.95))}
+.cardv .kind{position:absolute;left:10px;top:10px;z-index:2;font-size:10px;letter-spacing:2px;padding:2px 6px;background:var(--ink);color:var(--c)}
+.cardv .cb{position:absolute;right:10px;top:10px;z-index:2}
+.cardv .nm{font-size:17px;color:var(--bone);text-align:center;margin:-26px 0 0;position:relative;z-index:2;text-shadow:2px 2px 0 var(--ink)}
+.cardv .ds{font-size:12.5px;color:#cfd5e2;text-align:center;min-height:52px;padding:8px 10px 6px;display:flex;align-items:center;justify-content:center}
+.cardv .btn{margin:0 8px 8px}
+.cardv.hover{transform:translateY(-10px)}
+.cardv.hover::before{content:"";position:absolute;inset:-12px;background:radial-gradient(closest-side,rgba(94,240,180,.25),transparent);z-index:-1}
+.cs-title{position:absolute;left:0;right:0;top:26px;text-align:center}
+.cs-title .t{font-size:26px;color:var(--bone);text-shadow:3px 3px 0 var(--ink)}
+.cs-title .s{font-size:12px;letter-spacing:2px;color:var(--c)}
+
+/*# ---------- 리스트 셀 ---------- */
+.row{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.lrc .lvl{width:58px;text-align:center;font-size:16px;color:var(--gold)}
+.lrc .nm{flex:1}
+.lrc .nm small{display:block;color:var(--sub);font-size:11px}
+.lrc .rw{color:var(--soul);font-size:13px;display:flex;align-items:center;gap:5px}
+.lrc.done{opacity:.65}
+.lrc.now{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--gold)}
+.qc{flex-direction:column;align-items:stretch;gap:6px}
+.qc .l1{display:flex;align-items:center;gap:10px}
+.qc .l1 .nm{flex:1;font-size:15px}
+.qc .ds{font-size:12px;color:var(--sub)}
+.qc .l3{display:flex;align-items:center;gap:10px;font-size:11px}
+.qc .l3 .bar{flex:1;height:10px}
+.qc.done{background:#18251f}
+.rkc{display:grid;grid-template-columns:62px 1fr 120px 110px;align-items:center;padding:8px 14px;font-size:14px}
+.rkc .r{font-size:18px;text-align:center}
+.rkc .h{display:flex;align-items:center;gap:6px;color:var(--bone2);font-size:12px}
+.rkc .h img{width:26px;height:26px}
+.rkc .tm{text-align:right;color:var(--soul)}
+.rkc.g1 .r{color:#ffd65a}.rkc.g2 .r{color:#d6dde8}.rkc.g3 .r{color:#e39a5c}
+.rkc.me{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--soul)}
+.rkhd{display:grid;grid-template-columns:62px 1fr 120px 110px;padding:0 14px 6px;font-size:11px;color:var(--sub);letter-spacing:1px}
+.rkhd>:first-child{text-align:center}.rkhd>:last-child{text-align:right}
+.divider{height:3px;background:var(--ink);margin:8px 0;box-shadow:0 3px 0 var(--stone3)}
+
+/*# ---------- 상점 ---------- */
+.shc{width:196px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 10px 10px;position:relative}
+.shc .ic{width:62px;height:62px;padding:5px}
+.shc .nm{font-size:14px;color:var(--bone)}
+.shc .lv{display:flex;gap:3px}
+.shc .lv i{width:14px;height:6px;background:#0b0e14;box-shadow:0 0 0 2px var(--ink)}
+.shc .lv i.on{background:var(--soul)}
+.shc .ds{font-size:11.5px;color:var(--sub);text-align:center;min-height:30px}
+.shc .btn{width:100%}
+.shc.can{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--soul),0 0 16px rgba(94,240,180,.25)}
+.shc.max .btn{pointer-events:none}
+.shhd{display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:13px;color:var(--bone)}
+.shhd::before{content:"";width:6px;height:18px;background:var(--c)}
+.shhd::after{content:"";flex:1;height:3px;background:var(--ink);box-shadow:0 3px 0 var(--stone3)}
+
+/*# ---------- 도감 ---------- */
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{padding:6px 18px;font-size:13px;background:var(--stone1);color:var(--sub);box-shadow:0 -3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink)}
+.tab.on{background:var(--stone3);color:var(--bone);box-shadow:0 -3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 3px 0 var(--gold)}
+.cxc{width:98px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px 8px;position:relative}
+.cxc .ic{width:68px;height:68px}
+.cxc .nm{font-size:12px}
+.cxc .lvb{position:absolute;top:4px;right:4px;font-size:9px;padding:1px 3px}
+.cxc.lock .ic{filter:brightness(0) opacity(.55)}
+.cxc.lock .nm{color:var(--sub)}
+.cxc.glow{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--gold),inset 0 0 18px rgba(247,198,74,.35)}
+
+/*# ---------- 기록 ---------- */
+.rsc{width:150px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;position:relative;font-size:12px}
+.rsc .sn{font-size:13px;letter-spacing:2px;color:var(--bone)}
+.rsc .pt{width:84px;height:84px}
+.rsc .w{font-size:16px;color:var(--gold)}
+.rsc .m{color:var(--sub);font-size:11px}
+.rsc .b{color:var(--soul);font-size:11px}
+.rsc .sel{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:10px}
+.rsc.on{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--gold)}
+.rsc.lock .pt{filter:brightness(0) opacity(.5)}
+.rsc .lh{font-size:10px;color:#ff9a9d;text-align:center}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{padding:10px 12px}
+.stat .k{font-size:11px;color:var(--sub)}
+.stat .v{font-size:22px;color:var(--bone)}
+
+/*# ---------- 영웅 선택 ---------- */
+.hsc{width:140px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px 12px;position:relative}
+.hsc .pt{width:110px;height:110px;background:radial-gradient(ellipse 40% 10% at 50% 92%,rgba(0,0,0,.6),transparent 70%)}
+.hsc .nm{font-size:14px;color:var(--bone)}
+.hsc .sub{font-size:10px;color:var(--sub)}
+.hsc.on{box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 3px var(--soul),0 0 20px rgba(94,240,180,.3)}
+.hsc.lock .pt{filter:brightness(0) opacity(.5)}
+
+/*# ---------- 계정 ---------- */
+.field{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.field .k{font-size:12px;color:var(--sub);width:64px}
+.field .v{flex:1}
+.input{flex:1;padding:8px 10px;background:#06080c;color:var(--txt);box-shadow:0 0 0 3px var(--ink),inset 0 3px 0 #000,0 0 0 5px var(--soul2);font:inherit}
+.caret{display:inline-block;width:8px;height:16px;background:var(--soul);vertical-align:-3px;margin-left:2px}
+.conn{display:flex;align-items:center;gap:8px;font-size:13px}
+.conn i{width:10px;height:10px;background:var(--soul);box-shadow:0 0 0 2px var(--ink),0 0 8px var(--soul)}
+.conflict{padding:12px;background:#2a1418;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 0 0 2px var(--blood)}
+.conflict .t{display:flex;align-items:center;gap:8px;color:#ffb3b5;font-size:14px;margin-bottom:6px}
+.conflict .t i{width:10px;height:10px;background:var(--blood);box-shadow:0 0 0 2px var(--ink)}
+.conflict .d{font-size:12px;color:#e8c9ca;margin-bottom:10px}
+.conflict .cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:11px}
+.conflict .cmp div{padding:6px 8px;background:#170a0d}
+.conflict .cmp b{display:block;font-weight:normal;color:var(--bone);font-size:13px}
+
+/*# ---------- 결과 ---------- */
+.result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;text-align:center;padding:30px 28px 22px}
+.result .big{font-size:48px;letter-spacing:10px;text-shadow:4px 4px 0 var(--ink);margin-bottom:2px}
+.result.win .big{color:var(--gold)}
+.result.lose .big{color:#ff6b6f}
+.result .sub{font-size:12px;letter-spacing:3px;color:var(--sub)}
+.result .rows{margin:18px 0;display:flex;flex-direction:column;gap:6px}
+.result .rows div{display:flex;justify-content:space-between;padding:8px 12px;font-size:14px}
+.result .rows .k{color:var(--sub)}
+.result .btns{display:flex;gap:14px;justify-content:center}
+.result .btns .btn{min-width:150px}
+.rays{position:absolute;left:50%;top:44%;width:640px;height:640px;margin:-320px 0 0 -320px;
+  background:repeating-conic-gradient(rgba(247,198,74,.10) 0 8deg,transparent 8deg 22deg);
+  -webkit-mask:radial-gradient(closest-side,#000 30%,transparent);mask:radial-gradient(closest-side,#000 30%,transparent)}
+
+/*# ---------- 토스트 ---------- */
+.toast{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;font-size:14px}
+.toast i{width:10px;height:10px;flex:none}
+
+/*# ---------- 시너지 모달 ---------- */
+.smc{display:flex;align-items:stretch;gap:0;padding:0}
+.smc .ax{width:8px;background:var(--c)}
+.smc .ic{width:52px;display:flex;align-items:center;justify-content:center;background:#0c1017}
+.smc .ic img{width:34px;height:34px}
+.smc .bd{flex:1;padding:8px 12px}
+.smc .bd .t{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--c)}
+.smc .bd .d{font-size:12px;color:#cfd5e2}
+.smc .bd .d s{color:var(--sub);text-decoration:none}
+.bmc{display:flex;align-items:center;gap:12px;padding:8px 12px}
+.bmc .ic{width:48px;height:48px;flex:none;box-shadow:0 0 0 3px var(--ink),inset 0 0 0 2px var(--c);padding:3px;background:#0c1017}
+.bmc .ic img{width:100%;height:100%;object-fit:cover}
+.bmc .bd{flex:1;min-width:0}
+.bmc .nm{font-size:14px;color:var(--bone)}
+.bmc .ds{font-size:11.5px;color:var(--sub)}
+.bmc .n{font-size:14px;color:var(--gold)}
+.sechd{font-size:11px;letter-spacing:2px;color:var(--c);margin:0 0 6px;display:flex;align-items:center;gap:6px}
+.sechd::before{content:"";width:7px;height:7px;background:var(--c)}
+
+@media (max-width:640px){.wrap{padding:12px 16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>Art/UI 리디자인 시안: 도트 던전 스타일 (32종)</h1>
+  <p><code>Assets/_Lair/Art/UI</code> 의 프리팹 32종을 하나의 비주얼 언어로 다시 그린 시안입니다. 몬스터·카드·영웅 도트 에셋과 톤을 맞췄습니다.
+  <b>계단형 픽셀 테두리</b>, <b>석판 패널</b>, <b>소울(청록)·금화(금)·저주(보라)</b> 3색 강조를 쓰고, 한글은 도트 폰트 Galmuri11 로 표시했습니다.</p>
+  <p>프레임 1장은 16:9 (960×540) 기준입니다. 셀 프리팹은 실제 사용되는 화면 안에 넣고, 아래 트레이에서 상태별 단독 모습도 보여 줍니다. 텍스트 값은 샘플입니다.</p>
+  <nav class="toc">
+    <a href="#g-village">마을</a><a href="#g-meta">마을 팝업</a><a href="#g-battle">전투</a><a href="#g-battlepop">전투 팝업</a><a href="#g-common">공용</a>
+  </nav>
+</header>
+
+<!-- ===================== 마을 ===================== -->
+<h2 class="grp" id="g-village">마을 허브</h2>
+
+<section class="sc">
+  <div class="hd"><h3>마을 허브 HUD</h3><code>VillageHud.prefab</code></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div>
+    <div class="vh-top">
+      <div class="lord">
+        <div class="pxbox face"><img class="ico" src="@@HeroIcons/Knight_S5.png" style="filter:hue-rotate(250deg) saturate(.6)"></div>
+        <div>
+          <div class="nm">영주 #7F3A</div>
+          <div class="lv">영주 Lv 7</div>
+          <div class="bar gold"><b style="width:62%"></b></div>
+        </div>
+      </div>
+      <div class="vname">영주의 둥지<small>LAIR OF THE LORD</small></div>
+      <div class="pxbox dark soulpill"><span class="soulcoin"></span>1,240 소울</div>
+      <div class="acct"><span class="reddot"></span><button class="btn sm">계정</button></div>
+    </div>
+    <div class="vh-menu">
+      <button class="btn mbtn"><span class="gl">@@glyph:castle</span>영주성</button>
+      <button class="btn mbtn"><span class="gl">@@glyph:shop</span>상점</button>
+      <button class="btn mbtn"><span class="gl">@@glyph:book</span>도감</button>
+      <button class="btn mbtn"><span class="reddot"></span><span class="gl">@@glyph:scroll</span>퀘스트</button>
+      <button class="btn mbtn"><span class="gl">@@glyph:tomb</span>기록</button>
+      <button class="btn mbtn"><span class="gl">@@glyph:crown</span>랭킹</button>
+    </div>
+    <div class="vh-stage">
+      <button class="btn arrow">◀</button>
+      <div class="pxbox stagecard">
+        <div class="st">침입자</div>
+        <div class="sn">STAGE 3</div>
+        <div class="stars">★★★<i>★★</i></div>
+        <div class="pic"><img src="@@HeroIcons/Knight_S3.png"></div>
+        <div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <button class="btn arrow">▶</button>
+    </div>
+    <div class="pxbox dark vh-right">
+      <div><div class="k">이번 침입자</div><div class="v">기사 · 3단계</div></div>
+      <div><div class="k">최단 방어</div><div class="v" style="color:var(--soul)">3:42.1</div></div>
+      <div><div class="k">이 스테이지 전적</div><div class="v">7승 · 11판</div></div>
+    </div>
+    <div class="vh-bottom">
+      <button class="btn" style="min-height:52px;min-width:120px">영웅</button>
+      <button class="btn blood sortie">방어하기</button>
+    </div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="pxbox stagecard" style="width:260px;height:300px">
+        <div class="st">침입자</div><div class="sn">STAGE 5</div><div class="stars"><i>★★★★★</i></div>
+        <div class="pic"><img src="@@HeroIcons/Knight_S5.png" style="height:150px"></div>
+        <div class="lockov"><div class="lockico"></div><div style="font-size:16px">잠금</div><div style="font-size:12px;color:#ff9a9d">스테이지 4 클리어 필요</div></div>
+      </div><figcaption>StageLockOverlay (잠긴 스테이지)</figcaption></figure>
+  </div>
+  <p class="note">상단바에 영주 정보·마을 이름·소울·계정을 모았습니다. 왼쪽은 메뉴 6개를 2열 그리드로, 가운데는 스테이지 카드 캐러셀, 아래는 <b>방어하기</b> 버튼입니다. 방어하기만 핏빛으로 칠해서 화면에서 가장 먼저 눈에 띄게 했습니다. 오른쪽 전적 패널은 <b>제안</b>이며 현재 프리팹에는 없습니다.</p>
+</section>
+
+<!-- ===================== 마을 팝업 ===================== -->
+<h2 class="grp" id="g-meta">마을 팝업</h2>
+
+<section class="sc">
+  <div class="hd"><h3>영웅 선택</h3><code>HeroSelectPopup.prefab</code><div class="tags"><span>+ HeroSelectCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:760px">
+      <div class="plaque">영웅 선택</div><button class="btn xbtn">×</button>
+      <div class="scroll" style="display:flex;gap:14px;padding:6px 4px 10px">
+        <div class="pxbox hsc"><div class="pt"><img class="ico" src="@@HeroIcons/Knight.png"></div><div class="nm">기사</div><div class="sub">1단계 · 견습</div></div>
+        <div class="pxbox hsc"><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S2.png"></div><div class="nm">기사</div><div class="sub">2단계 · 수련</div></div>
+        <div class="pxbox hsc on"><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S3.png"></div><div class="nm">기사</div><div class="sub" style="color:var(--soul)">3단계 · 선택 중</div></div>
+        <div class="pxbox hsc"><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S4.png"></div><div class="nm">기사</div><div class="sub">4단계 · 숙련</div></div>
+        <div class="pxbox hsc lock"><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S5.png"></div><div class="nm" style="color:var(--sub)">???</div><div class="sub" style="color:#ff9a9d">잠김</div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">셀은 초상화, 이름, 보조 설명으로 구성됩니다. 선택된 셀은 소울색 테두리와 은은한 빛으로, 잠긴 셀은 실루엣으로 표시합니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>상점</h3><code>ShopPopup.prefab</code><div class="tags"><span>+ ShopItemCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:860px;height:470px;top:52%">
+      <div class="plaque">상점</div><button class="btn xbtn">×</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:-8px 0 12px">
+        <div class="pxbox sunk" style="padding:6px 12px;font-size:12px;color:var(--sub)">현재 강화 <span style="color:var(--bone)">몬스터 HP +10% · 스포너 주기 -5%</span></div>
+        <div class="pxbox dark soulpill"><span class="soulcoin"></span>1,240 소울</div>
+      </div>
+      <div class="scroll" style="height:340px">
+        <div class="shhd" style="--c:var(--soul)">스탯 강화</div>
+        <div style="display:flex;gap:14px;padding:0 3px">
+          <div class="pxbox shc can"><div class="pxbox sunk ic"><img class="ico" src="@@MonsterIcons/Wraith.png"></div><div class="nm">질긴 망자</div><div class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="ds">모든 몬스터 HP +5%</div><button class="btn soul sm"><span class="soulcoin"></span>120 구매</button></div>
+          <div class="pxbox shc"><div class="pxbox sunk ic"><img class="ico" src="@@MonsterIcons/Reaper.png"></div><div class="nm">날 선 낫</div><div class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div><div class="ds">모든 몬스터 공격력 +5%</div><button class="btn off sm"><span class="soulcoin" style="background:#556"></span>1,600 부족</button></div>
+          <div class="pxbox shc max"><div class="pxbox sunk ic"><img class="ico" src="@@MonsterIcons/Phantom.png"></div><div class="nm">던전의 숨결</div><div class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="ds">스포너 주기 -5%</div><button class="btn sm" style="color:var(--gold)">MAX</button></div>
+          <div class="pxbox shc can"><div class="pxbox sunk ic"><img class="ico" src="@@MonsterIcons/Hex.png"></div><div class="nm">저주 연구</div><div class="lv"><i></i><i></i><i></i><i></i><i></i></div><div class="ds">디버프 지속시간 +10%</div><button class="btn soul sm"><span class="soulcoin"></span>80 구매</button></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">한 번에 스크롤되는 목록을 섹션 머리(HeaderText/Accent)로 나눴습니다. 셀 상태는 3가지입니다. <b>구매 가능</b>은 소울 테두리와 빛, <b>소울 부족</b>은 회색 버튼, <b>최대 레벨</b>은 금색 MAX 로 보여 줍니다. 레벨은 <code>Lv 0/5</code> 텍스트 대신 5칸 눈금으로 바꿨습니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>영주성 (영주 레벨)</h3><code>LordLevelPopup.prefab</code><div class="tags"><span>+ LordRewardCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:560px">
+      <div class="plaque">영주성</div><button class="btn xbtn">×</button>
+      <div style="display:flex;align-items:center;gap:14px;margin:-6px 0 14px">
+        <div style="font-size:26px;color:var(--gold)" class="shadowtxt">영주 Lv 7</div>
+        <div style="flex:1"><div class="bar gold seg"><b style="width:62%"></b></div><div style="font-size:11px;color:var(--sub);margin-top:4px;text-align:right">다음 레벨까지 380 XP</div></div>
+      </div>
+      <div class="scroll" style="display:flex;flex-direction:column;gap:9px;height:280px;padding:3px">
+        <div class="pxbox row lrc done"><div class="lvl">Lv 5</div><div class="nm">해골 병사 보급<small>수령 완료</small></div><div class="rw"><span class="soulcoin"></span>+100 소울</div><span class="badge soul">달성</span></div>
+        <div class="pxbox row lrc done"><div class="lvl">Lv 6</div><div class="nm">지하 창고 확장<small>수령 완료</small></div><div class="rw"><span class="soulcoin"></span>+150 소울</div><span class="badge soul">달성</span></div>
+        <div class="pxbox row lrc now"><div class="lvl">Lv 7</div><div class="nm">망령의 서약<small>방금 달성</small></div><div class="rw"><span class="soulcoin"></span>+200 소울</div><span class="badge">달성</span></div>
+        <div class="pxbox dark row lrc"><div class="lvl" style="color:var(--sub)">Lv 8</div><div class="nm">저주술사 합류<small>380 XP 남음</small></div><div class="rw" style="color:var(--sub)"><span class="soulcoin" style="background:#556"></span>+250 소울</div></div>
+        <div class="pxbox dark row lrc"><div class="lvl" style="color:var(--sub)">Lv 9</div><div class="nm">던전 심장부</div><div class="rw" style="color:var(--sub)"><span class="soulcoin" style="background:#556"></span>+300 소울</div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">셀은 3가지 상태입니다. <b>이미 받은 보상</b>은 흐리게, <b>현재 레벨</b>은 금색 테두리, <b>아직 못 받은 보상</b>은 어두운 석판으로 보여 줍니다. 영주 레벨 XP 바를 제목 아래로 옮겼습니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>도전과제</h3><code>QuestPopup.prefab</code><div class="tags"><span>+ QuestCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:600px">
+      <div class="plaque">도전과제</div><button class="btn xbtn">×</button>
+      <div class="scroll" style="display:flex;flex-direction:column;gap:10px;height:330px;padding:3px">
+        <div class="pxbox row qc done"><div class="l1"><span class="nm">첫 방어 성공</span><span class="badge soul">달성</span></div><div class="ds">영웅을 처음으로 처치한다</div><div class="l3"><div class="bar"><b style="width:100%"></b></div><span>1/1</span><span style="color:var(--soul)"><span class="soulcoin"></span> +50</span></div></div>
+        <div class="pxbox row qc"><div class="l1"><span class="nm">망령 군단</span></div><div class="ds">한 판에 망령을 30마리 소환한다</div><div class="l3"><div class="bar"><b style="width:60%"></b></div><span>18/30</span><span style="color:var(--soul)"><span class="soulcoin"></span> +120</span></div></div>
+        <div class="pxbox row qc"><div class="l1"><span class="nm">시간의 지배자</span></div><div class="ds">3분 안에 영웅을 처치한다</div><div class="l3"><div class="bar"><b style="width:20%"></b></div><span>0/1</span><span style="color:var(--soul)"><span class="soulcoin"></span> +200</span></div></div>
+        <div class="pxbox row qc"><div class="l1"><span class="nm">저주 수집가</span></div><div class="ds">디버프 카드 10종을 픽한다</div><div class="l3"><div class="bar"><b style="width:40%"></b></div><span>4/10</span><span style="color:var(--soul)"><span class="soulcoin"></span> +80</span></div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">셀은 과제명, 설명, 진행 바, 진행 수치, 보상을 한 카드에 담습니다. 달성한 과제는 초록 틴트 배경에 달성 배지를 붙입니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>도감</h3><code>CodexPopup.prefab</code><div class="tags"><span>+ CodexCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:720px">
+      <div class="plaque">도감</div><button class="btn xbtn">×</button>
+      <div class="tabs"><div class="tab on">몬스터</div><div class="tab">카드</div><div style="flex:1"></div><div style="font-size:12px;color:var(--sub);align-self:center">수집 5 / 6</div></div>
+      <div class="scroll" style="display:grid;grid-template-columns:repeat(6,98px);gap:14px;padding:3px;height:300px;align-content:start">
+        <div class="pxbox cxc glow"><span class="badge lvb">Lv 5</span><div class="ic"><img class="ico" src="@@MonsterIcons/Wisp.png"></div><div class="nm">도깨비불</div></div>
+        <div class="pxbox cxc"><span class="badge lvb">Lv 3</span><div class="ic"><img class="ico" src="@@MonsterIcons/Wraith.png"></div><div class="nm">망령</div></div>
+        <div class="pxbox cxc"><span class="badge lvb">Lv 2</span><div class="ic"><img class="ico" src="@@MonsterIcons/Reaper.png"></div><div class="nm">사신</div></div>
+        <div class="pxbox cxc"><span class="badge lvb">Lv 1</span><div class="ic"><img class="ico" src="@@MonsterIcons/Phantom.png"></div><div class="nm">환령</div></div>
+        <div class="pxbox cxc"><span class="badge lvb">Lv 1</span><div class="ic"><img class="ico" src="@@MonsterIcons/Plague.png"></div><div class="nm">역병귀</div></div>
+        <div class="pxbox cxc lock"><div class="ic"><img class="ico" src="@@MonsterIcons/Hex.png"></div><div class="nm">???</div></div>
+        <div class="pxbox cxc"><div class="ic" style="padding:4px"><img class="ico" style="object-fit:cover" src="@@CardArt/TimeStop.png"></div><div class="nm">시간 정지</div></div>
+        <div class="pxbox cxc"><div class="ic" style="padding:4px"><img class="ico" style="object-fit:cover" src="@@CardArt/Fear.png"></div><div class="nm">공포</div></div>
+        <div class="pxbox cxc lock"><div class="ic" style="padding:4px"><img class="ico" style="object-fit:cover" src="@@CardArt/MarkOfDeath.png"></div><div class="nm">???</div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">탭은 석판 탭이며 선택된 탭 위에 금색 줄을 긋습니다. 셀은 아이콘, 이름, Lv 배지로 구성하고 <b>최대 강화</b>(GlowOverlay)는 금빛 테두리로 보여 줍니다. 미발견은 검은 실루엣에 <code>???</code> 로 표시합니다. 둘째 줄은 카드 탭의 셀 모습입니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>기록</h3><code>RecordsPopup.prefab</code><div class="tags"><span>+ RecordsStageCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:880px">
+      <div class="plaque">기록</div><button class="btn xbtn">×</button>
+      <div style="display:flex;gap:18px">
+        <div class="statgrid" style="width:260px;align-content:start">
+          <div class="pxbox sunk stat"><div class="k">총 출격</div><div class="v">42</div></div>
+          <div class="pxbox sunk stat"><div class="k">승리</div><div class="v" style="color:var(--gold)">27</div></div>
+          <div class="pxbox sunk stat"><div class="k">승률</div><div class="v">64%</div></div>
+          <div class="pxbox sunk stat"><div class="k">최단</div><div class="v" style="color:var(--soul)">2:58.4</div></div>
+          <div class="pxbox sunk stat" style="grid-column:span 2"><div class="k">가장 많이 픽한 카드</div><div class="v" style="font-size:16px">시간 정지 ×31</div></div>
+        </div>
+        <div class="scroll" style="flex:1;display:flex;gap:14px;padding:14px 4px 6px">
+          <div class="pxbox rsc"><div class="sn">STAGE 1</div><div class="pt"><img class="ico" src="@@HeroIcons/Knight.png"></div><div class="stars" style="font-size:11px">★<i>★★★★</i></div><div class="w">12승</div><div class="m">14판 · 86%</div><div class="b">최단 2:58.4</div></div>
+          <div class="pxbox rsc on"><span class="badge sel">선택 중</span><div class="sn">STAGE 2</div><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S2.png"></div><div class="stars" style="font-size:11px">★★<i>★★★</i></div><div class="w">9승</div><div class="m">13판 · 69%</div><div class="b">최단 3:21.0</div></div>
+          <div class="pxbox rsc"><div class="sn">STAGE 3</div><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S3.png"></div><div class="stars" style="font-size:11px">★★★<i>★★</i></div><div class="w">6승</div><div class="m">11판 · 55%</div><div class="b">최단 3:42.1</div></div>
+          <div class="pxbox dark rsc lock"><div class="sn" style="color:var(--sub)">STAGE 4</div><div class="pt"><img class="ico" src="@@HeroIcons/Knight_S4.png"></div><div class="stars" style="font-size:11px"><i>★★★★</i><i>★</i></div><div class="w" style="color:var(--sub)">0승</div><div class="lh">스테이지 3<br>클리어 필요</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">BodyText 한 덩어리였던 통계를 <b>숫자 타일 4~5개</b>로 나눴습니다. 스테이지 셀은 선택 중 배지와 금테, 잠금 실루엣과 해금 조건으로 상태를 구분합니다. "가장 많이 픽한 카드" 타일은 <b>제안</b>입니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>랭킹</h3><code>RankingPopup.prefab</code><div class="tags"><span>+ RankingCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:600px">
+      <div class="plaque">랭킹</div><button class="btn xbtn">×</button>
+      <div class="tabs" style="margin-top:-8px"><div class="tab on">STAGE 3</div><div class="tab">최단 클리어</div></div>
+      <div class="rkhd"><span>순위</span><span>이름</span><span>영웅</span><span>시간</span></div>
+      <div class="scroll" style="display:flex;flex-direction:column;gap:7px;height:222px;padding:3px">
+        <div class="pxbox rkc g1"><span class="r">1</span><span>어둠의군주</span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">2:11.8</span></div>
+        <div class="pxbox rkc g2"><span class="r">2</span><span>해골왕</span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">2:24.3</span></div>
+        <div class="pxbox rkc g3"><span class="r">3</span><span>망령술사</span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">2:30.0</span></div>
+        <div class="pxbox dark rkc"><span class="r">4</span><span>영주 #A12C</span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">2:47.9</span></div>
+        <div class="pxbox dark rkc"><span class="r">5</span><span>던전지기</span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">2:55.2</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="pxbox rkc me"><span class="r" style="color:var(--soul)">38</span><span>영주 #7F3A <span class="badge soul" style="font-size:9px">나</span></span><span class="h"><img src="@@HeroIcons/Knight_S3.png">Knight</span><span class="tm">3:42.1</span></div>
+    </div>
+  </div></div>
+  <p class="note">헤더 행 아래 목록을 두고, 1~3위는 금·은·동 숫자로 표시합니다. 내 순위(MyRankRow)는 구분선 아래에 고정하고 소울색 테두리로 강조했습니다. 스테이지 탭은 <b>제안</b>입니다(현재 프리팹에 없음).</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>계정 (클라우드)</h3><code>CloudPopup.prefab</code></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:520px">
+      <div class="plaque">계정</div><button class="btn xbtn">×</button>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="pxbox sunk field"><span class="k">표시명</span><span class="input">영주 #7F3A<span class="caret"></span></span><button class="btn soul sm">확인</button><button class="btn sm">취소</button></div>
+        <div class="pxbox sunk field"><span class="k">상태</span><span class="v conn"><i></i>클라우드 연결됨</span><button class="btn sm">클라우드에서 복원</button></div>
+        <div class="conflict">
+          <div class="t"><i></i>세이브 충돌</div>
+          <div class="d">이 기기와 클라우드의 진행도가 다릅니다. 어느 쪽을 사용할까요?</div>
+          <div class="cmp"><div>이 기기<b>영주 Lv 7 · 1,240 소울</b></div><div>클라우드<b>영주 Lv 9 · 2,030 소울</b></div></div>
+          <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn sm">나중에</button><button class="btn gold sm">클라우드로 복원</button></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="pxbox sunk field" style="width:440px"><span class="k">표시명</span><span class="v">영주 #7F3A</span><button class="btn sm">변경</button></div><figcaption>NameEditGroup 닫힘 (기본)</figcaption></figure>
+  </div>
+  <p class="note">위 화면은 이름 편집 중이면서 충돌이 난 상태입니다. 충돌 그룹(ConflictGroup)은 붉은 경고 패널로 분리하고 <b>두 세이브를 나란히 비교</b>하게 했습니다. 이 비교 칸은 제안이며, 기존의 배지·복원 권유 흐름은 그대로입니다.</p>
+</section>
+
+<!-- ===================== 전투 ===================== -->
+<h2 class="grp" id="g-battle">전투</h2>
+
+<section class="sc">
+  <div class="hd"><h3>전투 HUD</h3><code>BattleHud.prefab</code>
+    <div class="tags"><span>+ SpawnerStatusPanel / Cell</span><span>+ BuildSynergyPanel / Cell</span><span>+ BuildIconCell</span><span>+ HpBar</span><span>+ SkillUnlockBanner</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-arena"></div>
+    <img class="mob" src="@@MonsterIcons/Wraith.png" style="left:470px;top:240px">
+    <img class="mob" src="@@MonsterIcons/Wisp.png" style="left:520px;top:300px;width:40px;height:40px">
+    <img class="mob" src="@@MonsterIcons/Wisp.png" style="left:720px;top:290px;width:40px;height:40px">
+    <img class="mob" src="@@MonsterIcons/Reaper.png" style="left:690px;top:215px">
+    <img class="mob" src="@@MonsterIcons/Hex.png" style="left:420px;top:330px;width:48px;height:48px">
+    <div class="hero">
+      <div class="hpbar">
+        <div class="bar red seg"><b style="width:64%"></b></div>
+        <div class="t">640 / 1000</div>
+        <div class="st"><i style="background-image:url(@@CardArt/HeroPoisonAura.png)"></i><i style="background-image:url(@@CardArt/Slow.png)"></i><i style="background-image:url(@@CardArt/MarkOfDeath.png)"></i></div>
+      </div>
+      <img src="@@HeroIcons/Knight_S3.png">
+    </div>
+
+    <div class="spawners">
+      <div class="pxbox spc maxlv"><span class="chip" style="background:var(--swarm)"></span><div class="pxbox sunk icon"><img class="ico" src="@@MonsterIcons/Wisp.png"><span class="badge lvb">Lv 5</span></div>
+        <div class="body"><div class="row1"><span>도깨비불</span><span class="cnt">×3</span></div><div class="row2"><div class="bar"><b style="width:72%"></b></div><span>2s</span></div></div></div>
+      <div class="pxbox spc"><span class="chip" style="background:var(--tank)"></span><div class="pxbox sunk icon"><img class="ico" src="@@MonsterIcons/Wraith.png"><span class="badge lvb">Lv 3</span></div>
+        <div class="body"><div class="row1"><span>망령</span><span class="cnt">×2</span></div><div class="row2"><div class="bar"><b style="width:35%"></b></div><span>6s</span></div></div></div>
+      <div class="pxbox spc"><span class="chip" style="background:var(--dps)"></span><div class="pxbox sunk icon"><img class="ico" src="@@MonsterIcons/Reaper.png"><span class="badge lvb">Lv 2</span></div>
+        <div class="body"><div class="row1"><span>사신</span><span class="cnt">×1</span></div><div class="row2"><div class="bar"><b style="width:15%"></b></div><span>11s</span></div></div></div>
+      <div class="pxbox spc"><span class="chip" style="background:var(--debuff)"></span><div class="pxbox sunk icon"><img class="ico" src="@@MonsterIcons/Hex.png"><span class="badge lvb">Lv 1</span></div>
+        <div class="body"><div class="row1"><span>저주술사</span><span class="cnt">×1</span></div><div class="row2"><div class="bar"><b style="width:88%"></b></div><span>1s</span></div></div></div>
+    </div>
+
+    <div class="pxbox dark timer">2:37<small>남은 시간</small></div>
+
+    <div class="syn">
+      <div class="synhd"><span>시너지</span><span>상세 ›</span></div>
+      <div class="pxbox sync on" style="--c:var(--tank)"><span class="si">@@glyph:shield</span><span class="nm">TANK</span><span class="mk"><i class="on"></i><i class="on"></i><i></i></span></div>
+      <div class="pxbox sync on" style="--c:var(--swarm)"><span class="si">@@glyph:swarm</span><span class="nm">SWARM</span><span class="mk"><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+      <div class="pxbox sync dimmed" style="--c:var(--dps)"><span class="si">@@glyph:sword</span><span class="nm">DPS</span><span class="mk"><i class="on"></i><i></i><i></i></span></div>
+      <div class="pxbox sync dimmed" style="--c:var(--debuff)"><span class="si">@@glyph:curse</span><span class="nm">DEBUFF</span><span class="mk"><i></i><i></i><i></i></span></div>
+    </div>
+
+    <div class="pxbox dark build">
+      <div class="bsec" style="--c:var(--soul)"><div class="lb">패시브</div><div class="icons">
+        <div class="bic" style="--c:var(--soul)"><img src="@@CardArt/SpawnWisps.png"><span class="n">×2</span></div>
+        <div class="bic" style="--c:var(--soul)"><img src="@@CardArt/IronWill.png"></div>
+        <div class="bic" style="--c:var(--soul)"><img src="@@CardArt/SpawnerHaste.png"></div>
+        <div class="bic" style="--c:var(--soul)"><img src="@@CardArt/WallOfWisps.png"></div>
+        <div class="bic emp"></div><div class="bic emp"></div></div></div>
+      <div class="bsep"></div>
+      <div class="bsec" style="--c:var(--gold)"><div class="lb">액티브</div><div class="icons">
+        <div class="bic" style="--c:var(--gold)"><img src="@@CardArt/TimeStop.png"></div>
+        <div class="bic" style="--c:var(--gold)"><img src="@@CardArt/Fear.png"><span class="n">×2</span></div>
+        <div class="bic emp"></div></div></div>
+    </div>
+
+    <div class="banner"><span class="tag">SKILL</span>영웅의 <em>'회전 칼날'</em> 스킬 해제</div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="hpbar" style="width:170px"><div class="bar red seg"><b style="width:22%"></b></div><div class="t">220 / 1000</div><div class="st"><i style="background-image:url(@@CardArt/TimeStop.png)"></i><i style="background-image:url(@@CardArt/Weaken.png)"></i><i style="background-image:url(@@CardArt/Bleed.png)"></i><i style="background-image:url(@@CardArt/Fear.png)"></i><i style="background-image:url(@@CardArt/HeroAttackDown.png)"></i></div></div><figcaption>HpBar (상태 아이콘 최대 8칸)</figcaption></figure>
+    <figure><div class="pxbox spc" style="width:206px"><span class="chip" style="background:var(--dps)"></span><div class="pxbox sunk icon"><img class="ico" src="@@MonsterIcons/Phantom.png"><span class="badge lvb">Lv 1</span></div><div class="body"><div class="row1"><span>환령</span><span class="cnt">×4</span></div><div class="row2"><div class="bar"><b style="width:50%"></b></div><span>4s</span></div></div></div><figcaption>SpawnerStatusCell</figcaption></figure>
+    <figure><div style="display:flex;gap:10px"><div class="bic" style="--c:var(--soul)"><img src="@@CardArt/SpawnWisps.png"><span class="n">×2</span></div><div class="bic" style="--c:var(--gold)"><img src="@@CardArt/TimeStop.png"></div><div class="bic emp"></div></div><figcaption>BuildIconCell (패시브/액티브/빈칸)</figcaption></figure>
+  </div>
+  <p class="note">배치는 이렇습니다. <b>왼쪽 위</b> 스포너 현황, <b>가운데 위</b> 타이머, <b>오른쪽 위</b> 시너지, <b>아래 가운데</b> 빌드 바. 전장 가운데는 비웠습니다. 스포너 셀은 왼쪽 색띠(ColorChip)로 시너지 축을 표시하고, 다음 스폰까지 남은 시간을 진행 바와 초로 보여 줍니다. 최대 레벨 스포너는 금테를 두릅니다. 빌드 바는 패시브(소울)와 액티브(금)를 테두리 색으로 나누고, 빈 슬롯은 빗금으로 표시합니다. 영웅 HP 바는 10칸 눈금이라 <b>패시브 카드가 나오는 10% 구간</b>이 눈에 보입니다. 스킬 해제 배너는 보라색 저주 톤의 가로 띠입니다.</p>
+</section>
+
+<!-- ===================== 전투 팝업 ===================== -->
+<h2 class="grp" id="g-battlepop">전투 팝업</h2>
+
+<section class="sc">
+  <div class="hd"><h3>카드 선택 (3택 1)</h3><code>CardSelectionPopup.prefab</code></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-arena"></div><div class="dim"></div>
+    <div class="cs-title" style="--c:var(--soul)"><div class="t">카드 선택</div><div class="s">패시브 · 영웅 HP 60% 도달</div></div>
+    <div class="cards">
+      <div class="cardv" style="--c:var(--soul)"><span class="kind">패시브</span><span class="badge cb">1/3</span><div class="art"><img src="@@CardArt/SpawnWraith.png"></div><div class="nm">더 많은 망령</div><div class="ds">망령 스포너 출력 +1</div><button class="btn soul">선택</button></div>
+      <div class="cardv hover" style="--c:var(--soul)"><span class="kind">패시브</span><span class="badge cb">2/3</span><div class="art"><img src="@@CardArt/IronWill.png"></div><div class="nm">강철 의지</div><div class="ds">모든 몬스터 받는 데미지 -30% (15초)</div><button class="btn soul">선택</button></div>
+      <div class="cardv" style="--c:var(--soul)"><span class="kind">패시브</span><span class="badge cb">1/3</span><div class="art"><img src="@@CardArt/HexRangeBoost.png"></div><div class="nm">저주의 시야</div><div class="ds">모든 저주술사 사거리 +40%</div><button class="btn soul">선택</button></div>
+    </div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="cardv" style="--c:var(--gold)"><span class="kind">액티브</span><span class="badge cb">1/3</span><div class="art"><img src="@@CardArt/TimeStop.png"></div><div class="nm">시간 정지</div><div class="ds">영웅 5초 멈춤</div><button class="btn gold">선택</button></div><figcaption>액티브 카드 (30초 주기) · 금색 프레임</figcaption></figure>
+  </div>
+  <p class="note">패시브 카드는 <b>소울 프레임</b>, 액티브 카드는 <b>금 프레임</b>이라 종류가 바로 구분됩니다. 부제에는 이번 선택이 왜 나왔는지(HP 구간 또는 30초 주기)를 적었습니다. CountBadge(<code>2/3</code>)는 오른쪽 위로 옮겼고, 마우스를 올린 카드는 위로 뜨면서 빛납니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>빌드 상세</h3><code>BuildModalPopup.prefab</code><div class="tags"><span>+ BuildModalCardCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-arena"></div><div class="dim"></div>
+    <div class="pxbox modal" style="width:760px">
+      <div class="plaque">빌드 상세</div><button class="btn xbtn">×</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div style="--c:var(--soul)"><div class="sechd">패시브 · 4</div>
+          <div class="scroll" style="display:flex;flex-direction:column;gap:8px;height:300px;padding:3px">
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/SpawnWisps.png"></div><div class="bd"><div class="nm">도깨비불 떼</div><div class="ds">도깨비불 스포너 출력 +1</div></div><span class="n">×2</span></div>
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/IronWill.png"></div><div class="bd"><div class="nm">강철 의지</div><div class="ds">모든 몬스터 받는 데미지 -30%</div></div></div>
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/SpawnerHaste.png"></div><div class="bd"><div class="nm">던전의 박동</div><div class="ds">모든 스포너 주기 -20%</div></div></div>
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/WallOfWisps.png"></div><div class="bd"><div class="nm">단단한 살갗</div><div class="ds">도깨비불·망령 받는 데미지 -25%</div></div></div>
+          </div></div>
+        <div style="--c:var(--gold)"><div class="sechd">액티브 · 2</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:3px">
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/TimeStop.png"></div><div class="bd"><div class="nm">시간 정지</div><div class="ds">영웅 5초 멈춤</div></div></div>
+            <div class="pxbox bmc"><div class="ic"><img src="@@CardArt/Fear.png"></div><div class="bd"><div class="nm">공포</div><div class="ds">영웅 3초간 도망</div></div><span class="n">×2</span></div>
+          </div>
+          <div class="empty" style="display:none">아직 픽한 카드가 없습니다</div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">두 섹션을 세로로 쌓던 구성을 <b>좌우 2단</b>으로 바꿨습니다. 셀 아이콘 테두리 색은 전투 HUD 빌드 바와 같습니다. EmptyText 는 섹션 가운데에 회색 문구로 나옵니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>적용 중인 시너지</h3><code>SynergyModalPopup.prefab</code><div class="tags"><span>+ SynergyModalCell</span></div></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-arena"></div><div class="dim"></div>
+    <div class="pxbox modal" style="width:540px">
+      <div class="plaque">적용 중인 시너지</div><button class="btn xbtn">×</button>
+      <div class="scroll" style="display:flex;flex-direction:column;gap:10px;height:300px;padding:3px">
+        <div class="pxbox smc" style="--c:var(--swarm)"><span class="ax"></span><span class="ic"><span style="width:34px;height:34px">@@glyph:swarm</span></span><div class="bd"><div class="t">SWARM <span class="badge" style="color:var(--swarm);box-shadow:0 0 0 2px #2e6b28">3/3</span></div><div class="d">스포너 주기 -15% <s>· 최대 단계</s></div></div></div>
+        <div class="pxbox smc" style="--c:var(--tank)"><span class="ax"></span><span class="ic"><span style="width:34px;height:34px">@@glyph:shield</span></span><div class="bd"><div class="t">TANK <span class="badge" style="color:var(--tank);box-shadow:0 0 0 2px #24507e">2/3</span></div><div class="d">몬스터 받는 데미지 -10% <s>· 다음: -20%</s></div></div></div>
+        <div class="pxbox smc" style="--c:var(--dps)"><span class="ax"></span><span class="ic"><span style="width:34px;height:34px">@@glyph:sword</span></span><div class="bd"><div class="t">DPS <span class="badge" style="color:var(--dps);box-shadow:0 0 0 2px #7e2c24">1/3</span></div><div class="d">몬스터 공격력 +5% <s>· 다음: +12%</s></div></div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="note">셀 왼쪽의 AxisStrip 색띠, 아이콘, 라벨 구성은 그대로 두고, 시너지 아이콘은 지금의 벡터 방패 대신 도트 문장(방패·검·무리·저주)으로 다시 그렸습니다. 여기에 단계 배지와 "다음 단계" 미리보기를 붙였습니다. 미리보기는 <b>제안</b>입니다.</p>
+</section>
+
+<section class="sc">
+  <div class="hd"><h3>결과</h3><code>ResultPopup.prefab</code></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-arena"></div><div class="dim"></div><div class="rays"></div>
+    <div class="pxbox result win">
+      <div class="big">승리</div><div class="sub">영웅을 처치했다</div>
+      <div class="rows">
+        <div class="pxbox sunk"><span class="k">클리어 시간</span><span style="color:var(--soul)">3:42.1 <span class="badge" style="font-size:9px">NEW</span></span></div>
+        <div class="pxbox sunk"><span class="k">획득 소울</span><span style="color:var(--soul)"><span class="soulcoin"></span> +180</span></div>
+        <div class="pxbox sunk"><span class="k">영주 XP</span><span>+60</span></div>
+      </div>
+      <div class="btns"><button class="btn">마을로</button><button class="btn blood">다시 도전</button></div>
+    </div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="pxbox result lose" style="position:relative;left:auto;top:auto;transform:none;width:360px;padding:22px 20px 18px">
+      <div class="big" style="font-size:36px">패배</div><div class="sub">영웅이 던전을 돌파했다</div>
+      <div class="rows"><div class="pxbox sunk"><span class="k">영웅 남은 HP</span><span style="color:#ff8a8d">18%</span></div><div class="pxbox sunk"><span class="k">획득 소울</span><span style="color:var(--soul)"><span class="soulcoin"></span> +40</span></div></div>
+      <div class="btns"><button class="btn sm">마을로</button><button class="btn blood sm">다시 도전</button></div></div><figcaption>패배 상태</figcaption></figure>
+  </div>
+  <p class="note">ResultText 는 큰 글씨 한 단어로 줄이고, RewardText 는 항목별 줄로 나눴습니다. 승리 화면에는 뒤쪽에 금빛 방사광을 넣었고, 패배 화면은 붉은 제목에 영웅 남은 HP 를 보여 줍니다. 신기록 NEW 배지와 영주 XP 줄은 <b>제안</b>입니다.</p>
+</section>
+
+<!-- ===================== 공용 ===================== -->
+<h2 class="grp" id="g-common">공용</h2>
+
+<section class="sc">
+  <div class="hd"><h3>확인 팝업 · 토스트</h3><code>ConfirmPopup.prefab</code><code>ToastView.prefab</code></div>
+  <div class="fit"><div class="screen">
+    <div class="bg-hall"></div><div class="dim pat"></div>
+    <div class="pxbox modal" style="width:420px;padding-top:50px">
+      <div class="plaque">출격 확인</div>
+      <div style="text-align:center;font-size:14px;color:#d6dbe6;margin:4px 0 20px">STAGE 3 에 출격합니다.<br><span style="color:var(--sub);font-size:12px">진행 중인 판이 없습니다.</span></div>
+      <div style="display:flex;gap:14px;justify-content:center"><button class="btn" style="min-width:130px">취소</button><button class="btn soul" style="min-width:130px">확인</button></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;top:34px;display:flex;justify-content:center">
+      <div class="pxbox dark toast"><i style="background:var(--soul);box-shadow:0 0 0 2px var(--ink)"></i>클라우드에 저장되었습니다</div>
+    </div>
+  </div></div>
+  <div class="tray" style="margin-top:10px">
+    <figure><div class="pxbox dark toast"><i style="background:var(--soul);box-shadow:0 0 0 2px var(--ink)"></i>클라우드에 저장되었습니다</div><figcaption>토스트 · 정보</figcaption></figure>
+    <figure><div class="pxbox dark toast"><i style="background:var(--gold);box-shadow:0 0 0 2px var(--ink)"></i>소울이 부족합니다</div><figcaption>토스트 · 경고</figcaption></figure>
+    <figure><div class="pxbox dark toast"><i style="background:var(--blood);box-shadow:0 0 0 2px var(--ink)"></i>서버에 연결할 수 없습니다</div><figcaption>토스트 · 오류</figcaption></figure>
+    <figure><div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn">기본</button><button class="btn soul">확정</button><button class="btn gold">보상</button><button class="btn blood">출격</button><button class="btn off">비활성</button></div><figcaption>버튼 5종 (CHButton 스킨)</figcaption></figure>
+  </div>
+  <p class="note">모든 팝업은 같은 <b>석판 본체</b>와 <b>나무 명판 제목</b>, 핏빛 <b>× 버튼</b>을 씁니다. 토스트는 앞쪽 색 점으로 정보·경고·오류를 구분합니다. 이 점은 <b>제안</b>이며 현재는 단일 스타일입니다.</p>
+</section>
+
+</div>
+<script>
+(function(){
+  function fit(){
+    document.querySelectorAll('.fit').forEach(function(f){
+      var s=f.querySelector('.screen');if(!s)return;
+      var k=Math.min(1,f.clientWidth/960);
+      s.style.transform='scale('+k+')';f.style.height=(540*k)+'px';
+    });
+  }
+  window.addEventListener('resize',fit);fit();
+})();
+</script>
+</body>
+</html>

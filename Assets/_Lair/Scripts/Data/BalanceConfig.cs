@@ -18,6 +18,15 @@ namespace Lair.Data
             public float MoveSpeed;
         }
 
+        //# 영웅 앵커 — HP/Power 만 가진다 (chapter-system §1.2 이관 규칙). range/cooldown/moveSpeed 는 HeroArchetype.json 소관.
+        //# 실제 영웅 스탯 = ScaleHeroStat(앵커, HeroArchetype.scale x Stage.multiplier).
+        [Serializable]
+        public class HeroAnchor
+        {
+            public int Hp;
+            public int Power;
+        }
+
         //# EMonster 키 ↔ 스탯 매핑 행.
         [Serializable]
         public class MonsterStatRow
@@ -28,7 +37,7 @@ namespace Lair.Data
             public float SpawnPeriod;
         }
 
-        [SerializeField] private CharacterStat _hero;
+        [SerializeField] private HeroAnchor _hero;
         [SerializeField] private MonsterStatRow[] _monsters;
 
         [SerializeField] private float _runDuration = 300f;
@@ -37,7 +46,7 @@ namespace Lair.Data
         [SerializeField] private float[] _activeThresholds =
             { 30f, 90f, 150f, 210f, 270f };
 
-        public CharacterStat Hero => _hero;
+        public HeroAnchor Hero => _hero;
         public float RunDuration => _runDuration;
         public float[] PassiveThresholds => _passiveThresholds;
         public float[] ActiveThresholds => _activeThresholds;

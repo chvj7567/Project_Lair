@@ -37,6 +37,24 @@ namespace Lair.Character
             return cos >= cosHalf;
         }
 
+        //# p 가 origin 에서 dir(정규화 가정) 방향 직사각(길이 length, 반폭 halfWidth) 안인가 (XZ). 관통 사격용 — 축 투영 0~length, 수직 거리 <= halfWidth.
+        public static bool InLine(Vector3 p, Vector3 origin, Vector3 dir, float length, float halfWidth)
+        {
+            Vector3 d = dir;
+            d.y = 0f;
+            if (d.sqrMagnitude < 0.0001f)
+                return false;
+            d.Normalize();
+
+            Vector3 rel = p - origin;
+            rel.y = 0f;
+            float along = Vector3.Dot(rel, d);
+            if (along < 0f || along > length)
+                return false;
+            Vector3 perpendicular = rel - d * along;
+            return perpendicular.sqrMagnitude <= halfWidth * halfWidth;
+        }
+
         //# p 가 center 기준 XZ 거리 radius 안인가. 블레이드 구·몬스터 모두 y≈0 수평 공전.
         public static bool InSphere(Vector3 p, Vector3 center, float radius)
         {

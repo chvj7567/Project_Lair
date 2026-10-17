@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시너지 모달 팝업 비주얼 폴리시 (SynergyModalPopup, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar button.on{background:#3a2f12;border-color:var(--gold2);color:var(--gold)}
+#bar label{color:var(--sub);display:flex;align-items:center;gap:6px}
+#bar input[type=range]{width:110px}
+#bar b{display:inline-block;min-width:14px;text-align:center}
+#msg{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 75%)}
+#bd{position:absolute;left:0;top:0;width:1280px;height:720px;image-rendering:pixelated}
+#dim{position:absolute;inset:0;background:rgba(0,0,0,.6);cursor:pointer}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap;overflow:hidden}
+.gold{color:var(--gold)}
+/* 패널 프레임 */
+#body{position:absolute;left:410px;top:120px;width:460px;height:480px;background:linear-gradient(180deg,#1a2132,#0f1420);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink),inset 0 0 0 6px #3a4764,0 10px 0 #0007,0 0 60px #000a}
+#body::before{content:"";position:absolute;left:10px;right:10px;top:10px;height:44px;background:linear-gradient(180deg,#ffffff14,transparent);pointer-events:none}
+.corner{position:absolute;width:20px;height:20px;border:3px solid var(--gold);z-index:3;filter:drop-shadow(0 0 4px #f7c64a88)}
+.corner.tl{border-right:0;border-bottom:0}.corner.tr{border-left:0;border-bottom:0}.corner.bl{border-right:0;border-top:0}.corner.br{border-left:0;border-top:0}
+.dia{position:absolute;width:10px;height:10px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+.rune{position:absolute;height:3px;background:linear-gradient(90deg,var(--gold),transparent)}
+.rune.r{background:linear-gradient(270deg,var(--gold),transparent)}
+/* 제목 명패 (현재 TitlePlaque/Title: 상단 중앙 320x52) */
+#plaque{position:absolute;left:490px;top:94px;width:320px;height:52px;z-index:5;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--bone);
+ text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000;background:linear-gradient(180deg,#2c3858,#10151f);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink),0 6px 0 #0007,0 0 20px #f7c64a33}
+#plaque::before,#plaque::after{content:"";position:absolute;top:50%;width:10px;height:10px;margin-top:-5px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+#plaque::before{left:-14px}#plaque::after{right:-14px}
+/* 닫기 X (현재 44x44, 우상단 모서리 +13) */
+#xbtn{position:absolute;left:839px;top:107px;width:44px;height:44px;z-index:6;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--bone);cursor:pointer;
+ background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);border:3px solid var(--ink);
+ box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 14px #e5484d66,0 4px 0 #0007;text-shadow:2px 2px 0 #0008}
+#xbtn:hover{filter:brightness(1.12)}#xbtn:active{transform:translateY(2px)}
+#xbtn::before{content:"";position:absolute;left:5px;right:5px;top:4px;height:8px;background:linear-gradient(180deg,#ffffff40,transparent)}
+/* 스크롤 영역 (현재 ScrollView: 중심 (0,-22) 404x380 → x438 y192) */
+#sv{position:absolute;left:438px;top:192px;width:404px;height:380px;overflow:hidden}
+#sc{position:absolute;left:0;top:0;width:404px}
+#sbt{position:absolute;right:2px;top:0;bottom:0;width:8px;background:#05070c;border:1px solid var(--ink);box-shadow:0 0 0 1px #3a4764,inset 0 2px 0 #000a;display:none}
+#sbh{position:absolute;left:0;right:0;top:0;background:linear-gradient(90deg,#ffe58a,#e0a21c 60%,#b9832a);box-shadow:0 0 6px #f7c64aaa;cursor:grab}
+/* 셀 392x136 */
+.cell{position:absolute;left:6px;width:392px;height:136px;background:linear-gradient(90deg,#222c44,#151b2c);border:3px solid var(--ink);
+ box-shadow:inset 0 2px 0 #3d4b6e,inset 0 -3px 0 #0b0e16,0 3px 0 #0006,0 0 14px color-mix(in srgb,var(--ac) 18%,transparent);overflow:hidden}
+.cell::before{content:"";position:absolute;left:0;top:0;right:0;height:46%;background:linear-gradient(180deg,#ffffff0d,transparent);pointer-events:none}
+.strip{position:absolute;left:1px;top:1px;bottom:1px;width:8px;background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 70%,#fff),var(--ac) 40%,color-mix(in srgb,var(--ac) 55%,#000));
+ box-shadow:inset 0 0 0 1px #0006,0 0 10px var(--ac)}
+.halo{position:absolute;left:17px;top:38px;width:58px;height:58px;border-radius:50%;
+ background:radial-gradient(circle,color-mix(in srgb,var(--ac) 38%,#0a0d14) 0%,#0a0d14 68%);border:2px solid color-mix(in srgb,var(--ac) 70%,#000);
+ box-shadow:0 0 16px color-mix(in srgb,var(--ac) 65%,transparent),inset 0 0 10px #000a}
+.halo svg{position:absolute;left:11px;top:11px;width:32px;height:32px;filter:drop-shadow(0 0 4px var(--ac))}
+.lab{position:absolute;left:78px;top:2px;width:200px;height:30px;font-size:22px;line-height:30px;color:var(--bone);text-shadow:2px 2px 0 #000;white-space:nowrap;overflow:hidden}
+.lab i{font-style:normal;font-size:15px;color:var(--ac);margin-left:6px;text-shadow:1px 1px 0 #000}
+.badge{position:absolute;right:8px;top:2px;width:64px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ac);
+ background:linear-gradient(180deg,#0d121c,#090c14);border:2px solid color-mix(in srgb,var(--ac) 55%,#000);box-shadow:inset 0 2px 0 #000a,0 0 8px color-mix(in srgb,var(--ac) 35%,transparent);text-shadow:0 0 6px var(--ac)}
+.badge.max{background:linear-gradient(180deg,#3a2f12,#1c1608);border-color:var(--gold2);color:var(--gold);text-shadow:0 0 8px var(--gold)}
+.inset{position:absolute;left:74px;top:34px;width:304px;height:92px;background:linear-gradient(180deg,#080b12,#0d121c);border:2px solid #ffffff14;box-shadow:inset 0 2px 0 #000c,inset 0 0 14px #0009}
+.inset::before{content:"";position:absolute;left:0;top:0;right:0;height:12px;background:linear-gradient(180deg,#ffffff0c,transparent)}
+.desc{position:absolute;left:84px;top:36px;width:288px;height:44px;font-size:16px;line-height:22px;color:var(--txt);white-space:normal;overflow:hidden;text-shadow:1px 1px 0 #000}
+.nxt{position:absolute;left:84px;top:84px;width:288px;height:36px;font-size:11px;line-height:16px;color:var(--sub);white-space:normal;overflow:hidden;padding-top:4px;border-top:1px solid #ffffff14}
+.nxt.max{color:var(--gold);text-shadow:0 0 6px #f7c64a66}
+/* Tier 마름모 보석 (아이콘 아래 빈 공간) */
+.gems{position:absolute;left:16px;top:106px;width:60px;height:16px}
+.gem{position:absolute;top:1px;width:12px;height:12px;transform:rotate(45deg);background:#0a0d14;border:2px solid #3a4764;box-shadow:inset 0 0 0 1px #000}
+.gem.on{background:linear-gradient(135deg,#fff,var(--ac) 55%,color-mix(in srgb,var(--ac) 60%,#000));border-color:#06080c;box-shadow:0 0 10px var(--ac),0 0 4px var(--ac)}
+#empty{position:absolute;left:438px;top:192px;width:404px;height:380px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--sub);text-align:center;text-shadow:2px 2px 0 #000}
+#empty::before{content:"";position:absolute;left:50%;top:38%;width:14px;height:14px;margin:-34px 0 0 -7px;background:#3a4764;transform:rotate(45deg);box-shadow:0 0 10px #3a476488}
+#toast{position:absolute;left:400px;top:12px;width:480px;height:40px;background:var(--s0);border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;z-index:20;font-size:15px}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#chk code{color:var(--soul)}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>시너지 모달 팝업 비주얼 폴리시 — 레이아웃·문구 동일, 마감만 업그레이드</h1>
+  화면 중앙 모달(460x480)의 좌표·구성·문구·동작(dim/X 클릭 닫힘, 스크롤, 빈 상태)은 그대로이고 표시 방식만 바뀝니다. 아래 바에서 축별 카운트를 바꿔 상태(활성 단계 0~3, 최대 단계, 빈 상태, 스크롤)를 확인하세요.
+  <ol>
+    <li><b>프레임</b> - 금색 이중 테두리 + 안쪽 청회색 링 + 네 모서리 금색 장식 + 상단 광택. 제목은 양끝 마름모가 달린 금테 명패(현재 위치 그대로), 닫기 X는 입체 붉은 버튼.</li>
+    <li><b>dim</b> - 기존 #000 a0.6 그대로, 배경은 전투 배경 위에 얹힘.</li>
+    <li><b>셀</b> - 입체 그라데이션 카드 + 축 색 발광 띠 + 상단 광택. 단계 배지는 유리 칩(최대 단계는 금빛).</li>
+    <li><b>축 아이콘</b> - 원형 후광(축 색 방사 글로우)에 아이콘 배치.</li>
+    <li><b>Tier 보석</b> - 아이콘 아래 마름모 3개. 활성 단계는 축 색 발광, 비활성은 어두운 빈 보석(배지 "n/3" 과 동일 정보).</li>
+    <li><b>효과 문구</b> - 현재 단계 설명 + 다음 단계 미리보기를 한 장의 유리 inset 에 담음(다음 단계는 구분선 아래 작은 회색, 최대 단계는 금색).</li>
+    <li><b>스크롤바</b> - 금색 그라데이션 슬림 핸들(폭 8, 현재와 동일 크기). <b>구현</b> - 모두 Image(그라데이션/원/마름모 스프라이트)·Outline/Shadow 로 가능, 글로우는 소프트 스프라이트로 대체.</li>
+  </ol>
+</div>
+<div id="bar">
+  <label>TANK <input type="range" id="c0" min="0" max="9" value="5"><b id="v0">5</b></label>
+  <label>DPS <input type="range" id="c1" min="0" max="9" value="3"><b id="v1">3</b></label>
+  <label>DEBUFF <input type="range" id="c2" min="0" max="9" value="7"><b id="v2">7</b></label>
+  <label>SWARM <input type="range" id="c3" min="0" max="9" value="3"><b id="v3">3</b></label>
+  <button data-p="0,0,0,0">전부 0 (빈 상태)</button>
+  <button data-p="3,0,0,0">1축 1단계</button>
+  <button data-p="5,3,0,0">2축</button>
+  <button data-p="7,7,7,7">전부 최대</button>
+  <button id="bBd" class="on">배경 아트 on</button>
+  <span id="msg">셀 목록이 길면 스크롤됩니다</span>
+</div>
+<div id="wrap"><div id="stage"></div></div>
+<div id="chk">
+  규격: 1280x720, 모달 ModalBody 중앙 (410,120) 460x480, dim 전체 화면 a0.6. TitlePlaque/Title 320x52 상단 중앙(중심이 상단선), CloseButton 44x44 우상단 pivot(1,1) +13/+13 → (839,107), ScrollView/EmptyText 중심 (0,-22) 404x380 → (438,192). 셀 392x136: AxisStrip x4 w8, IconSlot 52 x20 중앙, Label (84,-8) 200x30 f22, DescText (84,-42) 294x44 f16, NextText (84,-92) 294x36 f11, TierBadge 우상단 (-14,-8) 64x28 f11. 셀 간격은 현재 prefab 값 유지(목업은 8 가정).<br>
+  Unity 매핑(기존 필드 유지): 패널 프레임 ← <code>ModalBody</code> Image 스프라이트 교체 · 모서리/마름모/명패 장식 ← 정적 Image(Raycast off) · 후광 ← <code>IconSlot</code> 배경 Image · 보석 3개 ← 셀 신규 Image 3(활성 판정은 기존 TierBadgeText 단계 값) · inset ← Desc/Next 뒤 Image · 스크롤바 핸들 ← 기존 <code>VerticalScrollbar</code> 스프라이트. 축 아이콘은 목업에서 SVG 근사이며 실제는 <code>SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png</code> 를 사용. 문구는 Strings_Ko 200~211 / 300 기존 그대로, 신규 문구 0건.
+</div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const stg=$('#stage');
+const AX=[
+ {k:'TANK',c:'#5AA9FF',ico:'<path d="M16 3 L28 7 V16 C28 23 22 28 16 30 C10 28 4 23 4 16 V7 Z" fill="#5AA9FF33" stroke="#5AA9FF" stroke-width="2.4"/><path d="M16 8 V25 M9 14 H23" stroke="#5AA9FF" stroke-width="2"/>',
+  d:['도깨비불·망령 HP ×1.3','도깨비불·망령 공격력 ×1.2','도깨비불·망령 HP ×1.4']},
+ {k:'DPS',c:'#FF6B5A',ico:'<path d="M6 26 L22 10 L26 6 L26 10 L10 26 Z" fill="#FF6B5A44" stroke="#FF6B5A" stroke-width="2.2" stroke-linejoin="round"/><path d="M5 20 L12 27 M8 24 L4 28" stroke="#FF6B5A" stroke-width="2.4"/>',
+  d:['사신·저주술사 공격력 ×1.3','사신·저주술사 공속 +25%','사신·저주술사 사거리 ×1.3']},
+ {k:'DEBUFF',c:'#C08BFF',ico:'<path d="M16 3 C16 3 6 15 6 21 A10 10 0 0 0 26 21 C26 15 16 3 16 3 Z" fill="#C08BFF33" stroke="#C08BFF" stroke-width="2.3"/><circle cx="12.5" cy="20" r="2" fill="#C08BFF"/><circle cx="19" cy="22.5" r="1.6" fill="#C08BFF"/>',
+  d:['역병귀 둔화 ×0.8','영웅 공격력 ×0.85','출혈 영구 — 이동 시 1s당 HP -1%']},
+ {k:'SWARM',c:'#7BE36A',ico:'<circle cx="16" cy="10" r="4.5" fill="#7BE36A33" stroke="#7BE36A" stroke-width="2.2"/><circle cx="8" cy="22" r="4.5" fill="#7BE36A33" stroke="#7BE36A" stroke-width="2.2"/><circle cx="24" cy="22" r="4.5" fill="#7BE36A33" stroke="#7BE36A" stroke-width="2.2"/>',
+  d:['환령·도깨비불 이동속도 ×1.3','모든 스포너 주기 ×0.85','모든 스포너 동시 출력 +1']}
+];
+const TH=[3,5,7];
+let bdOn=true;
+const cnt=[5,3,7,3];
+function el(cls,x,y,w,h,html,style,parent,id){
+  const d=document.createElement('div');d.className=cls;if(id)d.id=id;
+  d.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(style||'');
+  if(html!==undefined)d.innerHTML=html;(parent||stg).appendChild(d);return d;}
+function say(s){$('#msg').textContent=s;}
+function toast(s){const t=$('#toast');t.textContent=s;t.style.display='flex';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',1600);}
+let scrollY=0,maxScroll=0;
+function render(){
+  stg.innerHTML='';
+  if(bdOn){const bd=document.createElement('img');bd.id='bd';bd.src='/backdrop/Battle_Backdrop.png';stg.appendChild(bd);}
+  const tt=document.createElement('div');tt.id='toast';stg.appendChild(tt);
+  const dim=document.createElement('div');dim.id='dim';dim.onclick=()=>{say('dim 클릭 - 팝업 닫힘');toast('닫힘 (dim)');};stg.appendChild(dim);
+  const body=document.createElement('div');body.id='body';stg.appendChild(body);
+  [['tl',6,6],['tr',428,6],['bl',6,448],['br',428,448]].forEach(q=>el('corner '+q[0],q[1],q[2],20,20,'','',body));
+  el('rune',30,62,130,3,'','',body);el('rune r',300,62,130,3,'','',body);
+  const pl=document.createElement('div');pl.id='plaque';pl.textContent='적용 중인 시너지';stg.appendChild(pl);
+  const rows=AX.map((a,i)=>({a,n:cnt[i],tier:TH.filter(t=>cnt[i]>=t).length})).filter(r=>r.tier>0);
+  if(rows.length===0){
+    const e=document.createElement('div');e.id='empty';e.textContent='아직 발동한 시너지가 없습니다';stg.appendChild(e);
+    maxScroll=0;
+  }else{
+    const sv=document.createElement('div');sv.id='sv';stg.appendChild(sv);
+    const sc=document.createElement('div');sc.id='sc';sv.appendChild(sc);
+    const GAP=8,H=136;
+    rows.forEach((r,k)=>{
+      const y=k*(H+GAP),a=r.a,max=r.tier>=3;
+      let g='';for(let j=0;j<3;j++)g+='<div class="gem'+(j<r.tier?' on':'')+'" style="left:'+(7+j*19)+'px"></div>';
+      const nx=max?'· 최대 단계':'다음: '+a.d[r.tier];
+      el('cell',0,y,392,H,
+        '<div class="strip"></div><div class="halo"><svg viewBox="0 0 32 32">'+a.ico+'</svg></div><div class="gems">'+g+'</div>'
+        +'<div class="inset"></div>'
+        +'<div class="lab">'+a.k+'<i>('+r.n+'장)</i></div>'
+        +'<div class="badge'+(max?' max':'')+'">'+r.tier+'/3</div>'
+        +'<div class="desc">'+a.d[r.tier-1]+'</div>'
+        +'<div class="nxt'+(max?' max':'')+'">'+nx+'</div>','--ac:'+a.c,sc);
+    });
+    const total=rows.length*H+(rows.length-1)*GAP;
+    sc.style.height=total+'px';
+    maxScroll=Math.max(0,total-380);
+    scrollY=Math.min(scrollY,maxScroll);
+    const sbt=document.createElement('div');sbt.id='sbt';const sbh=document.createElement('div');sbh.id='sbh';sbt.appendChild(sbh);sv.appendChild(sbt);
+    function upd(){sc.style.top=(-scrollY)+'px';
+      if(maxScroll>0){sbt.style.display='block';const hh=Math.max(36,380*380/total);sbh.style.height=hh+'px';sbh.style.top=(scrollY/maxScroll*(380-hh))+'px';}}
+    sv.onwheel=e=>{if(maxScroll<=0)return;e.preventDefault();scrollY=Math.max(0,Math.min(maxScroll,scrollY+e.deltaY));upd();};
+    sbh.onmousedown=e=>{const y0=e.clientY,s0=scrollY,hh=parseFloat(sbh.style.height),z=parseFloat($('#wrap').style.zoom)||1;
+      const mv=ev=>{scrollY=Math.max(0,Math.min(maxScroll,s0+(ev.clientY-y0)/z*maxScroll/(380-hh)));upd();};
+      const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);};
+      addEventListener('mousemove',mv);addEventListener('mouseup',up);e.preventDefault();};
+    upd();
+    say(maxScroll>0?'휠 / 핸들 드래그로 스크롤 ('+rows.length+'개 셀)':rows.length+'개 셀 - 스크롤 없음');
+  }
+  const x=document.createElement('div');x.id='xbtn';x.textContent='×';x.onclick=()=>{say('X 클릭 - 팝업 닫힘');toast('닫힘 (X)');};stg.appendChild(x);
+  if(rows.length===0)say('빈 상태 - 활성 단계 0');
+}
+for(let i=0;i<4;i++){$('#c'+i).oninput=e=>{cnt[i]=+e.target.value;$('#v'+i).textContent=cnt[i];scrollY=0;render();};}
+document.querySelectorAll('#bar button[data-p]').forEach(b=>b.onclick=()=>{
+  b.dataset.p.split(',').forEach((v,i)=>{cnt[i]=+v;$('#c'+i).value=v;$('#v'+i).textContent=v;});scrollY=0;render();});
+$('#bBd').onclick=()=>{bdOn=!bdOn;$('#bBd').classList.toggle('on',bdOn);$('#bBd').textContent='배경 아트 '+(bdOn?'on':'off');render();};
+function fit(){const w=document.documentElement.clientWidth-16;$('#wrap').style.zoom=w<1280?w/1280:1;}
+addEventListener('resize',fit);fit();render();
+</script>
+</body>
+</html>

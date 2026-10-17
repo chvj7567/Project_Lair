@@ -1,5 +1,7 @@
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Lair.Character;
 using Lair.Data;
 
@@ -14,7 +16,16 @@ namespace Lair.Tests.Character
         [TearDown]
         public void TearDown()
         {
+            LogAssert.ignoreFailingMessages = false;
             if (_root != null) Object.DestroyImmediate(_root);
+        }
+
+        //# EditMode 에선 SetActive 토글이 OnEnable 을 부르지 않는다 — 풀 재사용 리셋은 OnEnable 을 직접 호출해 재현한다.
+        private static void InvokeOnEnable(MonsterEnhancementVisual visual)
+        {
+            MethodInfo mi = typeof(MonsterEnhancementVisual).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(mi, "MonsterEnhancementVisual.OnEnable 존재 — 시그니처 변경 감지");
+            mi.Invoke(visual, null);
         }
 
         private MonsterEnhancementVisual NewVisual(out MonsterTierOverlay overlay, out MonsterEnhanceSigil sigil, out MonsterHpBar hpBar)
@@ -65,8 +76,7 @@ namespace Lair.Tests.Character
             visual.ApplyLevel(5, EMonster.Wisp);
             Assert.AreEqual(3, overlay.CurrentTierForTest);
 
-            visual.gameObject.SetActive(false);
-            visual.gameObject.SetActive(true);   //# OnEnable → 레벨0 리셋
+            InvokeOnEnable(visual);   //# 풀 재사용 OnEnable → 레벨0 리셋
 
             Assert.AreEqual(0, overlay.CurrentTierForTest, "리셋 후 티어 0");
             Assert.AreEqual(0, sigil.StageForTest, "리셋 후 문장 숨김");
@@ -79,13 +89,15 @@ namespace Lair.Tests.Character
         private MonsterEnhancementVisual NewVisualWithRenderer(out Renderer rd, out MonsterTierOverlay overlay,
             out MonsterEnhanceSigil sigil, out MonsterHpBar hpBar, out Material mat)
         {
+            //# production ApplyEmission 이 renderer.material 을 쓰므로 EditMode 에선 에러 로그가 남는다 — 이 경로에서만 허용.
+            LogAssert.ignoreFailingMessages = true;
             MonsterEnhancementVisual visual = NewVisual(out overlay, out sigil, out hpBar);
 
             GameObject bodyGo = new GameObject("Body");
             bodyGo.transform.SetParent(_root.transform, false);
             rd = bodyGo.AddComponent<MeshRenderer>();
             mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            rd.material = mat;
+            rd.sharedMaterial = mat;
             visual.SetRenderersForTest(new[] { rd });
 
             return visual;
@@ -99,8 +111,8 @@ namespace Lair.Tests.Character
 
             visual.ApplyLevel(5, EMonster.Wisp);
 
-            Assert.IsTrue(mat.IsKeywordEnabled("_EMISSION"), "Lv5 발광 on");
-            Assert.Greater(mat.GetColor("_EmissionColor").maxColorComponent, 0f, "Lv5 발광 세기 > 0");
+            Assert.IsTrue(rd.sharedMaterial.IsKeywordEnabled("_EMISSION"), "Lv5 발광 on");
+            Assert.Greater(rd.sharedMaterial.GetColor("_EmissionColor").maxColorComponent, 0f, "Lv5 발광 세기 > 0");
             Assert.AreEqual(3, overlay.CurrentTierForTest, "Lv5 → 티어[0,1,1,2,2,3][5]=3");
             Assert.AreEqual(3, sigil.StageForTest, "Lv5 → 문장[0,0,1,1,2,3][5]=3(링2+파편)");
             Assert.AreEqual(0.934f, hpBar.transform.localPosition.y, 0.0001f, "Lv5 → 티어3 HP바 높이");
@@ -115,12 +127,11 @@ namespace Lair.Tests.Character
             MonsterEnhancementVisual visual = NewVisualWithRenderer(out Renderer rd, out MonsterTierOverlay overlay,
                 out MonsterEnhanceSigil sigil, out MonsterHpBar hpBar, out Material mat);
             visual.ApplyLevel(5, EMonster.Wisp);
-            Assert.IsTrue(mat.IsKeywordEnabled("_EMISSION"), "리셋 전 발광 on 확인");
+            Assert.IsTrue(rd.sharedMaterial.IsKeywordEnabled("_EMISSION"), "리셋 전 발광 on 확인");
 
-            visual.gameObject.SetActive(false);
-            visual.gameObject.SetActive(true);   //# OnEnable → 4채널 모두 레벨0 리셋
+            InvokeOnEnable(visual);   //# 풀 재사용 OnEnable → 4채널 모두 레벨0 리셋
 
-            Assert.IsFalse(mat.IsKeywordEnabled("_EMISSION"), "리셋 후 발광 off");
+            Assert.IsFalse(rd.sharedMaterial.IsKeywordEnabled("_EMISSION"), "리셋 후 발광 off");
             Assert.AreEqual(0, overlay.CurrentTierForTest, "리셋 후 티어 0");
             Assert.AreEqual(0, sigil.StageForTest, "리셋 후 문장 숨김");
             Assert.AreEqual(0.747f, hpBar.transform.localPosition.y, 0.0001f, "리셋 후 티어0 HP바 높이");

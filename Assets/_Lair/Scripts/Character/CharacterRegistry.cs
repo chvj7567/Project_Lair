@@ -14,6 +14,8 @@ namespace Lair.Character
             //# Marching → Engaging 상태. 영웅은 무관 (Hero 검색은 무시).
             //# 풀 Pop 직후엔 false (MonsterTag.OnEnable 이 보장). BattleZone trigger 진입 시 true.
             public bool IsEngaging;
+            //# 몬스터 공격자(위협 점수용 DPS) — 등록 시 1회 캐싱. 영웅·미지정은 null.
+            public IAttacker Attacker;
         }
 
         public static readonly List<Entry> Heroes = new();
@@ -21,7 +23,14 @@ namespace Lair.Character
 
         public static void RegisterHero(Transform t, IHealth h)   => Add(Heroes, t, h);
         public static void UnregisterHero(Transform t)            => Remove(Heroes, t);
-        public static void RegisterMonster(Transform t, IHealth h)=> Add(Monsters, t, h);
+        public static void RegisterMonster(Transform t, IHealth h, IAttacker attacker = null)
+        {
+            Add(Monsters, t, h);
+            if (attacker != null && t != null && Monsters.Count > 0)
+            {
+                Monsters[Monsters.Count - 1].Attacker = attacker;
+            }
+        }
         public static void UnregisterMonster(Transform t)         => Remove(Monsters, t);
 
         //# 몬스터의 Marching/Engaging 상태 전환 — BattleZone.OnTriggerEnter 또는 MonsterTag.OnEnable 이 호출.
@@ -43,6 +52,10 @@ namespace Lair.Character
         public static bool TryFindNearestMonster(Vector3 from, out Transform t, out IHealth h)
             => TryFindNearest(Monsters, from, out t, out h, requireEngaging: true);
 
+        //# 카이팅 전용 — Engaging 토글 무관, 살아있는 가장 가까운 몬스터.
+        public static bool TryFindNearestMonsterAny(Vector3 from, out Transform t, out IHealth h)
+            => TryFindNearest(Monsters, from, out t, out h, requireEngaging: false);
+
         //# 영웅 전용 — 선호 사분면(preferDirH AND preferDirV 둘 다 양의 방향)에 후보가 있으면 그중 최근접,
         //# 없으면 전체 최근접으로 폴백. 방향 벡터가 zero 면 해당 축 선호 없음 → 사실상 전체 최근접(카메라 null 안전).
         //# 카메라 viewport 판정은 HeroTargetProvider 가 수행해 월드 방향으로 변환 후 전달(레지스트리는 카메라 비의존).
@@ -60,6 +73,32 @@ namespace Lair.Character
         //# 교전 들락거림이 도주 방향을 뒤집던 진동원 제거. 타겟팅용 TryGetThreatCentroidMonster(engaging=true)는 불변.
         public static bool TryGetFleeCentroidMonster(Vector3 from, float radius, out Vector3 centroid, out int count)
             => TryGetThreatCentroid(Monsters, from, radius, out centroid, out count, requireEngaging: false);
+
+        //# 습격(암살자) 위협 후보 — 반경 안 살아있는 교전 몬스터를 점수(DPS ÷ 현재 HP)와 함께 채운다. 호출 전 비운다.
+        public static bool TryGetThreatCandidates(Vector3 from, float radius, List<SkirmishCandidate> candidates)
+        {
+            candidates.Clear();
+            float sqrRadius = radius * radius;
+            foreach (Entry e in Monsters)
+            {
+                if (e.Transform == null)
+                    continue;
+                if (e.Health == null || e.Health.IsAlive == false)
+                    continue;
+                if (e.IsEngaging == false)
+                    continue;
+                if ((e.Transform.position - from).sqrMagnitude > sqrRadius)
+                    continue;
+                candidates.Add(new SkirmishCandidate
+                {
+                    Transform = e.Transform,
+                    Health = e.Health,
+                    Position = e.Transform.position,
+                    Score = SkirmishBehavior.ThreatScore(e.Attacker, e.Health),
+                });
+            }
+            return candidates.Count > 0;
+        }
 
         private static void Add(List<Entry> list, Transform t, IHealth h)
         {

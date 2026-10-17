@@ -9,6 +9,35 @@ namespace Lair.Data
     public enum EHero
     {
         Knight,
+        Archer,   //# 챕터 2 영웅 직업 (chapter-system §5) — 값명 = HeroArchetype.json heroId
+        Assassin, //# 챕터 3 영웅 직업 (chapter-3-hero §3) — 값명 = HeroArchetype.json heroId
+    }
+
+    //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
+    public enum EHeroAi
+    {
+        Melee,
+        Kiter,
+        Skirmisher,   //# 습격-이탈 AI (chapter-3-hero §3.3)
+    }
+
+    //# 스테이지 규칙 종류 — Stage_Rule.json ruleId 값명 (chapter-system §3.3). 규칙 실행 코드는 슬라이스 (b).
+    public enum EStageRule
+    {
+        HolySpring,
+        DenseFog,
+        SealedNest,
+        BossBulwark,
+        ArrowRain,
+        HunterTraps,
+    }
+
+    //# 챕터 배경 에셋 키 — Chapter.json backdropKey 값명 (chapter-system §7.1). 에셋 등록·교체는 슬라이스 (c)/(d).
+    public enum EBackdrop
+    {
+        Battle_Backdrop,
+        Battle_Backdrop_DarkForest,
+        Battle_Backdrop_ShadowCitadel,   //# 챕터 3 — 에셋은 슬라이스 (c)
     }
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
@@ -66,6 +95,8 @@ namespace Lair.Data
         CloudPopup,            //# 클라우드 — 복원·표시명·충돌 권유 통합
         ConfirmPopup,          //# 공용 2버튼 확인 다이얼로그 (복원·충돌 재사용)
         ToastView,             //# 공용 토스트 (하단중앙 1.8초 페이드, 입력통과)
+        //# 챕터 시스템 — 맨 끝 append. 월드맵 팝업(HeroSelectPopup 대체, chapter-system §6). 값명 = 프리팹 파일명.
+        WorldMapPopup,         //# 침입 지도 — 챕터 탭 + 스테이지 노드 + 상세
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -76,6 +107,18 @@ namespace Lair.Data
         Strings_Ko,         //# 게임 전체 CHText 문자열 — Data/Json/Strings_Ko.json
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Data/Json/LoadingStrings_Ko.json
         HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
+        SynergyVisualConfig, //# 시너지 축 아이콘 SO — Art/Synergy/SynergyVisualConfig.asset
+        //# 챕터 시스템 JSON 7종 (chapter-system §1·§7.3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        Chapter,
+        Stage,
+        Stage_Rule,
+        Stage_Rule_Param,
+        Stage_Rule_Trigger,
+        HeroArchetype,
+        HeroArchetype_Kite,
+        HeroSkillLoadout_Archer,   //# 궁수 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Archer.asset (chapter-system §1.4)
+        HeroArchetype_Skirmish,    //# 암살자 습격-이탈 AI 튜닝 JSON — Data/Json/HeroArchetype_Skirmish.json (chapter-3-hero §2)
+        HeroSkillLoadout_Assassin, //# 암살자 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Assassin.asset (에셋은 슬라이스 (b))
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
@@ -115,6 +158,24 @@ namespace Lair.Data
         TimeStopShield,    //# TimeStopAura 가 5초 부착 동안 영웅 위치에 스폰, OnDetached 시 풀 반환
         //# Fear 카드 적용 순간 영웅 위에 띄우는 스컬 FX (2026-06-05) — 맨 끝 추가(int 직렬화 정합).
         FearSkull,         //# FearEffect 적용 시 1회성 스폰, ReturnToPoolAfter 가 자동 풀 반환
+        //# 스테이지 규칙 FX 6종 (chapter-system §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스에서 제작(append-only).
+        StageSpringFx,      //# 성수 샘 개방 링
+        StageFogFx,         //# 짙은 안개 오버레이
+        StageSealChainFx,   //# 봉인된 둥지 사슬
+        StageBulwarkFx,     //# 수호 결계 링
+        StageArrowRainFx,   //# 화살비 예고/낙하
+        StageTrapFx,        //# 사냥꾼의 덫
+        //# 궁수 FX 4종 (chapter-system §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스(d2)에서 제작(append-only).
+        ArcherArrowFx,         //# 궁수 기본 공격 화살 궤적(시각 전용, 판정 없음)
+        HeroPiercingShotFx,    //# 관통 사격 직선
+        HeroArrowVolleyFx,     //# 화살 소나기 낙하 지점
+        HeroEvadeFx,           //# 회피 도약 폭발
+        //# 암살자 FX 5종 (chapter-3-hero §7.1) — 프리팹 = 값명, CHMPool 대상. 프리팹은 아트 슬라이스(c)에서 제작(append-only).
+        AssassinSlashFx,       //# 암살자 기본 공격 베기 궤적(시각 전용)
+        HeroSlipFx,            //# 슬립(이탈) 잔상
+        HeroShadowStrikeFx,    //# 그림자 습격 순간이동 출발/도착
+        HeroBladeWhirlFx,      //# 칼날 선풍 회전 베기
+        HeroSmokeBombFx,       //# 연막 탄 지대
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).
@@ -175,6 +236,15 @@ namespace Lair.Data
         None,
         Win,
         Lose,
+    }
+
+    //# 토스트 종류 — 색 점(소울/금/피)으로 구분. ToastView.Show 의 인자이자 호출부 분류 계약.
+    //# 분류 기준: 소울 부족·이름 규칙 위반 = Warning, 통신 실패·저장 실패 = Error, 그 외 = Info.
+    public enum EToastKind
+    {
+        Info,
+        Warning,
+        Error,
     }
 
     //# 타격 피드백 피격자 종류 — DamageFeedback(Character) → HitFeedbackSpawner(Battle) 통신 계약.

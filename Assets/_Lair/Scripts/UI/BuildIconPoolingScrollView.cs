@@ -11,6 +11,13 @@ namespace Lair.UI
         public override void InitItem(BuildIconCell item, BattleViewModel.BuildEntry data, int index)
         {
             if (item == null || data == null) return;
+            item.SetKind(data.IsPassive);
+            //# 빈 슬롯 placeholder(Card=null) — 빗금만 표시.
+            if (data.Card == null)
+            {
+                item.SetEmpty();
+                return;
+            }
             //# 패널 루트가 모달을 띄움 (기획서 §2.6.2) — 자식 셀은 onClick null.
             item.Bind(data.Card, null);
             item.SetCount(data.Count);

@@ -136,7 +136,6 @@ agent 본문은 다음 패턴으로 메타 파일을 읽는다:
 |---|---|---|
 | `/start-develop`       | ... | ... |
 | `/start-develop-auto`  | ... | ... |
-| `/start-develop-simple`| ... | ... |
 | `/start-develop-quick` | ... | ... |
 ```
 

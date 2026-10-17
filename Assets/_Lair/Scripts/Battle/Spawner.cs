@@ -5,7 +5,7 @@ namespace Lair.Battle
 {
     //# 지속 스폰 — 씬에 사전 배치되는 컴포넌트 (Addressables 프리팹 아님 → Rule 12 예외).
     //# 한 판 동안 고정 주기로 출력 종 몬스터를 동시 출력 수만큼 스폰한다.
-    public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider
+    public class Spawner : MonoBehaviour, ISpawnerProgress, ISpawnerOutputProvider, ISpawnerLockState
     {
         //# === 인스펙터 직렬화 — 스타터 프리셋 (§5.3) ===
         [Tooltip("이 Spawner 가 스폰하는 몬스터 종 (초기값 — 융합 카드로 런타임 변경됨)")]
@@ -30,6 +30,11 @@ namespace Lair.Battle
         private float _timer;
         //# 첫 발사 완료 여부 — 첫 발사는 첫 Tick(t≈0) 에 즉시, 이후는 매 Period.
         private bool _firstSpawnDone;
+        //# 첫 스폰 지연(초) — 0 이면 첫 Tick 즉시. 전투 시작 시 BattleController 가 1회 주입(scene-2d-conversion §7.8).
+        private float _firstSpawnDelay;
+
+        //# 스테이지 규칙(SealedNest) 봉인 — true 면 주기 타이머가 진행하지 않고 스폰하지 않는다. 카드 즉시 소환 경로는 무관.
+        private bool _locked;
 
         private ISpawnerHost _host;
         //# (no-op) Bind 시 주입되나 스폰 위치 산정엔 미사용 — 스폰 위치는 _spawnPoint → transform.position.
@@ -43,12 +48,13 @@ namespace Lair.Battle
         public int OutputCount => _outputCount;
 
         //# ISpawnerProgress 구현 — SpawnerStatusCell 이 매 프레임 폴링.
-        //# 초기 지연 국면(firstSpawnDone==false): 0f 고정.
+        //# 초기 지연 국면(firstSpawnDone==false): 지연 0 이면 0f, 지연이 있으면 timer ÷ delay.
         public float Progress
         {
             get
             {
-                if (_firstSpawnDone == false) return 0f;
+                if (_firstSpawnDone == false)
+                    return _firstSpawnDelay > 0f ? Mathf.Clamp01(_timer / _firstSpawnDelay) : 0f;
                 if (_spawnPeriod <= 0f) return 1f;
                 return Mathf.Clamp01(_timer / _spawnPeriod);
             }
@@ -59,13 +65,14 @@ namespace Lair.Battle
         {
             get
             {
-                if (_firstSpawnDone == false) return _spawnPeriod;
+                if (_firstSpawnDone == false)
+                    return _firstSpawnDelay > 0f ? Mathf.Max(0f, _firstSpawnDelay - _timer) : _spawnPeriod;
                 if (_spawnPeriod <= 0f) return 0f;
                 return Mathf.Max(0f, _spawnPeriod - _timer);
             }
         }
 
-        //# ISpawnerOutputProvider 구현 — SpawnerBody 가 구독.
+        //# ISpawnerOutputProvider 구현 — SpawnerAltar2D 가 구독.
         public event System.Action<EMonster> OnOutputTypeChanged;
 
         //# ISpawnerOutputProvider 구현 — VM 이 IncrementOutput 발생 시 구독해 셀 갱신.
@@ -80,7 +87,9 @@ namespace Lair.Battle
             //# 타이머 0 시작 — 첫 Tick 에서 _firstSpawnDone==false 이므로 즉시 첫 발사.
             _timer = 0f;
             _firstSpawnDone = false;
-            //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerBody 가 초기 색상 수신.
+            _firstSpawnDelay = 0f;
+            _locked = false;
+            //# 초기 틴트 설정을 위해 OnEnable 에서도 이벤트 발행 — SpawnerAltar2D 가 초기 색상 수신.
             OnOutputTypeChanged?.Invoke(_currentType);
         }
 
@@ -97,11 +106,15 @@ namespace Lair.Battle
         public void Tick(float dt)
         {
             if (_host == null) return;
+            if (_locked) return;
             _timer += dt;
 
             if (_firstSpawnDone == false)
             {
-                //# 첫 발사 — 전투 시작 직후 첫 Tick 에 즉시 1회 (_initialDelay 무시). 이후 주기 발사로 전환.
+                //# 지연 중이면 대기. 지연 0 이면 첫 Tick 즉시 (_initialDelay 무시).
+                if (_timer < _firstSpawnDelay)
+                    return;
+                //# 첫 발사 후 주기 발사로 전환.
                 _firstSpawnDone = true;
                 //# 첫 발사 위상 기준점 — _timer 0 으로 맞춰 다음 발사가 정확히 _spawnPeriod 후가 되게.
                 _timer = 0f;
@@ -118,6 +131,31 @@ namespace Lair.Battle
             //# 스폰 위치 — 각 스포너 자기 위치 우선: _spawnPoint > transform.position (zone 픽 미사용).
             Vector3 spawnPos = _spawnPoint != null ? _spawnPoint.position : transform.position;
             _host.SpawnFromSpawner(_currentType, spawnPos, _outputCount);
+        }
+
+        //# 봉인 여부 — 스테이지 규칙(SealedNest) 전용.
+        public bool IsLocked => _locked;
+
+        //# 주기 스폰 봉인 — 타이머 정지(진행 중이던 값은 보존).
+        public void Lock()
+        {
+            _locked = true;
+        }
+
+        //# 봉인 해제 — 타이머를 한 주기 가득 채워 다음 Tick 에 즉시 1회 스폰(기획서 §3.4 해제 버스트).
+        public void Unlock()
+        {
+            if (_locked == false)
+                return;
+            _locked = false;
+            _firstSpawnDone = true;
+            _timer = _spawnPeriod;
+        }
+
+        //# 첫 스폰 지연 주입(초) — 음수는 0. 지연 중 Progress·RemainingSeconds 는 지연 기준.
+        public void SetFirstSpawnDelay(float seconds)
+        {
+            _firstSpawnDelay = Mathf.Max(0f, seconds);
         }
 
         //# 추가소환 카드 — 동시 출력 +1 (Spawner 슬롯에 영구 귀속, §3.2).
@@ -158,7 +196,7 @@ namespace Lair.Battle
         public float SpawnPeriod => _spawnPeriod;
 
         //# 융합 카드 — 출력 종 영구 변경. 동시 출력 수는 유지 (§3.5 케이스 3).
-        //# 변경 후 OnOutputTypeChanged 발행 — SpawnerBody 가 틴트 즉시 갱신.
+        //# 변경 후 OnOutputTypeChanged 발행 — SpawnerAltar2D 가 틴트 즉시 갱신.
         public void ReplaceOutput(EMonster to)
         {
             _currentType = to;

@@ -33,7 +33,7 @@ namespace Lair.EditorTools
 
             BalanceConfigDto dto = new BalanceConfigDto
             {
-                Hero              = ToDto(config.Hero),
+                Hero              = new HeroAnchorDto { Hp = config.Hero.Hp, Power = config.Hero.Power },
                 Monsters          = monsters,
                 RunDuration       = config.RunDuration,
                 PassiveThresholds = config.PassiveThresholds,
@@ -48,7 +48,9 @@ namespace Lair.EditorTools
         {
             SerializedObject so = new SerializedObject(config);
 
-            ApplyStatDto(so.FindProperty("_hero"), dto.Hero);
+            SerializedProperty heroProp = so.FindProperty("_hero");
+            heroProp.FindPropertyRelative("Hp").intValue    = dto.Hero.Hp;
+            heroProp.FindPropertyRelative("Power").intValue = dto.Hero.Power;
 
             //# 유효한 monsters 행만 필터링해 배열 크기를 결정
             List<MonsterStatRowDto> validRows = new List<MonsterStatRowDto>();

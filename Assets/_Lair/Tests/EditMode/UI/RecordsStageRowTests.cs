@@ -1,20 +1,21 @@
 using System.Collections.Generic;
+using Lair.Battle;
 using Lair.Meta;
 using Lair.UI;
 using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
 {
-    //# 기록 팝업 스테이지 행 조립 — 항상 5행 / 잠금 판정 / 승률 / 최단 표기 (spec §6.3).
+    //# 기록 팝업 스테이지 행 조립 — 항상 VisibleStageCount(월드맵 전 5)행 / 잠금 판정 / 승률 / 최단 표기 (spec §6.3).
     public class RecordsStageRowTests
     {
         [Test]
-        public void 항상_스테이지_1부터_5까지_다섯_행이_나온다()
+        public void 항상_스테이지_1부터_VisibleStageCount까지_행이_나온다()
         {
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile(), null);
 
-            Assert.AreEqual(5, rows.Count);
-            for (int i = 0; i < 5; ++i)
+            Assert.AreEqual(RecordsPopup.VisibleStageCount, rows.Count);
+            for (int i = 0; i < RecordsPopup.VisibleStageCount; ++i)
             {
                 Assert.AreEqual(i + 1, rows[i].Stage);
             }
@@ -46,7 +47,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 전부_클리어면_잠긴_행이_없다()
         {
-            MetaProfile p = new MetaProfile { ClearedStage = 5 };
+            //# 행은 선형 전체(MaxStage=10)라 "전부 클리어" = ClearedStage 가 MaxStage.
+            MetaProfile p = new MetaProfile { ClearedStage = StageProgress.MaxStage };
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(p, null);
 
@@ -61,9 +63,9 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();   //# ClearedStage = 0 → 스테이지 3 잠금
 
-            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null)[2];
+            RecordsStageCellData row = RecordsPopup.BuildCellData(p, null, id => id == StageLabels.HintPreviousStageStringId ? "스테이지 {0}-{1} 클리어 필요" : string.Empty)[2];
 
-            Assert.AreEqual("스테이지 2 클리어 필요", row.LockHintText);
+            Assert.AreEqual("스테이지 1-2 클리어 필요", row.LockHintText);
             Assert.IsEmpty(row.WinText);
             Assert.IsEmpty(row.RunRateText);
         }
@@ -172,7 +174,7 @@ namespace Lair.Tests.EditMode
         {
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(null, null);
 
-            Assert.AreEqual(5, rows.Count);
+            Assert.AreEqual(RecordsPopup.VisibleStageCount, rows.Count);
             Assert.IsFalse(rows[0].IsLocked);
             Assert.IsTrue(rows[1].IsLocked);
         }

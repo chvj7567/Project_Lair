@@ -22,6 +22,8 @@ namespace Lair.UI
         [SerializeField] private CHButton _closeButton;                          //# 우상단 X
         [SerializeField] private SynergyModalCardPoolingScrollView _scrollView;  //# 단일 세로 시너지 리스트
         [SerializeField] private CHText _emptyText;                              //# 활성 티어 0개일 때만 활성
+        //# 축당 1행 셀(단계 배지·설명·다음 미리보기) 프리팹이면 true — Effect 행은 헤더가 대체하므로 목록에서 뺀다. BuildRows 결과 자체는 그대로.
+        [SerializeField] private bool _headerRowsOnly;
 
         //# 4축 아이콘 — 직접 Sprite 참조 (BuildSynergyPanel 관례 동형, Addressables 키 아님).
         //# 인스펙터에서 SynergyIcons/{TANK,DPS,DEBUFF,SWARM}.png 연결. AxisIcon 으로 매핑.
@@ -93,6 +95,11 @@ namespace Lair.UI
             List<SynergyModalCellData> rows =
                 BuildRows(_vm.GetBuildCount, _vm.GetTier, CHText.StringProvider, AxisIcon);
 
+            if (_headerRowsOnly)
+            {
+                rows.RemoveAll(row => row.RowKind != SynergyModalCellData.Kind.Header);
+            }
+
             //# 활성 티어 0개면 빈 상태 라벨, 그 외엔 리스트.
             if (_emptyText != null)
                 _emptyText.gameObject.SetActive(rows.Count == 0);
@@ -159,6 +166,11 @@ namespace Lair.UI
                     AxisColor = color,
                     Label     = $"{BuildSynergyPanel.AxisLabel[axis]} ({count}장)",
                     Icon      = iconOf?.Invoke(axis),
+                    TierBadgeText = $"{tiers}/{Thresholds.Length}",
+                    ActiveTier = tiers,
+                    IsMaxTier = tiers >= Thresholds.Length,
+                    DescText  = DescribeTier(tierOf, axis, tiers, strings),
+                    NextText  = BuildNextText(tierOf, axis, tiers, strings),
                 });
                 for (int tier = 1; tier <= tiers; ++tier)
                 {
@@ -171,6 +183,16 @@ namespace Lair.UI
                 }
             }
             return rows;
+        }
+
+        //# 다음 단계 미리보기 — "다음: {설명}". 최대 단계이거나 설명을 못 만들면 빈 문자열.
+        private static string BuildNextText(Func<EBuildAxis, int, IBuildSynergyTier> tierOf,
+            EBuildAxis axis, int activeTier, IStringProvider strings)
+        {
+            if (activeTier >= Thresholds.Length)
+                return "";
+            string next = DescribeTier(tierOf, axis, activeTier + 1, strings);
+            return string.IsNullOrEmpty(next) ? "" : $"다음: {next}";
         }
 
         //# 티어 설명 조립 — 템플릿(스트링 id) + 수치(tier const 유래). provider·tier 가드로 빈 문자열 안전.
