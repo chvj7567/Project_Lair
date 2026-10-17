@@ -1011,11 +1011,11 @@ function sheetSpec(){
     if(a.lock!=null){c.lockReleaseRealSec=a.lock;c.lockReleaseBy='HeroEntryDriver/AutoCombatAI._spawnGateFallback';}
     if(c.bakeEvents.length>0)clipEvents[row]=c.bakeEvents;
     clips[row]=c;});
-  return {doc:'docs/design/chapter-4.md §3.4·§3.5 (D-C4-6)',palette:'A',cellSize:GW,cols:SHEET_COLS,rows:EXPORT_ROWS.length,rowOrder:EXPORT_ROWS,
+  return {doc:'docs/design/chapter-5.md §3.4·§3.5',palette:'A',cellSize:GW,cols:SHEET_COLS,rows:EXPORT_ROWS.length,rowOrder:EXPORT_ROWS,
     sheetSize:[SHEET_COLS*GW,EXPORT_ROWS.length*GH],indexRule:'row*20+col',
     pixelsPerUnit:bodyH,bodyHeightDots:bodyH,
     pivot:{x:+((AX+0.5)/GW).toFixed(4),y:+((GH-footRow)/GH).toFixed(4),note:'Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot'},
-    tiers:{Berserker_Sheet:0,Berserker_Sheet_S2:1,Berserker_Sheet_S3:2,Berserker_Sheet_S4:3,Berserker_Sheet_S5:4},
+    tiers:{Paladin_Sheet:0,Paladin_Sheet_S2:1,Paladin_Sheet_S3:2,Paladin_Sheet_S4:3,Paladin_Sheet_S5:4},
     clips:clips,clipEvents:clipEvents,edgeClipFrames:edge};
 }
 function postBlob(name,blob){return fetch('export/'+name,{method:'POST',body:blob}).then(r=>{if(!r.ok)throw new Error(name+' HTTP '+r.status);return name;});}
@@ -1025,11 +1025,11 @@ async function exportAll(){
   const prevTK=TK;
   try{
     TK='A';
-    const jobs=[];const names=['Berserker_Sheet','Berserker_Sheet_S2','Berserker_Sheet_S3','Berserker_Sheet_S4','Berserker_Sheet_S5'];
+    const jobs=[];const names=['Paladin_Sheet','Paladin_Sheet_S2','Paladin_Sheet_S3','Paladin_Sheet_S4','Paladin_Sheet_S5'];
     for(let t=0;t<5;t++){jobs.push([names[t]+'.png',buildSheet(t,false)]);jobs.push([names[t]+'_Emission.png',buildSheet(t,true)]);}
     const spec=sheetSpec();const done=[];
     for(const [name,cv] of jobs){done.push(await postBlob(name,await toBlob(cv)));}
-    done.push(await postBlob('Berserker_SheetSpec.json',new Blob([JSON.stringify(spec,null,2)],{type:'application/json'})));
+    done.push(await postBlob('Paladin_SheetSpec.json',new Blob([JSON.stringify(spec,null,2)],{type:'application/json'})));
     st.textContent='export done '+done.length+' files\n'+done.join('\n')+'\nppu='+spec.pixelsPerUnit+' pivot='+spec.pivot.x+','+spec.pivot.y+' sheet='+spec.sheetSize.join('x')+
       '\nedgeClipFrames='+spec.edgeClipFrames.length+(spec.edgeClipFrames.length?(' ('+spec.edgeClipFrames.slice(0,6).join(', ')+')'):'');
   }catch(e){st.textContent='export failed: '+(e&&e.message?e.message:e);console.error(e);}
@@ -1037,7 +1037,7 @@ async function exportAll(){
 }
 const EXPORT_MODE=new URLSearchParams(location.search).get('export')==='1';
 init();
-if(EXPORT_MODE){document.body.insertAdjacentHTML('beforeend','<pre>챕터 5 승격 전 — 시트 추출 비활성</pre>');}
+if(EXPORT_MODE){window.__api={getFrame:getFrame,GW:GW,GH:GH,AX:AX,AY:AY,CS:CS};exportAll();}
 })();
 </script>
 </body>
