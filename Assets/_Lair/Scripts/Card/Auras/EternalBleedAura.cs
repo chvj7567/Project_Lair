@@ -8,7 +8,7 @@ namespace Lair.Card
     //# 카드 리뉴얼 v0.6 — Debuff Tier3 시너지 효과 (7장 임계).
     //# BleedAura 의 라운드 끝까지 무제한 변형. ratio 0.01 (1%/s) — 영웅 이동 시에만 발동.
     [Serializable]
-    public class EternalBleedAura : IHeroAura, IStatusVisual
+    public class EternalBleedAura : IHeroAura, IStatusVisual, IDebuffAxisAura, IPenaltyScalable
     {
         //# 전용 카드 없음 — 동일 "출혈" 능력 아이콘 재사용 (기획서 §2).
         public ECardId IconCardId => ECardId.Bleed;
@@ -16,6 +16,10 @@ namespace Lair.Card
         private readonly IMover _mover;
         private readonly float _ratio;
         private float _acc;
+
+        public bool IsDebuffAxis => true;
+
+        public IHeroAura WithPenaltyScale(float penaltyMul) => new EternalBleedAura(_mover, _ratio * penaltyMul);
 
         public EternalBleedAura(IMover mover, float ratio = 0.01f)
         {

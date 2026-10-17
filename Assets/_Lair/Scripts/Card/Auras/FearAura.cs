@@ -7,8 +7,10 @@ namespace Lair.Card
 {
     //# 영웅 AutoCombatAI 도주 모드 ON. OnDetached 시 복원.
     [Serializable]
-    public class FearAura : IHeroAura, IStatusVisual
+    public class FearAura : IHeroAura, IStatusVisual, IDebuffAxisAura
     {
+        public bool IsDebuffAxis => true;
+
         public ECardId IconCardId => ECardId.Fear;
 
         private readonly AutoCombatAI _ai;

@@ -18,6 +18,7 @@ namespace Lair.EditorTools
         private const string ArcherLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Archer.asset";
         private const string AssassinLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Assassin.asset";
         private const string BerserkerLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Berserker.asset";
+        private const string PaladinLoadoutPath = "Assets/_Lair/Art/Skills/HeroSkillLoadout_Paladin.asset";
 
         //# 영웅별 로드아웃 SO 경로 — heroId(EHero 값명) → .asset. 새 영웅 직업이 생기면 여기에 한 줄 추가.
         private static readonly KeyValuePair<string, string>[] LoadoutPaths =
@@ -26,6 +27,7 @@ namespace Lair.EditorTools
             new KeyValuePair<string, string>("Archer", ArcherLoadoutPath),
             new KeyValuePair<string, string>("Assassin", AssassinLoadoutPath),
             new KeyValuePair<string, string>("Berserker", BerserkerLoadoutPath),
+            new KeyValuePair<string, string>("Paladin", PaladinLoadoutPath),
         };
 
         private static JsonSerializerSettings Settings()

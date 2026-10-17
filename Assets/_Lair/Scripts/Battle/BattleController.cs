@@ -682,6 +682,19 @@ namespace Lair.Battle
                     return false;
                 }
             }
+            //# Guardian 영웅도 응징 표적 설정 row 가 필수 — 없으면 기본값으로 진행하지 않고 중단.
+            HeroArchetype_GuardRow guardRow = null;
+            if (archetype.aiType == EHeroAi.Guardian.ToString())
+            {
+                guardRow = _chapters.GetGuard(archetype.heroId);
+                if (guardRow == null)
+                {
+                    Debug.LogError($"[BattleController] {archetype.heroId} 응징 표적 설정(HeroArchetype_Guard) 없음 — 전투 진입 중단");
+                    return false;
+                }
+            }
+            //# 디버프 저항 패시브는 선택 — row 가 있는 영웅만(없으면 부착 경로 불변).
+            HeroArchetype_DebuffResistRow resistRow = _chapters.GetDebuffResist(archetype.heroId);
             //# 범위 베기 설정은 선택 — row 가 있는 영웅만 기본 공격이 범위 판정(없으면 단일 판정 그대로).
             HeroArchetype_CleaveRow cleaveRow = _chapters.GetCleave(archetype.heroId);
 
@@ -693,7 +706,7 @@ namespace Lair.Battle
             }
 
             //# Kiter 프리팹은 AutoCombatAI 가 필수 — Pop 전에 검증해 중단 시 풀 인스턴스가 새지 않게 한다.
-            if ((kiteRow != null || skirmishRow != null || chargeRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
+            if ((kiteRow != null || skirmishRow != null || chargeRow != null || guardRow != null) && prefab.GetComponent<AutoCombatAI>() == null)
             {
                 Debug.LogError($"[BattleController] {heroKey} 프리팹에 AutoCombatAI 없음 — AI 설정 불가, 전투 진입 중단");
                 return false;
@@ -747,6 +760,23 @@ namespace Lair.Battle
             if (chargeRow != null)
             {
                 p.GetComponent<AutoCombatAI>().ConfigureCharge(ChargeSettings.From(chargeRow));
+            }
+            //# 응징 표적(Guardian) 영웅 AI 설정 + 디버프 가해 통지원 주입 — 그 외 영웅은 호출하지 않아 AutoCombatAI 의 기존 경로 그대로.
+            if (guardRow != null)
+            {
+                p.GetComponent<AutoCombatAI>().ConfigureGuard(GuardSettings.From(guardRow), _heroAuraRunner);
+            }
+            //# 신앙의 가호 — 풀 재사용 영웅이라 row 가 없으면 이전 설정을 반드시 해제한다.
+            if (_heroAuraRunner != null)
+            {
+                if (resistRow != null)
+                {
+                    _heroAuraRunner.ConfigureDebuffResist(DebuffResistSettings.From(resistRow));
+                }
+                else
+                {
+                    _heroAuraRunner.ClearDebuffResist();
+                }
             }
             //# 범위 베기 — row 가 있는 영웅만 MeleeAttacker 에 주입(풀 재사용이라 스폰마다).
             if (cleaveRow != null)
@@ -835,6 +865,7 @@ namespace Lair.Battle
             { EHero.Archer, EData.HeroSkillLoadout_Archer },
             { EHero.Assassin, EData.HeroSkillLoadout_Assassin },
             { EHero.Berserker, EData.HeroSkillLoadout_Berserker },
+            { EHero.Paladin, EData.HeroSkillLoadout_Paladin },
         };
 
         private static EData LoadoutKeyOf(EHero hero)
@@ -1603,6 +1634,14 @@ namespace Lair.Battle
                 await WarmVisual(EVisual.HeroShadowStrikeFx, 2);
                 await WarmVisual(EVisual.HeroBladeWhirlFx, 2);
                 await WarmVisual(EVisual.HeroSmokeBombFx, 1);
+            }
+
+            //# 성기사 전용 FX(망치는 6초 주기 1회 재생, 정화·성역은 동시 1개).
+            if (warmHero == EHero.Paladin)
+            {
+                await WarmVisual(EVisual.HeroJudgmentHammerFx, 2);
+                await WarmVisual(EVisual.HeroPurifyingLightFx, 1);
+                await WarmVisual(EVisual.HeroSanctuaryFx, 1);
             }
 
             //# 광전사 전용 FX(범위 베기는 매 공격, 스킬 FX 는 동시 표시 적음, 광란 오라는 영웅 부착 1개).

@@ -93,6 +93,64 @@ namespace Lair.Character
         private Transform _chargeTarget;
         private IHealth _chargeHealth;
 
+        //# 응징 표적(성기사, chapter-5 §3.3) - Guardian 영웅만 ConfigureGuard 로 생성. null 이면 다른 영웅/몬스터 경로(코드 동작 불변).
+        private GuardBehavior _guard;
+        private IDebuffSourceEvents _guardSource;
+
+        //# 기절(심판의 망치) - 남은 시간 동안 이동·공격 모두 정지. 어떤 AI 에도 적용 가능한 공통 게이트, OnEnable 리셋.
+        private float _stunRemain;
+
+        public bool IsStunned => _stunRemain > 0f;
+
+        //# seconds 만큼 기절 - 이미 기절 중이면 더 긴 쪽을 유지(중첩 연장 없음).
+        public void Stun(float seconds)
+        {
+            _stunRemain = Mathf.Max(_stunRemain, seconds);
+        }
+
+        //# 이번 프레임 해석된 교전 표적 - 심판의 망치 같은 스킬이 "현재 표적"을 물을 때 사용. OnEnable 리셋.
+        private Transform _lastTarget;
+        private IHealth _lastTargetHealth;
+
+        //# BattleController 가 aiType == Guardian 영웅에 HeroArchetype_Guard 설정 + 디버프 가해 통지원(HeroAuraRunner)을 주입.
+        //# 풀 재사용이라 스폰마다 호출 - 이전 구독을 먼저 해제한다. AI 가 비활성화돼도 구독은 유지(OnDestroy 에서 해제).
+        public void ConfigureGuard(GuardSettings settings, IDebuffSourceEvents source)
+        {
+            if (_guardSource != null)
+            {
+                _guardSource.OnDebuffedBy -= HandleDebuffedBy;
+            }
+            _guard = new GuardBehavior(settings);
+            _guardSource = source;
+            if (_guardSource != null)
+            {
+                _guardSource.OnDebuffedBy += HandleDebuffedBy;
+            }
+        }
+
+        private void HandleDebuffedBy(Transform source, IHealth sourceHealth)
+        {
+            _guard?.NotifyDebuffedBy(source, sourceHealth, Time.time);
+        }
+
+        private void OnDestroy()
+        {
+            if (_guardSource != null)
+            {
+                _guardSource.OnDebuffedBy -= HandleDebuffedBy;
+            }
+        }
+
+        //# 현재 교전 표적이 살아있으면 true - 스킬이 표적 위치를 조회한다.
+        public bool TryGetCurrentTarget(out Transform target)
+        {
+            target = null;
+            if (_lastTarget == null || _lastTargetHealth == null || _lastTargetHealth.IsAlive == false || _lastTarget.gameObject.activeInHierarchy == false)
+                return false;
+            target = _lastTarget;
+            return true;
+        }
+
         //# BattleController 가 aiType == Charger 영웅에 HeroArchetype_Charge 설정을 주입. 풀 재사용 시 OnEnable 이 상태만 리셋.
         public void ConfigureCharge(ChargeSettings settings)
         {
@@ -199,6 +257,11 @@ namespace Lair.Character
             _charge?.Reset();
             _chargeTarget = null;
             _chargeHealth = null;
+            //# 응징 표적·현재 표적 잔존 방지(Guardian 한정 / 공통 조회용).
+            _guard?.Reset();
+            _stunRemain = 0f;
+            _lastTarget = null;
+            _lastTargetHealth = null;
             _leapRemain = 0f;
             //# 스폰 게이트 — 영웅(DeferStrike)만 닫고 시작. 몬스터는 게이트 검사 자체를 건너뛰므로 무관.
             _spawnGateOpen = false;
@@ -232,6 +295,14 @@ namespace Lair.Character
                 return;
             }
             if (_targetProvider == null) return;
+
+            //# 기절 - 도약/교전/이동 전부 보류(Enabled 게이트와 같은 완전 정지).
+            if (_stunRemain > 0f)
+            {
+                _stunRemain -= Time.deltaTime;
+                _mover.Stop();
+                return;
+            }
 
             //# A-3 비도주 프레임마다 스냅 플래그 해제 — 아래 가드(TimeStop/게이트/no-target)에 막혀도
             //# 다음 FleeMode 재진입이 stale 방향 lerp 대신 raw 스냅하도록 보장.
@@ -275,6 +346,8 @@ namespace Lair.Character
             {
                 _currentTarget = null;
                 _currentTargetHealth = null;
+                _lastTarget = null;
+                _lastTargetHealth = null;
                 _mover.Stop();
                 return;
             }
@@ -282,7 +355,15 @@ namespace Lair.Character
             //# 영웅(히스테리시스 ON): 현재 타겟 고정 후 margin 초과 시만 교체. 몬스터(OFF): 매 프레임 최근접(불변).
             Transform t;
             IHealth th;
-            if (_targetHysteresisEnabled)
+            //# Guardian 응징 잠금이 일반 고정 타깃보다 우선 - 잠금 표적을 고정 타깃으로 승격해 만료 후엔 일반 규칙(최근접 + margin)으로 이어진다.
+            if (_guard != null && _guard.TryGetLockedTarget(Time.time, out Transform lockedTarget, out IHealth lockedHealth))
+            {
+                t = lockedTarget;
+                th = lockedHealth;
+                _currentTarget = lockedTarget;
+                _currentTargetHealth = lockedHealth;
+            }
+            else if (_targetHysteresisEnabled)
             {
                 t = ResolveStickyTarget(candidate, candidateH, out th);
             }
@@ -291,6 +372,8 @@ namespace Lair.Character
                 t = candidate;
                 th = candidateH;
             }
+            _lastTarget = t;
+            _lastTargetHealth = th;
 
             //# B3 공포 (Fleeing) — 주변 위협 centroid 의 반대 방향으로 도주, 공격 X.
             //# A-1 centroid 는 Engaging 무관(반경 내 전체)로 집계해 교전 토글 진동원 제거.
@@ -333,8 +416,8 @@ namespace Lair.Character
 
             //# B 영웅 중앙 끌림 — 사망/TimeStop/스폰·공격 게이트 통과 + 비도주 상태에서만.
             //# 3초 주기 중 첫 1초 창은 중앙(원점 XZ)으로 이동 우선·공격 보류. deadzone 안이면 창 미발동(이동만 생략).
-            //# 광전사(Charger)는 중앙 끌림을 쓰지 않는다 — 프리팹 플래그가 켜져 있어도 군집 돌진이 이동을 쥔다.
-            if (_centerPullEnabled && _charge == null)
+            //# 광전사(Charger)·성기사(Guardian)는 중앙 끌림을 쓰지 않는다 — 프리팹 플래그와 무관하게 코드로 끈다.
+            if (_centerPullEnabled && _charge == null && _guard == null)
             {
                 _centerPullTimer += Time.deltaTime;
                 if (_centerPullTimer >= _centerPullInterval)

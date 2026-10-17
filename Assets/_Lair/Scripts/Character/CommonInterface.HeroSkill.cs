@@ -133,6 +133,42 @@ namespace Lair.Character
         void TickMonsterPull(float dt);
     }
 
+    //# 성기사 스킬 3종이 추가로 쓰는 월드 기능 (chapter-5 §4). 기존 컨텍스트 인터페이스와 같은 이유로 확장 인터페이스 - HeroSkillContext 한 구현이 함께 만족한다.
+    //# 실구현 HeroSkillContext 가 구현 - 스킬 런타임은 ctx as IPaladinSkillContext 로 확인(없으면 LogError 후 보류).
+    public interface IPaladinSkillContext : IHeroSkillContext
+    {
+        //# 영웅 Transform - 따라다니는 FX(성역) 부착용.
+        Transform HeroTransform { get; }
+
+        //# 영웅이 행동 가능한가 - 살아있고 TimeStop/침묵이 아닐 때. false 면 시전을 보류한다.
+        bool IsHeroActive { get; }
+
+        //# 영웅 중심 radius 안 살아있는 교전 몬스터 수.
+        int CountMonstersInRadius(float radius);
+
+        //# 영웅의 현재 교전 표적이 살아있고 영웅에게서 maxRange 이내이면 그 위치. 아니면 false.
+        bool TryGetHeroTargetPosition(float maxRange, out Vector3 position);
+
+        //# center 반경 radius 안 살아있는 교전 몬스터 전원에 amount 데미지(+영웅 공격 배율), 생존자는 stunSec 기절(이동·공격 정지). 피격 수 반환.
+        int DamageAndStunMonstersInSphere(Vector3 center, float radius, int amount, float stunSec);
+
+        //# 영웅 시한 디버프 슬롯(Slow·Poison·Fear·Bleed·Weaken) 개수 / 전부 해제(해제 수 반환). 영구 디버프는 제외.
+        int CountTimedDebuffs();
+        int ClearTimedDebuffs();
+
+        //# 영웅 최대 HP 의 percent(0~1)만큼 회복.
+        void HealHeroPercent(float percent);
+
+        //# 영웅 받는 피해 배율 곱연산 누적. 해제는 역수(1/mul)로 호출.
+        void MultiplyHeroDamageTaken(float mul);
+
+        //# center 반경 radius 안 몬스터에 이동속도 x speedMul, 공격 사거리 x rangeMul(하한 minRange 규칙은 연막 탄과 동일). 매 프레임 호출.
+        void ApplyMonsterSlowZone(Vector3 center, float radius, float speedMul, float rangeMul, float minRange);
+
+        //# 지대 해제 - 영향받던 몬스터 전원 원복.
+        void ClearMonsterSlowZone();
+    }
+
     //# 활성화된 스킬 1개의 가변 상태(쿨다운 타이머·궤도 각도). HeroSkillData.CreateRuntime() 이 생성.
     public interface IHeroSkillRuntime
     {

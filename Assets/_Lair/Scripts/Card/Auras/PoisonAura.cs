@@ -9,8 +9,10 @@ namespace Lair.Card
     //# 영웅 발 밑에 독장판 고정 + 영웅이 그 영역 안에 있을 때만 1초마다 _dps 데미지.
     //# Visual 은 OnAttached 시점의 영웅 위치에 고정 — 영웅 이동에 따라가지 않음.
     [Serializable]
-    public class PoisonAura : IHeroAura
+    public class PoisonAura : IHeroAura, IDebuffAxisAura
     {
+        public bool IsDebuffAxis => true;
+
         private readonly float _dps;
         private readonly float _radius;
         private readonly float _radiusSq;

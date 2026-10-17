@@ -13,7 +13,7 @@ namespace Lair.Battle
     //# HP바 아래 상태 아이콘 표시는 BattleViewModel→HpBarView 가 처리(월드 visual 제거).
     [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(Health))]
-    public class HeroAuraRunner : MonoBehaviour
+    public class HeroAuraRunner : MonoBehaviour, IDebuffSourceEvents, IHeroDebuffControl
     {
         private class Slot
         {
@@ -29,15 +29,54 @@ namespace Lair.Battle
         public event Action<object, ECardId> OnStatusShown;
         public event Action<object> OnStatusHidden;
 
+        //# 가해 몬스터가 있는 Debuff 축 부착 통지 - 성기사 응징 표적이 구독.
+        public event Action<Transform, IHealth> OnDebuffedBy;
+
+        //# 패시브 "신앙의 가호" - 설정된 영웅만 Debuff 축 출처(IDebuffAxisAura)를 보정. 풀 재사용이라 스폰마다 호출(미보유 영웅은 Clear).
+        private bool _hasResist;
+        private DebuffResistSettings _resist;
+
+        public void ConfigureDebuffResist(DebuffResistSettings settings)
+        {
+            _resist = settings;
+            _hasResist = true;
+        }
+
+        public void ClearDebuffResist() => _hasResist = false;
+
         private void Awake()
         {
             LairCharacter character = GetComponent<LairCharacter>();
             _hero = character.Get<IHealth>();
         }
 
-        public void Attach(IHeroAura aura, float duration)
+        public void Attach(IHeroAura aura, float duration) => Attach(aura, duration, null, null);
+
+        //# source/sourceHealth = 디버프를 건 몬스터(없으면 null). 두 부착 경로(BattleContext·PlagueSlowOnHit)가 모두 여기를 거친다.
+        public void Attach(IHeroAura aura, float duration, Transform source, IHealth sourceHealth)
         {
             if (aura == null) return;
+
+            IDebuffAxisAura axis = aura as IDebuffAxisAura;
+            if (axis != null && axis.IsDebuffAxis)
+            {
+                //# 시한은 부착·연장 지속 x durationMul, 영구는 강도(감소분) 보정. 연장은 아래 Remain += duration 이라 자동 반영.
+                if (_hasResist)
+                {
+                    if (duration > 0f)
+                    {
+                        duration *= _resist.DurationMul;
+                    }
+                    else if (duration < 0f && aura is IPenaltyScalable scalable)
+                    {
+                        aura = scalable.WithPenaltyScale(_resist.PenaltyMul);
+                    }
+                }
+                if (source != null && sourceHealth != null)
+                {
+                    OnDebuffedBy?.Invoke(source, sourceHealth);
+                }
+            }
 
             //# 같은 type 의 aura 가 이미 부착돼 있으면 Remain 연장 + 새 인스턴스 무시.
             //# 예: PoisonAura 가 이미 3초 남았는데 5초짜리 재부착 → Remain = 3 + 5 = 8초.
@@ -63,6 +102,46 @@ namespace Lair.Battle
             //# 상태 아이콘 — 신규 슬롯이고 IStatusVisual 이면 표시 이벤트(key = aura 타입).
             if (aura is IStatusVisual sv)
                 OnStatusShown?.Invoke(aura.GetType(), sv.IconCardId);
+        }
+
+        //# 정화 대상 시한 슬롯 - 출처와 무관하게 타입으로 판정 (SlowAura 는 Swarm Slow 카드 포함, chapter-5 §4 E-C5-1).
+        private static bool IsPurifiable(Slot s)
+        {
+            if (s.Indefinite)
+                return false;
+            IHeroAura a = s.Aura;
+            return a is SlowAura || a is PoisonAura || a is FearAura || a is BleedAura || a is WeakenAura;
+        }
+
+        public int CountTimedDebuffs()
+        {
+            int count = 0;
+            foreach (Slot s in _slots)
+            {
+                if (IsPurifiable(s))
+                {
+                    ++count;
+                }
+            }
+            return count;
+        }
+
+        //# 해제한 슬롯 수 반환. OnDetached -> 아이콘 숨김 순서는 만료 경로와 동일.
+        public int ClearTimedDebuffs()
+        {
+            int cleared = 0;
+            for (int i = _slots.Count - 1; i >= 0; --i)
+            {
+                Slot s = _slots[i];
+                if (IsPurifiable(s) == false)
+                    continue;
+                s.Aura.OnDetached(_hero);
+                if (s.Aura is IStatusVisual)
+                    OnStatusHidden?.Invoke(s.Aura.GetType());
+                _slots.RemoveAt(i);
+                ++cleared;
+            }
+            return cleared;
         }
 
         private void Update()

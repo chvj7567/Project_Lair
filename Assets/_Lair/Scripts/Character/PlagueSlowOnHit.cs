@@ -19,8 +19,14 @@ namespace Lair.Character
         [SerializeField] private float _duration = 1.5f;
 
         private IAttacker _attacker;
+        private IHealth _self;
 
-        private void Awake() => _attacker = GetComponent<LairCharacter>().Get<IAttacker>();
+        private void Awake()
+        {
+            LairCharacter character = GetComponent<LairCharacter>();
+            _attacker = character.Get<IAttacker>();
+            _self = character.Get<IHealth>();
+        }
 
         //# 풀 재사용 시 구독 누수 방지 — OnEnable 구독 / OnDisable 해제.
         private void OnEnable()
@@ -42,7 +48,8 @@ namespace Lair.Character
             if (target is not MonoBehaviour mb || mb == null) return;
             HeroAuraRunner runner = mb.GetComponent<HeroAuraRunner>();
             if (runner == null) return;
-            runner.Attach(new SlowAura(mb.GetComponent<LairCharacter>()?.Get<IMover>(), _slowFactor), _duration);
+            //# Debuff 축 출처(true) + 가해자 통지 - 성기사 패시브/응징 표적이 이 경로를 쓴다.
+            runner.Attach(new SlowAura(mb.GetComponent<LairCharacter>()?.Get<IMover>(), _slowFactor, true), _duration, transform, _self);
         }
     }
 }

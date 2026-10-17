@@ -8,7 +8,7 @@ namespace Lair.Card
     //# 영웅 공격력 영구 -25%. 무제한 지속 (HeroAuraRunner duration<0).
     //# PowerScale 에 _factor 를 1회 곱함 — 같은 카드 중복 선택 시 누적.
     [Serializable]
-    public class HeroAttackDownAura : IHeroAura, IStatusVisual, IDistinctHeroAura
+    public class HeroAttackDownAura : IHeroAura, IStatusVisual, IDistinctHeroAura, IDebuffAxisAura, IPenaltyScalable
     {
         public ECardId IconCardId => ECardId.HeroAttackDown;
 
@@ -18,6 +18,12 @@ namespace Lair.Card
 
         //# [B3] 외부 비교용 — IDistinctHeroAura.ShouldStackAsNew 가 factor 비교에 사용.
         public float Factor => _factor;
+
+        //# 공격력 영구 감소는 항상 Debuff 축 (HeroAttackDown 카드 · Debuff 시너지 T2).
+        public bool IsDebuffAxis => true;
+
+        public IHeroAura WithPenaltyScale(float penaltyMul)
+            => new HeroAttackDownAura(_attacker, 1f - (1f - _factor) * penaltyMul);
 
         public HeroAttackDownAura(IAttacker attacker, float factor = 0.75f)
         {

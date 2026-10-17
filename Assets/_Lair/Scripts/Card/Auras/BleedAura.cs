@@ -7,8 +7,10 @@ namespace Lair.Card
 {
     //# 부착돼 있는 동안 항상 1초당 Max×_ratio 데미지 (이동/정지 무관).
     [Serializable]
-    public class BleedAura : IHeroAura, IStatusVisual
+    public class BleedAura : IHeroAura, IStatusVisual, IDebuffAxisAura
     {
+        public bool IsDebuffAxis => true;
+
         public ECardId IconCardId => ECardId.Bleed;
 
         private readonly float _ratio;   //# 0.02 = 2%

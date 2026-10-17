@@ -88,6 +88,19 @@ namespace Lair.Card
         ECardId IconCardId { get; }
     }
 
+    //# Debuff 축 출처 마커 (chapter-5 §1.2) — true 인 aura 만 영웅 패시브 "신앙의 가호"(HeroAuraRunner.ConfigureDebuffResist)가 보정한다.
+    //# Slow 처럼 축이 다른 출처와 타입을 공유하는 aura 는 인스턴스 값으로 가른다. 미구현 aura(TimeStop·MarkOfDeath 등)는 대상 아님.
+    public interface IDebuffAxisAura
+    {
+        bool IsDebuffAxis { get; }
+    }
+
+    //# 영구 디버프 강도 보정 — 감소분 x penaltyMul 로 만든 새 인스턴스를 반환 (HeroAttackDown f -> 1 - (1 - f) x mul, 출혈 비율 r -> r x mul).
+    public interface IPenaltyScalable
+    {
+        IHeroAura WithPenaltyScale(float penaltyMul);
+    }
+
     //# 카드 리뉴얼 v0.6 [B3] — 동일 type Aura 가드 완화 marker.
     //# HeroAuraRunner.Attach 는 기본적으로 같은 type Aura 가 이미 부착돼 있으면 신규 인스턴스를 무시한다 (Fear·Bleed·Slow 등 single-instance 정책 보존).
     public interface IDistinctHeroAura

@@ -7,8 +7,10 @@ namespace Lair.Card
 {
     //# 영웅 공격력 × _factor. OnDetached 시 백업값 복원.
     [Serializable]
-    public class WeakenAura : IHeroAura, IStatusVisual
+    public class WeakenAura : IHeroAura, IStatusVisual, IDebuffAxisAura
     {
+        public bool IsDebuffAxis => true;
+
         public ECardId IconCardId => ECardId.Weaken;
 
         private readonly IAttacker _attacker;

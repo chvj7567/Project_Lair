@@ -8,7 +8,7 @@ namespace Lair.Card
     //# 영웅 IMover.Speed 를 slowFactor 배로 일시 변경. OnDetached 시 백업값 복원.
     //# Tick 은 사용 X — 지속 시간 관리는 HeroAuraRunner.
     [Serializable]
-    public class SlowAura : IHeroAura, IStatusVisual
+    public class SlowAura : IHeroAura, IStatusVisual, IDebuffAxisAura
     {
         public ECardId IconCardId => ECardId.Slow;
 
@@ -16,10 +16,14 @@ namespace Lair.Card
         private readonly float _factor;
         private float _backup;
 
-        public SlowAura(IMover mover, float slowFactor = 0.6f)
+        //# 역병귀 적중 둔화만 Debuff 축(true) — Swarm Slow 카드는 같은 타입이지만 false (chapter-5 §3.3 #5).
+        public bool IsDebuffAxis { get; }
+
+        public SlowAura(IMover mover, float slowFactor = 0.6f, bool isDebuffAxis = false)
         {
             _mover = mover;
             _factor = slowFactor;
+            IsDebuffAxis = isDebuffAxis;
         }
 
         public void OnAttached(IHealth hero)

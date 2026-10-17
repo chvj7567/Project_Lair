@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# IHeroSkillContext 실구현 — CharacterRegistry.Monsters(살아있음+교전)를 SkillGeometry 로 필터링해 데미지/넉백.
-    public class HeroSkillContext : IArcherSkillContext, IAssassinSkillContext, IBerserkerSkillContext
+    public class HeroSkillContext : IArcherSkillContext, IAssassinSkillContext, IBerserkerSkillContext, IPaladinSkillContext
     {
         private readonly Transform _hero;
 
@@ -33,6 +33,10 @@ namespace Lair.Character
             public float Duration;
         }
 
+        //# 성기사 스킬용 - 영웅 디버프 슬롯 제어(HeroAuraRunner 는 스폰 시점에 추가될 수 있어 첫 사용 때 1회 캐싱)·기절 대상 AI 캐시.
+        private IHeroDebuffControl _debuffs;
+        private readonly Dictionary<Transform, AutoCombatAI> _stunCache = new Dictionary<Transform, AutoCombatAI>();
+
         //# 연막 지대 영향권 — 매 프레임 갱신. Transform → (이동, 공격자, 충돌 반경) 1회 캐시, 영향받는 몬스터 목록.
         private readonly Dictionary<Transform, SlowTargets> _slowCache = new Dictionary<Transform, SlowTargets>();
         private readonly List<SlowTargets> _slowed = new List<SlowTargets>();
@@ -60,6 +64,68 @@ namespace Lair.Character
         }
 
         public Transform HeroTransform => _hero;
+
+        public bool TryGetHeroTargetPosition(float maxRange, out Vector3 position)
+        {
+            position = HeroPosition;
+            if (_heroAi == null || _heroAi.TryGetCurrentTarget(out Transform target) == false)
+                return false;
+            Vector3 delta = target.position - HeroPosition;
+            delta.y = 0f;
+            if (delta.magnitude > maxRange)
+                return false;
+            position = target.position;
+            return true;
+        }
+
+        public int DamageAndStunMonstersInSphere(Vector3 center, float radius, int amount, float stunSec)
+        {
+            _buffer.Clear();
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (Valid(e) && SkillGeometry.InSphere(e.Transform.position, center, radius))
+                {
+                    _buffer.Add(e);
+                }
+            }
+            int hit = ApplyAll(HeroPosition, amount, 0f);
+            //# 피해로 죽은 몬스터는 기절 불필요 - 생존자만.
+            foreach (CharacterRegistry.Entry e in _buffer)
+            {
+                if (e.Health.IsAlive == false || e.Transform == null)
+                    continue;
+                if (_stunCache.TryGetValue(e.Transform, out AutoCombatAI ai) == false)
+                {
+                    ai = e.Transform.GetComponent<AutoCombatAI>();
+                    _stunCache[e.Transform] = ai;
+                }
+                ai?.Stun(stunSec);
+            }
+            return hit;
+        }
+
+        private IHeroDebuffControl Debuffs
+        {
+            get
+            {
+                if (_debuffs == null && _hero != null)
+                {
+                    _debuffs = _hero.GetComponent<Lair.Battle.HeroAuraRunner>();
+                }
+                return _debuffs;
+            }
+        }
+
+        public int CountTimedDebuffs() => Debuffs != null ? Debuffs.CountTimedDebuffs() : 0;
+
+        public int ClearTimedDebuffs() => Debuffs != null ? Debuffs.ClearTimedDebuffs() : 0;
+
+        public void HealHeroPercent(float percent)
+        {
+            if (_heroHealth == null || _heroHealth.IsAlive == false)
+                return;
+            _heroHealth.Heal(Mathf.RoundToInt(_heroHealth.Max * percent));
+        }
 
         public Vector3 HeroPosition => _hero != null ? _hero.position : Vector3.zero;
 

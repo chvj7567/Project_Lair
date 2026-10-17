@@ -157,6 +157,19 @@ namespace Lair.Character
         bool TryGetClusterCandidates(Vector3 from, float radius, System.Collections.Generic.List<ClusterCandidate> candidates);
     }
 
+    //# 영웅에게 Debuff 축 디버프가 부착될 때 가해 몬스터를 통지 (성기사 응징 표적). 가해자가 없는 부착(카드)은 발행하지 않는다.
+    public interface IDebuffSourceEvents
+    {
+        event System.Action<Transform, IHealth> OnDebuffedBy;
+    }
+
+    //# 영웅 시한 디버프(Slow·Poison·Fear·Bleed·Weaken 슬롯) 조회/일괄 해제 - 정화의 빛이 사용. 영구 디버프는 대상 아님.
+    public interface IHeroDebuffControl
+    {
+        int CountTimedDebuffs();
+        int ClearTimedDebuffs();
+    }
+
     //# 범위 베기(광전사) 전용 — center 반경 안 살아있는 교전 몬스터를 가까운 순으로 최대 maxTargets 마리 조회. MeleeAttacker 가 월드(레지스트리)를 모르게 주입한다.
     public interface ICleaveTargetSource
     {
