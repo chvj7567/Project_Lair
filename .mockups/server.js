@@ -1,7 +1,7 @@
-//# 공용 정적 서버 — .mockups 폴더의 HTML 시안을 로컬에서 미리보기 위한 용도.
-//# 사용: node .mockups/server.js  →  http://localhost:8777/
-//# 이 환경의 python 은 Microsoft Store 스텁이라 동작하지 않으므로 node 를 사용한다.
-//# /cardart/<Name>.png — 시안 참고용으로 게임의 카드 일러스트(Assets/_Lair/Art/Sprites/CardArt)를 읽기 전용 서빙(복사본 없음).
+﻿//# 怨듭슜 ?뺤쟻 ?쒕쾭 ??.mockups ?대뜑??HTML ?쒖븞??濡쒖뺄?먯꽌 誘몃━蹂닿린 ?꾪븳 ?⑸룄.
+//# ?ъ슜: node .mockups/server.js  ?? http://localhost:8777/
+//# ???섍꼍??python ? Microsoft Store ?ㅽ뀅?대씪 ?숈옉?섏? ?딆쑝誘濡?node 瑜??ъ슜?쒕떎.
+//# /cardart/<Name>.png ???쒖븞 李멸퀬?⑹쑝濡?寃뚯엫??移대뱶 ?쇰윭?ㅽ듃(Assets/_Lair/Art/Sprites/CardArt)瑜??쎄린 ?꾩슜 ?쒕튃(蹂듭궗蹂??놁쓬).
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,7 @@ const path = require('path');
 const PORT = 8777;
 const ROOT = __dirname;
 const CARD_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'CardArt');
-//# POST /export/<Name> — 영웅 시안 시트 추출 저장(기획서 hero-2d-conversion §8 (e)). 이 폴더·이 파일명만 쓰기 허용.
+//# POST /export/<Name> ???곸썒 ?쒖븞 ?쒗듃 異붿텧 ???湲고쉷??hero-2d-conversion 짠8 (e)). ???대뜑쨌???뚯씪紐낅쭔 ?곌린 ?덉슜.
 const EXPORT_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Heroes2D');
 const EXPORT_NAMES = new Set([
   'Knight_Sheet.png', 'Knight_Sheet_Emission.png',
@@ -17,18 +17,18 @@ const EXPORT_NAMES = new Set([
   'Knight_Sheet_S2_Emission.png', 'Knight_Sheet_S3_Emission.png', 'Knight_Sheet_S4_Emission.png', 'Knight_Sheet_S5_Emission.png',
   'HeroGroundShadow.png', 'Knight_SheetSpec.json',
 ]);
-//# POST /export/<Name> — FX 도트 시트(fx-dot-pixel.html). Art/Sprites/FX2D 로만 저장, 파일명 화이트리스트.
+//# POST /export/<Name> ??FX ?꾪듃 ?쒗듃(fx-dot-pixel.html). Art/Sprites/FX2D 濡쒕쭔 ??? ?뚯씪紐??붿씠?몃━?ㅽ듃.
 const FX_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'FX2D');
 const FX_NAMES = new Set([
   'DamagePopup_Sheet.png', 'PoisonAura_Sheet.png', 'TimeStopShield_Sheet.png', 'FearSkull_Sheet.png',
   'HeroDashConeFx_Sheet.png', 'HeroNovaFx_Sheet.png', 'HeroOrbitBladeFx_Sheet.png', 'FX2D_SheetSpec.json',
 ]);
-//# POST /export/<Name> — 씬 2D 도트 배경·장식(scene-2d-atmosphere.html, 기획서 scene-2d-conversion §2.2·§2.4). Art/Sprites/Backdrop2D 로만 저장.
+//# POST /export/<Name> ????2D ?꾪듃 諛곌꼍쨌?μ떇(scene-2d-atmosphere.html, 湲고쉷??scene-2d-conversion 짠2.2쨌짠2.4). Art/Sprites/Backdrop2D 濡쒕쭔 ???
 const BACKDROP_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Backdrop2D');
 const BACKDROP_NAMES = new Set([
   'Battle_Backdrop.png', 'Battle_Backdrop_DarkForest.png', 'Battle_Backdrop_ShadowCitadel.png', 'Flame_Soul8_Sheet.png',
   'Altar2D_Base.png', 'Altar2D_RingDim.png', 'Altar2D_Ring.png', 'Altar2D_Crystal.png', 'Altar2D_CrystalCore.png',
-  'Village_Backdrop.png', 'Village_CauldronGlow.png', 'Village_CauldronBubbles_Sheet.png', 'Village_CrownSparkle.png',
+  'Village_Backdrop.png', 'Village_ThroneHalo.png', 'Village_PotionGlow.png', 'Village_CarpetShimmer.png', 'Village_CauldronGlow.png', 'Village_CauldronBubbles_Sheet.png', 'Village_CrownSparkle.png',
   'Village_ProjectorRings.png', 'Village_HoloScan_Sheet.png',
   'Flame_Warm7_Sheet.png', 'Flame_Warm3_Sheet.png', 'Flame_Warm3w1_Sheet.png', 'Shadow_R6.png', 'Shadow_R11.png',
   'Loading_Backdrop.png', 'Loading_DoorGlow.png', 'Loading_CircleRings.png', 'Loading_AxisRing.png',
@@ -36,7 +36,7 @@ const BACKDROP_NAMES = new Set([
   'Dot_1x1.png', 'Dot_2x1.png', 'Light2D_Falloff.png',
   'Backdrop2D_SheetSpec.json',
 ]);
-//# POST /export/<Name> — 같은 시안의 UI 도트 스프라이트 4장. Art/Sprites/UiDot 로만 저장.
+//# POST /export/<Name> ??媛숈? ?쒖븞??UI ?꾪듃 ?ㅽ봽?쇱씠??4?? Art/Sprites/UiDot 濡쒕쭔 ???
 const UIDOT_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'UiDot');
 const UIDOT_NAMES = new Set([
   'BossBar_Fill.png', 'BossBar_TickGem.png', 'Loading_BarFrame.png', 'Loading_BarFill.png',
@@ -145,7 +145,7 @@ const server = http.createServer((req, res) => {
 
   if (reqPath === '/') reqPath = '/index.html';
   const filePath = path.join(ROOT, reqPath);
-  //# 루트 밖 접근 차단
+  //# 猷⑦듃 諛??묎렐 李⑤떒
   if (filePath.startsWith(ROOT) === false) {
     res.writeHead(403);
     res.end('Forbidden');
