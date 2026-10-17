@@ -26,7 +26,7 @@ const FX_NAMES = new Set([
 //# POST /export/<Name> — 씬 2D 도트 배경·장식(scene-2d-atmosphere.html, 기획서 scene-2d-conversion §2.2·§2.4). Art/Sprites/Backdrop2D 로만 저장.
 const BACKDROP_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Backdrop2D');
 const BACKDROP_NAMES = new Set([
-  'Battle_Backdrop.png', 'Flame_Soul8_Sheet.png',
+  'Battle_Backdrop.png', 'Battle_Backdrop_DarkForest.png', 'Battle_Backdrop_ShadowCitadel.png', 'Flame_Soul8_Sheet.png',
   'Altar2D_Base.png', 'Altar2D_RingDim.png', 'Altar2D_Ring.png', 'Altar2D_Crystal.png', 'Altar2D_CrystalCore.png',
   'Village_Backdrop.png', 'Village_CauldronGlow.png', 'Village_CauldronBubbles_Sheet.png', 'Village_CrownSparkle.png',
   'Village_ProjectorRings.png', 'Village_HoloScan_Sheet.png',
