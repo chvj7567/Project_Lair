@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
 {
-    //# 영웅 스탯 15스테이지 전수 회귀 - ScaleHeroStat 의 decimal 정규화(0bcd619) 이후에도 기사/궁수/암살자 표 값이 한 칸도 어긋나지 않는다 (chapter-system §2.1·chapter-3-hero §3.2).
+    //# 영웅 스탯 25스테이지 전수 회귀 - ScaleHeroStat 의 decimal 정규화(0bcd619) 이후에도 기사/궁수/암살자/광전사/성기사 표 값이 한 칸도 어긋나지 않는다 (chapter-system §2.1·chapter-3-hero §3.2).
     public class HeroStatTableRegressionTests : ChapterStaticStateTestBase
     {
         private const int AnchorHp = 4000;
@@ -19,6 +19,9 @@ namespace Lair.Tests.EditMode
 
         private static readonly int[] BerserkerHp = { 6400, 6750, 7750, 8100, 9350 };
         private static readonly int[] BerserkerPower = { 39, 42, 47, 51, 56 };
+
+        private static readonly int[] PaladinHp = { 6864, 7172, 8580, 8580, 9900 };
+        private static readonly int[] PaladinPower = { 60, 64, 70, 77, 83 };
 
         private static void AssertTable(string heroId, int chapterId, int[] expectedHp, int[] expectedPower)
         {
@@ -59,14 +62,20 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 선형_번호_1부터_20까지_영웅이_챕터_영웅으로_도출되고_스탯이_표와_같다()
+        public void 성기사_챕터5_다섯_스테이지_HP와_공격력_표가_기획서_값이다_소수_경계_59_5와_76_5는_올림()
+        {
+            AssertTable("Paladin", 5, PaladinHp, PaladinPower);
+        }
+
+        [Test]
+        public void 선형_번호_1부터_25까지_영웅이_챕터_영웅으로_도출되고_스탯이_표와_같다()
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
-            int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp };
-            int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower };
-            string[] heroes = { "Knight", "Archer", "Assassin", "Berserker" };
+            int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp, PaladinHp };
+            int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower, PaladinPower };
+            string[] heroes = { "Knight", "Archer", "Assassin", "Berserker", "Paladin" };
 
-            for (int linear = 1; linear <= 20; ++linear)
+            for (int linear = 1; linear <= 25; ++linear)
             {
                 int chapter = StageProgress.ChapterOf(linear);
                 int index = StageProgress.IndexOf(linear);
@@ -82,13 +91,14 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 공격력_체력은_챕터_안에서_스테이지가_올라갈수록_단조_증가한다()
         {
-            for (int chapter = 0; chapter < 4; ++chapter)
+            for (int chapter = 0; chapter < 5; ++chapter)
             {
-                int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp };
-                int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower };
+                int[][] hp = { KnightHp, ArcherHp, AssassinHp, BerserkerHp, PaladinHp };
+                int[][] power = { KnightPower, ArcherPower, AssassinPower, BerserkerPower, PaladinPower };
                 for (int i = 1; i < 5; ++i)
                 {
-                    Assert.Greater(hp[chapter][i], hp[chapter][i - 1], $"챕터 {chapter + 1} HP {i}");
+                    //# 성기사 5-3/5-4 는 raw hpMultiplier 가 같아(1.95, 기획서 §5.3) HP 는 비감소로 검사한다.
+                    Assert.GreaterOrEqual(hp[chapter][i], hp[chapter][i - 1], $"챕터 {chapter + 1} HP {i}");
                     Assert.Greater(power[chapter][i], power[chapter][i - 1], $"챕터 {chapter + 1} Power {i}");
                 }
             }
@@ -104,6 +114,8 @@ namespace Lair.Tests.EditMode
         [TestCase(4000, 0.8f, 1.56f, 4992)]
         [TestCase(4000, 0.8f, 1.78f, 5696)]
         [TestCase(4000, 0.7f, 2.06f, 5768)]
+        [TestCase(50, 0.85f, 1.4f, 60)]
+        [TestCase(50, 0.85f, 1.8f, 77)]
         public void 소수_곱이_정확히_0_5_경계인_조합도_올림으로_기획서_값이_나온다(int anchor, float scale, float multiplier, int expected)
         {
             Assert.AreEqual(expected, StageProgress.ScaleHeroStat(anchor, scale, multiplier));

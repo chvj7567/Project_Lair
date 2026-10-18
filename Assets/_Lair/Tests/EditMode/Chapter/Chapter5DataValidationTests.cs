@@ -38,7 +38,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0.6f, db.GetDebuffResist("Paladin").penaltyMul, 0.0001f);
             Assert.IsNull(db.GetGuard("Knight"));
             Assert.IsNull(db.GetDebuffResist("Berserker"));
-            Assert.AreEqual(4, ChapterGate.PlayableChapterCount, "게이트 상향은 분할 (d)");
+            Assert.AreEqual(5, ChapterGate.PlayableChapterCount);
         }
 
         [Test]

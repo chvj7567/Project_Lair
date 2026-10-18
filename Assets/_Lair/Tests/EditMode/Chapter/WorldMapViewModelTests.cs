@@ -22,7 +22,7 @@ namespace Lair.Tests.EditMode
 
         private static ChapterDatabase Db()
         {
-            return WorldMapTestSupport.PlayableDb();
+            return WorldMapTestSupport.FullDb();
         }
 
         //# 실제 Strings_Ko — id 누락이 있으면 빈 문자열이 되어 단언이 실패한다.
@@ -80,8 +80,9 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(opened.Tabs[3].IsPlaceholder);
             Assert.IsTrue(opened.Tabs[3].IsLocked, "챕터 4 는 3장 보스(진행도 15)를 클리어해야 열린다");
             Assert.AreEqual("4장 불꽃의 용광로", opened.Tabs[3].Label);
-            Assert.IsTrue(opened.Tabs[4].IsPlaceholder);
-            Assert.AreEqual("5장 ???", opened.Tabs[4].Label);
+            Assert.IsFalse(opened.Tabs[4].IsPlaceholder);
+            Assert.IsTrue(opened.Tabs[4].IsLocked, "챕터 5 는 4장 보스(진행도 20)를 클리어해야 열린다");
+            Assert.AreEqual("5장 서리 대성당", opened.Tabs[4].Label);
         }
 
         [Test]
@@ -197,13 +198,13 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 마을_캐러셀은_출격_가능_스테이지까지만_이동하고_표기는_챕터_인덱스다()
         {
-            //# 실서비스처럼 챕터 로드 직후 진행 범위(MaxStage)를 DB 챕터 수(4 -> 20)에 맞춘다 - 정적 상태는 ChapterStaticStateTestBase 가 원복.
+            //# 실서비스처럼 챕터 로드 직후 진행 범위(MaxStage)를 DB 챕터 수(5 -> 25)에 맞춘다 - 정적 상태는 ChapterStaticStateTestBase 가 원복.
             ChapterDatabase db = Db();
             StageProgress.ConfigureChapterCount(db.ChapterCount);
             VillageViewModel vm = new VillageViewModel(new MetaProfile { ClearedStage = ChapterGate.PlayableStageCount }, null, db, Text);
 
-            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage, "전 클리어면 출격 가능 상한(20)으로 클램프");
-            Assert.AreEqual("STAGE 4-5", vm.StageIndicatorText);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, vm.SelectedStage, "전 클리어면 출격 가능 상한(25)으로 클램프");
+            Assert.AreEqual("STAGE 5-5", vm.StageIndicatorText);
             Assert.AreEqual("★★★★★", vm.StageThreatText);
             Assert.IsFalse(vm.CanMoveNext);
 
@@ -221,6 +222,9 @@ namespace Lair.Tests.EditMode
             vm.SelectStage(17);
             Assert.AreEqual("STAGE 4-2", vm.StageIndicatorText);
             Assert.AreEqual("광전사 · 2단계", vm.IntruderText);
+            vm.SelectStage(22);
+            Assert.AreEqual("STAGE 5-2", vm.StageIndicatorText);
+            Assert.AreEqual("성기사 · 2단계", vm.IntruderText);
         }
 
         [Test]

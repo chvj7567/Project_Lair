@@ -129,20 +129,31 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 챕터_데이터가_없는_슬롯_5는_자리표시자이고_장_번호_물음표_라벨이다()
+        public void 출시_챕터_5개_슬롯에는_자리표시자_탭이_없다()
         {
             WorldMapViewModel vm = NewVm(Profile(10));
 
-            for (int slot = 5; slot <= 5; ++slot)
+            Assert.AreEqual(WorldMapViewModel.ChapterSlotCount, vm.Tabs.Count);
+            for (int slot = 1; slot <= WorldMapViewModel.ChapterSlotCount; ++slot)
             {
-                WorldMapTabData tab = vm.Tabs[slot - 1];
-                Assert.IsTrue(tab.IsPlaceholder, $"{slot}장");
-                Assert.IsTrue(tab.IsLocked);
-                Assert.IsFalse(tab.IsSelected);
-                Assert.AreEqual(slot, tab.ChapterId);
-                Assert.AreEqual($"{slot}장 ???", tab.Label);
-                Assert.AreEqual(string.Empty, tab.LockTagText);
+                Assert.IsFalse(vm.Tabs[slot - 1].IsPlaceholder, $"{slot}장");
+                Assert.AreEqual(slot, vm.Tabs[slot - 1].ChapterId);
             }
+        }
+
+        [TestCase(0, true)]
+        [TestCase(19, true)]
+        [TestCase(20, false)]
+        public void 챕터5_탭은_챕터4_보스를_클리어하면_열리고_준비_중은_아니다(int cleared, bool expectedLocked)
+        {
+            WorldMapViewModel vm = NewVm(Profile(cleared, 1));
+
+            WorldMapTabData tab = vm.Tabs[4];
+            Assert.AreEqual(5, tab.ChapterId);
+            Assert.IsFalse(tab.IsPlaceholder);
+            Assert.AreEqual(expectedLocked, tab.IsLocked);
+            Assert.AreEqual("5장 서리 대성당", tab.Label);
+            Assert.AreEqual(expectedLocked ? WorldMapTestSupport.Text(WorldMapViewModel.StrLocked) : string.Empty, tab.LockTagText);
         }
 
         [TestCase(0, true)]
@@ -229,8 +240,8 @@ namespace Lair.Tests.EditMode
         [TestCase(0)]
         [TestCase(99)]
         [TestCase(-1)]
-        [TestCase(5)]
         [TestCase(6)]
+        [TestCase(7)]
         public void 챕터_DB에_없는_탭을_누르면_이동도_안내도_이벤트도_없다(int chapterId)
         {
             WorldMapViewModel vm = NewVm(Profile(10));

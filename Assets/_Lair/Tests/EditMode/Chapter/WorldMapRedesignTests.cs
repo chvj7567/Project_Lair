@@ -99,19 +99,18 @@ namespace Lair.Tests.EditMode
 
         [TestCase(0)]
         [TestCase(10)]
-        [TestCase(15)]
-        public void 미출시_슬롯_5는_클리어_수_0_영웅_빈_문자열_챕터명은_Label과_같다(int cleared)
+        [TestCase(25)]
+        public void 미출시_탭은_없고_5개_탭_모두_챕터명과_영웅이_채워진다(int cleared)
         {
             WorldMapViewModel vm = NewVm(cleared);
 
-            for (int slot = 5; slot <= 5; ++slot)
+            Assert.AreEqual(5, vm.Tabs.Count);
+            for (int slot = 1; slot <= 5; ++slot)
             {
                 WorldMapTabData tab = vm.Tabs[slot - 1];
-                Assert.IsTrue(tab.IsPlaceholder, $"{slot}장");
-                Assert.AreEqual(0, tab.ClearedCount, $"{slot}장 / cleared {cleared}");
-                Assert.AreEqual(string.Empty, tab.HeroText, $"{slot}장");
-                Assert.AreEqual(tab.Label, tab.ChapterNameText, $"{slot}장");
-                Assert.AreEqual($"{slot}장 ???", tab.ChapterNameText);
+                Assert.IsFalse(tab.IsPlaceholder, $"{slot}장");
+                Assert.IsNotEmpty(tab.ChapterNameText, $"{slot}장");
+                Assert.IsNotEmpty(tab.HeroText, $"{slot}장");
             }
         }
 
@@ -127,6 +126,8 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("3장 그림자 성채", vm.Tabs[2].Label);
             Assert.AreEqual("불꽃의 용광로", vm.Tabs[3].ChapterNameText);
             Assert.AreEqual("4장 불꽃의 용광로", vm.Tabs[3].Label);
+            Assert.AreEqual("서리 대성당", vm.Tabs[4].ChapterNameText);
+            Assert.AreEqual("5장 서리 대성당", vm.Tabs[4].Label);
         }
 
         [Test]
@@ -138,6 +139,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("궁수", vm.Tabs[1].HeroText);
             Assert.AreEqual("암살자", vm.Tabs[2].HeroText);
             Assert.AreEqual("광전사", vm.Tabs[3].HeroText);
+            Assert.AreEqual("성기사", vm.Tabs[4].HeroText);
         }
 
         [TestCase(0)]
@@ -293,10 +295,10 @@ namespace Lair.Tests.EditMode
         [Test]
         public void NextPathCleared는_모든_조합에서_클리어이면서_보스가_아닌_노드와_같다()
         {
-            for (int cleared = 0; cleared <= 20; ++cleared)
+            for (int cleared = 0; cleared <= 25; ++cleared)
             {
                 WorldMapViewModel vm = NewVm(cleared, 1);
-                for (int chapter = 1; chapter <= 4; ++chapter)
+                for (int chapter = 1; chapter <= 5; ++chapter)
                 {
                     if (StageProgress.IsChapterUnlocked(chapter, cleared) == false)
                         continue;

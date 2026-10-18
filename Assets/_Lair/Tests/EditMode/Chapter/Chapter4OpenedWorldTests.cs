@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
-    //# 챕터 4 출격 개방 후(ChapterGate 4) 월드맵·마을 캐러셀·쇼케이스·기록·마이그레이션·랭킹 범위 (chapter-4 §8·§8.1). Chapter3OpenedWorldTests 선례.
+    //# 챕터 4 출격 개방 후 월드맵·마을 캐러셀·쇼케이스·기록·마이그레이션·랭킹 범위 (chapter-4 §8·§8.1). Chapter3OpenedWorldTests 선례.
     //# 챕터 수 정적 상태는 ShippedDb()(로더처럼 ConfigureChapterCount) + ChapterStaticStateTestBase 가 격리·원복한다.
     public class Chapter4OpenedWorldTests : ChapterStaticStateTestBase
     {
@@ -30,31 +30,28 @@ namespace Lair.Tests.EditMode
         //# ===== ChapterGate / MaxStage =====
 
         [Test]
-        public void 출격_가능_챕터는_4이고_스테이지는_20이며_MaxStage와_Chapter_json_행수와_같다()
+        public void 챕터4는_출격_가능_범위에_포함되고_게이트_MaxStage_랭킹_상한이_일치한다()
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
 
-            Assert.AreEqual(4, ChapterGate.PlayableChapterCount);
-            Assert.AreEqual(20, ChapterGate.PlayableStageCount);
+            Assert.GreaterOrEqual(ChapterGate.PlayableChapterCount, 4);
             Assert.AreEqual(db.ChapterCount, ChapterGate.PlayableChapterCount);
-            Assert.AreEqual(20, StageProgress.MaxStage);
-            Assert.AreEqual(20, StageLeaderboard.MaxStage);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, StageProgress.MaxStage);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, StageLeaderboard.MaxStage);
         }
 
         [TestCase(4, true)]
-        [TestCase(5, false)]
         [TestCase(16, true)]
         [TestCase(20, true)]
-        [TestCase(21, false)]
-        public void 챕터4와_스테이지_16에서_20은_출격_가능하고_그_다음은_불가다(int value, bool expected)
+        public void 챕터4와_스테이지_16에서_20은_출격_가능하다(int value, bool expected)
         {
             bool isChapter = value <= 5;
             Assert.AreEqual(expected, isChapter ? ChapterGate.IsChapterPlayable(value) : ChapterGate.IsStagePlayable(value));
         }
 
+        [TestCase(16, true)]
         [TestCase(20, true)]
-        [TestCase(21, false)]
-        public void 랭킹_스테이지_유효_범위는_1에서_20이다(int stage, bool expected)
+        public void 랭킹_스테이지_챕터4_범위_16에서_20은_유효하다(int stage, bool expected)
         {
             WorldMapTestSupport.ShippedDb();
 
@@ -71,7 +68,7 @@ namespace Lair.Tests.EditMode
         //# ===== 월드맵 챕터 4 =====
 
         [Test]
-        public void 챕터4_탭은_챕터3_보스를_클리어해야_열리고_챕터5만_자리표시자다()
+        public void 챕터4_탭은_챕터3_보스를_클리어해야_열리고_열린다()
         {
             WorldMapViewModel locked = NewVm(14);
             WorldMapViewModel opened = NewVm(15);
@@ -81,8 +78,7 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(opened.Tabs[3].IsPlaceholder);
             Assert.AreEqual("4장 불꽃의 용광로", opened.Tabs[3].Label);
             Assert.AreEqual("광전사", opened.Tabs[3].HeroText);
-            Assert.IsTrue(opened.Tabs[4].IsPlaceholder);
-            Assert.AreEqual("5장 ???", opened.Tabs[4].Label);
+            Assert.IsFalse(opened.Tabs[4].IsPlaceholder);
             Assert.AreEqual(5, opened.Tabs.Count);
         }
 
@@ -99,17 +95,6 @@ namespace Lair.Tests.EditMode
             WorldMapViewModel opened = NewVm(15, 99);
             Assert.AreEqual(4, opened.SelectedChapter, "범위 밖 저장값은 최대 플레이 가능(16 = 4-1)으로 보정");
             Assert.AreEqual("4-1", opened.DetailNumberText);
-        }
-
-        [Test]
-        public void 챕터5_탭은_출격_불가라_누르면_이동도_안내도_없다()
-        {
-            WorldMapViewModel vm = NewVm(20);
-            int notices = 0;
-            vm.OnNotice += _ => ++notices;
-
-            Assert.IsFalse(vm.SelectChapter(5));
-            Assert.AreEqual(0, notices);
         }
 
         [TestCase(16, 1)]
@@ -219,9 +204,9 @@ namespace Lair.Tests.EditMode
 
         [TestCase(15, 99, 4, 1)]
         [TestCase(17, 99, 4, 3)]
-        [TestCase(20, 99, 4, 5)]
-        [TestCase(20, 0, 4, 5)]
-        public void 저장된_선택이_범위를_벗어나면_해금_상한으로_보정되어_챕터4로_시작한다(int cleared, int selected, int chapter, int index)
+        [TestCase(20, 99, 5, 1)]
+        [TestCase(20, 0, 5, 1)]
+        public void 저장된_선택이_범위를_벗어나면_해금_상한으로_보정되어_해금_상한_챕터로_시작한다(int cleared, int selected, int chapter, int index)
         {
             WorldMapViewModel vm = NewVm(cleared, selected);
 
@@ -229,24 +214,21 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(index, vm.SelectedStageIndex);
         }
 
-        //# ===== 마을 캐러셀 20 / 쇼케이스 =====
+        //# ===== 마을 캐러셀 / 쇼케이스 =====
 
         [TestCase(15, 16)]
         [TestCase(19, 20)]
-        [TestCase(20, 20)]
-        [TestCase(99, 20)]
-        public void 캐러셀_초기_위치는_최대_플레이_스테이지를_20으로_clamp한다(int cleared, int expected)
+        [TestCase(20, 21)]
+        [TestCase(99, 25)]
+        public void 캐러셀_초기_위치는_최대_플레이_스테이지를_25로_clamp한다(int cleared, int expected)
         {
             Assert.AreEqual(expected, NewVillage(cleared).SelectedStage);
         }
 
         [Test]
-        public void 캐러셀은_20에서_더_이동하지_않고_챕터_경계_15_16을_그대로_통과한다()
+        public void 캐러셀은_챕터_경계_15_16을_그대로_통과한다()
         {
             VillageViewModel vm = NewVillage(20);
-            Assert.IsFalse(vm.CanMoveNext);
-            vm.MoveStage(1);
-            Assert.AreEqual(20, vm.SelectedStage);
 
             vm.SelectStage(15);
             vm.MoveStage(1);
@@ -291,7 +273,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 쇼케이스_영웅은_16에서_20이_광전사이고_21_이상은_기사로_폴백한다()
+        public void 쇼케이스_영웅은_16에서_20이_광전사다()
         {
             ChapterDatabase.Current = WorldMapTestSupport.ShippedDb();
 
@@ -299,7 +281,6 @@ namespace Lair.Tests.EditMode
             {
                 Assert.AreEqual(EHero.Berserker, ShowcaseHeroOf(linear), $"linear {linear}");
             }
-            Assert.AreEqual(EHero.Knight, ShowcaseHeroOf(21));
         }
 
         [Test]
@@ -312,15 +293,15 @@ namespace Lair.Tests.EditMode
         //# ===== 기록 팝업 20행 / 영웅 재스킨 =====
 
         [Test]
-        public void 기록_행은_20개이고_16에서_20행이_STAGE_4_인덱스_라벨과_정본_초상을_가진다()
+        public void 기록_행은_스테이지_수만큼이고_16에서_20행이_STAGE_4_인덱스_라벨과_정본_초상을_가진다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>("Assets/_Lair/Data/HeroStageVariantConfig.asset");
             StageProgress.ConfigureChapterCount(WorldMapTestSupport.ShippedDb().ChapterCount);
 
             List<RecordsStageCellData> rows = RecordsPopup.BuildCellData(new MetaProfile { ClearedStage = 20 }, config, WorldMapTestSupport.Text);
 
-            Assert.AreEqual(20, RecordsPopup.VisibleStageCount);
-            Assert.AreEqual(20, rows.Count);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, RecordsPopup.VisibleStageCount);
+            Assert.AreEqual(ChapterGate.PlayableStageCount, rows.Count);
             for (int index = 1; index <= 5; ++index)
             {
                 RecordsStageCellData row = rows[15 + index - 1];
@@ -346,7 +327,7 @@ namespace Lair.Tests.EditMode
         //# ===== 마이그레이션 (v6 유지) =====
 
         [Test]
-        public void v6_프로필의_Cleared_16에서_20은_보존되고_21_이상은_20으로_잘린다()
+        public void v6_프로필의_Cleared_16에서_20은_보존된다()
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
             foreach (int cleared in new[] { 16, 18, 20 })
@@ -357,18 +338,13 @@ namespace Lair.Tests.EditMode
                 Assert.AreEqual(cleared, p.ClearedStage);
                 Assert.AreEqual(cleared, p.SelectedStage);
             }
-
-            MetaProfile over = new MetaProfile { Version = 6, ClearedStage = 99, SelectedStage = 99 };
-            MetaProfileMigration.Apply(over, db);
-            Assert.AreEqual(20, over.ClearedStage);
-            Assert.AreEqual(20, over.SelectedStage);
         }
 
         [Test]
-        public void StageRecords는_20까지_남고_21부터_제거되며_선택_영웅은_광전사가_된다()
+        public void StageRecords는_스테이지_상한까지_남고_초과분은_제거되며_선택_영웅은_광전사가_된다()
         {
             MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 17, SelectedStage = 17, SelectedHero = "Knight" };
-            foreach (int stage in new[] { 1, 16, 20, 21, 25 })
+            foreach (int stage in new[] { 1, 16, 20, 26 })
             {
                 p.StageRecords.Add(new StageRecordEntry { Stage = stage, Runs = 1 });
             }

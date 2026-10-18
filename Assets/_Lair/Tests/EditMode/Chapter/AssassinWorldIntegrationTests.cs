@@ -789,7 +789,8 @@ namespace Lair.Tests.EditMode
 
             Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Assassin.asset", byHero["Assassin"]);
             Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Berserker.asset", byHero["Berserker"]);
-            Assert.AreEqual(4, byHero.Count);
+            Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Paladin.asset", byHero["Paladin"]);
+            Assert.AreEqual(5, byHero.Count);
             Assert.IsTrue(byHero.ContainsKey("Knight"));
             Assert.IsTrue(byHero.ContainsKey("Archer"));
         }

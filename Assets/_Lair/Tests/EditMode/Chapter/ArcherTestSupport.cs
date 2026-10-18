@@ -18,6 +18,8 @@ namespace Lair.Tests.EditMode
             EVisual.HeroSlipFx, EVisual.HeroShadowStrikeFx, EVisual.HeroBladeWhirlFx, EVisual.HeroSmokeBombFx, EVisual.AssassinSlashFx,
             //# 광전사 FX 4종 - 같은 격리 방식(EditMode 에서 에셋 로드 경로가 없어도 키별 1회 LogError 가 테스트를 실패시키지 않게).
             EVisual.HeroCrushingLeapFx, EVisual.HeroChainPullFx, EVisual.HeroBloodFrenzyFx, EVisual.BerserkerSlashFx,
+            //# 성기사 FX 3종 - 같은 격리 방식.
+            EVisual.HeroJudgmentHammerFx, EVisual.HeroPurifyingLightFx, EVisual.HeroSanctuaryFx,
         };
 
         private static HashSet<EVisual> _snapshot;

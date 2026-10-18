@@ -190,10 +190,10 @@ namespace Lair.Tests.EditMode
         public void 영웅_heroId가_EHero에_없으면_로드_오류다()
         {
             ChapterDataSet set = ChapterDataSet.Valid();
-            set.Heroes[0].heroId = "Paladin";
-            set.Chapters[0].heroId = "Paladin";
+            set.Heroes[0].heroId = "NoSuchHero";
+            set.Chapters[0].heroId = "NoSuchHero";
 
-            AssertBuildFails(set, "HeroArchetype.heroId 가 EHero 에 없음: Paladin");
+            AssertBuildFails(set, "HeroArchetype.heroId 가 EHero 에 없음: NoSuchHero");
         }
 
         [TestCase("0")]

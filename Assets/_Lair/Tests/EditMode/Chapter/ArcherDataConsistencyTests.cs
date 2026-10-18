@@ -197,7 +197,8 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(3, counts["Archer"]);
             Assert.AreEqual(3, counts["Assassin"]);
             Assert.AreEqual(3, counts["Berserker"]);
-            Assert.AreEqual(4, counts.Count);
+            Assert.AreEqual(3, counts["Paladin"]);
+            Assert.AreEqual(5, counts.Count);
         }
 
         [Test]
@@ -301,7 +302,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void DTO_왕복은_스킬_12종과_로드아웃_12페이즈를_보존한다()
+        public void DTO_왕복은_스킬_15종과_로드아웃_15페이즈를_보존한다()
         {
             JObject original = Root();
             HeroSkillsDto dto = JsonConvert.DeserializeObject<HeroSkillsDto>(original.ToString(), Settings());
@@ -315,7 +316,7 @@ namespace Lair.Tests.EditMode
             JObject back = JObject.Parse(JsonConvert.SerializeObject(dto, Settings()));
 
             JArray backSkills = (JArray)back["skills"];
-            Assert.AreEqual(12, originalSkills.Count);
+            Assert.AreEqual(15, originalSkills.Count);
             Assert.AreEqual(originalSkills.Count, backSkills.Count);
             for (int i = 0; i < originalSkills.Count; ++i)
             {
@@ -338,7 +339,7 @@ namespace Lair.Tests.EditMode
 
             JArray originalLoadout = (JArray)original["loadout"];
             JArray backLoadout = (JArray)back["loadout"];
-            Assert.AreEqual(12, backLoadout.Count);
+            Assert.AreEqual(15, backLoadout.Count);
             for (int i = 0; i < originalLoadout.Count; ++i)
             {
                 Assert.AreEqual((string)originalLoadout[i]["heroId"], (string)backLoadout[i]["heroId"], $"loadout[{i}] heroId");

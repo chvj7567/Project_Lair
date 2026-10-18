@@ -64,7 +64,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 스테이지_판정과_챕터_판정은_일관된다()
         {
-            for (int linear = -2; linear <= 25; ++linear)
+            for (int linear = -2; linear <= 30; ++linear)
             {
                 bool stagePlayable = ChapterGate.IsStagePlayable(linear);
                 bool chapterPlayable = linear >= 1 && ChapterGate.IsChapterPlayable(StageProgress.ChapterOf(linear));
@@ -76,7 +76,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 출격_가능_챕터_수는_챕터_수_설정과_독립이다()
         {
-            StageProgress.ConfigureChapterCount(5);
+            StageProgress.ConfigureChapterCount(6);
 
             Assert.IsFalse(ChapterGate.IsChapterPlayable(ChapterGate.PlayableChapterCount + 1), "진행 저장 범위가 넓어져도 출격 게이트는 그대로");
         }
@@ -94,6 +94,8 @@ namespace Lair.Tests.EditMode
         [TestCase(15, "3-5")]
         [TestCase(16, "4-1")]
         [TestCase(20, "4-5")]
+        [TestCase(21, "5-1")]
+        [TestCase(25, "5-5")]
         public void 번호는_챕터_하이픈_인덱스다(int linear, string expected)
         {
             Assert.AreEqual(expected, StageLabels.Number(linear));
@@ -168,6 +170,7 @@ namespace Lair.Tests.EditMode
         [TestCase(6, "1장 보스 클리어 필요")]
         [TestCase(11, "2장 보스 클리어 필요")]
         [TestCase(16, "3장 보스 클리어 필요")]
+        [TestCase(21, "4장 보스 클리어 필요")]
         public void 챕터의_첫_스테이지는_직전_챕터_보스_클리어를_안내한다(int linear, string expected)
         {
             Assert.AreEqual(expected, StageLabels.UnlockHint(linear, WorldMapTestSupport.Text));
