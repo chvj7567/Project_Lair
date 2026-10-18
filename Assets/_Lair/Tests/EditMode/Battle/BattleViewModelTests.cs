@@ -117,5 +117,38 @@ namespace Lair.Tests.UI
             Assert.IsFalse(vm.Build[1].IsPassive);
             Assert.AreEqual(3, changed, "AddPick 마다 OnBuildChanged 발행");
         }
+
+        [Test]
+        public void RequestExit_전투중_가능상태면_종료요청_발행()
+        {
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            int requested = 0;
+            vm.OnExitRequested += () => requested++;
+
+            vm.RequestExit();
+
+            Assert.AreEqual(1, requested);
+        }
+
+        [Test]
+        public void RequestExit_카드선택중이거나_전투종료후면_무시()
+        {
+            BattleViewModel vm = new BattleViewModel(new BattleStateModel());
+            int requested = 0;
+            bool lastVisible = true;
+            vm.OnExitRequested += () => requested++;
+            vm.OnExitAvailableChanged += v => lastVisible = v;
+
+            vm.SetExitAvailable(false);
+            vm.RequestExit();
+            Assert.IsFalse(lastVisible, "카드 선택 중 버튼 숨김 통지");
+
+            vm.SetExitAvailable(true);
+            vm.EndBattle(BattleResult.Win);
+            vm.RequestExit();
+
+            Assert.AreEqual(0, requested);
+            Assert.IsFalse(vm.IsExitAvailable, "전투 종료 후엔 다시 열려도 불가");
+        }
     }
 }

@@ -47,6 +47,9 @@ namespace Lair.UI
         //# 결과 팝업 도전과제 표기 상한 — 초과분은 "외 N건 달성" (기획서 §9.1).
         private const int MaxAchievedLines = 3;
 
+        //# 전투 종료 후 유일한 출구 — ESC 로 닫히면 씬 이동 수단이 사라진다.
+        public override bool CanCloseByEsc => false;
+
         [SerializeField] private CHText _resultText;
         [SerializeField] private CHText _rewardText;
         //# UI 리디자인 항목 줄 — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.

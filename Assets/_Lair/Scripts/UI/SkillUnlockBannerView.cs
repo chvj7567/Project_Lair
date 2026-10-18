@@ -28,6 +28,9 @@ namespace Lair.UI
         [SerializeField] private float _slideOutDuration = 0.35f;
         [SerializeField] private float _offscreenX = 1300f;   //# 화면 밖 X 최소값(레퍼런스 1280 기준 floor). 실제는 밴드 실폭으로 보정 (기획서 §3.5/§6)
 
+        //# 전투 내내 상주하는 핸들 — ESC 로 닫히면 이후 컷인이 비활성 객체를 노린다.
+        public override bool CanCloseByEsc => false;
+
         public override void InitUI(UIArg arg) => HideImmediate();
 
         //# 모바일 종횡비에서 캔버스 실폭이 1280 초과면 풀폭 밴드가 _offscreenX(1300) 로는 안 빠짐 → 일부 잔존.

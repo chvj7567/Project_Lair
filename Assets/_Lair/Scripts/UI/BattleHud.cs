@@ -43,12 +43,17 @@ namespace Lair.UI
         //# 비주얼 폴리시 — 남은 30초 이하 경고 글로우(DecoTimerWarnGlow)와 타이머 숫자 맥동.
         [SerializeField] private GameObject _timerWarnGlow;
         [SerializeField] private UILoopMotion _timerWarnTextMotion;
+        //# 좌상단 뒤로가기 — 클릭은 VM.RequestExit 로만 올린다.
+        [SerializeField] private CHButton _exitButton;
 
         private BattleViewModel _vm;
         //# 타이머 경고 색 적용 상태 — -1 미적용 / 0 평상시 / 1 경고. 변할 때만 SetColor.
         private int _timerWarnState = -1;
         //# 상태 아이콘 — ECardId→Sprite 해석 dict (BattleHudArg 로 주입).
         private IReadOnlyDictionary<ECardId, Sprite> _cardIcons;
+
+        //# 전투 베이스 HUD — ESC 는 BattleController 가 뒤로가기로 처리한다.
+        public override bool CanCloseByEsc => false;
 
         public override void InitUI(UIArg arg)
         {
@@ -68,6 +73,7 @@ namespace Lair.UI
             vm.OnStatusIconRemoved   += HandleStatusIconRemoved;
             vm.OnActiveCountdownChanged += HandleCountdown;
             vm.OnPassiveTickAcquired    += HandleTickAcquired;
+            vm.OnExitAvailableChanged   += HandleExitAvailable;
 
             //# Close 시 자동 해제
             closeDisposable.Add(() => vm.OnTimerChanged        -= HandleTimer);
@@ -77,6 +83,12 @@ namespace Lair.UI
             closeDisposable.Add(() => vm.OnStatusIconRemoved   -= HandleStatusIconRemoved);
             closeDisposable.Add(() => vm.OnActiveCountdownChanged -= HandleCountdown);
             closeDisposable.Add(() => vm.OnPassiveTickAcquired    -= HandleTickAcquired);
+            closeDisposable.Add(() => vm.OnExitAvailableChanged   -= HandleExitAvailable);
+            if (_exitButton != null)
+            {
+                _exitButton.OnClick(vm.RequestExit, closeDisposable);
+            }
+            HandleExitAvailable(vm.IsExitAvailable);
 
             //# 빌드 패널 바인딩 (Close 시 자동 해제)
             if (_buildPanel != null)
@@ -168,6 +180,13 @@ namespace Lair.UI
         private void HandleStatusIconRemoved(object key)
         {
             if (_bossBar != null) _bossBar.RemoveStatusIcon(key);
+        }
+
+        private void HandleExitAvailable(bool available)
+        {
+            if (_exitButton == null)
+                return;
+            _exitButton.gameObject.SetActive(available);
         }
 
         private void HandleEnded(BattleResult result)

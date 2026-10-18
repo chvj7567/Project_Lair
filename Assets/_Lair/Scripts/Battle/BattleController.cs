@@ -8,6 +8,7 @@ using Lair.Meta;
 using Lair.Net;
 using Lair.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Lair.Battle
 {
@@ -84,6 +85,8 @@ namespace Lair.Battle
 
         //# B1 신규
         private PauseService _pause;
+        //# 뒤로가기 확인 팝업이 ESC 로 닫힌 프레임 — 같은 프레임 LateUpdate ESC 로 재오픈 방지.
+        private int _exitCancelFrame = -1;
         private PassiveTriggerService _passiveTriggers;
         //# 오른쪽 열 패널 접힘 상태 VM — HUD 에 BattleHudArg 로 전달(scene-2d-conversion §4.10).
         private HudLayoutViewModel _hudLayout;
@@ -188,6 +191,7 @@ namespace Lair.Battle
             //# B1 — 일시정지 / 트리거 / 카드 풀
             _pause = new PauseService();
             _queue = new TriggerQueue();
+            _vm.OnExitRequested += HandleExitRequested;
 
             //# 스킬 해금 컷인 — 배너 팝업 1회 표시해 View 핸들 확보 후 구독.
             //# 콜백형으로 부트와 분리 — 배너는 부트 진행을 막을 필요 없는 부수 표시라 fire-and-forget.
@@ -317,6 +321,52 @@ namespace Lair.Battle
                     }
                 }
             }
+        }
+
+        //# 안드로이드 뒤로가기 = ESC. CHMUI.Update(ESC→팝업 닫기) 이후에 처리하려고 LateUpdate.
+        private void LateUpdate()
+        {
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKeyDown(KeyCode.Escape) == false)
+                return;
+            if (_exitCancelFrame == Time.frameCount)
+                return;
+            _vm?.RequestExit();
+#endif
+        }
+
+        //# 뒤로가기 — 즉시 정지 + 확인 팝업. 예=저장 없이 마을, 아니오(취소·배경·ESC)=재개.
+        private async void HandleExitRequested()
+        {
+            _pause.Pause();
+            _vm.SetExitAvailable(false);
+            UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.ConfirmPopup, new ConfirmPopupArg
+            {
+                Title = "전투 종료",
+                Message = "진행 중인 게임은 저장되지 않습니다.\n전투를 종료하시겠습니까?",
+                ConfirmLabel = "예",
+                CancelLabel = "아니오",
+                OnConfirm = ExitToVillage,
+                OnCancel = ResumeFromExit,
+            });
+            if (popup == null)
+            {
+                ResumeFromExit();
+            }
+        }
+
+        private void ResumeFromExit()
+        {
+            _exitCancelFrame = Time.frameCount;
+            _pause.Resume();
+            _vm.SetExitAvailable(true);
+        }
+
+        //# 런 기록·세이브·랭킹 제출(EndBattle 경로)을 거치지 않고 바로 이동.
+        private void ExitToVillage()
+        {
+            _pause.ResetAll();
+            SceneManager.LoadScene(EScene.Village.ToString());
         }
 
         //# B3 — BattleContext 가 위임하는 글로벌 버프/피의 갈증 진입점.
@@ -1476,6 +1526,7 @@ namespace Lair.Battle
 #endif
 
                 _pause.Pause();
+                _vm.SetExitAvailable(false);
                 IReadOnlyList<CardData> choices = deck.Draw(3, id => _pickCounter.IsCapped(id));
 #if UNITY_EDITOR
                 //# 디버그 — 지정 카드 강제 등장. 팝업 경로 한정 (시뮬 DebugAutoPicker 경로 비간섭) — 토글 OFF 면 내부 no-op.
@@ -1519,6 +1570,7 @@ namespace Lair.Battle
                 await CHMUI.Instance.ShowUIAsync(EUI.CardSelectionPopup, arg);
                 await tcs.Task;
                 _pause.Resume();
+                _vm.SetExitAvailable(true);
             }
 
             _processingQueue = false;

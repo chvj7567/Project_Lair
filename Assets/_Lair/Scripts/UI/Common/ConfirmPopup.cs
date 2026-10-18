@@ -23,11 +23,16 @@ namespace Lair.UI
         [SerializeField] private CHButton _confirmButton;
         [SerializeField] private CHButton _cancelButton;
 
+        //# 확인 외 모든 닫힘(취소·배경·ESC)은 OnDisable 에서 OnCancel 1회 — CHMUI ESC 는 Close 를 거치지 않는다.
+        private Action _pendingCancel;
+
         public override void InitUI(UIArg arg)
         {
             ConfirmPopupArg confirmArg = arg as ConfirmPopupArg;
             if (confirmArg == null)
                 return;
+
+            _pendingCancel = confirmArg.OnCancel;
 
             if (_titleText != null)
                 _titleText.SetText(confirmArg.Title);
@@ -40,6 +45,7 @@ namespace Lair.UI
                 Action onConfirm = confirmArg.OnConfirm;
                 _confirmButton.OnClick(() =>
                 {
+                    _pendingCancel = null;
                     Close(reuse: true);
                     onConfirm?.Invoke();
                 }, closeDisposable);
@@ -48,13 +54,15 @@ namespace Lair.UI
             if (_cancelButton != null)
             {
                 _cancelButton.SetText(confirmArg.CancelLabel);
-                Action onCancel = confirmArg.OnCancel;
-                _cancelButton.OnClick(() =>
-                {
-                    Close(reuse: true);
-                    onCancel?.Invoke();
-                }, closeDisposable);
+                _cancelButton.OnClick(() => Close(reuse: true), closeDisposable);
             }
+        }
+
+        private void OnDisable()
+        {
+            Action cancel = _pendingCancel;
+            _pendingCancel = null;
+            cancel?.Invoke();
         }
     }
 }

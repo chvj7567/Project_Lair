@@ -22,6 +22,13 @@ namespace Lair.Battle
             if (_depth == 0) Time.timeScale = 1f;
         }
 
+        //# 씬 이탈 직전 전부 해제 — timeScale 은 static 이라 다음 씬에 정지가 새지 않게.
+        public void ResetAll()
+        {
+            _depth = 0;
+            Time.timeScale = 1f;
+        }
+
         //# Slice A 의 EndBattle 같은 강제 정지 — depth 무시
         public void ForcePause()
         {

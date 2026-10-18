@@ -23,8 +23,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 일반_팝업은_기본값_ESC_닫힘을_유지한다()
         {
-            GameObject go = new GameObject("ResultPopupEscTest");
-            UIBase popup = go.AddComponent<ResultPopup>();
+            GameObject go = new GameObject("ConfirmPopupEscTest");
+            UIBase popup = go.AddComponent<ConfirmPopup>();
 
             //# 엣지/회귀 가드 — 기본 true 라 상점·랭킹 등 다른 팝업의 ESC 닫힘이 그대로 유지돼야 한다.
             Assert.IsTrue(popup.CanCloseByEsc);

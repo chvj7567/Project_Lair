@@ -35,6 +35,9 @@ namespace Lair.UI
         //# 부제 글로우·칩·마름모 — 종류색 rgb 로 틴트(알파 보존). 제목 글로우 포함 5개.
         [SerializeField] private Image[] _kindTintImages;
 
+        //# 3택1 강제 — ESC 로 닫히면 픽 대기가 풀리지 않아 전투가 영구 정지된다.
+        public override bool CanCloseByEsc => false;
+
         //# 부제 문구 — 패시브는 도달한 HP 구간, 액티브는 트리거 주기.
         public static string BuildSubtitle(bool isPassive, int triggerHpPercent, int activePeriodSeconds)
         {

@@ -88,6 +88,13 @@ namespace Lair.UI
         public event Action<object, ECardId> OnStatusIconAdded;
         public event Action<object> OnStatusIconRemoved;
 
+        //# 전투 중 뒤로가기 — View/ESC 가 RequestExit, 컨트롤러가 OnExitRequested 로 정지+확인 팝업.
+        public event Action OnExitRequested;
+        //# 뒤로가기 버튼 표시 여부 — 카드 선택·확인 팝업 중엔 false.
+        public event Action<bool> OnExitAvailableChanged;
+        private bool _exitAvailable = true;
+        public bool IsExitAvailable => _exitAvailable && _model.Result == BattleResult.None;
+
         public BattleViewModel(BattleStateModel model)
         {
             _model = model;
@@ -212,6 +219,20 @@ namespace Lair.UI
         {
             _model.Result = result;
             OnBattleEnded?.Invoke(result);
+            OnExitAvailableChanged?.Invoke(false);
+        }
+
+        public void SetExitAvailable(bool available)
+        {
+            _exitAvailable = available;
+            OnExitAvailableChanged?.Invoke(IsExitAvailable);
+        }
+
+        public void RequestExit()
+        {
+            if (IsExitAvailable == false)
+                return;
+            OnExitRequested?.Invoke();
         }
 
         //# 상태 아이콘 — HeroAuraRunner 이벤트를 BattleController 가 forward.
