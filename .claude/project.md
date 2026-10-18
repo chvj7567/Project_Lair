@@ -70,9 +70,10 @@
 | 2 | **game-designer** | 사용자 요구·컨셉서를 입력으로 도메인 결정 채움 — 수치·UX·시각·밸런스·페이싱·시너지 | `docs.design/[기능명].md` (완료 시 자동 커밋 — Rule 01) |
 | 3 | **사용자** | 기획서 리뷰·승인 게이트 | 승인 |
 | 4 | **gameplay-programmer** | 승인된 기획서를 참조해 `.cs` 구현 | 코드 (완료 시 자동 커밋 — Rule 01) |
-| 5 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs (완료 시 자동 커밋 — Rule 01) |
-| 6 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` (완료 시 자동 커밋 — Rule 01) |
-| 7 | 메인 | 전체 변경 요약 보고 (각 단계는 이미 자동 커밋되어 있음) | 요약 |
+| 5 | **code-reviewer** | 코딩 룰(Rule 00~04) + 기획서 일치 검토 — BLOCKER 있으면 gameplay-programmer 재작업 (최대 3회) | 검토 보고 |
+| 6 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs (완료 시 자동 커밋 — Rule 01) |
+| 7 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` (완료 시 자동 커밋 — Rule 01) |
+| 8 | 메인 | 전체 변경 요약 보고 (각 단계는 이미 자동 커밋되어 있음) | 요약 |
 
 ### 스킬 미지정 요청 — 메인 후보 제시 규칙
 
@@ -80,9 +81,9 @@
 
 | 스킬 | 적합 작업 | 파이프라인 단계 |
 |---|---|---|
-| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → test-engineer |
-| `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → test-engineer |
-| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer |
+| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → code-reviewer → test-engineer |
+| `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → code-reviewer → test-engineer |
+| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer → code-reviewer |
 
 ### 밸런스 조정 흐름 (별도 짧은 사이클)
 
@@ -93,8 +94,9 @@
 3. **game-designer** → 데이터 기반 조정안 작성 (기존 기획서 갱신 또는 짧은 patch note)
 4. **사용자 승인**
 5. **gameplay-programmer** → SO/수치 수정
-6. **test-engineer** → 회귀 테스트 통과 확인
-7. **qa-simulator** → 조정 후 재시뮬로 검증
+6. **code-reviewer** → 수정 검토
+7. **test-engineer** → 회귀 테스트 통과 확인
+8. **qa-simulator** → 조정 후 재시뮬로 검증
 
 ## 도메인 데이터 (선택)
 

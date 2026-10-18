@@ -1,13 +1,13 @@
 ---
 name: start-develop-quick
-description: Use ONLY when the user explicitly invokes this skill by name, or when the user selects it from the main orchestrator's pipeline-choice prompt. Runs the project's lightest path — gameplay-programmer only — for small bug fixes / renames / minor edits with no design or test work. Skips game-designer, user-approval gate, test-engineer, and qa-simulator. Do not auto-trigger from an ordinary feature request.
+description: Use ONLY when the user explicitly invokes this skill by name, or when the user selects it from the main orchestrator's pipeline-choice prompt. Runs the project's lightest path — gameplay-programmer → code-reviewer only — for small bug fixes / renames / minor edits with no design or test work. Skips game-designer, user-approval gate, test-engineer, and qa-simulator. Do not auto-trigger from an ordinary feature request.
 ---
 
 # start-develop-quick — 간단 수정 전용 파이프라인 (최경량 버전)
 
 ## 개요
 
-사용자가 **명시적으로 호출했거나, 메인 오케스트레이터가 제시한 후보 중 사용자가 선택한 경우에만** 발동한다. 이 프로젝트의 협업 흐름 4종 중 가장 가볍다 — `gameplay-programmer` 만 돌린다.
+사용자가 **명시적으로 호출했거나, 메인 오케스트레이터가 제시한 후보 중 사용자가 선택한 경우에만** 발동한다. 이 프로젝트의 협업 흐름 4종 중 가장 가볍다 — `gameplay-programmer` 와 `code-reviewer` 만 돌린다.
 
 오타 · 리네임 · 문구·색상값 변경 · 단일 함수 안의 소규모 버그 수정 같은 **사소한 수정** 전용. 본격 기능 · 머지 대상 · 회귀 위험 있는 변경은 `start-develop` 또는 `start-develop-auto` 를 쓴다.
 
@@ -24,7 +24,10 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 1. **gameplay-programmer** 위임 → 수정 구현.
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
    - 완료 즉시 Rule 01 에 따라 자동 커밋.
-2. **마무리** — 변경사항 요약 보고. 1단계에서 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
+2. **code-reviewer** 위임 → 코딩 룰(`.claude/rules/00~04`) 준수 + 사용자 의도와의 부합 검토.
+   - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
+   - **에셋 한정 게이트** — 1단계 변경이 순수 에셋 등록/적용(코드 변경 0건)이면 code-reviewer spawn 전에 사용자에게 "리뷰 진행 / 생략" 선택지를 먼저 제시한다. 코드 변경이 1건이라도 있으면 게이트 없이 직진.
+3. **마무리** — 변경사항 요약 보고. 각 단계에서 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 사후 안전망 — 에스컬레이션 출구
 
@@ -52,10 +55,10 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 ## 에이전트 세션 관리
 
 ### 수정 루프 — 세션 유지 (`SendMessage`)
-사용자가 추가 수정을 요청해 gameplay-programmer 에게 다시 맡길 때는 `Agent` 로 **새 호출(새 세션, cold start)하지 않고 `SendMessage` 로 기존 gameplay-programmer 세션에 이어 보낸다.** 방금 자기가 작성한 코드·의도를 기억한 채로 고쳐야 정확하다.
+code-reviewer 가 BLOCKER 를 내서 gameplay-programmer 에게 수정을 다시 맡길 때, 또는 사용자가 추가 수정을 요청해 다시 맡길 때는 `Agent` 로 **새 호출(새 세션, cold start)하지 않고 `SendMessage` 로 기존 gameplay-programmer 세션에 이어 보낸다.** 방금 자기가 작성한 코드·의도를 기억한 채로 고쳐야 정확하다.
 
 ### 완료 시 — 세션 종료 확인 게이트
-마무리(2단계)에서 작업이 끝났다고 판단되면 **에이전트 세션을 바로 종료하지 않는다.** 사용자에게 **"에이전트 세션을 종료할지, 추가 수정을 위해 유지할지"** 를 묻고 멈춘다.
+마무리(3단계)에서 작업이 끝났다고 판단되면 **에이전트 세션을 바로 종료하지 않는다.** 사용자에게 **"에이전트 세션을 종료할지, 추가 수정을 위해 유지할지"** 를 묻고 멈춘다.
 
 - 사용자가 **"완전히 해결됐다"** 고 확인하기 전까지 세션을 유지한다. 추가 수정 요청이 오면 gameplay-programmer 세션에 `SendMessage` 로 이어간다 (새 `Agent` 호출 금지).
 - 사용자가 해결을 확인하면 그때 세션을 종료한다.
@@ -73,7 +76,7 @@ gameplay-programmer 가 작업에 들어간 뒤 **"이 수정은 quick 수준이
 
 - 큰 작업을 quick 으로 진행 — gameplay-programmer 가 발각하면 에스컬레이션으로 빠져나옴. 사용자 측에서도 quick 후보 선택 전 의심되면 다른 스킬로.
 - 메인이 직접 `.cs` 수정 — 금지. gameplay-programmer 에 위임.
-- "사소하니까" 라며 코딩 룰(Rule 00~04) 무시 — 금지. 이 흐름엔 별도 검토 단계가 없으므로 gameplay-programmer 의 self-review 가 유일한 안전망이다 — 반드시 수행한다.
+- "사소하니까" 라며 코딩 룰(Rule 00~04) 무시 — 금지. code-reviewer 가 BLOCKER 로 차단.
 - test-engineer 도 스킵이라며 정상 케이스 확인까지 빼먹기 — gameplay-programmer 자체 스모크는 반드시 수행.
 - 수정 루프에서 gameplay-programmer 를 `Agent` 로 새로 호출(cold start) — 금지. `SendMessage` 로 기존 세션 유지.
 - 완료라고 판단하고 세션 종료·마무리 직행 — 금지. 사용자에게 종료 여부를 먼저 묻고, 해결 확인 후에만 종료.

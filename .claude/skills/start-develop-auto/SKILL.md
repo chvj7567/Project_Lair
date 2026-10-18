@@ -1,6 +1,6 @@
 ---
 name: start-develop-auto
-description: Use ONLY when the user explicitly invokes this skill by name. Runs the project's feature-development pipeline (game-designer through test-engineer) end-to-end with no approval gate. Do not auto-trigger from an ordinary feature request — explicit invocation required.
+description: Use ONLY when the user explicitly invokes this skill by name. Runs the project's feature-development pipeline (game-designer through code-reviewer and test-engineer) end-to-end with no approval gate. Do not auto-trigger from an ordinary feature request — explicit invocation required.
 ---
 
 # start-develop-auto — 기획→구현→테스트 파이프라인 (전자동 버전)
@@ -21,25 +21,28 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성. 완료 즉시 Rule 01 에 따라 자동 커밋.
 2. **gameplay-programmer** 위임 → 기획서대로 구현. 완료 즉시 자동 커밋.
-3. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
-4. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
+3. **code-reviewer** 위임 → 코딩 룰(Rule 00~04) 준수 + 기획서 일치 검토.
+   - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 멈추고 사용자에게 보고한다 (전자동이라도 풀리지 않는 결함은 강행하지 않는다).
+4. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
+5. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 규칙
 
 - "전자동"은 **단계 간 사용자 승인을 묻지 않는다**는 뜻이다. 그래도 다음 경우엔 멈춘다:
   - 호출 시 기능 설명이 없을 때 — 무엇을 만들지 묻는다.
+  - code-reviewer 의 BLOCKER 가 3회 내에 안 풀릴 때 — 사용자에게 에스컬레이션.
 - qa-simulator(밸런스 시뮬)는 포함하지 않는다. 밸런스 검증이 필요하면 마무리 후 별도 호출을 제안한다.
 - 룰은 `.claude/rules/01~04`, 위임·게이트 기준은 Rule 00 "메인 오케스트레이터 행동 규칙", 단계 순서는 `project.md` "협업 흐름 (Workflow)" 를 따른다.
 
 ## 에이전트 세션 관리
 
 ### 수정 루프 — 세션 유지 (`SendMessage`)
-gameplay-programmer / test-engineer 가 자체 보고한 컴파일·테스트 실패를 같은 에이전트에게 다시 고치게 할 때는 `Agent` 로 **새 호출(새 세션, cold start)하지 않고 `SendMessage` 로 기존 세션에 이어 보낸다.** 방금 자기가 작성한 코드·의도를 기억한 채로 고쳐야 정확하다.
+code-reviewer 가 BLOCKER 를 내서 gameplay-programmer 에게 수정을 다시 맡길 때, 또는 gameplay-programmer / test-engineer 가 자체 보고한 컴파일·테스트 실패를 같은 에이전트에게 다시 고치게 할 때는 `Agent` 로 **새 호출(새 세션, cold start)하지 않고 `SendMessage` 로 기존 세션에 이어 보낸다.** 방금 자기가 작성한 코드·의도를 기억한 채로 고쳐야 정확하다.
 
-- 단계 전진(game-designer → gameplay-programmer → test-engineer)은 서로 다른 에이전트라 새 세션이 불가피하다 — 이때는 산출물(기획서/코드 경로)을 위임 프롬프트에 명시해 컨텍스트를 잇는다.
+- 단계 전진(game-designer → gameplay-programmer → code-reviewer → test-engineer)은 서로 다른 에이전트라 새 세션이 불가피하다 — 이때는 산출물(기획서/코드 경로)을 위임 프롬프트에 명시해 컨텍스트를 잇는다.
 
 ### 완료 시 — 세션 종료 확인 게이트
-"전자동"이라도 마무리(4단계)에서 작업이 끝났다고 판단되면 **에이전트 세션을 바로 종료하지 않는다.** 사용자에게 **"에이전트 세션을 종료할지, 추가 수정을 위해 유지할지"** 를 묻고 멈춘다 (단계 간 무정지 규칙의 예외).
+"전자동"이라도 마무리(5단계)에서 작업이 끝났다고 판단되면 **에이전트 세션을 바로 종료하지 않는다.** 사용자에게 **"에이전트 세션을 종료할지, 추가 수정을 위해 유지할지"** 를 묻고 멈춘다 (단계 간 무정지 규칙의 예외).
 
 - 사용자가 **"완전히 해결됐다"** 고 확인하기 전까지 세션을 유지한다. 추가 수정 요청이 오면 해당 에이전트 세션에 `SendMessage` 로 이어간다 (새 `Agent` 호출 금지).
 - 사용자가 해결을 확인하면 그때 세션을 종료한다.
@@ -56,6 +59,7 @@ gameplay-programmer / test-engineer 가 자체 보고한 컴파일·테스트 �
 ## 흔한 실수
 
 - 메인이 직접 `.cs` 를 수정 — 금지. gameplay-programmer 에 위임.
+- BLOCKER 를 무시하고 강행 — 금지. 3회 후 에스컬레이션.
 - 수정 루프에서 같은 에이전트를 `Agent` 로 새로 호출(cold start) — 금지. `SendMessage` 로 기존 세션 유지.
 - 완료라고 판단하고 세션 종료·마무리 직행 — 금지. 사용자에게 종료 여부를 먼저 묻고, 해결 확인 후에만 종료.
 - 컨텍스트 요약 후 `.claude/.active-sessions.md` 를 안 읽고 곧장 새 `Agent` 호출 — 금지. 먼저 레지스트리로 세션 맵 복구.
