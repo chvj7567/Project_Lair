@@ -15,26 +15,20 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: b4f454b6df380284191870ef7653920e
   m_SerializeEntries:
-  - m_GUID: 69c545a1f40346bba2621b3790a71298
-    m_Address: HeroArchetype_Guard
+  - m_GUID: 0713e0e012b01a84287366ca6eb61757
+    m_Address: Relic
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ac01ecfce81e401eae033feb05853dce
-    m_Address: HeroArchetype_DebuffResist
+  - m_GUID: 0d4d478d96e2cb542800046634a64e61
+    m_Address: RelicRarity
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 583a88c059d84f6293a0d52a9a0d7dda
-    m_Address: HeroArchetype_Charge
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Resource
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 74d5ae2ceea14280804eb3bfdca771cc
-    m_Address: HeroArchetype_Cleave
+  - m_GUID: 1448d7df2319a714aa745120e67e70c2
+    m_Address: Relic_Effect_Param
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -51,6 +45,18 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3fe03d32c5acafd4b85e3fc8f7c4cf7e
+    m_Address: Relic_Effect
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 41a54a90a049aa24b81528f102385e2e
+    m_Address: Stage_Relic
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 481c306766174422a059b05b690caa91
     m_Address: Stage_Rule
     m_ReadOnly: 0
@@ -63,20 +69,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a469ef07f59545449ab4909630fb5e2d
-    m_Address: Strings_Ko
+  - m_GUID: 583a88c059d84f6293a0d52a9a0d7dda
+    m_Address: HeroArchetype_Charge
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: acc0ea0f22c041ea9b5d60214691d501
-    m_Address: Stage_Rule_Param
+  - m_GUID: 6100575ff33089b4c91fc350474d0ee2
+    m_Address: RelicConfig
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c1b44a6219ae8db49bdb83c9bc5ee79a
-    m_Address: LoadingStrings_Ko
+  - m_GUID: 69c545a1f40346bba2621b3790a71298
+    m_Address: HeroArchetype_Guard
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 74d5ae2ceea14280804eb3bfdca771cc
+    m_Address: HeroArchetype_Cleave
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource
@@ -87,8 +99,56 @@ MonoBehaviour:
     m_SerializedLabels:
     - Resource
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c0e186e5326b1740b9096225a61ea57
+    m_Address: RelicStack
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a469ef07f59545449ab4909630fb5e2d
+    m_Address: Strings_Ko
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a80220b849d84e240a4ebdbf93df08a0
+    m_Address: Relic_Drop
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac01ecfce81e401eae033feb05853dce
+    m_Address: HeroArchetype_DebuffResist
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: acc0ea0f22c041ea9b5d60214691d501
+    m_Address: Stage_Rule_Param
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: af50b4dae7596d443ada01ba2122d7ad
+    m_Address: Difficulty_Relic
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c1b44a6219ae8db49bdb83c9bc5ee79a
+    m_Address: LoadingStrings_Ko
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c401f7f5bf58418da94e04c95b607ee8
     m_Address: Stage_Rule_Trigger
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Resource
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1da18413d47d7547a55ab6831d99100
+    m_Address: Difficulty_Relic_Rarity
     m_ReadOnly: 0
     m_SerializedLabels:
     - Resource

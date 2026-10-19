@@ -9,7 +9,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 7;
+        public int Version = 8;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -36,6 +36,12 @@ namespace Lair.Meta
         public int SelectedDifficulty;
         //# 스테이지별 클리어한 최고 난이도 — Normal 이상을 클리어한 스테이지만 행 존재(MaxDifficulty >= 1 불변식).
         public List<DifficultyClearEntry> DifficultyClears = new List<DifficultyClearEntry>();
+        //# 유물(v8, relics §3.2) — 보유한 유물만 행 존재(Stack >= 1 불변식). 구버전 세이브엔 키가 없어 빈 리스트로 로드.
+        public List<RelicEntry> Relics = new List<RelicEntry>();
+        //# 승리 굴림 연속 미획득 수(소프트 pity). 0 = 연패 0 이라는 실제 값.
+        public int RelicMissStreak;
+        //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
+        public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
         public string DisplayName;
 
@@ -150,6 +156,40 @@ namespace Lair.Meta
             DifficultyClears.Add(new DifficultyClearEntry { Stage = stage, MaxDifficulty = difficulty });
         }
 
+        //# 보유 유물 중첩 — 없으면 0(조회는 부수효과 0). 상한 클램프는 읽는 쪽(RelicBattleBonus 등)이 담당(relics §3.6).
+        public int GetRelicStack(string relicId)
+        {
+            if (Relics == null)
+                return 0;
+            foreach (RelicEntry entry in Relics)
+            {
+                if (entry != null && entry.RelicId == relicId)
+                    return entry.Stack;
+            }
+            return 0;
+        }
+
+        //# 유물 중첩 +1 — 없으면 Stack 1 로 추가. 상한 판정은 호출부(RelicDropRoller)가 한다. 반환 = 추가 후 중첩.
+        public int AddRelic(string relicId)
+        {
+            if (string.IsNullOrEmpty(relicId))
+                return 0;
+            if (Relics == null)
+            {
+                Relics = new List<RelicEntry>();
+            }
+            foreach (RelicEntry entry in Relics)
+            {
+                if (entry != null && entry.RelicId == relicId)
+                {
+                    entry.Stack++;
+                    return entry.Stack;
+                }
+            }
+            Relics.Add(new RelicEntry { RelicId = relicId, Stack = 1 });
+            return 1;
+        }
+
         //# 카드 픽 횟수 조회 — 픽한 적 없으면 0(조회는 부수효과 0).
         public int GetCardPickCount(string cardId)
         {
@@ -232,6 +272,9 @@ namespace Lair.Meta
             //# 난이도 진행도 복원 대상 — 빠뜨리면 복원 시 난이도 진행만 유실된다.
             SelectedDifficulty = other.SelectedDifficulty;
             DifficultyClears = other.DifficultyClears ?? new List<DifficultyClearEntry>();
+            //# 유물은 수집 노력이 큰 자산 — 빠뜨리면 복원 시 유물 전부 유실. BattleSpeedOn 은 로컬 선호값이라 복사하지 않는다.
+            Relics = other.Relics ?? new List<RelicEntry>();
+            RelicMissStreak = other.RelicMissStreak;
         }
 
         //# 랭킹 제출 표시명 결정(기획서 §1) — DisplayName 우선, 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자).
@@ -291,6 +334,14 @@ namespace Lair.Meta
     {
         public int Stage;            //# 선형 스테이지 번호 1~MaxStage
         public int MaxDifficulty;    //# 클리어한 최고 난이도 인덱스 (>= 1)
+    }
+
+    //# 보유 유물 하나 — 보유한 유물만 행 존재(Stack >= 1). JsonUtility 직렬화 대상.
+    [Serializable]
+    public class RelicEntry
+    {
+        public string RelicId;   //# Relic.relicId (ERelic 값명)
+        public int Stack;        //# 현재 중첩 (>= 1)
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

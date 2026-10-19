@@ -63,6 +63,13 @@ namespace Lair.Battle
         private ChapterDatabase _chapters;
         //# 전투 시작에 확정한 난이도(difficulty-select §4.3) — 판 도중 다시 읽지 않는다. 프로필은 수정하지 않는다(읽기 전용 클램프).
         private int _effectiveDifficulty;
+        //# 유물(relics §6.1) — 전투 시작에 보유 유물을 1회 집계한 스냅샷. 판 도중 보유는 변하지 않는다. 유물 DB 미로드면 빈 스냅샷.
+        private RelicBattleBonus _relicBonus = RelicBattleBonus.None;
+        //# 유물 전투 효과(오라·소환·광폭화)는 BattleClock 시작(영웅 입장 완료) 시점에 1회만 개시한다.
+        private bool _relicCombatBegan;
+        //# 분노의 영혼 — 영웅 HP 구독 핸들러와 사양별 발동 여부.
+        private System.Action<int, int> _relicFrenzyHandler;
+        private bool[] _relicFrenzyFired = System.Array.Empty<bool>();
         //# 스테이지 규칙(chapter-system §3) — 규칙이 있는 스테이지에서만 러너 생성. 없으면 null(기존 동작 불변).
         private StageRuleRunner _ruleRunner;
         //# 짙은 안개 사거리 규칙 — 비활성이면 ApplyMonsterStats 가 사거리를 그대로 통과시킨다.
@@ -179,9 +186,13 @@ namespace Lair.Battle
 
             //# v0.2 메타 — 상점 영구 업그레이드를 전투 시작 배율로 적용 (BindSpawners 의 base 주기 주입 뒤, 첫 스폰 전).
             ApplyMetaBonuses();
+            //# 유물 — 상점 배율 뒤에 같은 표면(_typeModifiers)에 곱연산 누적. 첫 스폰 지연 계산(이동속도 반영)보다 앞서야 한다(relics §6.1).
+            ApplyRelicBonuses();
 
             //# 스포너가 영웅 쪽으로 당겨진 만큼 첫 스폰만 늦춰 몬스터 도착 시각을 보존(scene-2d-conversion §3.5.4) — 메타 배율 반영 뒤 1회.
             ApplyFirstSpawnDelays();
+            //# 서두르는 둥지 — 이동 보정으로 정해진 첫 스폰 지연을 앞당긴다(상기 계산 뒤여야 함).
+            ApplyRelicSpawnPrelude();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
@@ -196,6 +207,9 @@ namespace Lair.Battle
             _pause = new PauseService();
             _queue = new TriggerQueue();
             _vm.OnExitRequested += HandleExitRequested;
+            //# 2배속 — 저장된 토글 상태를 목표 속도로 반영하고 이후 변경을 구독(relics §5).
+            _vm.OnBattleSpeedChanged += HandleBattleSpeedChanged;
+            ApplyBattleSpeed(_vm.BattleSpeedOn);
 
             //# 스킬 해금 컷인 — 배너 팝업 1회 표시해 View 핸들 확보 후 구독.
             //# 콜백형으로 부트와 분리 — 배너는 부트 진행을 막을 필요 없는 부수 표시라 fire-and-forget.
@@ -264,13 +278,13 @@ namespace Lair.Battle
             //# 폴백 분기(zone 미할당)는 즉시 시작.
             if (_zone == null)
             {
-                _clock.Start();
+                StartBattleClock();
             }
             //# zone 활성 분기 — race 보강. clock 생성 전 영웅이 이미 입장했으면(L334 _clock?.Start() 가 null no-op)
             //# 여기서 시작. 아직이면 이후 HandleHeroReachedCenter 가 시작 → 두 진입 순서 모두 정확히 1회 Start.
             else if (_heroEntered)
             {
-                _clock.Start();
+                StartBattleClock();
             }
 
             //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
@@ -435,6 +449,22 @@ namespace Lair.Battle
             _ruleRunner?.Shutdown();
             _vm?.DetachSpawners();
             TeardownHeroAuraEvents();
+            DetachRelicFrenzy();
+            if (_vm != null)
+            {
+                _vm.OnBattleSpeedChanged -= HandleBattleSpeedChanged;
+            }
+            //# 씬 이탈 시 배속이 다음 씬으로 새지 않게 — ExitToVillage 외 경로(결과창 버튼·재시작)의 안전망.
+            _pause?.ResetAll();
+        }
+
+        //# BattleClock 시작 + 유물 전투 효과 개시 — 시계가 실제로 시작되는 세 경로가 모두 이 메서드를 거친다.
+        private void StartBattleClock()
+        {
+            if (_clock == null)
+                return;
+            _clock.Start();
+            BeginRelicCombat();
         }
 
         //# 스테이지 규칙 러너 구성·시작 — Stage_Rule 이 없으면(1-1 등) 아무것도 만들지 않는다. 실패 시 false(전투 진입 중단).
@@ -957,7 +987,7 @@ namespace Lair.Battle
             }
 
             //# BattleClock 시작 — 5분 카운트다운 개시.
-            _clock?.Start();
+            StartBattleClock();
         }
 
         //# 영웅 AutoCombatAI 를 delay 초 후 활성화. Start() 백그라운드 호출용.
@@ -1087,6 +1117,178 @@ namespace Lair.Battle
                 }
             }
         }
+
+        //# 유물 능력치형 — 보유 유물을 집계(_relicBonus)해 종 스탯 배율(_typeModifiers)·스포너 주기에 적용 (relics §6.1).
+        //# _metaConfig 유무와 독립이다(ApplyMetaBonuses 의 조기 반환과 무관하게 적용).
+        private void ApplyRelicBonuses()
+        {
+            _relicBonus = RelicBattleBonus.From(MetaSession.GetOrLoad(), RelicDatabase.Current);
+
+            foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
+            {
+                float mul = _relicBonus.GetStatMul(kind);
+                if (Mathf.Approximately(mul, 1f))
+                    continue;
+                foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+                {
+                    if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
+                    {
+                        m = new StatMultiplier();
+                        _typeModifiers[type] = m;
+                    }
+                    m.Multiply(kind, mul);
+                }
+            }
+
+            if (Mathf.Approximately(_relicBonus.SpawnerPeriodMul, 1f) == false && _spawners != null)
+            {
+                foreach (Spawner sp in _spawners)
+                {
+                    if (sp != null)
+                    {
+                        sp.ScalePeriod(_relicBonus.SpawnerPeriodMul);
+                    }
+                }
+            }
+
+            //# 2배속 토글 — 유물 보유 시에만 노출, 마지막 상태는 프로필(BattleSpeedOn)에서 복원.
+            _vm?.ConfigureBattleSpeed(_relicBonus.HasBattleSpeed, _relicBonus.HasBattleSpeed && MetaSession.GetOrLoad().BattleSpeedOn);
+        }
+
+        //# 서두르는 둥지 — 모든 스포너의 첫 스폰 지연을 advanceSec 만큼 앞당김(0 하한).
+        private void ApplyRelicSpawnPrelude()
+        {
+            if (_relicBonus.SpawnPreludeAdvanceSec <= 0f || _spawners == null)
+                return;
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp != null)
+                {
+                    sp.AdvanceFirstSpawnDelay(_relicBonus.SpawnPreludeAdvanceSec);
+                }
+            }
+        }
+
+        //# 유물 전투 효과 개시 — 시계 시작(영웅이 중심에 도달한 "전투 시작") 시 1회. 화상·낙뢰의 첫 틱도 이 시각부터 센다.
+        private void BeginRelicCombat()
+        {
+            if (_relicCombatBegan)
+                return;
+            _relicCombatBegan = true;
+            if (_model != null && _model.Result != BattleResult.None)
+                return;
+
+            AttachRelicHeroAuras();
+            SummonRelicOpeners();
+            AttachRelicFrenzy();
+        }
+
+        //# 영웅 오라형(화상·낙뢰·공격력 감소) — 영구(-1) 부착. 성기사 저항(ConfigureDebuffResist)은 SpawnHero 에서 이미 설정돼 Attach 가 보정한다.
+        private void AttachRelicHeroAuras()
+        {
+            if (_heroAuraRunner == null)
+                return;
+            if (_relicBonus.HeroBurnRatioPerSec > 0f)
+            {
+                _heroAuraRunner.Attach(new EmberBrandAura(_relicBonus.HeroBurnRatioPerSec), -1f);
+            }
+            foreach (RelicBattleBonus.LightningSpec spec in _relicBonus.Lightnings)
+            {
+                _heroAuraRunner.Attach(new ThunderShardAura(spec.IntervalSec, spec.HpRatio), -1f);
+            }
+            if (_relicBonus.HasHeroAttackDown && _hero != null)
+            {
+                LairCharacter character = _hero.GetComponent<LairCharacter>();
+                IAttacker attacker = character != null ? character.Get<IAttacker>() : null;
+                if (attacker != null)
+                {
+                    _heroAuraRunner.Attach(new HeroAttackDownAura(attacker, _relicBonus.HeroAttackFactor), -1f);
+                }
+            }
+        }
+
+        //# 매복의 뿔피리 — 영웅 근처에 몬스터 소환. 스테이지 규칙이 그 종을 봉인 중이면 소환 skip(E-17).
+        private void SummonRelicOpeners()
+        {
+            if (_hero == null)
+                return;
+            foreach (RelicBattleBonus.SummonSpec spec in _relicBonus.OpeningSummons)
+            {
+                if (GetSealUnlockHpPercent(spec.Monster) > 0)
+                    continue;
+                for (int i = 0; i < spec.Count; ++i)
+                {
+                    SpawnMonsterRuntime(spec.Monster, _hero.transform.position);
+                }
+            }
+        }
+
+        //# 분노의 영혼 — 영웅 HP 비율이 hpFraction 이하가 되면 몬스터 전체 광폭화를 전투당 1회 발동.
+        private void AttachRelicFrenzy()
+        {
+            if (_relicBonus.Frenzies.Count == 0 || _heroHealth == null)
+                return;
+            DetachRelicFrenzy();
+            _relicFrenzyFired = new bool[_relicBonus.Frenzies.Count];
+            _relicFrenzyHandler = HandleRelicFrenzyHp;
+            _heroHealth.OnChanged += _relicFrenzyHandler;
+        }
+
+        private void HandleRelicFrenzyHp(int current, int max)
+        {
+            if (max <= 0 || (_model != null && _model.Result != BattleResult.None))
+                return;
+            float ratio = (float)current / max;
+            for (int i = 0; i < _relicBonus.Frenzies.Count; ++i)
+            {
+                RelicBattleBonus.FrenzySpec spec = _relicBonus.Frenzies[i];
+                if (_relicFrenzyFired[i] || ratio > spec.HpFraction)
+                    continue;
+                _relicFrenzyFired[i] = true;
+                AddMonsterBuff(EMonsterBuff.Frenzy, spec.DurationSec);
+            }
+        }
+
+        private void DetachRelicFrenzy()
+        {
+            if (_heroHealth != null && _relicFrenzyHandler != null)
+            {
+                _heroHealth.OnChanged -= _relicFrenzyHandler;
+            }
+            _relicFrenzyHandler = null;
+        }
+
+        //# 2배속 토글 변경 — 목표 속도 반영 + 프로필 저장(로컬 선호값). 카드 선택 중이면 PauseService 가 보관만 하고 Resume 때 반영.
+        private void HandleBattleSpeedChanged(bool on)
+        {
+            ApplyBattleSpeed(on);
+            MetaProfile profile = MetaSession.GetOrLoad();
+            if (profile.BattleSpeedOn == on)
+                return;
+            profile.BattleSpeedOn = on;
+            MetaSession.Store?.Save(profile);
+        }
+
+        private void ApplyBattleSpeed(bool on)
+        {
+            if (_pause == null)
+                return;
+            _pause.SetTargetScale(on && _relicBonus.HasBattleSpeed ? _relicBonus.BattleSpeedScale : 1f);
+        }
+
+        //# 드랍 굴림 — 영웅(챕터)·스테이지·EffectiveDifficulty 기준. 유물 DB 미로드/영웅 데이터 없음이면 굴리지 않는다.
+        private RelicDropResult RollRelicDrop(MetaProfile profile, bool win)
+        {
+            RelicDatabase db = RelicDatabase.Current;
+            HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            if (db == null || archetype == null)
+                return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
+            return RelicDropRoller.Roll(db, profile, archetype.heroId, StageProgress.ChapterOf(profile.SelectedStage),
+                StageProgress.IndexOf(profile.SelectedStage), _effectiveDifficulty, win, RandomUnit);
+        }
+
+        //# [0,1) 난수 — UnityEngine.Random.value 는 1.0 을 포함하므로 확률 1.0 경계가 어긋나지 않게 절단.
+        private static float RandomUnit() => Mathf.Min(UnityEngine.Random.value, 0.99999994f);
 
         //# ISpawnerHost — Spawner 한 사이클. 종료 검사만 통과하면 count 전량 스폰 (동시 캡 제거, spec §2.A).
         public async void SpawnFromSpawner(EMonster type, Vector3 exactPos, int count)
@@ -1325,6 +1527,8 @@ namespace Lair.Battle
             if (_model.Result != BattleResult.None)
                 return;   //# 중복 방지
             _clock.Stop();
+            //# 결과창 구간은 1배속 — 배속이 결과 연출·다음 씬으로 새지 않게 목표 속도를 1 로 되돌린다(relics §5.2-5).
+            _pause?.SetTargetScale(1f);
             //# 스테이지 규칙 전원 비활성 — 부수효과 원복 + FX 풀 반환(E-6). 결과 확정(_vm.EndBattle) 전 동기 실행.
             _ruleRunner?.Shutdown();
 
@@ -1347,12 +1551,15 @@ namespace Lair.Battle
             int lordRewardSouls = 0;
             bool isNewBest = false;
             int newlyUnlockedDifficulty = 0;
+            RelicDropResult relicDrop = new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
             if (_metaConfig != null)
             {
                 MetaProfile profile = MetaSession.GetOrLoad();
                 SoulReward reward = SoulRewardCalculator.Calculate(
                     result, _clock.Elapsed, _model.TotalSeconds, GetHeroDamagedRatio(), _metaConfig);
+                //# 유물 보상 가산 — 전투 시작 스냅샷 기준이라 이번 판 드랍은 반영되지 않는다(relics §2.7).
+                reward = _relicBonus.ApplyReward(reward, result == BattleResult.Win);
 
                 int levelBefore = LordLevelService.LevelFromXp(profile.LordXp, _metaConfig);
                 profile.Souls += reward.Souls;
@@ -1384,6 +1591,9 @@ namespace Lair.Battle
                 }
                 int unlockedAfter = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
                 newlyUnlockedDifficulty = unlockedAfter > unlockedBefore ? unlockedAfter : 0;
+
+                //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 도감·영주 보상·도전과제보다 앞, 저장 전.
+                relicDrop = RollRelicDrop(profile, result == BattleResult.Win);
 
                 //# 도감 — 이번 판 등장 종 + 픽 카드 누적 (distinct).
                 foreach (EMonster seen in _seenMonsters)
@@ -1435,6 +1645,13 @@ namespace Lair.Battle
                 DifficultyUnlocked = newlyUnlockedDifficulty,
                 //# 남은 HP 비율 — 패배 화면 "영웅 남은 HP" 줄 (깎은 비율의 여집합).
                 HeroHpRatio = 1f - GetHeroDamagedRatio(),
+                HasRelicDrop = relicDrop.Acquired,
+                RelicId = relicDrop.RelicId,
+                RelicStackAfter = relicDrop.StackAfter,
+                RelicMaxStack = relicDrop.MaxStack,
+                RelicIsNew = relicDrop.IsNew,
+                ShowNextChance = relicDrop.ShowNextChance,
+                NextWinChancePercent = relicDrop.NextWinChancePercent,
             });
         }
 
@@ -1720,6 +1937,12 @@ namespace Lair.Battle
                 await WarmVisual(EVisual.HeroCrushingLeapFx, 2);
                 await WarmVisual(EVisual.HeroChainPullFx, 2);
                 await WarmVisual(EVisual.HeroBloodFrenzyFx, 1);
+            }
+
+            //# 유물 뇌운 조각 낙뢰 FX — 보유할 때만(동시 1발이지만 지연 겹침 여유로 count 2, relics §6.5).
+            if (RelicBattleBonus.From(MetaSession.GetOrLoad(), RelicDatabase.Current).Lightnings.Count > 0)
+            {
+                await WarmVisual(EVisual.RelicLightningFx, 2);
             }
 
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.

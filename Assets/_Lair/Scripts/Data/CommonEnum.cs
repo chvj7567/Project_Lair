@@ -75,6 +75,8 @@ namespace Lair.Data
         AcquireSkill,  //# 영웅 스킬 해금 컷인
         CardSelect,    //# 카드 3택1 선택 확정
         VillageBgm,    //# 마을(Village) 씬 루프 BGM — append-only (int 직렬화 정합)
+        RelicAcquire,  //# 결과창 유물 획득 연출 1회 (relics §6.5) — 맨 끝 append
+        RelicThunder,  //# 뇌운 조각 낙뢰 타격 1회 (relics §6.5)
     }
 
     //# CHMUI.ShowUI 로 UI 프리팹 로드.
@@ -103,6 +105,7 @@ namespace Lair.Data
         ToastView,             //# 공용 토스트 (하단중앙 1.8초 페이드, 입력통과)
         //# 챕터 시스템 — 맨 끝 append. 월드맵 팝업(HeroSelectPopup 대체, chapter-system §6). 값명 = 프리팹 파일명.
         WorldMapPopup,         //# 침입 지도 — 챕터 탭 + 스테이지 노드 + 상세
+        RelicPopup,            //# 유물 도감 — 마을 HUD 버튼 (relics §7.2). 값명 = 프리팹 파일명.
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -132,6 +135,71 @@ namespace Lair.Data
         HeroArchetype_DebuffResist, //# 성기사 디버프 저항 패시브 JSON — Data/Json/HeroArchetype_DebuffResist.json (chapter-5 §2)
         HeroSkillLoadout_Paladin,   //# 성기사 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Paladin.asset (에셋은 슬라이스 (b))
         Difficulty,                 //# 난이도 배율표 JSON — Data/Json/Difficulty.json (difficulty-select §2)
+        //# 유물 2차 JSON 10종 (relics §3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        Relic,
+        Relic_Effect,
+        Relic_Effect_Param,
+        Relic_Drop,
+        RelicRarity,
+        RelicStack,
+        RelicConfig,
+        Stage_Relic,
+        Difficulty_Relic,
+        Difficulty_Relic_Rarity,
+    }
+
+    //# 유물 2차 (relics §12.2) — 값명 = 아이콘 파일명(Art/Sprites/Relic/<값명>.png) = Relic.relicId. append-only.
+    public enum ERelic
+    {
+        HeartOfStone,
+        RustyBlade,
+        SwiftBoots,
+        BrokenHourglass,
+        BreedingCharm,
+        KingsCrownShard,
+        EmberBrand,
+        AmbushHorn,
+        ThunderShard,
+        CursedBanner,
+        WrathSpirit,
+        HasteHourglass,
+        SoulPurse,
+        LordsTome,
+        ConsolationFeather,
+        SpawnPrelude,
+    }
+
+    //# 유물 종류 — Relic.category 값명.
+    public enum ERelicCategory
+    {
+        Stat,
+        Combat,
+        Convenience,
+    }
+
+    //# 유물 등급 — Relic.rarity / RelicRarity.rarity 값명.
+    public enum ERelicRarity
+    {
+        Common,
+        Rare,
+        Legendary,
+    }
+
+    //# 유물 효과 종류 — Relic_Effect.effectKind 값명 (relics §3.3).
+    public enum ERelicEffectKind
+    {
+        MonsterStat,
+        SpawnerPeriod,
+        HeroBurn,
+        HeroLightning,
+        HeroAttackDown,
+        OpeningSummon,
+        LowHpFrenzy,
+        BattleSpeed,
+        SoulBonus,
+        XpBonus,
+        LoseSoulBonus,
+        SpawnPrelude,
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.
@@ -198,6 +266,7 @@ namespace Lair.Data
         HeroJudgmentHammerFx,  //# 심판의 망치 낙하 충격
         HeroPurifyingLightFx,  //# 정화의 빛 기둥
         HeroSanctuaryFx,       //# 성역 바닥 구역
+        RelicLightningFx,      //# 유물 뇌운 조각 — 영웅 머리 위 낙뢰 (relics §6.5)
     }
 
     //# B3 신규 — 몬스터 글로벌 버프 종류 (MonsterBuffService 가 관리).

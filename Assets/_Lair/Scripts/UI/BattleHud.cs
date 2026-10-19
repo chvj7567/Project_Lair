@@ -4,6 +4,8 @@ using Lair.Battle;
 using Lair.Character;
 using Lair.Data;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -45,6 +47,10 @@ namespace Lair.UI
         [SerializeField] private UILoopMotion _timerWarnTextMotion;
         //# 좌상단 뒤로가기 — 클릭은 VM.RequestExit 로만 올린다.
         [SerializeField] private CHButton _exitButton;
+        //# 좌상단 2배속 토글(relics §5.4) — 가속 모래시계 보유 시에만 표시. 상태·저장은 VM/컨트롤러가 담당, 여기는 표시·입력만.
+        [SerializeField] private Toggle _speedToggle;
+        [SerializeField] private CHText _speedLabel;
+        [SerializeField] private GameObject _speedOnFrame;   //# On 상태의 금색 테두리
 
         private BattleViewModel _vm;
         //# 타이머 경고 색 적용 상태 — -1 미적용 / 0 평상시 / 1 경고. 변할 때만 SetColor.
@@ -89,6 +95,7 @@ namespace Lair.UI
                 _exitButton.OnClick(vm.RequestExit, closeDisposable);
             }
             HandleExitAvailable(vm.IsExitAvailable);
+            BindSpeedToggle(vm);
 
             //# 빌드 패널 바인딩 (Close 시 자동 해제)
             if (_buildPanel != null)
@@ -188,6 +195,48 @@ namespace Lair.UI
                 return;
             _exitButton.gameObject.SetActive(available);
         }
+
+        //# 2배속 토글 — 입력은 VM.SetBattleSpeedOn 으로만 올리고, VM 상태 변화를 표시에 반영한다.
+        private void BindSpeedToggle(BattleViewModel vm)
+        {
+            if (_speedToggle == null)
+                return;
+            _speedToggle.gameObject.SetActive(vm.BattleSpeedAvailable);
+            _speedToggle.SetIsOnWithoutNotify(vm.BattleSpeedOn);
+            RefreshSpeedVisual(vm.BattleSpeedOn);
+
+            UnityAction<bool> onToggle = vm.SetBattleSpeedOn;
+            _speedToggle.onValueChanged.AddListener(onToggle);
+            closeDisposable.Add(() => _speedToggle.onValueChanged.RemoveListener(onToggle));
+
+            System.Action<bool> onChanged = HandleSpeedChanged;
+            vm.OnBattleSpeedChanged += onChanged;
+            closeDisposable.Add(() => vm.OnBattleSpeedChanged -= onChanged);
+        }
+
+        private void HandleSpeedChanged(bool on)
+        {
+            if (_speedToggle != null)
+            {
+                _speedToggle.SetIsOnWithoutNotify(on);
+            }
+            RefreshSpeedVisual(on);
+        }
+
+        private void RefreshSpeedVisual(bool on)
+        {
+            if (_speedOnFrame != null)
+            {
+                _speedOnFrame.SetActive(on);
+            }
+            if (_speedLabel != null)
+            {
+                _speedLabel.SetColor(on ? UiDotPalette.Gold : SpeedOffLabelColor);
+            }
+        }
+
+        //# Off 상태 라벨 — 회색(#8e98ad).
+        private static readonly Color SpeedOffLabelColor = new Color32(0x8E, 0x98, 0xAD, 0xFF);
 
         private void HandleEnded(BattleResult result)
         {

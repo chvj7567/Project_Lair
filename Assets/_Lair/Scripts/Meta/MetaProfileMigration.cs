@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 7;
+        public const int CurrentVersion = 8;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -29,6 +29,8 @@ namespace Lair.Meta
                 return;
             //# 챕터 데이터가 아직 로드되지 않았고(MaxStage 가 기본값) 이미 현재 버전이면 진행 범위를 자르지 않는다 —
             //# 챕터 3 이후 Cleared > 10 인 v6 세이브가 로드 전 호출에서 기본 MaxStage(10)로 잘리는 경로 방어. 트레이드오프: DB 로드 실패 시 비정상 v6 값은 자르지 않는다(의도).
+            //# 유물(v8) 정리는 챕터 데이터에 의존하지 않으므로 이 조기 반환보다 앞서 항상 수행한다(멱등).
+            NormalizeRelics(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -67,6 +69,35 @@ namespace Lair.Meta
             if (string.IsNullOrEmpty(heroId) == false)
             {
                 profile.SelectedHero = heroId;
+            }
+        }
+
+        //# Relics: null→빈 리스트, null/빈 id/Stack<1 행 제거, 같은 RelicId 중복은 Stack 최댓값 한 행. RelicMissStreak 음수→0.
+        //# 유물 id 존재 여부·maxStack 클램프는 하지 않는다 — 읽는 지점이 담당(relics §3.6, 데이터 로드 순서 방어).
+        private static void NormalizeRelics(MetaProfile profile)
+        {
+            if (profile.Relics == null)
+            {
+                profile.Relics = new List<RelicEntry>();
+            }
+            profile.Relics.RemoveAll(entry => entry == null || string.IsNullOrEmpty(entry.RelicId) || entry.Stack < 1);
+
+            List<RelicEntry> merged = new List<RelicEntry>();
+            foreach (RelicEntry entry in profile.Relics)
+            {
+                RelicEntry existing = merged.Find(e => e.RelicId == entry.RelicId);
+                if (existing == null)
+                {
+                    merged.Add(entry);
+                    continue;
+                }
+                existing.Stack = Math.Max(existing.Stack, entry.Stack);
+            }
+            profile.Relics = merged;
+
+            if (profile.RelicMissStreak < 0)
+            {
+                profile.RelicMissStreak = 0;
             }
         }
 

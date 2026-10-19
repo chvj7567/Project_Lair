@@ -70,7 +70,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (System.Func<int, string>)(linear => "Knight"));
 
-            Assert.AreEqual(7, p.Version);
+            Assert.AreEqual(8, p.Version);
             Assert.AreEqual(0, p.SelectedDifficulty);
             Assert.AreEqual(1, p.DifficultyClears.Count);
             Assert.AreEqual(2, p.GetMaxClearedDifficulty(2));
@@ -84,7 +84,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (System.Func<int, string>)null);
 
-            Assert.AreEqual(7, p.Version);
+            Assert.AreEqual(8, p.Version);
             Assert.AreEqual(14, p.ClearedStage);
             Assert.AreEqual(13, p.SelectedStage);
             Assert.AreEqual(1, p.GetMaxClearedDifficulty(12));

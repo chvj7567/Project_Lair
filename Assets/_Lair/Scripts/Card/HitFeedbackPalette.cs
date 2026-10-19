@@ -11,5 +11,11 @@ namespace Lair.Card
 
         //# 출혈 — 짙은 자홍 #A01346 (339°/88%/63%). 다크레드 군집과 마젠타 lean(hue 21°) 분리.
         public static readonly Color Bleed = new Color(0.627f, 0.075f, 0.275f, 1f);
+
+        //# 유물 잿불 낙인 화상 — 주황 #FF8A3D (relics §6.2).
+        public static readonly Color Ember = new Color(1f, 0.541f, 0.239f, 1f);
+
+        //# 유물 뇌운 조각 낙뢰 — 하늘 #9FD8FF (relics §6.2).
+        public static readonly Color Lightning = new Color(0.624f, 0.847f, 1f, 1f);
     }
 }

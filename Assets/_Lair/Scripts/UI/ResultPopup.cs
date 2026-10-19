@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using ChvjUnityInfra;
@@ -5,6 +6,7 @@ using Lair.Data;
 using Lair.Meta;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Lair.UI
 {
@@ -27,6 +29,15 @@ namespace Lair.UI
         //# 난이도(difficulty-select §5.3) — Difficulty=이번 판 EffectiveDifficulty, DifficultyUnlocked=이번 승리로 새로 열린 난이도(0=없음).
         public int Difficulty;
         public int DifficultyUnlocked;
+        //# 유물 드랍(relics §7.3) — HasRelicDrop=이번 판 획득 여부(sentinel 없음, 아래 필드는 true 일 때만 유효).
+        public bool HasRelicDrop;
+        public string RelicId;
+        public int RelicStackAfter;
+        public int RelicMaxStack;
+        public bool RelicIsNew;
+        //# 승리 + 미획득이면 "유물 없음 · 다음 승리 시 획득 확률 N%" 줄.
+        public bool ShowNextChance;
+        public int NextWinChancePercent;
     }
 
     //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
@@ -47,6 +58,16 @@ namespace Lair.UI
         public int DifficultyIndex;        //# 값 색 결정용 난이도 인덱스
         public bool ShowUnlockBanner;      //# 승리 + 새 난이도 해금 배너
         public string UnlockBannerText;    //# "Normal 해금!"
+        public bool ShowRelicBand;         //# 이번 판 유물 획득 띠
+        public string RelicId;             //# 아이콘 로드 키(ERelic 값명)
+        public string RelicNameText;
+        public string RelicRarityText;     //# "일반" / "희귀" / "전설"
+        public Color RelicRarityColor;     //# 등급 색(테두리·칩·이름)
+        public bool RelicIsLegendary;      //# 전설이면 테두리 펄스·글로우
+        public bool ShowRelicNewBadge;     //# 신규 획득 "NEW"
+        public string RelicStackText;      //# 중복이면 "중첩 +1 (2 / 5)", 신규면 빈 문자열
+        public bool ShowRelicMissRow;      //# 승리 + 미획득
+        public string RelicMissText;       //# "유물 없음 · 다음 승리 시 획득 확률 N%"
     }
 
     //# 결과 표시 + 보상 요약 + 「다시 도전」(Battle 재시작) / 「마을로」(Village 복귀) 2버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
@@ -55,6 +76,11 @@ namespace Lair.UI
         //# 결과 팝업 도전과제 표기 상한 — 초과분은 "외 N건 달성" (기획서 §9.1).
         private const int MaxAchievedLines = 3;
         private const int StrUnlockBanner = 1333;   //# {0} 해금!
+        private const int StrRelicStack = 1351;     //# 중첩 +1 ({0} / {1})
+        private const int StrRelicMiss = 1352;      //# 유물 없음 · 다음 승리 시 획득 확률 {0}%
+        private const float RelicBandSlideSec = 0.3f;
+        private const float RelicIconPopSec = 0.25f;
+        private const float RelicBandSlideDistance = 30f;
 
         //# 전투 종료 후 유일한 출구 — ESC 로 닫히면 씬 이동 수단이 사라진다.
         public override bool CanCloseByEsc => false;
@@ -79,10 +105,30 @@ namespace Lair.UI
         [SerializeField] private GameObject _rays;   //# 승리 방사광 — 승리에서만 표시
         [SerializeField] private GameObject[] _winDecor;    //# 승리 장식 묶음 (DecoWinBack · DecoWinFront) — 승리에서만 표시
         [SerializeField] private GameObject[] _loseDecor;   //# 패배 장식 묶음 (DecoLoseBack · DecoLoseFront) — 패배에서만 표시
+        //# 유물 획득 띠(relics §7.3) — 위젯 연결은 프리팹 단계. 미할당이면 건너뛴다.
+        [SerializeField] private RectTransform _relicBand;
+        [SerializeField] private Image _relicBandBorder;
+        [SerializeField] private Image _relicIcon;
+        [SerializeField] private RectTransform _relicIconFrame;   //# 아이콘 팝 연출 대상(아이콘 + 등급 테두리)
+        [SerializeField] private CHText _relicNameText;
+        [SerializeField] private Image _relicRarityChip;
+        [SerializeField] private CHText _relicRarityText;
+        [SerializeField] private GameObject _relicNewBadge;
+        [SerializeField] private CHText _relicStackText;
+        [SerializeField] private GameObject _relicGlow;
+        [SerializeField] private GameObject _rowRelicMiss;
+        [SerializeField] private CHText _relicMissText;
         [SerializeField] private CHButton _retryButton;
         [SerializeField] private CHButton _villageButton;
 
         private bool _sceneLoadRequested;
+        private Vector2 _relicBandRest;
+        private bool _relicBandRestCaptured;
+        private Coroutine _relicIntro;
+        //# CHMUI 는 InitUI 후 SetActive(true) 순서라 InitUI 시점엔 비활성 — 연출은 OnEnable 에서 시작한다.
+        private bool _relicIntroPending;
+        private bool _relicIntroLegendary;
+        private Color _relicIntroColor;
 
         public override void InitUI(UIArg arg)
         {
@@ -142,7 +188,7 @@ namespace Lair.UI
         {
             bool win = arg.Result == BattleResult.Win;
             bool lose = arg.Result == BattleResult.Lose;
-            return new ResultRowsData
+            return WithRelic(new ResultRowsData
             {
                 SubText = win ? "영웅을 처치했다" : lose ? "영웅이 던전을 돌파했다" : string.Empty,
                 ShowClearRow = win,
@@ -159,7 +205,39 @@ namespace Lair.UI
                 DifficultyIndex = arg.Difficulty,
                 ShowUnlockBanner = win && arg.DifficultyUnlocked >= 1,
                 UnlockBannerText = string.Format(LookupString(StrUnlockBanner, "{0} 해금!"), DifficultyTable.LabelOf(arg.DifficultyUnlocked)),
-            };
+            }, arg);
+        }
+
+        //# 유물 획득 띠 / 미획득 줄 확정값 — 유물 DB 미로드거나 id 를 못 찾으면 띠를 숨긴다(E-1).
+        public static ResultRowsData WithRelic(ResultRowsData rows, ResultPopupArg arg)
+        {
+            RelicDatabase db = RelicDatabase.Current;
+            RelicData data = db != null && arg.HasRelicDrop ? db.Get(arg.RelicId) : null;
+            if (data != null)
+            {
+                RelicRarityRow rarityRow = db.RarityRow(data.Rarity);
+                rows.ShowRelicBand = true;
+                rows.RelicId = data.RelicId;
+                rows.RelicNameText = LookupString(data.NameKey, data.RelicId);
+                rows.RelicRarityText = rarityRow != null ? LookupString(rarityRow.nameKey, data.Rarity.ToString()) : data.Rarity.ToString();
+                rows.RelicRarityColor = RarityColor(rarityRow);
+                rows.RelicIsLegendary = data.Rarity == ERelicRarity.Legendary;
+                rows.ShowRelicNewBadge = arg.RelicIsNew;
+                rows.RelicStackText = arg.RelicIsNew ? string.Empty
+                    : string.Format(LookupString(StrRelicStack, "중첩 +1 ({0} / {1})"), arg.RelicStackAfter, arg.RelicMaxStack);
+            }
+            bool win = arg.Result == BattleResult.Win;
+            rows.ShowRelicMissRow = win && arg.HasRelicDrop == false && arg.ShowNextChance;
+            rows.RelicMissText = string.Format(LookupString(StrRelicMiss, "유물 없음 · 다음 승리 시 획득 확률 {0}%"), arg.NextWinChancePercent);
+            return rows;
+        }
+
+        //# RelicRarity.colorHex → Color. 파싱 실패 시 회색.
+        public static Color RarityColor(RelicRarityRow row)
+        {
+            if (row != null && ColorUtility.TryParseHtmlString(row.colorHex, out Color color))
+                return color;
+            return new Color32(0x9A, 0xA5, 0xBD, 0xFF);
         }
 
         //# 클리어 시간 표기 "m:ss.d" — 표기 규약은 ClearTimeFormat 단일 소유(음수 방어는 0 으로).
@@ -192,6 +270,166 @@ namespace Lair.UI
             {
                 _newBadge.SetActive(rows.ShowNewBadge);
             }
+            SetRow(_rowRelicMiss, _relicMissText, rows.ShowRelicMissRow, rows.RelicMissText);
+            ApplyRelicBand(rows);
+        }
+
+        //# 유물 띠 — 표시 후 슬라이드 인 + 아이콘 팝 연출(결과 시점 timeScale 0 이라 unscaled 시간 기준).
+        private void ApplyRelicBand(ResultRowsData rows)
+        {
+            if (_relicIntro != null)
+            {
+                StopCoroutine(_relicIntro);
+                _relicIntro = null;
+            }
+            _relicIntroPending = false;
+            if (_relicBand == null)
+                return;
+            if (_relicBandRestCaptured == false)
+            {
+                _relicBandRest = _relicBand.anchoredPosition;
+                _relicBandRestCaptured = true;
+            }
+            _relicBand.anchoredPosition = _relicBandRest;
+            _relicBand.gameObject.SetActive(rows.ShowRelicBand);
+            if (rows.ShowRelicBand == false)
+                return;
+
+            SetText(_relicNameText, rows.RelicNameText);
+            if (_relicNameText != null)
+            {
+                _relicNameText.SetColor(rows.RelicRarityColor);
+            }
+            SetText(_relicRarityText, rows.RelicRarityText);
+            if (_relicRarityText != null)
+            {
+                _relicRarityText.SetColor(rows.RelicRarityColor);
+            }
+            if (_relicRarityChip != null)
+            {
+                _relicRarityChip.color = rows.RelicRarityColor;
+            }
+            if (_relicBandBorder != null)
+            {
+                _relicBandBorder.color = rows.RelicRarityColor;
+            }
+            if (_relicNewBadge != null)
+            {
+                _relicNewBadge.SetActive(rows.ShowRelicNewBadge);
+            }
+            if (_relicStackText != null)
+            {
+                _relicStackText.gameObject.SetActive(rows.ShowRelicNewBadge == false);
+                _relicStackText.SetText(rows.RelicStackText);
+            }
+            if (_relicGlow != null)
+            {
+                _relicGlow.SetActive(rows.RelicIsLegendary);
+            }
+            if (_relicIcon != null)
+            {
+                _relicIcon.sprite = null;
+                _relicIcon.enabled = false;
+                LoadRelicIcon(rows.RelicId);
+            }
+            _relicIntroLegendary = rows.RelicIsLegendary;
+            _relicIntroColor = rows.RelicRarityColor;
+            _relicIntroPending = true;
+            if (isActiveAndEnabled)
+            {
+                StartRelicIntro();
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (_relicIntroPending)
+            {
+                StartRelicIntro();
+            }
+        }
+
+        private void OnDisable()
+        {
+            _relicIntro = null;
+        }
+
+        //# 획득 SFX 1회 + 슬라이드 인/아이콘 팝/전설 펄스 개시.
+        private void StartRelicIntro()
+        {
+            _relicIntroPending = false;
+            CHMSound.Instance?.Play(EAudio.RelicAcquire);
+            _relicIntro = StartCoroutine(PlayRelicIntro(_relicIntroLegendary, _relicIntroColor));
+        }
+
+        //# 아이콘 — ERelic 값명 = 스프라이트 파일명(Rule 03 §2). 값명이 enum 에 없으면 아이콘만 비운다.
+        private void LoadRelicIcon(string relicId)
+        {
+            if (System.Enum.TryParse(relicId, out ERelic key) == false || System.Enum.IsDefined(typeof(ERelic), key) == false)
+                return;
+            CHMResource.Instance.Load<Sprite>(key, sprite =>
+            {
+                if (this == null || _relicIcon == null || sprite == null)
+                    return;
+                _relicIcon.sprite = sprite;
+                _relicIcon.enabled = true;
+            });
+        }
+
+        private IEnumerator PlayRelicIntro(bool legendary, Color rarityColor)
+        {
+            RectTransform pop = _relicIconFrame;
+            if (pop != null)
+            {
+                pop.localScale = Vector3.one * 0.6f;
+            }
+            _relicBand.anchoredPosition = _relicBandRest + new Vector2(0f, -RelicBandSlideDistance);
+
+            float t = 0f;
+            while (t < RelicBandSlideSec)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / RelicBandSlideSec);
+                _relicBand.anchoredPosition = _relicBandRest + new Vector2(0f, -RelicBandSlideDistance * (1f - k));
+                yield return null;
+            }
+            _relicBand.anchoredPosition = _relicBandRest;
+
+            //# 아이콘 팝 0.6 -> 1.15 -> 1.0
+            t = 0f;
+            while (t < RelicIconPopSec)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / RelicIconPopSec);
+                float scale = k < 0.6f ? Mathf.Lerp(0.6f, 1.15f, k / 0.6f) : Mathf.Lerp(1.15f, 1f, (k - 0.6f) / 0.4f);
+                if (pop != null)
+                {
+                    pop.localScale = Vector3.one * scale;
+                }
+                yield return null;
+            }
+            if (pop != null)
+            {
+                pop.localScale = Vector3.one;
+            }
+
+            //# 전설 — 띠 테두리 펄스 2회(색 -> 흰색 -> 색).
+            if (legendary && _relicBandBorder != null)
+            {
+                for (int pulse = 0; pulse < 2; ++pulse)
+                {
+                    t = 0f;
+                    while (t < 0.4f)
+                    {
+                        t += Time.unscaledDeltaTime;
+                        float wave = Mathf.Sin(Mathf.Clamp01(t / 0.4f) * Mathf.PI);
+                        _relicBandBorder.color = Color.Lerp(rarityColor, Color.white, wave * 0.6f);
+                        yield return null;
+                    }
+                }
+                _relicBandBorder.color = rarityColor;
+            }
+            _relicIntro = null;
         }
 
         private static void SetDecorActive(GameObject[] decor, bool active)

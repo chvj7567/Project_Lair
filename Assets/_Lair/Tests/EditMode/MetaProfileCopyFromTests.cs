@@ -11,7 +11,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile
             {
-                Version = 7,
+                Version = 8,
                 Souls = 1234,
                 LordXp = 555,
                 LordRewardGrantedLevel = 4,
@@ -37,7 +37,7 @@ namespace Lair.Tests.EditMode
 
             dst.CopyFrom(src);
 
-            Assert.AreEqual(7, dst.Version);
+            Assert.AreEqual(8, dst.Version);
             Assert.AreEqual(1234, dst.Souls);
             Assert.AreEqual(555, dst.LordXp);
             Assert.AreEqual(4, dst.LordRewardGrantedLevel);

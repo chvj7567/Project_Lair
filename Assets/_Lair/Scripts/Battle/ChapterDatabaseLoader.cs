@@ -57,6 +57,7 @@ namespace Lair.Battle
                 ChapterDatabase.Current = db;
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
                 await LoadDifficultyAsync();
+                await LoadRelicsAsync(db);
                 return db;
             }
             catch (ChapterDataException e)
@@ -83,6 +84,48 @@ namespace Lair.Battle
             catch (ChapterDataException e)
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 난이도 기능 비활성(Easy 만)");
+            }
+        }
+
+        //# 유물 JSON 10종 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 유물 기능 비활성(드랍·효과 없음, 보유 데이터는 보존) — relics §3.5-7.
+        private static async Task LoadRelicsAsync(ChapterDatabase chapters)
+        {
+            RelicDatabase.Current = null;
+            string relicJson = await LoadTextAsync(EData.Relic);
+            string effectJson = await LoadTextAsync(EData.Relic_Effect);
+            string paramJson = await LoadTextAsync(EData.Relic_Effect_Param);
+            string dropJson = await LoadTextAsync(EData.Relic_Drop);
+            string rarityJson = await LoadTextAsync(EData.RelicRarity);
+            string stackJson = await LoadTextAsync(EData.RelicStack);
+            string configJson = await LoadTextAsync(EData.RelicConfig);
+            string stageJson = await LoadTextAsync(EData.Stage_Relic);
+            string diffJson = await LoadTextAsync(EData.Difficulty_Relic);
+            string diffRarityJson = await LoadTextAsync(EData.Difficulty_Relic_Rarity);
+            if (relicJson == null || effectJson == null || paramJson == null || dropJson == null || rarityJson == null
+                || stackJson == null || configJson == null || stageJson == null || diffJson == null || diffRarityJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 유물 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 유물 기능 비활성");
+                return;
+            }
+            try
+            {
+                RelicDatabase.Current = RelicDatabase.Build(
+                    JsonArrayUtility.FromJsonArray<RelicRow>(relicJson),
+                    JsonArrayUtility.FromJsonArray<Relic_EffectRow>(effectJson),
+                    JsonArrayUtility.FromJsonArray<Relic_Effect_ParamRow>(paramJson),
+                    JsonArrayUtility.FromJsonArray<Relic_DropRow>(dropJson),
+                    JsonArrayUtility.FromJsonArray<RelicRarityRow>(rarityJson),
+                    JsonArrayUtility.FromJsonArray<RelicStackRow>(stackJson),
+                    JsonUtility.FromJson<RelicConfigRow>(configJson),
+                    JsonArrayUtility.FromJsonArray<Stage_RelicRow>(stageJson),
+                    JsonArrayUtility.FromJsonArray<Difficulty_RelicRow>(diffJson),
+                    JsonArrayUtility.FromJsonArray<Difficulty_Relic_RarityRow>(diffRarityJson),
+                    chapters,
+                    NameKeyExists);
+            }
+            catch (ChapterDataException e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 유물 기능 비활성");
             }
         }
 

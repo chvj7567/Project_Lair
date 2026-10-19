@@ -138,7 +138,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 신규_프로필의_스키마_버전은_4이다()
         {
-            Assert.AreEqual(7, new MetaProfile().Version);
+            Assert.AreEqual(8, new MetaProfile().Version);
         }
 
         [Test]

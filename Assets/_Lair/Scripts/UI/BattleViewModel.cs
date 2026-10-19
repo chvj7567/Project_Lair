@@ -95,9 +95,30 @@ namespace Lair.UI
         private bool _exitAvailable = true;
         public bool IsExitAvailable => _exitAvailable && _model.Result == BattleResult.None;
 
+        //# 2배속 토글(relics §5.4) — 가속 모래시계 보유 시에만 표시. 상태 변경은 이 VM 을 통해서만 발생, 컨트롤러가 OnBattleSpeedChanged 로 속도·저장 반영.
+        public event Action<bool> OnBattleSpeedChanged;
+        public bool BattleSpeedAvailable { get; private set; }
+        public bool BattleSpeedOn { get; private set; }
+
         public BattleViewModel(BattleStateModel model)
         {
             _model = model;
+        }
+
+        //# 전투 시작에 1회 — 토글 표시 여부와 초기 상태(이벤트 없음). 미보유면 항상 off.
+        public void ConfigureBattleSpeed(bool available, bool on)
+        {
+            BattleSpeedAvailable = available;
+            BattleSpeedOn = available && on;
+        }
+
+        //# 토글 입력 — 미보유/동일 값이면 무시, 아니면 상태 갱신 후 통지.
+        public void SetBattleSpeedOn(bool on)
+        {
+            if (BattleSpeedAvailable == false || BattleSpeedOn == on)
+                return;
+            BattleSpeedOn = on;
+            OnBattleSpeedChanged?.Invoke(on);
         }
 
         //# 타이머 경고 임계 — 남은 시간이 이 값 이하이면 붉은 글씨(30초 = 액티브 카드 1주기 근사, 기획서 §6.2-6).

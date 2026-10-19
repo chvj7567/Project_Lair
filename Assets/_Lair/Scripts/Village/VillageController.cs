@@ -324,6 +324,11 @@ namespace Lair.Village
                 case EUI.CloudPopup:
                     await OpenCloud(profile);
                     break;
+
+                case EUI.RelicPopup:
+                    //# 유물 도감 — 팝업을 연 동안 보유는 변하지 않는다(전투 불가 상태). 닫고 다시 열면 재계산(relics E-11).
+                    await CHMUI.Instance.ShowUIAsync(EUI.RelicPopup, new RelicPopupArg { Profile = profile });
+                    break;
             }
         }
 

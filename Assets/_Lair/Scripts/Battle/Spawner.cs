@@ -158,6 +158,14 @@ namespace Lair.Battle
             _firstSpawnDelay = Mathf.Max(0f, seconds);
         }
 
+        //# 첫 스폰 지연을 seconds 만큼 앞당김(0 하한) — 서두르는 둥지 유물(relics §6). 이미 첫 발사했거나 지연이 0 이면 무동작.
+        public void AdvanceFirstSpawnDelay(float seconds)
+        {
+            if (seconds <= 0f || _firstSpawnDone)
+                return;
+            _firstSpawnDelay = Mathf.Max(0f, _firstSpawnDelay - seconds);
+        }
+
         //# 추가소환 카드 — 동시 출력 +1 (Spawner 슬롯에 영구 귀속, §3.2).
         //# 호출 시 OnOutputCountChanged 발행 — VM 셀이 ×N 갱신.
         public void IncrementOutput()

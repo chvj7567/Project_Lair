@@ -32,6 +32,7 @@ namespace Lair.UI
         [SerializeField] private CHButton _lordButton;
         [SerializeField] private CHButton _rankingButton;       //# v0.3 — 랭킹
         [SerializeField] private CHButton _cloudButton;         //# v0.3 — 계정(클라우드 세이브)
+        [SerializeField] private CHButton _relicButton;         //# v0.3 — 유물 도감 (relics §7.1)
         [SerializeField] private GameObject _cloudConflictDot;  //# v0.3 — 클라우드 충돌 배지(기획서 §3)
         [SerializeField] private CHButton _sortieButton;
         [SerializeField] private GameObject _sortieGlow;        //# 방어하기 붉은 맥동 글로우 — 잠금이면 숨김
@@ -88,6 +89,7 @@ namespace Lair.UI
             BindMenuButton(_lordButton,        hudArg, EUI.LordLevelPopup);
             BindMenuButton(_rankingButton,     hudArg, EUI.RankingPopup);
             BindMenuButton(_cloudButton,       hudArg, EUI.CloudPopup);
+            BindMenuButton(_relicButton,       hudArg, EUI.RelicPopup);
 
             RefreshCloudConflictDot();
 

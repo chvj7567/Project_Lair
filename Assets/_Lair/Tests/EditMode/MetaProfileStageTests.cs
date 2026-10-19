@@ -18,7 +18,7 @@ namespace Lair.Tests.EditMode
         public void 신규_프로필의_Version은_7이다()
         {
             MetaProfile p = new MetaProfile();
-            Assert.AreEqual(7, p.Version);
+            Assert.AreEqual(8, p.Version);
         }
 
         [Test]
