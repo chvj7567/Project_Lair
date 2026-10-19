@@ -274,7 +274,7 @@ namespace Lair.UI
             ApplyRelicBand(rows);
         }
 
-        //# 유물 띠 — 표시 후 슬라이드 인 + 아이콘 팝 연출(결과 시점 timeScale 0 이라 unscaled 시간 기준).
+        //# 유물 띠 — 표시 후 슬라이드 인 + 아이콘 팝 연출(EndBattle 후 timeScale 은 1 이지만 연출은 unscaled 시간 기준).
         private void ApplyRelicBand(ResultRowsData rows)
         {
             if (_relicIntro != null)

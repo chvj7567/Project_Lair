@@ -112,10 +112,10 @@ namespace Lair.UI
             BattleSpeedOn = available && on;
         }
 
-        //# 토글 입력 — 미보유/동일 값이면 무시, 아니면 상태 갱신 후 통지.
+        //# 토글 입력 — 미보유/동일 값/전투 종료 후면 무시, 아니면 상태 갱신 후 통지.
         public void SetBattleSpeedOn(bool on)
         {
-            if (BattleSpeedAvailable == false || BattleSpeedOn == on)
+            if (BattleSpeedAvailable == false || BattleSpeedOn == on || _model.Result != BattleResult.None)
                 return;
             BattleSpeedOn = on;
             OnBattleSpeedChanged?.Invoke(on);

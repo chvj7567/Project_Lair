@@ -1592,6 +1592,7 @@ namespace Lair.Battle
                 int unlockedAfter = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
                 newlyUnlockedDifficulty = unlockedAfter > unlockedBefore ? unlockedAfter : 0;
 
+                //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 미할당 씬/테스트에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
                 //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 도감·영주 보상·도전과제보다 앞, 저장 전.
                 relicDrop = RollRelicDrop(profile, result == BattleResult.Win);
 

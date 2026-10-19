@@ -81,9 +81,11 @@ namespace Lair.Battle
             {
                 DifficultyTable.Current = DifficultyTable.Build(JsonArrayUtility.FromJsonArray<DifficultyRow>(json), NameKeyExists);
             }
-            catch (ChapterDataException e)
+            catch (System.Exception e)
             {
+                //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 난이도 기능 비활성(Easy 만)");
+                DifficultyTable.Current = null;
             }
         }
 
@@ -123,9 +125,11 @@ namespace Lair.Battle
                     chapters,
                     NameKeyExists);
             }
-            catch (ChapterDataException e)
+            catch (System.Exception e)
             {
+                //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 유물 기능 비활성");
+                RelicDatabase.Current = null;
             }
         }
 
