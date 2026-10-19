@@ -14,6 +14,7 @@ namespace Lair.UI
         [SerializeField] private CHText _winText;
         [SerializeField] private CHText _runRateText;
         [SerializeField] private CHText _lockHintText;
+        [SerializeField] private CHText _bestDifficultyText;   //# 최고 클리어 난이도 라벨 — Normal/Hard 클리어 행만 표시
         [SerializeField] private GameObject _selectedBadge;
         //# UI 리디자인 — 석판 스프라이트(해금 Px_Panel / 잠금 Px_PanelDark) + 선택 중 금테. 미할당이면 건너뛴다.
         [SerializeField] private Image _background;
@@ -74,6 +75,13 @@ namespace Lair.UI
             {
                 _lockHintText.SetText(data.LockHintText);
                 _lockHintText.gameObject.SetActive(data.IsLocked);
+            }
+            if (_bestDifficultyText != null)
+            {
+                bool hasBest = data.IsLocked == false && data.BestDifficulty >= 1;
+                _bestDifficultyText.gameObject.SetActive(hasBest);
+                _bestDifficultyText.SetText(data.BestDifficultyText ?? string.Empty);
+                _bestDifficultyText.SetColor(UiDotPalette.DifficultyColor(data.BestDifficulty));
             }
             if (_selectedBadge != null)
             {

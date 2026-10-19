@@ -80,11 +80,23 @@ namespace Lair.Village
         //# 마을 전적 패널(제안 1) — 현재 캐러셀 스테이지 기준. 스테이지 이동(OnStageChanged)·프로필 변경(OnChanged) 때 View 가 다시 읽는다.
         //# "이번 침입자": "기사 · 3단계" — 영웅 이름 + 선택 스테이지.
         //# 영웅명은 선택 스테이지 챕터의 영웅 직업(데이터)에서, 없으면 프로필 값 폴백. 단계는 챕터 내 인덱스.
-        public string IntruderText => $"{ChapterHeroName()} · {SelectedStageIndex}단계";
+        public string IntruderText => $"{ChapterHeroName()} · {SelectedStageIndex}단계{DifficultySuffix()}";
         //# "최단 방어": 이 스테이지 최단 클리어 "3:42.1", 기록 없으면 "-".
         public string BestDefenseText => ClearTimeFormat.WithTenths(CurrentStageRecord.BestClearTime);
         //# "이 스테이지 전적": "7승 · 11판".
         public string StageRecordText => $"{CurrentStageRecord.Wins}승 · {CurrentStageRecord.Runs}판";
+
+        //# 난이도 접미 — SelectedDifficulty 를 현재 스테이지 기준으로 읽기 전용 보정한 값이 Normal 이상일 때만 " · Normal/Hard"(Easy 는 기존 표기 그대로).
+        private string DifficultySuffix()
+        {
+            int difficulty = EffectiveDifficulty;
+            return difficulty >= 1 ? " · " + DifficultyTable.LabelOf(difficulty, _text) : string.Empty;
+        }
+
+        //# 현재 캐러셀 스테이지 기준 보정된 난이도 — 프로필은 수정하지 않는다(difficulty-select §4.3).
+        public int EffectiveDifficulty => _profile != null
+            ? _profile.ClampDifficulty(_profile.SelectedDifficulty, _selectedStage, DifficultyTable.CurrentMaxIndex)
+            : 0;
 
         private StageRecordEntry CurrentStageRecord => _profile != null
             ? _profile.GetStageRecord(_selectedStage)

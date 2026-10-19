@@ -1,14 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Lair.Battle;
 using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 6;
+        public const int CurrentVersion = 7;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -50,13 +51,45 @@ namespace Lair.Meta
                 profile.StageRecords.RemoveAll(entry => entry == null || entry.Stage < 1 || entry.Stage > StageProgress.MaxStage);
             }
 
-            //# 5) SelectedHero = 선택 스테이지 챕터의 영웅 (표시 전용 필드).
+            //# 5) 난이도(v7, difficulty-select §3.1) — 행 정리/음수 보정만. 상한 클램프는 읽는 순간 ClampDifficulty 가 담당(난이도 데이터 로드 전 호출 방어).
+            NormalizeDifficulty(profile);
+
+            //# 6) SelectedHero = 선택 스테이지 챕터의 영웅 (표시 전용 필드).
             if (heroIdOfLinearStage == null)
                 return;
             string heroId = heroIdOfLinearStage(profile.SelectedStage);
             if (string.IsNullOrEmpty(heroId) == false)
             {
                 profile.SelectedHero = heroId;
+            }
+        }
+
+        //# DifficultyClears: null→빈 리스트, 범위 밖/MaxDifficulty<1/Stage>ClearedStage 행 제거, 같은 Stage 중복은 최댓값 한 행. SelectedDifficulty 음수→0.
+        private static void NormalizeDifficulty(MetaProfile profile)
+        {
+            if (profile.DifficultyClears == null)
+            {
+                profile.DifficultyClears = new List<DifficultyClearEntry>();
+            }
+            profile.DifficultyClears.RemoveAll(entry => entry == null || entry.Stage < 1 || entry.Stage > StageProgress.MaxStage
+                || entry.MaxDifficulty < 1 || entry.Stage > profile.ClearedStage);
+
+            List<DifficultyClearEntry> merged = new List<DifficultyClearEntry>();
+            foreach (DifficultyClearEntry entry in profile.DifficultyClears)
+            {
+                DifficultyClearEntry existing = merged.Find(e => e.Stage == entry.Stage);
+                if (existing == null)
+                {
+                    merged.Add(entry);
+                    continue;
+                }
+                existing.MaxDifficulty = Math.Max(existing.MaxDifficulty, entry.MaxDifficulty);
+            }
+            profile.DifficultyClears = merged;
+
+            if (profile.SelectedDifficulty < 0)
+            {
+                profile.SelectedDifficulty = 0;
             }
         }
     }

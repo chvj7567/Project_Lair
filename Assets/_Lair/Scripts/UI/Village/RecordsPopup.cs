@@ -43,6 +43,8 @@ namespace Lair.UI
         public string RunRateText;      //# "20판 · 60%" (잠금이면 빈 문자열)
         public string BestText;         //# "최단 3:18" (잠금이면 빈 문자열)
         public string LockHintText;     //# "스테이지 2 클리어 필요" (해금이면 빈 문자열)
+        public int BestDifficulty;      //# 클리어한 최고 난이도 인덱스 (행 없으면 0)
+        public string BestDifficultyText;   //# "Normal" / "Hard" (행 없으면 빈 문자열)
     }
 
     //# 전적 기록 — 상단 총계 4항목 + 스테이지 1~5 스크롤 리스트 (spec §6).
@@ -201,6 +203,7 @@ namespace Lair.UI
                 StageRecordEntry record = profile != null
                     ? profile.GetStageRecord(stage)
                     : new StageRecordEntry { Stage = stage };
+                int bestDifficulty = profile != null ? profile.GetMaxClearedDifficulty(stage) : 0;
                 int rate = record.Runs > 0 ? Mathf.RoundToInt(record.Wins * 100f / record.Runs) : 0;
 
                 list.Add(new RecordsStageCellData
@@ -216,6 +219,8 @@ namespace Lair.UI
                     RunRateText = unlocked ? $"{record.Runs}판 · {rate}%" : string.Empty,
                     BestText = unlocked ? $"최단 {FormatClearTime(record.BestClearTime)}" : string.Empty,
                     LockHintText = unlocked ? string.Empty : StageLabels.UnlockHint(stage, text ?? LookupString),
+                    BestDifficulty = bestDifficulty,
+                    BestDifficultyText = bestDifficulty >= 1 ? DifficultyTable.LabelOf(bestDifficulty, text ?? LookupString) : string.Empty,
                 });
             }
             return list;

@@ -435,14 +435,14 @@ namespace Lair.Tests.EditMode
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
             foreach (int cleared in new[] { 21, 23, 25 })
             {
-                MetaProfile p = new MetaProfile { Version = 6, ClearedStage = cleared, SelectedStage = cleared };
+                MetaProfile p = new MetaProfile { Version = 7, ClearedStage = cleared, SelectedStage = cleared };
                 MetaProfileMigration.Apply(p, db);
-                Assert.AreEqual(6, p.Version);
+                Assert.AreEqual(7, p.Version);
                 Assert.AreEqual(cleared, p.ClearedStage);
                 Assert.AreEqual(cleared, p.SelectedStage);
             }
 
-            MetaProfile over = new MetaProfile { Version = 6, ClearedStage = 99, SelectedStage = 99 };
+            MetaProfile over = new MetaProfile { Version = 7, ClearedStage = 99, SelectedStage = 99 };
             MetaProfileMigration.Apply(over, db);
             Assert.AreEqual(25, over.ClearedStage);
             Assert.AreEqual(25, over.SelectedStage);
@@ -451,7 +451,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void StageRecords는_25까지_남고_26부터_제거되며_선택_영웅은_성기사가_된다()
         {
-            MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 22, SelectedStage = 22, SelectedHero = "Knight" };
+            MetaProfile p = new MetaProfile { Version = 7, ClearedStage = 22, SelectedStage = 22, SelectedHero = "Knight" };
             foreach (int stage in new[] { 1, 21, 25, 26, 30 })
             {
                 p.StageRecords.Add(new StageRecordEntry { Stage = stage, Runs = 1 });

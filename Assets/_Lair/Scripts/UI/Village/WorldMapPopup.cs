@@ -36,6 +36,7 @@ namespace Lair.UI
         [SerializeField] private CHText _detailStarsText;
         [SerializeField] private CHText _detailHeroText;
         [SerializeField] private CHText _detailRecordText;
+        [SerializeField] private CHText _detailBestDifficultyText;   //# 기록 박스 우측 상단 "최고 난이도 Normal" — 행 없으면 숨김
         [SerializeField] private CHText _detailRulesText;
         [SerializeField] private GameObject _bossPhaseRoot;     //# "보스 페이즈" 라벨 + 목록 묶음 — 보스 페이즈 없으면 숨김
         [SerializeField] private CHText _bossPhaseText;
@@ -53,6 +54,8 @@ namespace Lair.UI
 
         //# 하단
         [SerializeField] private CHText _bottomText;
+        [SerializeField] private WorldMapDifficultySegmentView[] _difficultySegments = new WorldMapDifficultySegmentView[0];   //# Easy / Normal / Hard 3칸
+        [SerializeField] private CHText _difficultyEffectText;       //# "영웅 HP ×1.15 · 공격력 ×1.1"
         [SerializeField] private CHButton _selectButton;
 
         private const float PortraitGlowAlpha = 0.60f;
@@ -102,6 +105,13 @@ namespace Lair.UI
             if (_selectButton != null)
             {
                 _selectButton.OnClick(() => _vm?.Confirm(), closeDisposable);
+            }
+            for (int i = 0; i < _difficultySegments.Length; ++i)
+            {
+                if (_difficultySegments[i] == null)
+                    continue;
+                int difficulty = i;
+                _difficultySegments[i].SetClickHandler(() => _vm?.SelectDifficulty(difficulty), closeDisposable);
             }
             for (int i = 0; i < _tabs.Length; ++i)
             {
@@ -159,6 +169,7 @@ namespace Lair.UI
             RefreshDetail();
 
             SetText(_bottomText, _vm.BottomText);
+            RefreshDifficulty();
             if (_selectButton != null)
             {
                 _selectButton.SetText(_vm.SelectButtonText);
@@ -172,6 +183,19 @@ namespace Lair.UI
             {
                 _selectGloss.SetActive(_vm.SelectEnabled);
             }
+        }
+
+        //# 난이도 박스 — 세그먼트 3칸 + 효과 문구. 표 미로드/스테이지 잠김이면 비활성 스타일.
+        private void RefreshDifficulty()
+        {
+            for (int i = 0; i < _difficultySegments.Length; ++i)
+            {
+                if (_difficultySegments[i] != null && i < _vm.DifficultySegments.Count)
+                {
+                    _difficultySegments[i].Show(_vm.DifficultySegments[i], _vm.DifficultyEnabled);
+                }
+            }
+            SetText(_difficultyEffectText, _vm.DifficultyEffectText);
         }
 
         //# 선택 챕터의 지도 배경·배너 색조와 구간 연결선(실선/점선) 갱신.
@@ -217,6 +241,12 @@ namespace Lair.UI
             SetText(_detailStarsText, _vm.DetailStarsText);
             SetText(_detailHeroText, _vm.DetailHeroText);
             SetText(_detailRecordText, _vm.DetailRecordText);
+            SetText(_detailBestDifficultyText, _vm.BestDifficultyText);
+            if (_detailBestDifficultyText != null)
+            {
+                _detailBestDifficultyText.gameObject.SetActive(_vm.HasBestDifficulty);
+                _detailBestDifficultyText.SetColor(UiDotPalette.DifficultyColor(_vm.BestDifficulty));
+            }
             SetText(_detailRulesText, _vm.DetailRulesText);
             SetText(_bossPhaseText, _vm.DetailBossPhaseText);
 

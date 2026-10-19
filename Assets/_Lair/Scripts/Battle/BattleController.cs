@@ -61,6 +61,8 @@ namespace Lair.Battle
         private Health _heroHealth;
         //# 챕터/스테이지/영웅 직업 데이터 — Start 에서 1회 확보. null 이면 영웅 스탯 데이터 경로 skip.
         private ChapterDatabase _chapters;
+        //# 전투 시작에 확정한 난이도(difficulty-select §4.3) — 판 도중 다시 읽지 않는다. 프로필은 수정하지 않는다(읽기 전용 클램프).
+        private int _effectiveDifficulty;
         //# 스테이지 규칙(chapter-system §3) — 규칙이 있는 스테이지에서만 러너 생성. 없으면 null(기존 동작 불변).
         private StageRuleRunner _ruleRunner;
         //# 짙은 안개 사거리 규칙 — 비활성이면 ApplyMonsterStats 가 사거리를 그대로 통과시킨다.
@@ -160,7 +162,9 @@ namespace Lair.Battle
             _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
             _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
             MetaProfile heroProfile = MetaSession.GetOrLoad();
-            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(HeroTitleName(heroProfile), StageProgress.IndexOf(heroProfile.SelectedStage)));
+            _effectiveDifficulty = heroProfile.ClampDifficulty(heroProfile.SelectedDifficulty, heroProfile.SelectedStage, DifficultyTable.CurrentMaxIndex);
+            string difficultyLabel = _effectiveDifficulty >= 1 ? DifficultyTable.LabelOf(_effectiveDifficulty) : string.Empty;
+            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(HeroTitleName(heroProfile), StageProgress.IndexOf(heroProfile.SelectedStage), difficultyLabel));
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
@@ -791,7 +795,7 @@ namespace Lair.Battle
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
             if (_balance != null && _balance.Hero != null)
             {
-                ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow));
+                ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow, DifficultyTable.CurrentRow(_effectiveDifficulty)));
                 //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
             }
@@ -1342,6 +1346,7 @@ namespace Lair.Battle
             int lordLevelUp = 0;
             int lordRewardSouls = 0;
             bool isNewBest = false;
+            int newlyUnlockedDifficulty = 0;
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
             if (_metaConfig != null)
             {
@@ -1354,21 +1359,31 @@ namespace Lair.Battle
                 profile.LordXp += reward.Xp;
                 profile.TotalRuns++;
                 //# 신기록 판정 — RecordStageRun 이 최단을 덮기 "전에" 이전 기록과 비교해야 한다(결과 팝업 NEW 배지).
-                isNewBest = profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
+                //# Normal/Hard 판은 최단 기록·랭킹에서 제외(difficulty-select §1.6) — Runs/Wins 만 올린다.
+                bool easyRun = _effectiveDifficulty == 0;
+                int maxDifficulty = DifficultyTable.CurrentMaxIndex;
+                int unlockedBefore = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
+                isNewBest = easyRun && profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
                 //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
-                profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
+                profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed, easyRun);
                 if (result == BattleResult.Win)
                 {
                     profile.TotalWins++;
                     //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(MaxStage 종점, spec §6.1). 저장은 아래 Save.
                     profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
-                    if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
+                    profile.RecordDifficultyClear(profile.SelectedStage, _effectiveDifficulty);
+                    if (easyRun)
                     {
-                        profile.BestClearTime = _clock.Elapsed;
+                        if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
+                        {
+                            profile.BestClearTime = _clock.Elapsed;
+                        }
+                        //# 최단 클리어 랭킹 제출(best-effort) — 클리어타임 = 영웅 처치까지 경과(낮을수록 상위).
+                        SubmitRanking(profile);
                     }
-                    //# 최단 클리어 랭킹 제출(best-effort) — 클리어타임 = 영웅 처치까지 경과(낮을수록 상위).
-                    SubmitRanking(profile);
                 }
+                int unlockedAfter = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
+                newlyUnlockedDifficulty = unlockedAfter > unlockedBefore ? unlockedAfter : 0;
 
                 //# 도감 — 이번 판 등장 종 + 픽 카드 누적 (distinct).
                 foreach (EMonster seen in _seenMonsters)
@@ -1416,6 +1431,8 @@ namespace Lair.Battle
                 NewlyAchieved = newlyAchieved,
                 ClearTime = _clock.Elapsed,
                 IsNewBest = isNewBest,
+                Difficulty = _effectiveDifficulty,
+                DifficultyUnlocked = newlyUnlockedDifficulty,
                 //# 남은 HP 비율 — 패배 화면 "영웅 남은 HP" 줄 (깎은 비율의 여집합).
                 HeroHpRatio = 1f - GetHeroDamagedRatio(),
             });

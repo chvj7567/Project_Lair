@@ -503,8 +503,8 @@ namespace Lair.Tests.EditMode
 
         //# ===== 마이그레이션 방어 =====
 
-        [TestCase(6)]
         [TestCase(7)]
+        [TestCase(8)]
         public void 현재_버전_이상_세이브는_챕터_데이터_로드_전에는_진행_범위를_자르지_않는다(int version)
         {
             MetaProfile p = new MetaProfile { Version = version, ClearedStage = 99, SelectedStage = 88, SelectedHero = "Archer" };
@@ -524,7 +524,7 @@ namespace Lair.Tests.EditMode
         public void 현재_버전_세이브도_챕터_데이터가_있으면_MaxStage로_자른다()
         {
             StageProgress.ConfigureChapterCount(3);
-            MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 99, SelectedStage = 99 };
+            MetaProfile p = new MetaProfile { Version = 7, ClearedStage = 99, SelectedStage = 99 };
 
             MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
 
@@ -543,7 +543,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
             Assert.AreEqual(10, p.SelectedStage);
             Assert.AreEqual(1, p.StageRecords.Count);
@@ -555,7 +555,7 @@ namespace Lair.Tests.EditMode
         {
             ChapterDatabase.Current = null;
             Directory.CreateDirectory(_tempDir);
-            MetaProfile saved = new MetaProfile { Version = 6, ClearedStage = 13, SelectedStage = 12, SelectedHero = "Assassin" };
+            MetaProfile saved = new MetaProfile { Version = 7, ClearedStage = 13, SelectedStage = 12, SelectedHero = "Assassin" };
             File.WriteAllText(Path.Combine(_tempDir, MetaProfileStore.FileName), JsonUtility.ToJson(saved));
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
@@ -569,7 +569,7 @@ namespace Lair.Tests.EditMode
         public void 클라우드_복원_직후_챕터_데이터_로드_전_재적용도_챕터3_진행을_보존한다()
         {
             MetaProfile live = new MetaProfile { DisplayName = "로컬" };
-            live.CopyFrom(new MetaProfile { Version = 6, ClearedStage = 14, SelectedStage = 13 });
+            live.CopyFrom(new MetaProfile { Version = 7, ClearedStage = 14, SelectedStage = 13 });
 
             MetaProfileMigration.Apply(live, ChapterDatabase.Current);
 

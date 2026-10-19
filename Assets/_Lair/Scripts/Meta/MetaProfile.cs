@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Lair.Battle;
 
 namespace Lair.Meta
 {
@@ -8,7 +9,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 6;
+        public int Version = 7;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -31,6 +32,10 @@ namespace Lair.Meta
         public int TotalWins;
         public float BestClearTime = -1f;                        //# 승리 최단 시간(초). 없으면 -1
         public string SelectedHero = "Knight";                   //# EHero.ToString()
+        //# 난이도(v7, difficulty-select §2) — 0=Easy. 구버전 세이브엔 키가 없어 Easy/빈 리스트로 로드.
+        public int SelectedDifficulty;
+        //# 스테이지별 클리어한 최고 난이도 — Normal 이상을 클리어한 스테이지만 행 존재(MaxDifficulty >= 1 불변식).
+        public List<DifficultyClearEntry> DifficultyClears = new List<DifficultyClearEntry>();
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
         public string DisplayName;
 
@@ -71,7 +76,8 @@ namespace Lair.Meta
         }
 
         //# 한 판 결과를 스테이지 전적에 반영 — 엔트리 없으면 생성. 최단은 승리 시에만, 더 빠를 때만 갱신.
-        public void RecordStageRun(int stage, bool win, float clearTime)
+        //# recordBest=false(Normal/Hard 판)면 Runs/Wins 만 올리고 최단 기록은 건드리지 않는다(difficulty-select §1.6).
+        public void RecordStageRun(int stage, bool win, float clearTime, bool recordBest = true)
         {
             StageRecordEntry entry = null;
             foreach (StageRecordEntry e in StageRecords)
@@ -93,10 +99,55 @@ namespace Lair.Meta
                 return;
 
             entry.Wins++;
-            if (entry.BestClearTime < 0f || clearTime < entry.BestClearTime)
+            if (recordBest && (entry.BestClearTime < 0f || clearTime < entry.BestClearTime))
             {
                 entry.BestClearTime = clearTime;
             }
+        }
+
+        //# 클리어한 최고 난이도 — 행 없으면 0(조회는 부수효과 0). 0 은 "Easy 까지" 의미이며 저장되는 값이 아니다.
+        public int GetMaxClearedDifficulty(int stage)
+        {
+            if (DifficultyClears == null)
+                return 0;
+            foreach (DifficultyClearEntry entry in DifficultyClears)
+            {
+                if (entry != null && entry.Stage == stage)
+                    return entry.MaxDifficulty;
+            }
+            return 0;
+        }
+
+        //# 스테이지 stage 의 선택 가능 최대 난이도 — 규칙은 StageProgress 단일 소유, 여기선 프로필 값만 공급.
+        public int MaxSelectableDifficulty(int stage, int maxDifficulty)
+        {
+            return StageProgress.MaxSelectableDifficulty(stage, ClearedStage, GetMaxClearedDifficulty(stage), maxDifficulty);
+        }
+
+        //# 읽기 전용 보정 — 프로필을 수정하지 않는다.
+        public int ClampDifficulty(int difficulty, int stage, int maxDifficulty)
+        {
+            return StageProgress.ClampDifficulty(difficulty, stage, ClearedStage, GetMaxClearedDifficulty(stage), maxDifficulty);
+        }
+
+        //# 승리 시 최고 난이도 기록(§1.5) — difficulty >= 1 이고 기존보다 높을 때만 갱신/추가.
+        public void RecordDifficultyClear(int stage, int difficulty)
+        {
+            if (difficulty < 1)
+                return;
+            if (DifficultyClears == null)
+            {
+                DifficultyClears = new List<DifficultyClearEntry>();
+            }
+            foreach (DifficultyClearEntry entry in DifficultyClears)
+            {
+                if (entry != null && entry.Stage == stage)
+                {
+                    entry.MaxDifficulty = Math.Max(entry.MaxDifficulty, difficulty);
+                    return;
+                }
+            }
+            DifficultyClears.Add(new DifficultyClearEntry { Stage = stage, MaxDifficulty = difficulty });
         }
 
         //# 카드 픽 횟수 조회 — 픽한 적 없으면 0(조회는 부수효과 0).
@@ -178,6 +229,9 @@ namespace Lair.Meta
             TotalWins = other.TotalWins;
             BestClearTime = other.BestClearTime;
             SelectedHero = other.SelectedHero;
+            //# 난이도 진행도 복원 대상 — 빠뜨리면 복원 시 난이도 진행만 유실된다.
+            SelectedDifficulty = other.SelectedDifficulty;
+            DifficultyClears = other.DifficultyClears ?? new List<DifficultyClearEntry>();
         }
 
         //# 랭킹 제출 표시명 결정(기획서 §1) — DisplayName 우선, 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자).
@@ -229,6 +283,14 @@ namespace Lair.Meta
     {
         public string CardId;    //# ECardId.ToString() — PickedCards 와 같은 키
         public int Count;        //# 누적 픽 횟수 (>= 1)
+    }
+
+    //# 스테이지별 클리어한 최고 난이도 — Normal 이상 클리어한 스테이지만 행 존재. JsonUtility 직렬화 대상.
+    [Serializable]
+    public class DifficultyClearEntry
+    {
+        public int Stage;            //# 선형 스테이지 번호 1~MaxStage
+        public int MaxDifficulty;    //# 클리어한 최고 난이도 인덱스 (>= 1)
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

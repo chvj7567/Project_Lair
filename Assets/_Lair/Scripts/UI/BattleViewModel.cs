@@ -189,6 +189,10 @@ namespace Lair.UI
         //# "기사 · 3단계"
         public static string ComposeHeroTitle(string heroName, int stage) => $"{heroName} · {stage}단계";
 
+        //# 난이도 접미 오버로드 — difficultyLabel 이 비어 있으면(Easy) 기존 표기 그대로.
+        public static string ComposeHeroTitle(string heroName, int stage, string difficultyLabel)
+            => string.IsNullOrEmpty(difficultyLabel) ? ComposeHeroTitle(heroName, stage) : $"{ComposeHeroTitle(heroName, stage)} · {difficultyLabel}";
+
         //# 해당 종류 BuildEntry.Count 합 — 빌드 패널 라벨·접힌 탭.
         public int PassivePickCount => SumPicks(true);
         public int ActivePickCount => SumPicks(false);

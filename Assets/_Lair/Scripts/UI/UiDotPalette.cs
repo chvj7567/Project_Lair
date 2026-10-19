@@ -12,6 +12,14 @@ namespace Lair.UI
         public static readonly Color Stone4 = new Color32(0x48, 0x54, 0x6E, 0xFF);    //# 비활성 점·스크롤 핸들
         public static readonly Color TimerWarn = new Color32(0xFF, 0x8A, 0x8D, 0xFF); //# 타이머 30초 이하 붉은 글씨
 
+        //# 난이도 색 — Easy=소울 / Normal=금 / Hard=피 (difficulty-select §5).
+        public static Color DifficultyColor(int difficulty)
+        {
+            if (difficulty <= 0)
+                return Soul;
+            return difficulty == 1 ? Gold : Blood;
+        }
+
         //# 카드 종류 색 — 패시브=소울, 액티브=금.
         public static Color CardKind(bool isPassive)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Lair.Battle;
 using Lair.Data;
@@ -43,6 +44,22 @@ namespace Lair.Village
         public bool NextPathCleared;   //# 이 노드 → 다음 노드 구간이 클리어 실선인지 (보스는 항상 false)
     }
 
+    //# 난이도 세그먼트 칸 상태 (difficulty-select §5.1).
+    public enum EDifficultySegmentState
+    {
+        Selected,    //# 난이도 색 바탕
+        Available,   //# 선택 가능, 비선택
+        Locked,      //# 잠김 — 클릭 시 토스트
+    }
+
+    //# 난이도 세그먼트 1칸 표시 데이터.
+    public class WorldMapDifficultyData
+    {
+        public int Difficulty;
+        public string Label;
+        public EDifficultySegmentState State;
+    }
+
     //# 월드맵 ViewModel — 챕터 탭·노드 상태·상세 패널 문구·선택 확정을 가공한다 (Rule 02 §6, Unity 비의존, View 를 모른다).
     //# 해금 판정은 StageProgress, 출격 가능 판정은 ChapterGate 단일 소유. 선택 확정 저장은 호출자가 onConfirm 으로 처리한다.
     public class WorldMapViewModel
@@ -66,16 +83,23 @@ namespace Lair.Village
         public const int StrNotReadyHint = 1323;        //# 이 챕터는 아직 출격할 수 없습니다
         public const int StrRecord = 1324;              //# 최단 {0} / {1}승 {2}판
         public const int StrStageLockedNote = 1325;
+        public const int StrDifficultyEffect = 1330;    //# 영웅 HP ×{0} · 공격력 ×{1}
+        public const int StrDifficultyLockedHint = 1331; //# {0} 클리어 시 해금
+        public const int StrBestDifficulty = 1332;      //# 최고 난이도 {0}
 
         private readonly ChapterDatabase _chapters;
         private readonly MetaProfile _profile;
         private readonly Func<int, string> _text;
         private readonly Action<int> _onConfirm;
+        private readonly DifficultyTable _difficulties;
+        //# 마지막 명시 선택값 — 노드를 옮겨도 사라지지 않는다. 표시 난이도는 여기에 스테이지별 상한을 씌운 값.
+        private int _wantedDifficulty;
 
         private int _chapterId;
         private int _stageIndex;
         private readonly List<WorldMapTabData> _tabs = new List<WorldMapTabData>();
         private readonly List<WorldMapNodeData> _nodes = new List<WorldMapNodeData>();
+        private readonly List<WorldMapDifficultyData> _segments = new List<WorldMapDifficultyData>();
 
         public event Action OnChanged;
         //# 안내 문구(잠금 탭/노드를 눌렀을 때) — View 가 토스트로 표시.
@@ -83,12 +107,15 @@ namespace Lair.Village
         //# 선택 확정 직후 — View 가 팝업을 닫는다.
         public event Action OnConfirmed;
 
-        public WorldMapViewModel(ChapterDatabase chapters, MetaProfile profile, Func<int, string> text, Action<int> onConfirm)
+        //# difficulties 생략 시 DifficultyTable.Current — null 이면 난이도 박스 비활성(Easy 만, difficulty-select E-3·E-4).
+        public WorldMapViewModel(ChapterDatabase chapters, MetaProfile profile, Func<int, string> text, Action<int> onConfirm, DifficultyTable difficulties = null)
         {
             _chapters = chapters ?? throw new ArgumentNullException(nameof(chapters));
             _profile = profile ?? throw new ArgumentNullException(nameof(profile));
             _text = text ?? (id => string.Empty);
             _onConfirm = onConfirm;
+            _difficulties = difficulties ?? DifficultyTable.Current;
+            _wantedDifficulty = Math.Max(0, _profile.SelectedDifficulty);
 
             //# 초기 선택 = 현재 SelectedStage. 잠금/출격 불가 값이면 최대 플레이 가능 스테이지로 보정(기획서 §6.3).
             int linear = _profile.SelectedStage;
@@ -127,6 +154,16 @@ namespace Lair.Village
         public string BottomText { get; private set; }
         public string SelectButtonText { get; private set; }
         public bool SelectEnabled { get; private set; }
+
+        //# 난이도 박스 — 표 미로드이거나 스테이지 잠김이면 비활성(Easy 만 선택 표시, 클릭 무반응).
+        public bool DifficultyEnabled { get; private set; }
+        public int DisplayDifficulty { get; private set; }
+        public string DifficultyEffectText { get; private set; }
+        public IReadOnlyList<WorldMapDifficultyData> DifficultySegments => _segments;
+        //# 상세 카드 기록 박스의 "최고 난이도" — 해당 스테이지 DifficultyClears 행이 있을 때만(Easy 만 클리어면 숨김).
+        public bool HasBestDifficulty { get; private set; }
+        public int BestDifficulty { get; private set; }
+        public string BestDifficultyText { get; private set; }
 
         //# 챕터 탭 클릭 — 잠금/출격 불가면 안내만. 이동하면 true.
         public bool SelectChapter(int chapterId)
@@ -177,12 +214,33 @@ namespace Lair.Village
             return true;
         }
 
+        //# 난이도 세그먼트 클릭 — 잠긴 칸은 토스트만(저장 변경 없음), 선택 가능 칸은 _wantedDifficulty 갱신. 선택되면 true.
+        public bool SelectDifficulty(int difficulty)
+        {
+            if (DifficultyEnabled == false || difficulty < 0 || difficulty > _difficulties.MaxIndex)
+                return false;
+            if (difficulty > MaxSelectableDifficulty(SelectedLinear))
+            {
+                OnNotice?.Invoke(string.Format(_text(StrDifficultyLockedHint), _difficulties.Label(difficulty - 1, _text)));
+                return false;
+            }
+            _wantedDifficulty = difficulty;
+            Rebuild();
+            OnChanged?.Invoke();
+            return true;
+        }
+
         //# "이 스테이지로 선택" — 선택 가능한 스테이지일 때만 onConfirm(선형 번호) 후 OnConfirmed. 로컬 저장·마을 반영은 호출자 책임.
+        //# 난이도는 onConfirm 직전에 프로필 SelectedDifficulty 로 정규화 기록(호출자가 이어서 Save). 닫기만 하면 저장하지 않는다.
         public bool Confirm()
         {
             int linear = SelectedLinear;
             if (IsSelectable(linear) == false)
                 return false;
+            if (_difficulties != null)
+            {
+                _profile.SelectedDifficulty = DisplayDifficulty;
+            }
             _onConfirm?.Invoke(linear);
             OnConfirmed?.Invoke();
             return true;
@@ -208,6 +266,48 @@ namespace Lair.Village
             RebuildNodes();
             RebuildHeader();
             RebuildDetail();
+            RebuildDifficulty();
+        }
+
+        private int MaxSelectableDifficulty(int linear)
+        {
+            return _profile.MaxSelectableDifficulty(linear, _difficulties != null ? _difficulties.MaxIndex : 0);
+        }
+
+        private void RebuildDifficulty()
+        {
+            int linear = SelectedLinear;
+            DifficultyEnabled = _difficulties != null && IsSelectable(linear);
+            DisplayDifficulty = Math.Max(0, Math.Min(_wantedDifficulty, MaxSelectableDifficulty(linear)));
+
+            _segments.Clear();
+            if (_difficulties != null)
+            {
+                int maxSelectable = MaxSelectableDifficulty(linear);
+                for (int d = 0; d <= _difficulties.MaxIndex; ++d)
+                {
+                    _segments.Add(new WorldMapDifficultyData
+                    {
+                        Difficulty = d,
+                        Label = _difficulties.Label(d, _text),
+                        State = d == DisplayDifficulty ? EDifficultySegmentState.Selected
+                            : (d <= maxSelectable ? EDifficultySegmentState.Available : EDifficultySegmentState.Locked),
+                    });
+                }
+                DifficultyRow row = _difficulties.Get(DisplayDifficulty);
+                DifficultyEffectText = string.Format(CultureInfo.InvariantCulture, _text(StrDifficultyEffect),
+                    row.hpMultiplier.ToString("0.##", CultureInfo.InvariantCulture), row.powerMultiplier.ToString("0.##", CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                DifficultyEffectText = string.Empty;
+            }
+
+            BestDifficulty = _profile.GetMaxClearedDifficulty(linear);
+            HasBestDifficulty = _difficulties != null && BestDifficulty >= 1;
+            BestDifficultyText = HasBestDifficulty
+                ? string.Format(_text(StrBestDifficulty), _difficulties.Label(BestDifficulty, _text))
+                : string.Empty;
         }
 
         private void RebuildTabs()

@@ -24,6 +24,9 @@ namespace Lair.UI
         public float ClearTime;
         public bool IsNewBest;
         public float HeroHpRatio;
+        //# 난이도(difficulty-select §5.3) — Difficulty=이번 판 EffectiveDifficulty, DifficultyUnlocked=이번 승리로 새로 열린 난이도(0=없음).
+        public int Difficulty;
+        public int DifficultyUnlocked;
     }
 
     //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
@@ -39,6 +42,11 @@ namespace Lair.UI
         public string SoulsText;       //# "+180"
         public bool ShowXpRow;
         public string XpText;          //# "+60"
+        public bool ShowDifficultyRow;     //# Normal/Hard 판에서만 "난이도" 줄
+        public string DifficultyText;      //# "Normal" / "Hard"
+        public int DifficultyIndex;        //# 값 색 결정용 난이도 인덱스
+        public bool ShowUnlockBanner;      //# 승리 + 새 난이도 해금 배너
+        public string UnlockBannerText;    //# "Normal 해금!"
     }
 
     //# 결과 표시 + 보상 요약 + 「다시 도전」(Battle 재시작) / 「마을로」(Village 복귀) 2버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
@@ -46,6 +54,7 @@ namespace Lair.UI
     {
         //# 결과 팝업 도전과제 표기 상한 — 초과분은 "외 N건 달성" (기획서 §9.1).
         private const int MaxAchievedLines = 3;
+        private const int StrUnlockBanner = 1333;   //# {0} 해금!
 
         //# 전투 종료 후 유일한 출구 — ESC 로 닫히면 씬 이동 수단이 사라진다.
         public override bool CanCloseByEsc => false;
@@ -63,6 +72,10 @@ namespace Lair.UI
         [SerializeField] private CHText _xpText;
         [SerializeField] private GameObject _rowHeroHp;
         [SerializeField] private CHText _heroHpText;
+        [SerializeField] private GameObject _rowDifficulty;
+        [SerializeField] private CHText _difficultyText;
+        [SerializeField] private GameObject _unlockBanner;
+        [SerializeField] private CHText _unlockBannerText;
         [SerializeField] private GameObject _rays;   //# 승리 방사광 — 승리에서만 표시
         [SerializeField] private GameObject[] _winDecor;    //# 승리 장식 묶음 (DecoWinBack · DecoWinFront) — 승리에서만 표시
         [SerializeField] private GameObject[] _loseDecor;   //# 패배 장식 묶음 (DecoLoseBack · DecoLoseFront) — 패배에서만 표시
@@ -141,6 +154,11 @@ namespace Lair.UI
                 SoulsText = $"+{arg.SoulsGained}",
                 ShowXpRow = arg.HasMeta,
                 XpText = $"+{arg.XpGained}",
+                ShowDifficultyRow = arg.Difficulty >= 1,
+                DifficultyText = DifficultyTable.LabelOf(arg.Difficulty),
+                DifficultyIndex = arg.Difficulty,
+                ShowUnlockBanner = win && arg.DifficultyUnlocked >= 1,
+                UnlockBannerText = string.Format(LookupString(StrUnlockBanner, "{0} 해금!"), DifficultyTable.LabelOf(arg.DifficultyUnlocked)),
             };
         }
 
@@ -150,6 +168,13 @@ namespace Lair.UI
             return ClearTimeFormat.WithTenths(Mathf.Max(0f, seconds));
         }
 
+        //# Strings_Ko 조회 — provider 미준비(테스트)면 fallback.
+        private static string LookupString(int id, string fallback)
+        {
+            string text = CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+            return string.IsNullOrEmpty(text) ? fallback : text;
+        }
+
         private void ApplyRows(ResultRowsData rows)
         {
             SetText(_subText, rows.SubText);
@@ -157,6 +182,12 @@ namespace Lair.UI
             SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
             SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);
             SetRow(_rowHeroHp, _heroHpText, rows.ShowHeroHpRow, rows.HeroHpText);
+            SetRow(_rowDifficulty, _difficultyText, rows.ShowDifficultyRow, rows.DifficultyText);
+            if (rows.ShowDifficultyRow && _difficultyText != null)
+            {
+                _difficultyText.SetColor(UiDotPalette.DifficultyColor(rows.DifficultyIndex));
+            }
+            SetRow(_unlockBanner, _unlockBannerText, rows.ShowUnlockBanner, rows.UnlockBannerText);
             if (_newBadge != null)
             {
                 _newBadge.SetActive(rows.ShowNewBadge);

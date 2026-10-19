@@ -34,5 +34,18 @@ namespace Lair.Battle
                 archetype.cooldown,
                 archetype.moveSpeed);
         }
+
+        //# 난이도 행을 곱하는 오버로드 — difficulty 가 null(Easy)이면 기존 4인자 결과와 동일. range/cooldown/moveSpeed 는 직업 값 그대로.
+        public static HeroStats Compute(int anchorHp, int anchorPower, HeroArchetypeRow archetype, StageRow stage, DifficultyRow difficulty)
+        {
+            if (difficulty == null)
+                return Compute(anchorHp, anchorPower, archetype, stage);
+            return new HeroStats(
+                StageProgress.ScaleHeroStat(anchorHp, archetype.hpScale, stage.hpMultiplier, difficulty.hpMultiplier),
+                StageProgress.ScaleHeroStat(anchorPower, archetype.powerScale, stage.powerMultiplier, difficulty.powerMultiplier),
+                archetype.range,
+                archetype.cooldown,
+                archetype.moveSpeed);
+        }
     }
 }

@@ -51,7 +51,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
             Assert.AreEqual(cleared, p.ClearedStage);
             Assert.AreEqual(expectedSelected, p.SelectedStage);
         }
@@ -116,10 +116,9 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
         }
 
-        [TestCase(6)]
         [TestCase(7)]
         [TestCase(99)]
         public void 이미_6_이상이면_Version을_낮추지_않는다(int version)
@@ -250,7 +249,7 @@ namespace Lair.Tests.EditMode
             MetaProfileMigration.Apply(p, (Func<int, string>)null);
 
             Assert.AreEqual("Archer", p.SelectedHero);
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
         }
 
@@ -262,7 +261,7 @@ namespace Lair.Tests.EditMode
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
             Assert.AreEqual("Archer", p.SelectedHero);
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
             Assert.AreEqual(8, p.SelectedStage);
         }
 
@@ -270,7 +269,7 @@ namespace Lair.Tests.EditMode
         public void 챕터_데이터_로드_전_호출은_현재_버전_세이브의_진행_범위를_자르지_않는다()
         {
             //# 챕터 3 개방 후 Cleared > 10 인 v6 세이브가 DB 로드 전(MaxStage 가 기본 10)에 재적용돼도 보존돼야 한다(복원 CopyFrom 직후 포함).
-            MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 13, SelectedStage = 12 };
+            MetaProfile p = new MetaProfile { Version = 7, ClearedStage = 13, SelectedStage = 12 };
             p.StageRecords.Add(new StageRecordEntry { Stage = 13, Runs = 1 });
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
@@ -376,7 +375,7 @@ namespace Lair.Tests.EditMode
             live.CopyFrom(cloud);
             MetaProfileMigration.Apply(live, HeroOf);
 
-            Assert.AreEqual(6, live.Version);
+            Assert.AreEqual(7, live.Version);
             Assert.AreEqual(5, live.ClearedStage);
             Assert.AreEqual(6, live.SelectedStage, "복원 후 Selected 는 MaxPlayable(6) 이하로 보정");
             Assert.AreEqual("Archer", live.SelectedHero);
@@ -404,7 +403,7 @@ namespace Lair.Tests.EditMode
             MetaProfileMigration.Apply(live, HeroOf);
 
             Assert.AreSame(same, live);
-            Assert.AreEqual(6, same.Version);
+            Assert.AreEqual(7, same.Version);
         }
 
         [Test]
@@ -437,7 +436,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(6, loaded.Version);
+            Assert.AreEqual(7, loaded.Version);
             Assert.AreEqual("Archer", loaded.SelectedHero);
         }
 
@@ -449,7 +448,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(6, loaded.Version);
+            Assert.AreEqual(7, loaded.Version);
             Assert.AreEqual("Knight", loaded.SelectedHero);
             Assert.AreEqual(7, loaded.SelectedStage);
         }
@@ -483,7 +482,7 @@ namespace Lair.Tests.EditMode
         public void Store_Load_v6_세이브는_마이그레이션을_건너뛰어_영웅이_그대로다()
         {
             ChapterDatabase.Current = ChapterDataSet.Valid().Build();
-            MetaProfile v6 = new MetaProfile { Version = 6, ClearedStage = 7, SelectedStage = 7, SelectedHero = "Knight" };
+            MetaProfile v6 = new MetaProfile { Version = 7, ClearedStage = 7, SelectedStage = 7, SelectedHero = "Knight" };
             WriteSave(v6);
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
@@ -500,7 +499,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(6, loaded.Version);
+            Assert.AreEqual(7, loaded.Version);
             Assert.AreEqual(7, loaded.ClearedStage);
             Assert.AreEqual(7, loaded.SelectedStage);
             Assert.AreEqual("Archer", loaded.SelectedHero);
@@ -514,7 +513,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(6, p.Version);
+            Assert.AreEqual(7, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
             Assert.AreEqual(10, p.SelectedStage);
         }
@@ -523,8 +522,8 @@ namespace Lair.Tests.EditMode
         public void v6_재적용은_챕터3_진행값_15를_보존하고_16은_15로_clamp한다()
         {
             StageProgress.ConfigureChapterCount(3);
-            MetaProfile ok = new MetaProfile { Version = 6, ClearedStage = 15, SelectedStage = 15 };
-            MetaProfile over = new MetaProfile { Version = 6, ClearedStage = 16, SelectedStage = 99 };
+            MetaProfile ok = new MetaProfile { Version = 7, ClearedStage = 15, SelectedStage = 15 };
+            MetaProfile over = new MetaProfile { Version = 7, ClearedStage = 16, SelectedStage = 99 };
             over.StageRecords.Add(new StageRecordEntry { Stage = 15, Runs = 1 });
             over.StageRecords.Add(new StageRecordEntry { Stage = 16, Runs = 1 });
 
@@ -549,7 +548,7 @@ namespace Lair.Tests.EditMode
             store.Save(store.Load());
             MetaProfile reloaded = JsonUtility.FromJson<MetaProfile>(File.ReadAllText(Path.Combine(_tempDir, MetaProfileStore.FileName)));
 
-            Assert.AreEqual(6, reloaded.Version);
+            Assert.AreEqual(7, reloaded.Version);
         }
 
         [Test]
@@ -557,7 +556,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(6, loaded.Version);
+            Assert.AreEqual(7, loaded.Version);
             Assert.AreEqual(0, loaded.ClearedStage);
             Assert.AreEqual(1, loaded.SelectedStage);
         }
@@ -570,7 +569,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(6, loaded.Version);
+            Assert.AreEqual(7, loaded.Version);
             Assert.AreEqual(3, loaded.ClearedStage);
             Assert.AreEqual(2, loaded.SelectedStage);
         }

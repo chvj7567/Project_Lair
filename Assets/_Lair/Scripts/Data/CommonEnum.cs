@@ -131,6 +131,7 @@ namespace Lair.Data
         HeroArchetype_Guard,        //# 성기사 응징 표적 AI 튜닝 JSON — Data/Json/HeroArchetype_Guard.json (chapter-5 §2)
         HeroArchetype_DebuffResist, //# 성기사 디버프 저항 패시브 JSON — Data/Json/HeroArchetype_DebuffResist.json (chapter-5 §2)
         HeroSkillLoadout_Paladin,   //# 성기사 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Paladin.asset (에셋은 슬라이스 (b))
+        Difficulty,                 //# 난이도 배율표 JSON — Data/Json/Difficulty.json (difficulty-select §2)
     }
 
     //# 카드 빌드 축 — 카드 리뉴얼(2026-05-31) 으로 구 카드 카테고리(4종 Enum) 를 대체.

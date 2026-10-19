@@ -43,8 +43,11 @@ namespace Lair.Village
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
             //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
             string showcaseHeroId = ShowcaseHeroOf(_vm.SelectedStage).ToString();
-            if (profile.SelectedStage != _vm.SelectedStage || profile.SelectedHero != showcaseHeroId)
+            //# 난이도도 같은 지점에서 보정 — 진입 스테이지 기준 해금 범위 밖이면 낮춘다(difficulty-select E-1).
+            int clampedDifficulty = _vm.EffectiveDifficulty;
+            if (profile.SelectedStage != _vm.SelectedStage || profile.SelectedHero != showcaseHeroId || profile.SelectedDifficulty != clampedDifficulty)
             {
+                profile.SelectedDifficulty = clampedDifficulty;
                 profile.SelectedStage = _vm.SelectedStage;
                 profile.SelectedHero = showcaseHeroId;   //# 전투 HUD/랭킹이 읽는 표시용 영웅도 선택 스테이지 챕터에 맞춘다
                 MetaSession.Store?.Save(profile);
@@ -136,6 +139,7 @@ namespace Lair.Village
             MetaProfile profile = MetaSession.GetOrLoad();
             profile.SelectedStage = _vm.SelectedStage;
             profile.SelectedHero = ShowcaseHeroOf(_vm.SelectedStage).ToString();
+            profile.SelectedDifficulty = _vm.EffectiveDifficulty;
             MetaSession.Store?.Save(profile);
 
             bool needSwap = _showcase == null || _showcaseHero != ShowcaseHeroOf(_vm.SelectedStage);
@@ -335,7 +339,13 @@ namespace Lair.Village
             }
 
             //# 확정 → 캐러셀 이동(OnStageChanged 구독이 SelectedStage 로컬 저장 + 쇼케이스 재스킨, 클라우드 백업 호출 없음).
-            WorldMapViewModel worldMapVm = new WorldMapViewModel(chapters, profile, LookupString, linear => _vm?.SelectStage(linear));
+            WorldMapViewModel worldMapVm = new WorldMapViewModel(chapters, profile, LookupString, linear =>
+            {
+                //# 난이도는 WorldMapViewModel.Confirm 이 profile.SelectedDifficulty 에 기록해 둔다 — 스테이지 불변이면 OnStageChanged 가 없으므로 여기서 저장·표기 갱신.
+                _vm?.SelectStage(linear);
+                MetaSession.Store?.Save(profile);
+                _vm?.NotifyProfileChanged();
+            });
             await CHMUI.Instance.ShowUIAsync(EUI.WorldMapPopup, new WorldMapPopupArg
             {
                 ViewModel = worldMapVm,

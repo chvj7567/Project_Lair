@@ -94,5 +94,27 @@ namespace Lair.Battle
             decimal exact = (decimal)anchor * (decimal)archetypeScale * (decimal)stageMultiplier;
             return Math.Max(1, (int)Math.Floor(exact + 0.5m));
         }
+
+        //# 난이도 배율까지 곱한 오버로드 — 곱 전체를 1회만 반올림(중간 반올림 금지, difficulty-select §4.1). 기존 3인자는 Easy 경로로 유지.
+        public static int ScaleHeroStat(int anchor, float archetypeScale, float stageMultiplier, float difficultyMultiplier)
+        {
+            decimal exact = (decimal)anchor * (decimal)archetypeScale * (decimal)stageMultiplier * (decimal)difficultyMultiplier;
+            return Math.Max(1, (int)Math.Floor(exact + 0.5m));
+        }
+
+        //# 스테이지 s 의 선택 가능 최대 난이도(difficulty-select §1.4) — 해금 판정 단일 소유.
+        //# 미클리어면 0, 클리어면 Min(maxDifficulty, 클리어한 최고 난이도 + 1). clearedMaxDifficulty 는 행 없으면 0.
+        public static int MaxSelectableDifficulty(int stage, int clearedStage, int clearedMaxDifficulty, int maxDifficulty)
+        {
+            if (stage > clearedStage)
+                return 0;
+            return Math.Max(0, Math.Min(maxDifficulty, Math.Max(0, clearedMaxDifficulty) + 1));
+        }
+
+        //# 읽기 지점 공통 보정 — 0 ~ MaxSelectableDifficulty 로 클램프.
+        public static int ClampDifficulty(int difficulty, int stage, int clearedStage, int clearedMaxDifficulty, int maxDifficulty)
+        {
+            return Math.Max(0, Math.Min(MaxSelectableDifficulty(stage, clearedStage, clearedMaxDifficulty, maxDifficulty), difficulty));
+        }
     }
 }

@@ -56,6 +56,7 @@ namespace Lair.Battle
                     JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(debuffResistJson));
                 ChapterDatabase.Current = db;
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
+                await LoadDifficultyAsync();
                 return db;
             }
             catch (ChapterDataException e)
@@ -63,6 +64,32 @@ namespace Lair.Battle
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
                 return null;
             }
+        }
+
+        //# 난이도 배율표 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → "Easy 만 존재"로 동작(difficulty-select E-3·E-4).
+        private static async Task LoadDifficultyAsync()
+        {
+            DifficultyTable.Current = null;
+            string json = await LoadTextAsync(EData.Difficulty);
+            if (json == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] Difficulty.json 로드 실패 — 난이도 기능 비활성(Easy 만)");
+                return;
+            }
+            try
+            {
+                DifficultyTable.Current = DifficultyTable.Build(JsonArrayUtility.FromJsonArray<DifficultyRow>(json), NameKeyExists);
+            }
+            catch (ChapterDataException e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 난이도 기능 비활성(Easy 만)");
+            }
+        }
+
+        //# Strings_Ko 미로드(provider null)면 검증을 통과시킨다 — 문구 테이블 준비 순서에 의존하지 않기 위해.
+        private static bool NameKeyExists(int id)
+        {
+            return CHText.StringProvider == null || string.IsNullOrEmpty(CHText.StringProvider.GetString(id)) == false;
         }
 
         private static async Task<string> LoadTextAsync(EData key)
