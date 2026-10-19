@@ -47,6 +47,7 @@ const UIDOT_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Ui
 const UIDOT_NAMES = new Set([
   'BossBar_Fill.png', 'BossBar_TickGem.png', 'Loading_BarFrame.png', 'Loading_BarFill.png',
   'Px_Minus.png', 'Px_Plus.png',
+  'DiffIcon_Shield.png', 'DiffIcon_Swords.png', 'DiffIcon_Skull.png', 'DiffIcon_Lock.png',
 ]);
 //# POST /export/<Name> — 챕터 4 광전사 초상(HeroIcons). Art/Sprites/HeroIcons 로만 저장, 파일명 화이트리스트.
 const HEROICON_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'HeroIcons');

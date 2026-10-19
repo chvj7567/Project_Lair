@@ -58,6 +58,18 @@ namespace Lair.Village
         public int Difficulty;
         public string Label;
         public EDifficultySegmentState State;
+        public string MultiplierText;   //# Easy "×1.00" / 그 외 "HP ×1.15"
+    }
+
+    //# 잠긴 난이도 클릭 시 잠금 안내 카드 표시 데이터.
+    public class WorldMapDifficultyLockData
+    {
+        public int Difficulty;         //# 눌린(잠긴) 난이도
+        public int ClearedMax;         //# 이 스테이지에서 선택 가능한 최고 난이도 — 진행 점 on 판정
+        public int StepCount;          //# 진행 점 개수(난이도 수)
+        public string TitleText;       //# "{난이도} 잠김"
+        public string HintText;        //# "{선행 난이도} 클리어 시 해금"
+        public string HintLabelText;   //# 선행 난이도 라벨(본문 강조색용)
     }
 
     //# 월드맵 ViewModel — 챕터 탭·노드 상태·상세 패널 문구·선택 확정을 가공한다 (Rule 02 §6, Unity 비의존, View 를 모른다).
@@ -86,6 +98,10 @@ namespace Lair.Village
         public const int StrDifficultyEffect = 1330;    //# 영웅 HP ×{0} · 공격력 ×{1}
         public const int StrDifficultyLockedHint = 1331; //# {0} 클리어 시 해금
         public const int StrBestDifficulty = 1332;      //# 최고 난이도 {0}
+        public const int StrDifficultyHeader = 1334;    //# 난이도
+        public const int StrDifficultyLockedTitle = 1335; //# {0} 잠김
+        public const int StrDifficultyBestShort = 1336; //# 최고 {0}
+        public const int StrNoRecordDash = 1337;        //# —
 
         private readonly ChapterDatabase _chapters;
         private readonly MetaProfile _profile;
@@ -104,6 +120,8 @@ namespace Lair.Village
         public event Action OnChanged;
         //# 안내 문구(잠금 탭/노드를 눌렀을 때) — View 가 토스트로 표시.
         public event Action<string> OnNotice;
+        //# 잠긴 난이도 클릭 — 구조화 이벤트(카드 표시용). OnNotice 보다 먼저 발행된다.
+        public event Action<WorldMapDifficultyLockData> OnDifficultyLocked;
         //# 선택 확정 직후 — View 가 팝업을 닫는다.
         public event Action OnConfirmed;
 
@@ -160,6 +178,12 @@ namespace Lair.Village
         public int DisplayDifficulty { get; private set; }
         public string DifficultyEffectText { get; private set; }
         public IReadOnlyList<WorldMapDifficultyData> DifficultySegments => _segments;
+        public string DifficultyHpText { get; private set; }       //# 효과 칩 "×1.15"
+        public string DifficultyPowerText { get; private set; }    //# 효과 칩 "×1.1"
+        public bool DifficultyIsBoosted { get; private set; }      //# 표시 난이도가 Easy 가 아님 — 칩 ▲ 표시
+        public string DifficultyHeaderText => _text(StrDifficultyHeader);
+        //# 헤더 우측 "최고 Normal" — 기록 없으면 "—".
+        public string DifficultyBestShortText { get; private set; }
         //# 상세 카드 기록 박스의 "최고 난이도" — 해당 스테이지 DifficultyClears 행이 있을 때만(Easy 만 클리어면 숨김).
         public bool HasBestDifficulty { get; private set; }
         public int BestDifficulty { get; private set; }
@@ -221,7 +245,17 @@ namespace Lair.Village
                 return false;
             if (difficulty > MaxSelectableDifficulty(SelectedLinear))
             {
-                OnNotice?.Invoke(string.Format(_text(StrDifficultyLockedHint), _difficulties.Label(difficulty - 1, _text)));
+                string need = _difficulties.Label(difficulty - 1, _text);
+                OnDifficultyLocked?.Invoke(new WorldMapDifficultyLockData
+                {
+                    Difficulty = difficulty,
+                    ClearedMax = MaxSelectableDifficulty(SelectedLinear),
+                    StepCount = _difficulties.MaxIndex + 1,
+                    TitleText = string.Format(_text(StrDifficultyLockedTitle), _difficulties.Label(difficulty, _text)),
+                    HintText = string.Format(_text(StrDifficultyLockedHint), need),
+                    HintLabelText = need,
+                });
+                OnNotice?.Invoke(string.Format(_text(StrDifficultyLockedHint), need));
                 return false;
             }
             _wantedDifficulty = difficulty;
@@ -286,10 +320,14 @@ namespace Lair.Village
                 int maxSelectable = MaxSelectableDifficulty(linear);
                 for (int d = 0; d <= _difficulties.MaxIndex; ++d)
                 {
+                    DifficultyRow segRow = _difficulties.Get(d);
                     _segments.Add(new WorldMapDifficultyData
                     {
                         Difficulty = d,
                         Label = _difficulties.Label(d, _text),
+                        MultiplierText = d == 0
+                            ? "×" + segRow.hpMultiplier.ToString("0.00", CultureInfo.InvariantCulture)
+                            : "HP ×" + segRow.hpMultiplier.ToString("0.##", CultureInfo.InvariantCulture),
                         State = d == DisplayDifficulty ? EDifficultySegmentState.Selected
                             : (d <= maxSelectable ? EDifficultySegmentState.Available : EDifficultySegmentState.Locked),
                     });
@@ -297,10 +335,16 @@ namespace Lair.Village
                 DifficultyRow row = _difficulties.Get(DisplayDifficulty);
                 DifficultyEffectText = string.Format(CultureInfo.InvariantCulture, _text(StrDifficultyEffect),
                     row.hpMultiplier.ToString("0.##", CultureInfo.InvariantCulture), row.powerMultiplier.ToString("0.##", CultureInfo.InvariantCulture));
+                DifficultyHpText = "×" + row.hpMultiplier.ToString("0.##", CultureInfo.InvariantCulture);
+                DifficultyPowerText = "×" + row.powerMultiplier.ToString("0.##", CultureInfo.InvariantCulture);
+                DifficultyIsBoosted = DisplayDifficulty >= 1;
             }
             else
             {
                 DifficultyEffectText = string.Empty;
+                DifficultyHpText = string.Empty;
+                DifficultyPowerText = string.Empty;
+                DifficultyIsBoosted = false;
             }
 
             BestDifficulty = _profile.GetMaxClearedDifficulty(linear);
@@ -308,6 +352,9 @@ namespace Lair.Village
             BestDifficultyText = HasBestDifficulty
                 ? string.Format(_text(StrBestDifficulty), _difficulties.Label(BestDifficulty, _text))
                 : string.Empty;
+            DifficultyBestShortText = HasBestDifficulty
+                ? string.Format(_text(StrDifficultyBestShort), _difficulties.Label(BestDifficulty, _text))
+                : _text(StrNoRecordDash);
         }
 
         private void RebuildTabs()

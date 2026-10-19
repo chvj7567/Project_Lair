@@ -55,13 +55,17 @@ namespace Lair.UI
         //# 하단
         [SerializeField] private CHText _bottomText;
         [SerializeField] private WorldMapDifficultySegmentView[] _difficultySegments = new WorldMapDifficultySegmentView[0];   //# Easy / Normal / Hard 3칸
-        [SerializeField] private CHText _difficultyEffectText;       //# "영웅 HP ×1.15 · 공격력 ×1.1"
+        [SerializeField] private CHText _difficultyBestText;         //# 난이도 박스 헤더 우측 "최고 Normal" / "—"
+        [SerializeField] private WorldMapDifficultyChipView _hpChip;
+        [SerializeField] private WorldMapDifficultyChipView _powerChip;
+        [SerializeField] private WorldMapDifficultyLockNoticeView _lockNotice;
         [SerializeField] private CHButton _selectButton;
 
         private const float PortraitGlowAlpha = 0.60f;
 
         private WorldMapViewModel _vm;
         private Func<int, Sprite> _portraitOf;
+        private int _lockCardFrame = -1;
 
         public override void InitUI(UIArg arg)
         {
@@ -76,6 +80,8 @@ namespace Lair.UI
             Action refresh = Refresh;
             Action<string> notice = HandleNotice;
             Action confirmed = HandleConfirmed;
+            Action<WorldMapDifficultyLockData> locked = HandleDifficultyLocked;
+            vmRef.OnDifficultyLocked += locked;
             vmRef.OnChanged += refresh;
             vmRef.OnNotice += notice;
             vmRef.OnConfirmed += confirmed;
@@ -83,6 +89,7 @@ namespace Lair.UI
             {
                 vmRef.OnChanged -= refresh;
                 vmRef.OnNotice -= notice;
+                vmRef.OnDifficultyLocked -= locked;
                 vmRef.OnConfirmed -= confirmed;
                 _vm = null;
             });
@@ -133,7 +140,23 @@ namespace Lair.UI
         {
             if (string.IsNullOrEmpty(message))
                 return;
+            //# 같은 프레임에 잠금 카드가 떴으면 중복 토스트 생략(VM 이 OnDifficultyLocked 를 먼저 발행).
+            if (_lockCardFrame == Time.frameCount)
+                return;
             ToastView.Show(message, EToastKind.Warning);
+        }
+
+        private void HandleDifficultyLocked(WorldMapDifficultyLockData data)
+        {
+            if (data == null || _lockNotice == null)
+                return;
+
+            _lockCardFrame = Time.frameCount;
+            _lockNotice.Show(data);
+            if (data.Difficulty >= 0 && data.Difficulty < _difficultySegments.Length && _difficultySegments[data.Difficulty] != null)
+            {
+                _difficultySegments[data.Difficulty].PlayShake();
+            }
         }
 
         private void HandleConfirmed()
@@ -185,7 +208,7 @@ namespace Lair.UI
             }
         }
 
-        //# 난이도 박스 — 세그먼트 3칸 + 효과 문구. 표 미로드/스테이지 잠김이면 비활성 스타일.
+        //# 난이도 박스 — 세그먼트 3칸 + 헤더 최고 기록 + HP/ATK 칩. 표 미로드/스테이지 잠김이면 비활성 스타일.
         private void RefreshDifficulty()
         {
             for (int i = 0; i < _difficultySegments.Length; ++i)
@@ -195,7 +218,20 @@ namespace Lair.UI
                     _difficultySegments[i].Show(_vm.DifficultySegments[i], _vm.DifficultyEnabled);
                 }
             }
-            SetText(_difficultyEffectText, _vm.DifficultyEffectText);
+            SetText(_difficultyBestText, _vm.DifficultyBestShortText);
+            if (_difficultyBestText != null)
+            {
+                _difficultyBestText.SetColor(_vm.HasBestDifficulty ? UiDotPalette.DifficultyColor(_vm.BestDifficulty) : new Color32(0x8e, 0x98, 0xad, 0xff));
+            }
+            Color chipColor = UiDotPalette.DifficultyColor(_vm.DisplayDifficulty);
+            if (_hpChip != null)
+            {
+                _hpChip.Show(_vm.DifficultyHpText, _vm.DifficultyIsBoosted, chipColor);
+            }
+            if (_powerChip != null)
+            {
+                _powerChip.Show(_vm.DifficultyPowerText, _vm.DifficultyIsBoosted, chipColor);
+            }
         }
 
         //# 선택 챕터의 지도 배경·배너 색조와 구간 연결선(실선/점선) 갱신.

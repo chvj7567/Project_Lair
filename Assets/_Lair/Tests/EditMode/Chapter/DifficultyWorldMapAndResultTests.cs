@@ -176,6 +176,37 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0, vm.DisplayDifficulty);
         }
 
+        [Test]
+        public void 잠긴_Hard를_누르면_구조화_잠금_이벤트가_토스트보다_먼저_발행된다()
+        {
+            WorldMapViewModel vm = NewVm(Profile(3, 2));
+            List<string> order = new List<string>();
+            WorldMapDifficultyLockData lockData = null;
+            vm.OnDifficultyLocked += data => { lockData = data; order.Add("lock"); };
+            vm.OnNotice += message => order.Add("notice");
+
+            Assert.IsFalse(vm.SelectDifficulty(2));
+
+            CollectionAssert.AreEqual(new[] { "lock", "notice" }, order);
+            Assert.AreEqual(2, lockData.Difficulty);
+            Assert.AreEqual(1, lockData.ClearedMax);   //# 스테이지 2 는 클리어됨 → Normal 까지 선택 가능
+            Assert.AreEqual(3, lockData.StepCount);
+            Assert.AreEqual("Hard 잠김", lockData.TitleText);
+            Assert.AreEqual("Normal 클리어 시 해금", lockData.HintText);
+        }
+
+        [Test]
+        public void 선택_가능한_난이도를_누르면_잠금_이벤트는_발행되지_않는다()
+        {
+            WorldMapViewModel vm = NewVm(Profile(3, 2, 0, (2, 1)));
+            int fired = 0;
+            vm.OnDifficultyLocked += data => ++fired;
+
+            Assert.IsTrue(vm.SelectDifficulty(1));
+
+            Assert.AreEqual(0, fired);
+        }
+
         [TestCase(-1)]
         [TestCase(3)]
         [TestCase(99)]
@@ -512,13 +543,13 @@ namespace Lair.Tests.EditMode
             WorldMapPopup popup = prefab.GetComponent<WorldMapPopup>();
             Assert.IsNotNull(popup);
 
-            AssertWired(popup, "_difficultyEffectText", "_detailBestDifficultyText", "_bottomText");
+            AssertWired(popup, "_difficultyBestText", "_hpChip", "_powerChip", "_lockNotice", "_detailBestDifficultyText", "_bottomText");
             WorldMapDifficultySegmentView[] segments = (WorldMapDifficultySegmentView[])Field(popup, "_difficultySegments");
             Assert.AreEqual(3, segments.Length);
             for (int i = 0; i < segments.Length; ++i)
             {
                 Assert.IsFalse(IsMissing(segments[i]), $"_difficultySegments[{i}] 비어 있음");
-                AssertWired(segments[i], "_button", "_background", "_labelText");
+                AssertWired(segments[i], "_button", "_background", "_labelText", "_multiplierText", "_icon");
             }
         }
 
