@@ -278,7 +278,7 @@ namespace Lair.Village
         {
             int linear = SelectedLinear;
             DifficultyEnabled = _difficulties != null && IsSelectable(linear);
-            DisplayDifficulty = Math.Max(0, Math.Min(_wantedDifficulty, MaxSelectableDifficulty(linear)));
+            DisplayDifficulty = IsSelectable(linear) ? Math.Max(0, Math.Min(_wantedDifficulty, MaxSelectableDifficulty(linear))) : 0;
 
             _segments.Clear();
             if (_difficulties != null)

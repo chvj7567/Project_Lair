@@ -77,6 +77,20 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void v6_세이브는_챕터_데이터_미로드_상태에서_진행_범위와_난이도_행을_유지한다()
+        {
+            MetaProfile p = new MetaProfile { Version = 6, ClearedStage = 14, SelectedStage = 13 };
+            p.DifficultyClears.Add(new DifficultyClearEntry { Stage = 12, MaxDifficulty = 1 });
+
+            MetaProfileMigration.Apply(p, (System.Func<int, string>)null);
+
+            Assert.AreEqual(7, p.Version);
+            Assert.AreEqual(14, p.ClearedStage);
+            Assert.AreEqual(13, p.SelectedStage);
+            Assert.AreEqual(1, p.GetMaxClearedDifficulty(12));
+        }
+
+        [Test]
         public void 난이도_배율은_곱을_1회만_반올림한다()
         {
             Assert.AreEqual(68, StageProgress.ScaleHeroStat(50, 1f, 1.35f, 1f));
