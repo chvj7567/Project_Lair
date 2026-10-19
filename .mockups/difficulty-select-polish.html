@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>난이도 선택 UI 폴리시 시안 (전/후)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--soul:#5ef0b4;--blood:#e5484d;
+--easy:#5ef0b4;--normal:#f7c64a;--hard:#e5484d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:4px 0;color:var(--bone)}h2{font-size:15px;margin:0 0 8px;color:var(--gold)}
+p.sub{color:var(--sub);font-size:13px;margin:0 0 8px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.bar button.on{outline:2px solid var(--gold)}
+.bar .msg{color:var(--sub);font-size:12.5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.col h2 .tag{font-size:11px;color:var(--sub);margin-left:6px}
+/*# 팝업 하단 영역 흉내 — 실제 월드맵 팝업 하단 바 크기(약 320x110)를 2배로 확대해 보여준다 */
+.stage{position:relative;height:330px;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 75%);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764;overflow:hidden}
+.ctx{position:absolute;left:18px;right:18px;top:16px;height:110px;background:linear-gradient(180deg,#151b28,#0f1420);border:2px solid #2c3750;padding:12px 14px;font-size:13px;color:var(--sub)}
+.ctx b{color:var(--bone);font-size:15px;display:block;margin-bottom:4px}
+.ctx .r{display:flex;gap:16px}
+.ctx .r span i{font-style:normal;color:var(--gold)}
+.slot{position:absolute;left:18px;right:18px;top:142px}
+/*# ───── 전: 현재(평면 3칸 + 텍스트) ───── */
+.old{width:252px;background:#0d1119;border:3px solid var(--ink);padding:6px}
+.old .s{display:inline-block;width:76px;height:34px;line-height:30px;text-align:center;font-size:14px;border:2px solid var(--ink);margin-right:2px;cursor:pointer;background:#2a3350;color:var(--bone)}
+.old .s.sel{color:#10141d;font-weight:bold}
+.old .s.lock{background:#232834;color:#6c7385}
+.old .fx{font-size:12px;color:var(--sub);margin-top:6px}
+.oldtoast{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:300px;height:36px;background:var(--s0);border:3px solid var(--ink);color:var(--gold);display:none;align-items:center;justify-content:center;font-size:14px;z-index:9}
+/*# ───── 후: 시안 ───── */
+.dbox{position:relative;width:340px;padding:10px 10px 8px;background:linear-gradient(180deg,rgba(34,42,59,.92),rgba(16,20,29,.96));border:2px solid var(--gold2);box-shadow:0 0 0 1px var(--ink),inset 0 0 0 1px rgba(247,198,74,.22),0 0 18px rgba(94,240,180,.10)}
+.dbox::before,.dbox::after{content:"";position:absolute;width:8px;height:8px;border:2px solid var(--gold);}
+.dbox::before{left:-4px;top:-4px;border-right:0;border-bottom:0}.dbox::after{right:-4px;bottom:-4px;border-left:0;border-top:0}
+.dbox .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--sub);letter-spacing:.1em}
+.dbox .hd b{color:var(--bone);font-weight:normal;letter-spacing:.12em}
+.dbox .hd .best{color:var(--c,var(--sub))}
+.segs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg{position:relative;height:50px;padding:6px 4px 0;text-align:center;cursor:pointer;background:linear-gradient(180deg,#242d44,#181f31);border:2px solid var(--ink);box-shadow:inset 0 2px 0 #3d4b6e,inset 0 -3px 0 #0b0e16;transition:transform .08s,filter .12s}
+.seg:hover{filter:brightness(1.15)}
+.seg:active{transform:translateY(2px)}
+.seg .ic{display:block;height:14px;margin:0 auto 1px;image-rendering:pixelated}
+.seg .nm{display:block;font-size:13px;color:var(--bone);letter-spacing:.04em}
+.seg .mx{display:block;font-size:10px;color:var(--sub);margin-top:1px}
+.seg.sel{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 92%,#fff 8%),color-mix(in srgb,var(--c) 70%,#000));border-color:var(--ink);box-shadow:inset 0 2px 0 #ffffff66,inset 0 -3px 0 #0006,0 0 14px color-mix(in srgb,var(--c) 55%,transparent)}
+.seg.sel .nm{color:#10141d;font-weight:bold}.seg.sel .mx{color:#10141dcc}
+.seg.sel::after{content:"";position:absolute;left:50%;bottom:-8px;width:10px;height:10px;transform:translateX(-50%) rotate(45deg);background:var(--c);border-right:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.seg.lock{background:repeating-linear-gradient(135deg,#1d222e 0 6px,#191d28 6px 12px);box-shadow:inset 0 -3px 0 #121620;cursor:pointer}
+.seg.lock .nm{color:#6c7385}.seg.lock .mx{color:#4f5668}
+.seg.lock .ic{opacity:.55}
+.seg.shake{animation:shake .32s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.fxrow{display:flex;gap:6px;margin-top:14px}
+.chip{display:flex;align-items:center;gap:6px;flex:1;height:24px;padding:0 8px;background:#0b0f18;border:2px solid #20283a;font-size:12px;color:var(--bone)}
+.chip i{font-style:normal;color:var(--sub);font-size:10px}
+.chip b{margin-left:auto;font-weight:normal;color:var(--c,var(--bone))}
+.chip.up b::before{content:"▲ ";font-size:8px}
+.chip.flat b{color:var(--sub)}
+/*# 잠금 안내 카드 — 기존 한 줄 토스트 대체 */
+.notice{position:absolute;left:50%;top:10px;transform:translate(-50%,-10px);opacity:0;pointer-events:none;width:300px;padding:9px 12px 9px 52px;background:linear-gradient(180deg,rgba(34,42,59,.96),rgba(14,18,27,.98));border:2px solid var(--gold2);box-shadow:0 0 0 1px var(--ink),inset 0 0 0 1px rgba(247,198,74,.25),0 6px 0 #0007,0 0 22px rgba(247,198,74,.15);z-index:9;transition:opacity .18s,transform .18s}
+.notice.show{opacity:1;transform:translate(-50%,0)}
+.notice .lk{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#10141d;border:2px solid var(--gold2)}
+.notice .t1{font-size:11px;color:var(--sub);letter-spacing:.08em}
+.notice .t2{font-size:14px;color:var(--bone)}
+.notice .t2 b{color:var(--c);font-weight:normal}
+.notice .pips{display:flex;gap:4px;margin-top:6px}
+.notice .pips i{flex:1;height:6px;background:#0a0d14;border:1px solid #000}
+.notice .pips i.on{background:var(--soul)}
+.notice .pips i.next{background:repeating-linear-gradient(90deg,var(--gold) 0 4px,#0a0d14 4px 8px)}
+.notice::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--gold);transform-origin:left;animation:none}
+.notice.show::after{animation:life 2.4s linear forwards}
+@keyframes life{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:#c9cfdd}li{margin:2px 0}
+code{color:var(--soul)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>난이도 선택 UI 폴리시 시안 — 월드맵 팝업의 Easy / Normal / Hard 박스 + 잠금 안내</h1>
+<p class="sub">지금은 평면 3칸 버튼과 한 줄 토스트다. UI 리디자인(금 이중 테두리·유리 패널·상태색 발광)과 맞춰 <b>세그먼트 박스</b>와 <b>잠금 안내 카드</b>를 다듬는 시안. 아래에서 직접 눌러 보면 된다(잠긴 Normal/Hard 를 누르면 안내가 뜬다).</p>
+<div class="bar">
+  <button id="bClear" class="on">Easy 클리어 전</button><button id="bNormal">Easy 클리어 (Normal 해금)</button><button id="bHard">Normal 클리어 (Hard 해금)</button>
+  <span class="msg" id="msg"></span>
+</div>
+
+<div class="grid">
+  <div class="col"><h2>전 · 현재<span class="tag">평면 3칸 + 한 줄 토스트</span></h2>
+    <div class="stage" id="oldStage"><div class="ctx"><b>1-3 안개 낀 지하수로</b><div class="r"><span>규칙 <i>짙은 안개</i></span><span>최고 <i>2:51.3</i></span></div></div>
+      <div class="slot"><div class="old" id="oldBox"></div></div><div class="oldtoast" id="oldToast"></div></div></div>
+  <div class="col"><h2>후 · 시안<span class="tag">금테 유리 세그먼트 + 효과 칩 + 잠금 카드</span></h2>
+    <div class="stage" id="newStage"><div class="ctx"><b>1-3 안개 낀 지하수로</b><div class="r"><span>규칙 <i>짙은 안개</i></span><span>최고 <i>2:51.3</i></span></div></div>
+      <div class="slot"><div class="dbox" id="newBox"></div></div>
+      <div class="notice" id="notice"></div></div></div>
+</div>
+
+<ul>
+<li><b>세그먼트</b> — 칸마다 도트 아이콘(방패 · 쌍검 · 해골)과 배율 한 줄. 선택 칸은 난이도색(Easy 소울 · Normal 금 · Hard 적)으로 채워지고 <b>빛 + 아래 꼬리 표시</b>가 붙는다.</li>
+<li><b>잠금 칸</b> — 빗금 바탕 + 자물쇠 아이콘으로 "잠김"이 한눈에 보이고, 눌러도 선택은 안 되지만 <b>살짝 흔들리며</b> 안내 카드가 내려온다(지금은 회색 칸 + 무반응에 가까운 토스트).</li>
+<li><b>효과 줄</b> — "영웅 HP ×1.15 · 공격력 ×1.1" 문장 대신 <b>HP / ATK 칩</b>(▲ 증가 표시, 난이도색). Easy 는 기준값(–)으로 회색.</li>
+<li><b>헤더</b> — 좌측 "난이도", 우측 "최고 Normal" (이 스테이지 최고 난이도 기록이 있을 때만, 난이도색).</li>
+<li><b>잠금 안내 카드</b> — 자물쇠 + "<b>Normal</b> 잠김" + "<code>Easy</code> 클리어 시 해금" + <b>진행 점 3칸</b>(클리어한 난이도는 초록, 다음 목표는 금 줄무늬) + 아래로 줄어드는 2.4초 타이머 바. 기존 한 줄 문구 id 1331 은 그대로 쓰고 제목 문구 1줄만 추가한다("{0} 잠김").</li>
+<li>구현 범위(승인 시): <code>WorldMapDifficultySegmentView</code> 프리팹 개편(아이콘·배율 라벨·잠금 표시, 위젯은 private 유지) + 효과 칩 2개 + 잠금 카드 프리팹 1개(<code>WorldMapPopup</code> 안 정적 배치) + 도트 아이콘 스프라이트 4장(방패·쌍검·해골·자물쇠). 로직(해금 판정)은 변경 없음.</li>
+</ul>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const DIF=[{n:'Easy',hp:1,pw:1,c:'#5ef0b4'},{n:'Normal',hp:1.15,pw:1.10,c:'#f7c64a'},{n:'Hard',hp:1.30,pw:1.22,c:'#e5484d'}];
+let st={max:0,sel:0};
+const fmt=v=>v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+//# 도트 아이콘(11x10) — 문자열 맵 → SVG rect
+function icon(map,col,w=14){const rows=map.split('|'),H=rows.length,W=rows[0].length;let r='';rows.forEach((s,y)=>[...s].forEach((c,x)=>{if(c==='#')r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;}));return `<svg class="ic" viewBox="0 0 ${W} ${H}" width="${w*W/H*1.0}" height="${w}" fill="${col}" shape-rendering="crispEdges">${r}</svg>`;}
+const IC={
+ shield:'.#######.|#########|###...###|##.....##|##.....##|###...###|.#######.|..#####..|...###...|....#....',
+ swords:'#.......#|##.....##|.##...##.|..##.##..|...###...|..#####..|.##.#.##.|##..#..##|#...#...#|....#....',
+ skull:'..#####..|.#######.|#########|##.###.##|##.###.##|#########|.###.###.|..#.#.#..|..#####..|..#.#.#..',
+ lock:'..#####..|.##...##.|.#.....#.|.#.....#.|#########|##.....##|##..#..##|##..#..##|##.....##|#########'};
+const ICN=['shield','swords','skull'];
+
+function renderOld(){
+ const b=$('#oldBox');b.innerHTML='';
+ DIF.forEach((q,k)=>{const sel=k===st.sel,lock=k>st.max;const d=document.createElement('div');d.className='s'+(sel?' sel':'')+(lock?' lock':'');d.textContent=q.n;if(sel)d.style.background=q.c;
+  d.onclick=()=>{if(lock){oldToast(DIF[k-1].n+' 클리어 시 해금');return;}st.sel=k;render();};b.appendChild(d);});
+ const f=document.createElement('div');f.className='fx';f.textContent='영웅 HP ×'+fmt(DIF[st.sel].hp)+' · 공격력 ×'+fmt(DIF[st.sel].pw);b.appendChild(f);
+}
+function oldToast(s){const t=$('#oldToast');t.textContent=s;t.style.display='flex';clearTimeout(oldToast.h);oldToast.h=setTimeout(()=>t.style.display='none',2200);}
+
+function renderNew(){
+ const b=$('#newBox'),cur=DIF[st.sel];
+ let h=`<div class="hd"><b>난이도</b><span class="best" style="--c:${DIF[st.max].c}">${st.max>=1?'최고 '+DIF[st.max].n:'—'}</span></div><div class="segs">`;
+ DIF.forEach((q,k)=>{const sel=k===st.sel,lock=k>st.max;
+  h+=`<div class="seg${sel?' sel':''}${lock?' lock':''}" data-k="${k}" style="--c:${q.c}">${icon(IC[lock?'lock':ICN[k]],sel?'#10141d':(lock?'#6c7385':q.c))}<span class="nm">${q.n}</span><span class="mx">${k===0?'×1.00':'HP ×'+fmt(q.hp)}</span></div>`;});
+ h+=`</div><div class="fxrow" style="--c:${cur.c}"><div class="chip ${st.sel?'up':'flat'}"><i>HP</i><b>×${fmt(cur.hp)}</b></div><div class="chip ${st.sel?'up':'flat'}"><i>ATK</i><b>×${fmt(cur.pw)}</b></div></div>`;
+ b.innerHTML=h;
+ b.querySelectorAll('.seg').forEach(el=>el.onclick=()=>{const k=+el.dataset.k;if(k>st.max){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');notice(k);return;}st.sel=k;render();});
+}
+function notice(k){
+ const n=$('#notice'),need=DIF[k-1];
+ n.style.setProperty('--c',DIF[k].c);
+ n.innerHTML=`<div class="lk">${icon(IC.lock,'#f7c64a',16)}</div><div class="t1">${DIF[k].n} 잠김</div><div class="t2"><b>${need.n}</b> 클리어 시 해금</div><div class="pips">${DIF.map((q,i)=>`<i class="${i<=st.max?'on':(i===k-1?'next':'')}"></i>`).join('')}</div>`;
+ n.classList.remove('show');void n.offsetWidth;n.classList.add('show');clearTimeout(notice.h);notice.h=setTimeout(()=>n.classList.remove('show'),2400);
+}
+function render(){renderOld();renderNew();$('#msg').textContent='클리어한 최고 난이도: '+DIF[st.max].n+' · 선택: '+DIF[st.sel].n;}
+[['bClear',0],['bNormal',1],['bHard',2]].forEach(([id,m])=>$('#'+id).onclick=()=>{st.max=m;st.sel=Math.min(st.sel,m);document.querySelectorAll('.bar button').forEach(x=>x.classList.toggle('on',x.id===id));render();});
+render();
+setTimeout(()=>{$('#newBox').querySelectorAll('.seg')[1].click()},600);
+</script>
+</body>
+</html>
