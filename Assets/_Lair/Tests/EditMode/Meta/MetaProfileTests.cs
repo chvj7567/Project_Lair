@@ -7,7 +7,7 @@ namespace Lair.Tests.EditMode
     public class MetaProfileTests
     {
         [Test]
-        public void 새_프로필은_버전6_소울0으로_시작한다()
+        public void 새_프로필은_버전7_소울0으로_시작한다()
         {
             MetaProfile p = new MetaProfile();
             //# 스키마 버전 6 = 챕터 3 추가(진행 범위 0~15, chapter-3-hero §7.3; 5 = 챕터 구조 chapter-system §2.2).

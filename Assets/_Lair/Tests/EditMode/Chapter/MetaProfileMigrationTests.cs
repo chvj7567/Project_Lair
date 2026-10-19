@@ -45,7 +45,7 @@ namespace Lair.Tests.EditMode
         [TestCase(5, 5, 5)]
         [TestCase(5, 1, 1)]
         [TestCase(3, 2, 2)]
-        public void v4_진행값은_해금_범위_안에서_보존되고_Version이_6이_된다(int cleared, int selected, int expectedSelected)
+        public void v4_진행값은_해금_범위_안에서_보존되고_Version이_7이_된다(int cleared, int selected, int expectedSelected)
         {
             MetaProfile p = V4(cleared, selected);
 
@@ -110,7 +110,7 @@ namespace Lair.Tests.EditMode
         [TestCase(1)]
         [TestCase(4)]
         [TestCase(5)]
-        public void 구버전은_Version이_6으로_승격된다(int version)
+        public void 구버전은_Version이_7로_승격된다(int version)
         {
             MetaProfile p = new MetaProfile { Version = version };
 
@@ -121,7 +121,7 @@ namespace Lair.Tests.EditMode
 
         [TestCase(7)]
         [TestCase(99)]
-        public void 이미_6_이상이면_Version을_낮추지_않는다(int version)
+        public void 이미_7_이상이면_Version을_낮추지_않는다(int version)
         {
             MetaProfile p = new MetaProfile { Version = version };
 
@@ -441,7 +441,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load_v4_세이브는_Current가_null이면_영웅만_건너뛰고_Version은_6이_된다()
+        public void Store_Load_v4_세이브는_Current가_null이면_영웅만_건너뛰고_Version은_7이_된다()
         {
             ChapterDatabase.Current = null;
             WriteSave(V4(7, 7, "Knight"));
@@ -479,7 +479,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load_v6_세이브는_마이그레이션을_건너뛰어_영웅이_그대로다()
+        public void Store_Load_v7_세이브는_마이그레이션을_건너뛰어_영웅이_그대로다()
         {
             ChapterDatabase.Current = ChapterDataSet.Valid().Build();
             MetaProfile v6 = new MetaProfile { Version = 7, ClearedStage = 7, SelectedStage = 7, SelectedHero = "Knight" };
@@ -491,7 +491,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load_v5_세이브는_진행값을_보존한_채_v6으로_승격되고_영웅은_챕터_영웅으로_재설정된다()
+        public void Store_Load_v5_세이브는_진행값을_보존한_채_v7로_승격되고_영웅은_챕터_영웅으로_재설정된다()
         {
             ChapterDatabase.Current = ChapterDataSet.Valid().Build();
             MetaProfile v5 = new MetaProfile { Version = 5, ClearedStage = 7, SelectedStage = 7, SelectedHero = "Knight" };
@@ -519,7 +519,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void v6_재적용은_챕터3_진행값_15를_보존하고_16은_15로_clamp한다()
+        public void v7_재적용은_챕터3_진행값_15를_보존하고_16은_15로_clamp한다()
         {
             StageProgress.ConfigureChapterCount(3);
             MetaProfile ok = new MetaProfile { Version = 7, ClearedStage = 15, SelectedStage = 15 };
@@ -540,7 +540,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load_v4_후_Save하면_디스크에_Version_6이_기록된다()
+        public void Store_Load_v4_후_Save하면_디스크에_Version_7이_기록된다()
         {
             WriteSave(V4(2, 2));
             MetaProfileStore store = new MetaProfileStore(_tempDir);
@@ -552,7 +552,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load_세이브_파일이_없으면_새_프로필이_v5다()
+        public void Store_Load_세이브_파일이_없으면_새_프로필이_v7이다()
         {
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
@@ -562,7 +562,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Version_필드가_없는_구_세이브_JSON도_Version_6_기본값으로_로드된다()
+        public void Version_필드가_없는_구_세이브_JSON도_Version_7_기본값으로_로드된다()
         {
             Directory.CreateDirectory(_tempDir);
             File.WriteAllText(Path.Combine(_tempDir, MetaProfileStore.FileName), "{\"ClearedStage\":3,\"SelectedStage\":2}");
