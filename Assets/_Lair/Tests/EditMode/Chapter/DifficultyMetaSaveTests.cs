@@ -46,7 +46,7 @@ namespace Lair.Tests.EditMode
         //# --- 기본값 / v6 로드 ---
 
         [Test]
-        public void 신규_프로필은_Version_7_Easy_빈_행으로_시작하고_현재_버전과_같다()
+        public void 신규_프로필은_Version_8_Easy_빈_행으로_시작하고_현재_버전과_같다()
         {
             MetaProfile p = new MetaProfile();
 
@@ -58,7 +58,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 난이도_필드가_없는_v6_JSON은_Easy_빈_리스트로_로드되고_마이그레이션이_7로_승격한다()
+        public void 난이도_필드가_없는_v6_JSON은_Easy_빈_리스트로_로드되고_마이그레이션이_8로_승격한다()
         {
             MetaProfile p = JsonUtility.FromJson<MetaProfile>("{\"Version\":6,\"ClearedStage\":3,\"SelectedStage\":2}");
 
@@ -76,7 +76,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void Store_Load는_v6_세이브_파일을_v7로_올리고_진행값을_보존한다()
+        public void Store_Load는_v6_세이브_파일을_v8로_올리고_진행값을_보존한다()
         {
             Directory.CreateDirectory(_tempDir);
             File.WriteAllText(Path.Combine(_tempDir, MetaProfileStore.FileName), JsonUtility.ToJson(V6(4, 3)));
@@ -327,7 +327,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 이미_v7인_세이브의_챕터_미로드_호출은_조기_반환해_아무것도_바꾸지_않는다()
+        public void v7_세이브의_챕터_미로드_호출은_v8로_승격하되_진행값과_난이도를_자르지_않는다()
         {
             MetaProfile p = new MetaProfile { Version = 7, ClearedStage = 13, SelectedDifficulty = 2 };
             p.DifficultyClears.Add(Entry(13, 2));
@@ -388,7 +388,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void v6_형태_문서를_복원하면_Easy_빈_상태가_되고_재적용으로_v7이_된다()
+        public void v6_형태_문서를_복원하면_Easy_빈_상태가_되고_재적용으로_v8이_된다()
         {
             MetaProfile cloud = JsonUtility.FromJson<MetaProfile>("{\"Version\":6,\"ClearedStage\":5,\"SelectedStage\":5}");
             MetaProfile live = new MetaProfile { SelectedDifficulty = 2 };
