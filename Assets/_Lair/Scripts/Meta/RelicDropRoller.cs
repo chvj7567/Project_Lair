@@ -38,7 +38,7 @@ namespace Lair.Meta
 
             if (OwnsAnyKnownRelic(db, profile) == false)
                 return 1f;
-            float pity = Math.Min(cfg.pityMaxBonus, profile.RelicMissStreak * cfg.pityPerMiss);
+            float pity = Math.Min(cfg.pityMaxBonus, Math.Max(0, profile.RelicMissStreak) * cfg.pityPerMiss);
             return Clamp(baseChance + pity, 0f, cfg.maxChance);
         }
 

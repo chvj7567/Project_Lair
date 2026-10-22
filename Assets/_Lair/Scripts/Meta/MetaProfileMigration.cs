@@ -74,7 +74,7 @@ namespace Lair.Meta
 
         //# Relics: null→빈 리스트, null/빈 id/Stack<1 행 제거, 같은 RelicId 중복은 Stack 최댓값 한 행. RelicMissStreak 음수→0.
         //# 유물 id 존재 여부·maxStack 클램프는 하지 않는다 — 읽는 지점이 담당(relics §3.6, 데이터 로드 순서 방어).
-        private static void NormalizeRelics(MetaProfile profile)
+        public static void NormalizeRelics(MetaProfile profile)
         {
             if (profile.Relics == null)
             {

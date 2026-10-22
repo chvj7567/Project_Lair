@@ -165,7 +165,8 @@ namespace Lair.Meta
         //# 부동소수 오차로 정수 경계가 한 칸 내려가지 않도록 아주 작은 보정 후 floor.
         private static int FloorScaled(int value, double rate)
         {
-            return (int)Math.Floor(value * rate + 1e-6);
+            //# 비율의 float 합산 오차(예: 0.52499998)를 6자리 반올림으로 제거한 뒤 내림 — 값 크기와 무관하게 안전.
+            return (int)Math.Floor(value * Math.Round(rate, 6) + 1e-6);
         }
     }
 }
