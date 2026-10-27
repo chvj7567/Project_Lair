@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Character;
 using Lair.Data;
+using Lair.Meta;
 using UnityEngine;
 
 namespace Lair.Battle
@@ -19,10 +20,13 @@ namespace Lair.Battle
         private readonly Action _reapplyMonsterStats;
         private readonly Action<string> _notify;
         private readonly IStringProvider _strings;
+        //# 봉인 대체 규칙(코스트 최고 둥지)용 종별 코스트 조회 — null 이면 전 종 동률(슬롯 번호 최소).
+        private readonly Func<EMonster, int> _costOf;
 
         //# 스냅샷 재사용 버퍼 — 데미지로 몬스터가 죽어 Monsters 가 수정돼도 열거와 변형을 분리. 메인스레드 전용.
         private readonly List<CharacterRegistry.Entry> _buffer = new List<CharacterRegistry.Entry>();
         private readonly Dictionary<EMonster, List<Spawner>> _locked = new Dictionary<EMonster, List<Spawner>>();
+        private readonly Dictionary<EMonster, EMonster> _sealedSpecies = new Dictionary<EMonster, EMonster>();
         //# Transform → SimpleMover 1회 캐시(Rule 02 §5) — 풀 재사용 인스턴스는 같은 Transform 이라 안전.
         private readonly Dictionary<Transform, SimpleMover> _moverCache = new Dictionary<Transform, SimpleMover>();
         //# Transform → IDamageColorSink 1회 캐시(null 포함) — 틱마다 GetComponent 를 반복하지 않는다.
@@ -32,8 +36,10 @@ namespace Lair.Battle
 
         public StageRuleContext(
             Health heroHealth, Transform hero, IReadOnlyList<Spawner> spawners, BattleZone zone,
-            MonsterRangeModifier range, Action reapplyMonsterStats, Action<string> notify, IStringProvider strings)
+            MonsterRangeModifier range, Action reapplyMonsterStats, Action<string> notify, IStringProvider strings,
+            Func<EMonster, int> costOf = null)
         {
+            _costOf = costOf;
             _heroHealth = heroHealth;
             _hero = hero;
             _spawners = spawners ?? Array.Empty<Spawner>();
@@ -77,16 +83,21 @@ namespace Lair.Battle
             _reapplyMonsterStats?.Invoke();
         }
 
+        //# 정확히 1곳 봉인(§5.1-C) — 대상 선정은 FormationRules.PickSealedSlot 이 소유(팝업 봉인 예고와 같은 함수).
         public Vector3[] LockSpawners(EMonster species)
         {
             List<Spawner> targets = new List<Spawner>();
-            foreach (Spawner sp in _spawners)
+            EMonster[] outputs = new EMonster[_spawners.Count];
+            for (int i = 0; i < outputs.Length; ++i)
             {
-                if (sp != null && sp.CurrentType == species && sp.IsLocked == false)
-                {
-                    sp.Lock();
-                    targets.Add(sp);
-                }
+                outputs[i] = _spawners[i] != null ? _spawners[i].CurrentType : species;
+            }
+            int index = FormationRules.PickSealedSlot(outputs, species, _costOf, i => _spawners[i] != null && _spawners[i].IsLocked == false);
+            if (index >= 0)
+            {
+                _spawners[index].Lock();
+                targets.Add(_spawners[index]);
+                _sealedSpecies[species] = _spawners[index].CurrentType;
             }
             _locked[species] = targets;
 
@@ -96,6 +107,11 @@ namespace Lair.Battle
                 positions[i] = targets[i].transform.position;
             }
             return positions;
+        }
+
+        public EMonster SealedSpeciesOf(EMonster requested)
+        {
+            return _sealedSpecies.TryGetValue(requested, out EMonster sealedSpecies) ? sealedSpecies : requested;
         }
 
         public void UnlockSpawners(EMonster species)

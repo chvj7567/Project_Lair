@@ -57,7 +57,7 @@ namespace Lair.Battle
                 return;
 
             Unlock();
-            _ctx.ShowNotice(UnlockNoticeStringId, SpeciesVisual.SpeciesName(_species));
+            _ctx.ShowNotice(UnlockNoticeStringId, SpeciesVisual.SpeciesName(_ctx.SealedSpeciesOf(_species)));
         }
 
         public void Deactivate()

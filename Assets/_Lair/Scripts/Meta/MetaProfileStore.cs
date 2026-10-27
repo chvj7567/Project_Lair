@@ -40,8 +40,9 @@ namespace Lair.Meta
                 }
                 else
                 {
-                    //# 최신 버전 파일도 유물 행 정리는 수행(멱등, 챕터 데이터 비의존) — 손상된 행이 로드 시 남지 않게.
+                    //# 최신 버전 파일도 유물·편성 행 정리는 수행(멱등, 챕터 데이터 비의존) — 손상된 행이 로드 시 남지 않게.
                     MetaProfileMigration.NormalizeRelics(profile);
+                    MetaProfileMigration.NormalizeFormation(profile);
                 }
                 return profile;
             }

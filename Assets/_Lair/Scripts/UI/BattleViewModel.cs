@@ -416,7 +416,7 @@ namespace Lair.UI
                 CurrentType = sp.CurrentType,
                 OutputCount = sp.OutputCount,
                 AppliedBuffs = controller.GetAppliedBuffs(sp.CurrentType),
-                SealUnlockHpPercent = controller.GetSealUnlockHpPercent(sp.CurrentType),
+                SealUnlockHpPercent = controller.GetSpawnerSealUnlockHpPercent(),
             };
         }
     }

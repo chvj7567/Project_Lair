@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 → v8 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 8;
+        public const int CurrentVersion = 9;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -31,6 +31,8 @@ namespace Lair.Meta
             //# 챕터 3 이후 Cleared > 10 인 v6 세이브가 로드 전 호출에서 기본 MaxStage(10)로 잘리는 경로 방어. 트레이드오프: DB 로드 실패 시 비정상 v6 값은 자르지 않는다(의도).
             //# 유물(v8) 정리는 챕터 데이터에 의존하지 않으므로 이 조기 반환보다 앞서 항상 수행한다(멱등).
             NormalizeRelics(profile);
+            //# 편성(v9)도 챕터 데이터·편성 JSON 에 의존하지 않는 모양 정리라 같은 이유로 조기 반환보다 앞선다(dungeon-formation §4.1).
+            NormalizeFormation(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -98,6 +100,16 @@ namespace Lair.Meta
             if (profile.RelicMissStreak < 0)
             {
                 profile.RelicMissStreak = 0;
+            }
+        }
+
+        //# Formation: null→빈 리스트. 0행은 유지(기본 편성), 그 외 모양이 6행·슬롯 1~6 한 번씩·EMonster 값명이 아니면 빈 리스트로 초기화(기본 편성 복귀).
+        //# 코스트·종당 최대 검사는 하지 않는다 — 편성 JSON 로드 전에도 돌 수 있어 읽는 지점(FormationRules.Resolve)이 담당(§4.1).
+        public static void NormalizeFormation(MetaProfile profile)
+        {
+            if (profile.Formation == null || FormationRules.IsMalformedSave(profile.Formation))
+            {
+                profile.Formation = new List<FormationSlotEntry>();
             }
         }
 

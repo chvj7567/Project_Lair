@@ -106,6 +106,7 @@ namespace Lair.Data
         //# 챕터 시스템 — 맨 끝 append. 월드맵 팝업(HeroSelectPopup 대체, chapter-system §6). 값명 = 프리팹 파일명.
         WorldMapPopup,         //# 침입 지도 — 챕터 탭 + 스테이지 노드 + 상세
         RelicPopup,            //# 유물 도감 — 마을 HUD 버튼 (relics §7.2). 값명 = 프리팹 파일명.
+        FormationPopup,        //# 던전 편성 — 마을 "방어하기" 가 여는 출격 전 편성 팝업 (dungeon-formation §7). 값명 = 프리팹 파일명.
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -146,6 +147,12 @@ namespace Lair.Data
         Stage_Relic,
         Difficulty_Relic,
         Difficulty_Relic_Rarity,
+        //# 던전 편성 JSON 5종 (dungeon-formation §3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        FormationConfig,
+        FormationMonster,
+        FormationSlot,
+        Card_Species,
+        Chapter_FormationHint,
     }
 
     //# 유물 2차 (relics §12.2) — 값명 = 아이콘 파일명(Art/Sprites/Relic/<값명>.png) = Relic.relicId. append-only.

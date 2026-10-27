@@ -524,8 +524,8 @@ namespace Lair.Village
         }
 
         //# 출격 — 현재 스테이지가 해금이면 그 스테이지로 Battle 입장(SelectedStage 는 이동 시 이미 저장됨, 기획서 §4.5).
-        //# 잠금이면 방어적 차단(출격 버튼 비활성이 1차 가드, §4.5).
-        private void Sortie()
+        //# 잠금이면 방어적 차단(출격 버튼 비활성이 1차 가드, §4.5). 편성 해금(1-1 클리어) 후에는 편성 팝업이 먼저 열리고 "출격" 이 저장 + 입장한다(dungeon-formation §6.2).
+        private async void Sortie()
         {
             if (_vm == null || _vm.IsCurrentStageUnlocked == false)
                 return;
@@ -535,6 +535,43 @@ namespace Lair.Village
                 ToastView.Show(LookupString(WorldMapViewModel.StrNotReadyHint), EToastKind.Warning);
                 return;
             }
+
+            //# 편성 잠김(1-1 클리어 전) 또는 편성 데이터 로드 실패 -> 현행처럼 팝업 없이 바로 입장(기본 편성/씬 배치).
+            MetaProfile profile = MetaSession.GetOrLoad();
+            FormationDatabase formation = FormationDatabase.Current;
+            if (formation == null || FormationRules.IsUnlocked(formation.Config, profile.ClearedStage) == false)
+            {
+                EnterBattle();
+                return;
+            }
+
+            FormationViewModel formationVm = new FormationViewModel(
+                formation, ChapterDatabase.Current, profile, _vm.SelectedStage, LookupString,
+                monster => profile.GetShopLevel("Enhance_" + monster));
+            UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.FormationPopup, new FormationPopupArg
+            {
+                ViewModel = formationVm,
+                OnSortie = SortieWithFormation,
+            });
+            if (popup == null)
+            {
+                //# 프리팹 로드 실패 시 출격이 막히지 않게 — 저장된 편성 그대로 입장.
+                Debug.LogError("[VillageController] FormationPopup 표시 실패 - 저장된 편성으로 바로 출격");
+                EnterBattle();
+            }
+        }
+
+        //# 편성 팝업 확정 — 편성(0행=기본, 6행=사용자) 저장 후 입장. Battle 이 매 전투 프로필에서 다시 읽는다(다시 도전도 같은 편성).
+        private void SortieWithFormation(List<FormationSlotEntry> rows)
+        {
+            MetaProfile profile = MetaSession.GetOrLoad();
+            profile.Formation = rows ?? new List<FormationSlotEntry>();
+            MetaSession.Store?.Save(profile);
+            EnterBattle();
+        }
+
+        private static void EnterBattle()
+        {
             SceneManager.LoadScene(EScene.Battle.ToString());
         }
     }

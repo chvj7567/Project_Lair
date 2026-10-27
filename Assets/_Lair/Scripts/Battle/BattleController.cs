@@ -63,6 +63,8 @@ namespace Lair.Battle
         private ChapterDatabase _chapters;
         //# 전투 시작에 확정한 난이도(difficulty-select §4.3) — 판 도중 다시 읽지 않는다. 프로필은 수정하지 않는다(읽기 전용 클램프).
         private int _effectiveDifficulty;
+        //# 이번 판 EffectiveFormation (dungeon-formation §6.3) — 시작 시 1회 계산. null 이면 편성 기능 비활성(씬 인스펙터 배치 그대로).
+        private EMonster[] _formation;
         //# 유물(relics §6.1) — 전투 시작에 보유 유물을 1회 집계한 스냅샷. 판 도중 보유는 변하지 않는다. 유물 DB 미로드면 빈 스냅샷.
         private RelicBattleBonus _relicBonus = RelicBattleBonus.None;
         //# 유물 전투 효과(오라·소환·광폭화)는 BattleClock 시작(영웅 입장 완료) 시점에 1회만 개시한다.
@@ -150,6 +152,7 @@ namespace Lair.Battle
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
             await ApplyChapterBackdrop();
+            _formation = ResolveFormation();
 
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
@@ -179,6 +182,8 @@ namespace Lair.Battle
             if (heroSpawned == false)
                 return;
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
+            //# 편성 적용은 BindSpawners(종별 base 주기)·SetupStageRules(봉인)·첫 스폰 지연 등 CurrentType 을 읽는 모든 단계보다 먼저(§6.4).
+            ApplyFormation();
             BindSpawners();
             //# 스테이지 규칙 — 첫 스포너 Tick 전에 활성해야 봉인이 첫 스폰보다 앞선다(Start 의 이후 await 중 Update 가 돈다).
             if (SetupStageRules() == false)
@@ -484,7 +489,8 @@ namespace Lair.Battle
             {
                 StageRuleContext ctx = new StageRuleContext(
                     _heroHealth, _hero.transform, _spawners, _zone, _rangeModifier, ReapplyAllMonsterStats,
-                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider);
+                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider,
+                    FormationDatabase.Current != null ? FormationDatabase.Current.CostOf : (System.Func<EMonster, int>)null);
                 _ruleRunner = new StageRuleRunner(ctx, _heroHealth, rules);
                 _ruleRunner.Start();
             }
@@ -519,6 +525,21 @@ namespace Lair.Battle
             }
             Vector3 scale = capsule.transform.lossyScale;
             return capsule.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z));
+        }
+
+        //# 스포너 상태 UI 봉인 표기용 — 스테이지에 봉인된 둥지 규칙이 있으면 해제 HP%(정수), 없으면 0. 종과 무관 — 셀이 실제 봉인 여부(IsLocked)와 함께 판정한다(대체 규칙, dungeon-formation §5.1).
+        public int GetSpawnerSealUnlockHpPercent()
+        {
+            if (_chapters == null)
+                return 0;
+            MetaProfile profile = MetaSession.GetOrLoad();
+            foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
+            {
+                int percent = SealedNestInfo.AnyUnlockHpPercent(data);
+                if (percent > 0)
+                    return percent;
+            }
+            return 0;
         }
 
         //# 스포너 상태 UI 봉인 표기용 — 현재 스테이지의 봉인된 둥지가 species 를 봉인하면 해제 HP%(정수), 아니면 0. 규칙 데이터에서 읽는다.
@@ -1005,6 +1026,48 @@ namespace Lair.Battle
             }
         }
 
+        //# EffectiveFormation 계산 (§6.3) — 편성 데이터 미로드면 null. 프로필은 수정하지 않는다.
+        private static EMonster[] ResolveFormation()
+        {
+            MetaProfile profile = MetaSession.GetOrLoad();
+            return FormationRules.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, warn: Debug.LogWarning);
+        }
+
+        //# 편성 종 수 — 편성 비활성이면 0(워밍 배수 1 유지).
+        private int FormationCount(EMonster key)
+        {
+            return _formation != null ? FormationRules.CountOf(_formation, key) : 0;
+        }
+
+        //# 슬롯 i 의 스포너 출력 종 = 편성[i] (§6.4). 기존 Spawner.ReplaceOutput 재사용 — 제단 틴트는 OnOutputTypeChanged 로 갱신.
+        //# 씬 _spawners 순서와 FormationSlot.defaultMonster 가 어긋나면 슬롯 번호 의미가 깨지므로 적용하지 않고 씬 배치를 쓴다.
+        private void ApplyFormation()
+        {
+            if (_formation == null || _spawners == null)
+                return;
+            EMonster[] defaults = FormationDatabase.Current.DefaultFormation();
+            if (_spawners.Length != defaults.Length)
+            {
+                Debug.LogError($"[BattleController] 스포너 수({_spawners.Length}) 가 FormationSlot 수({defaults.Length}) 와 다름 — 편성 미적용");
+                return;
+            }
+            for (int i = 0; i < _spawners.Length; ++i)
+            {
+                if (_spawners[i] == null || _spawners[i].CurrentType != defaults[i])
+                {
+                    Debug.LogError($"[BattleController] 씬 스포너 {i + 1} 의 출력 종이 FormationSlot 기본 편성({defaults[i]})과 다름 — 편성 미적용");
+                    return;
+                }
+            }
+            for (int i = 0; i < _spawners.Length; ++i)
+            {
+                if (_spawners[i].CurrentType != _formation[i])
+                {
+                    _spawners[i].ReplaceOutput(_formation[i]);
+                }
+            }
+        }
+
         //# 지속 스폰 — 씬의 Spawner 들에 호스트 주입. 이후 Update 가 각자 주기 틱.
         //# 스포너 상태 UI — Spawner 6개 + 본 컨트롤러를 VM 에 묶어 SpawnerSnapshot 통합 노출.
         private void BindSpawners()
@@ -1214,13 +1277,26 @@ namespace Lair.Battle
                 return;
             foreach (RelicBattleBonus.SummonSpec spec in _relicBonus.OpeningSummons)
             {
-                if (GetSealUnlockHpPercent(spec.Monster) > 0)
+                if (IsSpeciesSpawnerLocked(spec.Monster))
                     continue;
                 for (int i = 0; i < spec.Count; ++i)
                 {
                     SpawnMonsterRuntime(spec.Monster, _hero.transform.position);
                 }
             }
+        }
+
+        //# 봉인된 둥지가 지금 이 종 둥지를 봉인 중인가 — 봉인은 둥지 1곳이라(대체 규칙 포함) 규칙의 봉인 종이 아니라 실제 봉인 상태로 판정한다(relics E-17, dungeon-formation §5.1).
+        private bool IsSpeciesSpawnerLocked(EMonster species)
+        {
+            if (_spawners == null)
+                return false;
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp != null && sp.IsLocked && sp.CurrentType == species)
+                    return true;
+            }
+            return false;
         }
 
         //# 분노의 영혼 — 영웅 HP 비율이 hpFraction 이하가 되면 몬스터 전체 광폭화를 전투당 1회 발동.
@@ -1699,6 +1775,30 @@ namespace Lair.Battle
             return summary;
         }
 
+        //# 3택1 후보 제외 — 3픽 캡 OR 지금 출력 중인 종이 하나도 없는 종 의존 카드(dungeon-formation §5.2-C). 난수를 소비하지 않는 순수 판정.
+        private bool IsCardExcluded(ECardId id)
+        {
+            return _pickCounter.IsCapped(id) || IsCardSpeciesAbsent(id);
+        }
+
+        private bool IsCardSpeciesAbsent(ECardId id)
+        {
+            FormationCardSpecies table = FormationCardSpecies.Current;
+            if (table == null || _spawners == null)
+                return false;
+            return table.IsAvailable(id, IsSpeciesOutputting) == false;
+        }
+
+        private bool IsSpeciesOutputting(EMonster species)
+        {
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp != null && sp.CurrentType == species)
+                    return true;
+            }
+            return false;
+        }
+
         //# 시너지 임계 3/5/7장 = Tier 1/2/3 (card-renewal §4) — 4축 최고값.
         private int GetMaxSynergyTier()
         {
@@ -1745,7 +1845,7 @@ namespace Lair.Battle
                 //# 시뮬레이션 전용 — 팝업/일시정지를 건너뛰고 즉시 픽. tcs 무한 대기 회피.
                 if (DebugAutoPicker != null)
                 {
-                    IReadOnlyList<CardData> simChoices = deck.Draw(3, id => _pickCounter.IsCapped(id));
+                    IReadOnlyList<CardData> simChoices = deck.Draw(3, IsCardExcluded);
                     CardData picked = DebugAutoPicker(simChoices, entry.SourceType);
                     if (picked != null)
                     {
@@ -1762,7 +1862,7 @@ namespace Lair.Battle
 
                 _pause.Pause();
                 _vm.SetExitAvailable(false);
-                IReadOnlyList<CardData> choices = deck.Draw(3, id => _pickCounter.IsCapped(id));
+                IReadOnlyList<CardData> choices = deck.Draw(3, IsCardExcluded);
 #if UNITY_EDITOR
                 //# 디버그 — 지정 카드 강제 등장. 팝업 경로 한정 (시뮬 DebugAutoPicker 경로 비간섭) — 토글 OFF 면 내부 no-op.
                 if (_forcedCardDraw != null)
@@ -1958,14 +2058,14 @@ namespace Lair.Battle
                 }
             }
 
-            //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축
+            //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축. 편성에서 같은 종이 여러 곳이면 그 곳 수만큼 배수(§6.4).
             foreach (EMonster key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
                                         EMonster.Hex, EMonster.Plague, EMonster.Phantom })
             {
                 GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (prefab != null)
                 {
-                    CHMPool.Instance.CreatePool(prefab, count: 10);
+                    CHMPool.Instance.CreatePool(prefab, count: 10 * System.Math.Max(1, FormationCount(key)));
                 }
             }
 

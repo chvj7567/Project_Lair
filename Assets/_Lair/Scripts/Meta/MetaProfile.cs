@@ -9,7 +9,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 8;
+        public int Version = 9;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -40,6 +40,8 @@ namespace Lair.Meta
         public List<RelicEntry> Relics = new List<RelicEntry>();
         //# 승리 굴림 연속 미획득 수(소프트 pity). 0 = 연패 0 이라는 실제 값.
         public int RelicMissStreak;
+        //# 던전 편성(v9, dungeon-formation §3.2) — 0행 = 기본 편성(바꾼 적 없음), 6행 = 사용자 편성. 구버전 세이브엔 키가 없어 빈 리스트로 로드.
+        public List<FormationSlotEntry> Formation = new List<FormationSlotEntry>();
         //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
         public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
@@ -275,6 +277,21 @@ namespace Lair.Meta
             //# 유물은 수집 노력이 큰 자산 — 빠뜨리면 복원 시 유물 전부 유실. BattleSpeedOn 은 로컬 선호값이라 복사하지 않는다.
             Relics = other.Relics ?? new List<RelicEntry>();
             RelicMissStreak = other.RelicMissStreak;
+            //# 편성은 플레이어의 계획 — 빠뜨리면 복원 시 편성만 유실된다.
+            Formation = CopyFormation(other.Formation);
+        }
+
+        //# 편성 행 복사 — null 이면 빈 리스트(기본 편성), 행은 새 인스턴스로(원본 공유 방지).
+        private static List<FormationSlotEntry> CopyFormation(List<FormationSlotEntry> source)
+        {
+            List<FormationSlotEntry> copy = new List<FormationSlotEntry>();
+            if (source == null)
+                return copy;
+            foreach (FormationSlotEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new FormationSlotEntry { Slot = entry.Slot, Monster = entry.Monster });
+            }
+            return copy;
         }
 
         //# 랭킹 제출 표시명 결정(기획서 §1) — DisplayName 우선, 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자).
@@ -342,6 +359,14 @@ namespace Lair.Meta
     {
         public string RelicId;   //# Relic.relicId (ERelic 값명)
         public int Stack;        //# 현재 중첩 (>= 1)
+    }
+
+    //# 편성 한 둥지의 종 — Formation 은 0행 또는 정확히 6행(Slot 1~6 한 번씩). JsonUtility 직렬화 대상.
+    [Serializable]
+    public class FormationSlotEntry
+    {
+        public int Slot;         //# FormationSlot.slot 1~6
+        public string Monster;   //# EMonster 값명
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

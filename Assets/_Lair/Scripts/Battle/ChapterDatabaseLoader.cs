@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
 using Lair.Data;
@@ -58,6 +59,7 @@ namespace Lair.Battle
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
                 await LoadDifficultyAsync();
                 await LoadRelicsAsync(db);
+                await LoadFormationAsync(db);
                 return db;
             }
             catch (ChapterDataException e)
@@ -130,6 +132,61 @@ namespace Lair.Battle
                 //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 유물 기능 비활성");
                 RelicDatabase.Current = null;
+            }
+        }
+
+        //# 던전 편성 JSON 5종 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 편성 기능 비활성(마을 바로 출격, 전투 씬 기본 배치, 저장 편성 보존) — dungeon-formation §3.3-8.
+        //# Card_Species 만 실패하면 카드 후보 제외만 꺼진다(E-2).
+        private static async Task LoadFormationAsync(ChapterDatabase chapters)
+        {
+            FormationDatabase.Current = null;
+            FormationCardSpecies.Current = null;
+            string configJson = await LoadTextAsync(EData.FormationConfig);
+            string monsterJson = await LoadTextAsync(EData.FormationMonster);
+            string slotJson = await LoadTextAsync(EData.FormationSlot);
+            string hintJson = await LoadTextAsync(EData.Chapter_FormationHint);
+            string cardJson = await LoadTextAsync(EData.Card_Species);
+            if (configJson == null || monsterJson == null || slotJson == null || hintJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 던전 편성 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 편성 기능 비활성");
+                return;
+            }
+            try
+            {
+                List<int> chapterIds = new List<int>();
+                foreach (ChapterRow chapter in chapters.Chapters)
+                {
+                    chapterIds.Add(chapter.chapterId);
+                }
+                FormationDatabase.Current = FormationDatabase.Build(
+                    JsonUtility.FromJson<FormationConfigRow>(configJson),
+                    JsonArrayUtility.FromJsonArray<FormationMonsterRow>(monsterJson),
+                    JsonArrayUtility.FromJsonArray<FormationSlotRow>(slotJson),
+                    JsonArrayUtility.FromJsonArray<Chapter_FormationHintRow>(hintJson),
+                    chapterIds,
+                    NameKeyExists);
+            }
+            catch (System.Exception e)
+            {
+                //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 편성 기능 비활성");
+                FormationDatabase.Current = null;
+                return;
+            }
+
+            if (cardJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] Card_Species.json 로드 실패 — 카드 후보 제외 비활성");
+                return;
+            }
+            try
+            {
+                FormationCardSpecies.Current = FormationCardSpecies.Build(JsonArrayUtility.FromJsonArray<Card_SpeciesRow>(cardJson), FormationDatabase.Current);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 카드 후보 제외 비활성");
+                FormationCardSpecies.Current = null;
             }
         }
 

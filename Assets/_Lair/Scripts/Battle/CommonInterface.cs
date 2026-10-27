@@ -103,8 +103,11 @@ namespace Lair.Battle
         void SetMonsterRangeRule(float mul, float minRange);
         void ClearMonsterRangeRule();
 
-        //# species 를 출력하는 스포너의 주기 스폰 봉인. 봉인된 스포너 위치 반환(0개면 빈 배열).
+        //# 봉인된 둥지 — species 를 출력하는 스포너 중 슬롯 번호 최소 1곳만 주기 스폰 봉인(없으면 코스트 최고 둥지 1곳, dungeon-formation §5.1). 봉인된 스포너 위치 반환(0개면 빈 배열).
         Vector3[] LockSpawners(EMonster species);
+
+        //# LockSpawners(requested) 로 실제 봉인된 둥지의 종 — 대체 규칙으로 다른 종이 봉인됐을 수 있다(알림 문구용). 기본 구현은 요청 종 그대로.
+        EMonster SealedSpeciesOf(EMonster requested) => requested;
 
         //# 봉인 해제 + 해당 스포너 즉시 1회 스폰.
         void UnlockSpawners(EMonster species);
