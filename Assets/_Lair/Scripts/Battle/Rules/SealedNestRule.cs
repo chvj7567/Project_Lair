@@ -39,7 +39,7 @@ namespace Lair.Battle
             Vector3[] positions = _ctx.LockSpawners(_species);
             if (positions.Length == 0)
             {
-                Debug.LogError($"[SealedNestRule] 봉인할 {_species} 스포너가 씬에 없음 — 규칙 무효");
+                Debug.LogError($"[SealedNestRule] 봉인 후보 둥지 없음 — 규칙 무효");
                 return;
             }
             _locked = true;

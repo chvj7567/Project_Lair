@@ -84,18 +84,18 @@ namespace Lair.Tests.EditMode
             List<FormationSlotEntry> valid = Rows(EMonster.Reaper, EMonster.Reaper, EMonster.Hex, EMonster.Phantom, EMonster.Plague, EMonster.Phantom);
             List<FormationSlotEntry> overCost = Rows(EMonster.Reaper, EMonster.Reaper, EMonster.Wisp, EMonster.Wraith, EMonster.Plague, EMonster.Phantom);
 
-            Assert.IsNull(FormationRules.Resolve(null, valid, 5), "데이터 실패 -> 씬 기본(null)");
-            CollectionAssert.AreEqual(defaults, FormationRules.Resolve(db, new List<FormationSlotEntry>(), 5), "0행 -> 기본");
-            CollectionAssert.AreEqual(defaults, FormationRules.Resolve(db, valid, 0), "잠김 -> 기본");
-            CollectionAssert.AreEqual(Rows2Formation(valid), FormationRules.Resolve(db, valid, 1), "유효 6행 -> 저장");
-            CollectionAssert.AreEqual(defaults, FormationRules.Resolve(db, overCost, 5), "무효 6행 -> 기본");
+            Assert.IsNull(FormationSave.Resolve(null, valid, 5), "데이터 실패 -> 씬 기본(null)");
+            CollectionAssert.AreEqual(defaults, FormationSave.Resolve(db, new List<FormationSlotEntry>(), 5), "0행 -> 기본");
+            CollectionAssert.AreEqual(defaults, FormationSave.Resolve(db, valid, 0), "잠김 -> 기본");
+            CollectionAssert.AreEqual(Rows2Formation(valid), FormationSave.Resolve(db, valid, 1), "유효 6행 -> 저장");
+            CollectionAssert.AreEqual(defaults, FormationSave.Resolve(db, overCost, 5), "무효 6행 -> 기본");
             EMonster[] fixedFormation = { EMonster.Plague, EMonster.Plague, EMonster.Plague, EMonster.Plague, EMonster.Plague, EMonster.Plague };
-            CollectionAssert.AreEqual(fixedFormation, FormationRules.Resolve(db, valid, 5, fixedFormation), "외부 고정 편성 우선");
+            CollectionAssert.AreEqual(fixedFormation, FormationSave.Resolve(db, valid, 5, fixedFormation), "외부 고정 편성 우선");
         }
 
         private static EMonster[] Rows2Formation(List<FormationSlotEntry> rows)
         {
-            return FormationRules.FromSaved(rows);
+            return FormationSave.FromSaved(rows);
         }
 
         [Test]
@@ -169,10 +169,10 @@ namespace Lair.Tests.EditMode
         public void 저장은_기본과_같으면_0행_다르면_6행이다()
         {
             FormationDatabase db = ShippedDb();
-            Assert.AreEqual(0, FormationRules.ToSaved(db.DefaultFormation(), db.DefaultFormation()).Count);
+            Assert.AreEqual(0, FormationSave.ToSaved(db.DefaultFormation(), db.DefaultFormation()).Count);
             EMonster[] changed = db.DefaultFormation();
             changed[0] = EMonster.Plague;
-            Assert.AreEqual(6, FormationRules.ToSaved(changed, db.DefaultFormation()).Count);
+            Assert.AreEqual(6, FormationSave.ToSaved(changed, db.DefaultFormation()).Count);
         }
 
         [Test]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Lair.Meta;
 
 namespace Lair.Data
 {

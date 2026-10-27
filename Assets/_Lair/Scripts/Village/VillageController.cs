@@ -30,6 +30,7 @@ namespace Lair.Village
         private EHero _showcaseHero;
         private bool _showcaseSwapping;
         private bool _showcaseSwapPending;
+        private bool _sortieBusy;   //# 출격 팝업 로드 중 재진입 가드
 
         private async void Start()
         {
@@ -527,7 +528,7 @@ namespace Lair.Village
         //# 잠금이면 방어적 차단(출격 버튼 비활성이 1차 가드, §4.5). 편성 해금(1-1 클리어) 후에는 편성 팝업이 먼저 열리고 "출격" 이 저장 + 입장한다(dungeon-formation §6.2).
         private async void Sortie()
         {
-            if (_vm == null || _vm.IsCurrentStageUnlocked == false)
+            if (_sortieBusy || _vm == null || _vm.IsCurrentStageUnlocked == false)
                 return;
             //# 출격 불가 챕터(ChapterGate)는 오류 대신 명시적 안내 — 월드맵·캐러셀이 1차로 막고 여기는 방어 가드.
             if (ChapterGate.IsStagePlayable(_vm.SelectedStage) == false)
@@ -545,6 +546,8 @@ namespace Lair.Village
                 return;
             }
 
+            //# 팝업 로드(await) 중 연타로 중복 표시되지 않게 재진입 가드.
+            _sortieBusy = true;
             FormationViewModel formationVm = new FormationViewModel(
                 formation, ChapterDatabase.Current, profile, _vm.SelectedStage, LookupString,
                 monster => profile.GetShopLevel("Enhance_" + monster));
@@ -553,6 +556,7 @@ namespace Lair.Village
                 ViewModel = formationVm,
                 OnSortie = SortieWithFormation,
             });
+            _sortieBusy = false;
             if (popup == null)
             {
                 //# 프리팹 로드 실패 시 출격이 막히지 않게 — 저장된 편성 그대로 입장.

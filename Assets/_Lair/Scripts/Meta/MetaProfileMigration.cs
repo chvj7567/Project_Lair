@@ -104,10 +104,10 @@ namespace Lair.Meta
         }
 
         //# Formation: null→빈 리스트. 0행은 유지(기본 편성), 그 외 모양이 6행·슬롯 1~6 한 번씩·EMonster 값명이 아니면 빈 리스트로 초기화(기본 편성 복귀).
-        //# 코스트·종당 최대 검사는 하지 않는다 — 편성 JSON 로드 전에도 돌 수 있어 읽는 지점(FormationRules.Resolve)이 담당(§4.1).
+        //# 코스트·종당 최대 검사는 하지 않는다 — 편성 JSON 로드 전에도 돌 수 있어 읽는 지점(FormationSave.Resolve)이 담당(§4.1).
         public static void NormalizeFormation(MetaProfile profile)
         {
-            if (profile.Formation == null || FormationRules.IsMalformedSave(profile.Formation))
+            if (profile.Formation == null || FormationSave.IsMalformedSave(profile.Formation))
             {
                 profile.Formation = new List<FormationSlotEntry>();
             }

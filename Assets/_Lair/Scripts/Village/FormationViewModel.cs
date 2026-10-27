@@ -73,7 +73,7 @@ namespace Lair.Village
             _text = text ?? (id => string.Empty);
             _awakenLevelOf = awakenLevelOf ?? (monster => 0);
             _defaults = db.DefaultFormation();
-            EMonster[] saved = FormationRules.FromSaved(profile.Formation);
+            EMonster[] saved = FormationSave.FromSaved(profile.Formation);
             _formation = saved ?? db.DefaultFormation();
             _maxPerSpecies = FormationRules.MaxPerSpecies(db.Config, profile.ClearedStage);
             Stage = stage;
@@ -195,7 +195,7 @@ namespace Lair.Village
         //# 저장 행 — 기본 편성과 같으면 0행, 다르면 6행.
         public List<FormationSlotEntry> BuildSaveRows()
         {
-            return FormationRules.ToSaved(_formation, _defaults);
+            return FormationSave.ToSaved(_formation, _defaults);
         }
 
         public FormationNestData GetNest(int index)

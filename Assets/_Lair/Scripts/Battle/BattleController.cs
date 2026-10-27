@@ -542,21 +542,6 @@ namespace Lair.Battle
             return 0;
         }
 
-        //# 스포너 상태 UI 봉인 표기용 — 현재 스테이지의 봉인된 둥지가 species 를 봉인하면 해제 HP%(정수), 아니면 0. 규칙 데이터에서 읽는다.
-        public int GetSealUnlockHpPercent(EMonster species)
-        {
-            if (_chapters == null)
-                return 0;
-            MetaProfile profile = MetaSession.GetOrLoad();
-            foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
-            {
-                int percent = SealedNestInfo.UnlockHpPercent(data, species);
-                if (percent > 0)
-                    return percent;
-            }
-            return 0;
-        }
-
         //# 사거리 규칙 변경 시 필드 몬스터 전원에 소급 — RegisterMonsterTypeBuff 와 같은 resetCurrent:false(현재 HP 보존).
         private void ReapplyAllMonsterStats()
         {
@@ -1030,7 +1015,7 @@ namespace Lair.Battle
         private static EMonster[] ResolveFormation()
         {
             MetaProfile profile = MetaSession.GetOrLoad();
-            return FormationRules.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, warn: Debug.LogWarning);
+            return FormationSave.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, warn: Debug.LogWarning);
         }
 
         //# 편성 종 수 — 편성 비활성이면 0(워밍 배수 1 유지).
@@ -1040,7 +1025,7 @@ namespace Lair.Battle
         }
 
         //# 슬롯 i 의 스포너 출력 종 = 편성[i] (§6.4). 기존 Spawner.ReplaceOutput 재사용 — 제단 틴트는 OnOutputTypeChanged 로 갱신.
-        //# 씬 _spawners 순서와 FormationSlot.defaultMonster 가 어긋나면 슬롯 번호 의미가 깨지므로 적용하지 않고 씬 배치를 쓴다.
+        //# 스포너 수가 슬롯 수와 다르면 슬롯 번호 의미가 깨지므로 적용하지 않고 씬 배치를 쓴다. 종 불일치는 경고만(ReplaceOutput 은 절대 대입).
         private void ApplyFormation()
         {
             if (_formation == null || _spawners == null)
@@ -1053,10 +1038,14 @@ namespace Lair.Battle
             }
             for (int i = 0; i < _spawners.Length; ++i)
             {
-                if (_spawners[i] == null || _spawners[i].CurrentType != defaults[i])
+                if (_spawners[i] == null)
                 {
-                    Debug.LogError($"[BattleController] 씬 스포너 {i + 1} 의 출력 종이 FormationSlot 기본 편성({defaults[i]})과 다름 — 편성 미적용");
+                    Debug.LogError($"[BattleController] 씬 스포너 {i + 1} 이 비어 있음 — 편성 미적용");
                     return;
+                }
+                if (_spawners[i].CurrentType != defaults[i])
+                {
+                    Debug.LogWarning($"[BattleController] 씬 스포너 {i + 1} 의 출력 종이 FormationSlot 기본 편성({defaults[i]})과 다름 — 편성은 절대 대입이라 적용 계속");
                 }
             }
             for (int i = 0; i < _spawners.Length; ++i)
