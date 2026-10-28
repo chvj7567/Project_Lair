@@ -228,7 +228,7 @@ namespace Lair.Meta
         //# 탑 승리 기록 — 행이 없으면 추가, 있으면 더 짧을 때만 갱신. 시즌을 함께 기록한다. 입력이 불변식(Floor >= 1, ClearTime > 0)을 어기면 무시.
         public void RecordTowerClear(int floor, float clearTime, int seasonId)
         {
-            if (floor < 1 || clearTime <= 0f)
+            if (floor < 1 || clearTime > 0f == false)
                 return;
             if (TowerFloorClears == null)
             {
