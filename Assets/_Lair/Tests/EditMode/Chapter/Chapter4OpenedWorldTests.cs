@@ -334,7 +334,7 @@ namespace Lair.Tests.EditMode
             {
                 MetaProfile p = new MetaProfile { Version = 7, ClearedStage = cleared, SelectedStage = cleared };
                 MetaProfileMigration.Apply(p, db);
-                Assert.AreEqual(9, p.Version);
+                Assert.AreEqual(10, p.Version);
                 Assert.AreEqual(cleared, p.ClearedStage);
                 Assert.AreEqual(cleared, p.SelectedStage);
             }

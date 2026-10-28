@@ -102,6 +102,12 @@ namespace Lair.Battle
             return Math.Max(1, (int)Math.Floor(exact + 0.5m));
         }
 
+        //# 이미 곱해 둔 정확값(decimal)을 1회 round-half-up — 탑 영웅 스탯처럼 곱·나눗셈 순서를 호출부가 정하는 경로용. 최소 1.
+        public static int RoundHeroStat(decimal exact)
+        {
+            return Math.Max(1, (int)Math.Floor(exact + 0.5m));
+        }
+
         //# 스테이지 s 의 선택 가능 최대 난이도(difficulty-select §1.4) — 해금 판정 단일 소유.
         //# 미클리어면 0, 클리어면 Min(maxDifficulty, 클리어한 최고 난이도 + 1). clearedMaxDifficulty 는 행 없으면 0.
         public static int MaxSelectableDifficulty(int stage, int clearedStage, int clearedMaxDifficulty, int maxDifficulty)

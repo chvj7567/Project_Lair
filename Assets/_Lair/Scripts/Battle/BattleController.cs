@@ -63,6 +63,8 @@ namespace Lair.Battle
         private ChapterDatabase _chapters;
         //# 전투 시작에 확정한 난이도(difficulty-select §4.3) — 판 도중 다시 읽지 않는다. 프로필은 수정하지 않는다(읽기 전용 클램프).
         private int _effectiveDifficulty;
+        //# 이번 전투 사양 단일 해석 지점 (infinite-tower §8.1) — 시작 시 1회 확정. 배경·제목·규칙·외형·영웅 스탯·유물·기록이 SelectedStage 가 아니라 이것만 읽는다.
+        private BattleSpec _spec;
         //# 이번 판 EffectiveFormation (dungeon-formation §6.3) — 시작 시 1회 계산. null 이면 편성 기능 비활성(씬 인스펙터 배치 그대로).
         private EMonster[] _formation;
         //# 유물(relics §6.1) — 전투 시작에 보유 유물을 1회 집계한 스냅샷. 판 도중 보유는 변하지 않는다. 유물 DB 미로드면 빈 스냅샷.
@@ -151,6 +153,16 @@ namespace Lair.Battle
 
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
+            _spec = BattleSpecResolver.Resolve(MetaSession.BattleMode, MetaSession.GetOrLoad(), _chapters, TowerDatabase.Current);
+            if (_spec == null)
+            {
+                //# 탑 데이터 부재 (E-1) — 조용한 폴백 없이 전투 진입을 중단하고 마을로.
+                Debug.LogError("[BattleController] 탑 전투 사양을 만들지 못함(탑/챕터 데이터 없음) — 전투 진입 중단, 마을로 복귀");
+                MetaSession.BattleMode = EBattleMode.Chapter;
+                SceneManager.LoadScene(EScene.Village.ToString());
+                return;
+            }
+            _effectiveDifficulty = _spec.EffectiveDifficulty;
             await ApplyChapterBackdrop();
             _formation = ResolveFormation();
 
@@ -172,9 +184,7 @@ namespace Lair.Battle
             _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
             _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
             MetaProfile heroProfile = MetaSession.GetOrLoad();
-            _effectiveDifficulty = heroProfile.ClampDifficulty(heroProfile.SelectedDifficulty, heroProfile.SelectedStage, DifficultyTable.CurrentMaxIndex);
-            string difficultyLabel = _effectiveDifficulty >= 1 ? DifficultyTable.LabelOf(_effectiveDifficulty) : string.Empty;
-            _vm.SetHeroTitle(BattleViewModel.ComposeHeroTitle(HeroTitleName(heroProfile), StageProgress.IndexOf(heroProfile.SelectedStage), difficultyLabel));
+            _vm.SetHeroTitle(ComposeBattleTitle(heroProfile));
 
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
@@ -478,9 +488,7 @@ namespace Lair.Battle
             if (_chapters == null || _heroHealth == null || _hero == null)
                 return true;
 
-            MetaProfile profile = MetaSession.GetOrLoad();
-            IReadOnlyList<StageRuleData> rules = _chapters.GetRules(
-                StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage));
+            IReadOnlyList<StageRuleData> rules = _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex);
             if (rules.Count == 0)
                 return true;
 
@@ -530,10 +538,9 @@ namespace Lair.Battle
         //# 스포너 상태 UI 봉인 표기용 — 스테이지에 봉인된 둥지 규칙이 있으면 해제 HP%(정수), 없으면 0. 종과 무관 — 셀이 실제 봉인 여부(IsLocked)와 함께 판정한다(대체 규칙, dungeon-formation §5.1).
         public int GetSpawnerSealUnlockHpPercent()
         {
-            if (_chapters == null)
+            if (_chapters == null || _spec == null)
                 return 0;
-            MetaProfile profile = MetaSession.GetOrLoad();
-            foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(profile.SelectedStage), StageProgress.IndexOf(profile.SelectedStage)))
+            foreach (StageRuleData data in _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex))
             {
                 int percent = SealedNestInfo.AnyUnlockHpPercent(data);
                 if (percent > 0)
@@ -603,11 +610,10 @@ namespace Lair.Battle
             if (_chapters == null || _backdropRenderer == null)
                 return;
 
-            MetaProfile profile = MetaSession.GetOrLoad();
-            ChapterRow chapter = _chapters.GetChapter(StageProgress.ChapterOf(profile.SelectedStage));
+            ChapterRow chapter = _chapters.GetChapter(_spec.BackdropChapterId);
             if (chapter == null)
             {
-                Debug.LogError($"[BattleController] 선택 스테이지 {profile.SelectedStage} 의 챕터 데이터 없음 — 기본 배경으로 진행");
+                Debug.LogError($"[BattleController] 챕터 {_spec.BackdropChapterId} 의 챕터 데이터 없음 — 기본 배경으로 진행");
                 return;
             }
             if (System.Enum.TryParse(chapter.backdropKey, out EBackdrop key) == false || System.Enum.IsDefined(typeof(EBackdrop), key) == false)
@@ -657,8 +663,7 @@ namespace Lair.Battle
             if (hero == null || _stageVariantConfig == null)
                 return;
 
-            MetaProfile profile = MetaSession.GetOrLoad();
-            HeroStageVariant variant = _stageVariantConfig.GetStage(profile.SelectedStage);
+            HeroStageVariant variant = _stageVariantConfig.GetStage(_spec.LinearStage);
             if (variant == null)
                 return;
 
@@ -726,14 +731,12 @@ namespace Lair.Battle
         //# 영웅 스폰 — 챕터 데이터/직업/스테이지 조회나 프리팹 로드에 실패하면 false(전투 진입 중단). 조용한 폴백 금지(chapter-system E-11).
         private async Task<bool> SpawnHero()
         {
-            //# 챕터 영웅 직업·스테이지 — 선택 스테이지가 속한 챕터 기준 (chapter-system §7.4).
-            MetaProfile stageProfile = MetaSession.GetOrLoad();
-            HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(stageProfile.SelectedStage) : null;
-            StageRow stageRow = _chapters != null ? _chapters.GetStageByLinear(stageProfile.SelectedStage) : null;
-            if (archetype == null || stageRow == null || System.Enum.TryParse(archetype.heroId, out EHero heroKey) == false
+            //# 영웅 직업 — 전투 사양이 해석한 값 (챕터: 선택 스테이지 챕터의 영웅, 탑: 층 영웅). chapter-system §7.4.
+            HeroArchetypeRow archetype = _spec.Hero;
+            if (_spec.CanComputeHeroStats == false || System.Enum.TryParse(archetype.heroId, out EHero heroKey) == false
                 || System.Enum.IsDefined(typeof(EHero), heroKey) == false)
             {
-                Debug.LogError($"[BattleController] 챕터 데이터에서 스테이지 {stageProfile.SelectedStage} 의 영웅/스테이지를 찾지 못함 — 전투 진입 중단");
+                Debug.LogError($"[BattleController] 챕터/탑 데이터에서 영웅·스탯 사양({_spec.Mode}, 스테이지 {_spec.LinearStage})을 찾지 못함 — 전투 진입 중단");
                 return false;
             }
 
@@ -831,7 +834,7 @@ namespace Lair.Battle
             //# Slice C — 영웅 스탯 적용 (이후 UpdateHeroHp 가 올바른 값 반영)
             if (_balance != null && _balance.Hero != null)
             {
-                ApplyHeroStats(p.gameObject, HeroStatCalculator.Compute(_balance.Hero.Hp, _balance.Hero.Power, archetype, stageRow, DifficultyTable.CurrentRow(_effectiveDifficulty)));
+                ApplyHeroStats(p.gameObject, _spec.ComputeHeroStats(_balance.Hero.Hp, _balance.Hero.Power));
                 //# hero-stage-variant — 스탯 직후 스테이지 외형 반영.
                 ApplyStageVariant(p.gameObject);
             }
@@ -1345,11 +1348,11 @@ namespace Lair.Battle
         private RelicDropResult RollRelicDrop(MetaProfile profile, bool win)
         {
             RelicDatabase db = RelicDatabase.Current;
-            HeroArchetypeRow archetype = _chapters != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            HeroArchetypeRow archetype = _spec.Hero;
             if (db == null || archetype == null)
                 return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
-            return RelicDropRoller.Roll(db, profile, archetype.heroId, StageProgress.ChapterOf(profile.SelectedStage),
-                StageProgress.IndexOf(profile.SelectedStage), _effectiveDifficulty, win, RandomUnit);
+            return RelicDropRoller.Roll(db, profile, archetype.heroId, _spec.RelicChapterId,
+                _spec.RelicStageIndex, _spec.RelicDifficulty, win, RandomUnit);
         }
 
         //# [0,1) 난수 — UnityEngine.Random.value 는 1.0 을 포함하므로 확률 1.0 경계가 어긋나지 않게 절단.
@@ -1630,32 +1633,16 @@ namespace Lair.Battle
                 profile.Souls += reward.Souls;
                 profile.LordXp += reward.Xp;
                 profile.TotalRuns++;
-                //# 신기록 판정 — RecordStageRun 이 최단을 덮기 "전에" 이전 기록과 비교해야 한다(결과 팝업 NEW 배지).
-                //# Normal/Hard 판은 최단 기록·랭킹에서 제외(difficulty-select §1.6) — Runs/Wins 만 올린다.
-                bool easyRun = _effectiveDifficulty == 0;
-                int maxDifficulty = DifficultyTable.CurrentMaxIndex;
-                int unlockedBefore = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
-                isNewBest = easyRun && profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
-                //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
-                profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed, easyRun);
-                if (result == BattleResult.Win)
+                //# 탑 분기는 easyRun(_effectiveDifficulty == 0 이라 탑에서도 참)·IsNewStageBest·RecordStageRun 계산보다 "먼저" 갈라야 한다 —
+                //# 아니면 챕터 최단 기록·전역/스테이지 랭킹·ClearedStage·StageRecords 가 오염된다 (infinite-tower §8.1).
+                if (_spec.IsTower)
                 {
-                    profile.TotalWins++;
-                    //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(MaxStage 종점, spec §6.1). 저장은 아래 Save.
-                    profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
-                    profile.RecordDifficultyClear(profile.SelectedStage, _effectiveDifficulty);
-                    if (easyRun)
-                    {
-                        if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
-                        {
-                            profile.BestClearTime = _clock.Elapsed;
-                        }
-                        //# 최단 클리어 랭킹 제출(best-effort) — 클리어타임 = 영웅 처치까지 경과(낮을수록 상위).
-                        SubmitRanking(profile);
-                    }
+                    RecordTowerResult(profile, result);
                 }
-                int unlockedAfter = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
-                newlyUnlockedDifficulty = unlockedAfter > unlockedBefore ? unlockedAfter : 0;
+                else
+                {
+                    RecordChapterResult(profile, result, out isNewBest, out newlyUnlockedDifficulty);
+                }
 
                 //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 미할당 씬/테스트에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
                 //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 도감·영주 보상·도전과제보다 앞, 저장 전.
@@ -1709,6 +1696,9 @@ namespace Lair.Battle
                 IsNewBest = isNewBest,
                 Difficulty = _effectiveDifficulty,
                 DifficultyUnlocked = newlyUnlockedDifficulty,
+                IsTower = _spec.IsTower,
+                TowerFloor = _spec.IsTower ? _spec.Floor.Floor : 0,
+                TowerIsBoss = _spec.IsTower && _spec.Floor.IsBoss,
                 //# 남은 HP 비율 — 패배 화면 "영웅 남은 HP" 줄 (깎은 비율의 여집합).
                 HeroHpRatio = 1f - GetHeroDamagedRatio(),
                 HasRelicDrop = relicDrop.Acquired,
@@ -1721,6 +1711,46 @@ namespace Lair.Battle
             });
         }
 
+        //# 챕터 판 기록 (기존 동작 그대로) — 최단·스테이지 전적·클리어 진행·난이도·전역/스테이지 랭킹.
+        private void RecordChapterResult(MetaProfile profile, BattleResult result, out bool isNewBest, out int newlyUnlockedDifficulty)
+        {
+            //# 신기록 판정 — RecordStageRun 이 최단을 덮기 "전에" 이전 기록과 비교해야 한다(결과 팝업 NEW 배지).
+            //# Normal/Hard 판은 최단 기록·랭킹에서 제외(difficulty-select §1.6) — Runs/Wins 만 올린다.
+            bool easyRun = _effectiveDifficulty == 0;
+            int maxDifficulty = DifficultyTable.CurrentMaxIndex;
+            int unlockedBefore = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
+            isNewBest = easyRun && profile.IsNewStageBest(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed);
+            //# 스테이지별 전적 — 이번 판의 SelectedStage 기준 (spec §5). 총계와 같은 판에서 함께 움직인다.
+            profile.RecordStageRun(profile.SelectedStage, result == BattleResult.Win, _clock.Elapsed, easyRun);
+            if (result == BattleResult.Win)
+            {
+                profile.TotalWins++;
+                //# hero-stage-variant — 방금 클리어한 SelectedStage 로 해금 진행 갱신(MaxStage 종점, spec §6.1). 저장은 아래 Save.
+                profile.ClearedStage = StageProgress.ResolveClearedStage(profile.ClearedStage, profile.SelectedStage);
+                profile.RecordDifficultyClear(profile.SelectedStage, _effectiveDifficulty);
+                if (easyRun)
+                {
+                    if (profile.BestClearTime < 0f || _clock.Elapsed < profile.BestClearTime)
+                    {
+                        profile.BestClearTime = _clock.Elapsed;
+                    }
+                    //# 최단 클리어 랭킹 제출(best-effort) — 클리어타임 = 영웅 처치까지 경과(낮을수록 상위).
+                    SubmitRanking(profile);
+                }
+            }
+            int unlockedAfter = profile.MaxSelectableDifficulty(profile.SelectedStage, maxDifficulty);
+            newlyUnlockedDifficulty = unlockedAfter > unlockedBefore ? unlockedAfter : 0;
+        }
+
+        //# 탑 판 기록 (infinite-tower §7.1) — TotalWins 와 탑 층 클리어만. 챕터 전적·최단·ClearedStage·난이도·전역/스테이지 랭킹은 건드리지 않는다. 탑 랭킹 제출은 슬라이스 B.
+        private void RecordTowerResult(MetaProfile profile, BattleResult result)
+        {
+            if (result != BattleResult.Win)
+                return;
+            profile.TotalWins++;
+            profile.RecordTowerClear(_spec.Floor.Floor, _clock.Elapsed, TowerDatabase.Current.Config.seasonId);
+        }
+
         //# 승리 시 랭킹 제출 — fire-and-forget. 실패해도 결과창 흐름 차단 안 함(기획서 §6 무음 로그).
         //# 표시명: MetaProfile.DisplayName 우선, 없으면 "영주 #"+deviceId 앞4자 대문자(Delta 1 / 기획서 §1).
         private async void SubmitRanking(MetaProfile profile)
@@ -1729,7 +1759,7 @@ namespace Lair.Battle
                 return;
             int clearMs = Mathf.RoundToInt(_clock.Elapsed * 1000f);
             //# 랭킹 hero = 선택 스테이지가 속한 챕터의 heroId (chapter-system §2.3). 데이터 없으면 프로필 값 → 기사.
-            HeroArchetypeRow archetype = _chapters != null && profile != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            HeroArchetypeRow archetype = _spec.Hero;
             string hero = archetype != null
                 ? archetype.heroId
                 : (profile != null && string.IsNullOrEmpty(profile.SelectedHero) == false ? profile.SelectedHero : EHero.Knight.ToString());
@@ -1738,7 +1768,7 @@ namespace Lair.Battle
                 AuthTokenStore.GetOrCreateDeviceId());
             await MetaSession.Ranking.SubmitAsync(clearMs, hero, name);
             //# 스테이지별 랭킹 — 서버가 스테이지 기존 최단보다 빠를 때만 갱신한다(느린 기록이 덮지 않음).
-            await MetaSession.Ranking.SubmitStageAsync(profile != null ? profile.SelectedStage : 1, clearMs, hero, name);
+            await MetaSession.Ranking.SubmitStageAsync(profile != null ? _spec.LinearStage : 1, clearMs, hero, name);
         }
 
         //# v0.2 메타 — 영웅 최대 HP 대비 깎은 비율 0~1 (패배 부분 보상 입력).
@@ -1918,16 +1948,31 @@ namespace Lair.Battle
         //# 선택 스테이지 챕터의 영웅 종류 — 데이터 없음/알 수 없는 값이면 기사(SpawnHero 가 데이터 실패를 따로 중단한다).
         private EHero SelectedHeroKey()
         {
-            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(MetaSession.GetOrLoad().SelectedStage) : null;
+            HeroArchetypeRow hero = _spec != null ? _spec.Hero : null;
             if (hero != null && System.Enum.TryParse(hero.heroId, out EHero parsed) && System.Enum.IsDefined(typeof(EHero), parsed))
                 return parsed;
             return EHero.Knight;
         }
 
+        //# 전투 HUD 제목 — 챕터: "{영웅} · {n}단계[ · 난이도]", 탑: "{영웅} · 탑 {N}층[ · 보스층]" (infinite-tower §6.5).
+        private string ComposeBattleTitle(MetaProfile profile)
+        {
+            string heroName = HeroTitleName(profile);
+            if (_spec.IsTower)
+                return BattleViewModel.ComposeTowerTitle(heroName, _spec.Floor.Floor, _spec.Floor.IsBoss, LookupText);
+            string difficultyLabel = _effectiveDifficulty >= 1 ? DifficultyTable.LabelOf(_effectiveDifficulty) : string.Empty;
+            return BattleViewModel.ComposeHeroTitle(heroName, _spec.StageIndex, difficultyLabel);
+        }
+
+        private static string LookupText(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
         //# 전투 HUD 영웅명 — 챕터 영웅 직업 데이터(문구 id)를 우선, 없으면 프로필 값 폴백. 단계는 호출부가 챕터 내 인덱스를 준다.
         private string HeroTitleName(MetaProfile profile)
         {
-            HeroArchetypeRow hero = _chapters != null ? _chapters.GetHeroOfLinear(profile.SelectedStage) : null;
+            HeroArchetypeRow hero = _spec.Hero;
             if (hero != null && CHText.StringProvider != null)
                 return CHText.StringProvider.GetString(hero.nameKey);
             return Lair.Village.VillageViewModel.HeroDisplayName(hero != null ? hero.heroId : profile.SelectedHero);
@@ -2038,8 +2083,7 @@ namespace Lair.Battle
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.
             if (_chapters != null)
             {
-                int linear = MetaSession.GetOrLoad().SelectedStage;
-                foreach (StageRuleData data in _chapters.GetRules(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear)))
+                foreach (StageRuleData data in _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex))
                 {
                     if (StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount) == false)
                         continue;

@@ -33,6 +33,8 @@ namespace Lair.UI
         [SerializeField] private CHButton _rankingButton;       //# v0.3 — 랭킹
         [SerializeField] private CHButton _cloudButton;         //# v0.3 — 계정(클라우드 세이브)
         [SerializeField] private CHButton _relicButton;         //# v0.3 — 유물 도감 (relics §7.1)
+        [SerializeField] private CHButton _towerButton;         //# v0.3 — 무한의 탑 (infinite-tower §6.1). 잠겨도 눌려야 한다 — 컨트롤러가 잠김 토스트를 띄운다.
+        [SerializeField] private GameObject _towerLockOverlay;  //# 탑 잠김 겹침(회색 + 자물쇠)
         [SerializeField] private GameObject _cloudConflictDot;  //# v0.3 — 클라우드 충돌 배지(기획서 §3)
         [SerializeField] private CHButton _sortieButton;
         [SerializeField] private GameObject _sortieGlow;        //# 방어하기 붉은 맥동 글로우 — 잠금이면 숨김
@@ -90,6 +92,7 @@ namespace Lair.UI
             BindMenuButton(_rankingButton,     hudArg, EUI.RankingPopup);
             BindMenuButton(_cloudButton,       hudArg, EUI.CloudPopup);
             BindMenuButton(_relicButton,       hudArg, EUI.RelicPopup);
+            BindMenuButton(_towerButton,       hudArg, EUI.TowerPopup);
 
             RefreshCloudConflictDot();
 
@@ -247,6 +250,16 @@ namespace Lair.UI
                 _lordXpFill.fillAmount = _vm.LordProgress;
             }
             RefreshRecordPanel();
+            RefreshTowerLock();
+        }
+
+        //# 탑 잠금 겹침 — 판정은 VM (클라우드 복원 등으로 프로필이 바뀌면 NotifyProfileChanged 로 다시 호출된다).
+        private void RefreshTowerLock()
+        {
+            if (_towerLockOverlay != null && _vm != null)
+            {
+                _towerLockOverlay.SetActive(_vm.IsTowerLocked);
+            }
         }
     }
 }

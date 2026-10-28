@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 9;
+        public const int CurrentVersion = 10;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -33,6 +33,8 @@ namespace Lair.Meta
             NormalizeRelics(profile);
             //# 편성(v9)도 챕터 데이터·편성 JSON 에 의존하지 않는 모양 정리라 같은 이유로 조기 반환보다 앞선다(dungeon-formation §4.1).
             NormalizeFormation(profile);
+            //# 탑(v10)도 챕터 데이터에 의존하지 않는 행 정리라 같은 이유로 조기 반환보다 앞선다(infinite-tower §5.1). 시즌 정리는 여기서 하지 않는다 — TowerConfig 가 로드 전일 수 있다.
+            NormalizeTower(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -110,6 +112,34 @@ namespace Lair.Meta
             if (profile.Formation == null || FormationSave.IsMalformedSave(profile.Formation))
             {
                 profile.Formation = new List<FormationSlotEntry>();
+            }
+        }
+
+        //# TowerFloorClears: null→빈 리스트, null/Floor<1/ClearTime<=0 행 제거, 같은 Floor 중복은 ClearTime 최솟값 한 행. TowerSeason 음수→0.
+        public static void NormalizeTower(MetaProfile profile)
+        {
+            if (profile.TowerFloorClears == null)
+            {
+                profile.TowerFloorClears = new List<TowerFloorClearEntry>();
+            }
+            profile.TowerFloorClears.RemoveAll(entry => entry == null || entry.Floor < 1 || entry.ClearTime <= 0f);
+
+            List<TowerFloorClearEntry> merged = new List<TowerFloorClearEntry>();
+            foreach (TowerFloorClearEntry entry in profile.TowerFloorClears)
+            {
+                TowerFloorClearEntry existing = merged.Find(e => e.Floor == entry.Floor);
+                if (existing == null)
+                {
+                    merged.Add(entry);
+                    continue;
+                }
+                existing.ClearTime = Math.Min(existing.ClearTime, entry.ClearTime);
+            }
+            profile.TowerFloorClears = merged;
+
+            if (profile.TowerSeason < 0)
+            {
+                profile.TowerSeason = 0;
             }
         }
 

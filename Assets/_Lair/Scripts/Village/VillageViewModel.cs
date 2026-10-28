@@ -50,6 +50,8 @@ namespace Lair.Village
         public int ClearedStage => _profile != null ? _profile.ClearedStage : 0;
         //# 현재 스테이지 해금 여부 — 판정은 StageProgress 순수 헬퍼 단일 소유(기획서 §4.6).
         public bool IsCurrentStageUnlocked => StageProgress.IsUnlocked(_selectedStage, ClearedStage);
+        //# 탑 버튼 잠금 겹침 표시 (infinite-tower §6.1) — 탑 데이터가 로드됐고 해금 조건(5-5 클리어) 미달일 때만. 데이터가 없으면 눌러서 "준비 중" 안내.
+        public bool IsTowerLocked => TowerDatabase.Current != null && TowerDatabase.Current.IsUnlocked(ClearedStage) == false;
         //# 경계 클램프 — 화살표 활성 여부(기획서 §4.4).
         public bool CanMovePrev => _selectedStage > MinStage;
         public bool CanMoveNext => _selectedStage < MaxStage;

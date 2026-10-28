@@ -9,7 +9,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 9;
+        public int Version = 10;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -42,6 +42,10 @@ namespace Lair.Meta
         public int RelicMissStreak;
         //# 던전 편성(v9, dungeon-formation §3.2) — 0행 = 기본 편성(바꾼 적 없음), 6행 = 사용자 편성. 구버전 세이브엔 키가 없어 빈 리스트로 로드.
         public List<FormationSlotEntry> Formation = new List<FormationSlotEntry>();
+        //# 무한의 탑(v10, infinite-tower §4.2) — TowerFloorClears 가 기록된 시즌. 리스트가 비어 있으면 값의 의미가 없다(진행 없음 = 빈 리스트로 판정).
+        public int TowerSeason;
+        //# 이번 시즌에 클리어한 층만 행 존재(Floor >= 1, ClearTime > 0 불변식). 구버전 세이브엔 키가 없어 빈 리스트로 로드.
+        public List<TowerFloorClearEntry> TowerFloorClears = new List<TowerFloorClearEntry>();
         //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
         public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
@@ -192,6 +196,66 @@ namespace Lair.Meta
             return 1;
         }
 
+        //# 탑 최고 클리어 층 — 빈 리스트면 0. 도전 층 = 최고 층 + 1 (층 구멍은 보정하지 않는다, infinite-tower E-7). 조회는 부수효과 0.
+        public int GetTowerHighestFloor()
+        {
+            int highest = 0;
+            if (TowerFloorClears == null)
+                return highest;
+            foreach (TowerFloorClearEntry entry in TowerFloorClears)
+            {
+                if (entry != null && entry.Floor > highest)
+                {
+                    highest = entry.Floor;
+                }
+            }
+            return highest;
+        }
+
+        //# 층 클리어 시간 — 행이 없으면 0 (불변식 ClearTime > 0 이라 0 은 "기록 없음"). 조회는 부수효과 0.
+        public float GetTowerFloorClearTime(int floor)
+        {
+            if (TowerFloorClears == null)
+                return 0f;
+            foreach (TowerFloorClearEntry entry in TowerFloorClears)
+            {
+                if (entry != null && entry.Floor == floor)
+                    return entry.ClearTime;
+            }
+            return 0f;
+        }
+
+        //# 탑 승리 기록 — 행이 없으면 추가, 있으면 더 짧을 때만 갱신. 시즌을 함께 기록한다. 입력이 불변식(Floor >= 1, ClearTime > 0)을 어기면 무시.
+        public void RecordTowerClear(int floor, float clearTime, int seasonId)
+        {
+            if (floor < 1 || clearTime <= 0f)
+                return;
+            if (TowerFloorClears == null)
+            {
+                TowerFloorClears = new List<TowerFloorClearEntry>();
+            }
+            TowerSeason = seasonId;
+            foreach (TowerFloorClearEntry entry in TowerFloorClears)
+            {
+                if (entry != null && entry.Floor == floor)
+                {
+                    entry.ClearTime = Math.Min(entry.ClearTime, clearTime);
+                    return;
+                }
+            }
+            TowerFloorClears.Add(new TowerFloorClearEntry { Floor = floor, ClearTime = clearTime });
+        }
+
+        //# 시즌 정리 (infinite-tower §4.6) — 기록이 있고 시즌이 다르면 리스트를 비우고 새 시즌으로. 반환 = 지웠는가. TowerConfig 로드 성공 시에만 호출한다.
+        public bool NormalizeTowerSeason(int seasonId)
+        {
+            if (TowerFloorClears == null || TowerFloorClears.Count == 0 || TowerSeason == seasonId)
+                return false;
+            TowerFloorClears = new List<TowerFloorClearEntry>();
+            TowerSeason = seasonId;
+            return true;
+        }
+
         //# 카드 픽 횟수 조회 — 픽한 적 없으면 0(조회는 부수효과 0).
         public int GetCardPickCount(string cardId)
         {
@@ -279,6 +343,22 @@ namespace Lair.Meta
             RelicMissStreak = other.RelicMissStreak;
             //# 편성은 플레이어의 계획 — 빠뜨리면 복원 시 편성만 유실된다.
             Formation = CopyFormation(other.Formation);
+            //# 탑 진행은 시즌 기록 — 빠뜨리면 복원 시 탑 진행만 유실된다. 행은 새 인스턴스로(원본 공유 방지).
+            TowerSeason = other.TowerSeason;
+            TowerFloorClears = CopyTowerClears(other.TowerFloorClears);
+        }
+
+        //# 탑 클리어 행 복사 — null 이면 빈 리스트, 행은 새 인스턴스로.
+        private static List<TowerFloorClearEntry> CopyTowerClears(List<TowerFloorClearEntry> source)
+        {
+            List<TowerFloorClearEntry> copy = new List<TowerFloorClearEntry>();
+            if (source == null)
+                return copy;
+            foreach (TowerFloorClearEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new TowerFloorClearEntry { Floor = entry.Floor, ClearTime = entry.ClearTime });
+            }
+            return copy;
         }
 
         //# 편성 행 복사 — null 이면 빈 리스트(기본 편성), 행은 새 인스턴스로(원본 공유 방지).
@@ -367,6 +447,14 @@ namespace Lair.Meta
     {
         public int Slot;         //# FormationSlot.slot 1~6
         public string Monster;   //# EMonster 값명
+    }
+
+    //# 탑 클리어한 층 하나 — 클리어한 층만 행 존재. JsonUtility 직렬화 대상.
+    [Serializable]
+    public class TowerFloorClearEntry
+    {
+        public int Floor;        //# 1 이상, PK
+        public float ClearTime;  //# 그 층 클리어 시간(게임초). 불변식 > 0
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

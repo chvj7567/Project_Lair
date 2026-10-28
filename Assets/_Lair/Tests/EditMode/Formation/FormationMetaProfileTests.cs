@@ -64,8 +64,8 @@ namespace Lair.Tests.EditMode
         public void 신규_프로필은_Version_9에_빈_편성_리스트다()
         {
             MetaProfile p = new MetaProfile();
-            Assert.AreEqual(9, p.Version);
-            Assert.AreEqual(9, MetaProfileMigration.CurrentVersion);
+            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(10, MetaProfileMigration.CurrentVersion);
             Assert.IsNotNull(p.Formation);
             Assert.AreEqual(0, p.Formation.Count);
         }
@@ -77,7 +77,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(9, p.Version);
+            Assert.AreEqual(10, p.Version);
             Assert.AreEqual(5, p.Souls);
             Assert.AreEqual(3, p.ClearedStage);
             Assert.AreEqual(2, p.SelectedStage);
@@ -149,7 +149,7 @@ namespace Lair.Tests.EditMode
 
             Assert.AreEqual(0, p.Formation.Count);
             Assert.AreEqual(13, p.ClearedStage, "챕터 3 이후 진행값 보존");
-            Assert.AreEqual(9, p.Version);
+            Assert.AreEqual(10, p.Version);
         }
 
         [Test]
@@ -249,7 +249,7 @@ namespace Lair.Tests.EditMode
             MetaProfile local = new MetaProfile();
             local.CopyFrom(cloud);
             MetaProfileMigration.Apply(local, HeroOf);
-            Assert.AreEqual(9, local.Version);
+            Assert.AreEqual(10, local.Version);
             Assert.AreEqual(6, local.Formation.Count);
         }
 
@@ -260,7 +260,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile { Formation = Valid() };
             MetaProfile copy = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
-            Assert.AreEqual(9, copy.Version);
+            Assert.AreEqual(10, copy.Version);
             Assert.AreEqual(6, copy.Formation.Count);
             for (int i = 0; i < 6; ++i)
             {
@@ -286,7 +286,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_dir).Load();
 
-            Assert.AreEqual(9, loaded.Version);
+            Assert.AreEqual(10, loaded.Version);
             Assert.AreEqual(0, loaded.Formation.Count);
             Assert.AreEqual(4, loaded.ClearedStage);
         }
@@ -298,7 +298,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_dir).Load();
 
-            Assert.AreEqual(9, loaded.Version);
+            Assert.AreEqual(10, loaded.Version);
             Assert.AreEqual(6, loaded.Formation.Count);
         }
 
@@ -309,7 +309,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_dir).Load();
 
-            Assert.AreEqual(9, loaded.Version);
+            Assert.AreEqual(10, loaded.Version);
             Assert.AreEqual(0, loaded.Formation.Count);
             Assert.AreEqual(4, loaded.ClearedStage, "챕터 DB 없이도 진행값 유지");
         }

@@ -60,6 +60,7 @@ namespace Lair.Battle
                 await LoadDifficultyAsync();
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
+                await LoadTowerAsync(db);
                 return db;
             }
             catch (ChapterDataException e)
@@ -187,6 +188,34 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 카드 후보 제외 비활성");
                 FormationCardSpecies.Current = null;
+            }
+        }
+
+        //# 무한의 탑 JSON 3종 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 탑 비활성(마을 탑 버튼은 "준비 중", 저장된 탑 진행은 보존) — infinite-tower §4.5-4.
+        private static async Task LoadTowerAsync(ChapterDatabase chapters)
+        {
+            TowerDatabase.Current = null;
+            string configJson = await LoadTextAsync(EData.TowerConfig);
+            string heroJson = await LoadTextAsync(EData.HeroArchetype_Tower);
+            string stageJson = await LoadTextAsync(EData.Stage_Tower);
+            if (configJson == null || heroJson == null || stageJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 탑 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 탑 기능 비활성");
+                return;
+            }
+            try
+            {
+                TowerDatabase.Current = TowerDatabase.Build(
+                    JsonUtility.FromJson<TowerConfigRow>(configJson),
+                    JsonArrayUtility.FromJsonArray<HeroArchetype_TowerRow>(heroJson),
+                    JsonArrayUtility.FromJsonArray<Stage_TowerRow>(stageJson),
+                    chapters);
+            }
+            catch (System.Exception e)
+            {
+                //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 탑 기능 비활성");
+                TowerDatabase.Current = null;
             }
         }
 

@@ -214,6 +214,20 @@ namespace Lair.UI
         public static string ComposeHeroTitle(string heroName, int stage, string difficultyLabel)
             => string.IsNullOrEmpty(difficultyLabel) ? ComposeHeroTitle(heroName, stage) : $"{ComposeHeroTitle(heroName, stage)} · {difficultyLabel}";
 
+        //# 탑 제목 "기사 · 탑 18층" / 보스층이면 "기사 · 탑 18층 · 보스층" (infinite-tower §6.5). 난이도 접미 없음. text 가 null 이면 기본 문구.
+        public static string ComposeTowerTitle(string heroName, int floor, bool isBoss, System.Func<int, string> text)
+        {
+            string floorFormat = LookupFormat(text, Lair.Data.TowerStrings.TitleFloor, "탑 {0}층");
+            string title = $"{heroName} · {string.Format(floorFormat, floor)}";
+            return isBoss ? $"{title} · {LookupFormat(text, Lair.Data.TowerStrings.BossTag, "보스층")}" : title;
+        }
+
+        private static string LookupFormat(System.Func<int, string> text, int id, string fallback)
+        {
+            string value = text != null ? text(id) : null;
+            return string.IsNullOrEmpty(value) ? fallback : value;
+        }
+
         //# 해당 종류 BuildEntry.Count 합 — 빌드 패널 라벨·접힌 탭.
         public int PassivePickCount => SumPicks(true);
         public int ActivePickCount => SumPicks(false);

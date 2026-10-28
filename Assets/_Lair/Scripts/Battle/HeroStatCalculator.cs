@@ -35,6 +35,19 @@ namespace Lair.Battle
                 archetype.moveSpeed);
         }
 
+        //# 탑 층 스탯 (infinite-tower §3.2) — 앵커 x 직업 x 탑 보정 x 층 배율 (HP 는 ÷ ruleFactor) 을 decimal 로 곱한 뒤 1회만 반올림. range/cooldown/moveSpeed 는 직업 값 그대로.
+        public static HeroStats ComputeTower(int anchorHp, int anchorPower, HeroArchetypeRow archetype, HeroArchetype_TowerRow tower, TowerFloor floor)
+        {
+            decimal hp = (decimal)anchorHp * (decimal)archetype.hpScale * (decimal)tower.hpMultiplier * floor.FloorHp / (decimal)floor.RuleFactor;
+            decimal power = (decimal)anchorPower * (decimal)archetype.powerScale * (decimal)tower.powerMultiplier * floor.FloorPower;
+            return new HeroStats(
+                StageProgress.RoundHeroStat(hp),
+                StageProgress.RoundHeroStat(power),
+                archetype.range,
+                archetype.cooldown,
+                archetype.moveSpeed);
+        }
+
         //# 난이도 행을 곱하는 오버로드 — difficulty 가 null(Easy)이면 기존 4인자 결과와 동일. range/cooldown/moveSpeed 는 직업 값 그대로.
         public static HeroStats Compute(int anchorHp, int anchorPower, HeroArchetypeRow archetype, StageRow stage, DifficultyRow difficulty)
         {

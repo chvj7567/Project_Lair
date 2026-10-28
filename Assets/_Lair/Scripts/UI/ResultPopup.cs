@@ -38,6 +38,10 @@ namespace Lair.UI
         //# 승리 + 미획득이면 "유물 없음 · 다음 승리 시 획득 확률 N%" 줄.
         public bool ShowNextChance;
         public int NextWinChancePercent;
+        //# 탑(infinite-tower §6.4) — IsTower=이번 판이 탑 층 도전, TowerFloor/TowerIsBoss 는 IsTower 일 때만 유효. 탑은 난이도 줄 대신 "도달 층" 줄을 쓴다.
+        public bool IsTower;
+        public int TowerFloor;
+        public bool TowerIsBoss;
     }
 
     //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
@@ -68,6 +72,8 @@ namespace Lair.UI
         public string RelicStackText;      //# 중복이면 "중첩 +1 (2 / 5)", 신규면 빈 문자열
         public bool ShowRelicMissRow;      //# 승리 + 미획득
         public string RelicMissText;       //# "유물 없음 · 다음 승리 시 획득 확률 N%"
+        public string DifficultyLabelText; //# 난이도 줄 라벨 — 챕터 "난이도", 탑 "도달 층" (재사용 팝업이 이전 문구를 남기지 않게 매번 확정)
+        public string RetryLabelText;      //# 왼쪽 버튼 라벨 — "다시 도전" / 탑 승리 "다음 층"
     }
 
     //# 결과 표시 + 보상 요약 + 「다시 도전」(Battle 재시작) / 「마을로」(Village 복귀) 2버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
@@ -76,6 +82,7 @@ namespace Lair.UI
         //# 결과 팝업 도전과제 표기 상한 — 초과분은 "외 N건 달성" (기획서 §9.1).
         private const int MaxAchievedLines = 3;
         private const int StrUnlockBanner = 1333;   //# {0} 해금!
+        private const int StrDifficultyLabel = 1334; //# 난이도
         private const int StrRelicStack = 1351;     //# 중첩 +1 ({0} / {1})
         private const int StrRelicMiss = 1352;      //# 유물 없음 · 다음 승리 시 획득 확률 {0}%
         private const float RelicBandSlideSec = 0.3f;
@@ -100,6 +107,8 @@ namespace Lair.UI
         [SerializeField] private CHText _heroHpText;
         [SerializeField] private GameObject _rowDifficulty;
         [SerializeField] private CHText _difficultyText;
+        [SerializeField] private CHText _difficultyLabelText;   //# 난이도 줄 라벨 — 탑에서 "도달 층"으로 바뀐다
+        [SerializeField] private CHText _retryLabelText;         //# 왼쪽 버튼 라벨 — 탑 승리에서 "다음 층"으로 바뀐다
         [SerializeField] private GameObject _unlockBanner;
         [SerializeField] private CHText _unlockBannerText;
         [SerializeField] private GameObject _rays;   //# 승리 방사광 — 승리에서만 표시
@@ -188,7 +197,7 @@ namespace Lair.UI
         {
             bool win = arg.Result == BattleResult.Win;
             bool lose = arg.Result == BattleResult.Lose;
-            return WithRelic(new ResultRowsData
+            ResultRowsData rows = WithRelic(new ResultRowsData
             {
                 SubText = win ? "영웅을 처치했다" : lose ? "영웅이 던전을 돌파했다" : string.Empty,
                 ShowClearRow = win,
@@ -205,7 +214,31 @@ namespace Lair.UI
                 DifficultyIndex = arg.Difficulty,
                 ShowUnlockBanner = win && arg.DifficultyUnlocked >= 1,
                 UnlockBannerText = string.Format(LookupString(StrUnlockBanner, "{0} 해금!"), DifficultyTable.LabelOf(arg.DifficultyUnlocked)),
+                DifficultyLabelText = LookupString(StrDifficultyLabel, "난이도"),
+                RetryLabelText = LookupString(TowerStrings.Retry, "다시 도전"),
             }, arg);
+            return arg.IsTower ? WithTower(rows, arg) : rows;
+        }
+
+        //# 탑 변형 (infinite-tower §6.4) — 난이도 줄을 "도달 층"으로, 승리 배너를 "N층 돌파!"로, 승리 시 왼쪽 버튼을 "다음 층"으로. 유물 띠는 그대로.
+        public static ResultRowsData WithTower(ResultRowsData rows, ResultPopupArg arg)
+        {
+            bool win = arg.Result == BattleResult.Win;
+            string floorText = string.Format(LookupString(TowerStrings.FloorNumber, "{0}층"), arg.TowerFloor);
+            string tag = string.Format(LookupString(TowerStrings.TitleFloor, "탑 {0}층"), arg.TowerFloor);
+            rows.SubText = rows.SubText + " · " + tag;
+            rows.ShowDifficultyRow = true;
+            rows.DifficultyLabelText = LookupString(TowerStrings.ReachedFloor, "도달 층");
+            rows.DifficultyText = floorText;
+            rows.DifficultyIndex = 1;
+            rows.ShowUnlockBanner = win;
+            rows.UnlockBannerText = string.Format(LookupString(TowerStrings.FloorCleared, "{0}층 돌파!"), arg.TowerFloor);
+            rows.ShowNewBadge = false;
+            if (win)
+            {
+                rows.RetryLabelText = LookupString(TowerStrings.NextFloor, "다음 층");
+            }
+            return rows;
         }
 
         //# 유물 획득 띠 / 미획득 줄 확정값 — 유물 DB 미로드거나 id 를 못 찾으면 띠를 숨긴다(E-1).
@@ -256,6 +289,8 @@ namespace Lair.UI
         private void ApplyRows(ResultRowsData rows)
         {
             SetText(_subText, rows.SubText);
+            SetText(_difficultyLabelText, rows.DifficultyLabelText);
+            SetText(_retryLabelText, rows.RetryLabelText);
             SetRow(_rowClear, _clearTimeText, rows.ShowClearRow, rows.ClearTimeText);
             SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
             SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);

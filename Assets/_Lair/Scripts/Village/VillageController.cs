@@ -18,6 +18,8 @@ namespace Lair.Village
     public class VillageController : MonoBehaviour
     {
         [SerializeField] private MetaConfig _metaConfig;
+        //# 탑 팝업 능력치 줄용 영웅 앵커(HP/Power) — 미할당이면 능력치 줄만 숨긴다.
+        [SerializeField] private BalanceConfig _balance;
         [SerializeField] private Transform _heroAnchor;    //# 중앙 해골 배치 지점 (씬 정적 배치)
         //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
@@ -31,6 +33,7 @@ namespace Lair.Village
         private bool _showcaseSwapping;
         private bool _showcaseSwapPending;
         private bool _sortieBusy;   //# 출격 팝업 로드 중 재진입 가드
+        private bool _towerEntering;   //# 탑 도전 연타 가드(씬 전환은 다음 프레임 적용)
 
         private async void Start()
         {
@@ -38,6 +41,8 @@ namespace Lair.Village
             CHMSound.Instance.StopAllBGM();
             CHMSound.Instance.Play(EAudio.VillageBgm);
 
+            //# 마을 진입 = 챕터 모드로 복귀 (infinite-tower §6.3) — 탑에서 "마을로" 돌아온 뒤 챕터 출격이 탑으로 열리는 것을 막는다.
+            MetaSession.BattleMode = EBattleMode.Chapter;
             MetaProfile profile = MetaSession.GetOrLoad();
             _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
 
@@ -326,11 +331,61 @@ namespace Lair.Village
                     await OpenCloud(profile);
                     break;
 
+                case EUI.TowerPopup:
+                    await OpenTower(profile);
+                    break;
+
                 case EUI.RelicPopup:
                     //# 유물 도감 — 팝업을 연 동안 보유는 변하지 않는다(전투 불가 상태). 닫고 다시 열면 재계산(relics E-11).
                     await CHMUI.Instance.ShowUIAsync(EUI.RelicPopup, new RelicPopupArg { Profile = profile });
                     break;
             }
+        }
+
+        //# 무한의 탑 (infinite-tower §6) — 데이터 없음 = "준비 중", 잠김 = 해금 스테이지 안내 토스트, 열림 = 팝업. 시즌이 바뀌었으면 이전 시즌 진행을 지우고 저장한다 (§4.6).
+        private async Task OpenTower(MetaProfile profile)
+        {
+            TowerDatabase tower = TowerDatabase.Current;
+            ChapterDatabase chapters = ChapterDatabase.Current;
+            if (tower == null || chapters == null)
+            {
+                ToastView.Show(LookupString(TowerStrings.NotReady), EToastKind.Warning);
+                return;
+            }
+            if (tower.IsUnlocked(profile.ClearedStage) == false)
+            {
+                string needed = StageLabels.Number(tower.Config.unlockClearedStage);
+                ToastView.Show(string.Format(LookupString(TowerStrings.LockedToast), needed), EToastKind.Warning);
+                return;
+            }
+            if (profile.NormalizeTowerSeason(tower.Config.seasonId))
+            {
+                MetaSession.Store?.Save(profile);
+            }
+
+            int anchorHp = 0;
+            int anchorPower = 0;
+            if (_balance != null && _balance.Hero != null)
+            {
+                anchorHp = _balance.Hero.Hp;
+                anchorPower = _balance.Hero.Power;
+            }
+            TowerViewModel towerVm = new TowerViewModel(tower, chapters, profile, LookupString, RelicDatabase.Current, anchorHp, anchorPower);
+            await CHMUI.Instance.ShowUIAsync(EUI.TowerPopup, new TowerPopupArg
+            {
+                ViewModel = towerVm,
+                OnChallenge = EnterTower,
+            });
+        }
+
+        //# 탑 도전 — 팝업에서 바로 출격 (D-5). 편성은 현재 저장된 편성을 그대로 쓰고(Battle 이 프로필에서 읽는다), SelectedStage/SelectedDifficulty 는 건드리지 않는다.
+        private void EnterTower()
+        {
+            if (_towerEntering)
+                return;
+            _towerEntering = true;
+            MetaSession.BattleMode = EBattleMode.Tower;
+            EnterBattle();
         }
 
         //# 침입 지도 — 챕터 데이터가 없으면 안내만(조용히 열지 않음). 선택 확정은 VM 이 선형 번호를 돌려주면 캐러셀 VM 으로 반영한다.

@@ -107,6 +107,7 @@ namespace Lair.Data
         WorldMapPopup,         //# 침입 지도 — 챕터 탭 + 스테이지 노드 + 상세
         RelicPopup,            //# 유물 도감 — 마을 HUD 버튼 (relics §7.2). 값명 = 프리팹 파일명.
         FormationPopup,        //# 던전 편성 — 마을 "방어하기" 가 여는 출격 전 편성 팝업 (dungeon-formation §7). 값명 = 프리팹 파일명.
+        TowerPopup,            //# 무한의 탑 — 마을 하단 "탑" 버튼이 여는 팝업 (infinite-tower §6.2). 값명 = 프리팹 파일명.
     }
 
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
@@ -153,6 +154,17 @@ namespace Lair.Data
         FormationSlot,
         Card_Species,
         Chapter_FormationHint,
+        //# 무한의 탑 JSON 3종 (infinite-tower §4) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        TowerConfig,
+        HeroArchetype_Tower,
+        Stage_Tower,
+    }
+
+    //# 이번 전투가 어떤 모드인가 (infinite-tower §11.3) — 메모리 전용(MetaSession.BattleMode). 일일 도전이 Daily 를 맨 끝에 append 한다.
+    public enum EBattleMode
+    {
+        Chapter,
+        Tower,
     }
 
     //# 유물 2차 (relics §12.2) — 값명 = 아이콘 파일명(Art/Sprites/Relic/<값명>.png) = Relic.relicId. append-only.
