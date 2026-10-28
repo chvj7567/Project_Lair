@@ -14,6 +14,10 @@ namespace Lair.UI
         public bool Unranked;
         //# Unranked 일 때 표시할 내 닉네임 — 서버 행이 없어 DTO 가 없다.
         public string UnrankedName;
+        //# 기록 칸 표기를 호출부가 확정한 값으로 — 데일리 점수("패배 · 영웅 HP 12% 남음")처럼 ms 포맷이 아닌 경우. 비면 기존 시간 포맷.
+        public string ScoreText;
+        //# 영웅 열 비우기 — 데일리는 모두 같은 영웅이라 표시하지 않는다(daily-challenge §9.2).
+        public bool HideHero;
     }
 
     //# 랭킹 한 행 — 순위/이름/시간/영웅. 풀 재사용 셀(Rule 03 §3 CHText).
@@ -134,9 +138,9 @@ namespace Lair.UI
                 _nameText.SetText(Truncate(data.displayName, 12) + suffix);
             }
             if (_timeText != null)
-                _timeText.SetText(FormatMs(data.clearTimeMs));
+                _timeText.SetText(string.IsNullOrEmpty(entry.ScoreText) ? FormatMs(data.clearTimeMs) : entry.ScoreText);
             if (_heroText != null)
-                _heroText.SetText(data.hero);
+                _heroText.SetText(entry.HideHero ? string.Empty : data.hero);
             ApplyBackground(entry.IsMine);
         }
 
@@ -154,9 +158,9 @@ namespace Lair.UI
                 _nameText.SetText(Truncate(entry.UnrankedName, 12) + suffix);
             }
             if (_timeText != null)
-                _timeText.SetText(UnrankedValueLabel);
+                _timeText.SetText(string.IsNullOrEmpty(entry.ScoreText) ? UnrankedValueLabel : entry.ScoreText);
             if (_heroText != null)
-                _heroText.SetText(UnrankedValueLabel);
+                _heroText.SetText(entry.HideHero ? string.Empty : UnrankedValueLabel);
             ApplyBackground(entry.IsMine);
         }
 

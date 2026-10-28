@@ -42,6 +42,16 @@ namespace Lair.UI
         public bool IsTower;
         public int TowerFloor;
         public bool TowerIsBoss;
+        //# 데일리(daily-challenge §9.4) — IsDaily 하나로 분기, 아래 필드는 IsDaily 일 때만 유효. 순위는 결과창 표시 후 ShowDailyRank 로 갱신.
+        public bool IsDaily;
+        public int DailyDayIndex;
+        public int DailyAttemptsLeft;
+        public bool DailyFirstWinBonus;
+        public int DailyBonusSouls;
+        public int DailyStreak;
+        public decimal DailyStreakMultiplier = 1m;
+        //# 데일리 "다시 도전" 판정·씬 이동 — 날짜/남은 도전 판정은 호출부 소유. 반환 = 씬 이동을 시작했는가(false 면 버튼 재활성).
+        public System.Func<bool> OnDailyRetry;
     }
 
     //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
@@ -73,7 +83,8 @@ namespace Lair.UI
         public bool ShowRelicMissRow;      //# 승리 + 미획득
         public string RelicMissText;       //# "유물 없음 · 다음 승리 시 획득 확률 N%"
         public string DifficultyLabelText; //# 난이도 줄 라벨 — 챕터 "난이도", 탑 "도달 층" (재사용 팝업이 이전 문구를 남기지 않게 매번 확정)
-        public string RetryLabelText;      //# 왼쪽 버튼 라벨 — "다시 도전" / 탑 승리 "다음 층"
+        public string RetryLabelText;      //# 왼쪽 버튼 라벨 — "다시 도전" / 탑 승리 "다음 층" / 데일리 "다시 도전 (남은 n)"
+        public bool RetryInteractable;     //# 데일리 남은 도전 0 이면 false
     }
 
     //# 결과 표시 + 보상 요약 + 「다시 도전」(Battle 재시작) / 「마을로」(Village 복귀) 2버튼. ChvjPackage UI 래퍼 사용 (Rule 11).
@@ -131,6 +142,8 @@ namespace Lair.UI
         [SerializeField] private CHButton _villageButton;
 
         private bool _sceneLoadRequested;
+        private bool _isDaily;
+        private System.Func<bool> _onDailyRetry;
         private Vector2 _relicBandRest;
         private bool _relicBandRestCaptured;
         private Coroutine _relicIntro;
@@ -143,9 +156,13 @@ namespace Lair.UI
         {
             //# 풀 재사용 리셋 (Rule 03 §4) — 가드가 남으면 재사용된 팝업의 버튼이 죽는다.
             _sceneLoadRequested = false;
+            _isDaily = false;
+            _onDailyRetry = null;
 
             if (arg is ResultPopupArg rp)
             {
+                _isDaily = rp.IsDaily;
+                _onDailyRetry = rp.IsDaily ? rp.OnDailyRetry : null;
                 if (_resultText != null)
                 {
                     _resultText.SetText(rp.Result switch
@@ -216,8 +233,40 @@ namespace Lair.UI
                 UnlockBannerText = string.Format(LookupString(StrUnlockBanner, "{0} 해금!"), DifficultyTable.LabelOf(arg.DifficultyUnlocked)),
                 DifficultyLabelText = LookupString(StrDifficultyLabel, "난이도"),
                 RetryLabelText = LookupString(TowerStrings.Retry, "다시 도전"),
+                RetryInteractable = true,
             }, arg);
+            if (arg.IsDaily)
+                return WithDaily(rows, arg);
             return arg.IsTower ? WithTower(rows, arg) : rows;
+        }
+
+        //# 데일리 변형 (daily-challenge §9.4) — 부제 "데일리 · 10월 27일", 난이도 줄을 "오늘의 순위"(집계 전 "순위 집계 중")로, 첫 승리 배너, 신기록·해금 배너·다음 확률 줄 없음.
+        public static ResultRowsData WithDaily(ResultRowsData rows, ResultPopupArg arg)
+        {
+            DailyRules.MonthDayOf(arg.DailyDayIndex, out int month, out int dayOfMonth);
+            string date = string.Format(LookupString(DailyStrings.Date, "{0}월 {1}일"), month, dayOfMonth);
+            rows.SubText = string.Format(LookupString(DailyStrings.ModeTitle, "데일리 · {0}"), date);
+            rows.ShowNewBadge = false;
+            rows.ShowRelicMissRow = false;
+            rows.ShowDifficultyRow = true;
+            rows.DifficultyLabelText = LookupString(DailyStrings.RankSection, "오늘의 순위");
+            rows.DifficultyText = LookupString(DailyStrings.RankPending, "순위 집계 중");
+            rows.DifficultyIndex = 0;
+            rows.ShowUnlockBanner = arg.Result == BattleResult.Win && arg.DailyFirstWinBonus;
+            rows.UnlockBannerText = string.Format(LookupString(DailyStrings.FirstWinBanner, "데일리 첫 승리 +{0}"), arg.DailyBonusSouls)
+                + "  " + string.Format(LookupString(DailyStrings.StreakMultiplier, "연속 {0}일 x{1}"), arg.DailyStreak, DailyRules.FormatMultiplier(arg.DailyStreakMultiplier));
+            int left = System.Math.Max(0, arg.DailyAttemptsLeft);
+            rows.RetryLabelText = string.Format(LookupString(DailyStrings.RetryLeft, "다시 도전 (남은 {0})"), left);
+            rows.RetryInteractable = left > 0;
+            return rows;
+        }
+
+        //# 데일리 순위 비동기 갱신 — 제출·조회가 끝나면 호출부가 "{n}위" / "순위를 불러오지 못했습니다" 로 덮는다.
+        public void ShowDailyRank(string text)
+        {
+            if (_isDaily == false)
+                return;
+            SetText(_difficultyText, text);
         }
 
         //# 탑 변형 (infinite-tower §6.4) — 난이도 줄을 "도달 층"으로, 승리 배너를 "N층 돌파!"로, 승리 시 왼쪽 버튼을 "다음 층"으로. 유물 띠는 그대로.
@@ -291,6 +340,11 @@ namespace Lair.UI
             SetText(_subText, rows.SubText);
             SetText(_difficultyLabelText, rows.DifficultyLabelText);
             SetText(_retryLabelText, rows.RetryLabelText);
+            //# 풀 재사용 팝업 — 매 InitUI 마다 확정(데일리 소진 판의 비활성이 다음 판에 남지 않게).
+            if (_retryButton != null)
+            {
+                _retryButton.Interactable = rows.RetryInteractable;
+            }
             SetRow(_rowClear, _clearTimeText, rows.ShowClearRow, rows.ClearTimeText);
             SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
             SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);
@@ -566,6 +620,16 @@ namespace Lair.UI
         {
             if (TryBeginSceneLoad() == false)
                 return;
+
+            //# 데일리 — 날짜·남은 도전 판정 후 같은 조합으로 재시작(호출부 소유). 씬 이동을 안 했으면 가드를 풀어 버튼을 살린다.
+            if (_onDailyRetry != null)
+            {
+                if (_onDailyRetry() == false)
+                {
+                    _sceneLoadRequested = false;
+                }
+                return;
+            }
 
             //# 마을 미경유 즉시 재도전 — MetaSession 은 static 홀더라 프로필이 메모리에 유지된다 (Battle Start 의 메타 보너스 동일 적용).
             SceneManager.LoadScene(EScene.Battle.ToString());

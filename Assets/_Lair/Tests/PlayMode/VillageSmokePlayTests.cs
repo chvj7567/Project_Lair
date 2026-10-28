@@ -96,5 +96,9 @@ namespace Lair.Tests.PlayMode
         public Task<List<RankingRowDto>> GetStageTopAsync(int stage, int top) => Task.FromResult(new List<RankingRowDto>());
         public Task<List<RankingRowDto>> GetMyStageRankAsync(int stage) => Task.FromResult(new List<RankingRowDto>());
         public Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName) => Task.FromResult(new DisplayNameResult(DisplayNameStatus.Success, displayName));
+        public Task<ServerTimeResult> GetServerTimeAsync() => Task.FromResult(ServerTimeResult.Failed);
+        public Task<bool> SubmitDailyScoreAsync(int day, int score, string hero, string comboKey, string displayName) => Task.FromResult(false);
+        public Task<List<RankingRowDto>> GetDailyTopAsync(int day, int top) => Task.FromResult(new List<RankingRowDto>());
+        public Task<List<RankingRowDto>> GetMyDailyRankAsync(int day) => Task.FromResult(new List<RankingRowDto>());
     }
 }

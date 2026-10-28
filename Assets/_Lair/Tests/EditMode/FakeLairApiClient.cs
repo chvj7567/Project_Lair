@@ -55,5 +55,31 @@ namespace Lair.Tests.EditMode
             LastChangeNameArg = displayName;
             return Task.FromResult(ChangeNameResultToReturn);
         }
+
+        //# 데일리 — 서버 시각 주입 + 제출/조회 기록.
+        public ServerTimeResult ServerTimeToReturn = ServerTimeResult.Failed;
+        public int ServerTimeCalls;
+        public int DailySubmitCalls;
+        public int LastDailyDay = -1;
+        public int LastDailyScore = -1;
+        public string LastDailyComboKey;
+        public List<RankingRowDto> DailyTopToReturn = new List<RankingRowDto>();
+        public List<RankingRowDto> MyDailyRankToReturn = new List<RankingRowDto>();
+
+        public Task<ServerTimeResult> GetServerTimeAsync()
+        {
+            ServerTimeCalls++;
+            return Task.FromResult(ServerTimeToReturn);
+        }
+        public Task<bool> SubmitDailyScoreAsync(int day, int score, string hero, string comboKey, string displayName)
+        {
+            DailySubmitCalls++;
+            LastDailyDay = day;
+            LastDailyScore = score;
+            LastDailyComboKey = comboKey;
+            return Task.FromResult(SubmitResult);
+        }
+        public Task<List<RankingRowDto>> GetDailyTopAsync(int day, int top) => Task.FromResult(DailyTopToReturn);
+        public Task<List<RankingRowDto>> GetMyDailyRankAsync(int day) => Task.FromResult(MyDailyRankToReturn);
     }
 }

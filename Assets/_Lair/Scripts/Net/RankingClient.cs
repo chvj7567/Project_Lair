@@ -30,5 +30,15 @@ namespace Lair.Net
 
         public Task<List<RankingRowDto>> GetMyStageRankAsync(int stage)
             => _api.GetMyStageRankAsync(stage);
+
+        //# 데일리 (daily-challenge §6) — 실패 시 제출 false, 조회 null.
+        public Task<bool> SubmitDailyAsync(int day, int score, string hero, string comboKey, string displayName)
+            => _api.SubmitDailyScoreAsync(day, score, hero, comboKey, displayName);
+
+        public Task<List<RankingRowDto>> GetDailyTopAsync(int day, int top)
+            => _api.GetDailyTopAsync(day, top);
+
+        public Task<List<RankingRowDto>> GetMyDailyRankAsync(int day)
+            => _api.GetMyDailyRankAsync(day);
     }
 }

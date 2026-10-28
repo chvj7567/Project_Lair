@@ -136,7 +136,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile partial = new MetaProfile { Version = 8, Formation = Rows(EMonster.Wisp, EMonster.Reaper) };
             MetaProfileMigration.Apply(partial, (System.Func<int, string>)null);
-            Assert.AreEqual(10, partial.Version);
+            Assert.AreEqual(11, partial.Version);
             Assert.AreEqual(0, partial.Formation.Count);
 
             MetaProfile unknown = new MetaProfile { Formation = Rows(EMonster.Wisp, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom) };

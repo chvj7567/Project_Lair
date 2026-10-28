@@ -16,6 +16,7 @@ namespace Lair.Net
         private const string SavesCollection = "saves";
         private const string LeaderboardCollection = "leaderboard";
         private const string DisplayNamesCollection = "displayNames";
+        private const string ClearTimeField = "clearTimeMs";
 
         //# Firestore Unity SDK 는 DocumentSnapshot 에 REST 와 달리 UpdateTime 이 없다 —
         //# 직접 관리하는 서버 타임스탬프 필드로 그 역할을 대신한다(문서 하단 GetSaveAsync/PutSaveAsync 주석 참조).
@@ -267,18 +268,19 @@ namespace Lair.Net
         //# 전체/스테이지 Top N 공용 조회 — scope 는 컬렉션 또는 stage 필터가 걸린 쿼리. 예외는 호출부가 빈 리스트로 흡수.
         //# 유령 문서(clearTimeMs 없음/0)를 쿼리 단계에서 배제 — Limit 이 필터보다 먼저 걸리면
         //# 유령이 top 개 이상일 때 진짜 기록이 통째로 잘려나간다(표시 단계 가드만으론 못 막음).
-        private static async Task<List<RankingRowDto>> ReadTopAsync(Query scope, int top)
+        //# valueField: 정렬 값 필드 — 스테이지/전역 "clearTimeMs", 데일리 "score"(행 DTO 의 clearTimeMs 자리에 담는다).
+        private static async Task<List<RankingRowDto>> ReadTopAsync(Query scope, int top, string valueField = ClearTimeField)
         {
             List<RankingRowDto> rows = new List<RankingRowDto>();
             QuerySnapshot snap = await scope
-                .WhereGreaterThan("clearTimeMs", 0)
-                .OrderBy("clearTimeMs")
+                .WhereGreaterThan(valueField, 0)
+                .OrderBy(valueField)
                 .Limit(top)
                 .GetSnapshotAsync();
             int rank = 1;
             foreach (DocumentSnapshot doc in snap.Documents)
             {
-                RankingRowDto row = ToRow(doc);
+                RankingRowDto row = ToRow(doc, valueField);
                 if (row == null)
                     continue;
                 //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
@@ -293,7 +295,7 @@ namespace Lair.Net
         }
 
         //# 리더보드 문서 → 행 DTO. 필드 누락은 기본값으로 흡수(흐름을 막지 않는다).
-        private static RankingRowDto ToRow(DocumentSnapshot doc)
+        private static RankingRowDto ToRow(DocumentSnapshot doc, string valueField = ClearTimeField)
         {
             if (doc == null || doc.Exists == false)
                 return null;
@@ -301,7 +303,7 @@ namespace Lair.Net
             {
                 uid = doc.ContainsField("uid") ? doc.GetValue<string>("uid") : null,
                 displayName = doc.ContainsField("displayName") ? doc.GetValue<string>("displayName") : null,
-                clearTimeMs = doc.ContainsField("clearTimeMs") ? (int)doc.GetValue<long>("clearTimeMs") : 0,
+                clearTimeMs = doc.ContainsField(valueField) ? (int)doc.GetValue<long>(valueField) : 0,
                 hero = doc.ContainsField("hero") ? doc.GetValue<string>("hero") : null,
             };
         }
@@ -324,17 +326,17 @@ namespace Lair.Net
         }
 
         //# 전체/스테이지 내 순위 공용 — mine 은 내 문서. 유효 기록이 없으면 빈 리스트.
-        private static async Task<List<RankingRowDto>> ReadMyRankAsync(Query scope, DocumentSnapshot mine)
+        private static async Task<List<RankingRowDto>> ReadMyRankAsync(Query scope, DocumentSnapshot mine, string valueField = ClearTimeField)
         {
-            RankingRowDto myRow = ToRow(mine);
+            RankingRowDto myRow = ToRow(mine, valueField);
             //# clearTimeMs<=0 은 유효한 클리어 기록이 아님(유령 문서) — 거짓 "1위 00:00" 방지.
             if (myRow == null || CloudSaveConflict.IsRankedClearTime(myRow.clearTimeMs) == false)
                 return new List<RankingRowDto>();
 
             //# 유령 문서는 clearTimeMs=0 이라 항상 "나보다 빠름"으로 잡혀 순위를 부풀린다 — 집계에서도 배제.
             AggregateQuerySnapshot agg = await scope
-                .WhereGreaterThan("clearTimeMs", 0)
-                .WhereLessThan("clearTimeMs", myRow.clearTimeMs)
+                .WhereGreaterThan(valueField, 0)
+                .WhereLessThan(valueField, myRow.clearTimeMs)
                 .Count
                 .GetSnapshotAsync(AggregateSource.Server);
             myRow.rank = agg.Count + 1;
@@ -406,6 +408,92 @@ namespace Lair.Net
             {
                 Debug.LogWarning($"[FirebaseSdkApiClient] 내 스테이지 순위 조회 실패: {e.Message}");
                 return new List<RankingRowDto>();
+            }
+        }
+
+        //# 서버 시각 = 강제 갱신한 ID 토큰의 iat (daily-challenge §2.2 대안 B). 보안 규칙·새 컬렉션 불필요. saves 문서는 시계 탐침으로 쓰지 않는다.
+        public async Task<ServerTimeResult> GetServerTimeAsync()
+        {
+            FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
+            if (user == null)
+                return ServerTimeResult.Failed;
+            try
+            {
+                string token = await user.TokenAsync(true);
+                return JwtClaims.TryReadIatMs(token, out long utcMs) ? new ServerTimeResult(true, utcMs) : ServerTimeResult.Failed;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 서버 시각 조회 실패: {e.Message}");
+                return ServerTimeResult.Failed;
+            }
+        }
+
+        //# 데일리 순위 제출 — dailyLeaderboard/{day}_{uid}. 기존보다 작을 때만 트랜잭션으로 갱신. 보안 규칙 미배포면 거부 → false (C-4).
+        public async Task<bool> SubmitDailyScoreAsync(int day, int score, string hero, string comboKey, string displayName)
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid) || day < 0 || DailyRules.IsValidScore(score) == false)
+                return false;
+            Dictionary<string, object> fields = new Dictionary<string, object>
+            {
+                { "uid", uid },
+                { DailyLeaderboard.DayField, day },
+                { "displayName", displayName ?? string.Empty },
+                { "hero", hero ?? string.Empty },
+                { DailyLeaderboard.ScoreField, score },
+                { "comboKey", comboKey ?? string.Empty },
+                { "updatedAt", FieldValue.ServerTimestamp },
+            };
+            try
+            {
+                DocumentReference doc = Db.Collection(DailyLeaderboard.CollectionName).Document(DailyLeaderboard.DocId(day, uid));
+                await Db.RunTransactionAsync(async transaction =>
+                {
+                    DocumentSnapshot snap = await transaction.GetSnapshotAsync(doc);
+                    long existing = snap.Exists && snap.ContainsField(DailyLeaderboard.ScoreField) ? snap.GetValue<long>(DailyLeaderboard.ScoreField) : 0;
+                    if (DailyLeaderboard.ShouldReplace(existing, score) == false)
+                        return;
+                    transaction.Set(doc, fields);
+                });
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 데일리 순위 제출 실패: {e.Message}");
+                return false;
+            }
+        }
+
+        //# 데일리 Top N — day == N + score 오름차순(복합 인덱스 C-3 은 콘솔 소관). 실패는 null(팝업 "순위를 불러오지 못했습니다").
+        public async Task<List<RankingRowDto>> GetDailyTopAsync(int day, int top)
+        {
+            try
+            {
+                return await ReadTopAsync(Db.Collection(DailyLeaderboard.CollectionName).WhereEqualTo(DailyLeaderboard.DayField, day), top, DailyLeaderboard.ScoreField);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 데일리 순위 조회 실패: {e.Message}");
+                return null;
+            }
+        }
+
+        public async Task<List<RankingRowDto>> GetMyDailyRankAsync(int day)
+        {
+            string uid = Uid;
+            if (string.IsNullOrEmpty(uid))
+                return null;
+            try
+            {
+                CollectionReference collection = Db.Collection(DailyLeaderboard.CollectionName);
+                DocumentSnapshot mine = await collection.Document(DailyLeaderboard.DocId(day, uid)).GetSnapshotAsync();
+                return await ReadMyRankAsync(collection.WhereEqualTo(DailyLeaderboard.DayField, day), mine, DailyLeaderboard.ScoreField);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FirebaseSdkApiClient] 데일리 내 순위 조회 실패: {e.Message}");
+                return null;
             }
         }
 

@@ -89,6 +89,14 @@ namespace Lair.Tests.EditMode
                 => System.Threading.Tasks.Task.FromResult(new System.Collections.Generic.List<RankingRowDto>());
             public System.Threading.Tasks.Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName)
                 => System.Threading.Tasks.Task.FromResult(DisplayNameResult.Of(DisplayNameStatus.Success));
+            public System.Threading.Tasks.Task<ServerTimeResult> GetServerTimeAsync()
+                => System.Threading.Tasks.Task.FromResult(ServerTimeResult.Failed);
+            public System.Threading.Tasks.Task<bool> SubmitDailyScoreAsync(int day, int score, string hero, string comboKey, string displayName)
+                => System.Threading.Tasks.Task.FromResult(false);
+            public System.Threading.Tasks.Task<System.Collections.Generic.List<RankingRowDto>> GetDailyTopAsync(int day, int top)
+                => System.Threading.Tasks.Task.FromResult(new System.Collections.Generic.List<RankingRowDto>());
+            public System.Threading.Tasks.Task<System.Collections.Generic.List<RankingRowDto>> GetMyDailyRankAsync(int day)
+                => System.Threading.Tasks.Task.FromResult(new System.Collections.Generic.List<RankingRowDto>());
         }
     }
 }

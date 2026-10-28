@@ -9,7 +9,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 10;
+        public int Version = 11;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -46,6 +46,12 @@ namespace Lair.Meta
         public int TowerSeason;
         //# 이번 시즌에 클리어한 층만 행 존재(Floor >= 1, ClearTime > 0 불변식). 구버전 세이브엔 키가 없어 빈 리스트로 로드.
         public List<TowerFloorClearEntry> TowerFloorClears = new List<TowerFloorClearEntry>();
+        //# 데일리(v11, daily-challenge §4.2) — 그날 도전을 1회라도 시작한 날만 행 존재(AttemptsUsed >= 1). 구버전 세이브엔 키가 없어 빈 리스트로 로드.
+        public List<DailyDayEntry> DailyDays = new List<DailyDayEntry>();
+        //# 그날 1판이라도 끝낸 날만 행 존재(BestScore 1~301000). "시작했지만 못 끝낸 날" 에 sentinel 이 생기지 않게 DailyDays 와 분리.
+        public List<DailyResultEntry> DailyResults = new List<DailyResultEntry>();
+        //# 마지막으로 기록된 연속 참가 일수. 0 = 연속 0일이라는 실제 값.
+        public int DailyStreak;
         //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
         public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
@@ -256,6 +262,184 @@ namespace Lair.Meta
             return true;
         }
 
+        //# 그날 시작한 데일리 도전 수 — 행이 없으면 0. 조회는 부수효과 0.
+        public int GetDailyAttemptsUsed(int day)
+        {
+            DailyDayEntry entry = FindDailyDay(day);
+            return entry != null ? entry.AttemptsUsed : 0;
+        }
+
+        //# 남은 도전 = Max(0, perDay - 사용) — 설정이 줄어도 음수가 되지 않는다(E-15, 세이브 비수정).
+        public int DailyAttemptsLeft(int day, int attemptsPerDay)
+        {
+            return Math.Max(0, attemptsPerDay - GetDailyAttemptsUsed(day));
+        }
+
+        //# 도전 1회 차감 (영웅 스폰 직후, §10.1) — 행이 없으면 1 로 추가. 7일 밖 행은 함께 정리.
+        public void UseDailyAttempt(int day)
+        {
+            if (day < 0)
+                return;
+            EnsureDailyLists();
+            DailyDayEntry entry = FindDailyDay(day);
+            if (entry == null)
+            {
+                DailyDays.Add(new DailyDayEntry { Day = day, AttemptsUsed = 1 });
+            }
+            else
+            {
+                entry.AttemptsUsed++;
+            }
+            PruneDaily(day);
+        }
+
+        //# 그날 최고(최소) 점수 — 끝낸 판이 없으면 false.
+        public bool TryGetDailyBest(int day, out int score)
+        {
+            DailyResultEntry entry = FindDailyResult(day);
+            score = entry != null ? entry.BestScore : 0;
+            return entry != null;
+        }
+
+        public bool HasDailyWin(int day)
+        {
+            return TryGetDailyBest(day, out int score) && DailyRules.IsWinScore(score);
+        }
+
+        //# 한 판 결과 기록 (§7.2) — 그날 첫 종료면 연속 갱신(어제 행 있으면 +1, 없으면 1), 점수는 더 작을 때만 갱신. 첫 승리 판정은 갱신 "전" 기록으로.
+        public DailyRecordResult RecordDailyResult(int day, int score)
+        {
+            DailyRecordResult result = new DailyRecordResult();
+            if (day < 0 || DailyRules.IsValidScore(score) == false)
+                return result;
+            EnsureDailyLists();
+            bool hadWin = HasDailyWin(day);
+            DailyResultEntry entry = FindDailyResult(day);
+            if (entry == null)
+            {
+                result.IsFirstFinish = true;
+                DailyStreak = FindDailyResult(day - 1) != null ? Math.Max(0, DailyStreak) + 1 : 1;
+                DailyResults.Add(new DailyResultEntry { Day = day, BestScore = score });
+            }
+            else if (score < entry.BestScore)
+            {
+                entry.BestScore = score;
+            }
+            result.IsFirstWin = hadWin == false && DailyRules.IsWinScore(score);
+            result.Streak = DailyStreak;
+            TryGetDailyBest(day, out result.BestScore);
+            PruneDaily(day);
+            return result;
+        }
+
+        //# 표시용 연속 — 오늘·어제 모두 끝낸 판이 없으면 끊긴 연속이라 0 (§4.3). 저장값은 다음 갱신 때 덮인다.
+        public int DisplayDailyStreak(int today)
+        {
+            bool alive = FindDailyResult(today) != null || FindDailyResult(today - 1) != null;
+            return alive ? DailyStreak : 0;
+        }
+
+        //# 첫 승리 보상 미리보기용 연속 (§7.1) — 오늘 끝낸 판이 있으면 저장값, 없으면 이번 판으로 갱신될 값.
+        public int PreviewDailyStreak(int today)
+        {
+            if (FindDailyResult(today) != null)
+                return DailyStreak;
+            return FindDailyResult(today - 1) != null ? Math.Max(0, DailyStreak) + 1 : 1;
+        }
+
+        //# 그날 끝낸 판이 있는가 — 출석 칸 표시용.
+        public bool HasDailyResult(int day)
+        {
+            return FindDailyResult(day) != null;
+        }
+
+        //# 클라우드 복원 직후 병합 (§5.2) — 복원 전 로컬 값과 날짜별로 합친다: 도전 수 최댓값 · 점수 최솟값 · 한쪽만 있는 행 유지 · 연속 최댓값.
+        //# 오래된 클라우드 세이브로 오늘 쓴 도전 횟수가 되살아나지 않게 한다(E-7). 데일리 3필드에만 적용.
+        public void MergeDailyFrom(List<DailyDayEntry> localDays, List<DailyResultEntry> localResults, int localStreak)
+        {
+            EnsureDailyLists();
+            if (localDays != null)
+            {
+                foreach (DailyDayEntry local in localDays)
+                {
+                    if (local == null)
+                        continue;
+                    DailyDayEntry entry = FindDailyDay(local.Day);
+                    if (entry == null)
+                    {
+                        DailyDays.Add(new DailyDayEntry { Day = local.Day, AttemptsUsed = local.AttemptsUsed });
+                    }
+                    else
+                    {
+                        entry.AttemptsUsed = Math.Max(entry.AttemptsUsed, local.AttemptsUsed);
+                    }
+                }
+            }
+            if (localResults != null)
+            {
+                foreach (DailyResultEntry local in localResults)
+                {
+                    if (local == null)
+                        continue;
+                    DailyResultEntry entry = FindDailyResult(local.Day);
+                    if (entry == null)
+                    {
+                        DailyResults.Add(new DailyResultEntry { Day = local.Day, BestScore = local.BestScore });
+                    }
+                    else
+                    {
+                        entry.BestScore = Math.Min(entry.BestScore, local.BestScore);
+                    }
+                }
+            }
+            DailyStreak = Math.Max(DailyStreak, localStreak);
+        }
+
+        //# 보관 정리 — Day < today - 6 행 제거 (최근 7일만, 어제 행은 남는다).
+        public void PruneDaily(int today)
+        {
+            EnsureDailyLists();
+            int oldest = today - (DailyRules.KeepDays - 1);
+            DailyDays.RemoveAll(entry => entry == null || entry.Day < oldest);
+            DailyResults.RemoveAll(entry => entry == null || entry.Day < oldest);
+        }
+
+        private void EnsureDailyLists()
+        {
+            if (DailyDays == null)
+            {
+                DailyDays = new List<DailyDayEntry>();
+            }
+            if (DailyResults == null)
+            {
+                DailyResults = new List<DailyResultEntry>();
+            }
+        }
+
+        private DailyDayEntry FindDailyDay(int day)
+        {
+            if (DailyDays == null)
+                return null;
+            foreach (DailyDayEntry entry in DailyDays)
+            {
+                if (entry != null && entry.Day == day)
+                    return entry;
+            }
+            return null;
+        }
+
+        private DailyResultEntry FindDailyResult(int day)
+        {
+            if (DailyResults == null)
+                return null;
+            foreach (DailyResultEntry entry in DailyResults)
+            {
+                if (entry != null && entry.Day == day)
+                    return entry;
+            }
+            return null;
+        }
+
         //# 카드 픽 횟수 조회 — 픽한 적 없으면 0(조회는 부수효과 0).
         public int GetCardPickCount(string cardId)
         {
@@ -346,6 +530,35 @@ namespace Lair.Meta
             //# 탑 진행은 시즌 기록 — 빠뜨리면 복원 시 탑 진행만 유실된다. 행은 새 인스턴스로(원본 공유 방지).
             TowerSeason = other.TowerSeason;
             TowerFloorClears = CopyTowerClears(other.TowerFloorClears);
+            //# 데일리 기록 — 같은 전체 대체 규약. 도전 횟수 환불 방지 병합은 복원 호출부가 MergeDailyFrom 으로 이어서 한다(§5.2).
+            DailyDays = CopyDailyDays(other.DailyDays);
+            DailyResults = CopyDailyResults(other.DailyResults);
+            DailyStreak = other.DailyStreak;
+        }
+
+        //# 데일리 행 복사 — null 이면 빈 리스트, 행은 새 인스턴스로(원본 공유 방지). 복원 전 로컬 스냅샷에도 쓴다.
+        public static List<DailyDayEntry> CopyDailyDays(List<DailyDayEntry> source)
+        {
+            List<DailyDayEntry> copy = new List<DailyDayEntry>();
+            if (source == null)
+                return copy;
+            foreach (DailyDayEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new DailyDayEntry { Day = entry.Day, AttemptsUsed = entry.AttemptsUsed });
+            }
+            return copy;
+        }
+
+        public static List<DailyResultEntry> CopyDailyResults(List<DailyResultEntry> source)
+        {
+            List<DailyResultEntry> copy = new List<DailyResultEntry>();
+            if (source == null)
+                return copy;
+            foreach (DailyResultEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new DailyResultEntry { Day = entry.Day, BestScore = entry.BestScore });
+            }
+            return copy;
         }
 
         //# 탑 클리어 행 복사 — null 이면 빈 리스트, 행은 새 인스턴스로.
@@ -455,6 +668,31 @@ namespace Lair.Meta
     {
         public int Floor;        //# 1 이상, PK
         public float ClearTime;  //# 그 층 클리어 시간(게임초). 불변식 > 0
+    }
+
+    //# 데일리 도전을 시작한 날 하나 — 시작한 날만 행 존재. JsonUtility 직렬화 대상.
+    [Serializable]
+    public class DailyDayEntry
+    {
+        public int Day;            //# dayIndex (>= 0), PK
+        public int AttemptsUsed;   //# 시작한 도전 수. 불변식 >= 1
+    }
+
+    //# 데일리 판을 끝낸 날 하나 — 끝낸 날만 행 존재. JsonUtility 직렬화 대상.
+    [Serializable]
+    public class DailyResultEntry
+    {
+        public int Day;            //# dayIndex, PK
+        public int BestScore;      //# 그날 최고(최소) 점수 1~301000 (daily-challenge §6.1)
+    }
+
+    //# RecordDailyResult 결과 — 보상·결과창 분기 입력.
+    public struct DailyRecordResult
+    {
+        public bool IsFirstFinish;   //# 그날 첫 종료 (연속 갱신 시점)
+        public bool IsFirstWin;      //# 그날 첫 승리 (보너스 소울 + 확정 유물)
+        public int Streak;           //# 갱신 후 연속 일수
+        public int BestScore;        //# 갱신 후 그날 최고 점수
     }
 
     //# 스테이지 한 칸의 누적 전적. JsonUtility 직렬화 대상.

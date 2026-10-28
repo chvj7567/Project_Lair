@@ -61,6 +61,7 @@ namespace Lair.Battle
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
                 await LoadTowerAsync(db);
+                await LoadDailyAsync(db);
                 return db;
             }
             catch (ChapterDataException e)
@@ -216,6 +217,29 @@ namespace Lair.Battle
                 //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 탑 기능 비활성");
                 TowerDatabase.Current = null;
+            }
+        }
+
+        //# 데일리 설정 JSON — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 데일리 비활성(마을 타일 숨김, 저장된 데일리 기록 보존) — daily-challenge E-9.
+        //# 유물 DB 가 오늘의 유물 풀의 출처라 유물 로드 뒤에 둔다.
+        private static async Task LoadDailyAsync(ChapterDatabase chapters)
+        {
+            DailyDatabase.Current = null;
+            string configJson = await LoadTextAsync(EData.DailyConfig);
+            if (configJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] DailyConfig.json 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 데일리 기능 비활성");
+                return;
+            }
+            try
+            {
+                DailyDatabase.Current = DailyDatabase.Build(JsonUtility.FromJson<DailyConfigRow>(configJson), chapters,
+                    RelicDatabase.Current, DifficultyTable.CurrentMaxIndex);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 데일리 기능 비활성");
+                DailyDatabase.Current = null;
             }
         }
 

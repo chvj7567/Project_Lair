@@ -34,6 +34,8 @@ namespace Lair.Village
         private bool _showcaseSwapPending;
         private bool _sortieBusy;   //# 출격 팝업 로드 중 재진입 가드
         private bool _towerEntering;   //# 탑 도전 연타 가드(씬 전환은 다음 프레임 적용)
+        private bool _dailyEntering;   //# 데일리 시작 연타 가드
+        private DailyViewModel _dailyVm;
 
         private async void Start()
         {
@@ -43,6 +45,8 @@ namespace Lair.Village
 
             //# 마을 진입 = 챕터 모드로 복귀 (infinite-tower §6.3) — 탑에서 "마을로" 돌아온 뒤 챕터 출격이 탑으로 열리는 것을 막는다.
             MetaSession.BattleMode = EBattleMode.Chapter;
+            //# 데일리 컨텍스트도 마을에서 끝난다 — 다음 데일리는 팝업에서 다시 판정·확정한다(§10.1). 세션 서버 시각(DailyClock)은 유지.
+            MetaSession.DailyContext = null;
             MetaProfile profile = MetaSession.GetOrLoad();
             _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
 
@@ -335,6 +339,10 @@ namespace Lair.Village
                     await OpenTower(profile);
                     break;
 
+                case EUI.DailyPopup:
+                    await OpenDaily(profile);
+                    break;
+
                 case EUI.RelicPopup:
                     //# 유물 도감 — 팝업을 연 동안 보유는 변하지 않는다(전투 불가 상태). 닫고 다시 열면 재계산(relics E-11).
                     await CHMUI.Instance.ShowUIAsync(EUI.RelicPopup, new RelicPopupArg { Profile = profile });
@@ -386,6 +394,73 @@ namespace Lair.Village
             _towerEntering = true;
             MetaSession.BattleMode = EBattleMode.Tower;
             EnterBattle();
+        }
+
+        //# 데일리 (daily-challenge §9) — 데이터 없음 = 타일 숨김(여기 도달 시 "준비 중"), 잠김 = 해금 스테이지 토스트, 열림 = 팝업 + 서버 시각·순위 비동기 로드.
+        private async Task OpenDaily(MetaProfile profile)
+        {
+            DailyDatabase daily = DailyDatabase.Current;
+            if (daily == null || ChapterDatabase.Current == null)
+            {
+                ToastView.Show(LookupString(TowerStrings.NotReady), EToastKind.Warning);
+                return;
+            }
+            if (daily.IsUnlocked(profile.ClearedStage) == false)
+            {
+                string needed = StageLabels.Number(daily.Config.unlockClearedStage);
+                ToastView.Show(string.Format(LookupString(DailyStrings.LockedToast), needed), EToastKind.Warning);
+                return;
+            }
+
+            _dailyVm = new DailyViewModel(daily, ChapterDatabase.Current, RelicDatabase.Current, profile, MetaSession.Api,
+                LookupString, () => Time.realtimeSinceStartupAsDouble, AuthTokenStore.Uid, _vm.DisplayName);
+            DailyViewModel vm = _dailyVm;
+            UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.DailyPopup, new DailyPopupArg
+            {
+                ViewModel = vm,
+                OnStart = StartDaily,
+                PortraitOf = linear => _stageVariantConfig != null ? _stageVariantConfig.GetStage(linear).Portrait : null,
+            });
+            if (popup == null)
+            {
+                Debug.LogError("[VillageController] DailyPopup 표시 실패(프리팹 로드/캔버스 확보 불가)");
+                return;
+            }
+            await vm.LoadAsync();
+            //# 서버 시각을 받았으면 세션 시각을 갱신 — 타일 강조(오늘 남은 도전)와 결과창 재도전 판정이 같은 기준을 쓴다.
+            if (this != null && vm.Clock != null)
+            {
+                MetaSession.DailyClock = vm.Clock;
+                _vm?.NotifyProfileChanged();
+            }
+        }
+
+        //# 데일리 시작 (§2.2-3) — 시작 순간 날짜 재판정(0시 경과면 새 조합 + 토스트, 시작 안 함). 차감은 Battle 이 영웅 스폰 직후 한다.
+        //# 편성은 저장된 편성 그대로(Battle 이 프로필에서 읽는다), SelectedStage/SelectedDifficulty 는 건드리지 않는다(E-14).
+        private void StartDaily()
+        {
+            if (_dailyEntering || _dailyVm == null)
+                return;
+            EDailyStartCheck check = _dailyVm.TryStart();
+            switch (check)
+            {
+                case EDailyStartCheck.Ok:
+                    _dailyEntering = true;
+                    MetaSession.DailyClock = _dailyVm.Clock;
+                    MetaSession.DailyContext = _dailyVm.Challenge;
+                    MetaSession.BattleMode = EBattleMode.Daily;
+                    EnterBattle();
+                    return;
+                case EDailyStartCheck.DayChanged:
+                    ToastView.Show(LookupString(DailyStrings.DayChanged), EToastKind.Warning);
+                    return;
+                case EDailyStartCheck.Exhausted:
+                    ToastView.Show(LookupString(DailyStrings.Exhausted), EToastKind.Warning);
+                    return;
+                default:
+                    ToastView.Show(LookupString(DailyStrings.OnlineRequired), EToastKind.Warning);
+                    return;
+            }
         }
 
         //# 침입 지도 — 챕터 데이터가 없으면 안내만(조용히 열지 않음). 선택 확정은 VM 이 선형 번호를 돌려주면 캐러셀 VM 으로 반영한다.
@@ -523,9 +598,15 @@ namespace Lair.Village
         private void ApplyRestoredProfile(MetaProfile cloud)
         {
             MetaProfile profile = MetaSession.GetOrLoad();
+            //# 데일리 — 복원 전 로컬 값을 떠 두고 복원 뒤 날짜별 병합(도전 수 최댓값·점수 최솟값·연속 최댓값) — 오래된 클라우드로 도전 횟수 환불 방지(daily-challenge §5.2).
+            List<DailyDayEntry> localDailyDays = MetaProfile.CopyDailyDays(profile.DailyDays);
+            List<DailyResultEntry> localDailyResults = MetaProfile.CopyDailyResults(profile.DailyResults);
+            int localDailyStreak = profile.DailyStreak;
             profile.CopyFrom(cloud);
             //# v4 클라우드 문서를 v5 클라이언트가 복원하는 경우 대비 — 로드 경로와 같은 마이그레이션 재적용(chapter-system §2.2).
             MetaProfileMigration.Apply(profile, ChapterDatabase.Current);
+            profile.MergeDailyFrom(localDailyDays, localDailyResults, localDailyStreak);
+            MetaProfileMigration.NormalizeDaily(profile);
             MetaSession.Store?.Save(profile);
             //# 복원 성공 — 충돌 해소.
             MetaSession.CloudConflictPending = false;

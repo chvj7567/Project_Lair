@@ -49,15 +49,7 @@ namespace Lair.Meta
             if (db == null || profile == null || rng == null)
                 return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
 
-            List<Relic_DropRow> candidates = new List<Relic_DropRow>();
-            foreach (Relic_DropRow drop in db.DropsOf(heroId))
-            {
-                RelicData data = db.Get(drop.relicId);
-                if (data != null && profile.GetRelicStack(drop.relicId) < data.MaxStack)
-                {
-                    candidates.Add(drop);
-                }
-            }
+            List<Relic_DropRow> candidates = Candidates(db, profile, heroId);
             if (candidates.Count == 0)
                 return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
 
@@ -89,6 +81,46 @@ namespace Lair.Meta
                 MaxStack = pickedData.MaxStack,
                 IsNew = isNew,
             };
+        }
+
+        //# 데일리 첫 승리 확정 굴림 (daily-challenge §7.1) — 확률 단계를 건너뛰고(chance 1.0) 등급 → 유물 추첨만 한다.
+        //# RelicMissStreak 은 읽지도 쓰지도 않는다(챕터 판의 천장 진행 보존). 후보가 0 이면 NoCandidates(E-12).
+        public static RelicDropResult RollGuaranteed(RelicDatabase db, MetaProfile profile, string heroId, int difficulty, Func<float> rng)
+        {
+            if (db == null || profile == null || rng == null)
+                return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
+
+            List<Relic_DropRow> candidates = Candidates(db, profile, heroId);
+            if (candidates.Count == 0)
+                return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
+
+            Relic_DropRow picked = PickRelic(db, candidates, difficulty, rng);
+            RelicData pickedData = db.Get(picked.relicId);
+            bool isNew = profile.GetRelicStack(picked.relicId) < 1;
+            int stackAfter = profile.AddRelic(picked.relicId);
+            return new RelicDropResult
+            {
+                Outcome = ERelicDropOutcome.Acquired,
+                RelicId = picked.relicId,
+                StackAfter = stackAfter,
+                MaxStack = pickedData.MaxStack,
+                IsNew = isNew,
+            };
+        }
+
+        //# 영웅 드랍 테이블 중 최대 중첩이 아닌 유물.
+        private static List<Relic_DropRow> Candidates(RelicDatabase db, MetaProfile profile, string heroId)
+        {
+            List<Relic_DropRow> candidates = new List<Relic_DropRow>();
+            foreach (Relic_DropRow drop in db.DropsOf(heroId))
+            {
+                RelicData data = db.Get(drop.relicId);
+                if (data != null && profile.GetRelicStack(drop.relicId) < data.MaxStack)
+                {
+                    candidates.Add(drop);
+                }
+            }
+            return candidates;
         }
 
         //# 2단계 추첨 — 후보가 있는 등급들 중 (baseWeight x 난이도 배율) 비례로 등급, 그 등급 후보 중 weight 비례로 유물.

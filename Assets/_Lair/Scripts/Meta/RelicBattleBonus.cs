@@ -68,19 +68,52 @@ namespace Lair.Meta
             {
                 if (entry == null)
                     continue;
-                RelicData data = db.Get(entry.RelicId);
-                if (data == null)
-                    continue;
-                int stack = Math.Min(entry.Stack, data.MaxStack);
-                if (stack < 1)
-                    continue;
-
-                foreach (RelicEffectData effect in data.Effects)
-                {
-                    bonus.Accumulate(db, effect, stack);
-                }
+                bonus.AddRelic(db, entry.RelicId, entry.Stack, false);
             }
             return bonus;
+        }
+
+        //# 데일리 공정성 (daily-challenge §3, D-4) — 개인 유물은 보상·배속 효과만 남기고, 오늘의 유물 2개를 이 판에만 전부 더한다.
+        public static RelicBattleBonus FromDaily(MetaProfile profile, RelicDatabase db, string relicA, int stackA, string relicB, int stackB)
+        {
+            RelicBattleBonus bonus = new RelicBattleBonus();
+            if (db == null)
+                return bonus;
+            if (profile != null && profile.Relics != null)
+            {
+                foreach (RelicEntry entry in profile.Relics)
+                {
+                    if (entry == null)
+                        continue;
+                    bonus.AddRelic(db, entry.RelicId, entry.Stack, true);
+                }
+            }
+            bonus.AddRelic(db, relicA, stackA, false);
+            bonus.AddRelic(db, relicB, stackB, false);
+            return bonus;
+        }
+
+        //# 데일리에서 개인 유물 중 유지되는 효과 — 2배속(게임 시간 기준이라 결과 불변)과 보상 가산(순위 무관).
+        public static bool IsKeptInDaily(ERelicEffectKind kind)
+        {
+            return kind == ERelicEffectKind.BattleSpeed || kind == ERelicEffectKind.SoulBonus
+                || kind == ERelicEffectKind.XpBonus || kind == ERelicEffectKind.LoseSoulBonus;
+        }
+
+        private void AddRelic(RelicDatabase db, string relicId, int rawStack, bool dailyPersonal)
+        {
+            RelicData data = db.Get(relicId);
+            if (data == null)
+                return;
+            int stack = Math.Min(rawStack, data.MaxStack);
+            if (stack < 1)
+                return;
+            foreach (RelicEffectData effect in data.Effects)
+            {
+                if (dailyPersonal && IsKeptInDaily(effect.Kind) == false)
+                    continue;
+                Accumulate(db, effect, stack);
+            }
         }
 
         private void Accumulate(RelicDatabase db, RelicEffectData effect, int stack)

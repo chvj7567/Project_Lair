@@ -35,6 +35,9 @@ namespace Lair.UI
         [SerializeField] private CHButton _relicButton;         //# v0.3 — 유물 도감 (relics §7.1)
         [SerializeField] private CHButton _towerButton;         //# v0.3 — 무한의 탑 (infinite-tower §6.1). 잠겨도 눌려야 한다 — 컨트롤러가 잠김 토스트를 띄운다.
         [SerializeField] private GameObject _towerLockOverlay;  //# 탑 잠김 겹침(회색 + 자물쇠)
+        [SerializeField] private CHButton _dailyButton;         //# v0.3 — 데일리 (daily-challenge §9.1). 잠겨도 눌려야 한다 — 컨트롤러가 잠김 토스트를 띄운다.
+        [SerializeField] private GameObject _dailyLockOverlay;  //# 데일리 잠김 겹침(흐림 + 자물쇠)
+        [SerializeField] private GameObject _dailyNewFrame;     //# 오늘 도전 남음 금색 테두리
         [SerializeField] private GameObject _cloudConflictDot;  //# v0.3 — 클라우드 충돌 배지(기획서 §3)
         [SerializeField] private CHButton _sortieButton;
         [SerializeField] private GameObject _sortieGlow;        //# 방어하기 붉은 맥동 글로우 — 잠금이면 숨김
@@ -93,6 +96,7 @@ namespace Lair.UI
             BindMenuButton(_cloudButton,       hudArg, EUI.CloudPopup);
             BindMenuButton(_relicButton,       hudArg, EUI.RelicPopup);
             BindMenuButton(_towerButton,       hudArg, EUI.TowerPopup);
+            BindMenuButton(_dailyButton,       hudArg, EUI.DailyPopup);
 
             RefreshCloudConflictDot();
 
@@ -251,6 +255,26 @@ namespace Lair.UI
             }
             RefreshRecordPanel();
             RefreshTowerLock();
+            RefreshDaily();
+        }
+
+        //# 데일리 타일 — 데이터 없으면 숨김(E-9), 잠김 겹침, 오늘 도전 남음 금색 테두리. 판정은 VM.
+        private void RefreshDaily()
+        {
+            if (_vm == null)
+                return;
+            if (_dailyButton != null)
+            {
+                _dailyButton.gameObject.SetActive(_vm.IsDailyVisible);
+            }
+            if (_dailyLockOverlay != null)
+            {
+                _dailyLockOverlay.SetActive(_vm.IsDailyLocked);
+            }
+            if (_dailyNewFrame != null)
+            {
+                _dailyNewFrame.SetActive(_vm.IsDailyHighlighted);
+            }
         }
 
         //# 탑 잠금 겹침 — 판정은 VM (클라우드 복원 등으로 프로필이 바뀌면 NotifyProfileChanged 로 다시 호출된다).

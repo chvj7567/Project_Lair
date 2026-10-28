@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Lair.Data;
 using Lair.Meta;
 
@@ -20,8 +21,20 @@ namespace Lair.Battle
         public StageRow Stage;              //# 챕터 모드 전용 (스탯 배수 출처)
         public HeroArchetype_TowerRow TowerHero;
         public TowerFloor Floor;            //# 탑 모드 전용
+        public DailyChallenge Daily;        //# 데일리 모드 전용 — 규칙 2개·오늘의 유물·카드 시드·날짜의 출처 (daily-challenge §10.1)
 
         public bool IsTower => Mode == EBattleMode.Tower;
+        public bool IsDaily => Mode == EBattleMode.Daily;
+
+        //# 이번 판 스테이지 규칙 — 데일리는 프리셋 2개 [상시, 페이즈], 그 외는 (RuleChapterId, RuleStageIndex) 의 규칙. 모든 규칙 소비 지점이 이것만 읽는다.
+        public IReadOnlyList<StageRuleData> ResolveRules(ChapterDatabase chapters)
+        {
+            if (IsDaily)
+                return Daily.Rules;
+            if (chapters == null)
+                return System.Array.Empty<StageRuleData>();
+            return chapters.GetRules(RuleChapterId, RuleStageIndex);
+        }
 
         //# HUD 제목·결과창의 챕터 내 단계 번호 (1~5).
         public int StageIndex => StageProgress.IndexOf(LinearStage);
@@ -41,11 +54,40 @@ namespace Lair.Battle
     public static class BattleSpecResolver
     {
         //# 챕터 모드는 항상 성공한다(데이터가 없으면 Hero/Stage 가 null — 소비 지점이 기존대로 처리). 탑 모드는 데이터 부재 시 null (E-1).
-        public static BattleSpec Resolve(EBattleMode mode, MetaProfile profile, ChapterDatabase chapters, TowerDatabase tower)
+        //# 데일리 모드는 daily(팝업이 확정한 조합)가 없거나 데이터가 없으면 null — 탑과 같은 진입 중단 경로.
+        public static BattleSpec Resolve(EBattleMode mode, MetaProfile profile, ChapterDatabase chapters, TowerDatabase tower, DailyChallenge daily = null)
         {
             if (mode == EBattleMode.Tower)
                 return ResolveTower(profile, chapters, tower);
+            if (mode == EBattleMode.Daily)
+                return ResolveDaily(daily, chapters);
             return ResolveChapter(profile, chapters);
+        }
+
+        //# 데일리 (daily-challenge §10.1) — 영웅·배경·외형·스탯 배율은 (영웅 챕터, 기준 스테이지), 난이도는 DailyConfig 고정, 규칙은 프리셋 2개. SelectedStage/SelectedDifficulty 는 읽지도 쓰지도 않는다.
+        public static BattleSpec ResolveDaily(DailyChallenge daily, ChapterDatabase chapters)
+        {
+            if (daily == null || chapters == null)
+                return null;
+            HeroArchetypeRow hero = chapters.GetHero(daily.HeroId);
+            StageRow stage = chapters.GetStage(daily.HeroChapterId, daily.BaseStageIndex);
+            if (hero == null || stage == null)
+                return null;
+            return new BattleSpec
+            {
+                Mode = EBattleMode.Daily,
+                EffectiveDifficulty = daily.Difficulty,
+                LinearStage = StageProgress.ToLinear(daily.HeroChapterId, daily.BaseStageIndex),
+                BackdropChapterId = daily.HeroChapterId,
+                RuleChapterId = daily.HeroChapterId,
+                RuleStageIndex = daily.BaseStageIndex,
+                RelicChapterId = daily.HeroChapterId,
+                RelicStageIndex = daily.BaseStageIndex,
+                RelicDifficulty = daily.Difficulty,
+                Hero = hero,
+                Stage = stage,
+                Daily = daily,
+            };
         }
 
         public static BattleSpec ResolveChapter(MetaProfile profile, ChapterDatabase chapters)

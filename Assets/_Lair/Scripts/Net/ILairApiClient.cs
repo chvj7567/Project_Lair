@@ -27,6 +27,29 @@ namespace Lair.Net
         Task<List<RankingRowDto>> GetMyStageRankAsync(int stage);
         //# 표시명 변경 — 서버 권위 중복 체크. 결과(성공/중복/유효하지않음/오프라인)와 확정 이름 반환.
         Task<DisplayNameResult> ChangeDisplayNameAsync(string displayName);
+        //# 서버 현재 시각 (daily-challenge §10.3) — ID 토큰 강제 갱신 후 발급 시각(iat). 실패(오프라인·미인증)면 Ok=false.
+        Task<ServerTimeResult> GetServerTimeAsync();
+        //# 데일리 순위 제출 — 서버에 더 작은(좋은) 점수가 있으면 쓰지 않는다. 실패(오프라인·보안 규칙 거부)면 false.
+        Task<bool> SubmitDailyScoreAsync(int day, int score, string hero, string comboKey, string displayName);
+        //# 데일리 Top N (score 오름차순, RankingRowDto.clearTimeMs = 점수). 조회 실패(인덱스 미생성 등)는 null — 팝업이 "불러오지 못했습니다" 를 띄운다.
+        Task<List<RankingRowDto>> GetDailyTopAsync(int day, int top);
+        //# 데일리 내 순위 — 조회 실패면 null, 기록 없음이면 빈 리스트.
+        Task<List<RankingRowDto>> GetMyDailyRankAsync(int day);
+    }
+
+    //# 서버 시각 조회 결과 — 실패를 sentinel 시각 대신 Ok 로 구분한다.
+    public readonly struct ServerTimeResult
+    {
+        public readonly bool Ok;
+        public readonly long UtcMs;
+
+        public ServerTimeResult(bool ok, long utcMs)
+        {
+            Ok = ok;
+            UtcMs = utcMs;
+        }
+
+        public static ServerTimeResult Failed => new ServerTimeResult(false, 0L);
     }
 
     //# PutSave 결과 — 409(서버가 더 최신)를 호출부가 구분하도록.

@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 10;
+        public const int CurrentVersion = 11;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -35,6 +35,8 @@ namespace Lair.Meta
             NormalizeFormation(profile);
             //# 탑(v10)도 챕터 데이터에 의존하지 않는 행 정리라 같은 이유로 조기 반환보다 앞선다(infinite-tower §5.1). 시즌 정리는 여기서 하지 않는다 — TowerConfig 가 로드 전일 수 있다.
             NormalizeTower(profile);
+            //# 데일리(v11)도 데이터 비의존 행 정리라 같은 이유로 조기 반환보다 앞선다(daily-challenge §5.1). attemptsPerDay 클램프는 하지 않는다(설정 로드 전일 수 있음).
+            NormalizeDaily(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -140,6 +142,51 @@ namespace Lair.Meta
             if (profile.TowerSeason < 0)
             {
                 profile.TowerSeason = 0;
+            }
+        }
+
+        //# DailyDays: null/Day<0/AttemptsUsed<1 행 제거, 같은 Day 는 AttemptsUsed 최댓값. DailyResults: null/Day<0/점수 범위 밖 제거, 같은 Day 는 BestScore 최솟값. DailyStreak 음수→0.
+        public static void NormalizeDaily(MetaProfile profile)
+        {
+            if (profile.DailyDays == null)
+            {
+                profile.DailyDays = new List<DailyDayEntry>();
+            }
+            profile.DailyDays.RemoveAll(entry => entry == null || entry.Day < 0 || entry.AttemptsUsed < 1);
+            List<DailyDayEntry> days = new List<DailyDayEntry>();
+            foreach (DailyDayEntry entry in profile.DailyDays)
+            {
+                DailyDayEntry existing = days.Find(e => e.Day == entry.Day);
+                if (existing == null)
+                {
+                    days.Add(entry);
+                    continue;
+                }
+                existing.AttemptsUsed = Math.Max(existing.AttemptsUsed, entry.AttemptsUsed);
+            }
+            profile.DailyDays = days;
+
+            if (profile.DailyResults == null)
+            {
+                profile.DailyResults = new List<DailyResultEntry>();
+            }
+            profile.DailyResults.RemoveAll(entry => entry == null || entry.Day < 0 || DailyRules.IsValidScore(entry.BestScore) == false);
+            List<DailyResultEntry> results = new List<DailyResultEntry>();
+            foreach (DailyResultEntry entry in profile.DailyResults)
+            {
+                DailyResultEntry existing = results.Find(e => e.Day == entry.Day);
+                if (existing == null)
+                {
+                    results.Add(entry);
+                    continue;
+                }
+                existing.BestScore = Math.Min(existing.BestScore, entry.BestScore);
+            }
+            profile.DailyResults = results;
+
+            if (profile.DailyStreak < 0)
+            {
+                profile.DailyStreak = 0;
             }
         }
 

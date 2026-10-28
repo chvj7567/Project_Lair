@@ -154,8 +154,8 @@ namespace Lair.Data
             return new TowerRandom((ulong)(uint)seed ^ ((ulong)band << 32) ^ salt);
         }
 
-        //# Fisher-Yates, i = n-1 → 1, j = next() % (i+1).
-        private static void Shuffle<T>(List<T> list, TowerRandom rng)
+        //# Fisher-Yates, i = n-1 → 1, j = next() % (i+1). 데일리 영웅 순열도 같은 셔플을 쓴다(daily-challenge D-10, 생성기 단일화).
+        public static void Shuffle<T>(List<T> list, TowerRandom rng)
         {
             for (int i = list.Count - 1; i >= 1; --i)
             {

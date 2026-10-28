@@ -105,7 +105,7 @@ namespace Lair.Tests.EditMode
             MetaProfile profile = JsonUtility.FromJson<MetaProfile>("{\"Version\":7,\"Souls\":5}");
             MetaProfileMigration.Apply(profile, (System.Func<int, string>)null);
 
-            Assert.AreEqual(10, profile.Version);
+            Assert.AreEqual(11, profile.Version);
             Assert.IsNotNull(profile.Relics);
             Assert.AreEqual(0, profile.Relics.Count);
             Assert.AreEqual(0, profile.RelicMissStreak);

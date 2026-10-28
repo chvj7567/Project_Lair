@@ -50,7 +50,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();
 
-            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(11, p.Version);
             Assert.AreEqual(MetaProfileMigration.CurrentVersion, p.Version);
             Assert.AreEqual(0, p.SelectedDifficulty);
             Assert.IsNotNull(p.DifficultyClears);
@@ -68,7 +68,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(11, p.Version);
             Assert.AreEqual(3, p.ClearedStage);
             Assert.AreEqual(2, p.SelectedStage);
             Assert.AreEqual(0, p.DifficultyClears.Count);
@@ -83,7 +83,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(10, loaded.Version);
+            Assert.AreEqual(11, loaded.Version);
             Assert.AreEqual(4, loaded.ClearedStage);
             Assert.AreEqual(3, loaded.SelectedStage);
             Assert.AreEqual(0, loaded.SelectedDifficulty);
@@ -101,7 +101,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile copy = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
 
-            Assert.AreEqual(10, copy.Version);
+            Assert.AreEqual(11, copy.Version);
             Assert.AreEqual(2, copy.SelectedDifficulty);
             Assert.AreEqual(2, copy.DifficultyClears.Count);
             Assert.AreEqual(1, copy.GetMaxClearedDifficulty(1));
@@ -306,7 +306,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (Func<int, string>)null);
 
-            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(11, p.Version);
             Assert.AreEqual(14, p.ClearedStage, "기본 MaxStage 10 으로 자르지 않는다");
             Assert.AreEqual(13, p.SelectedStage);
             Assert.AreEqual(1, p.GetMaxClearedDifficulty(12));
@@ -334,7 +334,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (Func<int, string>)null);
 
-            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(11, p.Version);
             Assert.AreEqual(13, p.ClearedStage);
             Assert.AreEqual(2, p.SelectedDifficulty);
             Assert.AreEqual(2, p.GetMaxClearedDifficulty(13));
@@ -349,7 +349,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(10, p.Version);
+            Assert.AreEqual(11, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
             Assert.AreEqual(1, p.DifficultyClears.Count);
         }
@@ -397,7 +397,7 @@ namespace Lair.Tests.EditMode
             live.CopyFrom(cloud);
             MetaProfileMigration.Apply(live, HeroOf);
 
-            Assert.AreEqual(10, live.Version);
+            Assert.AreEqual(11, live.Version);
             Assert.AreEqual(0, live.SelectedDifficulty);
             Assert.AreEqual(0, live.DifficultyClears.Count);
         }

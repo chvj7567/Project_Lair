@@ -153,13 +153,19 @@ namespace Lair.Battle
 
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
-            _spec = BattleSpecResolver.Resolve(MetaSession.BattleMode, MetaSession.GetOrLoad(), _chapters, TowerDatabase.Current);
+            _spec = BattleSpecResolver.Resolve(MetaSession.BattleMode, MetaSession.GetOrLoad(), _chapters, TowerDatabase.Current, MetaSession.DailyContext);
             if (_spec == null)
             {
-                //# 탑 데이터 부재 (E-1) — 조용한 폴백 없이 전투 진입을 중단하고 마을로.
-                Debug.LogError("[BattleController] 탑 전투 사양을 만들지 못함(탑/챕터 데이터 없음) — 전투 진입 중단, 마을로 복귀");
-                MetaSession.BattleMode = EBattleMode.Chapter;
-                SceneManager.LoadScene(EScene.Village.ToString());
+                //# 탑 데이터 부재 (E-1) · 데일리 컨텍스트 없음(에디터 Battle 직행 등) — 조용한 폴백 없이 전투 진입을 중단하고 마을로.
+                Debug.LogError($"[BattleController] {MetaSession.BattleMode} 전투 사양을 만들지 못함(탑/데일리/챕터 데이터 없음) — 전투 진입 중단, 마을로 복귀");
+                AbortToVillage();
+                return;
+            }
+            //# 데일리 — 남은 도전이 없으면 시작하지 않는다(결과창 재도전 판정의 안전망, E-15).
+            if (_spec.IsDaily && DailyAttemptsLeft() <= 0)
+            {
+                Debug.LogWarning("[BattleController] 데일리 남은 도전 0 — 전투 진입 중단, 마을로 복귀");
+                AbortToVillage();
                 return;
             }
             _effectiveDifficulty = _spec.EffectiveDifficulty;
@@ -191,6 +197,13 @@ namespace Lair.Battle
             bool heroSpawned = await SpawnHero();
             if (heroSpawned == false)
                 return;
+            //# 데일리 도전 차감 — 영웅 스폰 직후 즉시 저장(앱 강제 종료로 차감을 피하지 못하게, §10.1·E-6). 뒤로가기 종료도 1회 소모.
+            if (_spec.IsDaily)
+            {
+                MetaProfile dailyProfile = MetaSession.GetOrLoad();
+                dailyProfile.UseDailyAttempt(_spec.Daily.DayIndex);
+                MetaSession.Store?.Save(dailyProfile);
+            }
             //# zone 폴백 분기에서 이미 EnableHeroAIAfterDelay 호출됨. zone 활성 분기는 HandleHeroReachedCenter 가 담당.
             //# 편성 적용은 BindSpawners(종별 base 주기)·SetupStageRules(봉인)·첫 스폰 지연 등 CurrentType 을 읽는 모든 단계보다 먼저(§6.4).
             ApplyFormation();
@@ -275,7 +288,8 @@ namespace Lair.Battle
             CardPool pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
             if (pool != null)
             {
-                _passiveDeck = new CardDeck(pool.Cards);
+                //# 데일리는 날짜 시드 덱 — 같은 날 같은 선택이면 같은 카드가 제시된다(D-5). 그 외 시드 0 = 무작위.
+                _passiveDeck = new CardDeck(pool.Cards, _spec.IsDaily ? _spec.Daily.PassiveSeed : 0);
                 _allCards.AddRange(pool.Cards);
                 //# 상태 아이콘 — 패시브 풀도 스캔(HeroAttackDown=14 가 유일하게 여기 있음. 누락 시 silent-bug).
                 PopulateCardIcons(pool.Cards);
@@ -313,7 +327,7 @@ namespace Lair.Battle
             CardPool activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
             if (activePool != null)
             {
-                _activeDeck = new CardDeck(activePool.Cards);
+                _activeDeck = new CardDeck(activePool.Cards, _spec.IsDaily ? _spec.Daily.ActiveSeed : 0);
                 _allCards.AddRange(activePool.Cards);
                 //# 상태 아이콘 — 액티브 풀 스캔(8종 중 7종이 여기).
                 PopulateCardIcons(activePool.Cards);
@@ -393,6 +407,23 @@ namespace Lair.Battle
             _exitCancelFrame = Time.frameCount;
             _pause.Resume();
             _vm.SetExitAvailable(true);
+        }
+
+        //# 전투 사양 해석 실패 — 모드·데일리 컨텍스트를 챕터 기본값으로 돌리고 마을로.
+        private static void AbortToVillage()
+        {
+            MetaSession.BattleMode = EBattleMode.Chapter;
+            MetaSession.DailyContext = null;
+            SceneManager.LoadScene(EScene.Village.ToString());
+        }
+
+        //# 이번 데일리 날짜의 남은 도전 — 데일리 데이터가 없으면 0.
+        private int DailyAttemptsLeft()
+        {
+            DailyDatabase db = DailyDatabase.Current;
+            if (db == null || _spec == null || _spec.IsDaily == false)
+                return 0;
+            return MetaSession.GetOrLoad().DailyAttemptsLeft(_spec.Daily.DayIndex, db.Config.attemptsPerDay);
         }
 
         //# 런 기록·세이브·랭킹 제출(EndBattle 경로)을 거치지 않고 바로 이동.
@@ -488,7 +519,7 @@ namespace Lair.Battle
             if (_chapters == null || _heroHealth == null || _hero == null)
                 return true;
 
-            IReadOnlyList<StageRuleData> rules = _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex);
+            IReadOnlyList<StageRuleData> rules = _spec.ResolveRules(_chapters);
             if (rules.Count == 0)
                 return true;
 
@@ -540,7 +571,7 @@ namespace Lair.Battle
         {
             if (_chapters == null || _spec == null)
                 return 0;
-            foreach (StageRuleData data in _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex))
+            foreach (StageRuleData data in _spec.ResolveRules(_chapters))
             {
                 int percent = SealedNestInfo.AnyUnlockHpPercent(data);
                 if (percent > 0)
@@ -1177,7 +1208,7 @@ namespace Lair.Battle
         //# _metaConfig 유무와 독립이다(ApplyMetaBonuses 의 조기 반환과 무관하게 적용).
         private void ApplyRelicBonuses()
         {
-            _relicBonus = RelicBattleBonus.From(MetaSession.GetOrLoad(), RelicDatabase.Current);
+            _relicBonus = BuildRelicBonus();
 
             foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
             {
@@ -1208,6 +1239,18 @@ namespace Lair.Battle
 
             //# 2배속 토글 — 유물 보유 시에만 노출, 마지막 상태는 프로필(BattleSpeedOn)에서 복원.
             _vm?.ConfigureBattleSpeed(_relicBonus.HasBattleSpeed, _relicBonus.HasBattleSpeed && MetaSession.GetOrLoad().BattleSpeedOn);
+        }
+
+        //# 이번 판 유물 집계 — 데일리는 개인 유물 중 보상·배속만 + 오늘의 유물 2개(daily-challenge §3), 그 외는 보유 유물 전부. 적용·워밍이 같은 집계를 쓴다.
+        private RelicBattleBonus BuildRelicBonus()
+        {
+            MetaProfile profile = MetaSession.GetOrLoad();
+            if (_spec != null && _spec.IsDaily)
+            {
+                DailyChallenge daily = _spec.Daily;
+                return RelicBattleBonus.FromDaily(profile, RelicDatabase.Current, daily.RelicAId, daily.RelicAStack, daily.RelicBId, daily.RelicBStack);
+            }
+            return RelicBattleBonus.From(profile, RelicDatabase.Current);
         }
 
         //# 서두르는 둥지 — 모든 스포너의 첫 스폰 지연을 advanceSec 만큼 앞당김(0 하한).
@@ -1621,6 +1664,7 @@ namespace Lair.Battle
             int newlyUnlockedDifficulty = 0;
             RelicDropResult relicDrop = new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
+            DailyEndResult dailyEnd = new DailyEndResult { Multiplier = 1m };
             if (_metaConfig != null)
             {
                 MetaProfile profile = MetaSession.GetOrLoad();
@@ -1635,9 +1679,14 @@ namespace Lair.Battle
                 profile.TotalRuns++;
                 //# 탑 분기는 easyRun(_effectiveDifficulty == 0 이라 탑에서도 참)·IsNewStageBest·RecordStageRun 계산보다 "먼저" 갈라야 한다 —
                 //# 아니면 챕터 최단 기록·전역/스테이지 랭킹·ClearedStage·StageRecords 가 오염된다 (infinite-tower §8.1).
+                //# 데일리도 같은 이유로 먼저 가른다 — 챕터 진행·스테이지 기록·랭킹·탑·난이도 해금을 건드리지 않는다 (daily-challenge §10.1).
                 if (_spec.IsTower)
                 {
                     RecordTowerResult(profile, result);
+                }
+                else if (_spec.IsDaily)
+                {
+                    dailyEnd = RecordDailyResult(profile, result);
                 }
                 else
                 {
@@ -1645,8 +1694,18 @@ namespace Lair.Battle
                 }
 
                 //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 미할당 씬/테스트에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
-                //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 도감·영주 보상·도전과제보다 앞, 저장 전.
-                relicDrop = RollRelicDrop(profile, result == BattleResult.Win);
+                //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 데일리는 평소 굴림 없이 그날 첫 승리에만 1개 확정(§7.1, RelicMissStreak 불변).
+                if (_spec.IsDaily)
+                {
+                    if (dailyEnd.Record.IsFirstWin)
+                    {
+                        relicDrop = RelicDropRoller.RollGuaranteed(RelicDatabase.Current, profile, _spec.Hero.heroId, _spec.RelicDifficulty, RandomUnit);
+                    }
+                }
+                else
+                {
+                    relicDrop = RollRelicDrop(profile, result == BattleResult.Win);
+                }
 
                 //# 도감 — 이번 판 등장 종 + 픽 카드 누적 (distinct).
                 foreach (EMonster seen in _seenMonsters)
@@ -1683,7 +1742,7 @@ namespace Lair.Battle
 
             _vm.EndBattle(result);
 
-            await CHMUI.Instance.ShowUIAsync(EUI.ResultPopup, new ResultPopupArg
+            UIBase resultUI = await CHMUI.Instance.ShowUIAsync(EUI.ResultPopup, new ResultPopupArg
             {
                 Result = result,
                 HasMeta = _metaConfig != null,
@@ -1708,7 +1767,113 @@ namespace Lair.Battle
                 RelicIsNew = relicDrop.IsNew,
                 ShowNextChance = relicDrop.ShowNextChance,
                 NextWinChancePercent = relicDrop.NextWinChancePercent,
+                IsDaily = _spec.IsDaily,
+                DailyDayIndex = _spec.IsDaily ? _spec.Daily.DayIndex : 0,
+                DailyAttemptsLeft = _spec.IsDaily ? DailyAttemptsLeft() : 0,
+                DailyFirstWinBonus = dailyEnd.Record.IsFirstWin,
+                DailyBonusSouls = dailyEnd.BonusSouls,
+                DailyStreak = dailyEnd.Record.Streak,
+                DailyStreakMultiplier = dailyEnd.Multiplier,
+                OnDailyRetry = _spec.IsDaily ? TryDailyRetry : (System.Func<bool>)null,
             });
+
+            //# 데일리 순위 — 결과창을 먼저 띄우고("순위 집계 중") 제출·조회는 비동기로 이어서 갱신한다(§9.4). 끝낸 판이 기록됐을 때만.
+            if (_spec.IsDaily && dailyEnd.Recorded)
+            {
+                SubmitDailyRank(resultUI as ResultPopup, dailyEnd.Record.BestScore);
+            }
+        }
+
+        //# 데일리 판 종료 정산 결과 — 결과창·순위 제출 입력.
+        private struct DailyEndResult
+        {
+            public bool Recorded;
+            public DailyRecordResult Record;
+            public int BonusSouls;
+            public decimal Multiplier;
+        }
+
+        //# 데일리 판 기록 (daily-challenge §7·§10.1) — 전체 전적(TotalWins)·날짜별 최고 점수·연속·첫 승리 보너스 소울. 챕터·탑 기록과 랭킹은 건드리지 않는다.
+        //# 점수 = 승리 클리어 ms / 패배 300000 + 남은 HP 천분율. 판 도중 0시를 넘겨도 시작 시 확정한 날짜로 기록한다(E-1).
+        private DailyEndResult RecordDailyResult(MetaProfile profile, BattleResult result)
+        {
+            DailyEndResult end = new DailyEndResult { Multiplier = 1m };
+            bool win = result == BattleResult.Win;
+            if (win)
+            {
+                profile.TotalWins++;
+            }
+            int score = win
+                ? DailyRules.WinScore(_clock.Elapsed)
+                : DailyRules.LoseScore(_heroHealth != null ? _heroHealth.Current : 0, _heroHealth != null ? _heroHealth.Max : 0);
+            end.Record = profile.RecordDailyResult(_spec.Daily.DayIndex, score);
+            end.Recorded = DailyRules.IsValidScore(end.Record.BestScore);
+            DailyDatabase db = DailyDatabase.Current;
+            if (end.Record.IsFirstWin && db != null)
+            {
+                end.Multiplier = DailyRules.StreakMultiplier(end.Record.Streak, db.Config);
+                end.BonusSouls = DailyRules.BonusSouls(end.Record.Streak, db.Config);
+                profile.Souls += end.BonusSouls;
+            }
+            return end;
+        }
+
+        //# 데일리 순위 제출 + 내 순위 조회 (§6.2) — 그날 로컬 최고 점수를 제출(서버가 더 좋으면 미갱신). 실패는 토스트만, 다음 판 종료 때 자연 재시도.
+        //# 전역·스테이지 랭킹(SubmitScoreAsync/SubmitStageScoreAsync)은 호출하지 않는다.
+        private async void SubmitDailyRank(ResultPopup popup, int bestScore)
+        {
+            DailyChallenge daily = _spec.Daily;
+            string failedText = LookupFormat(DailyStrings.RankFailed, "순위를 불러오지 못했습니다");
+            string submitFailedText = LookupFormat(DailyStrings.SubmitFailed, "기록 제출 실패 - 다음 도전 때 다시 제출됩니다");
+            if (MetaSession.Ranking == null)
+            {
+                ToastView.Show(submitFailedText, EToastKind.Warning);
+                if (popup != null)
+                {
+                    popup.ShowDailyRank(failedText);
+                }
+                return;
+            }
+            MetaProfile profile = MetaSession.GetOrLoad();
+            string name = MetaProfile.ResolveDisplayName(profile.DisplayName, AuthTokenStore.GetOrCreateDeviceId());
+            bool submitted = await MetaSession.Ranking.SubmitDailyAsync(daily.DayIndex, bestScore, daily.HeroId, daily.ComboKey, name);
+            if (submitted == false)
+            {
+                ToastView.Show(submitFailedText, EToastKind.Warning);
+            }
+            List<RankingRowDto> mine = await MetaSession.Ranking.GetMyDailyRankAsync(daily.DayIndex);
+            if (popup == null)
+                return;
+            if (mine == null || mine.Count == 0)
+            {
+                popup.ShowDailyRank(failedText);
+                return;
+            }
+            popup.ShowDailyRank(string.Format(LookupFormat(DailyStrings.RankPlace, "{0}위"), mine[0].rank));
+        }
+
+        //# 결과창 "다시 도전" (§10.1) — 세션 기준값 + 단조 시계로 날짜를 다시 판정(서버 호출 없음). 같은 날·남은 도전 있음이면 같은 조합으로 재시작.
+        //# 날짜가 바뀌었거나 세션 시각이 없으면 안내 후 마을로(차감 없음, E-2). 반환 = 씬 이동을 시작했는가.
+        private bool TryDailyRetry()
+        {
+            EDailyStartCheck check = DailyRules.CheckStart(MetaSession.GetOrLoad(), DailyDatabase.Current, MetaSession.DailyClock, _spec.Daily.DayIndex);
+            switch (check)
+            {
+                case EDailyStartCheck.Ok:
+                    SceneManager.LoadScene(EScene.Battle.ToString());
+                    return true;
+                case EDailyStartCheck.Exhausted:
+                    ToastView.Show(LookupFormat(DailyStrings.Exhausted, "오늘 도전을 모두 사용했습니다"), EToastKind.Warning);
+                    return false;
+                case EDailyStartCheck.DayChanged:
+                    ToastView.Show(LookupFormat(DailyStrings.DayChanged, "날짜가 바뀌었습니다. 새 도전이 열렸습니다"), EToastKind.Warning);
+                    break;
+                default:
+                    ToastView.Show(LookupFormat(DailyStrings.OnlineRequired, "온라인 연결이 필요합니다"), EToastKind.Warning);
+                    break;
+            }
+            AbortToVillage();
+            return true;
         }
 
         //# 챕터 판 기록 (기존 동작 그대로) — 최단·스테이지 전적·클리어 진행·난이도·전역/스테이지 랭킹.
@@ -1958,6 +2123,9 @@ namespace Lair.Battle
         private string ComposeBattleTitle(MetaProfile profile)
         {
             string heroName = HeroTitleName(profile);
+            //# 데일리 "데일리 · 궁수" — 난이도 고정이라 접미 없음 (daily-challenge §9.3).
+            if (_spec.IsDaily)
+                return string.Format(LookupFormat(DailyStrings.ModeTitle, "데일리 · {0}"), heroName);
             if (_spec.IsTower)
                 return BattleViewModel.ComposeTowerTitle(heroName, _spec.Floor.Floor, _spec.Floor.IsBoss, LookupText);
             string difficultyLabel = _effectiveDifficulty >= 1 ? DifficultyTable.LabelOf(_effectiveDifficulty) : string.Empty;
@@ -1967,6 +2135,12 @@ namespace Lair.Battle
         private static string LookupText(int id)
         {
             return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
+        private static string LookupFormat(int id, string fallback)
+        {
+            string text = LookupText(id);
+            return string.IsNullOrEmpty(text) ? fallback : text;
         }
 
         //# 전투 HUD 영웅명 — 챕터 영웅 직업 데이터(문구 id)를 우선, 없으면 프로필 값 폴백. 단계는 호출부가 챕터 내 인덱스를 준다.
@@ -2075,7 +2249,7 @@ namespace Lair.Battle
             }
 
             //# 유물 뇌운 조각 낙뢰 FX — 보유할 때만(동시 1발이지만 지연 겹침 여유로 count 2, relics §6.5).
-            if (RelicBattleBonus.From(MetaSession.GetOrLoad(), RelicDatabase.Current).Lightnings.Count > 0)
+            if (BuildRelicBonus().Lightnings.Count > 0)
             {
                 await WarmVisual(EVisual.RelicLightningFx, 2);
             }
@@ -2083,7 +2257,7 @@ namespace Lair.Battle
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.
             if (_chapters != null)
             {
-                foreach (StageRuleData data in _chapters.GetRules(_spec.RuleChapterId, _spec.RuleStageIndex))
+                foreach (StageRuleData data in _spec.ResolveRules(_chapters))
                 {
                     if (StageRuleFx(data, out EVisual ruleFx, out int ruleFxCount) == false)
                         continue;

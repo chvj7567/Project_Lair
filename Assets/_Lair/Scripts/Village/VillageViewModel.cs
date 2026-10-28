@@ -52,6 +52,23 @@ namespace Lair.Village
         public bool IsCurrentStageUnlocked => StageProgress.IsUnlocked(_selectedStage, ClearedStage);
         //# 탑 버튼 잠금 겹침 표시 (infinite-tower §6.1) — 탑 데이터가 로드됐고 해금 조건(5-5 클리어) 미달일 때만. 데이터가 없으면 눌러서 "준비 중" 안내.
         public bool IsTowerLocked => TowerDatabase.Current != null && TowerDatabase.Current.IsUnlocked(ClearedStage) == false;
+        //# 데일리 타일 (daily-challenge §9.1) — 설정 미로드면 숨김(E-9), 해금 전 잠김, 해금 + 오늘 도전 남음이면 금색 테두리.
+        //# 오늘 날짜는 서버 시각을 받은 세션에서만 안다 — 아직 모르면(팝업 미오픈) 남음으로 본다.
+        public bool IsDailyVisible => DailyDatabase.Current != null;
+        public bool IsDailyLocked => DailyDatabase.Current != null && DailyDatabase.Current.IsUnlocked(ClearedStage) == false;
+        public bool IsDailyHighlighted
+        {
+            get
+            {
+                DailyDatabase db = DailyDatabase.Current;
+                if (db == null || _profile == null || db.IsUnlocked(ClearedStage) == false)
+                    return false;
+                DailyClock clock = MetaSession.DailyClock;
+                if (clock == null)
+                    return true;
+                return _profile.DailyAttemptsLeft(clock.Today(db.Config.utcOffsetMinutes), db.Config.attemptsPerDay) > 0;
+            }
+        }
         //# 경계 클램프 — 화살표 활성 여부(기획서 §4.4).
         public bool CanMovePrev => _selectedStage > MinStage;
         public bool CanMoveNext => _selectedStage < MaxStage;
