@@ -373,6 +373,39 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("20753_abc", DailyLeaderboard.DocId(20753, "abc"));
         }
 
+        //# ---------- 동점 순위 (경쟁 순위 1,2,2,4) ----------
+
+        private static IEnumerable<TestCaseData> RankCases()
+        {
+            yield return new TestCaseData(new int[0], new long[0]).SetName("빈_목록은_빈_순위");
+            yield return new TestCaseData(new[] { 42500 }, new long[] { 1 }).SetName("단일_행은_1위");
+            yield return new TestCaseData(new[] { 100, 200, 300 }, new long[] { 1, 2, 3 }).SetName("동점_없으면_순번");
+            yield return new TestCaseData(new[] { 100, 200, 200, 300 }, new long[] { 1, 2, 2, 4 }).SetName("중간_동점은_1_2_2_4");
+            yield return new TestCaseData(new[] { 100, 100, 300 }, new long[] { 1, 1, 3 }).SetName("선두_동점은_1_1_3");
+            yield return new TestCaseData(new[] { 500, 500, 500, 500 }, new long[] { 1, 1, 1, 1 }).SetName("전원_동점은_모두_1위");
+            yield return new TestCaseData(new[] { 100, 200, 300, 300 }, new long[] { 1, 2, 3, 3 }).SetName("끝_동점은_1_2_3_3");
+            yield return new TestCaseData(new[] { 42500, 300120, 301000, 301000, 301000 }, new long[] { 1, 2, 3, 3, 3 }).SetName("무피해_패배_301000_다수_동점");
+        }
+
+        [TestCaseSource(nameof(RankCases))]
+        public void 데일리_순위는_동점자가_같은_순위를_받는다(int[] scores, long[] expected)
+        {
+            long[] ranks = DailyLeaderboard.AssignRanks(scores);
+
+            CollectionAssert.AreEqual(expected, ranks);
+            for (int i = 0; i < scores.Length; ++i)
+            {
+                long smaller = scores.Count(s => s < scores[i]);
+                Assert.AreEqual(smaller + 1, ranks[i], $"{i}행 — 내 순위 규칙(나보다 작은 점수 수 + 1)과 일치");
+            }
+        }
+
+        [Test]
+        public void 순위_입력이_null이면_NullReferenceException이다()
+        {
+            Assert.Throws<NullReferenceException>(() => DailyLeaderboard.AssignRanks(null));
+        }
+
         //# ---------- 최고 점수 갱신 ----------
 
         [Test]
