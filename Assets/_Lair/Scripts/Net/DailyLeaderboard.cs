@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Lair.Meta;
 
@@ -23,6 +24,17 @@ namespace Lair.Net
             if (DailyRules.IsValidScore(newScore) == false)
                 return false;
             return existingScore <= 0 || newScore < existingScore;
+        }
+
+        //# 오름차순 점수 → 경쟁 순위(1,2,2,4). 내 순위 조회 "나보다 작은 점수 수 + 1" 과 같은 규칙이라 목록과 내 행 순위가 일치한다.
+        public static long[] AssignRanks(IReadOnlyList<int> sortedScores)
+        {
+            long[] ranks = new long[sortedScores.Count];
+            for (int i = 0; i < ranks.Length; ++i)
+            {
+                ranks[i] = i > 0 && sortedScores[i] == sortedScores[i - 1] ? ranks[i - 1] : i + 1;
+            }
+            return ranks;
         }
     }
 

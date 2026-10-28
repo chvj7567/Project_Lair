@@ -277,9 +277,6 @@ namespace Lair.Net
                 .OrderBy(valueField)
                 .Limit(top)
                 .GetSnapshotAsync();
-            //# 데일리는 경쟁 순위(1,2,2,4) — 내 순위 "나보다 작은 점수 수 + 1" 과 일치시킨다(daily-challenge §6.1). 전역/스테이지는 기존 순번 그대로.
-            bool tiesShareRank = valueField == DailyLeaderboard.ScoreField;
-            int rank = 1;
             foreach (DocumentSnapshot doc in snap.Documents)
             {
                 RankingRowDto row = ToRow(doc, valueField);
@@ -288,18 +285,22 @@ namespace Lair.Net
                 //# clearTimeMs<=0 은 유령 문서(표시명만 있고 클리어 기록 없음) — 거짓 "1위 00:00" 방지.
                 if (CloudSaveConflict.IsRankedClearTime(row.clearTimeMs) == false)
                     continue;
-                //# 쿼리가 rank 를 내려주지 않는다 — clearTimeMs 오름차순 순서 = 순위(1부터).
-                RankingRowDto previous = rows.Count > 0 ? rows[rows.Count - 1] : null;
-                if (tiesShareRank && previous != null && previous.clearTimeMs == row.clearTimeMs)
-                {
-                    row.rank = previous.rank;
-                }
-                else
-                {
-                    row.rank = rank;
-                }
-                rank++;
                 rows.Add(row);
+            }
+            //# 쿼리가 rank 를 내려주지 않는다 — 데일리는 경쟁 순위(DailyLeaderboard.AssignRanks), 전역/스테이지는 오름차순 순번(1부터).
+            if (valueField == DailyLeaderboard.ScoreField)
+            {
+                List<int> scores = rows.ConvertAll(r => r.clearTimeMs);
+                long[] ranks = DailyLeaderboard.AssignRanks(scores);
+                for (int i = 0; i < rows.Count; ++i)
+                {
+                    rows[i].rank = ranks[i];
+                }
+                return rows;
+            }
+            for (int i = 0; i < rows.Count; ++i)
+            {
+                rows[i].rank = i + 1;
             }
             return rows;
         }
