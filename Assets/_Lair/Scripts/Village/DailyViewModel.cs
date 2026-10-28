@@ -213,9 +213,9 @@ namespace Lair.Village
             }
         }
 
-        //# 연속 — 오프라인이면 로컬 마지막 기록 날짜 기준이 없어 저장값을 그대로 보인다.
+        //# 연속 — 오늘 날짜를 모르면(오프라인) 끊긴 연속이 보이지 않게 0.
         public string StreakText => string.Format(Text(DailyStrings.Streak, "연속 {0}일"),
-            Challenge != null ? _profile.DisplayDailyStreak(Today) : Math.Max(0, _profile.DailyStreak));
+            Challenge != null ? _profile.DisplayDailyStreak(Today) : 0);
 
         //# 최근 7일 출석 칸(왼쪽 = 6일 전, 마지막 = 오늘). 오프라인이면 전부 false.
         public bool[] Attendance
@@ -271,14 +271,28 @@ namespace Lair.Village
             EDailyStartCheck check = DailyRules.CheckStart(_profile, _db, Clock, Challenge.DayIndex);
             if (check == EDailyStartCheck.DayChanged)
             {
-                Challenge = _db.Generate(Clock.Today(Config.utcOffsetMinutes));
-                OnChanged?.Invoke();
-                if (_api != null)
-                {
-                    _ = LoadRankAsync(_loadVersion);
-                }
+                RegenerateForToday();
             }
             return check;
+        }
+
+        //# 팝업을 연 채 0시가 지났는가 — View 가 카운트다운 갱신 때 호출. 바뀌었으면 TryStart 와 같은 경로로 조합·순위를 새 날로 갱신하고 true.
+        public bool RefreshIfDayChanged()
+        {
+            if (Challenge == null || Clock.Today(Config.utcOffsetMinutes) == Challenge.DayIndex)
+                return false;
+            RegenerateForToday();
+            return true;
+        }
+
+        private void RegenerateForToday()
+        {
+            Challenge = _db.Generate(Clock.Today(Config.utcOffsetMinutes));
+            OnChanged?.Invoke();
+            if (_api != null)
+            {
+                _ = LoadRankAsync(_loadVersion);
+            }
         }
 
         private DailyRelicView RelicView(string relicId, int stack)

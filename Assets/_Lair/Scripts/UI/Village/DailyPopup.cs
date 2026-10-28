@@ -131,6 +131,9 @@ namespace Lair.UI
             if (_countdownTimer < CountdownRefreshSec)
                 return;
             _countdownTimer = 0f;
+            //# 0시 경과 — VM 이 조합을 새 날로 갱신하면 OnChanged 로 전체가 다시 그려진다.
+            if (_vm.RefreshIfDayChanged())
+                return;
             _dateText.SetText(_vm.DateLineText);
         }
 

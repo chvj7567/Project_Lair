@@ -138,9 +138,13 @@ namespace Lair.UI
                 _nameText.SetText(Truncate(data.displayName, 12) + suffix);
             }
             if (_timeText != null)
+            {
                 _timeText.SetText(string.IsNullOrEmpty(entry.ScoreText) ? FormatMs(data.clearTimeMs) : entry.ScoreText);
+            }
             if (_heroText != null)
+            {
                 _heroText.SetText(entry.HideHero ? string.Empty : data.hero);
+            }
             ApplyBackground(entry.IsMine);
         }
 
@@ -158,9 +162,13 @@ namespace Lair.UI
                 _nameText.SetText(Truncate(entry.UnrankedName, 12) + suffix);
             }
             if (_timeText != null)
+            {
                 _timeText.SetText(string.IsNullOrEmpty(entry.ScoreText) ? UnrankedValueLabel : entry.ScoreText);
+            }
             if (_heroText != null)
+            {
                 _heroText.SetText(entry.HideHero ? string.Empty : UnrankedValueLabel);
+            }
             ApplyBackground(entry.IsMine);
         }
 

@@ -50,8 +50,10 @@ namespace Lair.Data
         public int PassiveSeed;
         public int ActiveSeed;
 
-        //# 전투 규칙 목록 — [상시, 페이즈] 순 (StageRuleRunner 에 그대로 전달).
-        public IReadOnlyList<StageRuleData> Rules => new[] { AlwaysRule.Data, PhaseRule.Data };
+        private StageRuleData[] _rules;
+
+        //# 전투 규칙 목록 — [상시, 페이즈] 순 (StageRuleRunner 에 그대로 전달). 첫 조회 시 1회 만들어 재사용.
+        public IReadOnlyList<StageRuleData> Rules => _rules ??= new[] { AlwaysRule.Data, PhaseRule.Data };
 
         //# 조합 지문 "Archer|2-4#1|3-5#2|RustyBladex3|ThunderShardx1" (§6.3) — 사후 버전 차이 확인용.
         public string ComboKey => $"{HeroId}|{AlwaysRule.Key}|{PhaseRule.Key}|{RelicAId}x{RelicAStack}|{RelicBId}x{RelicBStack}";

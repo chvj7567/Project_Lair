@@ -1868,8 +1868,11 @@ namespace Lair.Battle
                 case EDailyStartCheck.DayChanged:
                     ToastView.Show(LookupFormat(DailyStrings.DayChanged, "날짜가 바뀌었습니다. 새 도전이 열렸습니다"), EToastKind.Warning);
                     break;
-                default:
+                case EDailyStartCheck.Offline:
                     ToastView.Show(LookupFormat(DailyStrings.OnlineRequired, "온라인 연결이 필요합니다"), EToastKind.Warning);
+                    break;
+                default:
+                    //# Disabled/Locked — 전용 문구 없이 마을 복귀만(마을 타일이 상태를 보여 준다).
                     break;
             }
             AbortToVillage();
