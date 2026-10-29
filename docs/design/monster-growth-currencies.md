@@ -12,6 +12,7 @@
 - **목표**: 지금은 모든 콘텐츠가 소울만 주고 소울은 상점에서만 쓰여 "어느 콘텐츠를 해도 보상이 같다". 소울은 **기본 체급(HP·공격력)** 재화로 그대로 두고, 콘텐츠마다 **고유 특수 재화**와 **고유 육성 축**을 붙인다 - 난이도 Normal/Hard = 각성석 → 종족 역할 스탯, 데일리 = 달빛 인장 → 종족별 둥지 숙련, 무한의 탑 = 심연 결정 → 종족 고유 특성, 유물 중복 = 유물 잔해 → 세 특수 재화로 보조 교환.
 - **검증 가설**: (1) 콘텐츠마다 다른 재화·다른 육성 축을 주면 "오늘은 무엇을 할까" 의 선택 이유가 생겨 Normal/Hard·데일리·탑 각각의 재방문이 늘어나는가(v0.3 재방문 가설 보강). (2) 체급(굵은 배율) 하나뿐이던 종족 육성에 역할 스탯·둥지·특성 축이 붙으면 "내 주력 종족" 판타지가 편성·카드 축 선택과 맞물려 빌드 다양성이 커지는가. (3) 새 축이 기존 상점 파이프에 곱연산으로만 얹혀도 컨셉 §8 튜닝 창(평균 빌드 영웅 사망 2~4분)과 Hard·탑 도전성이 무너지지 않는가.
 - **현재 단계 범위 적합성**: **범위 밖 항목의 명시 승격 요청 - 사용자 승인 필요.** CLAUDE.md §8 의 무한의 탑 항목이 "탑 전용 재화/상점" 을, 유물 2차 항목이 "유물 판매" 를 계속 금지하고, 난이도 항목은 "영웅 능력치 배율에 한정" 이다. 셋 다 이 기획과 충돌하므로 §12 에 수정 문안 초안을 둔다. **승인 전에는 구현에 착수하지 않는다.** 신규 몬스터·신규 스테이지 규칙·★ 목표·별도 메인 메뉴/세팅 화면 금지는 그대로 지킨다(신규 화면 0 - 상점·유물 도감·결과창 안에서만 표시). 서버는 Firebase 클라이언트 범위 유지(재화는 `MetaProfile` 일부로 기존 클라우드 백업에 실린다).
+- **함께 반영한 사용자 결정 (2026-10-29)**: 역병귀 기본 효과 "적중 시 둔화" → "적중 시 독", Debuff 축 패시브 "독장판" 삭제 후 대체 카드 "끈질긴 저주" 1장 신설(축 7장 유지). 육성 축(각성·특성)이 이 변경에 연동되므로 같은 기획서에서 다룬다 - §15. 구현은 육성과 독립 슬라이스(F)로 먼저 할 수 있다.
 - **핵심 메커니즘**: (a) 육성 3축은 **새 병렬 시스템이 아니라 기존 상점 파이프에 얹는다** - `MetaConfig.ShopItems` 에 종족 x 축 18항목을 추가하고, `ShopItemDef` 에 결제 재화 필드 하나를 더해 `ShopService`(가격·구매) → `ShopLevels`(저장·클라우드) → `MetaBattleBonus`(전투 시작 배율) 를 그대로 쓴다. (b) 각 축의 효과 수치는 JSON(`AwakenStat` / `NestMastery*` / `MonsterTrait*`) 이 들고, 전투 시작에 종족별 독립 곱연산 축으로 적용된다. (c) 특수 재화는 해당 콘텐츠의 결과 정산에서만 생기고, 유물 드랍이 "그 등급 유물이 이미 모두 최대 중첩" 이면 유물 대신 잔해가 나온다.
 
 ---
@@ -25,8 +26,8 @@
 | C-1 | 유물 잔해 = "최대중첩 도달 유물 재획득 시" 변환 | **등급 단위 변환** - 등급 굴림 결과 등급의 후보가 모두 최대 중첩이면 잔해 | 현행 규칙은 최대 중첩 유물을 후보에서 빼므로 "재획득" 이 구조적으로 일어나지 않는다. 유물 하나 단위로 후보에 되돌리면 미보유 유물 확률이 희석돼 52 슬롯 수집이 느려진다 (§2.4) |
 | C-2 | 잔해 일반 1 / 희귀 3 / 영웅 8 | 일반 1 / 희귀 3 / **전설** 8 | 실제 `RelicRarity` 등급은 Common/Rare/Legendary (§2.4) |
 | C-3 | 둥지 Lv3 = 스폰 직후 보호막(최대 HP 10%, 3초) | **스폰 직후 3초간 받는 피해 -50%** | 흡수형 보호막 시스템이 코드에 없다. 받는 피해 배율은 기존 축(`IronWill`·`ToughHide`·`DamageTakenScale`)과 같은 표면이라 신규 시스템 0. 최대 HP 10% 흡수는 환령(HP 30)에게 3 피해라 체감이 없다 (§3.3) |
-| C-4 | 역병 구름 영웅 최대 HP 0.3→0.8%/초 | **0.15 / 0.25 / 0.40 %/초, 구름 중첩 없음** | 0.8%/초 x 3초 = 역병귀 1마리 사망당 영웅 HP 2.4%. 역병귀는 10초마다 나오므로 200초 판이면 최대 48% - 유물 전투 효과 풀셋(0.119%/초, `relics.md` §1.3)의 4배 (§3.4) |
-| C-5 | 각성 Plague "둔화강도 +5%p·지속 +0.2초/Lv" | 둔화 배율 **x0.9375/Lv**, 지속 **x1.12/Lv** + 최종 둔화 배율 하한 0.25 | "독립 곱연산 축" 원칙에 맞춰 곱 배율로 환산. Lv1 은 0.80 → 0.75(정확히 +5%p), 1.5초 → 1.68초(+0.18초) (§3.2) |
+| C-4 | 역병귀 특성 "역병 구름"(사망 위치 독장판) | **"전염"** - 역병귀가 쓰러지면 근처 영웅의 독 중첩 +1/+2/+3, 지속 갱신 | 사용자 결정(2026-10-29)으로 역병귀 기본 효과가 "적중 시 독" 이 되어 독장판 특성은 같은 축 중복이다. 시안 수치 0.8%/초도 유물 전투 효과 풀셋의 4배였다 (§3.4, §15) |
+| C-5 | 각성 Plague "둔화강도 +5%p·지속 +0.2초/Lv" | **독 피해 x1.05/Lv · 독 지속 x1.10/Lv**, 둔화 하한 폐지 | 역병귀가 더는 둔화를 걸지 않는다(§15). 지속 강화는 카이팅 영웅(궁수·암살자)에게 독이 끊기지 않게 하는 역할 (§3.2) |
 | C-6 | 달빛 인장 연속 보너스 +10%/일 | 같은 공식(`DailyConfig.streakBonusPerDay`)을 쓰되 **반올림(0.5 올림)** 지급 | 기준값이 3·5 로 작아 내림이면 1.1~1.3배 구간 보너스가 0이 된다 (§2.2 표) |
 | C-7 | 셀 안 4"줄" | 종족 행 1줄 안에 **4"칸"**(체급·각성·둥지·특성) | 상점 스크롤은 모든 행 높이가 84px 고정(`shop-single-scroll-sections.md` §2). 4줄에 구매 버튼 4개는 84px 에 들어가지 않는다 (§8.1) |
 
@@ -187,18 +188,18 @@
 | Wraith 망령 | `DamageTaken` (신규) | x0.97 | 0.970 | 0.859 | 받는 피해 -14.1% |
 | Reaper 사신 | `Cooldown` (기존) | x0.95 | 0.950 | 0.774 | 공격 간격 -22.6% (공속 x1.292) |
 | Hex 저주술사 | `Range` (기존) | x1.06 | 1.060 | 1.338 | 사거리 5.0 → 6.69 |
-| Plague 역병귀 | `SlowFactor` (기존) | x0.9375 | 0.9375 | 0.724 | 영웅 이동 배율 0.80 → Lv1 0.75 / Lv5 0.579 (둔화 20% → 42%) |
-| Plague 역병귀 | `SlowDuration` (신규) | x1.12 | 1.120 | 1.762 | 둔화 지속 1.5초 → Lv1 1.68초 / Lv5 2.64초 |
+| Plague 역병귀 | `PoisonDamage` (기존 `SlowFactor` 자리 5 개명, §15.4) | x1.05 | 1.050 | 1.276 | 독 초당 피해 +27.6% |
+| Plague 역병귀 | `PoisonDuration` (신규) | x1.10 | 1.100 | 1.611 | 독 지속 3초 → Lv1 3.3초 / Lv5 4.83초 |
 | Phantom 환령 | `MoveSpeed` (기존) | x1.06 | 1.060 | 1.338 | 이동속도 2.4 → 3.21 |
 
-검산: 0.96^5 = 0.8154 / 0.85^5 = 0.4437 / 0.97^5 = 0.8587 / 0.95^5 = 0.7738 / 1.06^5 = 1.3382 / 0.9375^5 = 0.7242, 0.8 x 0.7242 = 0.579 / 1.12^5 = 1.7623, 1.5 x 1.7623 = 2.64.
+검산: 0.96^5 = 0.8154 / 0.85^5 = 0.4437 / 0.97^5 = 0.8587 / 0.95^5 = 0.7738 / 1.06^5 = 1.3382 / 1.05^5 = 1.2763 / 1.10^5 = 1.6105, 3 x 1.6105 = 4.83.
 
 - **Wraith 넉백 값**: 시안에 수치가 없어 x0.85/Lv 로 정했다. 넉백은 영웅 스킬(`AoeNova` 3.0, `DashStrike` 2.0, `Evade` 2.5, `CrushingLeap` 1.5)이 거는 값이고, 망령은 "벽" 역할이라 밀려나면 역할이 무너진다. Lv5 에서 넉백이 절반 이하가 되어야 벽 판타지가 체감된다(0.444).
-- **Plague 둔화 하한 0.25 (신설)**: 둔화 배율은 기본 0.8 에 카드(`PlagueSlowBoost` x0.75/픽, `DebuffSynergyTier1` x0.8), 상점(`PlagueVenomUp` 0.98^5 = 0.904), 각성이 곱해진다. 각성 Lv5 + 카드 2픽 + 시너지 + 상점 만렙 = 0.8 x 0.724 x 0.904 x 0.8 x 0.5625 = **0.236** → 영웅이 사실상 멈춘다. 최종 둔화 배율을 **0.25 미만으로 내리지 않는다**. 각성이 없는 현행 최강 조합(카드 2픽 + 시너지 + 상점) = 0.8 x 0.904 x 0.8 x 0.5625 = 0.325 라 현행 플레이는 하한에 걸리지 않는다(3픽 0.244 만 걸림 - 게이트 MG6 에서 확인).
+- **Plague 독 피해 누적 상한**: 독 초당 피해 배율은 카드 `PlagueSlowBoost`(독 강화로 교체, x1.4/픽, 3픽 2.744) · 상점 `PlagueVenomUp`(1.04^5 = 1.217) · 각성(1.276)이 곱해진다. 최대 = 2.744 x 1.217 x 1.276 = **4.26배**. 상한은 두지 않고 게이트 MG6 로 판정한다(둔화와 달리 독은 영웅을 멈추게 하지 않아 "판이 멈추는" 실패 형태가 없다).
 - **새 스탯 축 3개의 동작 요구**:
   - `DamageTaken`: 몬스터가 받는 모든 피해에 곱한다. 기존 받는 피해 배율(`EMonsterBuff.IronWill`·`GuardianRage`·`ToughHide`, `Health.DamageTakenScale`)을 **덮어쓰지 않고 곱으로 합성**해야 한다 - `DamageTakenScale` 은 보호막·버프 틱이 1 로 되돌리는 값이므로 그 값에 직접 쓰면 각성이 지워진다.
   - `KnockbackTaken`: 몬스터가 받는 넉백 세기(`knockbackStrength`)에 곱한다.
-  - `SlowDuration`: 역병귀가 영웅에게 거는 둔화 오라의 지속 시간(`PlagueSlowOnHit._duration`)에 곱한다.
+  - `PoisonDuration`: 역병귀가 영웅에게 거는 독(§15.1)의 지속 시간에 곱한다. `PoisonDamage` 는 독 초당 피해에 곱한다.
 
 ### 3.3 둥지 (달빛 인장) - 종족별 둥지 숙련 Lv0~3
 
@@ -229,7 +230,7 @@
 | Wraith | `Grudge` | 원한 | 쓰러지면 반경 3.0 안 몬스터 공격력 x1.08, 5초 | x1.14 | x1.20 | 비대상 (몬스터 버프) |
 | Reaper | `Execute` | 처형 | 영웅 HP 30% 이하일 때 사신의 피해 x1.15 | x1.28 | x1.40 | 비대상 |
 | Hex | `CurseStack` | 저주 누적 | 저주술사 적중마다 영웅이 받는 피해 +1%/중첩, 최대 5중첩, 마지막 적중 후 4초 유지 | +2% | +3% | **대상** (`CursedBanner` 와 같은 약화 축) |
-| Plague | `PlagueCloud` | 역병 구름 | 쓰러진 자리에 반경 1.5 독구름 3초, 안의 영웅에게 최대 HP 0.15%/초 | 0.25%/초 | 0.40%/초 | **대상** (`EmberBrand` 와 같은 지속 피해 축) |
+| Plague | `Contagion` | 전염 | 쓰러질 때 반경 4.0 안의 영웅에게 독 중첩 +1, 독 지속 갱신 | +2 | +3 | **대상** (독 자체가 Debuff 축 디버프) |
 | Phantom | `Afterimage` | 잔상 | 스폰 후 첫 피격 1회 무효, 회피 직후 0.5초 이동속도 x1.25 | 회피 1회 · x1.50 | 회피 2회 · x1.50 | 비대상 |
 
 검산(시안 1·3단계 값 사이 보간): 가시 (10+25)/2 = 17.5 → 17 / 원한 (8+20)/2 = 14 / 처형 (15+40)/2 = 27.5 → 28 / 저주 1·2·3.
@@ -239,10 +240,10 @@
   - 원한: 중첩 없음, 다시 걸리면 지속 시간만 5초로 갱신. 공격력 배율은 기존 몬스터 버프 경로(`MonsterBuffService`)의 시한 버프로 건다(`EMonsterBuff.BerserkPower` 는 "데미지 ↑, 미사용 자리" 로 남아 있어 재사용 후보 - 구현 판단).
   - 처형: 영웅 HP 비율은 피해를 줄 때마다 읽는다.
   - 저주 누적: 받는 피해 배율 = `1 + 단계값 x 중첩수` 를 영웅의 다른 받는 피해 배율(`BossBulwark` x0.6 등)과 **곱으로** 합성. 성기사의 디버프 저항 배율이 이 가산분에 적용된다(`CursedBanner` 의 `IPenaltyScalable` 선례).
-  - 역병 구름: **구름끼리 중첩하지 않는다** - 영웅이 여러 구름 안에 있어도 1초에 한 번, 가장 높은 단계 값 1회만 맞는다. 피해 = `Max(1, Round(영웅 최대 HP x 비율))`. 성기사 저항은 `EmberBrand` 와 같은 `IDebuffAxisAura` 규칙.
+  - 전염: 독 최대 중첩(기본 3, Debuff Tier1 이면 5)을 넘지 않는다. 영웅에게 독이 없으면 새로 건다(중첩 = 단계값, 1중첩 피해 = 그 역병귀의 독 피해). 반경 밖이면 효과 없음. 독 규칙은 §15.1 이 단일 진실.
   - 잔상: "첫 피격" = 스폰 후 처음 받는 피해 인스턴스(기본 공격·스킬·규칙 피해 모두). 회피 시 피해 0, 피격 연출은 "MISS" 피해 숫자 1회(기존 피해 숫자 경로).
-- **역병 구름 수치를 낮춘 이유(C-4)**: 시안 3단계 0.8%/초 x 3초 = 역병귀 1마리당 영웅 HP 2.4%. 기본 편성의 역병귀 둥지 1곳은 10초마다 1마리 → 200초 판에서 20마리 = 최대 48%. 유물 전투 효과 풀셋이 0.119%/초(200초에 23.8%)인 것과 비교하면 특성 하나가 유물 풀셋의 2배다. 확정값 3단계 0.40%/초 x 3초 = 1.2%/마리, 구름 중첩 없음, 영웅이 구름 안에 있는 비율을 절반으로 보면 200초 판 12% 수준 = 유물 풀셋의 절반.
-- **"정답 특성" 방지**: 특성은 종족마다 다른 상황에서 빛나도록 골랐다 - 가시는 근접·광역 영웅, 원한은 탱커가 많이 죽는 장기전, 처형은 마무리, 저주는 저주술사 둥지 2곳 편성, 역병 구름은 영웅이 한자리에 머무는 규칙(성수 샘·수호 결계), 잔상은 광역기 위주 영웅. 같은 결정 비용(§3.5)으로 단일 특성의 처치 시간 기여가 2배 이상 벌어지면 게이트 MG4 실패로 본다.
+- **역병 구름을 전염으로 바꾼 이유(C-4)**: 역병귀 기본 효과가 독이 되면서(§15) 사망 위치 독장판은 "독을 한 번 더" 일 뿐이라 정체성이 겹친다. 전염은 독을 새로 만들지 않고 **역병귀가 죽어도 독이 끊기지 않게** 한다 - 역병귀를 먼저 잡는 영웅(광전사 범위 베기, 암살자 약자 사냥)에 대한 역상성. 대안 "독 걸린 영웅 받는 피해 증가" 는 저주술사 특성 저주 누적과 같은 축이라 기각.
+- **"정답 특성" 방지**: 특성은 종족마다 다른 상황에서 빛나도록 골랐다 - 가시는 근접·광역 영웅, 원한은 탱커가 많이 죽는 장기전, 처형은 마무리, 저주는 저주술사 둥지 2곳 편성, 전염은 역병귀가 빨리 죽는 상대(광전사·암살자), 잔상은 광역기 위주 영웅. 같은 결정 비용(§3.5)으로 단일 특성의 처치 시간 기여가 2배 이상 벌어지면 게이트 MG4 실패로 본다.
 
 ### 3.5 가격 - 기존 `ShopService.PriceOf` 공식 그대로
 
@@ -314,7 +315,7 @@ BattleController 전투 시작 적용 (기존 ApplyMetaBonuses 경로)
 | 시스템 | 상호작용 | 결정 |
 |---|---|---|
 | 소울 상점 (체급·전종) | 같은 상점, 같은 스크롤, 같은 `ShopLevels`. 체급과 각성은 같은 종족 행 안의 다른 칸 | 표시명 "각성 → 체급" 변경(§3.1). 상단 "현재 강화" 요약줄은 전종 강화만 유지(기존 결정 유지) |
-| 카드 시너지 4축 (Tank/Dps/Debuff/Swarm) | 각성 스탯이 축의 역할을 굵게 한다: Tank ↔ Wisp·Wraith 받는 피해, Dps ↔ Reaper 공속·Hex 사거리, Debuff ↔ Plague 둔화, Swarm ↔ Phantom 이속 + 둥지 숙련(주기) | 모두 곱연산 누적. 둔화만 최종 하한 0.25(§3.2). 카드 후보 필터(`Card_Species`)는 편성 기준 그대로 - 육성이 카드 제시에 영향 없음 |
+| 카드 시너지 4축 (Tank/Dps/Debuff/Swarm) | 각성 스탯이 축의 역할을 굵게 한다: Tank ↔ Wisp·Wraith 받는 피해, Dps ↔ Reaper 공속·Hex 사거리, Debuff ↔ Plague 독, Swarm ↔ Phantom 이속 + 둥지 숙련(주기) | 모두 곱연산 누적. Debuff 축 카드 구성 변경(독장판 삭제 → 끈질긴 저주)은 §15. 카드 후보 필터(`Card_Species`)는 편성 기준 그대로 - 육성이 카드 제시에 영향 없음 |
 | 유물 | 능력치 유물과 같은 `_typeModifiers` 곱 표면. 드랍은 §2.4 C 로 변경 | `relics.md` §2.4·E-4 수정 필요(구현 요청 §11) |
 | 던전 편성 | 둥지 숙련은 편성된 둥지에 적용, 특성·각성은 출력 중인 종에만 의미 | 편성 코스트·상한·같은 종 제한은 **육성과 무관하게 그대로** - 육성한 종의 코스트를 올리지 않는다(편성의 맞교환 긴장은 코스트가 담당) |
 | 난이도 | Normal/Hard 의 영웅 배율은 그대로, 보상에 각성석 추가 | Normal/Hard 판은 최단·랭킹 제외 규칙 그대로 |
@@ -323,8 +324,8 @@ BattleController 전투 시작 적용 (기존 ApplyMetaBonuses 경로)
 | 무한의 탑 | 육성 적용, 층 생성·능력치 공식 불변, 보상에 결정 추가 | 탑 리더보드는 "메타 경쟁이 의도"(`infinite-tower.md` §7.3) 그대로 |
 | 챕터 랭킹 · 최단 기록 | 육성 적용(상점·유물과 같은 취급) | Easy 한정 규칙 불변 |
 | 스테이지 규칙 | 봉인된 둥지 = 숙련 효과 없음(스폰 없음), 짙은 안개 x0.7 은 Hex 각성 사거리와 곱 | 규칙 우선 - 육성이 규칙을 무효화하지 않음 |
-| 성기사 (Ch5) 디버프 저항 | 각성 Plague 둔화(기존 둔화 경로 = 대상), 저주 누적·역병 구름 = 대상, 나머지 특성 비대상 | §3.4 표가 단일 진실 |
-| 2배속 | 모든 시간값(원한 5초·구름 3초·스폰 보호 3초 등)은 게임 시간 | 기존 `deltaTime` 기준 그대로 |
+| 성기사 (Ch5) 디버프 저항 | 역병귀 독(각성·전염 포함) = 대상, 저주 누적 = 대상, 나머지 특성 비대상. 정화의 빛 해제 목록에 독 포함 | §3.4 표 + §15.5 가 단일 진실 |
+| 2배속 | 모든 시간값(원한 5초·독 3초·스폰 보호 3초 등)은 게임 시간 | 기존 `deltaTime` 기준 그대로 |
 | 도전과제·영주 레벨 | 변경 없음 | YAGNI |
 
 ---
@@ -352,7 +353,7 @@ NestMastery (엔티티, PK level)  "숙련 단계 하나의 효과 종류"      
  +-- NestMastery_Param (관계, level+paramKey)  "그 단계 효과 수치 하나"      <- 4행
 
 MonsterTrait (엔티티, PK monster)  "종족 고유 특성 하나"                     <- 6행
- +-- MonsterTrait_Param (관계, monster+tier+paramKey)  "단계별 특성 수치 하나" <- 45행
+ +-- MonsterTrait_Param (관계, monster+tier+paramKey)  "단계별 특성 수치 하나" <- 42행
 
 Difficulty (기존)
  |-- Difficulty_Awaken (선택적 관계, PK difficulty)  "난이도의 각성석 보상"   <- 2행 (Normal·Hard 만, Easy 행 없음)
@@ -399,7 +400,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | `Awaken_Wraith` | MonsterAwaken | Wraith | AwakenStone | 5 | 10 | 1.5 | 1.0 | 망령 각성 | 넉백 -15% · 받는 피해 -3%/Lv |
 | `Awaken_Reaper` | MonsterAwaken | Reaper | AwakenStone | 5 | 10 | 1.5 | 1.0 | 사신 각성 | 공격 간격 -5%/Lv |
 | `Awaken_Hex` | MonsterAwaken | Hex | AwakenStone | 5 | 10 | 1.5 | 1.0 | 저주술사 각성 | 사거리 +6%/Lv |
-| `Awaken_Plague` | MonsterAwaken | Plague | AwakenStone | 5 | 10 | 1.5 | 1.0 | 역병귀 각성 | 둔화·지속 강화/Lv |
+| `Awaken_Plague` | MonsterAwaken | Plague | AwakenStone | 5 | 10 | 1.5 | 1.0 | 역병귀 각성 | 독 피해 +5% · 지속 +10%/Lv |
 | `Awaken_Phantom` | MonsterAwaken | Phantom | AwakenStone | 5 | 10 | 1.5 | 1.0 | 환령 각성 | 이동속도 +6%/Lv |
 | `Nest_<종족>` x6 | NestMastery | 각 종족 | MoonSeal | 3 | 20 | 1.5 | 1.0 | `<종족> 둥지` | (칸 표시는 §8.1 - 다음 단계 효과를 데이터로 계산) |
 | `Trait_<종족>` x6 | MonsterTrait | 각 종족 | AbyssCrystal | 3 | 3 | 2.0 | 1.0 | `<종족> 특성` | (칸 표시는 특성 이름 + 단계 값을 데이터로 계산) |
@@ -433,7 +434,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | `statKind` | string | | `EMonsterStatKind` 값명 |
 | `perLevelMul` | float | | 레벨당 곱 배율 (§3.2 표) |
 
-초기값: (Wisp,1,DamageTaken,0.96) (Wraith,1,KnockbackTaken,0.85) (Wraith,2,DamageTaken,0.97) (Reaper,1,Cooldown,0.95) (Hex,1,Range,1.06) (Plague,1,SlowFactor,0.9375) (Plague,2,SlowDuration,1.12) (Phantom,1,MoveSpeed,1.06).
+초기값: (Wisp,1,DamageTaken,0.96) (Wraith,1,KnockbackTaken,0.85) (Wraith,2,DamageTaken,0.97) (Reaper,1,Cooldown,0.95) (Hex,1,Range,1.06) (Plague,1,PoisonDamage,1.05) (Plague,2,PoisonDuration,1.10) (Phantom,1,MoveSpeed,1.06).
 
 **NestMasteryRow** - `NestMastery.json`. "숙련 단계 하나". 3행.
 
@@ -456,7 +457,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 필드 | 타입 | 키/관계 | 설명 |
 |---|---|---|---|
 | `monster` | string | PK, `EMonster` 값명 | 종족 1 : 특성 1 |
-| `trait` | string | `EMonsterTrait` 값명 | ThornShell / Grudge / Execute / CurseStack / PlagueCloud / Afterimage |
+| `trait` | string | `EMonsterTrait` 값명 | ThornShell / Grudge / Execute / CurseStack / Contagion / Afterimage |
 | `nameKey` | int | 필수 1:1 → Strings_Ko | 1483~1488 |
 | `descKey` | int | 필수 1:1 → Strings_Ko | 1489~1494 (포맷 인자 = 그 단계 Param 값) |
 
@@ -473,14 +474,13 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | Hex | `perStack` | 0.01 | 0.02 | 0.03 |
 | Hex | `maxStack` | 5 | 5 | 5 |
 | Hex | `stackSec` | 4.0 | 4.0 | 4.0 |
-| Plague | `radius` | 1.5 | 1.5 | 1.5 |
-| Plague | `durationSec` | 3.0 | 3.0 | 3.0 |
-| Plague | `hpRatioPerSec` | 0.0015 | 0.0025 | 0.0040 |
+| Plague | `radius` | 4.0 | 4.0 | 4.0 |
+| Plague | `addStacks` | 1 | 2 | 3 |
 | Phantom | `dodgeCount` | 1 | 1 | 2 |
 | Phantom | `hasteMul` | 1.25 | 1.50 | 1.50 |
 | Phantom | `hasteSec` | 0.5 | 0.5 | 0.5 |
 
-행 수 검산: 파라미터 종류 1 + 3 + 2 + 3 + 3 + 3 = 15, 각 3단계 → 15 x 3 = **45행**.
+행 수 검산: 파라미터 종류 1 + 3 + 2 + 3 + 2 + 3 = 14, 각 3단계 → 14 x 3 = **42행**.
 
 **Difficulty_AwakenRow** - `Difficulty_Awaken.json`. 2행.
 
@@ -699,20 +699,20 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 1484 | `원한` | Wraith |
 | 1485 | `처형` | Reaper |
 | 1486 | `저주 누적` | Hex |
-| 1487 | `역병 구름` | Plague |
+| 1487 | `전염` | Plague |
 | 1488 | `잔상` | Phantom |
 | 1489 | `영웅 기본 공격 피해 {0}% 반사` | 특성 설명 (reflectRatio x100) |
 | 1490 | `쓰러지면 주변 공격력 +{0}% {1}초` | (powerMul-1 x100, durationSec) |
 | 1491 | `영웅 HP {0}% 이하 피해 +{1}%` | (hpThreshold x100, damageMul-1 x100) |
 | 1492 | `적중마다 받는 피해 +{0}% (최대 {1})` | (perStack x100, maxStack) |
-| 1493 | `독구름 {0}초 · 최대 HP {1}%/초` | (durationSec, hpRatioPerSec x100) |
+| 1493 | `쓰러지면 영웅 독 +{0}중첩` | (addStacks) |
 | 1494 | `첫 피격 {0}회 회피 · 이속 +{1}%` | (dodgeCount, hasteMul-1 x100) |
 | 1495 | `잔해 교환` | 교환 줄 머리(정적 라벨) |
 | 1496 | `첫 스폰 -{0}초` | 둥지 칸 (advanceSec) |
 | 1497 | `스폰 주기 -{0}%` | 둥지 칸 ((1-periodMul) x100) |
 | 1498 | `스폰 보호 {0}초` | 둥지 칸 (durationSec) |
 
-- 변경: **1400** `각성 Lv {0}` → `체급 Lv {0}` (§3.1).
+- 변경: **1400** `각성 Lv {0}` → `체급 Lv {0}` (§3.1), **206** `역병귀 둔화 ×{0}` → `역병귀 독 최대 중첩 +{0}`, **1412** `약화·둔화에 저항합니다. 디버프보다 힘으로 맞서세요.` → `약화·독에 저항합니다. 디버프보다 힘으로 맞서세요.` (§15).
 - 검산: 1498 - 1465 + 1 = 34개. 재사용: 1331 `{0} 클리어 시 해금`, 1341~1343 등급 이름, 1346 `획득 유물`.
 - 특성 설명은 칸 2줄(12자 x 2)에 맞춘 축약형이다. 상세 수치는 칸의 "다음 단계 값" 으로 보인다.
 
@@ -735,9 +735,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | E-11 | 영웅 테이블에 특정 등급이 아예 없음(예 성기사 Legendary 는 1종) | 그 등급 유물이 1개라도 있으면 등급 후보, 없으면 등급 후보에서 빠짐 - 테이블에 없는 등급은 잔해도 없음 |
 | E-12 | 잔해 교환 연타 | 1탭 1회. 잔해 부족 시 버튼 off |
 | E-13 | 편성에서 종을 뺀 경우 | 그 종의 각성·둥지·특성은 그 판에 효과 없음(레벨은 유지) |
-| E-14 | 둔화 하한 0.25 | 각성 포함 모든 곱 이후 마지막에 1회 적용 |
+| E-14 | 독 중첩 상한 도달 상태의 재적중·전염 | 중첩 유지, 지속만 갱신(§15.1) |
 | E-15 | 가시 껍질 반사로 영웅 사망 | 정상 승리(`EndBattle(Win)`) - 유물 화상/번개 선례 |
-| E-16 | 수호 결계(`BossBulwark`) 중 반사·구름 피해 | 기존 `TakeDamage` 경로가 x0.6 처리(특성 쪽 예외 없음) |
+| E-16 | 수호 결계(`BossBulwark`) 중 반사·독 피해 | 기존 `TakeDamage` 경로가 x0.6 처리(특성 쪽 예외 없음) |
 | E-17 | 저주 누적 중첩 중 영웅 스킬 무적 | 중첩·유지 시간은 무적과 무관하게 흐른다(피해만 0) |
 | E-18 | 잔상 회피 대상이 즉사급 피해 | 회피 1회는 피해량과 무관 |
 | E-19 | 원한이 이미 Frenzy 등 다른 버프 중인 몬스터에 | 곱연산 합성, 원한끼리는 중첩 없음(갱신) |
@@ -754,7 +754,8 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | MG3 | 각성 종족 간 기여도: 단일 종 각성 Lv5 만 켠 처치 시간 감소율 | 6종의 최대/최소 비 ≤ 2.0 | 편차 큰 종의 `AwakenStat.perLevelMul` 조정 |
 | MG4 | 특성 종족 간 기여도: 단일 종 특성 3단계만 켠 처치 시간 감소율 | 각 3%~12%, 최대/최소 비 ≤ 2.0. 광전사 상대 가시 껍질 반사 피해 비중 ≤ 영웅 총 피해의 15% | `MonsterTrait_Param` 수치 조정 |
 | MG5 | 경제 페이싱 | 각성 6종 만렙 승리 수 40~70 / 둥지 6종 만렙 일수(하루 3판) 22~35 / 특성 6종 만렙이 한 시즌 안에 되는 플레이어 비율(시뮬 벽 모델) ≤ 30% / 1-1 Hard 반복분 ≤ 각성석 수입의 20% | 가격 `BasePrice` / 지급량 조정 |
-| MG6 | 둔화 하한 | 최종 둔화 배율 0.25 에 걸리는 판 비율 ≤ 10%, 각성 없는 현행 조합에서 하한 적용 판 ≤ 1% | 하한 또는 Plague 각성 배율 조정 |
+| MG6 | 독 피해 비중 | 독 배율 최대(4.26배) 판에서 영웅 총 피해 중 독 비중 ≤ 35% | `PlagueSlowBoost` 픽당 배율 → 각성 배율 순 인하 |
+| MG10 | 역병귀 독 전환 + 카드 교체 (§15.7 게이트 PQ1~PQ6) | §15.7 표 | §15.7 표 |
 | MG7 | 데일리 시간 예산(`daily-challenge.md` DQ2 재검증) | 육성 만렙 플레이어의 데일리 처치 시간 중앙값 ≥ 90초, 해금 직후(육성 0) 플레이어 승률 DQ2 기준 유지 | 데일리에서 특성만 끄기(사용자 결정 U-3 대안) |
 | MG8 | 탑 벽 이동 | 육성 만렙이 벽을 상점 만렙 + 유물 풀셋 기준(25층) 대비 +4~+10층 올림 | 특성 수치 / 결정 지급량 |
 | MG9 | 잔해 비중 | 각 특수 재화 총수입 중 잔해 교환분 ≤ 15%, 유물 52 슬롯 완성 승리 수 변화 ≤ +5% (`relics.md` R1 대비) | 잔해량 / 교환 비율 |
@@ -771,7 +772,8 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 슬라이스 | 범위 | 선행 |
 |---|---|---|
 | A. 재화 기반 | `ECurrency`, `Currency*` JSON·로더, `MetaProfile` v12·마이그레이션·`CopyFrom`, `ShopItemDef.Currency` + `ShopService` 재화 분기, 상점 지갑 알약, 결과창 재화 칩, 각성석·인장·결정 지급(정산 함수 포함) | 승인 |
-| B. 각성 | `AwakenStat`, `EMonsterStatKind` 3값, `MetaBattleBonus` 종족 x 스탯 배율, 받는 피해·넉백·둔화 지속 적용, 둔화 하한, 상점 칸 2 | A |
+| B. 각성 | `AwakenStat`, `EMonsterStatKind` 3값, `MetaBattleBonus` 종족 x 스탯 배율, 받는 피해·넉백·독 피해·독 지속 적용, 상점 칸 2 | A + F |
+| F. 역병귀 독 전환 + Debuff 카드 교체 | §15 전부 (육성과 독립 - **가장 먼저 구현 가능**) | 승인 |
 | C. 둥지 | `NestMastery*`, 스포너 적용(첫 스폰·주기·스폰 보호), 상점 칸 3 | A |
 | D. 특성 | `MonsterTrait*`, 6특성 동작, 성기사 저항 연동, 상점 칸 4 | A |
 | E. 잔해 | `RelicDropRoller` 등급 단위 변환, `RelicRarity_Shard`, 결과창 띠 변형, 유물 도감 교환 줄 | A |
@@ -782,16 +784,16 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 - **신규** `ECurrency`: `Soul`, `AwakenStone`, `MoonSeal`, `AbyssCrystal`, `RelicShard` (값명 = `Currency.currencyId` = 아이콘 파일명. `Soul` = 0 이라 기존 `ShopItemDef` 직렬화 기본값 호환)
 - **신규** `ENestMasteryEffect`: `FirstSpawnAdvance`, `SpawnPeriod`, `SpawnGuard`
-- **신규** `EMonsterTrait`: `ThornShell`, `Grudge`, `Execute`, `CurseStack`, `PlagueCloud`, `Afterimage`
+- **신규** `EMonsterTrait`: `ThornShell`, `Grudge`, `Execute`, `CurseStack`, `Contagion`, `Afterimage`
 - `EShopEffectKind` append: `MonsterAwaken`, `NestMastery`, `MonsterTrait`
-- `EMonsterStatKind` append: `DamageTaken`, `KnockbackTaken`, `SlowDuration` (주석 "StatMultiplier 의 6개 필드와 1:1 대응" 을 9개로 갱신)
+- `EMonsterStatKind`: 값 5 `SlowFactor` → **`PoisonDamage` 개명**(정수 5 유지, §15.4) + append `DamageTaken`, `KnockbackTaken`, `PoisonDuration` (주석 "StatMultiplier 의 6개 필드와 1:1 대응" 을 9개로 갱신)
 - `EData` append: `Currency`, `Currency_Exchange`, `AwakenStat`, `NestMastery`, `NestMastery_Param`, `MonsterTrait`, `MonsterTrait_Param`, `Difficulty_Awaken`, `Difficulty_TowerCrystal`, `RelicRarity_Shard` (값명 = JSON 파일명, 10개)
-- `EVisual` append: `PlagueCloudFx`
+- `ECardId` append: `LingeringCurse` / `HeroPoisonAura` 는 자리 보존(폐기 주석) - §15.3
 - 신규 `EUI` 없음(신규 화면 0).
 
 ### 11.3 Interface
 
-- 신규 공용 Interface 없음. 특성 중 영웅에게 붙는 것(`CurseStack`·`PlagueCloud`)은 기존 `IHeroAura`(+ `PlagueCloud` 는 `IDebuffAxisAura`, `CurseStack` 은 `IPenaltyScalable`) 구현. 몬스터 쪽 특성(가시·원한·처형·잔상)은 기존 몬스터 컴포넌트/버프 경로 - 구조는 구현 판단.
+- 신규 공용 Interface 없음. 특성 중 영웅에게 붙는 `CurseStack` 은 기존 `IHeroAura` + `IPenaltyScalable` 구현. `Contagion` 은 §15.1 의 독 오라에 중첩을 더하는 동작(새 오라 아님). 몬스터 쪽 특성(가시·원한·처형·잔상)은 기존 몬스터 컴포넌트/버프 경로 - 구조는 구현 판단.
 
 ### 11.4 에셋 키 · 파일
 
@@ -799,7 +801,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - `MetaConfig.asset`: 18항목 추가(§6.2 표), 기존 `Enhance_*` 6항목 `DisplayName`·`Description` 변경(§3.1).
 - `Strings_Ko.json`: 1465~1498 추가, 1400 문구 변경.
 - 스프라이트 4개: `Assets/_Lair/Art/Sprites/Currency/{AwakenStone,MoonSeal,AbyssCrystal,RelicShard}.png` (16x16 도트, 기존 `Px_SoulCoin` 톤). 소울은 기존 `Px_SoulCoin` 재사용. 결과창·상점·도감은 인스펙터 `[SerializeField] Sprite` + `ECurrency` switch resolver(종족 아이콘 `SpeciesIcon` 관례).
-- 특성 FX: 역병 구름 바닥 장판 `EVisual.PlagueCloudFx`(신규 프리팹, 풀링, 사전 워밍 count 3 - 역병귀 둥지 최대 3곳 x 구름 3초 겹침), 그 외 특성은 기존 피해 숫자·버프 연출 재사용(잔상 = "MISS" 피해 숫자). `Assets/_Lair/Art/FX/PlagueCloudFx.prefab`.
+- 특성 FX: 신규 FX 프리팹 없음. 기존 피해 숫자·버프 연출 재사용(잔상 = "MISS" 피해 숫자, 전염 = 독 피해 숫자 색 + 상태 아이콘 중첩 숫자 갱신).
 - 프리팹: `ShopItemCell.prefab` 종족 4칸 요소, `ShopPopup.prefab` 지갑 알약 3개, `RelicPopup.prefab` 교환 줄, `ResultPopup.prefab` 재화 칩 2개·유물 띠 잔해 변형 요소. 신규 `[SerializeField]` 미연결 0.
 - UI 배선은 **목업 `.mockups/monster-growth-currencies.html` 승인 이후**(Rule 00 UI 게이트), 데이터는 §6 승인 이후.
 
@@ -814,7 +816,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - `Scripts/Meta/MetaProfileMigration.cs`: §7.3.
 - `Scripts/Meta/ShopService.cs`: 결제 재화 분기(소울 = `Souls`, 그 외 = `Currencies`), 잠긴 재화 항목 구매 거부.
 - `Scripts/Meta/MetaBattleBonus.cs`: EffectKind 3종 집계 - 종족 x 스탯 배율 조회, 종족별 둥지 레벨, 종족별 특성 단계.
-- `Scripts/Battle/StatMultiplier.cs`: 축 3개(`DamageTaken`·`KnockbackTaken`·`SlowDuration`).
+- `Scripts/Battle/StatMultiplier.cs`: `SlowFactorMul` → `PoisonDamageMul` 개명 + 축 3개(`DamageTaken`·`KnockbackTaken`·`PoisonDuration`).
 - 신규 정산 순수 함수(난수 없음): 각성석(첫 클리어 정산 + 반복), 인장(연속 배율 반올림), 결정(층당 + 이정표 + `CrystalPaid` 정산).
 - `Scripts/Meta/RelicDropRoller.cs`: §2.4 C(등급 후보 판정 변경, 잔해 결과 타입) - 챕터·탑·데일리 확정 굴림 공통.
 - `Scripts/Battle/BattleController.cs`: `EndBattle` 정산 순서 = 소울/XP → 기록 갱신 → **재화 정산(모드별)** → 유물 굴림(유물 또는 잔해) → 저장 → `ResultPopupArg` 재화 필드. 전투 시작 적용(각성·둥지·특성).
@@ -839,12 +841,12 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 | 영역 | 항목 |
 |---|---|
-| 데이터 | 출하 JSON 10개 로드, 행 수(5/3/8/3/4/6/45/2/3/3), §6.3 각 위반이 로드 오류, ShopItems 신규 18항목 무결성 |
+| 데이터 | 출하 JSON 10개 로드, 행 수(5/3/8/3/4/6/42/2/3/3), §6.3 각 위반이 로드 오류, ShopItems 신규 18항목 무결성 |
 | 가격 | 각성 10/15/22/33/50, 둥지 20/30/45, 특성 3/6/12, 결제 재화 분기, 잔액 부족·잠김 구매 거부 |
 | 지급 | 각성석 첫 클리어/반복/패배/Easy 0, Hard 첫 클리어 25 만, E-5 정산, 소급 정산 멱등(두 번 호출해도 1회분). 인장 반올림 표(§2.2) 전 행, 뒤로가기 0. 결정 층당 1/2/3·이정표·`CrystalPaid` 멱등·시즌 교체 후 재지급 |
 | 잔해 | 등급 후보 판정(최대 중첩 무관), 뽑힌 등급 후보 0 → 잔해, 등급 미완성 시 기존과 동일 결과(시드 고정 회귀), pity 0 리셋, 데일리 확정 굴림 잔해, 패배 굴림 pity 불변 |
 | 교환 | 3/5/8 → 1, 부족·미해금 거부, Soul 대상 교환 없음 |
-| 배율 | 각성 `PerLevelMul^Lv` 종족별, 받는 피해 곱 합성(`DamageTakenScale` 리셋 후에도 유지), 둔화 하한 0.25, 둥지 누적(Lv3 = 3효과), 특성 단계 파라미터 조회 |
+| 배율 | 각성 `PerLevelMul^Lv` 종족별, 받는 피해 곱 합성(`DamageTakenScale` 리셋 후에도 유지), 독 피해·지속 배율, 둥지 누적(Lv3 = 3효과), 특성 단계 파라미터 조회 |
 | MetaProfile | v11 → v12 기본값, §7.3 정리 규칙, 멱등, `CopyFrom` 재화 복사 |
 | 문자열 | 1465~1498 연속·포맷 인자 수, 1400 변경 |
 | 프리팹 | 신규 `[SerializeField]` 미연결 0 |
@@ -855,7 +857,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 ### 12.1 신규 항목 (무한의 탑·데일리 항목 뒤에 추가)
 
-> - **몬스터 육성 재화 분리 허용 (2026-10-29 v0.3 승격) - 단 기존 몬스터 6종의 상점 육성 3축과 콘텐츠별 특수 재화 4종에 한정** - 소울은 기존대로 모든 전투에서 얻고 종족 체급(HP·공격력)·전종 스탯 강화에 쓴다. 챕터 Normal/Hard 승리는 각성석(종족 역할 스탯 Lv0~5), 데일리 판 종료는 달빛 인장(종족별 둥지 숙련 Lv0~3), 무한의 탑 층 클리어는 심연 결정(종족 고유 특성 1~3단계)을 주며, 유물 드랍에서 뽑힌 등급의 유물이 모두 최대 중첩이면 유물 대신 유물 잔해가 나와 마을 유물 도감에서 세 재화로 교환된다. 육성은 기존 상점 파이프(`MetaConfig.ShopItems`·`ShopLevels`·`MetaBattleBonus`)에 독립 곱연산 축으로만 얹으며 챕터·데일리·탑 모든 전투에 적용된다. 허용 범위는 ① 재화·육성 JSON(`Currency`, `Currency_Exchange`, `AwakenStat`, `NestMastery*`, `MonsterTrait*`, `Difficulty_Awaken`, `Difficulty_TowerCrystal`, `RelicRarity_Shard`)과 `DailyConfig`·`TowerConfig` 보상 필드, `ShopItemDef` 결제 재화 필드 ② `MetaProfile` 의 특수 재화 잔액·첫 클리어 지급 기록 저장(Version 12)·클라우드 동기 호환 ③ 상점 「몬스터 강화」 종족 행 4칸(체급·각성·둥지·특성)과 상점 재화 표시, 유물 도감 잔해 교환 줄, 결과창 재화 표시 ④ 유물 드랍의 최대 중첩 등급 잔해 변환. **잔해 교환 외의 재화 간 환전, 유료 재화·재화 구매, 육성 초기화/환급, 신규 몬스터, 신규 스테이지 규칙, ★ 목표는 계속 금지.** 별도 메인 메뉴/세팅 화면 금지는 유지(신규 화면 없음). 랭킹·최단 기록 규칙은 기존(Easy 한정) 그대로다. 수치는 qa-simulator 게이트 MG1~MG9 로 확정한다.
+> - **몬스터 육성 재화 분리 허용 (2026-10-29 v0.3 승격) - 단 기존 몬스터 6종의 상점 육성 3축과 콘텐츠별 특수 재화 4종에 한정** - 소울은 기존대로 모든 전투에서 얻고 종족 체급(HP·공격력)·전종 스탯 강화에 쓴다. 챕터 Normal/Hard 승리는 각성석(종족 역할 스탯 Lv0~5), 데일리 판 종료는 달빛 인장(종족별 둥지 숙련 Lv0~3), 무한의 탑 층 클리어는 심연 결정(종족 고유 특성 1~3단계)을 주며, 유물 드랍에서 뽑힌 등급의 유물이 모두 최대 중첩이면 유물 대신 유물 잔해가 나와 마을 유물 도감에서 세 재화로 교환된다. 육성은 기존 상점 파이프(`MetaConfig.ShopItems`·`ShopLevels`·`MetaBattleBonus`)에 독립 곱연산 축으로만 얹으며 챕터·데일리·탑 모든 전투에 적용된다. 허용 범위는 ① 재화·육성 JSON(`Currency`, `Currency_Exchange`, `AwakenStat`, `NestMastery*`, `MonsterTrait*`, `Difficulty_Awaken`, `Difficulty_TowerCrystal`, `RelicRarity_Shard`)과 `DailyConfig`·`TowerConfig` 보상 필드, `ShopItemDef` 결제 재화 필드 ② `MetaProfile` 의 특수 재화 잔액·첫 클리어 지급 기록 저장(Version 12)·클라우드 동기 호환 ③ 상점 「몬스터 강화」 종족 행 4칸(체급·각성·둥지·특성)과 상점 재화 표시, 유물 도감 잔해 교환 줄, 결과창 재화 표시 ④ 유물 드랍의 최대 중첩 등급 잔해 변환 ⑤ 역병귀 기본 효과를 적중 시 둔화 → 적중 시 독(지속 피해·중첩)으로 교체하고, Debuff 축 패시브 카드 "독장판"(`HeroPoisonAura`)을 "끈질긴 저주"(`LingeringCurse` - Debuff 축 시한 디버프 지속 연장)로 교체(카드 총수 28장·축당 7장 유지), 연동되는 카드 "역병의 손길"·Debuff 시너지 Tier1·상점 "짙은 역병" 효과 교체. **잔해 교환 외의 재화 간 환전, 유료 재화·재화 구매, 육성 초기화/환급, 신규 몬스터, 신규 스테이지 규칙, ★ 목표는 계속 금지.** 별도 메인 메뉴/세팅 화면 금지는 유지(신규 화면 없음). 랭킹·최단 기록 규칙은 기존(Easy 한정) 그대로다. 수치는 qa-simulator 게이트 MG1~MG9 로 확정한다.
 
 ### 12.2 기존 항목 수정 (before → after)
 
@@ -897,16 +899,140 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | U-6 | 기존 소울 종족 강화 표시명 **"각성" → "체급"** (§3.1, Strings 1400 포함) | 새 축 이름을 "각성" 대신 다른 이름으로 | 이름 충돌 해소 방향 |
 | U-7 | 기존 기록(Normal/Hard·탑) **소급 지급** (§7.2) | 소급 없음 | 기존 유저 형평 |
 | U-8 | 둥지 Lv3 = **스폰 직후 3초 받는 피해 -50%** (시안 보호막에서 변경, C-3) | 흡수 보호막 신설 | 신규 시스템 비용 |
-| U-9 | 역병 구름 **0.15/0.25/0.40%/초, 중첩 없음** (시안 0.3~0.8 에서 인하, C-4) | 시안 값 유지 후 게이트 판정 | 특성 단일이 유물 풀셋을 넘는 위험 |
+| U-9 | 역병귀 특성 = **전염**(쓰러지면 영웅 독 +1/+2/+3중첩) (C-4) | 독 걸린 영웅 받는 피해 증가 / 사망 위치 독장판(시안) | 독 전환 후 특성 정체성 |
 | U-10 | 각성석 반복 승리 2/4 **스테이지 무관** (§2.1) | 챕터별 차등 | 1-1 Hard 반복 파밍 허용 여부 |
+| U-12 | 역병귀 독 = 적중마다 1중첩(최대 3), 지속 3초 갱신, 1중첩 초당 피해 = 역병귀 공격력 x1.0 (§15.1) | 중첩 없이 지속 연장만 / 영웅 최대 HP 비율 피해 | 독 세기·메타 연동 방식 |
+| U-13 | 독장판 대체 카드 = **끈질긴 저주**(Debuff 축 시한 디버프 지속 +25%/픽) (§15.3) | 쇠약(디버프 걸린 영웅 이동 x0.85) / 고통의 낙인(디버프 종류당 받는 피해 +5%) | 카드 정체성 |
+| U-14 | `HeroPoisonAura` enum 자리 보존 + `LingeringCurse` 신규 추가 (§15.3) | 독장판 자리를 개명해 재사용 | 세이브 문자열 호환 |
+| U-15 | Debuff Tier1 = 역병귀 독 최대 중첩 +2 (§15.2) | 독 피해 x1.3 | 시너지 정체성 |
 | U-11 | 육성 구매 레이어는 **기존 SO `MetaConfig.ShopItems` 에 추가**, 효과 수치만 JSON (§6) | 구매 레이어까지 JSON 신설 | Rule 02 §11(밸런스 = JSON)과 "병렬 시스템 금지" 의 충돌 - 기존 상점 항목이 SO 라 같은 표면을 택함 |
+
+---
+
+## 15. 역병귀 독 전환 · 독장판 삭제 · 대체 카드 "끈질긴 저주"
+
+### 15.0 무엇이 바뀌나
+
+| 대상 | 이전 | 이후 |
+|---|---|---|
+| 역병귀 기본 효과 (`PlagueSlowOnHit`) | 적중 시 영웅 이동 x0.8, 1.5초 | 적중 시 영웅에게 **독** (§15.1). 컴포넌트 교체 `PlagueToxinOnHit` |
+| 카드 "역병의 손길" `PlagueSlowBoost` (ID 유지) | 역병귀 둔화 x0.75/픽 | 역병귀 **독 피해 x1.4/픽** (3픽 2.744) |
+| Debuff 시너지 Tier1 (문구 206) | 역병귀 둔화 x0.8 | 역병귀 **독 최대 중첩 +2** (3 → 5) |
+| 상점 "짙은 역병" `PlagueVenomUp` (ID 유지 → 세이브 무변경) | 둔화 +2%/Lv (PerLevelMul 0.98) | **독 피해 +4%/Lv** (PerLevelMul 1.04), Description `역병귀 독 피해 +4%/Lv` |
+| 카드 "독장판" `HeroPoisonAura` (Debuff P) | 영웅 발밑 독장판 5 DPS | **카드 풀에서 삭제** |
+| 대체 카드 (Debuff P, 신규) | - | **"끈질긴 저주" `LingeringCurse`** (§15.3) |
+| 둔화 | 역병귀(Debuff) + Slow 카드(Swarm) | **Swarm `Slow` 카드에만** 남음. `SlowAura` 유지 |
+| 역병귀 각성 / 특성 | 둔화 강화 / 역병 구름 | 독 피해·지속 / 전염 (§3.2·§3.4) |
+
+### 15.1 역병귀 독 규칙 (`PlagueToxinAura` - 영웅 몸에 붙는 신규 지속 피해 오라)
+
+| 항목 | 값 | 비고 |
+|---|---|---|
+| 부착 | 역병귀 기본 공격 적중 시 | 기존 `PlagueSlowOnHit` 와 같은 `IAttacker.OnHit` 경로 |
+| 중첩 | 적중마다 **+1**, 최대 **3** (Debuff Tier1 이면 5) | 여러 역병귀가 영웅 하나의 독을 공유 |
+| 지속 | **3초**, 재적중·전염 때 3초로 **갱신**(연장 누적 아님). 전 중첩이 한 타이머를 공유 | 끊기면 중첩 전부 사라짐 |
+| 피해 | 1초마다 `Max(1, Round(중첩 수 x 1중첩 피해))` | `PoisonAura` 의 1초 틱 패턴 |
+| 1중첩 피해 | 건 역병귀의 최종 공격력 x **1.0** x `PoisonDamage` 배율. 재적중 시 `Max(현재, 새 값)` | 체급·상점·카드·각성이 모두 반영됨 |
+| 성기사 | `IDebuffAxisAura` (신앙의 가호: 지속 x0.6) · 정화의 빛 해제 대상 | §15.5 |
+| 상태 아이콘 | 영웅 HP바 아래 아이콘(`IStatusVisual`) + 중첩 숫자 `xN`. 아이콘 이미지 = "역병의 손길" 카드 아이콘 재사용 | 신규 스프라이트 없음 |
+
+- **`PoisonAura` 를 재사용하지 않는 이유**: `PoisonAura` 는 바닥에 고정된 장판(반경 판정)이고, `HeroAuraRunner` 는 같은 타입 재부착을 "지속 연장" 으로 합친다. 독은 영웅 몸에 붙고 중첩·갱신 규칙이 있으므로 새 오라가 필요하다. 러너의 같은 타입 병합 규칙을 이 오라만 "중첩 +1 · 지속 갱신" 으로 처리해야 한다(방식은 구현 판단).
+- 검산: 기본 역병귀 공격력 2 → 3중첩 초당 6 (독장판 카드 5 DPS 와 같은 크기대). 체급 Lv5(x2.288) + 상점 만렙(x1.217) + 카드 3픽(x2.744) + 각성 Lv5(x1.276) → 1중첩 2 x 2.288 x 4.26 = 19.5, 5중첩(Tier1) 19.5 x 5 = 97.5/초.
+- **`PoisonAura` 의 처리**: 독장판 카드 삭제로 사용처가 없어진다 → 클래스 삭제. 정화의 빛 해제 목록에서 `PoisonAura` 를 `PlagueToxinAura` 로 교체.
+
+### 15.2 Debuff 시너지 Tier1 - 대안 비교
+
+| 안 | 내용 | 판정 |
+|---|---|---|
+| **독 최대 중첩 +2 (채택)** | 3 → 5 | "역병귀를 계속 붙여 두면 더 아프다" 가 보이는 변화. 카드 "역병의 손길"(1중첩 세기)과 축이 달라 겹치지 않는다 |
+| 독 피해 x1.3 | 단순 배율 | 역병의 손길 카드와 같은 축이라 Tier1 이 "카드 한 장 더" 처럼 읽힌다 |
+
+### 15.3 독장판 삭제와 대체 카드 (사용자 결정: 대체 1장 신설, 축 P4 + A3 유지)
+
+**후보 비교**
+
+| 안 | 카드 (Debuff P) | 정체성 | 겹침 | 판정 |
+|---|---|---|---|---|
+| **A. 끈질긴 저주 `LingeringCurse` (채택)** | 영웅에게 걸린 **Debuff 축 시한 디버프의 지속 +25%/픽** (3픽 +75%) | "모든 디버프를 잇는 연결 카드" - 독·공포·출혈·무력화를 길게 한다. 성기사의 신앙의 가호(x0.6)를 정면으로 상쇄하는 카운터 카드 | 역병귀 독(피해량)과 축이 다름(시간). 기존 카드 중 지속 연장 카드 없음 | **채택** |
+| B. 쇠약 | Debuff 축 디버프가 하나라도 걸린 영웅 이동속도 x0.85 | 잃은 CC 를 일부 복원 | Swarm `Slow` 카드의 둔화 정체성과 겹치고, 둔화를 Swarm 에만 남긴다는 결정과 충돌 | 대안 |
+| C. 고통의 낙인 | 영웅에게 걸린 Debuff 축 디버프 종류 1개당 받는 피해 +5% (최대 +20%) | 디버프 수만큼 화력 | Dps 축 `MarkOfDeath`(받는 피해 x1.5)·저주술사 특성 저주 누적과 같은 축 | 대안 |
+
+**끈질긴 저주 규칙**
+- 적용 대상: `IDebuffAxisAura.IsDebuffAxis == true` 이고 **시한(duration ≥ 0)** 인 오라 - 독(`PlagueToxinAura`) · 공포 · 출혈 · 무력화. 영구 디버프(`HeroAttackDown`·`EternalBleed`)와 Swarm `Slow` 카드 둔화(Debuff 축 아님)는 대상 아님.
+- 배율: `1 + 0.25 x 픽 수` (가산, 3픽 1.75). 부착 시점의 지속에 곱한다 - 성기사 `신앙의 가호` x0.6 이 곱해지는 **같은 지점**(Attach 의 Debuff 축 지속 보정)에서 곱으로 합성(성기사 상대 3픽 = 1.75 x 0.6 = 1.05).
+- 검산: 독 3초 → 3픽 5.25초 / 출혈 10초 → 17.5초 / 공포 3초 → 5.25초 / 무력화 10초 → 17.5초.
+- 카드 테두리 범위: `ECardScope.Hero`(종족 무관). **편성 `Card_Species` 매핑 대상 아님** - 어떤 편성에서도 3택1 후보에서 빠지지 않는다(`HeroAttackDown` 과 같음). 역병귀를 빼도 공포·출혈·무력화를 늘리므로 의미가 있다.
+- 카드 데이터: `cards.json` 행 `{"id": "LingeringCurse", "axis": "Debuff", "displayName": "끈질긴 저주", "description": "영웅 디버프 지속 +25%"}` + 효과 `LingeringCurseEffect`(파라미터 `durationBonusPerPick` 0.25). `card_pools.json` passive 의 `HeroPoisonAura` 자리에 `LingeringCurse`.
+- **카드 일러스트 필요**: 모든 카드가 일러스트를 갖고 있다(`card-illustrations.md`). 신규 1장 `Assets/_Lair/Art/Cards/` 일러스트 + SO `LingeringCurse.asset`. 아트 제작 전 임시로 `HeroAttackDown` 일러스트 사용은 **하지 않는다**(도감에서 두 카드가 같아 보임) - 일러스트를 구현 완료 조건에 포함.
+
+**`ECardId` 처리 - 대안 비교**
+
+| 안 | 내용 | trade-off | 판정 |
+|---|---|---|---|
+| **A. `HeroPoisonAura` 자리 보존 + `LingeringCurse` 맨 끝 추가 (채택)** | 기존 값은 폐기 주석만 남기고 풀·SO·효과 클래스 삭제 | 세이브 `PickedCards`/`CardPickCounts` 의 `"HeroPoisonAura"` 문자열은 어느 카드와도 맞지 않아 자연히 무시된다 - 새 카드가 "이미 픽함" 으로 잘못 표시되지 않는다. 정수 직렬화(SO)도 안전(`Berserk` 자리 보존 선례) | **채택** |
+| B. `HeroPoisonAura` 값 개명 재사용 | 정수 13 을 `LingeringCurse` 로 | SO 정수는 맞지만 세이브 문자열 `"HeroPoisonAura"` 가 남아 도감·픽 통계가 끊기고, 이름을 그대로 두면 새 카드가 예전 독장판 픽 기록을 이어받는다 | 기각 |
+
+- 도감: 카드 탭은 출하 카드 목록(28장)을 순회하므로 세이브의 `"HeroPoisonAura"` 는 표시되지 않는다. 별도 처리 없음. 세이브에서 지우지도 않는다(`relics.md` §3.6 선례).
+- 카드 수: 28장 = Debuff 축 P4(역병의 손길·역병 증식·끈질긴 저주·약화의 저주) + A3 유지 → 빌드 시너지 임계 3/5/7, 3픽 캡, 축당 7장 전제가 그대로다.
+- 에디터 디버그 `ForcedCardDraw` 의 패시브 1픽 강제 카드 `HeroPoisonAura` → `LingeringCurse`. `SimPickStrategy` 분류 `HeroPoisonAura → Other` 행 → `LingeringCurse → Other`.
+
+### 15.4 `EMonsterStatKind.SlowFactor` 처리 - 대안 비교
+
+| 안 | 내용 | 판정 |
+|---|---|---|
+| **A. 정수 5 를 `PoisonDamage` 로 개명 (채택)** | `MetaConfig.asset` 의 `PlagueVenomUp.StatKind: 5` 를 그대로 둔 채 의미만 독 피해로. `StatMultiplier.SlowFactorMul` → `PoisonDamageMul`. 사용처(카드·시너지·상점)가 모두 독으로 바뀌어 둔화 축 사용처가 0 이 된다 | **채택** - 에셋 재저장·세이브 변경 0 |
+| B. `SlowFactor` 보존 + `PoisonDamage` 추가 | 미사용 축 하나가 영구히 남는다 | 기각 |
+
+- `PlagueVenomUp.PerLevelMul` 0.98 → **1.04** (에셋 값 변경). 1보다 작으면 강화였던 규칙이 1보다 크면 강화로 바뀐다.
+- `DungeonPowerSummary`: `SlowFactor` 역수 표시 분기 제거 → `PoisonDamage` 는 `mul - 1` 그대로, 라벨 `"둔화"` → `"독"`.
+- `EMonsterStatKind.SlowFactor`·`SlowFactorMul` 을 읽는 나머지 지점(`BattleController` 750행 `SetSlowFactor` 등)은 구현 시 grep 으로 전수 교체하고 보고.
+
+### 15.5 성기사 (Ch5)
+
+| 항목 | 결정 |
+|---|---|
+| 신앙의 가호 대상 | 역병귀 독 = **대상**(`IDebuffAxisAura`, 지속 x0.6). 중첩 수·피해는 보정하지 않는다(시한 디버프 = 지속 보정 규칙 그대로) |
+| 정화의 빛 해제 목록 | `PoisonAura` 삭제 → **`PlagueToxinAura` 추가**. 슬롯 목록 = `SlowAura`·`PlagueToxinAura`·`FearAura`·`BleedAura`·`WeakenAura` |
+| 편성 힌트 문구 1412 | `약화·둔화에 저항합니다…` → `약화·독에 저항합니다. 디버프보다 힘으로 맞서세요.` |
+| Ch5 의도 | "Debuff 축이 약해지는 챕터" 는 유지. 끈질긴 저주가 저항을 상쇄하는 유일한 카드라 Ch5 Debuff 빌드의 해답 1장이 생긴다 - 게이트 PQ5 |
+
+### 15.6 밸런스 영향 (예상)
+
+- Debuff 축이 **CC(둔화)를 잃고 피해를 얻는다**. 둔화로 영웅을 묶던 효과가 사라져 탱커 앞을 영웅이 빠져나가기 쉬워진다.
+- **카이팅 영웅(궁수 Ch2·암살자 Ch3) 상대 약화 위험**: 둔화가 따라잡기 수단이었다. 독은 적중해야 걸리므로 근접 역병귀가 못 붙으면 0 이다. 완화 수단 = 독 지속 갱신(맞고 3초는 계속 아픔) · 각성 지속 강화 · 전염 · 끈질긴 저주. 판정은 PQ2.
+- **클리어 시간 단축 위험**: 독 3중첩 초당 6(기본) ~ 97.5(최대)가 추가 피해로 들어온다. 판정은 PQ3.
+
+### 15.7 qa-simulator 게이트 (PQ, 기존 시뮬 `DebuffAxisPriority` 전략 재사용)
+
+| # | 지표 | 통과 기준 | 실패 시 레버 |
+|---|---|---|---|
+| PQ1 | Debuff 우선 전략 승률·처치 시간 (변경 전 대비, 전 챕터 Easy) | 승률 ±5%p, 처치 시간 중앙값 ±10% | 독 1중첩 배율 1.0 / 최대 중첩 |
+| PQ2 | 궁수(Ch2)·암살자(Ch3) 상대 Debuff 우선 전략 | 처치 시간 중앙값 변경 전 대비 +15% 이내 | 독 지속 3초 → 4초 |
+| PQ3 | 전 전략 평균 처치 시간 | 컨셉 §8 창 2~4분 유지, 2분 미만 판 비율 증가 ≤ 5%p | 역병의 손길 x1.4 → x1.3 |
+| PQ4 | Debuff Tier3 도달률 (Debuff 우선 전략) | 변경 전 대비 -10%p 이내 | 끈질긴 저주 등장 가중 |
+| PQ5 | 성기사(Ch5) 상대 Debuff 우선 vs 타 축 우선 | Debuff 가 여전히 가장 느린 축(Ch5 의도), 끈질긴 저주 3픽 시 Debuff 처치 시간 -10% 이상 | 끈질긴 저주 +25% → +30% |
+| PQ6 | 카드 픽률 (끈질긴 저주) | 패시브 16장 평균 픽률의 0.6~1.6배 | 배율 조정 |
+
+### 15.8 구현 요청사항 (슬라이스 F)
+
+- **코드**
+  - `PlagueSlowOnHit` → `PlagueToxinOnHit` 교체(역병귀 프리팹 컴포넌트 교체, 인스펙터 값 `_toxinPowerRatio` 1.0 · `_duration` 3.0 · `_maxStack` 3 - 기존 `_slowFactor`/`_duration` 프리팹 필드 선례).
+  - 신규 `PlagueToxinAura` (`IHeroAura`·`IStatusVisual`·`IDebuffAxisAura`) + 러너의 같은 타입 재부착 처리(중첩 +1·지속 갱신).
+  - `PlagueSlowBoostEffect` → 독 피해 배율 효과로 교체(클래스명 `PlagueToxinBoostEffect`, `cards.json` `$type`·필드 `toxinMul` 1.4, `displayName` "역병의 손길" 유지, `description` `역병귀 독 피해 강화`).
+  - `DebuffSynergyTier1` → 독 최대 중첩 +2. 문구 206.
+  - `HeroPoisonAuraEffect`·`PoisonAura` 삭제, `HeroPoisonAura.asset`(카드 SO) 삭제, `card_pools.json`·`cards.json` 에서 제거, `CardBorderColors`·`ForcedCardDraw`·`HeroAttackDownEffect`(참조 1곳) 정리, `ECardId.HeroPoisonAura` 폐기 주석.
+  - 신규 `LingeringCurseEffect` + `ECardId.LingeringCurse` + `CardBorderColors`(Hero) + SO + 일러스트.
+  - `EMonsterStatKind.SlowFactor` → `PoisonDamage` 개명, `StatMultiplier`, `DungeonPowerSummary`, `MetaConfig.asset` `PlagueVenomUp`(PerLevelMul 1.04, Description).
+  - 성기사 정화의 빛 슬롯 목록(`IsPurgeable`), Strings 206·1412.
+- **수정·확인 대상 테스트**: `StatMultiplierTests`, `ContinuousSpawnEffectTests`, `BuildSynergyTiersTests`, `SynergyTierDescriptionTests`, `SynergyRealStringTableTests`, `Chapter5PaladinLogicTests`, `Chapter5DataValidationTests`, `DungeonPowerSummaryEdgeTests`, `ShopPopupSummaryTextEdgeTests`, `MetaConfigAssetRegressionTests`, `RelicAuraTests`, `SpawnerStatusCell*Tests`, `FormationCardAndSealTests`, `ForcedCardDrawTests`, `CardBorderColorsTests`, 카드 데이터 무결성(28장·축당 7장) 테스트, PlayMode `ContinuousSpawnIntegrationTest`·`SimPickStrategy`. 신규 테스트: 독 중첩/갱신/최대 피해 Max·상한·Tier1 +2·성기사 x0.6·정화 해제, 끈질긴 저주 지속 배율(가산 1+0.25n, 영구·Swarm 둔화 제외, 성기사와 곱).
+- **구현 시 함께 갱신할 문서 (이 기획서에서는 고치지 않음)**: `project_lair_concept.md` §5.2 Debuff Tier1 줄·§11 Debuff 카드 표(3번 행), `card-renewal.md` §3 카드 표·§4 시너지 표·§7 누적표, `chapter-5.md` 신앙의 가호·정화의 빛 슬롯 목록, `continuous-spawn-round.md` 역병귀 둔화 언급, `monster-species-enhancement.md` §10 `PlagueVenomUp` 메모, `card-illustrations.md` 카드 목록, `hero-status-icons.md` 아이콘 목록.
 
 ---
 
 ## 14. Self-Review
 
 - Placeholder 잔존: 0건. 미확정 수치는 "qa-simulator 검증 후 결정" + 게이트 MG1~MG9 지표로 명시.
-- 내부 일관성: 가격 130/95/21 · 총 780/570/126(§3.5·§4.2·§6.2·§11.5), 지급 10/25·2/4 · 3/5 · 1/2/3 + 10(§2·§6.2), 잔해 1/3/8 · 교환 3/5/8(§2.4·§6.2), 특성 단계 값(§3.4·§6.2) 동일. `MonsterTrait_Param` 45행(§6.1·§6.2·§11.7), 신규 JSON 10개(헤더·§11.2·§11.4·§11.7) 일치.
-- 명명 일관성: `ECurrency`(`Soul`/`AwakenStone`/`MoonSeal`/`AbyssCrystal`/`RelicShard`), `ENestMasteryEffect`(`FirstSpawnAdvance`/`SpawnPeriod`/`SpawnGuard`), `EMonsterTrait` 6값, `EShopEffectKind.MonsterAwaken`/`NestMastery`/`MonsterTrait`, `EMonsterStatKind.DamageTaken`/`KnockbackTaken`/`SlowDuration`, `AwakenPaid`, `CrystalPaid`, `CurrencyEntry`, `Awaken_<종족>`/`Nest_<종족>`/`Trait_<종족>` 를 본문 전체에서 같은 표기로 사용.
+- 내부 일관성: 가격 130/95/21 · 총 780/570/126(§3.5·§4.2·§6.2·§11.5), 지급 10/25·2/4 · 3/5 · 1/2/3 + 10(§2·§6.2), 잔해 1/3/8 · 교환 3/5/8(§2.4·§6.2), 특성 단계 값(§3.4·§6.2) 동일. `MonsterTrait_Param` 42행(§6.1·§6.2·§11.7), 신규 JSON 10개(헤더·§11.2·§11.4·§11.7) 일치.
+- 명명 일관성: `ECurrency`(`Soul`/`AwakenStone`/`MoonSeal`/`AbyssCrystal`/`RelicShard`), `ENestMasteryEffect`(`FirstSpawnAdvance`/`SpawnPeriod`/`SpawnGuard`), `EMonsterTrait` 6값, `EShopEffectKind.MonsterAwaken`/`NestMastery`/`MonsterTrait`, `EMonsterStatKind.PoisonDamage`/`DamageTaken`/`KnockbackTaken`/`PoisonDuration`, `ECardId.LingeringCurse`, `PlagueToxinOnHit`/`PlagueToxinAura`, `AwakenPaid`, `CrystalPaid`, `CurrencyEntry`, `Awaken_<종족>`/`Nest_<종족>`/`Trait_<종족>` 를 본문 전체에서 같은 표기로 사용.
 - 스코프: 슬라이스 5개(§11.1)로 분할 구현 가능. 기획 자체는 "콘텐츠별 보상 차별화" 한 가설을 위한 한 묶음이라 기획서는 하나로 둔다.
 - UI 목업: `.mockups/monster-growth-currencies.html`.
