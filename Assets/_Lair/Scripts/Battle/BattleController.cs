@@ -723,6 +723,8 @@ namespace Lair.Battle
             if (health != null)
             {
                 health.SetMax(Mathf.Max(1, Mathf.RoundToInt(raw.Hp * mul.HpMul)), resetCurrent);
+                //# 각성 받는 피해·넉백 — DamageTakenScale 을 덮지 않는 별도 배율 (monster-growth-currencies §3.2).
+                health.ConfigureGrowthTaken(mul.DamageTakenMul, mul.KnockbackTakenMul);
             }
 
             MeleeAttacker attacker = character.GetComponent<MeleeAttacker>();
@@ -750,7 +752,7 @@ namespace Lair.Battle
             PlagueToxinOnHit toxin = character.GetComponent<PlagueToxinOnHit>();
             if (toxin != null)
             {
-                toxin.Configure(mul.PoisonDamageMul, 1f, _toxinMaxStackBonus);
+                toxin.Configure(mul.PoisonDamageMul, mul.PoisonDurationMul, _toxinMaxStackBonus);
             }
 
             //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
@@ -1182,6 +1184,23 @@ namespace Lair.Battle
                 }
                 m.Multiply(EMonsterStatKind.Hp, speciesMul);
                 m.Multiply(EMonsterStatKind.Power, speciesMul);
+            }
+
+            //# 각성 — 종족 x 스탯 독립 곱 축(AwakenStat.json, monster-growth-currencies §3.2). 같은 _typeModifiers 표면.
+            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            {
+                foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
+                {
+                    float awaken = bonus.GetAwakenMul(type, kind);
+                    if (Mathf.Approximately(awaken, 1f))
+                        continue;
+                    if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
+                    {
+                        m = new StatMultiplier();
+                        _typeModifiers[type] = m;
+                    }
+                    m.Multiply(kind, awaken);
+                }
             }
 
             //# 종족 강화 레벨 캐시 — 스폰 시 발광 세기 적용용. Id 문자열 파싱 없이 config 항목 순회로 Species→레벨 매핑.

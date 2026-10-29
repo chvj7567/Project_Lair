@@ -12,6 +12,9 @@ namespace Lair.Battle
         public float RangeMul = 1f;       //# 사거리 배율
         public float MoveSpeedMul = 1f;   //# 이동속도 배율
         public float PoisonDamageMul = 1f; //# 역병귀 독 피해 배율 (1 초과가 강화)
+        public float DamageTakenMul = 1f;  //# 받는 피해 배율 — 각성 (1 미만이 강화)
+        public float KnockbackTakenMul = 1f; //# 받는 넉백 배율 — 각성 (1 미만이 강화)
+        public float PoisonDurationMul = 1f; //# 역병귀 독 지속 배율 — 각성
 
         //# 글로벌 dict 에 종 키가 없을 때 쓰는 항등값 (전부 1.0).
         //# 매번 새 인스턴스 — 공유 가변 인스턴스 오염 방지 (호출처가 Multiply 호출 시 원본 보호).
@@ -28,6 +31,9 @@ namespace Lair.Battle
                 case EMonsterStatKind.Range:      RangeMul      *= multiplier; break;
                 case EMonsterStatKind.MoveSpeed:  MoveSpeedMul  *= multiplier; break;
                 case EMonsterStatKind.PoisonDamage: PoisonDamageMul *= multiplier; break;
+                case EMonsterStatKind.DamageTaken: DamageTakenMul *= multiplier; break;
+                case EMonsterStatKind.KnockbackTaken: KnockbackTakenMul *= multiplier; break;
+                case EMonsterStatKind.PoisonDuration: PoisonDurationMul *= multiplier; break;
             }
         }
 
@@ -42,6 +48,9 @@ namespace Lair.Battle
                 case EMonsterStatKind.Range:      return RangeMul;
                 case EMonsterStatKind.MoveSpeed:  return MoveSpeedMul;
                 case EMonsterStatKind.PoisonDamage: return PoisonDamageMul;
+                case EMonsterStatKind.DamageTaken: return DamageTakenMul;
+                case EMonsterStatKind.KnockbackTaken: return KnockbackTakenMul;
+                case EMonsterStatKind.PoisonDuration: return PoisonDurationMul;
                 default:                          return 1f;
             }
         }

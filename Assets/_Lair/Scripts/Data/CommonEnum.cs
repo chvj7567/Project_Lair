@@ -353,6 +353,10 @@ namespace Lair.Data
         Range,
         MoveSpeed,
         PoisonDamage,   //# 역병귀 독 피해 배율 (구 SlowFactor 자리 5, monster-growth-currencies §15.4)
+        //# 각성 축 (monster-growth-currencies §3.2) — 상점 전종 강화가 아닌 종족 각성(AwakenStat.json)이 쓴다.
+        DamageTaken,    //# 받는 피해 배율 (1 미만이 강화)
+        KnockbackTaken, //# 받는 넉백 세기 배율 (1 미만이 강화)
+        PoisonDuration, //# 역병귀 독 지속 배율
     }
 
     //# v0.2 마을 — 상점 영구 업그레이드 효과 종류 (기획서 §11.1). v0.3 — 종족 개별 강화 MonsterSpecies 추가.

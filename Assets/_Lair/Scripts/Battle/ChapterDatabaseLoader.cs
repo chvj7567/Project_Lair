@@ -253,6 +253,8 @@ namespace Lair.Battle
             string exchangeJson = await LoadTextAsync(EData.Currency_Exchange);
             string awakenRewardJson = await LoadTextAsync(EData.Difficulty_Awaken);
             string crystalJson = await LoadTextAsync(EData.Difficulty_TowerCrystal);
+            //# 축별 JSON — 없으면 그 축만 비활성(오류 로그).
+            string awakenJson = await LoadOptionalTextAsync(EData.AwakenStat);
             if (currencyJson == null || exchangeJson == null || awakenRewardJson == null || crystalJson == null)
             {
                 Debug.LogError("[ChapterDatabaseLoader] 육성 재화 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 육성 재화 기능 비활성");
@@ -266,6 +268,7 @@ namespace Lair.Battle
                     Exchanges = JsonArrayUtility.FromJsonArray<Currency_ExchangeRow>(exchangeJson),
                     DifficultyAwakens = JsonArrayUtility.FromJsonArray<Difficulty_AwakenRow>(awakenRewardJson),
                     TowerCrystals = JsonArrayUtility.FromJsonArray<Difficulty_TowerCrystalRow>(crystalJson),
+                    AwakenStats = ParseOrNull<AwakenStatRow>(awakenJson),
                 };
                 GrowthDatabase.Current = GrowthDatabase.Build(set, DifficultyTable.CurrentMaxIndex, NameKeyExists);
             }
@@ -281,6 +284,18 @@ namespace Lair.Battle
         {
             return CHText.StringProvider == null || string.IsNullOrEmpty(CHText.StringProvider.GetString(id)) == false;
         }
+
+        private static async Task<string> LoadOptionalTextAsync(EData key)
+        {
+            string text = await LoadTextAsync(key);
+            if (text == null)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {key}.json 로드 실패 — 해당 육성 축 비활성");
+            }
+            return text;
+        }
+
+        private static T[] ParseOrNull<T>(string json) => json != null ? JsonArrayUtility.FromJsonArray<T>(json) : null;
 
         private static async Task<string> LoadTextAsync(EData key)
         {

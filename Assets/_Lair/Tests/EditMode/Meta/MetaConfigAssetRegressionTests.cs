@@ -38,7 +38,8 @@ namespace Lair.Tests.EditMode
         public void 상점_13품목_구성이_기획서_3_2절_및_종족강화_마스터표와_일치한다()
         {
             //# 글로벌 7 + 종족 강화 6 (monster-species-enhancement §7·§9 — Enhance_Wisp~Enhance_Phantom 추가).
-            Assert.AreEqual(13, _cfg.ShopItems.Count);
+            //# 소울 결제 13품목 — 육성 3축 18항목(특수 재화 결제)은 별도 (monster-growth-currencies §6.2).
+            Assert.AreEqual(13, _cfg.ShopItems.FindAll(d => d.Currency == ECurrency.Soul).Count);
 
             //# (Id, EffectKind, StatKind, Species, PerLevelMul, BasePrice) — 기획서 §3.2 글로벌 7 + monster-species-enhancement §7·§9 종족 6.
             //# stat 은 MonsterStat 일 때만, species 는 MonsterSpecies 일 때만 검증 — 나머지 자리값은 placeholder.
@@ -88,6 +89,9 @@ namespace Lair.Tests.EditMode
             int total = 0;
             foreach (ShopItemDef def in _cfg.ShopItems)
             {
+                //# 소울 항목만 — "상점 전 항목 만렙" 정의를 소울 결제로 고정 (monster-growth-currencies §11.6).
+                if (def.Currency != ECurrency.Soul)
+                    continue;
                 for (int level = 0; level < def.MaxLevel; ++level)
                 {
                     total += ShopService.PriceOf(def, level);

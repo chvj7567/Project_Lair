@@ -91,8 +91,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Wisp
-    DisplayName: "\uB3C4\uAE68\uBE44\uBD88 \uAC01\uC131"
-    Description: "\uB3C4\uAE68\uBE44\uBD88 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uB3C4\uAE68\uBE44\uBD88 \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 0
@@ -101,8 +101,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Wraith
-    DisplayName: "\uB9DD\uB839 \uAC01\uC131"
-    Description: "\uB9DD\uB839 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uB9DD\uB839 \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 1
@@ -111,8 +111,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Reaper
-    DisplayName: "\uC0AC\uC2E0 \uAC01\uC131"
-    Description: "\uC0AC\uC2E0 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uC0AC\uC2E0 \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 2
@@ -121,8 +121,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Hex
-    DisplayName: "\uC800\uC8FC\uC220\uC0AC \uAC01\uC131"
-    Description: "\uC800\uC8FC\uC220\uC0AC HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uC800\uC8FC\uC220\uC0AC \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 3
@@ -131,8 +131,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Plague
-    DisplayName: "\uC5ED\uBCD1\uADC0 \uAC01\uC131"
-    Description: "\uC5ED\uBCD1\uADC0 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uC5ED\uBCD1\uADC0 \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 4
@@ -141,8 +141,8 @@ MonoBehaviour:
     BasePrice: 150
     PriceGrowth: 1.6
   - Id: Enhance_Phantom
-    DisplayName: "\uD658\uB839 \uAC01\uC131"
-    Description: "\uD658\uB839 HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
+    DisplayName: "\uD658\uB839 \uCCB4\uAE09"
+    Description: "HP\xB7\uACF5\uACA9\uB825 +18%/Lv"
     EffectKind: 2
     StatKind: 0
     Species: 5
@@ -150,6 +150,72 @@ MonoBehaviour:
     MaxLevel: 5
     BasePrice: 150
     PriceGrowth: 1.6
+  - Id: Awaken_Wisp
+    DisplayName: "\uB3C4\uAE68\uBE44\uBD88 \uAC01\uC131"
+    Description: "\uBC1B\uB294 \uD53C\uD574 -4%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 0
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
+  - Id: Awaken_Wraith
+    DisplayName: "\uB9DD\uB839 \uAC01\uC131"
+    Description: "\uB109\uBC31 -15% \xB7 \uBC1B\uB294 \uD53C\uD574 -3%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 1
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
+  - Id: Awaken_Reaper
+    DisplayName: "\uC0AC\uC2E0 \uAC01\uC131"
+    Description: "\uACF5\uACA9 \uAC04\uACA9 -5%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 2
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
+  - Id: Awaken_Hex
+    DisplayName: "\uC800\uC8FC\uC220\uC0AC \uAC01\uC131"
+    Description: "\uC0AC\uAC70\uB9AC +6%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 3
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
+  - Id: Awaken_Plague
+    DisplayName: "\uC5ED\uBCD1\uADC0 \uAC01\uC131"
+    Description: "\uB3C5 \uD53C\uD574 +5% \xB7 \uC9C0\uC18D +10%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 4
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
+  - Id: Awaken_Phantom
+    DisplayName: "\uD658\uB839 \uAC01\uC131"
+    Description: "\uC774\uB3D9\uC18D\uB3C4 +6%/Lv"
+    EffectKind: 3
+    StatKind: 0
+    Species: 5
+    PerLevelMul: 1
+    MaxLevel: 5
+    BasePrice: 10
+    PriceGrowth: 1.5
+    Currency: 1
   LordRewards:
   - Level: 2
     IsLockedDummy: 0

@@ -11,7 +11,14 @@ namespace Lair.Meta
         //# 종족 개별 강화 배수 — HP·공격력 공용 단일 배수 (monster-species-enhancement §2.1).
         private readonly Dictionary<EMonster, float> _speciesMuls = new Dictionary<EMonster, float>();
 
+        //# 각성 — (종족, 스탯) 별 PerLevelMul^Lv (AwakenStat.json, monster-growth-currencies §3.2).
+        private readonly Dictionary<(EMonster, EMonsterStatKind), float> _awakenMuls = new Dictionary<(EMonster, EMonsterStatKind), float>();
+
         public float SpawnerPeriodMul { get; private set; } = 1f;
+
+        //# 미등록/Lv0 은 1.0.
+        public float GetAwakenMul(EMonster species, EMonsterStatKind stat)
+            => _awakenMuls.TryGetValue((species, stat), out float mul) ? mul : 1f;
 
         public float GetStatMul(EMonsterStatKind kind)
             => _statMuls.TryGetValue(kind, out float mul) ? mul : 1f;
@@ -20,7 +27,10 @@ namespace Lair.Meta
         public float GetSpeciesMul(EMonster species)
             => _speciesMuls.TryGetValue(species, out float mul) ? mul : 1f;
 
-        public static MetaBattleBonus From(MetaProfile profile, MetaConfig cfg)
+        //# 육성 축 수치는 현재 로드된 GrowthDatabase (없으면 육성 축 미적용, §6.3-8).
+        public static MetaBattleBonus From(MetaProfile profile, MetaConfig cfg) => From(profile, cfg, GrowthDatabase.Current);
+
+        public static MetaBattleBonus From(MetaProfile profile, MetaConfig cfg, GrowthDatabase growth)
         {
             MetaBattleBonus bonus = new MetaBattleBonus();
             if (profile == null || cfg == null)
@@ -48,9 +58,22 @@ namespace Lair.Meta
                     case EShopEffectKind.MonsterSpecies:
                         bonus._speciesMuls[item.Species] = bonus.GetSpeciesMul(item.Species) * mul;
                         break;
+                    case EShopEffectKind.MonsterAwaken:
+                        bonus.AddAwaken(item.Species, level, growth);
+                        break;
                 }
             }
             return bonus;
+        }
+
+        private void AddAwaken(EMonster species, int level, GrowthDatabase growth)
+        {
+            if (growth == null)
+                return;
+            foreach (AwakenStatData stat in growth.AwakenStatsOf(species))
+            {
+                _awakenMuls[(species, stat.Stat)] = GetAwakenMul(species, stat.Stat) * Mathf.Pow(stat.PerLevelMul, level);
+            }
         }
     }
 }

@@ -558,6 +558,11 @@ namespace Lair.Character
             //# Valid(e) 가 Transform 비null 보장. GetComponent 는 스킬 발동(쿨다운 게이트) 시점·대상가변이라 캐싱 불가 → 1회성 허용(MeleeAttacker 와 동일).
             e.Transform.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(Color.white);
             e.Health.TakeDamage(amount);
+            //# 망령 각성 — 받는 넉백 세기 배율 (monster-growth-currencies §3.2). 넉백 스킬이 모두 이 지점을 거친다.
+            if (e.Health is Health health)
+            {
+                knockback *= health.KnockbackTakenMul;
+            }
             if (knockback > 0f)
             {
                 Vector3 away = e.Transform.position - origin;

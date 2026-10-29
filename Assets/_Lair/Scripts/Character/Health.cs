@@ -20,6 +20,32 @@ namespace Lair.Character
         //# B3 — 받는 데미지 배율 오버레이. MonsterBuffService 가 매 tick 설정. 기본 1.0.
         public float DamageTakenScale { get; set; } = 1f;
 
+        //# 육성 각성(monster-growth-currencies §3.2) — 받는 피해·넉백 배율. DamageTakenScale(버프 틱이 1 로 되돌리는 값)과 분리해 곱으로 합성한다.
+        public float GrowthDamageTakenMul { get; private set; } = 1f;
+        public float KnockbackTakenMul { get; private set; } = 1f;
+
+        //# 둥지 숙련 Lv3 스폰 보호 — 종료 시각(Time.time)까지 받는 피해 x _spawnGuardMul (§3.3).
+        private float _spawnGuardMul = 1f;
+        private float _spawnGuardUntil = float.NegativeInfinity;
+
+        //# 스폰·소급마다 절대 대입 (풀 재사용 복리 없음). 영웅은 호출하지 않아 1 유지.
+        public void ConfigureGrowthTaken(float damageTakenMul, float knockbackTakenMul)
+        {
+            GrowthDamageTakenMul = damageTakenMul;
+            KnockbackTakenMul = knockbackTakenMul;
+        }
+
+        public void GrantSpawnGuard(float damageTakenMul, float seconds)
+        {
+            if (seconds <= 0f)
+                return;
+            _spawnGuardMul = damageTakenMul;
+            _spawnGuardUntil = Time.time + seconds;
+        }
+
+        //# 지금 받는 피해에 곱할 전체 배율 — 버프 오버레이 x 각성 x (스폰 보호 중이면) 보호 배율.
+        public float EffectiveDamageTakenMul => DamageTakenScale * GrowthDamageTakenMul * (Time.time < _spawnGuardUntil ? _spawnGuardMul : 1f);
+
         //# 카드 리뉴얼 v0.6 [B1] — 일시 HP 배율 오버레이. MonsterBuffService 가 매 tick 재설정.
         //# 기본 1.0. 변경 시 CurrentHp/MaxHp 비율 보존 (예: 80% 상태에서 1→2 변경 → CurrentHp 도 2배).
         private float _hpMaxScale = 1f;
@@ -69,6 +95,10 @@ namespace Lair.Character
         {
             if (Current <= 0) Current = _max;
             DamageTakenScale = 1f;
+            GrowthDamageTakenMul = 1f;
+            KnockbackTakenMul = 1f;
+            _spawnGuardMul = 1f;
+            _spawnGuardUntil = float.NegativeInfinity;
             _hpMaxScale = 1f;
             _invulnerableUntil = float.NegativeInfinity;
         }
@@ -78,8 +108,8 @@ namespace Lair.Character
             if (IsAlive == false) return;
             if (IsInvulnerable)
                 return;
-            //# B3 — 받는 데미지 배율 적용
-            amount = Mathf.RoundToInt(amount * DamageTakenScale);
+            //# B3 — 받는 데미지 배율 적용 (버프 오버레이 x 각성 x 스폰 보호)
+            amount = Mathf.RoundToInt(amount * EffectiveDamageTakenMul);
             int next = Mathf.Max(0, Current - amount);
             if (next == Current) return;
             Current = next;
