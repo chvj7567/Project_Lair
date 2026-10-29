@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>몬스터 육성 가이드 - 콘텐츠마다 다른 재화</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--blood:#e5484d;--sky:#5aa9ff;
+--soul:#5ef0b4;--aw:#ff9f43;--ms:#d8e4ff;--ac:#2ec4c4;--rs:#c8a27a;--leg:#b07cff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 60%) fixed;color:var(--txt);
+font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:20px 14px 60px}
+h1{font-size:28px;color:var(--bone);margin:8px 0 4px;text-shadow:2px 2px 0 #000}
+.lead{color:var(--sub);margin:0 0 24px}
+h2{font-size:20px;color:var(--bone);margin:36px 0 12px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:6px;height:20px;background:var(--gold)}
+.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 6px 0 #0006;padding:14px}
+.dark{background:linear-gradient(180deg,#0f1420,#0b0f18)}
+.grid{display:grid;gap:12px}
+.g5{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.ic{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;font-size:14px;color:#0b0d12;background:var(--c);border:2px solid #000;flex:none}
+.cur{border-top:4px solid var(--c)}
+.cur .nm{font-size:18px;color:var(--c);display:flex;align-items:center;gap:8px}
+.cur .from{color:var(--sub);font-size:13px;margin-top:6px}
+.cur .to{color:var(--bone);margin-top:4px}
+.arrow{color:var(--sub)}
+.tag{display:inline-block;font-size:12px;padding:0 6px;border:1px solid var(--c);color:var(--c);margin-right:4px}
+.big{font-size:22px;color:var(--c)}
+.sub{color:var(--sub);font-size:13px}
+ul.k{margin:6px 0 0;padding-left:18px}
+/*# 상점 */
+.shop{max-width:720px}
+.wallet{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px}
+.pill{display:flex;align-items:center;gap:6px;background:var(--s0);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px var(--c);padding:2px 10px;color:var(--c);font-size:14px}
+.shhd{display:flex;align-items:center;gap:10px;color:#f5f5f5;margin:4px 0 10px}
+.shhd::before{content:"";width:3px;height:20px;background:#FBBF24}
+.shhd::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
+.srow{display:flex;gap:4px;background:linear-gradient(90deg,#222c44,#171d2e);border:3px solid var(--ink);padding:4px;margin-bottom:8px}
+.shead{width:76px;flex:none;text-align:center;font-size:12px;color:var(--sc)}
+.shead .face{width:52px;height:52px;margin:2px auto 2px;border:3px solid var(--sc);background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 8px var(--sc)}
+.slot{flex:1;min-width:0;background:#111622;border:2px solid #232c42;padding:4px 6px;position:relative}
+.slot .a{font-size:13px;color:var(--bone);display:flex;justify-content:space-between;gap:4px}
+.pp{display:flex;gap:2px;align-items:center}
+.pp i{width:6px;height:6px;background:#0a0d14;border:1px solid #000}
+.pp i.on{background:var(--c)}
+.slot .d{font-size:11px;color:var(--sub);line-height:13px;min-height:26px}
+.slot .p{font-size:13px;color:var(--c);display:flex;align-items:center;gap:4px}
+.slot .p .ic{width:14px;height:14px;font-size:9px;border-width:1px}
+.slot.can{border-color:var(--c);box-shadow:0 0 8px color-mix(in srgb,var(--c) 45%,transparent)}
+.slot.max .p{color:var(--gold)}
+.slot.lock{filter:brightness(.45)}
+.bubbles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.bub{position:relative;background:#f4efe0;color:#1b1f2a;border:3px solid var(--ink);padding:8px 10px;font-size:13px;line-height:1.5}
+.bub b{color:var(--cc)}
+.bub::before{content:"";position:absolute;left:18px;top:-12px;border:6px solid transparent;border-bottom-color:#f4efe0}
+/*# 종족 카드 */
+.sp{border-left:5px solid var(--sc)}
+.sp .t{display:flex;align-items:center;gap:10px;font-size:18px;color:var(--sc)}
+.sp .face{width:40px;height:40px;border:3px solid var(--sc);background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:22px}
+.sp .role{font-size:12px;color:var(--sub)}
+.line{display:flex;gap:8px;margin-top:8px;font-size:13px;align-items:flex-start}
+.line .k{flex:none;width:44px;color:var(--c)}
+.tiers{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tiers span{font-size:12px;background:#0b0f18;border:1px solid #2c3750;padding:0 6px}
+/*# 결과/교환 */
+.row{display:flex;justify-content:space-between;align-items:center;background:var(--s0);border:2px solid #232c42;padding:6px 12px;margin-bottom:6px;flex-wrap:wrap;gap:6px}
+.row .k{color:var(--sub);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:4px;margin-left:10px;color:var(--c)}
+.chip small{color:var(--sub);font-size:12px}
+.strip{display:flex;align-items:center;gap:10px;background:var(--s0);border:2px solid var(--c);padding:8px 10px;flex-wrap:wrap}
+.strip .ico{width:44px;height:44px;border:3px solid var(--c);background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--rs)}
+.btn{background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a;color:var(--bone);padding:10px 12px;text-align:center;font-size:14px}
+.btn.off{background:#232834;box-shadow:inset 0 -3px 0 #151922;color:#6c7385}
+.xrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+@media(max-width:640px){.xrow{grid-template-columns:1fr 1fr}.srow{flex-wrap:wrap}.shead{width:100%;display:flex;align-items:center;gap:8px}.shead .face{margin:0}.slot{flex:1 1 calc(50% - 4px)}}
+/*# 타임라인 */
+.tl{border-left:3px solid #3a4764;margin-left:10px;padding-left:18px}
+.st{position:relative;margin-bottom:14px}
+.st::before{content:"";position:absolute;left:-26px;top:4px;width:13px;height:13px;background:var(--c);border:2px solid #000}
+.st b{color:var(--c)}
+/*# 결정 */
+.dec{border:3px solid var(--gold);box-shadow:0 0 18px #f7c64a44}
+.q{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #2c3750}
+.q:last-child{border-bottom:0}
+.q .id{color:var(--gold);font-size:13px}
+.rec{display:inline-block;margin-top:2px;font-size:12px;background:#1f3a2c;color:var(--soul);border:1px solid var(--soul);padding:0 6px}
+.alt{font-size:12px;color:var(--sub);margin-left:6px}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>몬스터 육성 가이드</h1>
+<p class="lead">이제 콘텐츠마다 주는 보상이 다릅니다. 소울은 몬스터의 <b style="color:var(--soul)">기본 체력과 공격력</b>을, 나머지 재화는 <b style="color:var(--bone)">각자 다른 방식</b>으로 몬스터를 키웁니다.</p>
+
+<h2>① 한눈에 보기</h2>
+<div class="grid g5">
+  <div class="pnl cur" style="--c:var(--soul)"><div class="nm"><span class="ic">◆</span>소울</div><div class="from">모든 전투</div><div class="to"><span class="arrow">→</span> 체급: 체력·공격력</div></div>
+  <div class="pnl cur" style="--c:var(--aw)"><div class="nm"><span class="ic">▲</span>각성석</div><div class="from">Normal · Hard 스테이지</div><div class="to"><span class="arrow">→</span> 각성: 종족 역할 강화</div></div>
+  <div class="pnl cur" style="--c:var(--ms)"><div class="nm"><span class="ic">☾</span>달빛 인장</div><div class="from">데일리</div><div class="to"><span class="arrow">→</span> 둥지: 더 빨리, 더 안전하게 등장</div></div>
+  <div class="pnl cur" style="--c:var(--ac)"><div class="nm"><span class="ic">◇</span>심연 결정</div><div class="from">무한의 탑</div><div class="to"><span class="arrow">→</span> 특성: 종족 고유 능력</div></div>
+  <div class="pnl cur" style="--c:var(--rs)"><div class="nm"><span class="ic">✱</span>유물 잔해</div><div class="from">이미 다 모은 등급의 유물이 또 나올 때</div><div class="to"><span class="arrow">→</span> 위 세 재화로 교환</div></div>
+</div>
+
+<h2>② 어디서 얻나</h2>
+<div class="grid g3">
+  <div class="pnl" style="--c:var(--aw)"><span class="tag">1-1 클리어 후</span><div class="big">각성석</div>
+    <ul class="k"><li>스테이지를 Normal로 처음 깨면 <b style="color:var(--aw)">10</b>, Hard로 처음 깨면 <b style="color:var(--aw)">25</b></li><li>이미 깬 곳을 다시 이기면 2 / 4</li><li>지면 0</li></ul></div>
+  <div class="pnl" style="--c:var(--ms)"><span class="tag">1-5 클리어 후</span><div class="big">달빛 인장</div>
+    <ul class="k"><li>데일리 한 판 끝낼 때마다 <b style="color:var(--ms)">3</b> (져도 받음)</li><li>그날 첫 승리 +5</li><li>매일 하면 최대 1.6배: 하루 14 → 23</li></ul></div>
+  <div class="pnl" style="--c:var(--ac)"><span class="tag">5-5 클리어 후</span><div class="big">심연 결정</div>
+    <ul class="k"><li>탑 한 층 깰 때마다 1~10층 <b style="color:var(--ac)">1</b> · 11~20층 2 · 21층부터 3</li><li>10층마다 보너스 +10</li><li>시즌이 바뀌어도 모은 결정은 그대로</li></ul></div>
+</div>
+
+<h2>③ 어디에 쓰나 - 상점 「몬스터 강화」</h2>
+<div class="pnl shop">
+  <div class="wallet">
+    <div class="pill" style="--c:var(--ac)"><span class="ic" style="--c:var(--ac)">◇</span>8</div>
+    <div class="pill" style="--c:var(--ms)"><span class="ic" style="--c:var(--ms)">☾</span>30</div>
+    <div class="pill" style="--c:var(--aw)"><span class="ic" style="--c:var(--aw)">▲</span>47</div>
+    <div class="pill" style="--c:var(--soul)"><span class="ic" style="--c:var(--soul)">◆</span>1,240</div>
+  </div>
+  <div class="shhd">몬스터 강화</div>
+  <div class="srow" style="--sc:#28E66E">
+    <div class="shead"><div class="face">●</div>도깨비불</div>
+    <div class="slot can" style="--c:var(--soul)"><div class="a">체급<span class="pp"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div><div class="d">체력·공격력 +18%/Lv</div><div class="p"><span class="ic" style="--c:var(--soul)">◆</span>384</div></div>
+    <div class="slot can" style="--c:var(--aw)"><div class="a">각성<span class="pp"><i class="on"></i><i></i><i></i><i></i><i></i></span></div><div class="d">받는 피해 -4%/Lv</div><div class="p"><span class="ic" style="--c:var(--aw)">▲</span>15</div></div>
+    <div class="slot can" style="--c:var(--ms)"><div class="a">둥지<span class="pp"><i></i><i></i><i></i></span></div><div class="d">다음: 첫 등장 2초 빠르게</div><div class="p"><span class="ic" style="--c:var(--ms)">☾</span>20</div></div>
+    <div class="slot" style="--c:var(--ac)"><div class="a">특성<span class="pp"><i></i><i></i><i></i></span></div><div class="d">가시 껍질 반사 10%</div><div class="p"><span class="ic" style="--c:var(--ac)">◇</span>3</div></div>
+  </div>
+  <div class="srow" style="--sc:#E64141">
+    <div class="shead"><div class="face">†</div>사신</div>
+    <div class="slot max" style="--c:var(--soul)"><div class="a">체급<span class="pp"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="d">체력·공격력 +18%/Lv</div><div class="p">MAX</div></div>
+    <div class="slot" style="--c:var(--aw)"><div class="a">각성<span class="pp"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div><div class="d">공격 간격 -5%/Lv</div><div class="p" style="color:#6c7385">▲ 50</div></div>
+    <div class="slot lock" style="--c:var(--ms)"><div class="a">둥지</div><div class="d"></div><div class="p" style="color:var(--sub);font-size:11px">■ 1-5 클리어 시 해금</div></div>
+    <div class="slot lock" style="--c:var(--ac)"><div class="a">특성</div><div class="d"></div><div class="p" style="color:var(--sub);font-size:11px">■ 5-5 클리어 시 해금</div></div>
+  </div>
+  <div class="sub">종족마다 한 줄. 칸을 누르면 바로 강화됩니다. 아직 열리지 않은 재화의 칸은 어둡게 잠겨 있고, 지갑에는 열린 재화만 보입니다.</div>
+</div>
+<div class="bubbles">
+  <div class="bub" style="--cc:#1f9e74"><b>체급</b> (소울) - 체력과 공격력이 함께 커집니다. 5단계면 2.3배. 지금 상점과 똑같아요.</div>
+  <div class="bub" style="--cc:#c9701e"><b>각성</b> (각성석) - 그 종족의 역할이 더 확실해집니다. 탱커는 더 단단하게, 딜러는 더 빠르게.</div>
+  <div class="bub" style="--cc:#5a6a90"><b>둥지</b> (달빛 인장) - 그 종족이 들어간 둥지가 더 일찍, 더 자주, 더 안전하게 몬스터를 내보냅니다.</div>
+  <div class="bub" style="--cc:#1a8f8f"><b>특성</b> (심연 결정) - 종족마다 단 하나뿐인 특수 능력이 생기고 3단계까지 강해집니다.</div>
+</div>
+
+<h2>④ 종족별 육성표</h2>
+<div class="grid g3">
+  <div class="pnl sp" style="--sc:#28E66E"><div class="t"><span class="face">●</span><div>도깨비불<div class="role">탱커 · 기본 잡몹</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>받는 피해 감소 (5단계 -18%)</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>가시 껍질 - 영웅의 기본 공격 피해 일부를 되돌려 줌<div class="tiers"><span>1 · 10%</span><span>2 · 17%</span><span>3 · 25%</span></div></div></div></div>
+  <div class="pnl sp" style="--sc:#C0CCE6"><div class="t"><span class="face">■</span><div>망령<div class="role">탱커 · 벽</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>잘 안 밀려남 (5단계 넉백 -56%) + 받는 피해 -14%</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>원한 - 쓰러지면 주변 몬스터 공격력 5초간 상승<div class="tiers"><span>1 · +8%</span><span>2 · +14%</span><span>3 · +20%</span></div></div></div></div>
+  <div class="pnl sp" style="--sc:#E64141"><div class="t"><span class="face">†</span><div>사신<div class="role">근접 딜러</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>더 빨리 벰 (5단계 공격 속도 +29%)</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>처형 - 영웅 체력 30% 이하일 때 피해 증가<div class="tiers"><span>1 · +15%</span><span>2 · +28%</span><span>3 · +40%</span></div></div></div></div>
+  <div class="pnl sp" style="--sc:#E6AF08"><div class="t"><span class="face">✦</span><div>저주술사<div class="role">원거리 딜러</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>더 멀리서 쏨 (5단계 사거리 +34%)</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>저주 누적 - 맞힐 때마다 영웅이 받는 피해 증가 (최대 5번)<div class="tiers"><span>1 · +1%씩</span><span>2 · +2%씩</span><span>3 · +3%씩</span></div></div></div></div>
+  <div class="pnl sp" style="--sc:#9C4FE6"><div class="t"><span class="face">☣</span><div>역병귀<div class="role">둔화 디버퍼</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>더 강하고 긴 둔화 (5단계 둔화 20% → 42%, 1.5초 → 2.6초)</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>역병 구름 - 쓰러진 자리에 3초 독구름<div class="tiers"><span>1 · 약함</span><span>2 · 보통</span><span>3 · 강함</span></div></div></div></div>
+  <div class="pnl sp" style="--sc:#82ABE6"><div class="t"><span class="face">◌</span><div>환령<div class="role">스웜 · 머릿수</div></div></div>
+    <div class="line" style="--c:var(--aw)"><span class="k">각성</span>더 빨리 달림 (5단계 이동속도 +34%)</div>
+    <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>잔상 - 첫 공격을 피하고 잠깐 가속<div class="tiers"><span>1 · 1번 회피</span><span>2 · 더 빠른 가속</span><span>3 · 2번 회피</span></div></div></div></div>
+</div>
+<div class="pnl dark" style="margin-top:12px;--c:var(--ms)"><b style="color:var(--ms)">둥지 (모든 종족 공통)</b> - 1단계 첫 등장 2초 빠르게 · 2단계 등장 간격 7% 짧게 · 3단계 막 나온 몬스터가 3초간 피해를 절반만 받음. 단계는 쌓입니다.</div>
+
+<h2>⑤ 유물 잔해 교환 - 마을 「유물」 도감 아래</h2>
+<div class="pnl">
+  <div class="xrow">
+    <div class="pnl dark" style="padding:8px;--c:var(--rs)"><div class="sub">유물 잔해</div><div class="big" style="color:var(--rs)">✱ 11</div></div>
+    <div class="btn" style="box-shadow:inset 0 0 0 2px var(--aw),inset 0 -3px 0 #141a2a"><span style="color:var(--rs)">3개</span> → <span style="color:var(--aw)">각성석 1개</span></div>
+    <div class="btn" style="box-shadow:inset 0 0 0 2px var(--ms),inset 0 -3px 0 #141a2a"><span style="color:var(--rs)">5개</span> → <span style="color:var(--ms)">달빛 인장 1개</span></div>
+    <div class="btn off">■ 8개 → 심연 결정 1개</div>
+  </div>
+  <div class="sub" style="margin-top:8px">누를 때마다 1번 교환. 아직 열리지 않은 재화로는 바꿀 수 없어요(자물쇠). 잔해는 어떤 등급의 유물을 이미 전부 최대로 모았는데 그 등급이 또 나오면 생깁니다: 일반 1 · 희귀 3 · 전설 8.</div>
+</div>
+
+<h2>⑥ 결과창에서 받는 모습</h2>
+<div class="grid g3">
+  <div class="pnl"><div class="big" style="--c:var(--gold);text-align:center">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">1-3 Normal 첫 클리어</div>
+    <div class="row"><span class="k">클리어 시간</span><span>2:41.6</span></div>
+    <div class="row"><span class="k">보상</span><span><span class="chip" style="--c:var(--soul)">+182 <small>소울</small></span><span class="chip" style="--c:var(--aw)">+10 <small>각성석</small></span></span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+100</span></div></div>
+  <div class="pnl"><div class="big" style="--c:var(--gold);text-align:center">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 4일 연속 · 오늘 첫 승리</div>
+    <div class="row"><span class="k">보상</span><span><span class="chip" style="--c:var(--soul)">+190 <small>소울</small></span><span class="chip" style="--c:var(--ms)">+11 <small>달빛 인장</small></span></span></div>
+    <div class="row"><span class="k">오늘의 순위</span><span>37위</span></div></div>
+  <div class="pnl"><div class="big" style="--c:var(--gold);text-align:center">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">4-5 Hard 다시 도전</div>
+    <div class="row"><span class="k">보상</span><span><span class="chip" style="--c:var(--soul)">+205 <small>소울</small></span><span class="chip" style="--c:var(--aw)">+4 <small>각성석</small></span></span></div>
+    <div class="strip" style="--c:var(--leg)"><div class="ico">✱</div><div><div class="sub">획득 유물 · <span style="color:var(--leg)">전설</span></div><div style="color:var(--rs);font-size:17px">유물 잔해 +8</div></div><div class="sub" style="margin-left:auto">전설 유물을 다 모아서 잔해로 바뀜</div></div></div>
+</div>
+
+<h2>⑦ 이렇게 강해집니다</h2>
+<div class="pnl"><div class="tl">
+  <div class="st" style="--c:var(--soul)"><b>처음</b> - 소울로 좋아하는 종족의 체급을 올립니다. 지금과 같아요.</div>
+  <div class="st" style="--c:var(--aw)"><b>1-1을 깨면</b> - Normal이 열리고 각성석이 생깁니다. 1-1 Normal 한 판이면 각성 1단계. 챕터 하나를 Normal·Hard로 정복하면 주력 종족 하나가 각성 끝.</div>
+  <div class="st" style="--c:var(--ms)"><b>1-5를 깨면</b> - 데일리가 열립니다. 매일 3판이면 일주일 만에 한 종족의 둥지 3단계 완성, 한 달이면 6종 모두.</div>
+  <div class="st" style="--c:var(--ac)"><b>5-5를 깨면</b> - 탑이 열립니다. 3층이면 첫 특성, 11층이면 한 종족 특성 완성. 특성이 붙으면 더 높이 올라가고, 더 많은 결정을 법니다.</div>
+  <div class="st" style="--c:var(--rs)"><b>유물을 거의 다 모으면</b> - 겹친 유물이 잔해가 되어, 탑에서 막혔을 때 결정으로 바꿔 벽을 넘는 데 씁니다.</div>
+  <div class="st" style="--c:var(--gold)"><b>전부 다 키우면</b> - Normal·Hard 첫 클리어 약 50판 + 데일리 한 달 + 탑 두 시즌 정도. 그래도 Hard는 여전히 질 수 있게 맞춥니다.</div>
+</div></div>
+
+<h2>⑧ 결정해 주세요</h2>
+<div class="pnl dec">
+  <div class="q"><span class="id">U-1</span><div>다 모은 등급의 유물이 또 나오면 → <b>잔해로 바꿔 준다</b> (아직 덜 모은 유물이 나올 확률은 그대로)<br><span class="rec">추천</span><span class="alt">다른 안: 최대로 모은 유물 하나하나를 다시 뽑히게 함(수집이 느려짐)</span></div></div>
+  <div class="q"><span class="id">U-3</span><div>데일리에서도 키운 몬스터 그대로 싸운다 (상점 강화도 이미 적용 중)<br><span class="rec">추천</span><span class="alt">다른 안: 데일리에서는 특성만 끄기</span></div></div>
+  <div class="q"><span class="id">U-2</span><div>탑 시즌이 바뀌면 같은 층을 다시 깨서 결정을 또 받는다<br><span class="rec">추천</span><span class="alt">다른 안: 예전 최고 층보다 높이 올라가야만 받음</span></div></div>
+  <div class="q"><span class="id">U-4</span><div>상점에서 종족 하나를 한 줄 네 칸(체급·각성·둥지·특성)으로 보여 준다<br><span class="rec">추천</span><span class="alt">다른 안: 칸마다 한 줄씩(목록이 4배 길어짐)</span></div></div>
+  <div class="q"><span class="id">U-5</span><div>마을 화면 위쪽에는 소울만 표시하고, 다른 재화는 상점·유물 도감·결과창에서 보여 준다<br><span class="rec">추천</span><span class="alt">다른 안: 소울을 누르면 재화 전체가 펼쳐짐(나중에)</span></div></div>
+  <div class="q"><span class="id">U-6</span><div>지금 소울 강화 이름 "○○ 각성"을 "○○ 체급"으로 바꾼다 (새 "각성"과 헷갈리지 않게)<br><span class="rec">추천</span><span class="alt">다른 안: 새 축 이름을 바꿈</span></div></div>
+  <div class="q"><span class="id">U-7</span><div>이미 Normal·Hard·탑을 깬 기록이 있으면 업데이트 후 그만큼 재화를 한 번에 준다<br><span class="rec">추천</span><span class="alt">다른 안: 지금부터만 지급</span></div></div>
+  <div class="q"><span class="id">U-8</span><div>둥지 3단계를 "보호막" 대신 "막 나온 3초간 피해 절반"으로 바꾼다 (작은 몬스터에게도 확실히 효과)<br><span class="rec">추천</span><span class="alt">다른 안: 원래 시안대로 체력 10% 보호막</span></div></div>
+  <div class="q"><span class="id">U-9</span><div>역병 구름을 시안보다 약하게 한다 (시안대로면 특성 하나가 유물 전부보다 셈)<br><span class="rec">추천</span><span class="alt">다른 안: 시안 수치로 시작해 시뮬 결과 보고 조정</span></div></div>
+  <div class="q"><span class="id">U-10</span><div>깬 스테이지 다시 이길 때 받는 각성석(2/4)은 어느 스테이지든 같다<br><span class="rec">추천</span><span class="alt">다른 안: 뒤쪽 챕터일수록 더 줌</span></div></div>
+  <div class="q"><span class="id">U-11</span><div>새 강화 항목을 지금 상점 목록에 그대로 끼워 넣는다 (따로 새 상점 시스템을 만들지 않음)<br><span class="rec">추천</span><span class="alt">다른 안: 새 데이터 표로 따로 관리</span></div></div>
+</div>
+<p class="sub" style="margin-top:14px">숫자는 첫 출발값입니다. 구현 후 시뮬레이션으로 너무 쉽거나 너무 느린 부분을 다시 맞춥니다. 상세 사양은 구현용 문서에 있습니다.</p>
+
+</div></body>
+</html>
