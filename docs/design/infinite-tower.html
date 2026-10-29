@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무한의 탑 플레이 가이드</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--blood:#e5484d;--sky:#5aa9ff;
+--soul:#5ef0b4;--tower:#8f7cff;--leg:#b07cff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 60%) fixed;color:var(--txt);
+font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.wrap{max-width:980px;margin:0 auto;padding:20px 12px 60px}
+h1{font-size:28px;color:var(--bone);margin:8px 0 4px;text-shadow:2px 2px 0 #000,0 0 14px #8f7cff66}
+.lead{color:var(--sub);margin:0 0 24px}
+h2{font-size:20px;color:var(--bone);margin:36px 0 12px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:6px;height:20px;background:var(--tower);flex:none}
+.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 6px 0 #0006;padding:14px;min-width:0}
+.dark{background:linear-gradient(180deg,#0f1420,#0b0f18)}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.sub{color:var(--sub);font-size:13px}
+.big{font-size:22px;color:var(--c,var(--tower))}
+.tag{display:inline-block;font-size:12px;padding:0 6px;border:1px solid var(--c,var(--tower));color:var(--c,var(--tower));margin-right:4px}
+.cur{border-top:4px solid var(--c)}
+.cur .nm{font-size:18px;color:var(--c)}
+ul.k{margin:6px 0 0;padding-left:18px}
+b.t{color:var(--tower)} b.g{color:var(--gold)} b.r{color:var(--blood)} b.s{color:var(--soul)}
+/*# 표 */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{border:1px solid #2c3750;padding:5px 6px;text-align:center}
+.tbl th{background:#0f1420;color:var(--sub);font-weight:normal}
+.tbl td.l{text-align:left}
+.tbl tr.boss td:first-child{color:var(--blood)}
+/*# 말풍선 */
+.bubbles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px;margin-top:12px}
+.bub{position:relative;background:#f4efe0;color:#1b1f2a;border:3px solid var(--ink);padding:8px 10px;font-size:13px;line-height:1.5}
+.bub b{color:#5a3fd0}
+.bub::before{content:"";position:absolute;left:18px;top:-12px;border:6px solid transparent;border-bottom-color:#f4efe0}
+/*# 게임 UI 재현 */
+.btn{background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a;color:var(--bone);padding:10px 8px;text-align:center;font-size:15px;display:flex;align-items:center;justify-content:center;gap:4px;position:relative}
+.btn.go{background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 18px #e5484d66;color:#fff;letter-spacing:2px;text-shadow:2px 2px 0 #0008}
+.btn.off{background:#232834;box-shadow:inset 0 -3px 0 #151922;color:#6c7385}
+.btn.tw{outline:3px solid var(--tower);outline-offset:2px}
+.btn .lk{position:absolute;right:4px;top:1px;font-size:11px;color:#6c7385}
+.hbar{display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px}
+.toast{background:var(--s0);border:3px solid var(--ink);color:var(--gold);text-align:center;padding:6px;font-size:13px;margin-top:8px}
+.ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:#0b0f18;border-bottom:3px solid var(--ink);margin:-14px -14px 12px;padding:10px 14px}
+.ph .tt{font-size:22px;color:var(--bone);text-shadow:0 0 14px #8f7cff66,2px 2px 0 #000}
+.ph .x{margin-left:auto;color:var(--bone);border:2px solid var(--ink);background:var(--s3);padding:0 8px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.fc{display:flex;align-items:stretch;border:3px solid var(--ink);background:linear-gradient(90deg,#222c44,#171d2e);margin-bottom:6px;min-height:46px}
+.fc .no{width:46px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;border-right:3px solid var(--ink);background:#2a3350;color:var(--bone)}
+.fc .mid{flex:1;min-width:0;padding:3px 8px}
+.fc .nm{font-size:14px;color:var(--bone)}
+.fc .rp{display:flex;gap:4px;margin-top:2px}
+.fc .rp i{width:8px;height:8px;background:var(--sky);border:1px solid #000;display:block}
+.fc .tg{flex:none;padding:0 8px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;font-size:12px;color:var(--sub)}
+.fc .bs{font-size:10px;color:#fff;background:var(--blood);padding:0 4px}
+.fc.pv{background:#141924}.fc.pv .nm{color:var(--sub)}
+.fc.now{background:linear-gradient(90deg,#3a4a7a,#232c4a);border-color:var(--gold)}.fc.now .tg{color:var(--gold)}
+.fc.clr .no{background:radial-gradient(circle at 35% 30%,#f3dc86,#a8892e 65%);color:#2a2108}
+.fc.boss .no{background:radial-gradient(circle at 35% 30%,#e0646c,#8a2229 65%);color:#fff}
+.fc.sel{outline:3px solid var(--gold);outline-offset:1px}
+.por{border:3px solid var(--ink);height:96px;position:relative;background:linear-gradient(135deg,#5d86b388,#0c1017 70%)}
+.por .a{position:absolute;left:10px;top:6px;color:var(--gold)}
+.por .b{position:absolute;right:8px;bottom:4px;font-size:13px;color:var(--bone)}
+.por .c{position:absolute;right:8px;top:6px;font-size:11px;color:#fff;background:var(--blood);padding:0 6px}
+.ndiv{height:2px;background:linear-gradient(90deg,var(--gold),#f7c64a00);margin:8px 0}
+.rule{border-left:5px solid var(--sky);padding:6px 10px;background:linear-gradient(90deg,#1b2740,#0e131f);font-size:12px;line-height:16px;color:var(--sub);margin-top:6px}
+.rule b{color:var(--bone);font-weight:normal;font-size:14px;display:block;margin-bottom:2px}
+.rule.boss{border-left-color:var(--blood)}
+.chip{border:2px solid #ffffff18;background:linear-gradient(180deg,#0d121c,#090c14);padding:8px 12px;font-size:14px;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between}
+.rk{display:flex;align-items:center;gap:6px;background:var(--s0);border:2px solid #232c42;padding:3px 8px;font-size:13px;margin-bottom:4px}
+.rk .r{width:34px;flex:none;color:var(--gold)} .rk .n{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis} .rk .f{flex:none;color:var(--tower)} .rk .c{flex:none;color:var(--sub);font-size:12px}
+.rk.me{border-color:var(--gold)}
+.row{display:flex;justify-content:space-between;align-items:center;background:var(--s0);border:2px solid #232c42;padding:6px 12px;margin-bottom:6px;gap:6px}
+.row .k{color:var(--sub);font-size:13px}
+.banner{background:linear-gradient(90deg,#33300f,#14120a);border:2px solid var(--gold);color:var(--gold);text-align:center;padding:6px;font-size:17px;box-shadow:0 0 14px #f7c64a55;margin-bottom:6px}
+.rstrip{display:flex;align-items:center;gap:10px;background:var(--s0);border:2px solid var(--sky);padding:6px 10px;margin-bottom:8px}
+.rstrip .ic{width:40px;height:40px;flex:none;border:3px solid var(--sky);display:flex;align-items:center;justify-content:center;font-size:22px;background:#0b0f18;color:var(--sky)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.hud{background:radial-gradient(ellipse at 50% 50%,#5d86b355,#07090e 80%);border:3px solid var(--ink);padding:14px}
+.hud .ttl{text-align:center;font-size:18px;color:var(--bone)}
+.hud .hp{height:12px;border:2px solid var(--ink);background:linear-gradient(90deg,#e5484d,#a62a33);margin-top:6px}
+/*# 타임라인 */
+.tl{border-left:3px solid #3a4764;margin-left:10px;padding-left:18px}
+.st{position:relative;margin-bottom:12px}
+.st::before{content:"";position:absolute;left:-26px;top:4px;width:13px;height:13px;background:var(--c);border:2px solid #000}
+.st b{color:var(--c)}
+/*# FAQ */
+.q{padding:8px 0;border-bottom:1px solid #2c3750}
+.q:last-child{border-bottom:0}
+.q .qq{color:var(--gold)}
+.q .qa{color:var(--txt);font-size:14px}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>무한의 탑</h1>
+<p class="lead">챕터를 다 깬 영주를 위한 끝없는 탑입니다. 층마다 <b class="t">영웅과 규칙이 바뀌고</b>, 올라갈수록 영웅이 강해집니다. 이번 시즌 누가 가장 높이 올라가는지 겨룹니다.</p>
+
+<h2>① 한눈에 보기</h2>
+<div class="grid g4">
+  <div class="pnl cur" style="--c:var(--tower)"><div class="nm">언제</div><div class="sub">5-5 클리어 후</div>마을 아래쪽 <b class="t">탑</b> 버튼</div>
+  <div class="pnl cur" style="--c:var(--sky)"><div class="nm">한 층 = 한 판</div><div class="sub">5분 전투, 카드 고르기 그대로</div>영웅 5명이 돌아가며 등장</div>
+  <div class="pnl cur" style="--c:var(--blood)"><div class="nm">5층마다 보스층</div><div class="sub">5 · 10 · 15 …층</div>영웅이 한 번 더 세짐</div>
+  <div class="pnl cur" style="--c:var(--gold)"><div class="nm">깬 층은 저장</div><div class="sub">지면 같은 층 다시</div>처음부터 다시 오를 일 없음</div>
+  <div class="pnl cur" style="--c:var(--leg)"><div class="nm">보상</div><div class="sub">소울 · 영주 경험 · 유물</div>높은 층일수록 좋은 유물</div>
+  <div class="pnl cur" style="--c:var(--soul)"><div class="nm">시즌 순위</div><div class="sub">최고 층으로 겨룸</div>같은 층이면 더 빨리 깬 사람이 위</div>
+</div>
+
+<h2>② 언제 열리나 - 마을 「탑」 버튼</h2>
+<div class="grid g3">
+  <div class="pnl dark"><div class="sub" style="margin-bottom:8px">5-5 클리어 후 - 마을 아래쪽</div>
+    <div class="hbar"><div class="btn" style="opacity:.75">⌖ 지도</div><div class="btn go">방어하기</div><div class="btn tw"><span style="color:var(--tower)">♖</span> 탑</div></div>
+    <div class="sub" style="margin-top:8px">누르면 바로 탑 창이 열립니다.</div></div>
+  <div class="pnl dark"><div class="sub" style="margin-bottom:8px">아직 5-5 를 못 깼으면</div>
+    <div class="hbar"><div class="btn" style="opacity:.75">⌖ 지도</div><div class="btn go">방어하기</div><div class="btn off">♖ 탑<span class="lk">■</span></div></div>
+    <div class="toast">탑은 5-5 클리어 시 열립니다</div></div>
+</div>
+<div class="bubbles">
+  <div class="bub"><b>방어하기</b>는 챕터 전용입니다. 탑은 탑 창 안의 <b>도전</b> 버튼으로 바로 출발해요.</div>
+  <div class="bub">출발할 때 둥지 편성은 <b>마을에서 저장해 둔 편성</b> 그대로 씁니다.</div>
+</div>
+
+<h2>③ 탑 창 - 층 사다리 · 층 정보 · 순위</h2>
+<div class="pnl">
+  <div class="ph"><span class="tt">무한의 탑</span><span class="sub">시즌 1 · 최고 9층</span><span class="x">X</span></div>
+  <div class="cols">
+    <div class="pnl dark" style="padding:8px">
+      <div class="fc pv"><div class="no">14</div><div class="mid"><div class="nm">기사</div><div class="rp"><i></i><i></i></div></div><div class="tg">미리보기</div></div>
+      <div class="fc pv"><div class="no">13</div><div class="mid"><div class="nm">광전사</div><div class="rp"><i></i></div></div><div class="tg">미리보기</div></div>
+      <div class="fc pv"><div class="no">12</div><div class="mid"><div class="nm">암살자</div><div class="rp"></div></div><div class="tg">미리보기</div></div>
+      <div class="fc pv"><div class="no">11</div><div class="mid"><div class="nm">궁수</div><div class="rp"><i></i></div></div><div class="tg">미리보기</div></div>
+      <div class="fc now boss sel"><div class="no">10</div><div class="mid"><div class="nm">성기사</div><div class="rp"><i></i><i></i></div></div><div class="tg"><span class="bs">보스층</span>도전 중</div></div>
+      <div class="fc clr"><div class="no">9</div><div class="mid"><div class="nm">궁수</div><div class="rp"><i></i></div></div><div class="tg">클리어 3:08.3</div></div>
+      <div class="fc clr"><div class="no">8</div><div class="mid"><div class="nm">광전사</div><div class="rp"></div></div><div class="tg">클리어 3:12.0</div></div>
+      <div class="sub" style="text-align:center">▼ 아래로 깬 층들</div>
+    </div>
+    <div class="pnl" style="padding:10px">
+      <div class="por"><span class="a">10층</span><span class="c">보스층</span><span class="b">영웅: 성기사</span></div>
+      <div style="margin-top:8px">영웅 HP 10,719 · 공격력 99</div>
+      <div class="ndiv"></div>
+      <div class="sub" style="color:var(--bone)">층 규칙</div>
+      <div class="rule boss"><b>화살비</b>영웅 HP 75% 이하: 10초마다 몬스터 밀집 지점에 화살비</div>
+      <div class="rule boss"><b>사냥꾼의 덫</b>영웅 HP 35% 이하: 영웅 주변에 덫 설치</div>
+      <div class="sub" style="margin-top:6px">규칙 출처: 2-5 사냥꾼 우두머리의 야영지</div>
+      <div class="ndiv"></div>
+      <div class="sub">승리 시 유물 확률 60% · 등급 보정 Easy</div>
+      <div class="chip"><span>최고 9층</span><span class="sub">지금 도전할 층</span></div>
+    </div>
+    <div class="pnl" style="padding:10px">
+      <div style="color:var(--bone);margin-bottom:8px">탑 랭킹 · 시즌 1</div>
+      <div class="rk"><span class="r">1위</span><span class="n">어둠의군주</span><span class="f">31층</span><span class="c">2:44.0</span></div>
+      <div class="rk"><span class="r">2위</span><span class="n">영주 #A1B9</span><span class="f">29층</span><span class="c">4:01.2</span></div>
+      <div class="rk"><span class="r">3위</span><span class="n">해골왕</span><span class="f">27층</span><span class="c">2:58.6</span></div>
+      <div class="sub" style="text-align:center">… 10위까지</div>
+      <div class="rk me" style="margin-top:8px"><span style="color:var(--gold)">내 순위 128위 · 9층</span></div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:12px;align-items:center">
+    <div class="sub">층마다 영웅과 규칙이 바뀝니다. 깬 층은 저장되고, 쓰러지면 같은 층에 다시 도전합니다. 탑에서는 난이도 선택이 적용되지 않습니다.</div>
+    <div class="btn go">도전 · 10층</div>
+  </div>
+</div>
+<div class="bubbles">
+  <div class="bub"><b>사다리</b> - 위에서부터 앞으로 올라갈 4층(미리보기), 지금 도전할 층, 깬 층 순서. 파란 점 하나가 규칙 하나예요.</div>
+  <div class="bub"><b>층을 누르면</b> 가운데에 그 층의 영웅·체력·규칙이 나옵니다. 미리 보고 카드 방향을 계획하세요.</div>
+  <div class="bub"><b>도전 버튼은 늘 지금 층</b>입니다. 다른 층을 눌러 봐도 출발은 도전 층으로 해요.</div>
+</div>
+<p class="sub">위 화면의 층·영웅·순위는 설명용 예시입니다.</p>
+
+<h2>④ 층은 이렇게 짜여 있습니다</h2>
+<div class="grid g3">
+  <div class="pnl"><span class="tag">5층 = 한 묶음</span><div class="big">영웅 5명이 한 번씩</div>
+    <ul class="k"><li>기사 · 궁수 · 암살자 · 광전사 · 성기사가 5층 안에서 한 번씩 나옵니다</li><li>바로 앞 층과 같은 영웅은 나오지 않아요</li><li>배경은 그 영웅의 챕터 배경</li></ul></div>
+  <div class="pnl" style="--c:var(--sky)"><span class="tag">규칙</span><div class="big">챕터 스테이지 규칙 그대로</div>
+    <ul class="k"><li>25개 챕터 스테이지의 규칙 묶음을 섞어 씁니다 (새 규칙 없음)</li><li>규칙 없는 쉬는 층도 계속 섞여 나와요</li><li>6층부터 규칙 2개짜리 층 등장</li></ul></div>
+  <div class="pnl" style="--c:var(--blood)"><span class="tag">5 · 10 · 15 …층</span><div class="big">보스층</div>
+    <ul class="k"><li>챕터 보스 스테이지 규칙(체력이 줄면 발동)이 붙습니다</li><li>5층 보스는 늘 "수호 결계" 하나 - 가벼운 첫 보스</li><li>10층부터 규칙 2개짜리 보스, 바로 앞 보스층과 다른 규칙</li></ul></div>
+</div>
+<div class="bubbles">
+  <div class="bub"><b>같은 시즌이면 모두 같은 탑</b>을 오릅니다. 내 10층과 친구의 10층은 영웅·규칙이 같아요. 카드가 나오는 순서만 판마다 다릅니다.</div>
+  <div class="bub"><b>같은 층이면 어느 영웅이든 체력이 같습니다.</b> 직업 차이는 움직임·스킬·공격력에서 나와요.</div>
+  <div class="bub"><b>규칙이 영웅을 돕는 층</b>(성수 샘 등)은 그만큼 영웅 체력을 조금 낮춰, 층마다 어려움이 고르게 오르게 했습니다.</div>
+</div>
+
+<h2>⑤ 올라갈수록 강해지는 정도</h2>
+<div class="pnl">
+  <div class="grid g4" style="margin-bottom:12px">
+    <div><div class="sub">한 층 오를 때마다</div><b class="t">체력 +3.5%</b> · <b class="t">공격력 +1.5%</b></div>
+    <div><div class="sub">보스층은 여기에 더</div><b class="r">체력 +10%</b> · <b class="r">공격력 +5%</b></div>
+    <div><div class="sub">1층 영웅</div>체력이 5-5 성기사의 약 80%</div>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="tbl">
+    <tr><th>층</th><th>영웅 체력</th><th>1층 대비 체력</th><th>1층 대비 공격력</th></tr>
+    <tr><td>1</td><td>8,000</td><td>1배</td><td>1배</td></tr>
+    <tr class="boss"><td>5 보스</td><td>10,098</td><td>약 1.26배</td><td>약 1.11배</td></tr>
+    <tr class="boss"><td>10 보스</td><td>11,993</td><td>약 1.5배</td><td>약 1.2배</td></tr>
+    <tr class="boss"><td>15 보스</td><td>14,245</td><td>약 1.78배</td><td>약 1.29배</td></tr>
+    <tr class="boss"><td>20 보스</td><td>16,918</td><td>약 2.1배</td><td>약 1.39배</td></tr>
+    <tr class="boss"><td>25 보스</td><td>20,093</td><td>약 2.5배</td><td>약 1.5배</td></tr>
+    <tr class="boss"><td>30 보스</td><td>23,865</td><td>약 3배</td><td>약 1.62배</td></tr>
+  </table></div>
+  <div class="sub" style="margin-top:6px">규칙 없는 층 기준입니다. 규칙이 붙은 층은 체력이 최대 약 12% 낮게 나와요.</div>
+  <div class="ndiv"></div>
+  <div class="sub" style="margin-bottom:4px">같은 층이라도 영웅마다 공격력이 다릅니다 (1층 기준)</div>
+  <div style="overflow-x:auto">
+  <table class="tbl">
+    <tr><th>기사</th><th>궁수</th><th>암살자</th><th>광전사</th><th>성기사</th></tr>
+    <tr><td>75</td><td>64</td><td>61</td><td>56</td><td>83</td></tr>
+  </table></div>
+</div>
+
+<h2>⑥ 어디까지 갈 수 있을까 (예상)</h2>
+<div class="pnl"><div class="tl">
+  <div class="st" style="--c:var(--sky)"><b>5-5 를 막 깬 영주</b> - 1층을 3분 20초쯤에 깨고, <b>13층 안팎</b>에서 막히기 시작합니다.</div>
+  <div class="st" style="--c:var(--leg)"><b>상점 중반 + 유물 조금</b> - 막히는 층이 <b>19층 안팎</b>으로 올라갑니다.</div>
+  <div class="st" style="--c:var(--gold)"><b>상점 다 올림 + 유물 거의 다</b> - 1층을 2분 10초쯤에 깨고, <b>25층 보스</b> 근처까지.</div>
+</div>
+<div class="sub">카드 운에 따라 2~3층 정도 오르내립니다. 막힌 층에서 져도 소울·경험·유물은 쌓이니, 마을에서 강해져서 다시 오세요.</div></div>
+
+<h2>⑦ 깬 층 · 진 층</h2>
+<div class="grid g3">
+  <div class="pnl" style="--c:var(--gold)"><div class="big">이기면</div>
+    <ul class="k"><li>그 층이 저장되고 다음 층이 열립니다</li><li>결과창 <b class="g">다음 층</b> 버튼으로 마을을 거치지 않고 바로 이어서 오를 수 있어요</li><li>깬 층은 다시 할 수 없습니다 (기록도 그대로)</li></ul></div>
+  <div class="pnl" style="--c:var(--blood)"><div class="big">지면</div>
+    <ul class="k"><li>같은 층에 다시 도전 - 영웅·규칙도 똑같습니다</li><li>처음부터 다시 오를 필요 없어요</li><li>전투 중 나가면 아무 기록도 남지 않고, 다음에 같은 층부터</li></ul></div>
+</div>
+<div class="grid g3" style="margin-top:12px">
+  <div class="pnl"><div class="big" style="--c:var(--gold);text-align:center">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">영웅 처치 · 탑 10층</div>
+    <div class="row"><span class="k">클리어 시간</span><span>3:05.2</span></div>
+    <div class="row"><span class="k">도달 층</span><span style="color:var(--tower)">10층</span></div>
+    <div class="row"><span class="k">소울</span><span>+157</span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+100</span></div>
+    <div class="banner">10층 돌파!</div>
+    <div class="rstrip"><div class="ic">ϟ</div><div><div class="sub">획득 유물 <span style="color:var(--sky);border:1px solid var(--sky);padding:0 4px">희귀</span></div><div style="color:var(--sky)">뇌운 조각</div></div></div>
+    <div class="two"><div class="btn tw">다음 층</div><div class="btn go">마을로</div></div></div>
+  <div class="pnl"><div class="big" style="--c:var(--blood);text-align:center">던전 함락</div><div class="sub" style="text-align:center;margin-bottom:8px">던전 함락 · 탑 11층</div>
+    <div class="row"><span class="k">영웅 남은 HP</span><span>23%</span></div>
+    <div class="row"><span class="k">도달 층</span><span style="color:var(--tower)">11층</span></div>
+    <div class="row"><span class="k">소울</span><span>+46</span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+40</span></div>
+    <div class="two" style="margin-top:8px"><div class="btn">다시 도전</div><div class="btn go">마을로</div></div></div>
+  <div class="pnl"><div class="sub" style="margin-bottom:6px">전투 중 화면 위쪽</div>
+    <div class="hud"><div class="ttl">성기사 · 탑 10층 · 보스층</div><div class="hp"></div><div class="sub" style="text-align:center;margin-top:4px">HP 10,719 / 10,719</div></div>
+    <div class="sub" style="margin-top:8px">탑에서는 이름 옆에 층이 붙고, 보스층이면 "보스층"이 덧붙습니다. 난이도 표시는 없어요.</div></div>
+</div>
+
+<h2>⑧ 보상</h2>
+<div class="grid g3">
+  <div class="pnl" style="--c:var(--soul)"><span class="tag">챕터와 같음</span><div class="big">소울 · 영주 경험</div>
+    <ul class="k"><li>이기면 소울 100 + 빨리 깰수록 추가 (남은 시간 2초당 1)</li><li>져도 영웅을 깎은 만큼 받음 (최대 60)</li><li>유물의 보상 보너스도 그대로 붙어요</li></ul></div>
+  <div class="pnl" style="--c:var(--leg)"><span class="tag">층이 높을수록 좋아짐</span><div class="big">유물</div>
+    <ul class="k"><li>이기면 일반층 <b class="t">30%</b> · 보스층 <b class="r">60%</b> 확률로 굴림</li><li>져도 그 1/4 확률로 굴림</li><li>그 층 영웅이 주는 유물이 나옵니다</li></ul></div>
+</div>
+<div class="pnl" style="margin-top:12px">
+  <div class="sub" style="margin-bottom:6px">유물 등급 보정 - 층 구간마다 한 단계씩</div>
+  <div style="overflow-x:auto">
+  <table class="tbl">
+    <tr><th>층</th><th>등급 보정</th><th>드랍 확률</th><th>희귀 · 전설</th></tr>
+    <tr><td>1~10층</td><td>Easy</td><td>기본</td><td>기본</td></tr>
+    <tr><td>11~20층</td><td style="color:var(--sky)">Normal</td><td>1.25배</td><td>더 자주</td></tr>
+    <tr><td>21층~</td><td style="color:var(--leg)">Hard</td><td>1.5배</td><td>가장 자주</td></tr>
+  </table></div>
+  <div class="sub" style="margin-top:6px">Easy/Normal/Hard 는 여기서 유물 등급만 뜻합니다. 탑 영웅의 세기는 층 수로만 정해져요.</div>
+</div>
+
+<h2>⑨ 시즌 최고 층 순위</h2>
+<div class="grid g3">
+  <div class="pnl"><div class="big">이렇게 줄 섭니다</div>
+    <ul class="k"><li>이번 시즌 <b class="t">가장 높이 깬 층</b>이 높은 순</li><li>같은 층이면 그 층을 <b class="g">더 빨리 깬</b> 사람이 위</li><li>탑 창에 1~10위와 내 순위가 보입니다</li><li>순위는 오르기만 하고 내려가지 않아요</li></ul></div>
+  <div class="pnl"><div class="big">시즌이 바뀌면</div>
+    <ul class="k"><li>탑 구성이 새로 바뀌고, 모두 1층부터 다시</li><li>지난 시즌 진행은 지워지고 보관하지 않습니다</li><li>순위도 새 시즌 것만 보입니다</li></ul></div>
+</div>
+<div class="bubbles">
+  <div class="bub">탑은 챕터 기록·챕터 순위·최단 기록에 <b>영향을 주지 않습니다</b>. 전체 전투 수·승리 수, 도감, 도전과제는 평소처럼 쌓여요.</div>
+  <div class="bub">유물 "2배속"을 켜도 순위 시간은 <b>게임 안 시간</b>으로 재서 공평합니다.</div>
+</div>
+
+<h2>⑩ 자주 묻는 질문</h2>
+<div class="pnl">
+  <div class="q"><div class="qq">Q. 깬 층을 다시 해서 기록을 줄일 수 있나요?</div><div class="qa">아니요. 탑은 항상 다음 층만 도전합니다. 처음 깬 시간이 그 층 기록이에요.</div></div>
+  <div class="q"><div class="qq">Q. 탑에서 난이도를 고를 수 있나요?</div><div class="qa">아니요. 층이 오르는 것 자체가 난이도입니다.</div></div>
+  <div class="q"><div class="qq">Q. 계속 같은 층에서 막혀요.</div><div class="qa">져도 소울·경험·유물이 쌓입니다. 상점과 유물로 강해진 뒤 다시 도전하세요. 미리보기로 다음 층들을 보고 카드 방향을 미리 정해 두면 좋아요.</div></div>
+  <div class="q"><div class="qq">Q. 인터넷이 끊기거나 로그인이 안 되면?</div><div class="qa">탑은 그대로 할 수 있고, 순위 칸에 "랭킹을 불러오지 못했습니다"만 뜹니다. 다음에 탑 창을 열면 내 최고 기록을 다시 올려 줘요.</div></div>
+  <div class="q"><div class="qq">Q. 다른 기기에서 세이브를 불러오면?</div><div class="qa">탑 진행도 함께 돌아옵니다. 서버 순위는 세이브와 따로라 내려가지 않아요.</div></div>
+  <div class="q"><div class="qq">Q. 탑에서 쓰는 몬스터 편성은?</div><div class="qa">마을에서 저장해 둔 편성 그대로입니다. 탑 전용 편성은 따로 없어요.</div></div>
+  <div class="q"><div class="qq">Q. 앱을 껐다 켜면?</div><div class="qa">마을에서 시작하고, 깬 층은 이긴 순간 저장돼 있어 그대로입니다.</div></div>
+</div>
+<p class="sub" style="margin-top:14px">숫자는 첫 출발값입니다. 시뮬레이션으로 막히는 층이 너무 이르거나 늦으면 다시 맞춥니다. 상세 사양은 구현용 문서에 있습니다.</p>
+
+</div></body>
+</html>
