@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>던전 편성 - 플레이 가이드</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4;
+--wisp:#28E66E;--wraith:#C0CCE6;--reaper:#E64141;--hex:#E6AF08;--plague:#9C4FE6;--phantom:#82ABE6;
+--tank:#22C55E;--dps:#EF4444;--debuff:#A855F7;--swarm:#9aa5bd}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;font-size:14px;line-height:1.6}
+body{overflow-x:hidden}
+main{max-width:760px;margin:0 auto;padding:12px}
+h1{margin:4px 0 2px;font-size:22px;color:var(--bone);text-shadow:0 0 14px #f7c64a55}
+h2{margin:22px 0 8px;font-size:17px;color:var(--gold);border-bottom:2px solid #f7c64a44;padding-bottom:3px}
+h3{margin:10px 0 4px;font-size:14px;color:var(--bone)}
+p{margin:4px 0}
+small,.sub{color:var(--sub);font-size:12px}
+b{color:var(--gold)}
+*{overflow-wrap:anywhere;word-break:keep-all}
+.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764;padding:10px;margin:8px 0}
+.pnl.dark{background:linear-gradient(180deg,#0f1420,#0b0f18)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.card{background:var(--s1);border:2px solid var(--ink);box-shadow:inset 0 0 0 1px #2c3750;padding:8px}
+.card .k{font-size:22px;color:var(--gold);line-height:1.2}
+.bubble{position:relative;background:#1b2740;border:2px solid var(--sky);border-radius:10px;padding:8px 10px;margin:10px 0 10px 18px}
+.bubble:before{content:"";position:absolute;left:-12px;top:12px;border:6px solid transparent;border-right-color:var(--sky)}
+.bubble .who{font-size:12px;color:var(--sky)}
+.tip{border-left:5px solid var(--gold);background:linear-gradient(90deg,#2a2412,#11141c);padding:6px 10px;margin:8px 0}
+.warn{border-left:5px solid var(--blood);background:linear-gradient(90deg,#2a1214,#11141c);padding:6px 10px;margin:8px 0}
+.rule{border-left:5px solid var(--sky);padding:4px 10px;background:linear-gradient(90deg,#1b2740,#0e131f);font-size:12px;color:var(--sub);margin:4px 0}
+.seal{background:#1b1424;border:2px solid #9C4FE6;color:#d9c2ff;font-size:13px;padding:6px 10px;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+th,td{border:1px solid #2c3750;padding:5px 6px;text-align:left;vertical-align:top}
+th{background:var(--s2);color:var(--bone);font-weight:normal}
+td{background:#10151f}
+.chip{display:inline-block;font-size:11px;padding:0 5px;border:1px solid currentColor;line-height:17px;margin:1px 0}
+.wisp{color:var(--wisp)}.wraith{color:var(--wraith)}.reaper{color:var(--reaper)}.hex{color:var(--hex)}.plague{color:var(--plague)}.phantom{color:var(--phantom)}
+.c-tank{color:var(--tank)}.c-dps{color:var(--dps)}.c-debuff{color:var(--debuff)}.c-swarm{color:var(--swarm)}
+.pips{display:inline-flex;gap:2px;vertical-align:middle}
+.pips i{display:block;width:9px;height:9px;background:var(--gold);border:1px solid #000}
+
+/*# 편성 팝업 그림 - 목업 톤을 흐름 레이아웃으로 */
+.popup{background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 80%);border:3px solid var(--ink);padding:8px;margin:10px 0}
+.popup .frame{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,0 6px 0 #0006}
+.popup .head{display:flex;align-items:center;justify-content:space-between;gap:6px;background:linear-gradient(180deg,#0f1420,#0b0f18);border-bottom:3px solid var(--ink);padding:6px 8px}
+.popup .head .tt{font-size:19px;color:var(--bone);text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000}
+.popup .head .x{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);color:var(--bone)}
+.popup .body{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;padding:8px}
+.box{background:linear-gradient(180deg,#0f1420,#0b0f18);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #232c42;padding:8px}
+.portrait{background:linear-gradient(135deg,#2f8a5f88,#0c1017 70%);border:3px solid var(--ink);padding:6px 8px;margin-bottom:6px}
+.nests{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.nest{position:relative;background:linear-gradient(180deg,#1c2436,#131a29);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #ffffff12;padding:4px 2px 6px;text-align:center;min-width:0}
+.nest.sel{outline:3px solid var(--gold);outline-offset:1px}
+.nest.sealed{box-shadow:inset 0 0 0 2px #9C4FE6,inset 0 0 18px #9C4FE655}
+.nest .hd{font-size:11px;color:var(--sub);text-align:left;padding-left:4px}
+.nest .ic{width:40px;height:40px;margin:2px auto;border:3px solid currentColor;background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:20px}
+.nest .nm{font-size:12px}
+.nest .cs{font-size:10px;color:var(--sub)}
+.nest .df{position:absolute;left:5px;top:20px;width:7px;height:7px;border-radius:50%;background:#6c7385}
+.nest .ch{position:absolute;right:4px;top:2px;font-size:12px;color:#c79bff}
+.gauge{margin-top:6px;background:var(--s0);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #232c42;padding:5px 6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.gauge .lb{font-size:14px;color:var(--bone)}
+.gauge .bar{flex:1 1 120px;display:grid;grid-template-columns:repeat(13,1fr);gap:2px;min-width:0}
+.gauge .bar i{display:block;height:14px;background:#0a0d14;border:1px solid #000}
+.gauge .bar i.on{background:var(--gold)}
+.gauge .bar i.over{background:var(--blood)}
+.gauge.bad .lb{color:var(--blood)}
+.sp{position:relative;display:flex;gap:8px;align-items:center;background:linear-gradient(90deg,#222c44,#171d2e);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #3d4b6e;padding:4px 6px;margin-bottom:5px;min-width:0}
+.sp.dim{filter:brightness(.45)}
+.sp .ic{flex:none;width:36px;height:36px;border:3px solid currentColor;background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:18px}
+.sp .info{flex:1;min-width:0;font-size:11px;color:var(--sub);line-height:1.35}
+.sp .info .nm{font-size:13px}
+.sp .side{flex:none;text-align:right;font-size:11px;line-height:1.5}
+.sp .lv{color:var(--gold)}
+.foot{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;padding:0 8px 8px}
+.foot .note{flex:1 1 100%;font-size:11px;color:#9aa5bd}
+.btn{flex:1 1 100px;display:flex;align-items:center;justify-content:center;min-height:38px;background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a;color:var(--bone);font-size:15px}
+.btn.go{flex:2 1 120px;background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 16px #e5484d66;color:#fff;letter-spacing:2px;text-shadow:2px 2px 0 #0008}
+.btn.off{background:#232834;box-shadow:inset 0 -3px 0 #151922;color:#6c7385;text-shadow:none;letter-spacing:0}
+.toast{background:var(--s0);border:3px solid var(--ink);color:var(--gold);padding:6px 10px;text-align:center;font-size:13px;margin:6px 0}
+.cap{font-size:12px;color:var(--sub);text-align:center;margin-top:2px}
+
+/*# 마을 방어하기 버튼 그림 */
+.village{background:radial-gradient(ellipse at 50% 40%,#1b2540,#07090e 75%);border:3px solid var(--ink);padding:12px;text-align:center}
+.village .btn{display:inline-flex;width:70%;max-width:220px;min-height:46px;font-size:18px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:13px}
+.flow span{background:var(--s2);border:2px solid var(--ink);padding:2px 8px}
+.flow em{font-style:normal;color:var(--gold)}
+.mini{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin:6px 0}
+.mini div{border:2px solid currentColor;background:#0b0f18;text-align:center;font-size:11px;padding:3px 0;min-width:0}
+details{background:var(--s1);border:2px solid var(--ink);margin:6px 0;padding:6px 10px}
+summary{cursor:pointer;color:var(--bone)}
+details p{color:var(--txt);margin:6px 0 2px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>던전 편성</h1>
+<p class="sub">출격 전에 둥지 6곳에 어떤 몬스터를 둘지 고르는 기능입니다. 이미 게임에 들어가 있습니다.</p>
+
+<h2>한눈에 보기</h2>
+<div class="cards">
+  <div class="card"><div class="k">6곳</div>둥지는 항상 6곳.<br>빈 둥지는 둘 수 없어요.</div>
+  <div class="card"><div class="k">코스트 13</div>몬스터 코스트 합이 13 을 넘으면 출격할 수 없어요.</div>
+  <div class="card"><div class="k">같은 종 2곳</div>한 몬스터는 2곳까지.<br>1-5 클리어 후 3곳까지.</div>
+  <div class="card"><div class="k">카드 연동</div>편성에 없는 몬스터의 카드는 3택1 에 나오지 않아요.</div>
+</div>
+<div class="bubble"><div class="who">영주의 조언</div>기본 편성은 딱 코스트 13 이에요. 무언가를 더 넣으려면 다른 걸 내줘야 합니다. 침입하는 영웅을 보고 무엇을 내줄지 정하세요.</div>
+
+<h2>언제 열리고, 어떻게 들어가나</h2>
+<div class="flow"><span>마을</span><em>&#9654;</em><span>방어하기</span><em>&#9654;</em><span>던전 편성 창</span><em>&#9654;</em><span>출격</span><em>&#9654;</em><span>전투</span></div>
+<div class="village" style="margin-top:8px">
+  <div class="sub" style="margin-bottom:6px">침입자: 궁수 · 2-2</div>
+  <div class="btn go">방어하기</div>
+  <div class="sub" style="margin-top:6px">버튼 위치와 이름은 그대로. 누르면 편성 창이 먼저 열려요.</div>
+</div>
+<table style="margin-top:8px">
+  <tr><th style="width:38%">내 진행</th><th>방어하기를 누르면</th></tr>
+  <tr><td>1-1 클리어 전</td><td>편성 창 없이 바로 출격 (기본 편성)</td></tr>
+  <tr><td>1-1 클리어 후</td><td>편성 창이 열림. 같은 몬스터 <b>2곳</b>까지</td></tr>
+  <tr><td>1-5 클리어 후</td><td>같은 몬스터 <b>3곳</b>까지</td></tr>
+</table>
+<p class="sub">처음엔 기본 편성으로 한 판 싸워 보며 6종이 어떻게 싸우는지 익히고, 그다음부터 직접 짭니다.</p>
+
+<h2>편성 창은 이렇게 생겼어요</h2>
+<div class="popup">
+  <div class="frame">
+    <div class="head"><span class="tt">던전 편성</span><span class="x">X</span></div>
+    <div class="sub" style="padding:4px 8px 0">침입 영웅에 맞춰 둥지 6곳의 몬스터를 정합니다</div>
+    <div class="body">
+      <div class="box">
+        <div class="portrait">
+          <div class="sub" style="color:var(--gold)">2-2</div>
+          <div style="color:var(--bone);text-align:right;font-size:12px">영웅: 궁수</div>
+        </div>
+        <div style="font-size:12px;color:var(--bone)">영웅 성향</div>
+        <div style="font-size:13px;margin-bottom:6px">멀리서 쏘며 물러납니다. 느린 탱커는 따라잡지 못합니다.</div>
+        <div style="font-size:12px;color:var(--bone)">스테이지 규칙</div>
+        <div class="rule">봉인된 둥지 - 환령 둥지 1곳 봉인, 영웅 HP 70% 에서 해제</div>
+        <div class="seal">봉인 예정: 둥지 6 (환령) · 영웅 HP 70% 에서 해제</div>
+      </div>
+      <div class="box">
+        <div class="nests">
+          <div class="nest sel wisp"><div class="hd">둥지 1</div><div class="df"></div><div class="ic">&#9679;</div><div class="nm">도깨비불</div><div class="cs">코스트 3</div></div>
+          <div class="nest reaper"><div class="hd">둥지 2</div><div class="df"></div><div class="ic">&#8224;</div><div class="nm">사신</div><div class="cs">코스트 3</div></div>
+          <div class="nest hex"><div class="hd">둥지 3</div><div class="df"></div><div class="ic">&#10022;</div><div class="nm">저주술사</div><div class="cs">코스트 2</div></div>
+          <div class="nest hex"><div class="hd">둥지 4</div><div class="ic">&#10022;</div><div class="nm">저주술사</div><div class="cs">코스트 2</div></div>
+          <div class="nest plague"><div class="hd">둥지 5</div><div class="df"></div><div class="ic">&#9763;</div><div class="nm">역병귀</div><div class="cs">코스트 1</div></div>
+          <div class="nest sealed phantom"><div class="hd">둥지 6</div><div class="df"></div><div class="ch">&#9939;</div><div class="ic">&#9676;</div><div class="nm">환령</div><div class="cs">코스트 1</div></div>
+        </div>
+        <div class="gauge"><span class="lb">코스트 12 / 13</span><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div>
+      </div>
+      <div class="box">
+        <div class="sp wisp"><div class="ic">&#9679;</div><div class="info"><div class="nm">도깨비불</div>코스트 3 · 편성 1 / 2</div><div class="side"><div class="lv">각성 Lv 2</div><span class="chip c-tank">Tank</span></div></div>
+        <div class="sp wraith dim"><div class="ic">&#9632;</div><div class="info"><div class="nm">망령</div>코스트 3 · 편성 0 / 2</div><div class="side"><span class="chip c-tank">Tank</span></div></div>
+        <div class="sp reaper"><div class="ic">&#8224;</div><div class="info"><div class="nm">사신</div>코스트 3 · 편성 1 / 2</div><div class="side"><div class="lv">각성 Lv 3</div><span class="chip c-dps">Dps</span></div></div>
+        <div class="sp hex dim"><div class="ic">&#10022;</div><div class="info"><div class="nm">저주술사</div>코스트 2 · 편성 2 / 2</div><div class="side"><div class="lv">각성 Lv 1</div><span class="chip c-dps">Dps</span></div></div>
+        <div class="sp plague"><div class="ic">&#9763;</div><div class="info"><div class="nm">역병귀</div>코스트 1 · 편성 1 / 2</div><div class="side"><span class="chip c-debuff">Debuff</span></div></div>
+        <div class="sp phantom"><div class="ic">&#9676;</div><div class="info"><div class="nm">환령</div>코스트 1 · 편성 1 / 2</div><div class="side"><div class="lv">각성 Lv 1</div><span class="chip c-swarm">Swarm</span></div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="note">편성에 없는 몬스터의 카드는 선택지에 나오지 않습니다. 다시 도전은 같은 편성으로 시작합니다.</div>
+      <div class="btn">기본 편성</div>
+      <div class="btn go">출격</div>
+    </div>
+  </div>
+</div>
+<p class="cap">예시: 2-2 궁수전. 망령을 빼고 저주술사를 하나 더 넣은 편성 (코스트 12)</p>
+<table>
+  <tr><th style="width:34%">화면 표시</th><th>뜻</th></tr>
+  <tr><td>금색 테두리</td><td>지금 고른 둥지. 창을 열면 둥지 1 이 골라져 있어요</td></tr>
+  <tr><td>회색 점</td><td>기본 편성과 같은 몬스터</td></tr>
+  <tr><td>보라 사슬</td><td>이번 판에 봉인될 둥지</td></tr>
+  <tr><td>흐린 몬스터 줄</td><td>지금 둥지에 넣으면 규칙을 어기는 몬스터</td></tr>
+  <tr><td>각성 Lv</td><td>상점에서 키운 그 몬스터의 각성 레벨 (0 이면 안 보임)</td></tr>
+</table>
+<div class="tip"><b>조작</b> - 둥지를 누르고, 오른쪽 몬스터를 누르면 넣어져요. 넣으면 다음 둥지로 자동 이동 (6 다음은 1). 드래그는 없어요.</div>
+<div class="toast">코스트가 부족합니다 (필요 3 · 남은 코스트 1)</div>
+<div class="toast">저주술사은(는) 최대 2곳까지 편성할 수 있습니다</div>
+<p class="cap">규칙을 어기는 몬스터를 누르면 이런 안내가 떠요</p>
+
+<h2>몬스터 6종과 코스트</h2>
+<table>
+  <tr><th style="width:30%">몬스터</th><th style="width:22%">코스트</th><th>역할</th></tr>
+  <tr><td class="wisp">도깨비불<br><span class="chip c-tank">Tank</span></td><td>3 <span class="pips"><i></i><i></i><i></i></span></td><td>자주 나오고 적당히 버티는 기본 전력</td></tr>
+  <tr><td class="wraith">망령<br><span class="chip c-tank">Tank</span></td><td>3 <span class="pips"><i></i><i></i><i></i></span></td><td>가장 단단한 탱커. 대신 느리고 드물게 나와요</td></tr>
+  <tr><td class="reaper">사신<br><span class="chip c-dps">Dps</span></td><td>3 <span class="pips"><i></i><i></i><i></i></span></td><td>공격이 빠른 근접 딜러. 몸은 약해요</td></tr>
+  <tr><td class="hex">저주술사<br><span class="chip c-dps">Dps</span></td><td>2 <span class="pips"><i></i><i></i></span></td><td>멀리서 때리는 원거리 딜러</td></tr>
+  <tr><td class="plague">역병귀<br><span class="chip c-debuff">Debuff</span></td><td>1 <span class="pips"><i></i></span></td><td>때리면 영웅을 느리게 만들어요</td></tr>
+  <tr><td class="phantom">환령<br><span class="chip c-swarm">Swarm</span></td><td>1 <span class="pips"><i></i></span></td><td>빠르고 약한 떼. 아주 자주 나와요</td></tr>
+</table>
+<p class="sub">코스트는 지금 값이며, 테스트 결과에 따라 조정될 수 있어요.</p>
+
+<h3>기본 편성 (코스트 13)</h3>
+<div class="mini">
+  <div class="wisp">1<br>도깨비불</div><div class="reaper">2<br>사신</div><div class="hex">3<br>저주술사</div><div class="wraith">4<br>망령</div><div class="plague">5<br>역병귀</div><div class="phantom">6<br>환령</div>
+</div>
+<p class="sub">3 + 3 + 2 + 3 + 1 + 1 = 13. 편성을 바꾼 적이 없다면 이 배치로 싸웁니다.</p>
+
+<h2>편성 규칙</h2>
+<table>
+  <tr><th style="width:36%">규칙</th><th>내용</th></tr>
+  <tr><td>둥지 수</td><td>항상 6곳. 늘리거나 비울 수 없어요</td></tr>
+  <tr><td>코스트 상한</td><td>합계 13 이하. 레벨이 올라도 늘지 않아요</td></tr>
+  <tr><td>같은 몬스터</td><td>2곳까지 (1-5 클리어 후 3곳)</td></tr>
+  <tr><td>둥지 위치</td><td>어느 둥지에 두든 전투 차이는 없어요. 번호는 봉인 대상을 정할 때만 쓰여요</td></tr>
+  <tr><td>저장</td><td>"출격" 을 누를 때 저장돼요</td></tr>
+</table>
+<div class="tip"><b>1-5 클리어 후</b> - 한 몬스터를 3곳에 몰 수 있어요. 예: 사신 3곳(9) + 저주술사(2) + 역병귀(1) + 환령(1) = 13. 대신 탱커가 하나도 없어요.</div>
+
+<h2>편성이 카드에 주는 영향</h2>
+<div class="bubble"><div class="who">영주의 조언</div>편성에 없는 몬스터를 위한 카드는 3택1 에 아예 나오지 않아요. 쓸모없는 카드가 줄어드는 대신, 어떤 카드가 나올지는 편성에서 미리 정해집니다.</div>
+<table>
+  <tr><th style="width:30%">몬스터</th><th>이 몬스터가 편성에 있어야 나오는 카드</th></tr>
+  <tr><td class="wisp">도깨비불</td><td>끈질긴 도깨비불 · 도깨비불 떼 · 공포의 군세</td></tr>
+  <tr><td class="wraith">망령</td><td>망령의 압박 · 더 많은 망령</td></tr>
+  <tr><td class="wisp">도깨비불 <span class="sub">또는</span> <span class="wraith">망령</span></td><td>수호자의 분노 (둘 중 하나만 있어도 나와요)</td></tr>
+  <tr><td class="reaper">사신</td><td>신속한 사신 · 사신 떼거리 · 처형 명령</td></tr>
+  <tr><td class="hex">저주술사</td><td>저주의 시야</td></tr>
+  <tr><td class="plague">역병귀</td><td>역병 증식 · 역병의 손길</td></tr>
+  <tr><td class="phantom">환령</td><td>환령의 발걸음 · 환령 떼 · 빠른 번식</td></tr>
+</table>
+<p class="sub">공포·출혈·광폭화·강철 의지·죽음의 표식처럼 특정 몬스터와 상관없는 카드는 편성과 관계없이 늘 나와요.</p>
+<div class="tip"><b>같은 몬스터를 2곳 넣으면</b> - "떼" 카드(예: 사신 떼거리)는 그 몬스터 둥지 전부에 적용돼요. 2곳이면 2배로 늘어납니다.</div>
+
+<h2>봉인된 둥지 스테이지</h2>
+<p>아래 스테이지는 둥지 1곳이 처음에 막혀 있다가, 영웅 HP 가 일정 수치까지 깎이면 풀려요.</p>
+<table>
+  <tr><th>스테이지</th><th>봉인 대상</th><th>풀리는 시점</th></tr>
+  <tr><td>1-4</td><td class="wraith">망령</td><td>영웅 HP 60%</td></tr>
+  <tr><td>2-2</td><td class="phantom">환령</td><td>영웅 HP 70%</td></tr>
+  <tr><td>3-2</td><td class="plague">역병귀</td><td>영웅 HP 60%</td></tr>
+  <tr><td>3-4</td><td class="hex">저주술사</td><td>영웅 HP 50%</td></tr>
+  <tr><td>4-2</td><td class="wisp">도깨비불</td><td>영웅 HP 60%</td></tr>
+  <tr><td>4-4</td><td class="reaper">사신</td><td>영웅 HP 70%</td></tr>
+  <tr><td>5-2</td><td class="hex">저주술사</td><td>영웅 HP 60%</td></tr>
+  <tr><td>5-4</td><td class="plague">역병귀</td><td>영웅 HP 55%</td></tr>
+</table>
+<div class="cards" style="margin-top:8px">
+  <div class="card"><h3 style="margin-top:0">봉인 대상을 넣으면</h3>그 몬스터 둥지 <b>1곳만</b> 봉인돼요. 2곳 넣었다면 번호가 작은 둥지가 봉인.</div>
+  <div class="card"><h3 style="margin-top:0">봉인 대상을 빼면</h3>대신 <b>코스트가 가장 높은 둥지</b>가 봉인돼요. 같으면 번호가 작은 둥지.</div>
+</div>
+<div class="seal">봉인 예정: 둥지 1 (도깨비불) · 영웅 HP 60% 에서 해제</div>
+<p class="cap">1-4 에서 망령을 빼면 둥지 1 의 도깨비불(코스트 3)이 대신 봉인돼요. 편성 창에서 바로 바뀌어 보여요.</p>
+<div class="bubble"><div class="who">영주의 조언</div>봉인은 피할 수 없어요. "그 몬스터 하나를 잠깐 잃을지, 내 가장 비싼 둥지를 잠깐 잃을지" 를 고르는 거예요.</div>
+
+<h2>챕터별 영웅 성향</h2>
+<p class="sub">편성 창 왼쪽 "영웅 성향" 에 나오는 문구예요.</p>
+<table>
+  <tr><th style="width:26%">챕터 · 영웅</th><th>영웅 성향</th></tr>
+  <tr><td>1장 기사</td><td>가장 가까운 몬스터부터 상대합니다. 모든 편성의 기준이 되는 상대입니다.</td></tr>
+  <tr><td>2장 궁수</td><td>멀리서 쏘며 물러납니다. 느린 탱커는 따라잡지 못합니다.</td></tr>
+  <tr><td>3장 암살자</td><td>약하고 위협적인 몬스터를 노리고 빠집니다. 딜러가 먼저 쓰러집니다.</td></tr>
+  <tr><td>4장 광전사</td><td>몬스터 무리에 돌진해 한꺼번에 벱니다. 약한 떼는 쉽게 쓸립니다.</td></tr>
+  <tr><td>5장 성기사</td><td>약화·둔화에 저항합니다. 디버프보다 힘으로 맞서세요.</td></tr>
+</table>
+
+<h2>이렇게 짜 볼 수 있어요</h2>
+<p class="sub">정답이 아니라 출발점이에요. 모두 같은 몬스터 2곳 이하, 코스트 13 이하.</p>
+
+<div class="pnl">
+  <h3 style="margin-top:0">궁수전 - 망령 대신 저주술사</h3>
+  <div class="mini"><div class="wisp">도깨비불</div><div class="reaper">사신</div><div class="hex">저주술사</div><div class="hex">저주술사</div><div class="plague">역병귀</div><div class="phantom">환령</div></div>
+  <p>3 + 3 + 2 + 2 + 1 + 1 = <b>12</b>. 도망치는 궁수를 못 따라가는 망령을 빼고 원거리를 늘려요.</p>
+  <p class="sub">빠지는 카드: 망령의 압박 · 더 많은 망령</p>
+</div>
+
+<div class="pnl">
+  <h3 style="margin-top:0">암살자전 - 딜러 대신 단단하게</h3>
+  <div class="mini"><div class="wisp">도깨비불</div><div class="wraith">망령</div><div class="wraith">망령</div><div class="hex">저주술사</div><div class="plague">역병귀</div><div class="plague">역병귀</div></div>
+  <p>3 + 3 + 3 + 2 + 1 + 1 = <b>13</b>. 먼저 노려지는 사신·환령을 빼고 망령과 역병귀로 버티며 느리게 만들어요.</p>
+  <p class="sub">빠지는 카드: 신속한 사신 · 사신 떼거리 · 처형 명령 · 환령의 발걸음 · 환령 떼 · 빠른 번식</p>
+</div>
+
+<div class="pnl">
+  <h3 style="margin-top:0">성기사전 - 디버프 대신 힘으로</h3>
+  <div class="mini"><div class="reaper">사신</div><div class="reaper">사신</div><div class="wraith">망령</div><div class="hex">저주술사</div><div class="phantom">환령</div><div class="phantom">환령</div></div>
+  <p>3 + 3 + 3 + 2 + 1 + 1 = <b>13</b>. 둔화가 잘 안 먹히는 성기사에게 역병귀를 빼고 사신을 2곳으로 늘려요.</p>
+  <p class="sub">빠지는 카드: 끈질긴 도깨비불 · 도깨비불 떼 · 공포의 군세 · 역병 증식 · 역병의 손길</p>
+</div>
+
+<div class="warn">흔한 실수: 기본 편성에서 역병귀만 사신으로 바꾸면 13 - 1 + 3 = 15 라 출격할 수 없어요. 비싼 몬스터를 넣으면 다른 곳을 싸게 낮춰야 해요.</div>
+
+<h2>자주 묻는 질문</h2>
+<details open><summary>"다시 도전" 하면 편성을 또 해야 하나요?</summary><p>아니요. 결과창의 다시 도전은 같은 편성으로 바로 시작해요. 마을로 돌아가 방어하기를 누르면 직전 편성이 그대로 보여요.</p></details>
+<details><summary>바꾸다가 X 를 누르면?</summary><p>저장 없이 닫혀요. 바꾼 내용은 사라지고 이전 편성이 남아요.</p></details>
+<details><summary>원래대로 돌리고 싶어요.</summary><p>"기본 편성" 버튼을 누르면 처음 배치로 돌아가요. 저장은 출격할 때 돼요.</p></details>
+<details><summary>바꿀 게 없으면 매번 귀찮지 않나요?</summary><p>그대로 "출격" 한 번만 누르면 돼요.</p></details>
+<details><summary>편성을 바꾸면 랭킹에서 빠지나요?</summary><p>아니요. 랭킹·최단 기록은 편성과 상관없이 지금처럼 Easy 판만 올라가요.</p></details>
+<details><summary>Normal·Hard 에서는 코스트가 더 많나요?</summary><p>아니요. 모든 난이도에서 코스트 13, 같은 규칙이에요.</p></details>
+<details><summary>상점 각성은 어떻게 되나요?</summary><p>각성은 그 몬스터 전체에 붙어요. 많이 넣을수록 효과가 커지고, 안 넣은 몬스터의 각성은 그 판에서 쓰이지 않아요. 환급은 없어요.</p></details>
+<details><summary>유물에 영향이 있나요?</summary><p>없어요. 유물은 모든 몬스터에 똑같이 적용되고, 드랍 확률도 편성과 무관해요.</p></details>
+<details><summary>출격 버튼이 회색이고 코스트가 빨개요.</summary><p>저장된 편성이 지금 규칙을 넘은 상태예요(예: 코스트 조정 후, 또는 1-5 클리어 전 기록으로 복원해 3곳 편성이 걸린 경우). 몬스터를 바꾸거나 "기본 편성" 을 누르면 출격할 수 있어요. 누르면 "코스트를 초과한 편성입니다. 고친 뒤 출격하세요" 안내가 떠요.</p></details>
+<details><summary>다른 기기에서도 편성이 유지되나요?</summary><p>네. 편성은 클라우드 백업에 함께 저장돼요.</p></details>
+
+</main>
+</body>
+</html>
