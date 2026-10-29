@@ -45,9 +45,10 @@ namespace Lair.Tests.Card
         //# 카드 리뉴얼 Phase 2 — 총 28 ECardId (기존 25 + 신규 3).
         //# Multiply enum 자리는 보존, SO 파일 Multiply.asset 도 SwarmRush 효과로 재사용 (BLOCKER W1).
         [Test]
-        public void ECardId_총_28개_기존25_신규3()
+        public void ECardId_총_29개_기존25_신규3_끈질긴저주()
         {
-            Assert.AreEqual(28, System.Enum.GetValues(typeof(ECardId)).Length);
+            Assert.AreEqual(29, System.Enum.GetValues(typeof(ECardId)).Length);
+            Assert.AreEqual(28, (int)ECardId.LingeringCurse, "독장판 자리(13) 보존 + 끈질긴 저주 맨 끝 추가 (monster-growth-currencies §15.3)");
         }
     }
 }

@@ -44,6 +44,19 @@ namespace Lair.Battle
 
         public void ClearDebuffResist() => _hasResist = false;
 
+        //# 카드 "끈질긴 저주" (monster-growth-currencies §15.3) — Debuff 축 시한 디버프 지속 배율 = 1 + 누적 보너스(가산). 풀 재사용 리셋은 OnDisable.
+        private float _debuffDurationBonus;
+
+        public float DebuffDurationMul => 1f + _debuffDurationBonus;
+
+        public void AddDebuffDurationBonus(float bonus)
+        {
+            if (bonus > 0f)
+            {
+                _debuffDurationBonus += bonus;
+            }
+        }
+
         private void Awake()
         {
             LairCharacter character = GetComponent<LairCharacter>();
@@ -52,7 +65,7 @@ namespace Lair.Battle
 
         public void Attach(IHeroAura aura, float duration) => Attach(aura, duration, null, null);
 
-        //# source/sourceHealth = 디버프를 건 몬스터(없으면 null). 두 부착 경로(BattleContext·PlagueSlowOnHit)가 모두 여기를 거친다.
+        //# source/sourceHealth = 디버프를 건 몬스터(없으면 null). 두 부착 경로(BattleContext·PlagueToxinOnHit)가 모두 여기를 거친다.
         public void Attach(IHeroAura aura, float duration, Transform source, IHealth sourceHealth)
         {
             if (aura == null) return;
@@ -60,6 +73,11 @@ namespace Lair.Battle
             IDebuffAxisAura axis = aura as IDebuffAxisAura;
             if (axis != null && axis.IsDebuffAxis)
             {
+                //# 끈질긴 저주 — 시한 디버프 지속 x (1 + 0.25n). 신앙의 가호 x0.6 과 같은 지점에서 곱으로 합성(§15.3).
+                if (duration > 0f)
+                {
+                    duration *= DebuffDurationMul;
+                }
                 //# 시한은 부착·연장 지속 x durationMul, 영구는 강도(감소분) 보정. 연장은 아래 Remain += duration 이라 자동 반영.
                 if (_hasResist)
                 {
@@ -79,11 +97,21 @@ namespace Lair.Battle
             }
 
             //# 같은 type 의 aura 가 이미 부착돼 있으면 Remain 연장 + 새 인스턴스 무시.
-            //# 예: PoisonAura 가 이미 3초 남았는데 5초짜리 재부착 → Remain = 3 + 5 = 8초.
+            //# 예: BleedAura 가 이미 3초 남았는데 5초짜리 재부착 → Remain = 3 + 5 = 8초.
             foreach (Slot existing in _slots)
             {
                 if (existing.Aura.GetType() == aura.GetType())
                 {
+                    //# 역병귀 독 — 중첩 +N · 지속 갱신(연장 누적 아님). 전 중첩이 이 슬롯 타이머 하나를 공유한다(§15.1).
+                    if (existing.Aura is PlagueToxinAura toxin)
+                    {
+                        toxin.Merge(aura as PlagueToxinAura);
+                        if (existing.Indefinite == false && duration > 0f)
+                        {
+                            existing.Remain = Mathf.Max(existing.Remain, duration);
+                        }
+                        return;
+                    }
                     IDistinctHeroAura distinct = aura as IDistinctHeroAura;
                     if (distinct == null || distinct.ShouldStackAsNew(existing.Aura) == false)
                     {
@@ -110,7 +138,7 @@ namespace Lair.Battle
             if (s.Indefinite)
                 return false;
             IHeroAura a = s.Aura;
-            return a is SlowAura || a is PoisonAura || a is FearAura || a is BleedAura || a is WeakenAura;
+            return a is SlowAura || a is PlagueToxinAura || a is FearAura || a is BleedAura || a is WeakenAura;
         }
 
         public int CountTimedDebuffs()
@@ -194,6 +222,7 @@ namespace Lair.Battle
                     OnStatusHidden?.Invoke(s.Aura.GetType());
             }
             _slots.Clear();
+            _debuffDurationBonus = 0f;
         }
     }
 }

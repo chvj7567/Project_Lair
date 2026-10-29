@@ -55,17 +55,17 @@ namespace Lair.Tests.Card
             Assert.AreEqual(1.5f, ctx.Buffs[0].Item3, 0.0001f);
         }
 
-        //# 정상 — 플레이그 강화는 SlowFactor 배율 0.75 로 등록 (치환값 아닌 배율, §3.0.1).
+        //# 정상 — 역병의 손길은 역병귀 독 피해 배율 1.4 로 등록 (monster-growth-currencies §15.0).
         [Test]
-        public void PlagueSlowBoost_플레이그_SlowFactor_배율_0점75_등록()
+        public void PlagueSlowBoost_역병귀_독피해_배율_1점4_등록()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new PlagueSlowBoostEffect().Apply(ctx);
+            new PlagueToxinBoostEffect().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
             Assert.AreEqual(EMonster.Plague, ctx.Buffs[0].Item1);
-            Assert.AreEqual(EMonsterStatKind.SlowFactor, ctx.Buffs[0].Item2);
-            Assert.AreEqual(0.75f, ctx.Buffs[0].Item3, 0.0001f);
+            Assert.AreEqual(EMonsterStatKind.PoisonDamage, ctx.Buffs[0].Item2);
+            Assert.AreEqual(1.4f, ctx.Buffs[0].Item3, 0.0001f);
         }
 
         //# 정상 — 추가소환 카드는 해당 종으로 IncrementSpawnerOutput 1회 호출.

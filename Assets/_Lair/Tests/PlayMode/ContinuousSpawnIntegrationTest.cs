@@ -207,47 +207,41 @@ namespace Lair.Tests.PlayMode
             Assert.AreEqual(200, hp.Current, "resetCurrent:true — 현재 HP 가 최대치로 복원");
         }
 
-        //# 엣지 — 플레이그 SlowFactor: ApplyMonsterStats 가 BaseSlowFactor 0.8 × 배율 적용.
+        //# 엣지 — 역병귀 독: ApplyMonsterStats 가 PoisonDamage 배율을 독 컴포넌트에 절대 대입 (monster-growth-currencies §15.1).
         [UnityTest]
-        public IEnumerator ApplyMonsterStats_플레이그_SlowFactor_baseline_곱배율()
+        public IEnumerator ApplyMonsterStats_역병귀_독피해_배율_적용()
         {
             BattleController bc = CreateIsolatedController();
             GameObject plague = CreateMonster(EMonster.Plague);
-            plague.AddComponent<PlagueSlowOnHit>();
-            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
+            plague.AddComponent<PlagueToxinOnHit>();
+            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.PoisonDamage, 1.4f);
             plague.SetActive(true);
             yield return null;
 
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
 
-            //# _slowFactor 는 private — 리플렉션으로 확인. BaseSlowFactor 0.8 × 0.75 = 0.6.
-            PlagueSlowOnHit slow = plague.GetComponent<PlagueSlowOnHit>();
-            float applied = GetPrivate<float>(slow, "_slowFactor");
-            Assert.AreEqual(0.6f, applied, 0.0001f, "플레이그 둔화 = BaseSlowFactor 0.8 × 0.75");
+            PlagueToxinOnHit toxin = plague.GetComponent<PlagueToxinOnHit>();
+            Assert.AreEqual(1.4f, GetPrivate<float>(toxin, "_damageMul"), 0.0001f, "역병의 손길 1픽 = 독 피해 x1.4");
+            Assert.AreEqual(PlagueToxinOnHit.BaseMaxStack, toxin.MaxStack, "Tier1 전 상한 3");
         }
 
-        //# 회귀 — 플레이그 둔화는 풀 재사용(반복 ApplyMonsterStats) 시 복리 누적되지 않는다.
-        //# baseline 이 const 0.8 이라 매 Pop 항상 0.8 부터 — §7.5.2 복리 버그 차단 검증.
+        //# 회귀 — 독 배율은 풀 재사용(반복 ApplyMonsterStats) 시 복리 누적되지 않는다(절대 대입).
         [UnityTest]
-        public IEnumerator ApplyMonsterStats_플레이그_반복적용_복리누적_없음()
+        public IEnumerator ApplyMonsterStats_역병귀_반복적용_복리누적_없음()
         {
             BattleController bc = CreateIsolatedController();
             GameObject plague = CreateMonster(EMonster.Plague);
-            plague.AddComponent<PlagueSlowOnHit>();
-            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f);
+            plague.AddComponent<PlagueToxinOnHit>();
+            bc.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.PoisonDamage, 1.4f);
             plague.SetActive(true);
             yield return null;
 
-            PlagueSlowOnHit slow = plague.GetComponent<PlagueSlowOnHit>();
-
-            //# 같은 dict 상태로 3번 재적용 — 풀 재사용 Pop 반복 시뮬.
+            PlagueToxinOnHit toxin = plague.GetComponent<PlagueToxinOnHit>();
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
             bc.ApplyMonsterStats(plague, EMonster.Plague, resetCurrent: true);
 
-            float applied = GetPrivate<float>(slow, "_slowFactor");
-            Assert.AreEqual(0.6f, applied, 0.0001f,
-                "3회 재적용해도 0.6 — baseline const 라 복리(0.6→0.45→...) 누적 없음");
+            Assert.AreEqual(1.4f, GetPrivate<float>(toxin, "_damageMul"), 0.0001f, "3회 재적용해도 1.4 — 복리 누적 없음");
         }
 
         //# ===== 2. RegisterMonsterTypeBuff — 필드 동일 종 소급 =====

@@ -54,7 +54,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(1.03f, b.GetStatMul(EMonsterStatKind.Hp), Tol);
             Assert.AreEqual(1f, b.GetStatMul(EMonsterStatKind.Cooldown), Tol);
             Assert.AreEqual(1f, b.GetStatMul(EMonsterStatKind.Range), Tol, "상점 축 — 유물 미사용");
-            Assert.AreEqual(1f, b.GetStatMul(EMonsterStatKind.SlowFactor), Tol, "상점 축 — 유물 미사용");
+            Assert.AreEqual(1f, b.GetStatMul(EMonsterStatKind.PoisonDamage), Tol, "상점 축 — 유물 미사용");
         }
 
         [Test]

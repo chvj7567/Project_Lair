@@ -57,7 +57,8 @@ namespace Lair.Tests.Card
             string[] pngStems = Directory.GetFiles(CardArtDir, "*.png")
                 .Select(Path.GetFileNameWithoutExtension)
                 .OrderBy(s => s).ToArray();
-            string[] ids = System.Enum.GetNames(typeof(ECardId)).OrderBy(s => s).ToArray();
+            //# 폐기 자리 HeroPoisonAura(독장판)는 카드가 없어 일러스트도 없다 (monster-growth-currencies §15.3).
+            string[] ids = System.Enum.GetNames(typeof(ECardId)).Where(s => s != nameof(ECardId.HeroPoisonAura)).OrderBy(s => s).ToArray();
 
             Assert.AreEqual(28, pngStems.Length, "CardArt PNG 28장");
             CollectionAssert.AreEqual(ids, pngStems, "CardArt 파일명 = ECardId 28개 정확 일치(대소문자 포함)");

@@ -60,15 +60,13 @@
     }
   },
   {
-    "id": "HeroPoisonAura",
+    "id": "LingeringCurse",
     "axis": "Debuff",
-    "displayName": "독장판",
-    "description": "영웅 발 밑에 독 장판 (DPS 5)",
+    "displayName": "끈질긴 저주",
+    "description": "영웅 디버프 지속 +25%",
     "effect": {
-      "$type": "HeroPoisonAuraEffect",
-      "dps": 5.0,
-      "duration": 5.0,
-      "radius": 1.25
+      "$type": "LingeringCurseEffect",
+      "durationBonusPerPick": 0.25
     }
   },
   {
@@ -126,10 +124,10 @@
     "id": "PlagueSlowBoost",
     "axis": "Debuff",
     "displayName": "역병의 손길",
-    "description": "역병귀 둔화 효과 강화",
+    "description": "역병귀 독 피해 강화",
     "effect": {
-      "$type": "PlagueSlowBoostEffect",
-      "slowFactor": 0.75
+      "$type": "PlagueToxinBoostEffect",
+      "toxinMul": 1.4
     }
   },
   {

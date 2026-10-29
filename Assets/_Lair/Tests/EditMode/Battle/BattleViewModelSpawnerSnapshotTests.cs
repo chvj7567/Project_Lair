@@ -275,7 +275,7 @@ namespace Lair.Tests.UI
 
             FakeCardEffect effect = new FakeCardEffect
             {
-                OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.SlowFactor, 0.75f)
+                OnApply = ctx => ctx.RegisterMonsterTypeBuff(EMonster.Plague, EMonsterStatKind.PoisonDamage, 0.75f)
             };
             CardData card = FakeCardData.Create(ECardId.PlagueSlowBoost, effect: effect);
             bc.ApplyCardEffect(card);

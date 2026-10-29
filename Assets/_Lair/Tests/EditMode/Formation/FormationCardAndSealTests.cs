@@ -136,7 +136,7 @@ namespace Lair.Tests.EditMode
             List<string> available = FormationTestKit.Passives()
                 .Where(name => _cards.IsAvailable(FormationTestKit.Card(name), worst.Contains)).ToList();
             CollectionAssert.AreEquivalent(
-                new[] { "HexRangeBoost", "PlagueSlowBoost", "SpawnPlagues", "HeroPoisonAura", "HeroAttackDown", "SpawnerHaste" },
+                new[] { "HexRangeBoost", "PlagueSlowBoost", "SpawnPlagues", "LingeringCurse", "HeroAttackDown", "SpawnerHaste" },
                 available);
             Assert.GreaterOrEqual(available.Count, 3);
         }

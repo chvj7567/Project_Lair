@@ -42,8 +42,7 @@ namespace Lair.Meta
                 else
                 {
                     mul = bonus.GetStatMul(item.StatKind);
-                    inverse = item.StatKind == EMonsterStatKind.Cooldown
-                           || item.StatKind == EMonsterStatKind.SlowFactor;
+                    inverse = item.StatKind == EMonsterStatKind.Cooldown;
                 }
 
                 float ratio = inverse ? (1f / mul - 1f) : (mul - 1f);
@@ -69,7 +68,7 @@ namespace Lair.Meta
                 case EMonsterStatKind.Cooldown:  return "공속";
                 case EMonsterStatKind.Range:     return "사거리";
                 case EMonsterStatKind.MoveSpeed: return "이동";
-                case EMonsterStatKind.SlowFactor: return "둔화";
+                case EMonsterStatKind.PoisonDamage: return "독";
                 default:                         return "?";
             }
         }

@@ -21,8 +21,8 @@ namespace Lair.Tests.Card
         [Test]
         public void ECardId_enum_28개_정확()
         {
-            Assert.AreEqual(28, System.Enum.GetValues(typeof(ECardId)).Length,
-                "ECardId enum 값 28개 (기존 25 + 신규 3)");
+            Assert.AreEqual(29, System.Enum.GetValues(typeof(ECardId)).Length,
+                "ECardId enum 값 29개 (기존 25 + 신규 3 + LingeringCurse, HeroPoisonAura 는 폐기 자리 보존)");
         }
 
         [Test]

@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Lair.Tests.Card
 {
     //# 지정 카드 강제 등장 (에디터 디버그) — 자체 스모크: 정상 1 + 엣지 4.
-    //# 스크립트: 액티브 1픽 TimeStop / 액티브 2픽 Fear / 패시브 1픽 HeroPoisonAura.
+    //# 스크립트: 액티브 1픽 TimeStop / 액티브 2픽 Fear / 패시브 1픽 LingeringCurse.
     public class ForcedCardDrawTests
     {
         private bool _savedEnabled;
@@ -36,7 +36,7 @@ namespace Lair.Tests.Card
         }
 
         private static List<CardData> AllCards()
-            => Cards(ECardId.TimeStop, ECardId.Fear, ECardId.HeroPoisonAura,
+            => Cards(ECardId.TimeStop, ECardId.Fear, ECardId.LingeringCurse,
                      ECardId.Frenzy, ECardId.Bleed, ECardId.Slow,
                      ECardId.WispHpBoost, ECardId.ReaperAtkSpeed, ECardId.HexRangeBoost);
 
@@ -64,9 +64,9 @@ namespace Lair.Tests.Card
             Assert.AreEqual(3, ids.Count, $"{label} — 중복 카드 2장 노출 금지");
         }
 
-        //# 정상 — 토글 ON: 액티브 1픽 TimeStop · 2픽 Fear · 패시브 1픽 HeroPoisonAura 포함 + 3장 중복 없음.
+        //# 정상 — 토글 ON: 액티브 1픽 TimeStop · 2픽 Fear · 패시브 1픽 LingeringCurse 포함 + 3장 중복 없음.
         [Test]
-        public void 토글ON_액티브1픽TimeStop_2픽Fear_패시브1픽HeroPoisonAura_포함_중복없음()
+        public void 토글ON_액티브1픽TimeStop_2픽Fear_패시브1픽LingeringCurse_포함_중복없음()
         {
             ForcedCardDraw.Enabled = true;
             ForcedCardDraw forced = new ForcedCardDraw();
@@ -80,7 +80,7 @@ namespace Lair.Tests.Card
                 Cards(ECardId.Frenzy, ECardId.Bleed, ECardId.Slow), isPassive: false, all, id => false);
 
             Assert.AreEqual(1, CountOf(active1, ECardId.TimeStop), "액티브 1픽 — TimeStop 포함");
-            Assert.AreEqual(1, CountOf(passive1, ECardId.HeroPoisonAura), "패시브 1픽 — HeroPoisonAura 포함");
+            Assert.AreEqual(1, CountOf(passive1, ECardId.LingeringCurse), "패시브 1픽 — LingeringCurse 포함");
             Assert.AreEqual(1, CountOf(active2, ECardId.Fear), "액티브 2픽 — Fear 포함");
             AssertDistinct3(active1, "액티브 1픽");
             AssertDistinct3(passive1, "패시브 1픽");

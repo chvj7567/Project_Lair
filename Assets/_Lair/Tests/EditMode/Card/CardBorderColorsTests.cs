@@ -29,7 +29,7 @@ namespace Lair.Tests.Card
 
         //# ===== 정상 — 영웅 백색 (8장 대표 2장) =====
 
-        [TestCase(ECardId.HeroPoisonAura)]
+        [TestCase(ECardId.LingeringCurse)]
         [TestCase(ECardId.MarkOfDeath)]
         public void 영웅_대상_카드는_백색(ECardId id)
         {

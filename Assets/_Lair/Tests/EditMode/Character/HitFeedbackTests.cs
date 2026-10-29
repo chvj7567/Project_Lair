@@ -230,54 +230,21 @@ namespace Lair.Tests.Character
         }
 
         [Test]
-        public void PoisonAura_틱_시_독색_스탬프_데미지직전_그리고_델타정확()
+        public void PlagueToxinAura_틱_시_독색_스탬프_데미지직전_그리고_델타정확()
         {
             GameObject tgtGo = new GameObject("hero");
             FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();
             tgtGo.AddComponent<LairCharacter>();      //# DoT 색 스탬프가 대상 Character 로케이터 경유 → 부착 필요.
-            tgtGo.transform.position = Vector3.zero;
 
-            //# 독장판 visual 의 CHPoolable 더미 — Push 안 부르고 Tick 의 영역판정용 위치만 필요.
-            GameObject diskGo = new GameObject("poisonDisk");
-            ChvjUnityInfra.CHPoolable disk = diskGo.AddComponent<ChvjUnityInfra.CHPoolable>();
-            diskGo.transform.position = Vector3.zero;   //# 영웅과 동일 위치 → 반경 1.25 내
-
-            PoisonAura aura = new PoisonAura(dps: 5f, radius: 1.25f);
-            //# CHMResource/CHMPool 우회 — Tick 가 보는 두 private 필드를 직접 주입.
-            SetField(aura, "_heroTransform", tgtGo.transform);
-            SetField(aura, "_visualPoolable", disk);
-
-            aura.Tick(tgt, 1f);   //# 영역 내 + 1초 → 1틱
+            PlagueToxinAura aura = new PlagueToxinAura(perStackDamage: 2f, addStacks: 1, maxStack: 3);
+            aura.Merge(new PlagueToxinAura(2f, 1, 3));
+            aura.OnAttached(tgt);
+            aura.Tick(tgt, 1f);   //# 1초 → 1틱, 2중첩 x 2 = 4
 
             Assert.AreEqual(HitFeedbackPalette.Poison, tgt.StampedColor, "독 DoT 는 Poison(#0B5B4A) 스탬프");
             Assert.AreEqual(100, tgt.StampOrderHp, "스탬프는 TakeDamage 직전");
-            Assert.AreEqual(95, tgt.Current, "Poison 틱 = (int)dps = 5 불변");
+            Assert.AreEqual(96, tgt.Current, "독 틱 = 중첩 2 x 1중첩 피해 2");
 
-            UnityEngine.Object.DestroyImmediate(diskGo);
-            UnityEngine.Object.DestroyImmediate(tgtGo);
-        }
-
-        [Test]
-        public void PoisonAura_영역밖이면_틱없음_스탬프없음()
-        {
-            GameObject tgtGo = new GameObject("hero");
-            FakeTarget tgt = tgtGo.AddComponent<FakeTarget>();
-            tgtGo.transform.position = new Vector3(10f, 0f, 0f);   //# 반경 밖
-
-            GameObject diskGo = new GameObject("poisonDisk");
-            ChvjUnityInfra.CHPoolable disk = diskGo.AddComponent<ChvjUnityInfra.CHPoolable>();
-            diskGo.transform.position = Vector3.zero;
-
-            PoisonAura aura = new PoisonAura(dps: 5f, radius: 1.25f);
-            SetField(aura, "_heroTransform", tgtGo.transform);
-            SetField(aura, "_visualPoolable", disk);
-
-            aura.Tick(tgt, 1f);
-
-            Assert.AreEqual(Color.clear, tgt.StampedColor, "영역 밖 — 스탬프 없음");
-            Assert.AreEqual(100, tgt.Current, "영역 밖 — 데미지 없음");
-
-            UnityEngine.Object.DestroyImmediate(diskGo);
             UnityEngine.Object.DestroyImmediate(tgtGo);
         }
 

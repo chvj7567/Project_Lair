@@ -38,6 +38,9 @@ namespace Lair.Battle
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
+        //# Debuff Tier1 누적 — 역병귀 독 최대 중첩 보너스(기본 3 + 이 값). 판마다 새 컨트롤러라 리셋 불필요.
+        private int _toxinMaxStackBonus;
+
         //# 종족 강화 레벨 캐시 — ApplyMetaBonuses 에서 1회 채움, 스폰 시 발광 적용에 사용 (monster-species-enhancement §4.3).
         private readonly Dictionary<EMonster, int> _speciesLevels = new();
 
@@ -743,11 +746,11 @@ namespace Lair.Battle
                 mover.Speed = raw.MoveSpeed * mul.MoveSpeedMul;
             }
 
-            //# 플레이그 한정 — 불변 baseline const × 배율. 복리 누적 버그 없음 (§7.5.9).
-            PlagueSlowOnHit slow = character.GetComponent<PlagueSlowOnHit>();
-            if (slow != null)
+            //# 역병귀 한정 — 독 피해 배율·최대 중첩 보너스를 불변 baseline 위에 절대 대입. 복리 누적 없음 (monster-growth-currencies §15.1).
+            PlagueToxinOnHit toxin = character.GetComponent<PlagueToxinOnHit>();
+            if (toxin != null)
             {
-                slow.SetSlowFactor(PlagueSlowOnHit.BaseSlowFactor * mul.SlowFactorMul);
+                toxin.Configure(mul.PoisonDamageMul, 1f, _toxinMaxStackBonus);
             }
 
             //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
@@ -858,7 +861,7 @@ namespace Lair.Battle
             _hero = p;
             _heroHealth = p.GetComponent<Health>();
 
-            //# 상태 아이콘 — HeroAuraRunner 를 셋업 시점에 확보(BattleContext/PlagueSlowOnHit 가 같은 인스턴스 사용).
+            //# 상태 아이콘 — HeroAuraRunner 를 셋업 시점에 확보(BattleContext/PlagueToxinOnHit 가 같은 인스턴스 사용).
             //# 이벤트를 VM 으로 forward. 핸들러는 필드 보관 → OnDestroy 에서 정확히 -=.
             SetupHeroAuraEvents(p.gameObject);
 
@@ -1429,6 +1432,30 @@ namespace Lair.Battle
             }
         }
 
+        //# 끈질긴 저주 — 영웅 러너의 Debuff 축 시한 디버프 지속 보너스 누적 (§15.3).
+        public void AddHeroDebuffDurationBonus(float bonus)
+        {
+            _heroAuraRunner?.AddDebuffDurationBonus(bonus);
+        }
+
+        //# Debuff Tier1 — 역병귀 독 최대 중첩 +bonus, 필드 역병귀에 소급 (§15.2).
+        public void AddPlagueToxinMaxStack(int bonus)
+        {
+            if (bonus <= 0)
+                return;
+            _toxinMaxStackBonus += bonus;
+            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            {
+                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null)
+                    continue;
+                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
+                if (tag != null && tag.Key == EMonster.Plague)
+                {
+                    ApplyMonsterStats(e.Transform.gameObject, EMonster.Plague, resetCurrent: false);
+                }
+            }
+        }
+
         //# 지속 스폰 — 강화 카드. 글로벌 dict 곱연산 갱신 + 필드 동일 종 소급 (§7.5.3).
         //# 스포너 상태 UI — _currentCardScope 가 non-null (= ApplyCardEffect 진입 중) 이면 source 추적.
         public void RegisterMonsterTypeBuff(EMonster type, EMonsterStatKind stat, float multiplier)
@@ -1549,7 +1576,7 @@ namespace Lair.Battle
                 : System.Array.Empty<BattleViewModel.AppliedBuff>();
 
         //# 스포너 상태 UI — 툴팁이 base 스탯(Hp/Power/Range/Cooldown/MoveSpeed)을 읽기 위해 노출.
-        //# Plague SlowFactor 의 base 는 코드 상수 Lair.Character.PlagueSlowOnHit.BaseSlowFactor 사용 (§2.5.5).
+        //# 역병귀 독 baseline 은 코드 상수 Lair.Character.PlagueToxinOnHit.BaseDuration/BaseMaxStack (monster-growth-currencies §15.1).
         public BalanceConfig Balance => _balance;
 
         //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
@@ -2316,12 +2343,6 @@ namespace Lair.Battle
                 }
             }
 
-            //# 시각 이펙트 — PoisonAura(독 장판). 영웅 디버프는 HP바 아래 아이콘으로 표시(월드 visual 제거).
-            GameObject poisonFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.PoisonAura);
-            if (poisonFx != null)
-            {
-                CHMPool.Instance.CreatePool(poisonFx, count: 2);
-            }
 
             //# TimeStop 실드 FX — 영웅 1명 한정, 카드 중첩 가능성 대비 count 2 (2026-06-05).
             GameObject timeStopShieldFx = await CHMResource.Instance.LoadAsync<GameObject>(EVisual.TimeStopShield);

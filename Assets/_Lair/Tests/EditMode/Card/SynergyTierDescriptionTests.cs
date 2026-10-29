@@ -20,7 +20,7 @@ namespace Lair.Tests.Card
         public void Dps2_설명계약(int id, string arg) => Assert(new DpsSynergyTier2(), id, arg);
         [TestCase(205, "1.3")]  //# Dps3 RangeMul 1.3
         public void Dps3_설명계약(int id, string arg) => Assert(new DpsSynergyTier3(), id, arg);
-        [TestCase(206, "0.8")]  //# Debuff1 SlowMul 0.8
+        [TestCase(206, "2")]    //# Debuff1 독 최대 중첩 +2 (monster-growth-currencies §15.2)
         public void Debuff1_설명계약(int id, string arg) => Assert(new DebuffSynergyTier1(), id, arg);
         [TestCase(207, "0.85")] //# Debuff2 Factor 0.85
         public void Debuff2_설명계약(int id, string arg) => Assert(new DebuffSynergyTier2(), id, arg);

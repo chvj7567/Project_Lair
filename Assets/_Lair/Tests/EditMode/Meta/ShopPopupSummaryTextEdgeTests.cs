@@ -22,7 +22,7 @@ namespace Lair.Tests.EditMode
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterAtkSpeedUp",  EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Cooldown,  PerLevelMul = 0.99f,  MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterMoveSpeedUp", EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.MoveSpeed, PerLevelMul = 1.015f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterRangeUp",     EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Range,     PerLevelMul = 1.015f, MaxLevel = 5 });
-            _cfg.ShopItems.Add(new ShopItemDef { Id = "PlagueVenomUp",      EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.SlowFactor, PerLevelMul = 0.98f, MaxLevel = 5 });
+            _cfg.ShopItems.Add(new ShopItemDef { Id = "PlagueVenomUp",      EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.PoisonDamage, PerLevelMul = 1.04f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "SpawnerHasteUp",     EffectKind = EShopEffectKind.SpawnerPeriod, PerLevelMul = 0.985f, MaxLevel = 5 });
         }
 
@@ -41,7 +41,7 @@ namespace Lair.Tests.EditMode
                 p.SetShopLevel(item.Id, item.MaxLevel);
 
             Assert.AreEqual(
-                "현재 강화  HP +10% · 공격 +8% · 공속 +5% · 이동 +8% · 사거리 +8% · 둔화 +11% · 스폰률 +8%",
+                "현재 강화  HP +10% · 공격 +8% · 공속 +5% · 이동 +8% · 사거리 +8% · 독 +22% · 스폰률 +8%",
                 ShopPopup.BuildSummaryText(p, _cfg));
         }
 

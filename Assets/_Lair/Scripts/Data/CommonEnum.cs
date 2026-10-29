@@ -344,7 +344,7 @@ namespace Lair.Data
     }
 
     //# 지속 스폰 — 강화 카드가 RegisterMonsterTypeBuff 호출 시 "어느 스탯 배율인지" 지정.
-    //# 에셋 로드 키가 아닌 시스템 간 통신 계약. StatMultiplier 의 6개 필드와 1:1 대응.
+    //# 에셋 로드 키가 아닌 시스템 간 통신 계약. StatMultiplier 의 필드와 1:1 대응. 정수 직렬화(MetaConfig.StatKind) — 순서 변경 금지, append-only.
     public enum EMonsterStatKind
     {
         Hp,
@@ -352,7 +352,7 @@ namespace Lair.Data
         Cooldown,
         Range,
         MoveSpeed,
-        SlowFactor,
+        PoisonDamage,   //# 역병귀 독 피해 배율 (구 SlowFactor 자리 5, monster-growth-currencies §15.4)
     }
 
     //# v0.2 마을 — 상점 영구 업그레이드 효과 종류 (기획서 §11.1). v0.3 — 종족 개별 강화 MonsterSpecies 추가.

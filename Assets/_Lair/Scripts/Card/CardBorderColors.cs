@@ -34,7 +34,7 @@ namespace Lair.Card
             ECardId.Multiply               => (ECardScope.SingleSpecies, EMonster.Phantom),
 
             //# 영웅 대상.
-            ECardId.HeroPoisonAura         => (ECardScope.Hero, default),
+            ECardId.LingeringCurse         => (ECardScope.Hero, default),
             ECardId.HeroAttackDown         => (ECardScope.Hero, default),
             ECardId.Fear                   => (ECardScope.Hero, default),
             ECardId.Bleed                  => (ECardScope.Hero, default),

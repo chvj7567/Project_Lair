@@ -217,7 +217,7 @@ namespace Lair.Tests.UI
             { (EBuildAxis.Dps,    1), "사신·저주술사 공격력 ×1.3" },
             { (EBuildAxis.Dps,    2), "사신·저주술사 공속 +25%" },
             { (EBuildAxis.Dps,    3), "사신·저주술사 사거리 ×1.3" },
-            { (EBuildAxis.Debuff, 1), "역병귀 둔화 ×0.8" },
+            { (EBuildAxis.Debuff, 1), "역병귀 독 최대 중첩 +2" },
             { (EBuildAxis.Debuff, 2), "영웅 공격력 ×0.85" },
             { (EBuildAxis.Debuff, 3), "출혈 영구 — 이동 시 1s당 HP -1%" },
             { (EBuildAxis.Swarm,  1), "환령·도깨비불 이동속도 ×1.3" },
@@ -244,7 +244,7 @@ namespace Lair.Tests.UI
         }
 
         //# 한글화 토큰 3건 회귀 — 기획서 §2.1 의 플레이어 표기 채택분.
-        //# Dps2 = 공속 +25% (Cooldown ×0.8 아님), Debuff1 = 둔화 (SlowFactor 아님), Swarm1 = 이동속도 (MoveSpeed 아님).
+        //# Dps2 = 공속 +25% (Cooldown ×0.8 아님), Debuff1 = 독 (PoisonDamage 아님), Swarm1 = 이동속도 (MoveSpeed 아님).
         [Test]
         public void 한글화_토큰_3건_플레이어_표기_채택()
         {
@@ -255,8 +255,8 @@ namespace Lair.Tests.UI
             Assert.IsTrue(dps2.Contains("공속 +25%"), "Dps Tier2 — 플레이어 표기 '공속 +25%'");
             Assert.IsFalse(dps2.Contains("Cooldown"), "Dps Tier2 — 시스템 표기 'Cooldown' 미사용");
 
-            Assert.IsTrue(debuff1.Contains("둔화"), "Debuff Tier1 — '둔화'");
-            Assert.IsFalse(debuff1.Contains("SlowFactor"), "Debuff Tier1 — 'SlowFactor' 미사용");
+            Assert.IsTrue(debuff1.Contains("독"), "Debuff Tier1 — '독'");
+            Assert.IsFalse(debuff1.Contains("PoisonDamage"), "Debuff Tier1 — 'PoisonDamage' 미사용");
 
             Assert.IsTrue(swarm1.Contains("이동속도"), "Swarm Tier1 — '이동속도'");
             Assert.IsFalse(swarm1.Contains("MoveSpeed"), "Swarm Tier1 — 'MoveSpeed' 미사용");

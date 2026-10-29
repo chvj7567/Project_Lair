@@ -44,7 +44,7 @@ namespace Lair.Tests.Card
             new object[] { new DpsSynergyTier1(),    "사신·저주술사 공격력 ×1.3" },
             new object[] { new DpsSynergyTier2(),    "사신·저주술사 공속 +25%" },
             new object[] { new DpsSynergyTier3(),    "사신·저주술사 사거리 ×1.3" },
-            new object[] { new DebuffSynergyTier1(), "역병귀 둔화 ×0.8" },
+            new object[] { new DebuffSynergyTier1(), "역병귀 독 최대 중첩 +2" },
             new object[] { new DebuffSynergyTier2(), "영웅 공격력 ×0.85" },
             new object[] { new DebuffSynergyTier3(), "출혈 영구 — 이동 시 1s당 HP -1%" },
             new object[] { new SwarmSynergyTier1(),  "환령·도깨비불 이동속도 ×1.3" },

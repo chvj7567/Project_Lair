@@ -49,7 +49,7 @@ namespace Lair.Tests.EditMode
                 ("MonsterAtkSpeedUp",  EShopEffectKind.MonsterStat,    EMonsterStatKind.Cooldown,   EMonster.Wisp,    0.99f,  100),
                 ("MonsterMoveSpeedUp", EShopEffectKind.MonsterStat,    EMonsterStatKind.MoveSpeed,  EMonster.Wisp,    1.015f, 80),
                 ("MonsterRangeUp",     EShopEffectKind.MonsterStat,    EMonsterStatKind.Range,      EMonster.Wisp,    1.015f, 120),
-                ("PlagueVenomUp",      EShopEffectKind.MonsterStat,    EMonsterStatKind.SlowFactor, EMonster.Wisp,    0.98f,  120),
+                ("PlagueVenomUp",      EShopEffectKind.MonsterStat,    EMonsterStatKind.PoisonDamage, EMonster.Wisp,    1.04f,  120),
                 ("SpawnerHasteUp",     EShopEffectKind.SpawnerPeriod,  EMonsterStatKind.Hp,         EMonster.Wisp,    0.985f, 150),
                 ("Enhance_Wisp",       EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Wisp,    1.18f,  150),
                 ("Enhance_Wraith",     EShopEffectKind.MonsterSpecies, EMonsterStatKind.Hp,         EMonster.Wraith,  1.18f,  150),

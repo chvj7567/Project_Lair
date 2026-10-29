@@ -23,7 +23,7 @@ namespace Lair.Card
         {
             (false, 1, ECardId.TimeStop),
             (false, 2, ECardId.Fear),
-            (true,  1, ECardId.HeroPoisonAura),
+            (true,  1, ECardId.LingeringCurse),
         };
 
         private int _activeDrawCount;

@@ -48,7 +48,7 @@ namespace Lair.Tests.PlayMode
             { ECardId.SpawnPhantoms,           ECardArchetype.Aoe    }, //# 팬텀 출력 +1(다수)
             { ECardId.ReplaceWispsToWraith,    ECardArchetype.Tanker }, //# 위스프 -> 레이스
             { ECardId.ReplaceReapersToHex,     ECardArchetype.Dealer }, //# 리퍼 -> 헥스
-            { ECardId.HeroPoisonAura,          ECardArchetype.Other  }, //# 영웅 독 장판(환경)
+            { ECardId.LingeringCurse,          ECardArchetype.Other  }, //# 영웅 디버프 지속 연장(끈질긴 저주)
             { ECardId.HeroAttackDown,          ECardArchetype.Other  }, //# 영웅 공격력 감소(환경)
             { ECardId.SpawnerHaste,            ECardArchetype.Aoe    }, //# v0.6 신규 — 모든 스포너 주기 ×0.8 (Swarm P)
 

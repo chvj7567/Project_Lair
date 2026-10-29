@@ -12,7 +12,7 @@ namespace Lair.Tests.EditMode
     {
         private MetaConfig _cfg;
 
-        //# 기획서 §2.1 마스터 표 7품목 — ShopItems 순서 그대로 (HP·공격·공속·이동·사거리·둔화·스폰률).
+        //# 기획서 §2.1 마스터 표 7품목 — ShopItems 순서 그대로 (HP·공격·공속·이동·사거리·독·스폰률).
         [SetUp]
         public void 준비()
         {
@@ -22,7 +22,7 @@ namespace Lair.Tests.EditMode
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterAtkSpeedUp",  EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Cooldown,  PerLevelMul = 0.99f,  MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterMoveSpeedUp", EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.MoveSpeed, PerLevelMul = 1.015f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterRangeUp",     EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Range,     PerLevelMul = 1.015f, MaxLevel = 5 });
-            _cfg.ShopItems.Add(new ShopItemDef { Id = "PlagueVenomUp",      EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.SlowFactor, PerLevelMul = 0.98f, MaxLevel = 5 });
+            _cfg.ShopItems.Add(new ShopItemDef { Id = "PlagueVenomUp",      EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.PoisonDamage, PerLevelMul = 1.04f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "SpawnerHasteUp",     EffectKind = EShopEffectKind.SpawnerPeriod, PerLevelMul = 0.985f, MaxLevel = 5 });
         }
 
@@ -40,7 +40,7 @@ namespace Lair.Tests.EditMode
             return p;
         }
 
-        //# 기획서 §2.1 — 7품목 만렙 % 검산표 (HP+10·공격+8·공속+5·이동+8·사거리+8·둔화+11·스폰률+8) 전건 일치.
+        //# 기획서 §2.1 — 7품목 만렙 % 검산표 (HP+10·공격+8·공속+5·이동+8·사거리+8·독+22·스폰률+8) 전건 일치.
         [Test]
         public void 전_7품목_만렙은_검산표_라벨과_퍼센트_순서대로_나온다()
         {
@@ -52,20 +52,20 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual("공속", lines[2].Label); Assert.AreEqual(5,  lines[2].Percent);
             Assert.AreEqual("이동", lines[3].Label); Assert.AreEqual(8,  lines[3].Percent);
             Assert.AreEqual("사거리", lines[4].Label); Assert.AreEqual(8, lines[4].Percent);
-            Assert.AreEqual("둔화", lines[5].Label); Assert.AreEqual(11, lines[5].Percent);
+            Assert.AreEqual("독", lines[5].Label); Assert.AreEqual(22, lines[5].Percent);
             Assert.AreEqual("스폰률", lines[6].Label); Assert.AreEqual(8, lines[6].Percent);
         }
 
-        //# 기획서 §2.1 — 둔화(SlowFactor)는 감소형 mul<1 → (1/0.98^5-1)=+11%. 만렙 7종 중 최대 강화폭이라 단독 박제.
+        //# monster-growth-currencies §15.4 — 독(PoisonDamage)은 증가형 mul>1 → (1.04^5-1)=+22%. 역수 분기 제거 회귀.
         [Test]
-        public void 둔화는_감소형이라_역수로_플러스_11퍼센트로_환산된다()
+        public void 독은_증가형이라_플러스_22퍼센트로_환산된다()
         {
             MetaProfile p = new MetaProfile();
             p.SetShopLevel("PlagueVenomUp", 5);
             List<DungeonPowerLine> lines = DungeonPowerSummary.Build(p, _cfg);
             Assert.AreEqual(1, lines.Count);
-            Assert.AreEqual("둔화", lines[0].Label);
-            Assert.AreEqual(11, lines[0].Percent);
+            Assert.AreEqual("독", lines[0].Label);
+            Assert.AreEqual(22, lines[0].Percent);
         }
 
         //# 기획서 §2.4 검산 — 공속 Lv1 = 1/0.99-1 = +1.01% → 반올림 +1% (최소 강화도 ≥1% 노출, 체감 끊김 없음).

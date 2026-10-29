@@ -27,12 +27,12 @@ namespace Lair.Tests
             Assert.AreEqual(25, (int)ECardId.WallOfWisps, "v0.6 신규 첫 WallOfWisps 는 25 여야 한다");
         }
 
-        //# 총 개수 28 (패시브 15 + 액티브 10 + v0.6 신규 3). 새 값 추가 시 본 테스트를 의도적으로 갱신해야 함.
+        //# 총 개수 29 (패시브 15 + 액티브 10 + v0.6 신규 3 + 끈질긴 저주 1). 새 값 추가 시 본 테스트를 의도적으로 갱신해야 함.
         [Test]
-        public void ECardId_총_개수_28()
+        public void ECardId_총_개수_29()
         {
             int count = Enum.GetValues(typeof(ECardId)).Length;
-            Assert.AreEqual(28, count, "ECardId 총 개수는 28 이어야 한다 (값 추가 시 회귀 테스트를 의도적으로 갱신)");
+            Assert.AreEqual(29, count, "ECardId 총 개수는 29 이어야 한다 (값 추가 시 회귀 테스트를 의도적으로 갱신)");
         }
 
         //# 선언 순서가 정수값 순서와 일치 — 0,1,2,…,27 연속. 중간 값 명시 지정(= 대입)이나 재배열을 차단.

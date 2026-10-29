@@ -20,7 +20,7 @@ namespace Lair.Data
         SpawnPhantoms,                 //# 구 SpawnBats (10) — Swarm P
         ReplaceWispsToWraith,          //# 구 ReplaceSlimesToGolem (11) — Tank P
         ReplaceReapersToHex,           //# 구 ReplaceOrcsToArchers (12) — Dps P
-        HeroPoisonAura,                //# (13) — Debuff P
+        HeroPoisonAura,                //# (13) — 폐기(독장판, monster-growth-currencies §15.3) — SO/풀/효과 제거, enum 자리·세이브 문자열 호환만 보존
         HeroAttackDown,                //# (14) — Debuff P
 
         //# 액티브 10장 (값 15~24 보존)
@@ -41,6 +41,7 @@ namespace Lair.Data
         WallOfWisps,                   //# (25) — Tank A
         MarkOfDeath,                   //# (26) — Dps A
         SpawnerHaste,                  //# (27) — Swarm P
+        LingeringCurse,                //# (28) — Debuff P "끈질긴 저주" (독장판 대체, §15.3)
         //# <card-editor:insert> — [Enum 추가] 가 신규 ID 를 이 줄 바로 위에 삽입한다. 이 줄을 삭제하지 말 것.
     }
 }

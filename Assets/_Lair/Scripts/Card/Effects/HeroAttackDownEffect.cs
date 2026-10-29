@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Lair.Card
 {
-    //# 영웅 공격력 영구 -25%. 무제한 지속 오라로 부착 (HeroPoisonAura 와 같은 환경 카테고리).
+    //# 영웅 공격력 영구 -25%. 무제한 지속 오라로 부착 (영웅 대상 Debuff 패시브 카테고리).
     [Serializable]
     public class HeroAttackDownEffect : ICardEffect
     {

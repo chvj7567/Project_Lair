@@ -42,33 +42,30 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(1f, id.CooldownMul, 0.0001f);
             Assert.AreEqual(1f, id.RangeMul, 0.0001f);
             Assert.AreEqual(1f, id.MoveSpeedMul, 0.0001f);
-            Assert.AreEqual(1f, id.SlowFactorMul, 0.0001f);
+            Assert.AreEqual(1f, id.PoisonDamageMul, 0.0001f);
         }
 
-        //# 엣지 — 플레이그 둔화 배율: BaseSlowFactor 0.8 × 1픽 0.75 = 0.6 (기존 1차 수치, §3.0.1).
+        //# 엣지 — 역병귀 독 피해 배율: 역병의 손길 1픽 x1.4 (monster-growth-currencies §15.0).
         [Test]
-        public void SlowFactor_1픽_baseline_0점8과_곱하면_0점6()
+        public void PoisonDamage_1픽_1점4()
         {
             StatMultiplier m = new StatMultiplier();
-            m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
+            m.Multiply(EMonsterStatKind.PoisonDamage, 1.4f);
 
-            float applied = Lair.Character.PlagueSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
-            Assert.AreEqual(0.6f, applied, 0.0001f);
+            Assert.AreEqual(1.4f, m.PoisonDamageMul, 0.0001f);
         }
 
         //# === test-engineer 본격 스위트 — 엣지·회귀 보강 ===
 
-        //# 엣지 — 플레이그 둔화 2픽 누적: SlowFactorMul 0.75²=0.5625, baseline 곱하면 0.45 (§3.0.1).
+        //# 엣지 — 역병귀 독 피해 2픽 누적: 1.4² = 1.96 (곱연산).
         [Test]
-        public void SlowFactor_2픽_곱연산_baseline과_곱하면_0점45()
+        public void PoisonDamage_2픽_곱연산_1점96()
         {
             StatMultiplier m = new StatMultiplier();
-            m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
-            m.Multiply(EMonsterStatKind.SlowFactor, 0.75f);
+            m.Multiply(EMonsterStatKind.PoisonDamage, 1.4f);
+            m.Multiply(EMonsterStatKind.PoisonDamage, 1.4f);
 
-            Assert.AreEqual(0.5625f, m.SlowFactorMul, 0.0001f);
-            float applied = Lair.Character.PlagueSlowOnHit.BaseSlowFactor * m.SlowFactorMul;
-            Assert.AreEqual(0.45f, applied, 0.0001f);
+            Assert.AreEqual(1.96f, m.PoisonDamageMul, 0.0001f);
         }
 
         //# 엣지 — 1 미만 배율(공속 카드 쿨다운 ×0.7) 2픽 곱연산: 0.7²=0.49.
@@ -97,7 +94,7 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(1.5f, m.MoveSpeedMul, 0.0001f);
             Assert.AreEqual(1f, m.CooldownMul, 0.0001f, "Cooldown 미갱신 — 1.0 유지");
             Assert.AreEqual(1f, m.RangeMul, 0.0001f, "Range 미갱신 — 1.0 유지");
-            Assert.AreEqual(1f, m.SlowFactorMul, 0.0001f, "SlowFactor 미갱신 — 1.0 유지");
+            Assert.AreEqual(1f, m.PoisonDamageMul, 0.0001f, "PoisonDamage 미갱신 — 1.0 유지");
         }
 
         //# 회귀 — 6종 스탯 종류 전부 Multiply 가 올바른 필드로 라우팅된다.
@@ -110,14 +107,14 @@ namespace Lair.Tests.Battle
             m.Multiply(EMonsterStatKind.Cooldown, 4f);
             m.Multiply(EMonsterStatKind.Range, 5f);
             m.Multiply(EMonsterStatKind.MoveSpeed, 6f);
-            m.Multiply(EMonsterStatKind.SlowFactor, 7f);
+            m.Multiply(EMonsterStatKind.PoisonDamage, 7f);
 
             Assert.AreEqual(2f, m.HpMul, 0.0001f);
             Assert.AreEqual(3f, m.PowerMul, 0.0001f);
             Assert.AreEqual(4f, m.CooldownMul, 0.0001f);
             Assert.AreEqual(5f, m.RangeMul, 0.0001f);
             Assert.AreEqual(6f, m.MoveSpeedMul, 0.0001f);
-            Assert.AreEqual(7f, m.SlowFactorMul, 0.0001f);
+            Assert.AreEqual(7f, m.PoisonDamageMul, 0.0001f);
         }
 
         //# 스포너 상태 UI — Get(stat) 정상: 누적 곱연산 결과를 그대로 읽어온다.

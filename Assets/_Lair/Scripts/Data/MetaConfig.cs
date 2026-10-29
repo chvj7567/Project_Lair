@@ -48,7 +48,7 @@ namespace Lair.Data
         public EShopEffectKind EffectKind;
         public EMonsterStatKind StatKind;  //# EffectKind == MonsterStat 일 때만 사용
         public EMonster Species;           //# EffectKind == MonsterSpecies 일 때만 사용 — 강화 대상 종족
-        public float PerLevelMul = 1f;     //# 레벨당 곱연산 배율 (SpawnerPeriod/Cooldown/SlowFactor 는 1 미만이 강화)
+        public float PerLevelMul = 1f;     //# 레벨당 곱연산 배율 (SpawnerPeriod/Cooldown 은 1 미만이 강화). 육성 3축은 1.0 고정(수치는 JSON)
         public int MaxLevel = 5;
         public int BasePrice = 50;
         public float PriceGrowth = 1.6f;   //# 레벨당 가격 배율 (floor)

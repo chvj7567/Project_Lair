@@ -142,12 +142,13 @@ namespace Lair.Tests.Card
 
         //# ===== Debuff =====
         [Test]
-        public void DebuffTier1_Plague_SlowFactor_0점8_등록()
+        public void DebuffTier1_역병귀_독_최대중첩_보너스는_2이고_스탯배율을_등록하지_않는다()
         {
             FakeCtx ctx = new FakeCtx();
             new DebuffSynergyTier1().Apply(ctx);
-            Assert.AreEqual(1, ctx.Buffs.Count);
-            Assert.AreEqual((EMonster.Plague, EMonsterStatKind.SlowFactor, 0.8f), ctx.Buffs[0]);
+            Assert.AreEqual(0, ctx.Buffs.Count, "Tier1 은 배율이 아니라 독 최대 중첩 +2 (monster-growth-currencies §15.2)");
+            Assert.AreEqual(2, DebuffSynergyTier1.MaxStackBonus);
+            CollectionAssert.AreEqual(new[] { "2" }, new DebuffSynergyTier1().DescriptionArgs);
         }
 
         //# Debuff Tier2 — 영웅 transform 미존재 시 no-op (자체 검증 엣지). 본격 시너지 적용 검증은 test-engineer.

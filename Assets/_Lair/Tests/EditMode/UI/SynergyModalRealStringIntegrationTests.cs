@@ -72,7 +72,7 @@ namespace Lair.Tests.UI
                 Counts(0, 0, 7, 0), SynergyModalTestFakes.TierOf, _real);
 
             Assert.AreEqual(4, rows.Count);
-            Assert.AreEqual("Tier1  역병귀 둔화 ×0.8", rows[1].Label);
+            Assert.AreEqual("Tier1  역병귀 독 최대 중첩 +2", rows[1].Label);
             Assert.AreEqual("Tier2  영웅 공격력 ×0.85", rows[2].Label);
             Assert.AreEqual("Tier3  출혈 영구 — 이동 시 1s당 HP -1%", rows[3].Label);
         }
