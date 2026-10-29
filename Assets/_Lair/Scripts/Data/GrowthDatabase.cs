@@ -25,6 +25,17 @@ namespace Lair.Data
         public float PerLevelMul;
     }
 
+    //# 둥지 숙련 Lv 이하 효과 누적 (monster-growth-currencies §3.3) — 없는 효과는 항등값.
+    public struct NestMasteryEffects
+    {
+        public float FirstSpawnAdvanceSec;
+        public float PeriodMul;
+        public float GuardDamageTakenMul;
+        public float GuardSec;
+
+        public static NestMasteryEffects None => new NestMasteryEffects { PeriodMul = 1f, GuardDamageTakenMul = 1f };
+    }
+
     //# 몬스터 육성 재화 데이터 검증 + 조회 (monster-growth-currencies §6). 로드 실패면 Current=null - 육성 재화 기능 비활성(§6.3-8).
     public class GrowthDatabase
     {
@@ -93,6 +104,32 @@ namespace Lair.Data
         public bool TryGetNestEffect(int level, out ENestMasteryEffect effect) => _nestEffects.TryGetValue(level, out effect);
 
         public float NestParam(int level, string key) => _nestParams.TryGetValue(NestKey(level, key), out float v) ? v : 0f;
+
+        //# 1..level 단계 효과를 누적 (Lv3 = Lv1 + Lv2 + Lv3). level 은 NestMaxLevel 로 클램프.
+        public NestMasteryEffects NestEffectsUpTo(int level)
+        {
+            NestMasteryEffects fx = NestMasteryEffects.None;
+            int max = Math.Min(level, NestMaxLevel);
+            for (int lv = 1; lv <= max; ++lv)
+            {
+                if (_nestEffects.TryGetValue(lv, out ENestMasteryEffect effect) == false)
+                    continue;
+                switch (effect)
+                {
+                    case ENestMasteryEffect.FirstSpawnAdvance:
+                        fx.FirstSpawnAdvanceSec += NestParam(lv, "advanceSec");
+                        break;
+                    case ENestMasteryEffect.SpawnPeriod:
+                        fx.PeriodMul *= NestParam(lv, "periodMul");
+                        break;
+                    case ENestMasteryEffect.SpawnGuard:
+                        fx.GuardDamageTakenMul *= NestParam(lv, "damageTakenMul");
+                        fx.GuardSec = Math.Max(fx.GuardSec, NestParam(lv, "durationSec"));
+                        break;
+                }
+            }
+            return fx;
+        }
 
         public MonsterTraitRow TraitOf(EMonster monster) => _traits.TryGetValue(monster, out MonsterTraitRow row) ? row : null;
 

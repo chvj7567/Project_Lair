@@ -38,6 +38,9 @@ namespace Lair.Battle
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
+        //# 둥지 숙련 (monster-growth-currencies §3.3) — 전투 시작 1회 확정, 종족 → 누적 효과. 미로드면 비어 있음.
+        private readonly Dictionary<EMonster, NestMasteryEffects> _nestEffects = new();
+
         //# Debuff Tier1 누적 — 역병귀 독 최대 중첩 보너스(기본 3 + 이 값). 판마다 새 컨트롤러라 리셋 불필요.
         private int _toxinMaxStackBonus;
 
@@ -224,6 +227,8 @@ namespace Lair.Battle
             ApplyFirstSpawnDelays();
             //# 서두르는 둥지 — 이동 보정으로 정해진 첫 스폰 지연을 앞당긴다(상기 계산 뒤여야 함).
             ApplyRelicSpawnPrelude();
+            //# 둥지 숙련 Lv1 — 서두르는 둥지(SpawnPrelude)와 같은 지점·같은 방식(0 하한, 봉인 해제 처리도 동일).
+            ApplyNestFirstSpawnAdvance();
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
@@ -1213,6 +1218,31 @@ namespace Lair.Battle
                 _speciesLevels[item.Species] = level;
             }
 
+            //# 둥지 숙련 — 종족별 누적 효과 확정 + Lv2 주기 배율을 그 종족 둥지 전부에 곱한다(상점·유물·카드와 곱연산).
+            _nestEffects.Clear();
+            GrowthDatabase growth = GrowthDatabase.Current;
+            if (growth != null)
+            {
+                foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+                {
+                    int nestLevel = bonus.GetNestLevel(type);
+                    if (nestLevel > 0)
+                    {
+                        _nestEffects[type] = growth.NestEffectsUpTo(nestLevel);
+                    }
+                }
+            }
+            if (_spawners != null)
+            {
+                foreach (Spawner sp in _spawners)
+                {
+                    if (sp != null && _nestEffects.TryGetValue(sp.CurrentType, out NestMasteryEffects nest) && Mathf.Approximately(nest.PeriodMul, 1f) == false)
+                    {
+                        sp.ScalePeriod(nest.PeriodMul);
+                    }
+                }
+            }
+
             //# 스포너 주기 — BindSpawners 의 SetBasePeriod(절대 대입) 이후라 곱연산 안전.
             if (Mathf.Approximately(bonus.SpawnerPeriodMul, 1f) == false && _spawners != null)
             {
@@ -1285,6 +1315,19 @@ namespace Lair.Battle
                 if (sp != null)
                 {
                     sp.AdvanceFirstSpawnDelay(_relicBonus.SpawnPreludeAdvanceSec);
+                }
+            }
+        }
+
+        private void ApplyNestFirstSpawnAdvance()
+        {
+            if (_spawners == null)
+                return;
+            foreach (Spawner sp in _spawners)
+            {
+                if (sp != null && _nestEffects.TryGetValue(sp.CurrentType, out NestMasteryEffects nest) && nest.FirstSpawnAdvanceSec > 0f)
+                {
+                    sp.AdvanceFirstSpawnDelay(nest.FirstSpawnAdvanceSec);
                 }
             }
         }
@@ -1448,6 +1491,11 @@ namespace Lair.Battle
                 offset.y = 0f;
                 p.transform.position = exactPos + offset;
                 ApplyMonsterStats(p.gameObject, type, resetCurrent: true);
+                //# 둥지 숙련 Lv3 스폰 보호 — 둥지에서 나온 몬스터만(카드·유물 소환 제외), 스폰 직후 durationSec 동안 받는 피해 배율.
+                if (_nestEffects.TryGetValue(type, out NestMasteryEffects nest) && nest.GuardSec > 0f)
+                {
+                    p.GetComponent<Health>()?.GrantSpawnGuard(nest.GuardDamageTakenMul, nest.GuardSec);
+                }
             }
         }
 

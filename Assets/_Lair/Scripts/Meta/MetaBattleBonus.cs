@@ -14,7 +14,12 @@ namespace Lair.Meta
         //# 각성 — (종족, 스탯) 별 PerLevelMul^Lv (AwakenStat.json, monster-growth-currencies §3.2).
         private readonly Dictionary<(EMonster, EMonsterStatKind), float> _awakenMuls = new Dictionary<(EMonster, EMonsterStatKind), float>();
 
+        //# 둥지 숙련 — 종족별 레벨 (효과 수치는 GrowthDatabase.NestEffectsUpTo, §3.3).
+        private readonly Dictionary<EMonster, int> _nestLevels = new Dictionary<EMonster, int>();
+
         public float SpawnerPeriodMul { get; private set; } = 1f;
+
+        public int GetNestLevel(EMonster species) => _nestLevels.TryGetValue(species, out int lv) ? lv : 0;
 
         //# 미등록/Lv0 은 1.0.
         public float GetAwakenMul(EMonster species, EMonsterStatKind stat)
@@ -60,6 +65,12 @@ namespace Lair.Meta
                         break;
                     case EShopEffectKind.MonsterAwaken:
                         bonus.AddAwaken(item.Species, level, growth);
+                        break;
+                    case EShopEffectKind.NestMastery:
+                        if (growth != null && growth.HasNest)
+                        {
+                            bonus._nestLevels[item.Species] = Mathf.Max(bonus.GetNestLevel(item.Species), level);
+                        }
                         break;
                 }
             }
