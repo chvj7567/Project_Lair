@@ -1487,7 +1487,7 @@ namespace Lair.Battle
             if (db == null || archetype == null)
                 return new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
             return RelicDropRoller.Roll(db, profile, archetype.heroId, _spec.RelicChapterId,
-                _spec.RelicStageIndex, _spec.RelicDifficulty, win, RandomUnit);
+                _spec.RelicStageIndex, _spec.RelicDifficulty, win, RandomUnit, GrowthDatabase.Current);
         }
 
         //# [0,1) 난수 — UnityEngine.Random.value 는 1.0 을 포함하므로 확률 1.0 경계가 어긋나지 않게 절단.
@@ -1825,7 +1825,7 @@ namespace Lair.Battle
                 {
                     if (dailyEnd.Record.IsFirstWin)
                     {
-                        relicDrop = RelicDropRoller.RollGuaranteed(RelicDatabase.Current, profile, _spec.Hero.heroId, _spec.RelicDifficulty, RandomUnit);
+                        relicDrop = RelicDropRoller.RollGuaranteed(RelicDatabase.Current, profile, _spec.Hero.heroId, _spec.RelicDifficulty, RandomUnit, GrowthDatabase.Current);
                     }
                 }
                 else
@@ -1902,6 +1902,9 @@ namespace Lair.Battle
                 DailyStreakMultiplier = dailyEnd.Multiplier,
                 OnDailyRetry = _spec.IsDaily ? TryDailyRetry : (System.Func<bool>)null,
                 CurrencyGains = currencyGains,
+                HasRelicShard = relicDrop.IsShard,
+                RelicShardAmount = relicDrop.ShardAmount,
+                RelicShardRarity = relicDrop.IsShard ? relicDrop.ShardRarity.ToString() : null,
             });
 
             //# 데일리 순위 — 결과창을 먼저 띄우고("순위 집계 중") 제출·조회는 비동기로 이어서 갱신한다(§9.4). 끝낸 판이 기록됐을 때만.

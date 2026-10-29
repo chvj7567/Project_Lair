@@ -85,6 +85,7 @@ namespace Lair.UI
         public string RelicRarityText;     //# "일반" / "희귀" / "전설"
         public Color RelicRarityColor;     //# 등급 색(테두리·칩·이름)
         public bool RelicIsLegendary;      //# 전설이면 테두리 펄스·글로우
+        public bool RelicIsShard;          //# 잔해 변형 띠 (monster-growth-currencies §8.4) — 아이콘 = 잔해, NEW 배지 없음
         public bool ShowRelicNewBadge;     //# 신규 획득 "NEW"
         public string RelicStackText;      //# 중복이면 "중첩 +1 (2 / 5)", 신규면 빈 문자열
         public bool ShowRelicMissRow;      //# 승리 + 미획득
@@ -104,6 +105,8 @@ namespace Lair.UI
         private const int StrRelicStack = 1351;     //# 중첩 +1 ({0} / {1})
         private const int StrRelicMiss = 1352;      //# 유물 없음 · 다음 승리 시 획득 확률 {0}%
         private const float RelicBandSlideSec = 0.3f;
+        //# 유물 잔해 색 #c8a27a (Currency.json) — 띠 이름 줄·임시 아이콘 틴트.
+        private static readonly Color ShardColor = new Color32(0xC8, 0xA2, 0x7A, 0xFF);
         private const float RelicIconPopSec = 0.25f;
         private const float RelicBandSlideDistance = 30f;
 
@@ -146,6 +149,9 @@ namespace Lair.UI
         [SerializeField] private GameObject _relicGlow;
         [SerializeField] private GameObject _rowRelicMiss;
         [SerializeField] private CHText _relicMissText;
+        //# 잔해 아이콘 — 전용 스프라이트가 없으면 소울 코인을 잔해 색으로 물들인 임시 표시(_shardIconTint).
+        [SerializeField] private Sprite _shardIcon;
+        [SerializeField] private bool _shardIconTint = true;
         [SerializeField] private CHButton _retryButton;
         [SerializeField] private CHButton _villageButton;
 
@@ -342,8 +348,22 @@ namespace Lair.UI
                 rows.RelicStackText = arg.RelicIsNew ? string.Empty
                     : string.Format(LookupString(StrRelicStack, "중첩 +1 ({0} / {1})"), arg.RelicStackAfter, arg.RelicMaxStack);
             }
+            if (db != null && arg.HasRelicShard && System.Enum.TryParse(arg.RelicShardRarity, out ERelicRarity shardRarity))
+            {
+                RelicRarityRow rarityRow = db.RarityRow(shardRarity);
+                string rarityName = rarityRow != null ? LookupString(rarityRow.nameKey, shardRarity.ToString()) : shardRarity.ToString();
+                rows.ShowRelicBand = true;
+                rows.RelicIsShard = true;
+                rows.RelicId = null;
+                rows.RelicNameText = string.Format(LookupString(GrowthStrings.ShardGain, "유물 잔해 +{0}"), arg.RelicShardAmount);
+                rows.RelicRarityText = rarityName;
+                rows.RelicRarityColor = RarityColor(rarityRow);
+                rows.RelicIsLegendary = false;
+                rows.ShowRelicNewBadge = false;
+                rows.RelicStackText = string.Format(LookupString(GrowthStrings.ShardConverted, "{0} 유물이 모두 최대 중첩이라 잔해로 바뀌었다"), rarityName);
+            }
             bool win = arg.Result == BattleResult.Win;
-            rows.ShowRelicMissRow = win && arg.HasRelicDrop == false && arg.ShowNextChance;
+            rows.ShowRelicMissRow = win && arg.HasRelicDrop == false && arg.HasRelicShard == false && arg.ShowNextChance;
             rows.RelicMissText = string.Format(LookupString(StrRelicMiss, "유물 없음 · 다음 승리 시 획득 확률 {0}%"), arg.NextWinChancePercent);
             return rows;
         }
@@ -422,7 +442,7 @@ namespace Lair.UI
             SetText(_relicNameText, rows.RelicNameText);
             if (_relicNameText != null)
             {
-                _relicNameText.SetColor(rows.RelicRarityColor);
+                _relicNameText.SetColor(rows.RelicIsShard ? ShardColor : rows.RelicRarityColor);
             }
             SetText(_relicRarityText, rows.RelicRarityText);
             if (_relicRarityText != null)
@@ -454,7 +474,17 @@ namespace Lair.UI
             {
                 _relicIcon.sprite = null;
                 _relicIcon.enabled = false;
-                LoadRelicIcon(rows.RelicId);
+                _relicIcon.color = Color.white;
+                if (rows.RelicIsShard)
+                {
+                    _relicIcon.sprite = _shardIcon;
+                    _relicIcon.enabled = _shardIcon != null;
+                    _relicIcon.color = _shardIconTint ? ShardColor : Color.white;
+                }
+                else
+                {
+                    LoadRelicIcon(rows.RelicId);
+                }
             }
             _relicIntroLegendary = rows.RelicIsLegendary;
             _relicIntroColor = rows.RelicRarityColor;

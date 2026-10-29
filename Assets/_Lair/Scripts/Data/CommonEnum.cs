@@ -183,6 +183,15 @@ namespace Lair.Data
         RelicShard,
     }
 
+    //# 잔해 교환 결과 (monster-growth-currencies §8.3) — 교환 로직(Meta) → 유물 도감 VM·View 통신 계약.
+    public enum EExchangeResult
+    {
+        Ok,
+        Insufficient,   //# 잔해 부족 (1479)
+        Locked,         //# 목표 재화 미해금 (1480)
+        Unavailable,    //# 교환 행 없음 · 육성 데이터 미로드
+    }
+
     //# 둥지 숙련 단계 효과 — NestMastery.effectKind 값명 (monster-growth-currencies §3.3).
     public enum ENestMasteryEffect
     {

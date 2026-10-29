@@ -58,6 +58,33 @@ namespace Lair.Meta
         private static int TowerUnlockOrLocked() => TowerDatabase.Current != null ? TowerDatabase.Current.Config.unlockClearedStage : int.MaxValue;
     }
 
+    //# 잔해 교환 (§2.4 교환 표) — 1회 = fromAmount 개 → toAmount 개. 되돌리기·역교환 없음. isUnlocked 는 목표 재화 해금 판정.
+    public static class CurrencyExchange
+    {
+        public static EExchangeResult Check(MetaProfile profile, GrowthDatabase growth, ECurrency to, Func<ECurrency, bool> isUnlocked)
+        {
+            Currency_ExchangeRow row = growth != null ? growth.FindExchange(ECurrency.RelicShard, to) : null;
+            if (profile == null || row == null)
+                return EExchangeResult.Unavailable;
+            if (isUnlocked != null && isUnlocked(to) == false)
+                return EExchangeResult.Locked;
+            if (profile.GetCurrency(ECurrency.RelicShard) < row.fromAmount)
+                return EExchangeResult.Insufficient;
+            return EExchangeResult.Ok;
+        }
+
+        public static EExchangeResult Exchange(MetaProfile profile, GrowthDatabase growth, ECurrency to, Func<ECurrency, bool> isUnlocked)
+        {
+            EExchangeResult check = Check(profile, growth, to, isUnlocked);
+            if (check != EExchangeResult.Ok)
+                return check;
+            Currency_ExchangeRow row = growth.FindExchange(ECurrency.RelicShard, to);
+            profile.TrySpendCurrency(ECurrency.RelicShard, row.fromAmount);
+            profile.AddCurrency(to, row.toAmount);
+            return EExchangeResult.Ok;
+        }
+    }
+
     //# 재화 지급 순수 함수 (monster-growth-currencies §2·§7.2) — 난수 없음. 정산은 지급 기록과 클리어 기록을 비교해 모자란 만큼만 준다(멱등).
     public static class CurrencySettlement
     {

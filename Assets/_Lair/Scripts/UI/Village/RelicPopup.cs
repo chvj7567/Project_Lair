@@ -31,8 +31,12 @@ namespace Lair.UI
         //# 필터 칩 — 인덱스 0 = 전체, 1~ = enum 값 + 1. 각 그룹은 ToggleGroup 단일 선택, CHToggle 동행 (Rule 03 §3).
         [SerializeField] private Toggle[] _categoryChips = new Toggle[0];
         [SerializeField] private Toggle[] _rarityChips = new Toggle[0];
+        //# 잔해 교환 줄 (monster-growth-currencies §8.3) — 미배선이면 기존 안내 문구 그대로.
+        [SerializeField] private ShardExchangeView _shardExchange;
 
         private RelicViewModel _vm;
+        private ShardExchangeViewModel _exchangeVm;
+        private MetaProfile _profile;
         private readonly Dictionary<string, Sprite> _icons = new Dictionary<string, Sprite>();
 
         public override void InitUI(UIArg arg)
@@ -41,8 +45,18 @@ namespace Lair.UI
             MetaProfile profile = popupArg != null ? popupArg.Profile : MetaSession.GetOrLoad();
             _vm = new RelicViewModel(RelicDatabase.Current, profile, LookupText, HeroNameOf, IconOf);
             _vm.OnChanged += HandleChanged;
+            _profile = profile;
+            _exchangeVm = new ShardExchangeViewModel(profile, GrowthDatabase.Current, c => CurrencyRules.IsUnlocked(c, profile), LookupText);
+            _exchangeVm.OnChanged += BindExchange;
+            BindExchange();
             closeDisposable.Add(() =>
             {
+                if (_exchangeVm != null)
+                {
+                    _exchangeVm.OnChanged -= BindExchange;
+                }
+                _exchangeVm = null;
+                _profile = null;
                 if (_vm != null)
                 {
                     _vm.OnChanged -= HandleChanged;
@@ -68,6 +82,27 @@ namespace Lair.UI
             {
                 _ = LoadIconsAndRebuild();
             }
+        }
+
+        //# 잔해 교환 줄 갱신 — 교환 성공 시 VM 이 OnChanged 로 다시 부른다.
+        private void BindExchange()
+        {
+            if (_shardExchange == null || _exchangeVm == null)
+                return;
+            _shardExchange.Bind(_exchangeVm.Build(), HandleExchange);
+        }
+
+        private void HandleExchange(ECurrency to)
+        {
+            if (_exchangeVm == null)
+                return;
+            string toast = _exchangeVm.Exchange(to);
+            if (toast != null)
+            {
+                ToastView.Show(toast, EToastKind.Warning);
+                return;
+            }
+            MetaSession.Store?.Save(_profile);
         }
 
         private void OnEnable()

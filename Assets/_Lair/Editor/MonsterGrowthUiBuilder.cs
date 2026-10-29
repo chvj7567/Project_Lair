@@ -167,9 +167,111 @@ namespace Lair.EditorTools
             }
         }
 
-        //# 유물 도감 잔해 교환 줄 — 슬라이스 E 에서 채운다.
+        //# 유물 도감 잔해 교환 줄 (§8.3) — 하단 안내(HintText) 자리 1096x56: 잔해 칩 248 + 교환 버튼 260 x3 (간격 16/12).
         private static void BuildRelicPopup()
         {
+            string path = UiRoot + "RelicPopup.prefab";
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                RelicPopup popup = root.GetComponent<RelicPopup>();
+                SerializedObject popupSo = new SerializedObject(popup);
+                if (popupSo.FindProperty("_shardExchange").objectReferenceValue != null)
+                {
+                    Debug.LogWarning("[MonsterGrowthUiBuilder] RelicPopup 교환 줄이 이미 있음 — 건너뜀");
+                    return;
+                }
+                Transform hint = FindDeep(root.transform, "HintText");
+                if (hint == null)
+                {
+                    Debug.LogError("[MonsterGrowthUiBuilder] RelicPopup 에 HintText 가 없어 교환 줄 위치를 정할 수 없음");
+                    return;
+                }
+                TextMeshProUGUI font = hint.GetComponent<TextMeshProUGUI>();
+                Sprite lockSprite = AssetDatabase.LoadAssetAtPath<Sprite>(LockPath);
+                Sprite coin = AssetDatabase.LoadAssetAtPath<Sprite>(SoulCoinPath);
+
+                RectTransform hintRect = (RectTransform)hint;
+                GameObject rowGo = new GameObject("ShardExchangeRow", typeof(RectTransform));
+                RectTransform row = (RectTransform)rowGo.transform;
+                row.SetParent(hintRect.parent, false);
+                row.anchorMin = hintRect.anchorMin;
+                row.anchorMax = hintRect.anchorMax;
+                row.pivot = hintRect.pivot;
+                row.anchoredPosition = hintRect.anchoredPosition;
+                row.sizeDelta = new Vector2(1096f, 56f);
+                ShardExchangeView view = rowGo.AddComponent<ShardExchangeView>();
+
+                RectTransform content = NewRect("Content", row, 0f, 0f, 1096f, 56f);
+                Image chipBg = NewImage("ShardChip", content, 0f, 0f, 248f, 56f, null, SlotBg);
+                chipBg.raycastTarget = false;
+                Image chipIcon = NewImage("ShardIcon", chipBg.transform, 8f, 12f, 32f, 32f, coin, new Color32(0xC8, 0xA2, 0x7A, 0xFF));
+                chipIcon.raycastTarget = false;
+                CHText header = NewText("HeaderText", chipBg.transform, 48f, 4f, 120f, 16f, font, 11f, SubText, TextAlignmentOptions.Left);
+                CHText label = NewText("ShardLabel", chipBg.transform, 48f, 20f, 120f, 16f, font, 12f, Color.white, TextAlignmentOptions.Left);
+                CHText count = NewText("ShardCount", chipBg.transform, 168f, 12f, 72f, 32f, font, 20f, new Color32(0xC8, 0xA2, 0x7A, 0xFF), TextAlignmentOptions.Right);
+
+                CHButton[] buttons = new CHButton[3];
+                CHText[] labels = new CHText[3];
+                Image[] borders = new Image[3];
+                GameObject[] locks = new GameObject[3];
+                CanvasGroup[] groups = new CanvasGroup[3];
+                Image ringSource = FindDeep(root.transform, "CloseButton") != null ? FindDeep(root.transform, "CloseButton").GetComponent<Image>() : null;
+                for (int i = 0; i < 3; ++i)
+                {
+                    RectTransform b = NewRect("ExchangeButton" + i, content, 264f + i * 272f, 0f, 260f, 56f);
+                    Image bg = b.gameObject.AddComponent<Image>();
+                    bg.color = SlotBg;
+                    Button button = b.gameObject.AddComponent<Button>();
+                    button.targetGraphic = bg;
+                    buttons[i] = b.gameObject.AddComponent<CHButton>();
+                    groups[i] = b.gameObject.AddComponent<CanvasGroup>();
+                    borders[i] = NewImage("Border", b, 0f, 0f, 260f, 56f, ringSource != null ? ringSource.sprite : null, Color.white);
+                    borders[i].type = Image.Type.Sliced;
+                    borders[i].raycastTarget = false;
+                    labels[i] = NewText("Label", b, 12f, 0f, 212f, 56f, font, 15f, Color.white, TextAlignmentOptions.Center);
+                    Image lockImage = NewImage("Lock", b, 228f, 18f, 20f, 20f, lockSprite, Color.white);
+                    lockImage.raycastTarget = false;
+                    locks[i] = lockImage.gameObject;
+                    locks[i].SetActive(false);
+                }
+                rowGo.SetActive(true);
+
+                SerializedObject so = new SerializedObject(view);
+                so.FindProperty("_row").objectReferenceValue = content.gameObject;
+                so.FindProperty("_hint").objectReferenceValue = hint.gameObject;
+                so.FindProperty("_headerText").objectReferenceValue = header;
+                so.FindProperty("_shardLabelText").objectReferenceValue = label;
+                so.FindProperty("_shardCountText").objectReferenceValue = count;
+                SetArray(so, "_buttons", buttons);
+                SetArray(so, "_buttonLabels", labels);
+                SetArray(so, "_buttonBorders", borders);
+                SetArray(so, "_buttonLocks", locks);
+                SetArray(so, "_buttonGroups", groups);
+                so.ApplyModifiedPropertiesWithoutUndo();
+                content.gameObject.SetActive(false);
+
+                popupSo.FindProperty("_shardExchange").objectReferenceValue = view;
+                popupSo.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static Transform FindDeep(Transform parent, string name)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child.name == name)
+                    return child;
+                Transform found = FindDeep(child, name);
+                if (found != null)
+                    return found;
+            }
+            return null;
         }
 
         private static RectTransform NewRect(string name, Transform parent, float x, float y, float w, float h)
