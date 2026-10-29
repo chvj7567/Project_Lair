@@ -47,7 +47,7 @@ namespace Lair.Battle
         //# Debuff Tier1 누적 — 역병귀 독 최대 중첩 보너스(기본 3 + 이 값). 판마다 새 컨트롤러라 리셋 불필요.
         private int _toxinMaxStackBonus;
         //# ApplyMonsterStats 를 거친 역병귀 인스턴스 — Tier1 소급 대상(풀 재사용 인스턴스 포함).
-        private readonly HashSet<Transform> _plagueInstances = new();
+        private readonly Dictionary<Transform, Health> _plagueInstances = new();
 
         //# 종족 강화 레벨 캐시 — ApplyMetaBonuses 에서 1회 채움, 스폰 시 발광 적용에 사용 (monster-species-enhancement §4.3).
         private readonly Dictionary<EMonster, int> _speciesLevels = new();
@@ -784,7 +784,7 @@ namespace Lair.Battle
                 toxin.Configure(mul.PoisonDamageMul, mul.PoisonDurationMul, _toxinMaxStackBonus);
                 toxin.BindHero(_heroHealth, _heroAuraRunner);
                 //# Debuff Tier1 소급 대상 — 풀 인스턴스는 씬 동안 유지되므로 1회 등록이면 충분.
-                _plagueInstances.Add(character.transform);
+                _plagueInstances[character.transform] = health;
             }
 
             //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
@@ -1561,11 +1561,12 @@ namespace Lair.Battle
                 return;
             _toxinMaxStackBonus += bonus;
             //# 등록된 역병귀 인스턴스 중 지금 필드에 살아 있는 것만 소급 (태그 탐색 없음).
-            foreach (Transform plague in _plagueInstances)
+            //# 사망 연출 중(비활성 전)인 역병귀는 IsAlive 로 제외한다.
+            foreach (KeyValuePair<Transform, Health> plague in _plagueInstances)
             {
-                if (plague == null || plague.gameObject.activeInHierarchy == false)
+                if (plague.Key == null || plague.Key.gameObject.activeInHierarchy == false || plague.Value == null || plague.Value.IsAlive == false)
                     continue;
-                ApplyMonsterStatsCore(plague.gameObject, EMonster.Plague, resetCurrent: false);
+                ApplyMonsterStatsCore(plague.Key.gameObject, EMonster.Plague, resetCurrent: false);
             }
         }
 
