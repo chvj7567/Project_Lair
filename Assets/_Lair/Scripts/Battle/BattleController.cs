@@ -41,6 +41,9 @@ namespace Lair.Battle
         //# 둥지 숙련 (monster-growth-currencies §3.3) — 전투 시작 1회 확정, 종족 → 누적 효과. 미로드면 비어 있음.
         private readonly Dictionary<EMonster, NestMasteryEffects> _nestEffects = new();
 
+        //# 종족 특성 (monster-growth-currencies §3.4) — 전투 시작 1회 생성, 특성 단계가 하나라도 있을 때만.
+        private MonsterTraitService _traits;
+
         //# Debuff Tier1 누적 — 역병귀 독 최대 중첩 보너스(기본 3 + 이 값). 판마다 새 컨트롤러라 리셋 불필요.
         private int _toxinMaxStackBonus;
 
@@ -362,6 +365,11 @@ namespace Lair.Battle
             _clock?.Tick(dt);
             //# B3 — 글로벌 버프/피의 갈증 시간 진행. Pause 중엔 deltaTime=0 이라 자연 정지.
             _monsterBuffs?.Tick(dt);
+            //# 특성 시한 배율은 버프 오버레이 리셋 "뒤"에 곱한다 — 리셋 주체(_monsterBuffs)가 생기기 전엔 복리 누적 방지로 건너뛴다.
+            if (_monsterBuffs != null)
+            {
+                _traits?.Tick(dt);
+            }
             _bloodThirst?.Tick(dt);
 
             //# 지속 스폰 — Spawner 들의 주기 타이머 틱. Pause 중 dt=0 자연 정지.
@@ -492,6 +500,8 @@ namespace Lair.Battle
         private void OnDestroy()
         {
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
+            _traits?.Dispose();
+            _traits = null;
             if (_zone != null)
             {
                 _zone.OnHeroReachedCenter -= HandleHeroReachedCenter;
@@ -767,6 +777,9 @@ namespace Lair.Battle
                 int level = _speciesLevels.TryGetValue(key, out int lv) ? lv : 0;
                 visual.ApplyLevel(level, key);
             }
+
+            //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다.
+            _traits?.OnMonsterConfigured(character, key, resetCurrent);
         }
 
         //# 영웅 스폰 — 챕터 데이터/직업/스테이지 조회나 프리팹 로드에 실패하면 false(전투 진입 중단). 조용한 폴백 금지(chapter-system E-11).
@@ -1240,6 +1253,20 @@ namespace Lair.Battle
                     {
                         sp.ScalePeriod(nest.PeriodMul);
                     }
+                }
+            }
+
+            //# 특성 — 첫 스폰 전에 만들어 스폰 훅·영웅 반사 구독을 연다.
+            if (growth != null && growth.HasTraits && _heroHealth != null)
+            {
+                MonsterTraitService traits = new MonsterTraitService(growth, bonus.CopyTraitTiers(), _heroHealth, _heroAuraRunner, _hero.GetComponent<MeleeAttacker>());
+                if (traits.HasAny)
+                {
+                    _traits = traits;
+                }
+                else
+                {
+                    traits.Dispose();
                 }
             }
 

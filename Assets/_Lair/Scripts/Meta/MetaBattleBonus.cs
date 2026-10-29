@@ -21,6 +21,13 @@ namespace Lair.Meta
 
         public int GetNestLevel(EMonster species) => _nestLevels.TryGetValue(species, out int lv) ? lv : 0;
 
+        //# 특성 — 종족별 단계 1~3 (수치는 GrowthDatabase.TraitParam, §3.4).
+        private readonly Dictionary<EMonster, int> _traitTiers = new Dictionary<EMonster, int>();
+
+        public int GetTraitTier(EMonster species) => _traitTiers.TryGetValue(species, out int t) ? t : 0;
+
+        public Dictionary<EMonster, int> CopyTraitTiers() => new Dictionary<EMonster, int>(_traitTiers);
+
         //# 미등록/Lv0 은 1.0.
         public float GetAwakenMul(EMonster species, EMonsterStatKind stat)
             => _awakenMuls.TryGetValue((species, stat), out float mul) ? mul : 1f;
@@ -65,6 +72,12 @@ namespace Lair.Meta
                         break;
                     case EShopEffectKind.MonsterAwaken:
                         bonus.AddAwaken(item.Species, level, growth);
+                        break;
+                    case EShopEffectKind.MonsterTrait:
+                        if (growth != null && growth.TraitOf(item.Species) != null)
+                        {
+                            bonus._traitTiers[item.Species] = Mathf.Max(bonus.GetTraitTier(item.Species), Mathf.Min(level, GrowthDatabase.TraitMaxTier));
+                        }
                         break;
                     case EShopEffectKind.NestMastery:
                         if (growth != null && growth.HasNest)

@@ -44,6 +44,9 @@ namespace Lair.Character
         //# B3 — 공격 적중 시 발행. 플레이그 PlagueSlowOnHit 가 구독.
         public event Action<IHealth> OnHit;
 
+        //# 대상별 실제 타격량 통지 — 범위 베기의 각 대상 포함 (도깨비불 특성 "가시 껍질" 반사 입력, monster-growth-currencies §3.4).
+        public event Action<IHealth, int> OnDamageDealt;
+
         //# 데미지 숫자 대표색. AttackJuice 가 OnEnable 에 몸체색(영웅은 흰색) 주입. 기본 백색.
         public Color DamageColor { get; set; } = Color.white;
 
@@ -187,7 +190,9 @@ namespace Lair.Character
             if (target is Component tc && tc != null)
                 tc.GetComponent<LairCharacter>()?.Get<IDamageColorSink>()?.StampDamageColor(DamageColor);
 
-            target.TakeDamage(Mathf.RoundToInt(_power * PowerScale * mul));
+            int amount = Mathf.RoundToInt(_power * PowerScale * mul);
+            target.TakeDamage(amount);
+            OnDamageDealt?.Invoke(target, amount);
         }
     }
 }

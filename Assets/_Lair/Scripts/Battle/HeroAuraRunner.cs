@@ -73,13 +73,19 @@ namespace Lair.Battle
             IDebuffAxisAura axis = aura as IDebuffAxisAura;
             if (axis != null && axis.IsDebuffAxis)
             {
+                //# 저주 누적은 독·공포·출혈·무력화가 아니라 끈질긴 저주 대상이 아니고, 저항은 가산분에 적용한다(§3.4).
+                CurseStackAura curse = aura as CurseStackAura;
                 //# 끈질긴 저주 — 시한 디버프 지속 x (1 + 0.25n). 신앙의 가호 x0.6 과 같은 지점에서 곱으로 합성(§15.3).
-                if (duration > 0f)
+                if (duration > 0f && curse == null)
                 {
                     duration *= DebuffDurationMul;
                 }
+                if (_hasResist && curse != null)
+                {
+                    curse.ScalePenalty(_resist.PenaltyMul);
+                }
                 //# 시한은 부착·연장 지속 x durationMul, 영구는 강도(감소분) 보정. 연장은 아래 Remain += duration 이라 자동 반영.
-                if (_hasResist)
+                else if (_hasResist)
                 {
                     if (duration > 0f)
                     {
@@ -103,6 +109,15 @@ namespace Lair.Battle
                 if (existing.Aura.GetType() == aura.GetType())
                 {
                     //# 역병귀 독 — 중첩 +N · 지속 갱신(연장 누적 아님). 전 중첩이 이 슬롯 타이머 하나를 공유한다(§15.1).
+                    if (existing.Aura is CurseStackAura stackCurse)
+                    {
+                        stackCurse.Merge(aura as CurseStackAura);
+                        if (existing.Indefinite == false && duration > 0f)
+                        {
+                            existing.Remain = Mathf.Max(existing.Remain, duration);
+                        }
+                        return;
+                    }
                     if (existing.Aura is PlagueToxinAura toxin)
                     {
                         toxin.Merge(aura as PlagueToxinAura);

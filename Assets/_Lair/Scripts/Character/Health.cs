@@ -35,6 +35,15 @@ namespace Lair.Character
             KnockbackTakenMul = knockbackTakenMul;
         }
 
+        //# 환령 특성 "잔상" — 남은 회피 횟수만큼 피해 인스턴스를 무효화하고 OnDodged 발행 (monster-growth-currencies §3.4).
+        private int _dodgeCharges;
+        public event Action OnDodged;
+
+        public void GrantDodges(int count)
+        {
+            _dodgeCharges = Mathf.Max(0, count);
+        }
+
         public void GrantSpawnGuard(float damageTakenMul, float seconds)
         {
             if (seconds <= 0f)
@@ -99,6 +108,7 @@ namespace Lair.Character
             KnockbackTakenMul = 1f;
             _spawnGuardMul = 1f;
             _spawnGuardUntil = float.NegativeInfinity;
+            _dodgeCharges = 0;
             _hpMaxScale = 1f;
             _invulnerableUntil = float.NegativeInfinity;
         }
@@ -108,6 +118,13 @@ namespace Lair.Character
             if (IsAlive == false) return;
             if (IsInvulnerable)
                 return;
+            //# 잔상 회피 — 피해량과 무관하게 1회 무효(E-18).
+            if (_dodgeCharges > 0)
+            {
+                _dodgeCharges--;
+                OnDodged?.Invoke();
+                return;
+            }
             //# B3 — 받는 데미지 배율 적용 (버프 오버레이 x 각성 x 스폰 보호)
             amount = Mathf.RoundToInt(amount * EffectiveDamageTakenMul);
             int next = Mathf.Max(0, Current - amount);
