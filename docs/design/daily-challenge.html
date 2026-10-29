@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데일리(일일 도전) 플레이 가이드</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4;
+--c0:#9aa5bd;--c1:#5aa9ff;--c2:#b07cff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 60%) fixed;color:var(--txt);
+font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.wrap{max-width:980px;margin:0 auto;padding:20px 12px 60px}
+h1{font-size:26px;color:var(--bone);margin:8px 0 4px;text-shadow:2px 2px 0 #000}
+.lead{color:var(--sub);margin:0 0 20px}
+h2{font-size:19px;color:var(--bone);margin:34px 0 12px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:6px;height:20px;background:var(--gold);flex:none}
+b.g{color:var(--gold)} b.s{color:var(--soul)} b.r{color:var(--blood)} b.k{color:var(--sky)}
+.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 6px 0 #0006;padding:12px;min-width:0}
+.dark{background:linear-gradient(180deg,#0f1420,#0b0f18)}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.sub{color:var(--sub);font-size:13px}
+.big{font-size:21px;color:var(--c,var(--gold))}
+.card{border-top:4px solid var(--c)}
+.card .nm{font-size:17px;color:var(--c);display:flex;align-items:center;gap:8px}
+.ic{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;font-size:14px;color:#0b0d12;background:var(--c);border:2px solid #000;flex:none}
+ul.k{margin:6px 0 0;padding-left:18px}
+.sec{font-size:12px;color:var(--bone);border-bottom:2px solid #f7c64a55;padding-bottom:2px;margin:10px 0 6px}
+.lbl{color:#9aa5bd;font-size:12px}
+.chip{display:inline-block;font-size:12px;padding:0 6px;border:2px solid currentColor}
+/*# 말풍선 */
+.bubbles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;margin-top:12px}
+.bub{position:relative;background:#f4efe0;color:#1b1f2a;border:3px solid var(--ink);padding:8px 10px;font-size:13px;line-height:1.5}
+.bub b{color:#9a5b00}
+.bub::before{content:"";position:absolute;left:18px;top:-12px;border:6px solid transparent;border-bottom-color:#f4efe0}
+/*# 마을 타일 */
+.tiles{display:flex;gap:18px;flex-wrap:wrap}
+.tilebox{text-align:center;font-size:12px;color:var(--sub)}
+.tile{position:relative;width:96px;height:96px;margin:6px auto 8px;background:linear-gradient(180deg,#2a3350,#1a2136);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a}
+.tile .ico{position:absolute;left:0;right:0;top:10px;text-align:center;font-size:38px;color:var(--gold);line-height:1.2}
+.tile .lb{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:15px;color:var(--bone)}
+.tile.new{outline:3px solid var(--gold);outline-offset:3px}
+.tile.lock{opacity:.5}
+.tile .lk{position:absolute;right:4px;top:2px;font-size:11px;color:var(--sub)}
+/*# 팝업 */
+.popup .hd{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px;border-bottom:3px solid var(--ink);padding-bottom:8px;margin-bottom:10px}
+.popup .tt{font-size:22px;color:var(--bone);text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000}
+.cols{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.hero{display:flex;gap:10px;align-items:center}
+.portrait{width:64px;height:64px;flex:none;border:3px solid var(--gold);background:radial-gradient(#3a3018,#0b0f18);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 0 14px #f7c64a44}
+.rule{background:linear-gradient(90deg,#1b2740,#0e131f);border-left:5px solid var(--sky);padding:4px 10px;font-size:12px;line-height:16px;margin-bottom:6px}
+.rule b{color:var(--bone)}
+.rule.ph{background:linear-gradient(90deg,#3a1a20,#150b10);border-left-color:var(--blood)}
+.rcell{display:flex;align-items:center;gap:8px;background:var(--s0);border:2px solid var(--rc);padding:4px 8px;margin-bottom:6px;font-size:14px}
+.rcell .ri{width:36px;height:36px;flex:none;border:2px solid var(--rc);display:flex;align-items:center;justify-content:center;font-size:20px;background:#0b0f18;color:var(--rc)}
+.rcell .st{margin-left:auto;color:var(--gold);font-size:13px}
+.lrow{display:flex;align-items:center;gap:8px;background:var(--s0);border:2px solid #232c42;padding:4px 10px;font-size:13px;margin-bottom:4px;flex-wrap:wrap}
+.lrow .rk{width:26px;color:var(--sub);flex:none}
+.lrow .nm{flex:1;min-width:80px;color:var(--bone)}
+.lrow .sc{margin-left:auto}
+.lrow .sc.lose{color:var(--sub);font-size:12px}
+.lrow.top1 .rk{color:var(--gold)}
+.lrow.me{border-color:var(--gold);background:#1d1a0d}
+.pip{display:inline-block;width:24px;height:24px;border:3px solid var(--ink);margin-right:4px;background:#232834;vertical-align:middle}
+.pip.on{background:linear-gradient(180deg,#ffe08a,#c89a2a);box-shadow:inset 0 2px 0 #fff6}
+.days{display:flex;flex-wrap:wrap;gap:3px}
+.day{width:30px;height:30px;border:2px solid #232c42;background:#10151f;font-size:10px;color:#59617a;text-align:center;line-height:26px}
+.day.on{background:#123326;border-color:var(--soul);color:var(--soul)}
+.day.today{outline:2px solid var(--gold);outline-offset:1px}
+.btn{background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a;color:var(--bone);padding:8px 10px;text-align:center;font-size:15px}
+.btn.go{background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 18px #e5484d55;text-shadow:2px 2px 0 #0008;color:#fff}
+.btn.off{background:#232834;box-shadow:none;color:#6c7385}
+.btn small{display:block;font-size:11px}
+.foot{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));margin-top:10px;align-items:center}
+/*# 결과창 */
+.row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;background:var(--s0);border:2px solid #232c42;padding:5px 10px;margin-bottom:6px;font-size:14px}
+.row .k{color:var(--sub);font-size:13px}
+.banner{background:linear-gradient(90deg,#33300f,#14120a);border:2px solid var(--gold);color:var(--gold);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 12px;padding:6px;font-size:16px;margin-bottom:6px;text-shadow:1px 1px 0 #000}
+.banner small{font-size:12px;color:#d9b866}
+.rstrip{display:flex;align-items:center;gap:10px;background:var(--s0);border:2px solid var(--rc);padding:6px 10px;margin-bottom:8px;flex-wrap:wrap}
+.rstrip .ri{width:42px;height:42px;flex:none;border:3px solid var(--rc);display:flex;align-items:center;justify-content:center;font-size:24px;background:#0b0f18;color:var(--rc)}
+.res .ttl{text-align:center;font-size:30px;text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000}
+.btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,110px),1fr));gap:6px}
+/*# 표 */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl td,.tbl th{border:2px solid #232c42;padding:5px 8px;text-align:left;vertical-align:top}
+.tbl th{background:var(--s1);color:var(--bone);font-weight:normal;font-size:13px}
+.tbl td.n{color:var(--gold);white-space:nowrap}
+/*# 체크 목록 */
+.yes li::marker{content:"○ ";color:var(--soul)}
+.no li::marker{content:"× ";color:var(--blood)}
+/*# FAQ */
+.faq{border-bottom:1px solid #2c3750;padding:8px 0}
+.faq:last-child{border-bottom:0}
+.faq .q{color:var(--gold)}
+.faq .a{color:var(--txt);font-size:14px}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>데일리 · 오늘의 도전</h1>
+<p class="lead">매일 0시(한국 시간)에 모두에게 <b class="g">똑같은 판</b>이 하나 열립니다. 하루 3번 도전해서 가장 좋은 기록으로 그날 순위를 겨룹니다.</p>
+
+<h2>① 한눈에 보기</h2>
+<div class="grid g4">
+  <div class="pnl card" style="--c:var(--gold)"><div class="nm"><span class="ic">☀</span>매일 새 판</div><div class="sub">영웅 1명 + 규칙 2개 + 오늘의 유물 2개 + 카드 순서까지 날짜로 정해집니다. 모든 플레이어가 같은 판을 받습니다.</div></div>
+  <div class="pnl card" style="--c:var(--blood)"><div class="nm"><span class="ic">3</span>하루 3번</div><div class="sub">전투를 시작하면 1번 사용. 셋 중 가장 좋은 기록 하나가 순위에 오릅니다.</div></div>
+  <div class="pnl card" style="--c:var(--soul)"><div class="nm"><span class="ic">◆</span>첫 승리 보상</div><div class="sub">그날 처음 이기면 소울 <b class="s">+150</b>(연속 일수에 따라 최대 <b class="s">+240</b>)과 유물 1개 확정.</div></div>
+  <div class="pnl card" style="--c:var(--sky)"><div class="nm"><span class="ic">♕</span>데일리 순위</div><div class="sub">져도 순위에 오릅니다. 매일 새 순위표가 열립니다.</div></div>
+</div>
+
+<h2>② 언제 열리나 · 어떻게 들어가나</h2>
+<div class="pnl">
+  <div class="tiles">
+    <div class="tilebox"><div class="tile lock"><div class="ico">☀</div><div class="lb">데일리</div><div class="lk">[잠김]</div></div>1-5 클리어 전</div>
+    <div class="tilebox"><div class="tile new"><div class="ico">☀</div><div class="lb">데일리</div></div>오늘 도전 남음</div>
+    <div class="tilebox"><div class="tile"><div class="ico">☀</div><div class="lb">데일리</div></div>오늘 3번 다 씀</div>
+  </div>
+  <div class="sub">마을 왼쪽 메뉴, 유물 타일 옆에 있습니다.</div>
+</div>
+<div class="bubbles">
+  <div class="bub"><b>1-5를 깨면</b> 열립니다. 그 전에 누르면 "1-5 클리어 시 해금" 안내만 나와요.</div>
+  <div class="bub"><b>금색 테두리</b>는 오늘 도전이 남아 있다는 뜻. 다 쓰면 테두리가 사라집니다.</div>
+  <div class="bub"><b>온라인</b>이어야 시작할 수 있어요. 날짜를 서버 시각으로 확인합니다.</div>
+</div>
+
+<h2>③ 오늘의 조합 - 데일리 팝업</h2>
+<div class="pnl popup">
+  <div class="hd"><span class="tt">오늘의 도전</span><span class="lbl">10월 27일 · 초기화까지 07:12:33</span></div>
+  <div class="cols">
+    <div class="pnl dark">
+      <div class="hero"><div class="portrait">➶</div>
+        <div><div class="sec" style="margin-top:0">오늘의 영웅</div><div style="font-size:20px;color:var(--bone)">궁수</div><div class="lbl">어둠의 숲 · 기준 2-2</div><span class="chip" style="color:var(--gold)">Normal</span></div></div>
+      <div class="sec">오늘의 규칙</div>
+      <div class="rule"><b>짙은 안개</b><br>몬스터 공격 사거리 x0.7 (최소 0.8)</div>
+      <div class="rule ph"><b>수호 결계</b> · 영웅 HP 75% 이하<br>15초간 영웅이 받는 피해 x0.6</div>
+      <div class="sec">오늘의 유물</div>
+      <div class="rcell" style="--rc:var(--c0)"><div class="ri">†</div><div>녹슨 칼날<div class="lbl" style="font-size:11px">일반</div></div><div class="st">x3</div></div>
+      <div class="rcell" style="--rc:var(--c1)"><div class="ri">ϟ</div><div>뇌운 조각<div class="lbl" style="font-size:11px">희귀</div></div><div class="st">x1</div></div>
+    </div>
+    <div class="pnl dark">
+      <div class="sec" style="margin-top:0">오늘의 순위</div>
+      <div class="lrow top1"><span class="rk">1</span><span class="nm">밤의영주</span><span class="sc">2:03.1</span></div>
+      <div class="lrow"><span class="rk">2</span><span class="nm">해골왕</span><span class="sc">2:19.8</span></div>
+      <div class="lrow"><span class="rk">3</span><span class="nm">영주 #0001 (나)</span><span class="sc">2:51.3</span></div>
+      <div class="lrow"><span class="rk">4</span><span class="nm">둥지지기</span><span class="sc">3:05.4</span></div>
+      <div class="lrow"><span class="rk">5</span><span class="nm">유령술사</span><span class="sc lose">패배 · 영웅 HP 4% 남음</span></div>
+      <div class="lrow"><span class="rk">6</span><span class="nm">심연</span><span class="sc lose">패배 · 영웅 HP 12% 남음</span></div>
+      <div class="lrow me" style="margin-top:10px"><span class="rk">3</span><span class="nm">영주 #0001 (나)</span><span class="sc">2:51.3</span></div>
+    </div>
+    <div class="pnl dark">
+      <div class="sec" style="margin-top:0">남은 도전</div>
+      <div><span class="pip on"></span><span class="pip on"></span><span class="pip"></span> <span style="color:var(--gold)">2 / 3</span></div>
+      <div class="sec">내 기록</div><div style="font-size:17px">2:51.3 <span class="lbl">(승리)</span></div>
+      <div class="sec">연속 4일</div>
+      <div class="days"><span class="day">-6</span><span class="day">-5</span><span class="day">-4</span><span class="day on">-3</span><span class="day on">-2</span><span class="day on">-1</span><span class="day on today">오늘</span></div>
+      <div class="lbl" style="font-size:11px;margin-top:4px">데일리 1판을 끝내면 참가 1일 (승패 무관)</div>
+      <div class="sec">첫 승리 보상</div><div style="color:#6c7385">받음</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="lbl">매일 0시(한국 시간)에 새 도전이 열립니다. 하루 3번 도전할 수 있고 가장 좋은 기록이 순위에 오릅니다. 오늘의 유물은 이 도전에서만 적용되며, 내 유물 중 전투에 영향을 주는 유물은 꺼집니다.</div>
+    <div class="btn go">도전 시작<small>남은 도전 2 / 3</small></div>
+  </div>
+</div>
+<p class="sub">예시 화면입니다. 실제 조합은 날짜마다 다릅니다.</p>
+
+<div class="grid g4" style="margin-top:12px">
+  <div class="pnl card" style="--c:var(--gold)"><div class="nm">영웅</div>
+    <ul class="k"><li>기사 · 궁수 · 암살자 · 광전사 · 성기사 중 1명</li><li>5일마다 5명이 <b class="g">한 번씩</b> 나옵니다. 이틀 연속 같은 영웅은 없어요.</li><li>세기는 그 영웅 챕터의 <b class="g">2번째 스테이지</b> 수준, 난이도는 <b class="g">Normal</b> 고정</li><li>아직 못 간 챕터의 영웅도 나옵니다</li></ul></div>
+  <div class="pnl card" style="--c:var(--sky)"><div class="nm">규칙 2개</div>
+    <ul class="k"><li><b class="k">상시 1개</b> - 처음부터 끝까지: 성수 샘 · 짙은 안개 · 봉인된 둥지</li><li><b class="r">페이즈 1개</b> - 영웅 HP가 75% / 55% / 35% 이하로 떨어지면 발동: 수호 결계 · 화살비 · 덫</li><li>모두 챕터에서 만난 규칙입니다. 새 규칙은 없어요.</li></ul></div>
+  <div class="pnl card" style="--c:var(--c2)"><div class="nm">오늘의 유물 2개</div>
+    <ul class="k"><li><b>일반 1개 x3중첩</b> + <b style="color:var(--c2)">희귀·전설 1개 x1</b></li><li>몬스터를 강하게 하거나 영웅을 괴롭히는 유물만 나옵니다</li><li>이 판에서만 적용, 내 도감에 들어오지 않습니다</li></ul></div>
+  <div class="pnl card" style="--c:var(--soul)"><div class="nm">카드</div>
+    <ul class="k"><li>패시브·액티브 카드가 나오는 순서도 오늘 모두 같습니다</li><li>같은 카드를 고르면 다음에도 같은 카드가 나와요. 다르게 고르면 그 뒤가 달라집니다</li></ul></div>
+</div>
+
+<h2>④ 모두 같은 조건으로 - 내 성장은 얼마나 반영되나</h2>
+<table class="tbl">
+  <tr><th>내 것</th><th>데일리에서</th></tr>
+  <tr><td>상점 강화</td><td><b class="s">그대로 적용</b></td></tr>
+  <tr><td>던전 편성</td><td><b class="s">내 편성 그대로</b></td></tr>
+  <tr><td>내 유물 - 몬스터 강화·둥지·영웅 공격(번개·화상 등)·소환·광폭화</td><td><b class="r">꺼짐</b> (대신 오늘의 유물 2개)</td></tr>
+  <tr><td>내 유물 - 2배속 · 소울/경험 보너스</td><td><b class="s">그대로</b> (순위와 무관)</td></tr>
+</table>
+<div class="bubbles"><div class="bub">유물은 운으로 모이는 것이라 차이가 큽니다. 그래서 전투에 영향을 주는 유물은 끄고, <b>모두에게 같은 오늘의 유물</b>을 줍니다.</div></div>
+
+<h2>⑤ 하루 3번 도전과 최고 기록</h2>
+<table class="tbl">
+  <tr><td class="n">1번 사용</td><td><b class="g">도전 시작</b>을 눌러 전투가 시작되는 순간. 도중에 나가도 1번 쓴 것입니다.</td></tr>
+  <tr><td class="n">다시 도전</td><td>결과창에서 바로 다시 시작할 수 있어요. 같은 조합, 같은 카드 순서입니다.</td></tr>
+  <tr><td class="n">최고 기록</td><td>3판 중 가장 좋은 기록 1개만 순위에 올라갑니다. 더 나쁜 기록은 순위를 내리지 않아요.</td></tr>
+  <tr><td class="n">0시</td><td>새 조합 · 도전 3번 다시 충전. 남은 도전은 다음 날로 넘어가지 않습니다.</td></tr>
+</table>
+
+<h2>⑥ 보상</h2>
+<div class="grid g3">
+  <div class="pnl"><div class="big" style="--c:var(--bone)">매 판</div>
+    <ul class="k"><li>평소처럼 소울 · 영주 경험 (져도 받음)</li><li>평소 유물 드랍은 <b class="r">없음</b></li></ul></div>
+  <div class="pnl"><div class="big" style="--c:var(--soul)">그날 첫 승리</div>
+    <ul class="k"><li>보너스 소울 <b class="s">+150 x 연속 배율</b></li><li>유물 <b class="g">1개 확정</b> (그날 영웅의 유물 중에서)</li><li>두 번째 승리부터는 보너스 없음</li></ul></div>
+  <div class="pnl"><div class="big" style="--c:var(--gold)">연속 일수</div>
+    <ul class="k"><li>데일리 1판을 <b class="g">끝내면</b> 참가 1일 - 져도 인정</li><li>시작만 하고 나가면 참가가 아닙니다</li><li>하루 빠지면 1일부터 다시</li></ul></div>
+</div>
+<table class="tbl" style="margin-top:12px">
+  <tr><th>연속</th><th>배율</th><th>첫 승리 보너스 소울</th></tr>
+  <tr><td>1일</td><td>x1.0</td><td class="n">+150</td></tr>
+  <tr><td>2일</td><td>x1.1</td><td class="n">+165</td></tr>
+  <tr><td>3일</td><td>x1.2</td><td class="n">+180</td></tr>
+  <tr><td>4일</td><td>x1.3</td><td class="n">+195</td></tr>
+  <tr><td>5일</td><td>x1.4</td><td class="n">+210</td></tr>
+  <tr><td>6일</td><td>x1.5</td><td class="n">+225</td></tr>
+  <tr><td>7일 이상</td><td>x1.6</td><td class="n">+240 (최대)</td></tr>
+</table>
+
+<h2>⑦ 데일리 순위</h2>
+<div class="grid g3">
+  <div class="pnl">
+    <ul class="k">
+      <li>이기면 <b class="g">시간이 짧을수록</b> 위</li>
+      <li>지면 <b class="g">영웅 체력을 많이 깎을수록</b> 위</li>
+      <li><b class="g">이긴 기록은 항상 진 기록보다 위</b></li>
+      <li>기록이 같으면 같은 순위</li>
+      <li>상위 100명 + 내 줄(금색 테두리)을 보여 줍니다</li>
+    </ul></div>
+  <div class="pnl dark">
+    <div class="sub">순위 칸 표시</div>
+    <div class="lrow"><span class="rk">7</span><span class="nm">이긴 기록</span><span class="sc">2:51.3</span></div>
+    <div class="lrow"><span class="rk">31</span><span class="nm">진 기록</span><span class="sc lose">패배 · 영웅 HP 12% 남음</span></div>
+    <div class="lrow me"><span class="rk">-</span><span class="nm">영주 #0001 (나)</span><span class="sc lose">기록 없음</span></div>
+  </div>
+</div>
+<div class="bubbles">
+  <div class="bub">기록은 판이 끝날 때마다 자동으로 올라갑니다. 실패하면 "기록 제출 실패 - 다음 도전 때 다시 제출됩니다" 안내가 나와요.</div>
+  <div class="bub">0시 직전에 시작한 판은 <b>시작한 날</b>의 기록으로 들어갑니다.</div>
+</div>
+
+<h2>⑧ 결과창</h2>
+<div class="grid g3">
+  <div class="pnl res"><div class="ttl" style="color:var(--gold)">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 10월 27일 · 첫 승리</div>
+    <div class="row"><span class="k">클리어 시간</span><span>2:51.3</span></div>
+    <div class="row"><span class="k">소울</span><span>+175</span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+60</span></div>
+    <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">3위</span></div>
+    <div class="banner">데일리 첫 승리 +195 <small>연속 4일 x1.3</small></div>
+    <div class="rstrip" style="--rc:var(--c1)"><div class="ri">ϟ</div><div><div class="sub">획득 유물 · 희귀</div><div style="color:var(--c1)">뇌운 조각</div></div><div style="margin-left:auto;color:var(--gold);font-size:13px">NEW</div></div>
+    <div class="btns"><div class="btn">다시 도전 (남은 2)</div><div class="btn go">마을로</div></div></div>
+  <div class="pnl res"><div class="ttl" style="color:var(--gold)">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 다시 도전</div>
+    <div class="row"><span class="k">클리어 시간</span><span>2:38.9</span></div>
+    <div class="row"><span class="k">소울</span><span>+182</span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+60</span></div>
+    <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">2위</span></div>
+    <div class="sub" style="margin-bottom:8px">보너스·확정 유물 없음. 기록이 좋아져 순위가 올랐어요.</div>
+    <div class="btns"><div class="btn">다시 도전 (남은 1)</div><div class="btn go">마을로</div></div></div>
+  <div class="pnl res"><div class="ttl" style="color:var(--blood)">패배</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 마지막 도전</div>
+    <div class="row"><span class="k">영웅 남은 HP</span><span>12%</span></div>
+    <div class="row"><span class="k">소울</span><span>+52</span></div>
+    <div class="row"><span class="k">영주 경험</span><span>+20</span></div>
+    <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">9위</span></div>
+    <div class="btns"><div class="btn off">다시 도전 (남은 0)</div><div class="btn go">마을로</div></div></div>
+</div>
+<p class="sub">소울·경험 숫자는 예시입니다. 순위는 기록이 올라간 뒤 표시되며, 그 전에는 "순위 집계 중"으로 나옵니다.</p>
+
+<h2>⑨ 데일리 판이 바꾸는 것 / 바꾸지 않는 것</h2>
+<div class="grid g3">
+  <div class="pnl"><div class="big" style="--c:var(--blood)">바뀌지 않음</div>
+    <ul class="k no"><li>챕터 진행 (스테이지 해금)</li><li>스테이지 최단 기록 · 스테이지 랭킹</li><li>Normal / Hard 해금</li><li>월드맵에서 골라 둔 스테이지 · 난이도</li><li>무한의 탑 기록</li><li>챕터 판의 유물 연패 보정</li></ul></div>
+  <div class="pnl"><div class="big" style="--c:var(--soul)">그대로 쌓임</div>
+    <ul class="k yes"><li>소울 · 영주 경험</li><li>전체 판수 · 승리 수</li><li>도감 (본 몬스터 · 고른 카드)</li><li>도전과제</li><li>첫 승리 확정 유물 (내 유물 도감)</li></ul></div>
+</div>
+
+<h2>⑩ 자주 묻는 질문</h2>
+<div class="pnl">
+  <div class="faq"><div class="q">Q. 기기 시계를 바꾸면 내일 판을 미리 하거나 도전을 다시 받을 수 있나요?</div><div class="a">아니요. 날짜는 서버 시각으로 정하고, 게임 중에는 기기 시계를 쓰지 않습니다.</div></div>
+  <div class="faq"><div class="q">Q. 인터넷 없이 할 수 있나요?</div><div class="a">시작은 온라인에서만 됩니다. 이미 시작한 전투는 연결이 끊겨도 끝까지 진행되고 보상도 저장돼요. 순위 제출만 다음 판으로 미뤄집니다.</div></div>
+  <div class="faq"><div class="q">Q. 팝업을 열어 둔 채 0시가 지나면요?</div><div class="a">도전 시작을 누르면 "날짜가 바뀌었습니다. 새 도전이 열렸습니다" 안내와 함께 새 조합이 보입니다. 이때는 도전이 차감되지 않아요.</div></div>
+  <div class="faq"><div class="q">Q. 카드가 마음에 안 들어서 나가면 도전이 돌아오나요?</div><div class="a">아니요. 전투가 시작되면 1번 사용입니다. 카드 순서는 어차피 다음 판에도 같아요.</div></div>
+  <div class="faq"><div class="q">Q. 옛날 클라우드 세이브를 복원하면 오늘 도전이 다시 생기나요?</div><div class="a">아니요. 날짜별로 더 많이 쓴 쪽, 더 좋은 기록 쪽, 더 긴 연속 쪽을 남깁니다.</div></div>
+  <div class="faq"><div class="q">Q. 순위를 못 불러온대요.</div><div class="a">"순위를 불러오지 못했습니다"가 떠도 도전과 보상은 정상입니다.</div></div>
+  <div class="faq"><div class="q">Q. 앱을 지우고 다시 깔면요?</div><div class="a">지금은 새 계정이 됩니다(기록·도전 횟수 모두 새로). 구글 로그인이 들어오면 해결될 예정입니다.</div></div>
+</div>
+
+<p class="sub" style="margin-top:14px">숫자는 첫 출발값입니다. 시뮬레이션으로 너무 쉽거나 어려운 날이 생기지 않는지 확인한 뒤 다시 맞출 수 있습니다(영웅 세기 기준 스테이지, 난이도, 오늘의 유물 중첩). 상세 사양은 구현용 문서에 있습니다.</p>
+
+</div></body>
+</html>
