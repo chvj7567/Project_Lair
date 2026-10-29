@@ -17,8 +17,8 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 ## 파이프라인 (순서대로)
 
-1. **game-designer** 위임 → `docs/design/[기능명].md` 기획서 작성. 완료 즉시 Rule 01 에 따라 자동 커밋.
-2. **⛔ 승인 게이트** — 기획서 요약을 사용자에게 제시하고 **멈춘다.** 사용자가 승인하기 전까지 구현을 시작하지 않는다. 사용자가 수정을 요청하면 game-designer 에 반영 위임 후 다시 이 게이트로 돌아온다 (수정본도 완료 시 자동 커밋).
+1. **game-designer** 위임 → `docs/design/[기능명].md`(구현용) + `.html`(사용자용 가이드) 기획서 작성 (Rule 00 "기획서 — 두 벌 작성"). 완료 즉시 Rule 01 에 따라 자동 커밋.
+2. **⛔ 승인 게이트** — 사용자용 HTML 기획서를 열어 주고 요약을 제시한 뒤 **멈춘다.** 사용자가 승인하기 전까지 구현을 시작하지 않는다. 사용자가 수정을 요청하면 game-designer 에 반영 위임 후 다시 이 게이트로 돌아온다 (수정본도 완료 시 자동 커밋).
 3. **gameplay-programmer** 위임 → 승인된 기획서대로 구현. 완료 즉시 자동 커밋.
 4. **code-reviewer** 위임 → 코딩 룰(Rule 00~04) 준수 + 기획서 일치 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
