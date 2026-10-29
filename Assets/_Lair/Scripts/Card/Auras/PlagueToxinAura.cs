@@ -8,7 +8,7 @@ namespace Lair.Card
     //# 역병귀 독 (monster-growth-currencies §15.1) — 영웅 몸에 붙는 중첩형 지속 피해. 모든 중첩이 한 타이머(러너 슬롯 Remain)를 공유한다.
     //# 재부착은 러너가 Merge 로 합친다: 중첩 + addStacks(상한 maxStack), 1중첩 피해 Max, 지속은 갱신(연장 누적 아님).
     [Serializable]
-    public class PlagueToxinAura : IHeroAura, IStatusVisual, IDebuffAxisAura
+    public class PlagueToxinAura : IHeroAura, IStatusVisual, IDebuffAxisAura, IStackedStatus
     {
         public bool IsDebuffAxis => true;
 
@@ -22,6 +22,7 @@ namespace Lair.Card
         [NonSerialized] private IDamageColorSink _colorSink;
 
         public int Stacks => _stacks;
+        public int StackCount => _stacks;
         public int MaxStack => _maxStack;
         public float PerStackDamage => _perStackDamage;
 
@@ -46,7 +47,15 @@ namespace Lair.Card
         public void OnAttached(IHealth hero)
         {
             _tickAccumulator = 0f;
-            _colorSink = hero is Component comp && comp != null ? comp.GetComponent<LairCharacter>()?.Get<IDamageColorSink>() : null;
+            _colorSink = null;
+            if (hero is Component comp && comp != null)
+            {
+                LairCharacter character = comp.GetComponent<LairCharacter>();
+                if (character != null)
+                {
+                    _colorSink = character.Get<IDamageColorSink>();
+                }
+            }
         }
 
         //# 1초마다 Max(1, Round(중첩 x 1중첩 피해)) — PoisonAura 의 1초 누적 틱 패턴.

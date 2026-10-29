@@ -11,6 +11,8 @@ namespace Lair.Battle
         //# victim 종류로 임팩트 프리팹 분기 — 몬스터=MonsterHitImpact, 영웅=HitImpact.
         void SpawnImpact(Vector3 pos, Color color, HitVictimKind victim);
         void SpawnPopup(Vector3 pos, int amount, Color color);
+        //# 숫자 대신 문구 팝업 — 잔상 회피 "MISS" (monster-growth-currencies §3.4).
+        void SpawnTextPopup(Vector3 pos, string text, Color color);
     }
 
     //# 무상태 스폰 대행. 워밍된 프리팹 핸들을 캐시해 동기 Pop (고빈도 타격에 async 로드 회피).
@@ -61,6 +63,11 @@ namespace Lair.Battle
 
         public void SpawnPopup(Vector3 pos, int amount, Color color)
         {
+            SpawnTextPopup(pos, amount.ToString(), color);
+        }
+
+        public void SpawnTextPopup(Vector3 pos, string text, Color color)
+        {
             if (_popupPrefab == null)
                 return;
             CHPoolable p = CHMPool.Instance.Pop(_popupPrefab, null);
@@ -72,7 +79,7 @@ namespace Lair.Battle
                 CHMPool.Instance.Push(p);
                 return;
             }
-            popup.Play(pos, amount, color);
+            popup.Play(pos, text, color);
         }
 
         private static void ApplyColor(GameObject go, Color color)

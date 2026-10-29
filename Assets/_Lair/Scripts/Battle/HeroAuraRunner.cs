@@ -28,6 +28,8 @@ namespace Lair.Battle
         //# 상태 아이콘 — key(aura 타입), 대표 ECardId. View 가 ECardId→Sprite 해석.
         public event Action<object, ECardId> OnStatusShown;
         public event Action<object> OnStatusHidden;
+        //# 중첩형 상태(IStackedStatus)의 중첩 수 변경 — 부착·병합 직후 발행. key = aura 타입.
+        public event Action<object, int> OnStatusCountChanged;
 
         //# 가해 몬스터가 있는 Debuff 축 부착 통지 - 성기사 응징 표적이 구독.
         public event Action<Transform, IHealth> OnDebuffedBy;
@@ -116,6 +118,7 @@ namespace Lair.Battle
                         {
                             existing.Remain = Mathf.Max(existing.Remain, duration);
                         }
+                        OnStatusCountChanged?.Invoke(existing.Aura.GetType(), stackCurse.StackCount);
                         return;
                     }
                     if (existing.Aura is PlagueToxinAura toxin)
@@ -125,6 +128,7 @@ namespace Lair.Battle
                         {
                             existing.Remain = Mathf.Max(existing.Remain, duration);
                         }
+                        OnStatusCountChanged?.Invoke(existing.Aura.GetType(), toxin.StackCount);
                         return;
                     }
                     IDistinctHeroAura distinct = aura as IDistinctHeroAura;
@@ -145,6 +149,8 @@ namespace Lair.Battle
             //# 상태 아이콘 — 신규 슬롯이고 IStatusVisual 이면 표시 이벤트(key = aura 타입).
             if (aura is IStatusVisual sv)
                 OnStatusShown?.Invoke(aura.GetType(), sv.IconCardId);
+            if (aura is IStackedStatus stacked)
+                OnStatusCountChanged?.Invoke(aura.GetType(), stacked.StackCount);
         }
 
         //# 정화 대상 시한 슬롯 - 출처와 무관하게 타입으로 판정 (SlowAura 는 Swarm Slow 카드 포함, chapter-5 §4 E-C5-1).

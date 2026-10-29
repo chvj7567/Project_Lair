@@ -87,6 +87,7 @@ namespace Lair.UI
         //# 상태 아이콘 — key(aura 타입), 대표 ECardId. View(BattleHud)가 ECardId→Sprite 해석.
         public event Action<object, ECardId> OnStatusIconAdded;
         public event Action<object> OnStatusIconRemoved;
+        public event Action<object, int> OnStatusIconCountChanged;
 
         //# 전투 중 뒤로가기 — View/ESC 가 RequestExit, 컨트롤러가 OnExitRequested 로 정지+확인 팝업.
         public event Action OnExitRequested;
@@ -280,6 +281,10 @@ namespace Lair.UI
 
         public void RemoveStatusIcon(object key)
             => OnStatusIconRemoved?.Invoke(key);
+
+        //# 중첩형 상태 아이콘의 "xN" — HeroAuraRunner.OnStatusCountChanged 를 BattleController 가 forward.
+        public void SetStatusIconCount(object key, int count)
+            => OnStatusIconCountChanged?.Invoke(key, count);
 
         //# 카드 픽 누적 — 같은 카드면 Count++, 아니면 신규 엔트리. 이후 OnBuildChanged.
         //# 카드 리뉴얼 v0.6 — _buildAxisCounts 도 함께 증가 (BuildSynergyPanel 표시용).

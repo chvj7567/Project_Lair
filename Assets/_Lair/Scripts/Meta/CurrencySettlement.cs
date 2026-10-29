@@ -12,6 +12,13 @@ namespace Lair.Meta
         public int Amount;
     }
 
+    //# 챕터 승리 각성석 정산 결과 — 이번 판분(결과창 칩)과 소급분(토스트 1481)을 나눈다.
+    public struct ChapterAwakenGain
+    {
+        public int ThisRun;
+        public int Retroactive;
+    }
+
     //# 재화 해금 규칙 (monster-growth-currencies §1) — 해금 값을 따로 저장하지 않고 그 재화를 주는 콘텐츠의 기존 해금 값을 읽는다.
     public static class CurrencyRules
     {
@@ -113,20 +120,32 @@ namespace Lair.Meta
         }
 
         //# 챕터 승리 한 판의 각성석 — paidBefore = 이번 판 기록 "전" 그 스테이지 AwakenPaid. 이미 그 난이도 첫 클리어분을 받았으면 반복분, 아니면 정산(첫 클리어분).
-        //# Easy·패배는 0 (호출부가 승리만 넘긴다). 반환 = 이번 판 지급량.
-        public static int SettleChapterWin(MetaProfile profile, GrowthDatabase growth, int difficulty, int paidBefore)
+        //# 이번 판분 = 그 스테이지 (paidBefore+1 .. difficulty) 첫 클리어분 + 반복분. 같은 정산이 함께 지급한 나머지(다른 스테이지·더 높은 기존 기록)는 소급분.
+        //# Easy·패배는 0 (호출부가 승리만 넘긴다).
+        public static ChapterAwakenGain SettleChapterWin(MetaProfile profile, GrowthDatabase growth, int difficulty, int paidBefore)
         {
+            ChapterAwakenGain gain = new ChapterAwakenGain();
             if (profile == null || growth == null || difficulty < 1)
-                return 0;
-            int gained = SettleAwakenFirstClears(profile, growth);
+                return gain;
+            int total = SettleAwakenFirstClears(profile, growth);
+            for (int d = Math.Max(0, paidBefore) + 1; d <= difficulty; ++d)
+            {
+                Difficulty_AwakenRow row = growth.AwakenRewardOf(d);
+                if (row != null)
+                {
+                    gain.ThisRun += row.firstClear;
+                }
+            }
+            gain.ThisRun = Math.Min(gain.ThisRun, total);
+            gain.Retroactive = total - gain.ThisRun;
             if (difficulty <= paidBefore)
             {
                 Difficulty_AwakenRow row = growth.AwakenRewardOf(difficulty);
                 int repeat = row != null ? row.repeatWin : 0;
                 profile.AddCurrency(ECurrency.AwakenStone, repeat);
-                gained += repeat;
+                gain.ThisRun += repeat;
             }
-            return gained;
+            return gain;
         }
 
         //# 탑 층 하나의 결정 = 층 유물 등급 단계의 층당 지급량 + (이정표 층이면 보너스).

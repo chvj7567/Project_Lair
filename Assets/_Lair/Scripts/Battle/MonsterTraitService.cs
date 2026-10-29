@@ -126,10 +126,10 @@ namespace Lair.Battle
                 return;
             if (_hooks.TryGetValue(victim.gameObject, out Hook hook) == false || hook.Species != EMonster.Wisp)
                 return;
-            int received = Mathf.RoundToInt(amount * victim.EffectiveDamageTakenMul);
-            if (received <= 0)
+            //# amount = 도깨비불이 실제로 잃은 HP (MeleeAttacker 가 TakeDamage 전후 차이로 통지).
+            if (amount <= 0)
                 return;
-            _hero.TakeDamage(Mathf.Max(1, Mathf.RoundToInt(received * Param(EMonster.Wisp, "reflectRatio"))));
+            _hero.TakeDamage(Mathf.Max(1, Mathf.RoundToInt(amount * Param(EMonster.Wisp, "reflectRatio"))));
         }
 
         //# 저주 누적 — 저주술사 적중마다 영웅 받는 피해 +perStack/중첩, 마지막 적중 후 stackSec 유지.

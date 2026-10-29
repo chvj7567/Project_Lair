@@ -25,6 +25,11 @@ namespace Lair.Tests.Card
         //# IncrementSpawnerOutput / ReplaceSpawnerOutput 을 BattleController 와 동일한 의미로 구현
         private class SpawnerAwareContext : IBattleContext
         {
+            //# 끈질긴 저주·Debuff Tier1 호출 기록 (monster-growth-currencies §15).
+            public readonly System.Collections.Generic.List<float> DebuffDurationBonuses = new System.Collections.Generic.List<float>();
+            public readonly System.Collections.Generic.List<int> ToxinMaxStackBonuses = new System.Collections.Generic.List<int>();
+            public void AddHeroDebuffDurationBonus(float bonus) => DebuffDurationBonuses.Add(bonus);
+            public void AddPlagueToxinMaxStack(int bonus) => ToxinMaxStackBonuses.Add(bonus);
             private readonly List<Spawner> _spawners;
             public SpawnerAwareContext(List<Spawner> spawners) => _spawners = spawners;
 

@@ -177,6 +177,11 @@ namespace Lair.Tests.Card
 
         private class FakeCtx : IBattleContext
         {
+            //# 끈질긴 저주·Debuff Tier1 호출 기록 (monster-growth-currencies §15).
+            public readonly System.Collections.Generic.List<float> DebuffDurationBonuses = new System.Collections.Generic.List<float>();
+            public readonly System.Collections.Generic.List<int> ToxinMaxStackBonuses = new System.Collections.Generic.List<int>();
+            public void AddHeroDebuffDurationBonus(float bonus) => DebuffDurationBonuses.Add(bonus);
+            public void AddPlagueToxinMaxStack(int bonus) => ToxinMaxStackBonuses.Add(bonus);
             public readonly List<(EMonster, EMonsterStatKind, float)> Buffs = new();
             public readonly List<EMonster> Spawned = new();
             public readonly List<EMonsterBuff> MonsterBuffs = new();

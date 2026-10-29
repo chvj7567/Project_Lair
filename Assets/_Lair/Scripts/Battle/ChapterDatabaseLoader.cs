@@ -249,6 +249,7 @@ namespace Lair.Battle
         private static async Task LoadGrowthAsync()
         {
             GrowthDatabase.Current = null;
+            _growthShopValidatedFor = null;
             string currencyJson = await LoadTextAsync(EData.Currency);
             string exchangeJson = await LoadTextAsync(EData.Currency_Exchange);
             string awakenRewardJson = await LoadTextAsync(EData.Difficulty_Awaken);
@@ -293,6 +294,21 @@ namespace Lair.Battle
         private static bool NameKeyExists(int id)
         {
             return CHText.StringProvider == null || string.IsNullOrEmpty(CHText.StringProvider.GetString(id)) == false;
+        }
+
+        //# 상점 항목 무결성(§6.3-7)은 MetaConfig 를 가진 진입점(마을·전투)이 1회 호출 — 위반이면 LogError + 육성 재화 기능 비활성(§6.3-8, 보유 재화·레벨 보존).
+        private static MetaConfig _growthShopValidatedFor;
+
+        public static void ValidateGrowthShop(MetaConfig config)
+        {
+            if (config == null || GrowthDatabase.Current == null || ReferenceEquals(_growthShopValidatedFor, config))
+                return;
+            _growthShopValidatedFor = config;
+            List<string> errors = GrowthDatabase.Current.ValidateShopItems(config);
+            if (errors.Count == 0)
+                return;
+            Debug.LogError("[ChapterDatabaseLoader] 육성 상점 항목 오류 — 육성 재화 기능 비활성:\n" + string.Join("\n", errors));
+            GrowthDatabase.Current = null;
         }
 
         private static async Task<string> LoadOptionalTextAsync(EData key)

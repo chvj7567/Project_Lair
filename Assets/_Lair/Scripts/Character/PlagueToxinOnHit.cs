@@ -24,6 +24,9 @@ namespace Lair.Character
         private IAttacker _attacker;
         private IHealth _self;
         private MeleeAttacker _melee;
+        //# 영웅과 그 러너 — BattleController 가 스폰마다 주입(적중마다 GetComponent 하지 않는다, Rule 02 §5).
+        private IHealth _hero;
+        private HeroAuraRunner _heroRunner;
 
         public float PerStackDamage => _melee != null ? _melee.Power * _melee.PowerScale * _toxinPowerRatio * _damageMul : 0f;
         public float Duration => _runtimeDuration;
@@ -40,12 +43,22 @@ namespace Lair.Character
         //# 풀 재사용 시 구독 누수 방지 — OnEnable 구독 / OnDisable 해제.
         private void OnEnable()
         {
-            if (_attacker != null) _attacker.OnHit += HandleHit;
+            if (_attacker == null)
+                return;
+            _attacker.OnHit += HandleHit;
         }
 
         private void OnDisable()
         {
-            if (_attacker != null) _attacker.OnHit -= HandleHit;
+            if (_attacker == null)
+                return;
+            _attacker.OnHit -= HandleHit;
+        }
+
+        public void BindHero(IHealth hero, HeroAuraRunner heroRunner)
+        {
+            _hero = hero;
+            _heroRunner = heroRunner;
         }
 
         //# 스폰·소급마다 호출 — damageMul = PoisonDamage 누적 배율, durationMul = PoisonDuration 배율, maxStackBonus = Debuff Tier1 (+2).
@@ -58,12 +71,11 @@ namespace Lair.Character
 
         private void HandleHit(IHealth target)
         {
-            //# 영웅만 대상 — HeroAuraRunner 보유 여부로 판별.
-            if (target is not MonoBehaviour mb || mb == null) return;
-            HeroAuraRunner runner = mb.GetComponent<HeroAuraRunner>();
-            if (runner == null) return;
+            //# 영웅만 대상 — 주입된 영웅과 같은 대상일 때만.
+            if (_heroRunner == null || ReferenceEquals(target, _hero) == false)
+                return;
             //# Debuff 축 출처 + 가해자 통지 - 성기사 패시브(지속 x0.6)·응징 표적이 이 경로를 쓴다.
-            runner.Attach(new PlagueToxinAura(PerStackDamage, 1, _runtimeMaxStack), _runtimeDuration, transform, _self);
+            _heroRunner.Attach(new PlagueToxinAura(PerStackDamage, 1, _runtimeMaxStack), _runtimeDuration, transform, _self);
         }
     }
 }

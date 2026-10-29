@@ -69,7 +69,7 @@ namespace Lair.Character
         //# true=공격 개시/strike 2분할(영웅), false=즉시 데미지(몬스터 6종 — 현행).
         bool DeferStrike { get; }
 
-        //# B3 — 공격 적중 시 target 으로 발행. 플레이그 PlagueSlowOnHit 가 구독.
+        //# B3 — 공격 적중 시 target 으로 발행. 역병귀 PlagueToxinOnHit · 특성(저주 누적)이 구독.
         event Action<IHealth> OnHit;
 
         //# 거리·쿨다운 만족 시 target.TakeDamage 호출 후 true. 몬스터(DeferStrike=false) 즉시 경로.

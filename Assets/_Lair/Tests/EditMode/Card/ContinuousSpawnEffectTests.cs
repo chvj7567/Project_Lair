@@ -14,6 +14,11 @@ namespace Lair.Tests.Card
         //# 최소 IBattleContext 더블 — 신규 3종 API 호출만 기록.
         private class FakeBattleContext : IBattleContext
         {
+            //# 끈질긴 저주·Debuff Tier1 호출 기록 (monster-growth-currencies §15).
+            public readonly System.Collections.Generic.List<float> DebuffDurationBonuses = new System.Collections.Generic.List<float>();
+            public readonly System.Collections.Generic.List<int> ToxinMaxStackBonuses = new System.Collections.Generic.List<int>();
+            public void AddHeroDebuffDurationBonus(float bonus) => DebuffDurationBonuses.Add(bonus);
+            public void AddPlagueToxinMaxStack(int bonus) => ToxinMaxStackBonuses.Add(bonus);
             public readonly List<(EMonster, EMonsterStatKind, float)> Buffs = new();
             public readonly List<EMonster> Increments = new();
             public readonly List<(EMonster, EMonster)> Replaces = new();
@@ -53,6 +58,18 @@ namespace Lair.Tests.Card
             Assert.AreEqual(EMonster.Wisp, ctx.Buffs[0].Item1);
             Assert.AreEqual(EMonsterStatKind.Hp, ctx.Buffs[0].Item2);
             Assert.AreEqual(1.5f, ctx.Buffs[0].Item3, 0.0001f);
+        }
+
+        //# 정상 — 끈질긴 저주는 픽마다 영웅 디버프 지속 +0.25 를 등록하고 스탯 배율은 건드리지 않는다 (§15.3).
+        [Test]
+        public void LingeringCurse_픽마다_디버프_지속_보너스_0점25_등록()
+        {
+            FakeBattleContext ctx = new FakeBattleContext();
+            new LingeringCurseEffect().Apply(ctx);
+            new LingeringCurseEffect().Apply(ctx);
+
+            CollectionAssert.AreEqual(new[] { 0.25f, 0.25f }, ctx.DebuffDurationBonuses);
+            Assert.AreEqual(0, ctx.Buffs.Count);
         }
 
         //# 정상 — 역병의 손길은 역병귀 독 피해 배율 1.4 로 등록 (monster-growth-currencies §15.0).

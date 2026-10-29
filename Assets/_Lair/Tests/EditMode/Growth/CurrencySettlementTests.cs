@@ -42,12 +42,13 @@ namespace Lair.Tests.EditMode
             MetaProfile p = new MetaProfile { ClearedStage = 1 };
             p.RecordDifficultyClear(1, 1);
 
-            int first = CurrencySettlement.SettleChapterWin(p, growth, 1, 0);
+            ChapterAwakenGain first = CurrencySettlement.SettleChapterWin(p, growth, 1, 0);
             int paid = p.GetAwakenPaid(1);
-            int repeat = CurrencySettlement.SettleChapterWin(p, growth, 1, paid);
+            ChapterAwakenGain repeat = CurrencySettlement.SettleChapterWin(p, growth, 1, paid);
 
-            Assert.AreEqual(10, first);
-            Assert.AreEqual(2, repeat);
+            Assert.AreEqual(10, first.ThisRun);
+            Assert.AreEqual(0, first.Retroactive);
+            Assert.AreEqual(2, repeat.ThisRun);
             Assert.AreEqual(12, p.GetCurrency(ECurrency.AwakenStone));
         }
 
@@ -64,6 +65,21 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(35, once);
             Assert.AreEqual(0, twice);
             Assert.AreEqual(35, p.GetCurrencyTotalEarned(ECurrency.AwakenStone));
+        }
+
+        [Test]
+        public void 이번_판과_함께_정산된_다른_스테이지_기록은_소급분으로_나뉜다()
+        {
+            GrowthDatabase growth = Growth();
+            MetaProfile p = new MetaProfile();
+            p.DifficultyClears.Add(new DifficultyClearEntry { Stage = 2, MaxDifficulty = 2 });
+            p.RecordDifficultyClear(1, 1);
+
+            ChapterAwakenGain gain = CurrencySettlement.SettleChapterWin(p, growth, 1, 0);
+
+            Assert.AreEqual(10, gain.ThisRun);
+            Assert.AreEqual(35, gain.Retroactive);
+            Assert.AreEqual(45, p.GetCurrency(ECurrency.AwakenStone));
         }
 
         [TestCase(1, false, 3)]

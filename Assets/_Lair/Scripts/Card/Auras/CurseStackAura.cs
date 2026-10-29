@@ -7,7 +7,7 @@ namespace Lair.Card
     //# 저주술사 특성 "저주 누적" (monster-growth-currencies §3.4) — 적중마다 영웅이 받는 피해 +perStack/중첩(최대 maxStack), 마지막 적중 후 지속 갱신.
     //# 받는 피해 배율은 영웅 DamageTakenScale 에 곱/나눗셈으로 합성(MarkOfDeath·수호 결계 선례). 성기사 저항은 가산분에 적용(러너가 ScalePenalty).
     [Serializable]
-    public class CurseStackAura : IHeroAura, IStatusVisual, IDebuffAxisAura
+    public class CurseStackAura : IHeroAura, IStatusVisual, IDebuffAxisAura, IStackedStatus
     {
         public bool IsDebuffAxis => true;
 
@@ -21,6 +21,7 @@ namespace Lair.Card
         [NonSerialized] private Health _health;
 
         public int Stacks => _stacks;
+        public int StackCount => _stacks;
         public float Factor => 1f + _perStack * _stacks;
 
         public CurseStackAura(float perStack, int maxStack)

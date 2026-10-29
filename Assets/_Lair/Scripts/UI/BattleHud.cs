@@ -77,6 +77,7 @@ namespace Lair.UI
             vm.OnBattleEnded         += HandleEnded;
             vm.OnStatusIconAdded     += HandleStatusIconAdded;
             vm.OnStatusIconRemoved   += HandleStatusIconRemoved;
+            vm.OnStatusIconCountChanged += HandleStatusIconCount;
             vm.OnActiveCountdownChanged += HandleCountdown;
             vm.OnPassiveTickAcquired    += HandleTickAcquired;
             vm.OnExitAvailableChanged   += HandleExitAvailable;
@@ -87,6 +88,7 @@ namespace Lair.UI
             closeDisposable.Add(() => vm.OnBattleEnded         -= HandleEnded);
             closeDisposable.Add(() => vm.OnStatusIconAdded     -= HandleStatusIconAdded);
             closeDisposable.Add(() => vm.OnStatusIconRemoved   -= HandleStatusIconRemoved);
+            closeDisposable.Add(() => vm.OnStatusIconCountChanged -= HandleStatusIconCount);
             closeDisposable.Add(() => vm.OnActiveCountdownChanged -= HandleCountdown);
             closeDisposable.Add(() => vm.OnPassiveTickAcquired    -= HandleTickAcquired);
             closeDisposable.Add(() => vm.OnExitAvailableChanged   -= HandleExitAvailable);
@@ -182,6 +184,13 @@ namespace Lair.UI
             Sprite icon = null;
             _cardIcons?.TryGetValue(iconId, out icon);
             _bossBar.AddStatusIcon(key, icon);
+        }
+
+        private void HandleStatusIconCount(object key, int count)
+        {
+            if (_bossBar == null)
+                return;
+            _bossBar.SetStatusIconCount(key, count);
         }
 
         private void HandleStatusIconRemoved(object key)

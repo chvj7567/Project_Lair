@@ -34,12 +34,15 @@ namespace Lair.Character
             }
         }
 
-        public void Play(Vector3 worldPos, int amount, Color color)
+        public void Play(Vector3 worldPos, int amount, Color color) => Play(worldPos, amount.ToString(), color);
+
+        //# 문구 팝업 (잔상 회피 "MISS") — 숫자와 같은 부상·페이드 연출.
+        public void Play(Vector3 worldPos, string label, Color color)
         {
             transform.position = worldPos;
             if (_text != null)
             {
-                _text.text = amount.ToString();
+                _text.text = label;
                 _text.color = new Color(color.r, color.g, color.b, 1f);
                 ApplyOutline(color);
             }

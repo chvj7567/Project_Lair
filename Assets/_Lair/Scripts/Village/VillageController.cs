@@ -63,6 +63,7 @@ namespace Lair.Village
                 MetaSession.Store?.Save(profile);
             }
 
+            ChapterDatabaseLoader.ValidateGrowthShop(_metaConfig);
             SettleRetroactiveCurrencies(profile);
 
             //# 클라우드 연동 보장(best-effort) — 실패해도 마을은 정상 동작(기획서 §6 무음).

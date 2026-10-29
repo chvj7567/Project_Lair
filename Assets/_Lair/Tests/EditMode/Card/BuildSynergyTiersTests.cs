@@ -13,6 +13,11 @@ namespace Lair.Tests.Card
     {
         private class FakeCtx : IBattleContext
         {
+            //# 끈질긴 저주·Debuff Tier1 호출 기록 (monster-growth-currencies §15).
+            public readonly System.Collections.Generic.List<float> DebuffDurationBonuses = new System.Collections.Generic.List<float>();
+            public readonly System.Collections.Generic.List<int> ToxinMaxStackBonuses = new System.Collections.Generic.List<int>();
+            public void AddHeroDebuffDurationBonus(float bonus) => DebuffDurationBonuses.Add(bonus);
+            public void AddPlagueToxinMaxStack(int bonus) => ToxinMaxStackBonuses.Add(bonus);
             public readonly List<(EMonster, EMonsterStatKind, float)> Buffs = new();
             public readonly List<float> SpawnerPeriods = new();
             public readonly List<int> OutputDeltas = new();
@@ -147,7 +152,7 @@ namespace Lair.Tests.Card
             FakeCtx ctx = new FakeCtx();
             new DebuffSynergyTier1().Apply(ctx);
             Assert.AreEqual(0, ctx.Buffs.Count, "Tier1 은 배율이 아니라 독 최대 중첩 +2 (monster-growth-currencies §15.2)");
-            Assert.AreEqual(2, DebuffSynergyTier1.MaxStackBonus);
+            CollectionAssert.AreEqual(new[] { 2 }, ctx.ToxinMaxStackBonuses, "독 최대 중첩 +2 를 1회 등록");
             CollectionAssert.AreEqual(new[] { "2" }, new DebuffSynergyTier1().DescriptionArgs);
         }
 

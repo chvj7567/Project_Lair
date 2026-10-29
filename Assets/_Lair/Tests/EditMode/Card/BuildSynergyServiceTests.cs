@@ -94,6 +94,11 @@ namespace Lair.Tests.Card
         //# IBattleContext stub — 모든 메서드 빈 구현. 본 테스트는 ctx 전달 자체만 확인.
         private class FakeBattleContext : IBattleContext
         {
+            //# 끈질긴 저주·Debuff Tier1 호출 기록 (monster-growth-currencies §15).
+            public readonly System.Collections.Generic.List<float> DebuffDurationBonuses = new System.Collections.Generic.List<float>();
+            public readonly System.Collections.Generic.List<int> ToxinMaxStackBonuses = new System.Collections.Generic.List<int>();
+            public void AddHeroDebuffDurationBonus(float bonus) => DebuffDurationBonuses.Add(bonus);
+            public void AddPlagueToxinMaxStack(int bonus) => ToxinMaxStackBonuses.Add(bonus);
             public float DeltaTime => 0f;
             public IEnumerable<IHealth> GetMonsters(EMonster? filter = null) => System.Array.Empty<IHealth>();
             public IHealth GetHero() => null;

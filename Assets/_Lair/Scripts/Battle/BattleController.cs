@@ -46,6 +46,8 @@ namespace Lair.Battle
 
         //# Debuff Tier1 누적 — 역병귀 독 최대 중첩 보너스(기본 3 + 이 값). 판마다 새 컨트롤러라 리셋 불필요.
         private int _toxinMaxStackBonus;
+        //# ApplyMonsterStats 를 거친 역병귀 인스턴스 — Tier1 소급 대상(풀 재사용 인스턴스 포함).
+        private readonly HashSet<Transform> _plagueInstances = new();
 
         //# 종족 강화 레벨 캐시 — ApplyMetaBonuses 에서 1회 채움, 스폰 시 발광 적용에 사용 (monster-species-enhancement §4.3).
         private readonly Dictionary<EMonster, int> _speciesLevels = new();
@@ -98,6 +100,7 @@ namespace Lair.Battle
         private HeroAuraRunner _heroAuraRunner;
         private System.Action<object, ECardId> _onStatusShownHandler;
         private System.Action<object> _onStatusHiddenHandler;
+        private System.Action<object, int> _onStatusCountHandler;
 
         //# 스킬 해금 컷인 — 정지·쉐이크·배너 오케스트레이터 + 배너 View 핸들 + 러너 핸들.
         //# 구독은 _cutscene 생성 후 — SpawnHero(await) 안의 Bind 시점엔 _cutscene 미생성이므로 러너만 캐싱.
@@ -629,8 +632,10 @@ namespace Lair.Battle
 
             _onStatusShownHandler  = (key, id) => _vm?.AddStatusIcon(key, id);
             _onStatusHiddenHandler = key => _vm?.RemoveStatusIcon(key);
+            _onStatusCountHandler  = (key, count) => _vm?.SetStatusIconCount(key, count);
             runner.OnStatusShown  += _onStatusShownHandler;
             runner.OnStatusHidden += _onStatusHiddenHandler;
+            runner.OnStatusCountChanged += _onStatusCountHandler;
         }
 
         //# 상태 아이콘 — 구독 해제(저장 핸들러로 정확히 -=). 재구독·OnDestroy 양쪽에서 호출.
@@ -646,10 +651,15 @@ namespace Lair.Battle
                 {
                     _heroAuraRunner.OnStatusHidden -= _onStatusHiddenHandler;
                 }
+                if (_onStatusCountHandler != null)
+                {
+                    _heroAuraRunner.OnStatusCountChanged -= _onStatusCountHandler;
+                }
             }
             _heroAuraRunner = null;
             _onStatusShownHandler = null;
             _onStatusHiddenHandler = null;
+            _onStatusCountHandler = null;
         }
 
         //# 챕터 전장 배경 교체 — 기본 키(Battle_Backdrop = 씬에 배치된 1챕터 배경)는 건드리지 않아 기존 동작 불변.
@@ -726,12 +736,16 @@ namespace Lair.Battle
         //# 지속 스폰 — 몬스터에 raw 스탯 × 글로벌 타입 모디파이어 배율 적용 (§7.5.2).
         //# 모든 몬스터 스폰·소급 경로가 이 한 메서드를 거친다. 영웅은 절대 거치지 않는다.
         public void ApplyMonsterStats(GameObject character, EMonster key, bool resetCurrent)
+            => ApplyMonsterStatsCore(character, key, resetCurrent);
+
+        //# 반환 = 그 몬스터의 Health (스폰 경로가 스폰 보호를 거는 데 재사용 — GetComponent 중복 회피). 적용 불가면 null.
+        private Health ApplyMonsterStatsCore(GameObject character, EMonster key, bool resetCurrent)
         {
             if (character == null)
-                return;
+                return null;
             BalanceConfig.CharacterStat raw = _balance?.GetMonster(key);
             if (raw == null)
-                return;
+                return null;
             StatMultiplier mul = _typeModifiers.TryGetValue(key, out StatMultiplier m) ? m : StatMultiplier.Identity;
 
             Health health = character.GetComponent<Health>();
@@ -768,6 +782,9 @@ namespace Lair.Battle
             if (toxin != null)
             {
                 toxin.Configure(mul.PoisonDamageMul, mul.PoisonDurationMul, _toxinMaxStackBonus);
+                toxin.BindHero(_heroHealth, _heroAuraRunner);
+                //# Debuff Tier1 소급 대상 — 풀 인스턴스는 씬 동안 유지되므로 1회 등록이면 충분.
+                _plagueInstances.Add(character.transform);
             }
 
             //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
@@ -780,6 +797,7 @@ namespace Lair.Battle
 
             //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다.
             _traits?.OnMonsterConfigured(character, key, resetCurrent);
+            return health;
         }
 
         //# 영웅 스폰 — 챕터 데이터/직업/스테이지 조회나 프리팹 로드에 실패하면 false(전투 진입 중단). 조용한 폴백 금지(chapter-system E-11).
@@ -1168,6 +1186,8 @@ namespace Lair.Battle
                 return;
 
             MetaProfile profile = MetaSession.GetOrLoad();
+            //# 육성 상점 항목 무결성 1회 검증 — 위반이면 육성 축 미적용(§6.3-7·8).
+            ChapterDatabaseLoader.ValidateGrowthShop(_metaConfig);
             MetaBattleBonus bonus = MetaBattleBonus.From(profile, _metaConfig);
 
             //# 몬스터 전종 글로벌 — 카드 RegisterMonsterTypeBuff 와 동일 표면(StatMultiplier)에서 곱연산 누적.
@@ -1517,11 +1537,11 @@ namespace Lair.Battle
                 Vector3 offset = UnityEngine.Random.insideUnitSphere * 2.5f;
                 offset.y = 0f;
                 p.transform.position = exactPos + offset;
-                ApplyMonsterStats(p.gameObject, type, resetCurrent: true);
+                Health spawned = ApplyMonsterStatsCore(p.gameObject, type, resetCurrent: true);
                 //# 둥지 숙련 Lv3 스폰 보호 — 둥지에서 나온 몬스터만(카드·유물 소환 제외), 스폰 직후 durationSec 동안 받는 피해 배율.
-                if (_nestEffects.TryGetValue(type, out NestMasteryEffects nest) && nest.GuardSec > 0f)
+                if (spawned != null && _nestEffects.TryGetValue(type, out NestMasteryEffects nest) && nest.GuardSec > 0f)
                 {
-                    p.GetComponent<Health>()?.GrantSpawnGuard(nest.GuardDamageTakenMul, nest.GuardSec);
+                    spawned.GrantSpawnGuard(nest.GuardDamageTakenMul, nest.GuardSec);
                 }
             }
         }
@@ -1529,7 +1549,9 @@ namespace Lair.Battle
         //# 끈질긴 저주 — 영웅 러너의 Debuff 축 시한 디버프 지속 보너스 누적 (§15.3).
         public void AddHeroDebuffDurationBonus(float bonus)
         {
-            _heroAuraRunner?.AddDebuffDurationBonus(bonus);
+            if (_heroAuraRunner == null)
+                return;
+            _heroAuraRunner.AddDebuffDurationBonus(bonus);
         }
 
         //# Debuff Tier1 — 역병귀 독 최대 중첩 +bonus, 필드 역병귀에 소급 (§15.2).
@@ -1538,15 +1560,12 @@ namespace Lair.Battle
             if (bonus <= 0)
                 return;
             _toxinMaxStackBonus += bonus;
-            foreach (CharacterRegistry.Entry e in CharacterRegistry.Monsters)
+            //# 등록된 역병귀 인스턴스 중 지금 필드에 살아 있는 것만 소급 (태그 탐색 없음).
+            foreach (Transform plague in _plagueInstances)
             {
-                if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null)
+                if (plague == null || plague.gameObject.activeInHierarchy == false)
                     continue;
-                MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
-                if (tag != null && tag.Key == EMonster.Plague)
-                {
-                    ApplyMonsterStats(e.Transform.gameObject, EMonster.Plague, resetCurrent: false);
-                }
+                ApplyMonsterStatsCore(plague.gameObject, EMonster.Plague, resetCurrent: false);
             }
         }
 
@@ -1940,8 +1959,14 @@ namespace Lair.Battle
                     CurrencySettlement.SettleTowerCrystals(profile, growth, TowerDatabase.Current, DifficultyTable.CurrentMaxIndex));
                 return gains;
             }
-            CurrencySettlement.AddGain(gains, ECurrency.AwakenStone,
-                CurrencySettlement.SettleChapterWin(profile, growth, _effectiveDifficulty, awakenPaidBefore));
+            ChapterAwakenGain awaken = CurrencySettlement.SettleChapterWin(profile, growth, _effectiveDifficulty, awakenPaidBefore);
+            CurrencySettlement.AddGain(gains, ECurrency.AwakenStone, awaken.ThisRun);
+            //# 같은 정산이 함께 지급한 업데이트 이전 기록분 — 결과창 칩이 아니라 소급 토스트(1481)로 알린다.
+            if (awaken.Retroactive > 0)
+            {
+                ToastView.Show(string.Format(LookupFormat(GrowthStrings.RetroReward, "이전 기록 보상 {0} +{1}"),
+                    GrowthText.CurrencyName(ECurrency.AwakenStone, growth, id => LookupFormat(id, string.Empty)), awaken.Retroactive));
+            }
             return gains;
         }
 

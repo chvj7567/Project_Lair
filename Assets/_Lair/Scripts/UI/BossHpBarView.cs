@@ -21,6 +21,8 @@ namespace Lair.UI
         [SerializeField] private Image[] _tickGems;
         [SerializeField] private GameObject _statusIconRow;
         [SerializeField] private Image[] _iconSlots;
+        //# 슬롯별 중첩 수 "xN" 라벨 (_iconSlots 와 같은 인덱스). 미배선이면 숫자 없이 아이콘만.
+        [SerializeField] private CHText[] _iconCounts = new CHText[0];
         //# 비주얼 폴리시 — 평상시/30% 이하 fill 스프라이트
         [SerializeField] private Sprite _fillNormalSprite;
         [SerializeField] private Sprite _fillLowSprite;
@@ -181,13 +183,34 @@ namespace Lair.UI
                 _iconSlots[slot].sprite = null;
                 _iconSlots[slot].gameObject.SetActive(false);
             }
+            SetCountText(slot, 0);
             _keyToSlot.Remove(key);
             if (_keyToSlot.Count == 0 && _statusIconRow != null)
                 _statusIconRow.SetActive(false);
         }
 
+        //# 중첩 수 2 이상이면 "xN", 1 이하는 숨김.
+        public void SetStatusIconCount(object key, int count)
+        {
+            if (key == null || _keyToSlot.TryGetValue(key, out int slot) == false)
+                return;
+            SetCountText(slot, count);
+        }
+
+        private void SetCountText(int slot, int count)
+        {
+            if (_iconCounts == null || slot < 0 || slot >= _iconCounts.Length || _iconCounts[slot] == null)
+                return;
+            _iconCounts[slot].gameObject.SetActive(count >= 2);
+            _iconCounts[slot].SetText(count >= 2 ? $"x{count}" : string.Empty);
+        }
+
         public void ClearStatusIcons()
         {
+            for (int i = 0; i < _iconCounts.Length; i++)
+            {
+                SetCountText(i, 0);
+            }
             if (_iconSlots != null)
             {
                 foreach (Image slot in _iconSlots)

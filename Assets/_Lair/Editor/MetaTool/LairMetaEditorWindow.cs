@@ -142,6 +142,16 @@ namespace Lair.EditorTools
             }
         }
 
+        //# 비용 단위 표기 — 결제 재화별 (monster-growth-currencies §6.2).
+        private static string CurrencyUnit(ECurrency currency) => currency switch
+        {
+            ECurrency.AwakenStone  => "각성석",
+            ECurrency.MoonSeal     => "달빛 인장",
+            ECurrency.AbyssCrystal => "심연 결정",
+            ECurrency.RelicShard   => "유물 잔해",
+            _                      => "소울",
+        };
+
         //# 가격표 미리보기 — 산식은 MetaEditorCalc(=ShopService.PriceOf) 재사용, 기획서 §3.5 와 동일.
         private static void DrawShopPreview(ShopItemDef item)
         {
@@ -149,7 +159,7 @@ namespace Lair.EditorTools
             string priceLine = string.Join(" / ", rows);
             EditorGUILayout.LabelField($"레벨별 가격 (Lv0→{item.MaxLevel}): {priceLine}", EditorStyles.miniLabel);
             EditorGUILayout.LabelField(
-                $"만렙 배율 ×{MetaEditorCalc.MaxLevelMultiplier(item):F3}  ·  만렙 누적 비용 {MetaEditorCalc.CumulativeMaxCost(item):N0} 소울",
+                $"만렙 배율 ×{MetaEditorCalc.MaxLevelMultiplier(item):F3}  ·  만렙 누적 비용 {MetaEditorCalc.CumulativeMaxCost(item):N0} {CurrencyUnit(item.Currency)}",
                 EditorStyles.miniLabel);
         }
 
@@ -337,7 +347,7 @@ namespace Lair.EditorTools
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 EditorGUILayout.LabelField("합계 대시보드", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField($"상점 전 품목 만렙 총비용: {MetaEditorCalc.TotalShopMaxCost(_config.ShopItems):N0} 소울");
+                EditorGUILayout.LabelField($"상점 소울 품목 만렙 총비용: {MetaEditorCalc.TotalShopMaxCost(_config.ShopItems):N0} 소울");
                 EditorGUILayout.LabelField($"도전과제 보상 합: {MetaEditorCalc.TotalAchievementSouls(_config.Achievements):N0} 소울");
                 EditorGUILayout.LabelField($"영주 보상 합 (잠금 더미 제외): {MetaEditorCalc.TotalLordSouls(_config.LordRewards):N0} 소울");
                 EditorGUILayout.LabelField("회귀 테스트(MetaConfigAssetRegressionTests) 기대값 갱신 참고용", EditorStyles.miniLabel);

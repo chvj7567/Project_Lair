@@ -31,6 +31,7 @@ namespace Lair.Character
             if (_health != null)
             {
                 _health.OnChanged += HandleChanged;
+                _health.OnDodged += HandleDodged;
                 //# Rule 03 §4 — 풀 재사용 시 _lastHp 재캐시 (Health.OnEnable 가 Current 복원 후).
                 _lastHp = _health.Current;
             }
@@ -41,7 +42,10 @@ namespace Lair.Character
         private void OnDisable()
         {
             if (_health != null)
+            {
                 _health.OnChanged -= HandleChanged;
+                _health.OnDodged -= HandleDodged;
+            }
         }
 
         //# 전투 데미지원이 TakeDamage 직전 호출. fresh stamp 를 세워 직후 OnChanged 감소를 전투 데미지로 인정.
@@ -79,6 +83,19 @@ namespace Lair.Character
             }
             _lastHp = current;
         }
+
+        //# 잔상 회피 — 기존 피해 숫자 경로로 "MISS" 1회 (스탬프 소비 — 다음 감소가 이 색을 재사용하지 않게).
+        private void HandleDodged()
+        {
+            _hasFreshStamp = false;
+            IHitFeedbackSpawner sp = _spawner ?? HitFeedbackSpawner.Instance;
+            if (sp == null)
+                return;
+            sp.SpawnTextPopup(ResolvePopupPosition(), MissText, MissColor);
+        }
+
+        private const string MissText = "MISS";
+        private static readonly Color MissColor = new Color32(0xC9, 0xD1, 0xE0, 0xFF);
 
         //# 콜라이더 bounds(world) 상단에서 팝업 시작 — x·z 는 bounds 중심으로 자연스럽게 정렬.
         //# 콜라이더 없으면 transform.position 폴백.

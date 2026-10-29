@@ -71,11 +71,10 @@ namespace Lair.Card
         void ScaleSpawnerPeriodForType(EMonster type, float mul);
 
         //# 카드 "끈질긴 저주" — 영웅 Debuff 축 시한 디버프 지속 보너스(가산) 누적 (monster-growth-currencies §15.3).
-        //# 기본 구현은 무동작 — 기존 테스트 더블이 구현하지 않아도 된다.
-        void AddHeroDebuffDurationBonus(float bonus) { }
+        void AddHeroDebuffDurationBonus(float bonus);
 
-        //# Debuff 시너지 Tier1 — 역병귀 독 최대 중첩 +bonus (§15.2). 기본 구현 무동작.
-        void AddPlagueToxinMaxStack(int bonus) { }
+        //# Debuff 시너지 Tier1 — 역병귀 독 최대 중첩 +bonus (§15.2).
+        void AddPlagueToxinMaxStack(int bonus);
 
         float DeltaTime { get; }
     }
@@ -93,6 +92,12 @@ namespace Lair.Card
     public interface IStatusVisual
     {
         ECardId IconCardId { get; }
+    }
+
+    //# 중첩형 상태 — 상태 아이콘에 "xN" 표시 (monster-growth-currencies §15.1 독 · §3.4 저주 누적).
+    public interface IStackedStatus
+    {
+        int StackCount { get; }
     }
 
     //# Debuff 축 출처 마커 (chapter-5 §1.2) — true 인 aura 만 영웅 패시브 "신앙의 가호"(HeroAuraRunner.ConfigureDebuffResist)가 보정한다.

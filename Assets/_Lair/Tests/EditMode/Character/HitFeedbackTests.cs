@@ -54,6 +54,9 @@ namespace Lair.Tests.Character
         //# IHitFeedbackSpawner 스파이. 팝업/임팩트 스폰 위치도 기록(상단 Y 검증용).
         private class FakeSpawner : IHitFeedbackSpawner
         {
+            public int TextPopupCount;
+            public string LastText;
+            public void SpawnTextPopup(Vector3 pos, string text, Color color) { TextPopupCount++; LastText = text; }
             public int ImpactCount;
             public int PopupCount;
             public int LastAmount;
