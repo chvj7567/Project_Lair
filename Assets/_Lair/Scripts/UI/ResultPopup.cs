@@ -72,6 +72,7 @@ namespace Lair.UI
         public bool ShowSoulsRow;      //# 메타 미할당이면 숨김
         public string SoulsText;       //# "+180" / 특수 재화가 있으면 "+180 소울  +25 각성석" (재화 색 칩)
         public string SoulsLabelText;  //# "소울" / 특수 재화가 있으면 "보상"
+        public List<CurrencyPillData> RewardChips;   //# 특수 재화 획득 판의 칩 [소울, 특수] — 없으면 null (기존 "+180" 텍스트)
         public bool ShowXpRow;
         public string XpText;          //# "+60"
         public bool ShowDifficultyRow;     //# Normal/Hard 판에서만 "난이도" 줄
@@ -152,6 +153,12 @@ namespace Lair.UI
         //# 잔해 아이콘 — 전용 스프라이트가 없으면 소울 코인을 잔해 색으로 물들인 임시 표시(_shardIconTint).
         [SerializeField] private Sprite _shardIcon;
         [SerializeField] private bool _shardIconTint = true;
+        //# 소울 줄 재화 칩 2개 (아이콘 + "+N" + 이름, §8.4). 미배선이면 _soulsText 리치 텍스트로 표시.
+        [SerializeField] private CurrencyPillView[] _rewardChips = new CurrencyPillView[0];
+        [SerializeField] private Sprite _soulIcon;
+        [SerializeField] private Sprite _awakenStoneIcon;
+        [SerializeField] private Sprite _moonSealIcon;
+        [SerializeField] private Sprite _abyssCrystalIcon;
         [SerializeField] private CHButton _retryButton;
         [SerializeField] private CHButton _villageButton;
 
@@ -263,20 +270,25 @@ namespace Lair.UI
                 return rows;
             GrowthDatabase growth = GrowthDatabase.Current;
             StringBuilder sb = new StringBuilder();
+            rows.RewardChips = new List<CurrencyPillData>
+            {
+                new CurrencyPillData { Currency = ECurrency.Soul, AmountText = $"+{arg.SoulsGained}", NameText = rows.SoulsLabelText, ColorHex = GrowthText.CurrencyColorHex(ECurrency.Soul, growth) },
+            };
             sb.Append(Chip($"+{arg.SoulsGained}", GrowthText.CurrencyColorHex(ECurrency.Soul, growth), rows.SoulsLabelText));
             foreach (CurrencyGain gain in arg.CurrencyGains)
             {
                 if (gain.Amount < 1)
                     continue;
-                sb.Append("  ").Append(Chip($"+{gain.Amount}", GrowthText.CurrencyColorHex(gain.Currency, growth),
-                    GrowthText.CurrencyName(gain.Currency, growth, id => LookupString(id, string.Empty))));
+                string name = GrowthText.CurrencyName(gain.Currency, growth, id => LookupString(id, string.Empty));
+                rows.RewardChips.Add(new CurrencyPillData { Currency = gain.Currency, AmountText = $"+{gain.Amount}", NameText = name, ColorHex = GrowthText.CurrencyColorHex(gain.Currency, growth) });
+                sb.Append("  ").Append(Chip($"+{gain.Amount}", GrowthText.CurrencyColorHex(gain.Currency, growth), name));
             }
             rows.SoulsLabelText = LookupString(GrowthStrings.RewardLabel, "보상");
             rows.SoulsText = sb.ToString();
             return rows;
         }
 
-        //# 칩 한 개 = "+N"(재화 색) + 작은 재화 이름. 아이콘 칩은 프리팹 배선 후 교체 대상.
+        //# 칩 위젯 미배선 폴백 — "+N"(재화 색) + 작은 재화 이름 리치 텍스트.
         private static string Chip(string amount, string colorHex, string name)
             => $"<color={colorHex}>{amount}</color> <size=75%>{name}</size>";
 
@@ -402,6 +414,7 @@ namespace Lair.UI
             SetRow(_rowClear, _clearTimeText, rows.ShowClearRow, rows.ClearTimeText);
             SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
             SetText(_soulsLabelText, rows.SoulsLabelText);
+            ApplyRewardChips(rows);
             SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);
             SetRow(_rowHeroHp, _heroHpText, rows.ShowHeroHpRow, rows.HeroHpText);
             SetRow(_rowDifficulty, _difficultyText, rows.ShowDifficultyRow, rows.DifficultyText);
@@ -417,6 +430,38 @@ namespace Lair.UI
             SetRow(_rowRelicMiss, _relicMissText, rows.ShowRelicMissRow, rows.RelicMissText);
             ApplyRelicBand(rows);
         }
+
+        //# 재화 칩 (§8.4) — 위젯이 배선돼 있고 특수 재화 획득이 있으면 칩, 아니면 기존 텍스트.
+        private void ApplyRewardChips(ResultRowsData rows)
+        {
+            bool useChips = rows.ShowSoulsRow && rows.RewardChips != null && _rewardChips.Length > 0;
+            if (_soulsText != null)
+            {
+                _soulsText.gameObject.SetActive(useChips == false);
+            }
+            for (int i = 0; i < _rewardChips.Length; ++i)
+            {
+                if (_rewardChips[i] == null)
+                    continue;
+                CurrencyPillData chip = useChips && i < rows.RewardChips.Count ? rows.RewardChips[i] : null;
+                if (chip != null)
+                {
+                    Sprite own = CurrencyIcon(chip.Currency);
+                    chip.Icon = own != null ? own : _soulIcon;
+                    chip.TintIcon = own == null && chip.Currency != ECurrency.Soul;
+                }
+                _rewardChips[i].Bind(chip);
+            }
+        }
+
+        private Sprite CurrencyIcon(ECurrency currency) => currency switch
+        {
+            ECurrency.Soul         => _soulIcon,
+            ECurrency.AwakenStone  => _awakenStoneIcon,
+            ECurrency.MoonSeal     => _moonSealIcon,
+            ECurrency.AbyssCrystal => _abyssCrystalIcon,
+            _                      => null,
+        };
 
         //# 유물 띠 — 표시 후 슬라이드 인 + 아이콘 팝 연출(EndBattle 후 timeScale 은 1 이지만 연출은 unscaled 시간 기준).
         private void ApplyRelicBand(ResultRowsData rows)

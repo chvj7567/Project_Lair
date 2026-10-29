@@ -90,8 +90,8 @@ namespace Lair.UI
         [SerializeField] private Sprite _awakenStoneIcon;
         [SerializeField] private Sprite _moonSealIcon;
         [SerializeField] private Sprite _abyssCrystalIcon;
-        //# 지갑 — 해금된 특수 재화 잔액. 미할당이면 _soulText 앞에 이어 붙인다.
-        [SerializeField] private CHText _walletText;
+        //# 지갑 알약 112x32 (§8.1) — [각성석, 달빛 인장, 심연 결정] 순, 소울 알약 왼쪽. 해금된 재화만 표시.
+        [SerializeField] private CurrencyPillView[] _walletPills = new CurrencyPillView[0];
 
         private ShopPopupArg _arg;
 
@@ -140,15 +140,23 @@ namespace Lair.UI
         {
             if (_arg == null)
                 return;
-            string wallet = BuildWalletText(_arg.Profile, _arg.Shop, GrowthDatabase.Current, LookupString);
-            if (_walletText != null)
+            CurrencyPillData[] wallet = BuildWalletData(_arg.Profile, _arg.Shop, GrowthDatabase.Current);
+            for (int i = 0; i < _walletPills.Length; ++i)
             {
-                _walletText.SetText(wallet);
+                if (_walletPills[i] == null)
+                    continue;
+                CurrencyPillData pill = i < wallet.Length ? wallet[i] : null;
+                if (pill != null)
+                {
+                    Sprite own = CurrencyIcon(pill.Currency);
+                    pill.Icon = own != null ? own : _soulIcon;
+                    pill.TintIcon = own == null;
+                }
+                _walletPills[i].Bind(pill);
             }
             if (_soulText != null)
             {
-                string souls = $"{_arg.Profile.Souls:N0} 소울";
-                _soulText.SetText(_walletText == null && wallet.Length > 0 ? wallet + "   " + souls : souls);
+                _soulText.SetText($"{_arg.Profile.Souls:N0} 소울");
             }
             if (_bonusSummaryText != null)
             {
@@ -224,25 +232,27 @@ namespace Lair.UI
             return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
         }
 
-        //# 지갑 문구 — 해금된 각성석·달빛 인장·심연 결정 잔액을 재화 색으로 (잔해는 상점에서 쓰지 않아 제외, §8.1). 해금 0 개면 빈 문자열.
-        public static string BuildWalletText(MetaProfile profile, ShopService shop, GrowthDatabase growth, Func<int, string> text)
+        public static readonly ECurrency[] WalletCurrencies = { ECurrency.AwakenStone, ECurrency.MoonSeal, ECurrency.AbyssCrystal };
+
+        //# 지갑 알약 데이터 — WalletCurrencies 와 같은 인덱스, 잠긴 재화는 null(알약 숨김). 잔해는 상점에서 쓰지 않아 제외(§8.1). 아이콘은 Rebuild 가 주입.
+        public static CurrencyPillData[] BuildWalletData(MetaProfile profile, ShopService shop, GrowthDatabase growth)
         {
+            CurrencyPillData[] pills = new CurrencyPillData[WalletCurrencies.Length];
             if (profile == null || shop == null || growth == null)
-                return string.Empty;
-            StringBuilder sb = new StringBuilder();
-            foreach (ECurrency currency in new[] { ECurrency.AwakenStone, ECurrency.MoonSeal, ECurrency.AbyssCrystal })
+                return pills;
+            for (int i = 0; i < WalletCurrencies.Length; ++i)
             {
+                ECurrency currency = WalletCurrencies[i];
                 if (shop.IsCurrencyLocked(currency))
                     continue;
-                if (sb.Length > 0)
+                pills[i] = new CurrencyPillData
                 {
-                    sb.Append("   ");
-                }
-                sb.Append("<color=").Append(GrowthText.CurrencyColorHex(currency, growth)).Append('>')
-                  .Append(profile.GetCurrency(currency).ToString("N0")).Append(' ')
-                  .Append(GrowthText.CurrencyName(currency, growth, text)).Append("</color>");
+                    Currency = currency,
+                    AmountText = profile.GetCurrency(currency).ToString("N0"),
+                    ColorHex = GrowthText.CurrencyColorHex(currency, growth),
+                };
             }
-            return sb.ToString();
+            return pills;
         }
 
         private void HandleBuy(string itemId)
