@@ -160,6 +160,46 @@ namespace Lair.Data
         HeroArchetype_Tower,
         Stage_Tower,
         DailyConfig,               //# 데일리 전역 설정 JSON (단일 객체) — Data/Json/DailyConfig.json (daily-challenge §4.2)
+        //# 몬스터 육성 재화 JSON 10종 (monster-growth-currencies §6) — 값명 = Data/Json/<값명>.json 파일명. append-only.
+        Currency,
+        Currency_Exchange,
+        AwakenStat,
+        NestMastery,
+        NestMastery_Param,
+        MonsterTrait,
+        MonsterTrait_Param,
+        Difficulty_Awaken,
+        Difficulty_TowerCrystal,
+        RelicRarity_Shard,
+    }
+
+    //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.
+    public enum ECurrency
+    {
+        Soul,
+        AwakenStone,
+        MoonSeal,
+        AbyssCrystal,
+        RelicShard,
+    }
+
+    //# 둥지 숙련 단계 효과 — NestMastery.effectKind 값명 (monster-growth-currencies §3.3).
+    public enum ENestMasteryEffect
+    {
+        FirstSpawnAdvance,
+        SpawnPeriod,
+        SpawnGuard,
+    }
+
+    //# 종족 고유 특성 — MonsterTrait.trait 값명 (monster-growth-currencies §3.4).
+    public enum EMonsterTrait
+    {
+        ThornShell,
+        Grudge,
+        Execute,
+        CurseStack,
+        Contagion,
+        Afterimage,
     }
 
     //# 이번 전투가 어떤 모드인가 (infinite-tower §11.3) — 메모리 전용(MetaSession.BattleMode). 일일 도전이 Daily 를 맨 끝에 append 한다.
@@ -321,6 +361,10 @@ namespace Lair.Data
         MonsterStat,     //# 몬스터 전종 글로벌 스탯 배율 (StatKind 지정)
         SpawnerPeriod,   //# 모든 스포너 주기 배율
         MonsterSpecies,  //# 종족(Species) 개별 HP·공격력 배율 (monster-species-enhancement §2)
+        //# 몬스터 육성 3축 (monster-growth-currencies §3.6) — 결제 재화는 ShopItemDef.Currency, 수치는 JSON.
+        MonsterAwaken,   //# 각성 — AwakenStat 의 종족 역할 스탯 배율
+        NestMastery,     //# 둥지 — NestMastery_Param 의 단계 누적 효과
+        MonsterTrait,    //# 특성 — MonsterTrait_Param 의 (종족, 단계) 수치
     }
 
     //# v0.2 마을 — 고정 도전과제 판정 조건 종류 (기획서 §5, RunSummary 데이터만으로 판정).

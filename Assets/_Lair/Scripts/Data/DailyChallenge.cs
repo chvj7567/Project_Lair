@@ -19,6 +19,9 @@ namespace Lair.Data
         public float streakBonusPerDay;
         public int streakBonusMaxDays;
         public int leaderboardTop;
+        //# 달빛 인장 (monster-growth-currencies §2.2) — 판 종료분 / 그날 첫 승리 추가분. 연속 배율은 streakBonus* 재사용.
+        public int sealPerFinish;
+        public int sealFirstWin;
     }
 
     //# 규칙 프리셋 하나 = 기존 Stage_Rule 행 하나 (chapterId, stageIndex, ruleIndex) + 그 파라미터·트리거 (§2.5). 신규 수치 0.
@@ -150,6 +153,10 @@ namespace Lair.Data
             if (c.commonRelicStack < 1 || c.rareRelicStack < 1)
             {
                 errors.Add("DailyConfig 오늘의 유물 중첩은 1 이상이어야 함");
+            }
+            if (c.sealPerFinish < 0 || c.sealFirstWin < 0)
+            {
+                errors.Add("DailyConfig sealPerFinish/sealFirstWin 은 0 이상이어야 함");
             }
             if (c.firstWinSouls < 0)
             {

@@ -62,6 +62,7 @@ namespace Lair.Battle
                 await LoadFormationAsync(db);
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
+                await LoadGrowthAsync();
                 return db;
             }
             catch (ChapterDataException e)
@@ -240,6 +241,38 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 데일리 기능 비활성");
                 DailyDatabase.Current = null;
+            }
+        }
+
+        //# 몬스터 육성 재화 JSON — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 육성 재화 비활성(지급·효과·잔해 변환 없음, 보유 재화·레벨 보존) — monster-growth-currencies §6.3-8.
+        //# 축별 JSON(각성·둥지·특성·잔해)은 슬라이스마다 붙는다 — 없으면 null 로 넘겨 그 축만 꺼진다.
+        private static async Task LoadGrowthAsync()
+        {
+            GrowthDatabase.Current = null;
+            string currencyJson = await LoadTextAsync(EData.Currency);
+            string exchangeJson = await LoadTextAsync(EData.Currency_Exchange);
+            string awakenRewardJson = await LoadTextAsync(EData.Difficulty_Awaken);
+            string crystalJson = await LoadTextAsync(EData.Difficulty_TowerCrystal);
+            if (currencyJson == null || exchangeJson == null || awakenRewardJson == null || crystalJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 육성 재화 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 육성 재화 기능 비활성");
+                return;
+            }
+            try
+            {
+                GrowthDataSet set = new GrowthDataSet
+                {
+                    Currencies = JsonArrayUtility.FromJsonArray<CurrencyRow>(currencyJson),
+                    Exchanges = JsonArrayUtility.FromJsonArray<Currency_ExchangeRow>(exchangeJson),
+                    DifficultyAwakens = JsonArrayUtility.FromJsonArray<Difficulty_AwakenRow>(awakenRewardJson),
+                    TowerCrystals = JsonArrayUtility.FromJsonArray<Difficulty_TowerCrystalRow>(crystalJson),
+                };
+                GrowthDatabase.Current = GrowthDatabase.Build(set, DifficultyTable.CurrentMaxIndex, NameKeyExists);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 육성 재화 기능 비활성");
+                GrowthDatabase.Current = null;
             }
         }
 

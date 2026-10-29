@@ -151,6 +151,10 @@ namespace Lair.Data
             {
                 errors.Add("TowerConfig 는 1 <= relicNormalFromFloor <= relicHardFromFloor 이어야 함");
             }
+            if (c.crystalMilestoneEvery < 0 || c.crystalMilestoneBonus < 0)
+            {
+                errors.Add("TowerConfig crystalMilestoneEvery/crystalMilestoneBonus 는 0 이상이어야 함");
+            }
             if (c.previewFloors < 0)
             {
                 errors.Add("TowerConfig previewFloors 는 0 이상이어야 함");

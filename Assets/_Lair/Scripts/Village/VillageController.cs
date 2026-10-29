@@ -63,6 +63,8 @@ namespace Lair.Village
                 MetaSession.Store?.Save(profile);
             }
 
+            SettleRetroactiveCurrencies(profile);
+
             //# 클라우드 연동 보장(best-effort) — 실패해도 마을은 정상 동작(기획서 §6 무음).
             await MetaSession.EnsureNetworkAsync();
 
@@ -82,6 +84,22 @@ namespace Lair.Village
             if (hud == null)
             {
                 Debug.LogError("[VillageController] VillageHud 표시 실패(프리팹 로드/캔버스 확보 불가)");
+            }
+        }
+
+        //# 소급 정산 (monster-growth-currencies §7.2-2) — 업데이트 이전 Normal/Hard·탑 기록분을 재화별 토스트 1회와 함께 지급. 멱등(지급 기록 비교).
+        private static void SettleRetroactiveCurrencies(MetaProfile profile)
+        {
+            GrowthDatabase growth = GrowthDatabase.Current;
+            if (growth == null)
+                return;
+            List<CurrencyGain> gains = CurrencySettlement.SettleRetroactive(profile, growth, TowerDatabase.Current, DifficultyTable.CurrentMaxIndex);
+            if (gains.Count == 0)
+                return;
+            MetaSession.Store?.Save(profile);
+            foreach (CurrencyGain gain in gains)
+            {
+                ToastView.Show(string.Format(LookupString(GrowthStrings.RetroReward), GrowthText.CurrencyName(gain.Currency, growth, LookupString), gain.Amount));
             }
         }
 

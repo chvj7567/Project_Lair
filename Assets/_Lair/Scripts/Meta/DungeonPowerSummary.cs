@@ -26,6 +26,9 @@ namespace Lair.Meta
             {
                 if (item == null || string.IsNullOrEmpty(item.Id))
                     continue;
+                //# 전종 강화만 집계 — 종족·육성 3축 항목은 StatKind 기본값(Hp)이라 거르지 않으면 HP 줄에 섞인다(monster-growth-currencies §11.6).
+                if (item.EffectKind != EShopEffectKind.MonsterStat && item.EffectKind != EShopEffectKind.SpawnerPeriod)
+                    continue;
                 if (profile.GetShopLevel(item.Id) <= 0)
                     continue;
 

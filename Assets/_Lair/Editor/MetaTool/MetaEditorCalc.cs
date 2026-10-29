@@ -42,7 +42,8 @@ namespace Lair.EditorTools
             int total = 0;
             foreach (ShopItemDef def in items)
             {
-                if (def == null)
+                //# 소울 항목만 — 특수 재화 축(각성·둥지·특성)은 별도 지표(monster-growth-currencies §11.6).
+                if (def == null || def.Currency != ECurrency.Soul)
                     continue;
                 total += CumulativeMaxCost(def);
             }

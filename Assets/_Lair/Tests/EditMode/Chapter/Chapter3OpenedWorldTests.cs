@@ -503,8 +503,8 @@ namespace Lair.Tests.EditMode
 
         //# ===== 마이그레이션 방어 =====
 
-        [TestCase(11)]
         [TestCase(12)]
+        [TestCase(13)]
         public void 현재_버전_이상_세이브는_챕터_데이터_로드_전에는_진행_범위를_자르지_않는다(int version)
         {
             MetaProfile p = new MetaProfile { Version = version, ClearedStage = 99, SelectedStage = 88, SelectedHero = "Archer" };
@@ -543,7 +543,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(11, p.Version);
+            Assert.AreEqual(12, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
             Assert.AreEqual(10, p.SelectedStage);
             Assert.AreEqual(1, p.StageRecords.Count);

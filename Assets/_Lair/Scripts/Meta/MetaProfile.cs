@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Lair.Battle;
+using Lair.Data;
 
 namespace Lair.Meta
 {
@@ -9,7 +10,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 11;
+        public int Version = 12;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -52,6 +53,8 @@ namespace Lair.Meta
         public List<DailyResultEntry> DailyResults = new List<DailyResultEntry>();
         //# 마지막으로 기록된 연속 참가 일수. 0 = 연속 0일이라는 실제 값.
         public int DailyStreak;
+        //# 몬스터 육성 재화(v12, monster-growth-currencies §7.1) — 한 번이라도 얻은 특수 재화만 행 존재(TotalEarned >= 1). 소울은 Souls 그대로(행 없음).
+        public List<CurrencyEntry> Currencies = new List<CurrencyEntry>();
         //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
         public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
@@ -200,6 +203,86 @@ namespace Lair.Meta
             }
             Relics.Add(new RelicEntry { RelicId = relicId, Stack = 1 });
             return 1;
+        }
+
+        //# 첫 클리어 각성석을 받은 최고 난이도 — 행 없으면 0(조회는 부수효과 0).
+        public int GetAwakenPaid(int stage)
+        {
+            if (DifficultyClears == null)
+                return 0;
+            foreach (DifficultyClearEntry entry in DifficultyClears)
+            {
+                if (entry != null && entry.Stage == stage)
+                    return entry.AwakenPaid;
+            }
+            return 0;
+        }
+
+        //# 특수 재화 잔액 — 소울이면 Souls, 그 외 행 없으면 0. 조회는 부수효과 0.
+        public int GetCurrency(ECurrency currency)
+        {
+            if (currency == ECurrency.Soul)
+                return Souls;
+            CurrencyEntry entry = FindCurrency(currency);
+            return entry != null ? entry.Amount : 0;
+        }
+
+        //# 누적 획득 — 소울은 집계하지 않아 0. 잔해 해금 판정(TotalEarned >= 1)에 쓴다.
+        public int GetCurrencyTotalEarned(ECurrency currency)
+        {
+            CurrencyEntry entry = currency == ECurrency.Soul ? null : FindCurrency(currency);
+            return entry != null ? entry.TotalEarned : 0;
+        }
+
+        //# 재화 가산 — amount 1 이상만. 특수 재화는 TotalEarned 도 함께 올린다.
+        public void AddCurrency(ECurrency currency, int amount)
+        {
+            if (amount < 1)
+                return;
+            if (currency == ECurrency.Soul)
+            {
+                Souls += amount;
+                return;
+            }
+            CurrencyEntry entry = FindCurrency(currency);
+            if (entry == null)
+            {
+                Currencies.Add(new CurrencyEntry { CurrencyId = currency.ToString(), Amount = amount, TotalEarned = amount });
+                return;
+            }
+            entry.Amount += amount;
+            entry.TotalEarned += amount;
+        }
+
+        //# 재화 차감 — 잔액이 모자라면 아무것도 바꾸지 않고 false. amount 0 이하는 성공(변화 없음).
+        public bool TrySpendCurrency(ECurrency currency, int amount)
+        {
+            if (amount <= 0)
+                return true;
+            if (GetCurrency(currency) < amount)
+                return false;
+            if (currency == ECurrency.Soul)
+            {
+                Souls -= amount;
+                return true;
+            }
+            FindCurrency(currency).Amount -= amount;
+            return true;
+        }
+
+        private CurrencyEntry FindCurrency(ECurrency currency)
+        {
+            if (Currencies == null)
+            {
+                Currencies = new List<CurrencyEntry>();
+            }
+            string id = currency.ToString();
+            foreach (CurrencyEntry entry in Currencies)
+            {
+                if (entry != null && entry.CurrencyId == id)
+                    return entry;
+            }
+            return null;
         }
 
         //# 탑 최고 클리어 층 — 빈 리스트면 0. 도전 층 = 최고 층 + 1 (층 구멍은 보정하지 않는다, infinite-tower E-7). 조회는 부수효과 0.
@@ -534,6 +617,20 @@ namespace Lair.Meta
             DailyDays = CopyDailyDays(other.DailyDays);
             DailyResults = CopyDailyResults(other.DailyResults);
             DailyStreak = other.DailyStreak;
+            //# 특수 재화 — 빠뜨리면 복원 시 재화 전부 유실(§7.4). 행은 새 인스턴스로.
+            Currencies = CopyCurrencies(other.Currencies);
+        }
+
+        private static List<CurrencyEntry> CopyCurrencies(List<CurrencyEntry> source)
+        {
+            List<CurrencyEntry> copy = new List<CurrencyEntry>();
+            if (source == null)
+                return copy;
+            foreach (CurrencyEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new CurrencyEntry { CurrencyId = entry.CurrencyId, Amount = entry.Amount, TotalEarned = entry.TotalEarned });
+            }
+            return copy;
         }
 
         //# 데일리 행 복사 — null 이면 빈 리스트, 행은 새 인스턴스로(원본 공유 방지). 복원 전 로컬 스냅샷에도 쓴다.
@@ -569,7 +666,7 @@ namespace Lair.Meta
                 return copy;
             foreach (TowerFloorClearEntry entry in source)
             {
-                copy.Add(entry == null ? null : new TowerFloorClearEntry { Floor = entry.Floor, ClearTime = entry.ClearTime });
+                copy.Add(entry == null ? null : new TowerFloorClearEntry { Floor = entry.Floor, ClearTime = entry.ClearTime, CrystalPaid = entry.CrystalPaid });
             }
             return copy;
         }
@@ -644,6 +741,17 @@ namespace Lair.Meta
     {
         public int Stage;            //# 선형 스테이지 번호 1~MaxStage
         public int MaxDifficulty;    //# 클리어한 최고 난이도 인덱스 (>= 1)
+        //# 첫 클리어 각성석을 받은 최고 난이도 (v12). 불변식 0 <= AwakenPaid <= MaxDifficulty. 0 = 받은 것 없음(Easy 는 지급 대상 아님).
+        public int AwakenPaid;
+    }
+
+    //# 특수 재화 하나의 잔액 — 한 번이라도 얻은 재화만 행 존재. JsonUtility 직렬화 대상 (monster-growth-currencies §7.1).
+    [Serializable]
+    public class CurrencyEntry
+    {
+        public string CurrencyId;    //# ECurrency 값명 (Soul 제외), PK
+        public int Amount;           //# 현재 잔액. 불변식 >= 0
+        public int TotalEarned;      //# 누적 획득. 불변식 >= 1, >= Amount
     }
 
     //# 보유 유물 하나 — 보유한 유물만 행 존재(Stack >= 1). JsonUtility 직렬화 대상.
@@ -668,6 +776,7 @@ namespace Lair.Meta
     {
         public int Floor;        //# 1 이상, PK
         public float ClearTime;  //# 그 층 클리어 시간(게임초). 불변식 > 0
+        public bool CrystalPaid; //# 그 층 심연 결정 지급 여부 (v12). 필드 부재(구버전) = false → 정산 함수가 소급
     }
 
     //# 데일리 도전을 시작한 날 하나 — 시작한 날만 행 존재. JsonUtility 직렬화 대상.

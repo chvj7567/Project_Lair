@@ -1665,6 +1665,7 @@ namespace Lair.Battle
             RelicDropResult relicDrop = new RelicDropResult { Outcome = ERelicDropOutcome.NoCandidates };
             List<AchievementDef> newlyAchieved = new List<AchievementDef>();
             DailyEndResult dailyEnd = new DailyEndResult { Multiplier = 1m };
+            List<CurrencyGain> currencyGains = new List<CurrencyGain>();
             if (_metaConfig != null)
             {
                 MetaProfile profile = MetaSession.GetOrLoad();
@@ -1680,6 +1681,8 @@ namespace Lair.Battle
                 //# 탑 분기는 easyRun(_effectiveDifficulty == 0 이라 탑에서도 참)·IsNewStageBest·RecordStageRun 계산보다 "먼저" 갈라야 한다 —
                 //# 아니면 챕터 최단 기록·전역/스테이지 랭킹·ClearedStage·StageRecords 가 오염된다 (infinite-tower §8.1).
                 //# 데일리도 같은 이유로 먼저 가른다 — 챕터 진행·스테이지 기록·랭킹·탑·난이도 해금을 건드리지 않는다 (daily-challenge §10.1).
+                //# 각성석 첫 클리어/반복 판정은 기록 갱신 "전" 지급 기록으로 가른다(monster-growth-currencies §2.1).
+                int awakenPaidBefore = profile.GetAwakenPaid(profile.SelectedStage);
                 if (_spec.IsTower)
                 {
                     RecordTowerResult(profile, result);
@@ -1692,6 +1695,8 @@ namespace Lair.Battle
                 {
                     RecordChapterResult(profile, result, out isNewBest, out newlyUnlockedDifficulty);
                 }
+                //# 재화 정산 (§11.6 순서: 기록 갱신 → 재화 → 유물 굴림 → 저장) — 모드별 배타(챕터 = 각성석, 데일리 = 인장, 탑 = 결정).
+                currencyGains = SettleBattleCurrencies(profile, result, dailyEnd, awakenPaidBefore);
 
                 //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 미할당 씬/테스트에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
                 //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 데일리는 평소 굴림 없이 그날 첫 승리에만 1개 확정(§7.1, RelicMissStreak 불변).
@@ -1775,6 +1780,7 @@ namespace Lair.Battle
                 DailyStreak = dailyEnd.Record.Streak,
                 DailyStreakMultiplier = dailyEnd.Multiplier,
                 OnDailyRetry = _spec.IsDaily ? TryDailyRetry : (System.Func<bool>)null,
+                CurrencyGains = currencyGains,
             });
 
             //# 데일리 순위 — 결과창을 먼저 띄우고("순위 집계 중") 제출·조회는 비동기로 이어서 갱신한다(§9.4). 끝낸 판이 기록됐을 때만.
@@ -1782,6 +1788,37 @@ namespace Lair.Battle
             {
                 SubmitDailyRank(resultUI as ResultPopup, dailyEnd.Record.BestScore);
             }
+        }
+
+        //# 이번 판 특수 재화 지급 (monster-growth-currencies §2) — 육성 데이터 미로드면 지급 없음(§6.3-8). 반환 = 결과창 칩 입력.
+        private List<CurrencyGain> SettleBattleCurrencies(MetaProfile profile, BattleResult result, DailyEndResult dailyEnd, int awakenPaidBefore)
+        {
+            List<CurrencyGain> gains = new List<CurrencyGain>();
+            GrowthDatabase growth = GrowthDatabase.Current;
+            if (growth == null)
+                return gains;
+            if (_spec.IsDaily)
+            {
+                DailyDatabase daily = DailyDatabase.Current;
+                if (dailyEnd.Recorded && daily != null)
+                {
+                    int seals = CurrencySettlement.DailySeals(dailyEnd.Record.IsFirstWin, dailyEnd.Record.Streak, daily.Config);
+                    profile.AddCurrency(ECurrency.MoonSeal, seals);
+                    CurrencySettlement.AddGain(gains, ECurrency.MoonSeal, seals);
+                }
+                return gains;
+            }
+            if (result != BattleResult.Win)
+                return gains;
+            if (_spec.IsTower)
+            {
+                CurrencySettlement.AddGain(gains, ECurrency.AbyssCrystal,
+                    CurrencySettlement.SettleTowerCrystals(profile, growth, TowerDatabase.Current, DifficultyTable.CurrentMaxIndex));
+                return gains;
+            }
+            CurrencySettlement.AddGain(gains, ECurrency.AwakenStone,
+                CurrencySettlement.SettleChapterWin(profile, growth, _effectiveDifficulty, awakenPaidBefore));
+            return gains;
         }
 
         //# 데일리 판 종료 정산 결과 — 결과창·순위 제출 입력.

@@ -52,6 +52,8 @@ namespace Lair.Data
         public int MaxLevel = 5;
         public int BasePrice = 50;
         public float PriceGrowth = 1.6f;   //# 레벨당 가격 배율 (floor)
+        //# 결제 재화 (monster-growth-currencies §6.2, 필수 1:1). 기본 Soul(enum 0) — 기존 항목은 에셋 재저장 없이 호환.
+        public ECurrency Currency = ECurrency.Soul;
     }
 
     [Serializable]

@@ -37,6 +37,32 @@ namespace Lair.UI
         public int Level;                 //# 발광 프레임 밝기 계산용 (현재 레벨)
         public int MaxLevel;              //# 발광 프레임 밝기 정규화 분모
         public Sprite Icon;               //# 종족 아이콘 — ShopPopup.Rebuild 가 인스펙터 스프라이트 주입 (BuildCellData 는 미설정)
+
+        //# 종족 행 4칸 (monster-growth-currencies §8.1) — [체급, 각성, 둥지, 특성]. 종족 행에서만 non-null. 항목이 없는 축은 IsAvailable=false.
+        public ShopAxisSlotData[] Slots;
+        public string SpeciesName;
+        public Action<ShopAxisSlotData> OnSlotClick;   //# 칸 클릭 → 팝업 핸들러 (구매·부족·잠김 토스트 분기)
+    }
+
+    //# 종족 행의 육성 칸 하나 표시 데이터 — BuildCellData 가 가공, 아이콘은 Rebuild 가 주입.
+    public class ShopAxisSlotData
+    {
+        public string AxisName;
+        public bool IsAvailable;          //# 이 축의 상점 항목이 있는가 (없으면 잠긴 칸으로 표시)
+        public string ItemId;
+        public ECurrency Currency;
+        public string CurrencyName;
+        public string ColorHex;
+        public string EffectText;
+        public int Level;
+        public int MaxLevel;
+        public int Price;                 //# 만렙이면 0
+        public bool IsMax;
+        public bool CanBuy;               //# 만렙 아님 + 해금 + 재화 충분
+        public bool IsLocked;             //# 재화 미해금 (또는 항목·육성 데이터 없음)
+        public string LockText;           //# "1-1 클리어 시 해금" — 데이터가 없으면 빈 문자열
+        public Sprite CurrencyIcon;
+        public bool TintIcon;             //# 전용 아이콘이 없어 소울 코인을 재화 색으로 물들인 임시 표시
     }
 
     //# 소울 상점 — 레벨제 영구 업그레이드 단일 스크롤 + 섹션 헤더 (기획서 §1). 탭 제거.
@@ -58,6 +84,14 @@ namespace Lair.UI
         [SerializeField] private Sprite _hexIcon;
         [SerializeField] private Sprite _plagueIcon;
         [SerializeField] private Sprite _phantomIcon;
+
+        //# 재화 아이콘 (monster-growth-currencies §11.4) — 전용 스프라이트 미할당이면 소울 코인을 재화 색으로 물들여 쓴다.
+        [SerializeField] private Sprite _soulIcon;
+        [SerializeField] private Sprite _awakenStoneIcon;
+        [SerializeField] private Sprite _moonSealIcon;
+        [SerializeField] private Sprite _abyssCrystalIcon;
+        //# 지갑 — 해금된 특수 재화 잔액. 미할당이면 _soulText 앞에 이어 붙인다.
+        [SerializeField] private CHText _walletText;
 
         private ShopPopupArg _arg;
 
@@ -106,21 +140,36 @@ namespace Lair.UI
         {
             if (_arg == null)
                 return;
+            string wallet = BuildWalletText(_arg.Profile, _arg.Shop, GrowthDatabase.Current, LookupString);
+            if (_walletText != null)
+            {
+                _walletText.SetText(wallet);
+            }
             if (_soulText != null)
             {
-                _soulText.SetText($"{_arg.Profile.Souls:N0} 소울");
+                string souls = $"{_arg.Profile.Souls:N0} 소울";
+                _soulText.SetText(_walletText == null && wallet.Length > 0 ? wallet + "   " + souls : souls);
             }
             if (_bonusSummaryText != null)
             {
                 _bonusSummaryText.SetText(BuildSummaryText(_arg.Profile, _arg.Config));
             }
 
-            List<ShopItemCellData> data = BuildCellData(_arg.Profile, _arg.Config);
+            List<ShopItemCellData> data = BuildCellData(_arg.Profile, _arg.Config, _arg.Shop, GrowthDatabase.Current, LookupString);
             foreach (ShopItemCellData cell in data)
             {
                 cell.OnBuy = HandleBuy;
+                cell.OnSlotClick = HandleSlotClick;
                 //# 아이콘 주입 — BuildCellData 는 Sprite 의존 없이 순수 데이터만 채우므로 여기서 인스펙터 스프라이트 주입(§5.3).
                 cell.Icon = SpeciesIcon(cell.Species);
+                if (cell.Slots == null)
+                    continue;
+                foreach (ShopAxisSlotData slot in cell.Slots)
+                {
+                    Sprite own = CurrencyIcon(slot.Currency);
+                    slot.CurrencyIcon = own != null ? own : _soulIcon;
+                    slot.TintIcon = own == null && slot.Currency != ECurrency.Soul;
+                }
             }
             if (_scrollView != null)
             {
@@ -139,6 +188,62 @@ namespace Lair.UI
             EMonster.Phantom => _phantomIcon,
             _                => null,
         };
+
+        private Sprite CurrencyIcon(ECurrency currency) => currency switch
+        {
+            ECurrency.Soul         => _soulIcon,
+            ECurrency.AwakenStone  => _awakenStoneIcon,
+            ECurrency.MoonSeal     => _moonSealIcon,
+            ECurrency.AbyssCrystal => _abyssCrystalIcon,
+            _                      => null,
+        };
+
+        //# 칸 클릭 (§8.1 칸 상태 표) — 구매 가능 = 1탭 구매 / 재화 부족 = 1482 / 잠김 = 1331 / 만렙·항목 없음 = 무반응.
+        private void HandleSlotClick(ShopAxisSlotData slot)
+        {
+            if (slot == null || slot.IsAvailable == false || slot.IsMax)
+                return;
+            if (slot.IsLocked)
+            {
+                if (string.IsNullOrEmpty(slot.LockText) == false)
+                {
+                    ToastView.Show(slot.LockText, EToastKind.Warning);
+                }
+                return;
+            }
+            if (slot.CanBuy == false)
+            {
+                ToastView.Show(string.Format(LookupString(GrowthStrings.CurrencyShort), slot.CurrencyName), EToastKind.Warning);
+                return;
+            }
+            HandleBuy(slot.ItemId);
+        }
+
+        private static string LookupString(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
+        //# 지갑 문구 — 해금된 각성석·달빛 인장·심연 결정 잔액을 재화 색으로 (잔해는 상점에서 쓰지 않아 제외, §8.1). 해금 0 개면 빈 문자열.
+        public static string BuildWalletText(MetaProfile profile, ShopService shop, GrowthDatabase growth, Func<int, string> text)
+        {
+            if (profile == null || shop == null || growth == null)
+                return string.Empty;
+            StringBuilder sb = new StringBuilder();
+            foreach (ECurrency currency in new[] { ECurrency.AwakenStone, ECurrency.MoonSeal, ECurrency.AbyssCrystal })
+            {
+                if (shop.IsCurrencyLocked(currency))
+                    continue;
+                if (sb.Length > 0)
+                {
+                    sb.Append("   ");
+                }
+                sb.Append("<color=").Append(GrowthText.CurrencyColorHex(currency, growth)).Append('>')
+                  .Append(profile.GetCurrency(currency).ToString("N0")).Append(' ')
+                  .Append(GrowthText.CurrencyName(currency, growth, text)).Append("</color>");
+            }
+            return sb.ToString();
+        }
 
         private void HandleBuy(string itemId)
         {
@@ -181,34 +286,110 @@ namespace Lair.UI
         //# 데이터 가공 — 단일 스크롤 통합 리스트: [스탯 헤더 + 스탯 항목 + 몬스터 헤더 + 종족 항목] (기획서 §1·7).
         //# 빈 섹션은 헤더도 제외(§5). Icon 은 미설정(Rebuild 가 주입).
         public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)
+            => BuildCellData(profile, cfg, null, GrowthDatabase.Current, null);
+
+        //# shop 이 null 이면 기본 해금 규칙의 ShopService 로 칸 잠김을 판정한다. text 는 칸 문구용(null 이면 축 이름 기본값).
+        public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, ShopService shop, GrowthDatabase growth, Func<int, string> text)
         {
             List<ShopItemCellData> list = new List<ShopItemCellData>();
             if (profile == null || cfg == null)
                 return list;
+            ShopService service = shop ?? new ShopService(profile, cfg);
 
-            //# 스탯 강화 섹션 (전종 글로벌: MonsterStat/SpawnerPeriod) → 몬스터 강화 섹션 (MonsterSpecies).
-            AppendSection(list, cfg, profile, "스탯 강화", isSpecies: false);
-            AppendSection(list, cfg, profile, "몬스터 강화", isSpecies: true);
+            //# 스탯 강화 섹션 (전종 글로벌: MonsterStat/SpawnerPeriod) → 몬스터 강화 섹션 (종족 1행 = 체급 항목 + 같은 종족 육성 3칸).
+            AppendSection(list, cfg, profile, "스탯 강화", false, service, growth, text);
+            AppendSection(list, cfg, profile, "몬스터 강화", true, service, growth, text);
             return list;
         }
 
         //# 섹션 항목을 먼저 모아 1개 이상일 때만 [헤더 + 항목들] append — 빈 섹션 헤더 제외 (기획서 §5).
-        private static void AppendSection(List<ShopItemCellData> list, MetaConfig cfg, MetaProfile profile, string headerText, bool isSpecies)
+        //# 육성 3축 항목(MonsterAwaken/NestMastery/MonsterTrait)은 독립 행을 만들지 않고 같은 종족 체급 행의 칸으로 묶인다(§11.6).
+        private static void AppendSection(List<ShopItemCellData> list, MetaConfig cfg, MetaProfile profile, string headerText, bool isSpecies,
+            ShopService shop, GrowthDatabase growth, Func<int, string> text)
         {
             List<ShopItemCellData> items = new List<ShopItemCellData>();
             foreach (ShopItemDef def in cfg.ShopItems)
             {
                 if (def == null || string.IsNullOrEmpty(def.Id))
                     continue;
-                bool species = def.EffectKind == EShopEffectKind.MonsterSpecies;
-                if (species != isSpecies)
+                if (isSpecies == false)
+                {
+                    if (def.EffectKind == EShopEffectKind.MonsterStat || def.EffectKind == EShopEffectKind.SpawnerPeriod)
+                    {
+                        items.Add(MakeCell(def, profile));
+                    }
                     continue;
-                items.Add(MakeCell(def, profile));
+                }
+                if (def.EffectKind != EShopEffectKind.MonsterSpecies)
+                    continue;
+                ShopItemCellData cell = MakeCell(def, profile);
+                cell.SpeciesName = SpeciesVisual.SpeciesName(def.Species);
+                cell.Slots = new[]
+                {
+                    MakeSlot(def, GrowthStrings.AxisBody, "체급", profile, shop, growth, text),
+                    MakeSlot(FindAxisItem(cfg, EShopEffectKind.MonsterAwaken, def.Species), GrowthStrings.AxisAwaken, "각성", profile, shop, growth, text),
+                    MakeSlot(FindAxisItem(cfg, EShopEffectKind.NestMastery, def.Species), GrowthStrings.AxisNest, "둥지", profile, shop, growth, text),
+                    MakeSlot(FindAxisItem(cfg, EShopEffectKind.MonsterTrait, def.Species), GrowthStrings.AxisTrait, "특성", profile, shop, growth, text),
+                };
+                items.Add(cell);
             }
             if (items.Count == 0)
                 return;
             list.Add(new ShopItemCellData { RowKind = ShopRowKind.SectionHeader, HeaderText = headerText });
             list.AddRange(items);
+        }
+
+        private static ShopItemDef FindAxisItem(MetaConfig cfg, EShopEffectKind kind, EMonster species)
+        {
+            foreach (ShopItemDef def in cfg.ShopItems)
+            {
+                if (def != null && def.EffectKind == kind && def.Species == species && string.IsNullOrEmpty(def.Id) == false)
+                    return def;
+            }
+            return null;
+        }
+
+        //# 칸 하나 조립 — 항목이 없으면 IsAvailable=false + 잠김 표시. 칸 문구: 체급·각성 = Description, 둥지 = 다음 단계 효과, 특성 = 이름 + 단계 값.
+        private static ShopAxisSlotData MakeSlot(ShopItemDef def, int axisNameId, string axisFallback, MetaProfile profile,
+            ShopService shop, GrowthDatabase growth, Func<int, string> text)
+        {
+            string axisName = text != null ? text(axisNameId) : null;
+            ShopAxisSlotData slot = new ShopAxisSlotData { AxisName = string.IsNullOrEmpty(axisName) ? axisFallback : axisName };
+            if (def == null)
+            {
+                slot.IsLocked = true;
+                slot.LockText = string.Empty;
+                return slot;
+            }
+            int level = profile.GetShopLevel(def.Id);
+            bool isMax = level >= def.MaxLevel;
+            int price = isMax ? 0 : ShopService.PriceOf(def, level);
+            bool locked = shop.IsCurrencyLocked(def.Currency);
+            slot.IsAvailable = true;
+            slot.ItemId = def.Id;
+            slot.Currency = def.Currency;
+            slot.CurrencyName = GrowthText.CurrencyName(def.Currency, growth, text);
+            slot.ColorHex = growth == null && def.Currency == ECurrency.Soul ? "#5ef0b4" : GrowthText.CurrencyColorHex(def.Currency, growth);
+            slot.Level = Mathf.Min(level, def.MaxLevel);
+            slot.MaxLevel = def.MaxLevel;
+            slot.Price = price;
+            slot.IsMax = isMax;
+            slot.IsLocked = locked;
+            slot.LockText = locked ? GrowthText.UnlockText(def.Currency, text) : string.Empty;
+            slot.CanBuy = isMax == false && locked == false && profile.GetCurrency(def.Currency) >= price;
+            switch (def.EffectKind)
+            {
+                case EShopEffectKind.NestMastery:
+                    slot.EffectText = GrowthText.NestSlotText(level, growth, text);
+                    break;
+                case EShopEffectKind.MonsterTrait:
+                    slot.EffectText = GrowthText.TraitSlotText(def.Species, level, growth, text);
+                    break;
+                default:
+                    slot.EffectText = def.Description;
+                    break;
+            }
+            return slot;
         }
 
         //# 셀 표시 데이터 조립 단일 진실. Species/Level/MaxLevel 은 채우되 Icon 은 Rebuild 가 주입(§5.3).

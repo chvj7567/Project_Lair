@@ -11,7 +11,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();
             //# 스키마 버전 6 = 챕터 3 추가(진행 범위 0~15, chapter-3-hero §7.3; 5 = 챕터 구조 chapter-system §2.2).
-            Assert.AreEqual(11, p.Version);
+            Assert.AreEqual(12, p.Version);
             Assert.AreEqual(0, p.Souls);
             Assert.AreEqual(0, p.LordXp);
             //# 영주 보상 멱등 가드 초기값 1 (기획서 §4.4 / §11.3 [추가 1]).

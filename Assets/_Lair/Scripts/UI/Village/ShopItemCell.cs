@@ -41,6 +41,13 @@ namespace Lair.UI
         [SerializeField] private GameObject _itemDecor;
         [SerializeField] private Image[] _stateTinted = new Image[0];
 
+        //# 종족 행 4칸 그룹 (monster-growth-currencies §8.1) — 머리 + 칸 4개. 미배선이면 종족 행도 단일 항목으로 표시.
+        [SerializeField] private GameObject _speciesRow;
+        [SerializeField] private Image _speciesHeadIcon;
+        [SerializeField] private Image _speciesHeadGlow;
+        [SerializeField] private CHText _speciesHeadName;
+        [SerializeField] private ShopAxisSlotView[] _axisSlots = new ShopAxisSlotView[0];
+
         //# 텍스트 블록 왼쪽 여백 — 아이콘 슬롯이 있을 때 / 없을 때.
         private const float TextLeftWithIcon = 96f;
         private const float TextLeftNoIcon = 20f;
@@ -65,8 +72,14 @@ namespace Lair.UI
             _data = data;
 
             bool isHeader = data.RowKind == ShopPopup.ShopRowKind.SectionHeader;
+            //# 종족 행 4칸 — 칸 위젯이 배선된 프리팹에서만. 미배선이면 기존 단일 항목(체급) 표시로 폴백(monster-growth-currencies §8.1).
+            bool speciesRow = isHeader == false && data.Slots != null && _speciesRow != null && _axisSlots.Length >= data.Slots.Length;
             SetHeaderWidgetsActive(isHeader);
-            SetItemWidgetsActive(isHeader == false);
+            SetItemWidgetsActive(isHeader == false && speciesRow == false);
+            if (_speciesRow != null)
+            {
+                _speciesRow.SetActive(speciesRow);
+            }
 
             if (isHeader)
             {
@@ -74,6 +87,11 @@ namespace Lair.UI
                 {
                     _headerText.SetText(data.HeaderText);
                 }
+                return;
+            }
+            if (speciesRow)
+            {
+                BindSpeciesRow(data);
                 return;
             }
 
@@ -116,6 +134,41 @@ namespace Lair.UI
             ApplyBuyState(data);
 
             BindSpeciesGlow(data);
+        }
+
+        //# 종족 행 — 머리(아이콘 + 체급 발광 + 종족명) + 칸 4개. 칸 클릭은 팝업이 판단한다.
+        private void BindSpeciesRow(ShopItemCellData data)
+        {
+            if (_speciesHeadIcon != null)
+            {
+                _speciesHeadIcon.sprite = data.Icon;
+                _speciesHeadIcon.gameObject.SetActive(data.Icon != null);
+            }
+            if (_speciesHeadGlow != null)
+            {
+                bool glow = data.Species.HasValue && data.MaxLevel > 0;
+                _speciesHeadGlow.gameObject.SetActive(glow);
+                if (glow)
+                {
+                    Color c = SpeciesVisual.SpeciesGlowColor(data.Species.Value);
+                    _speciesHeadGlow.color = new Color(c.r, c.g, c.b, Mathf.Clamp01((float)data.Level / data.MaxLevel));
+                }
+            }
+            if (_speciesHeadName != null)
+            {
+                _speciesHeadName.SetText(data.SpeciesName ?? string.Empty);
+            }
+            for (int i = 0; i < _axisSlots.Length; ++i)
+            {
+                if (_axisSlots[i] == null)
+                    continue;
+                _axisSlots[i].Bind(i < data.Slots.Length ? data.Slots[i] : null, HandleSlotClick);
+            }
+        }
+
+        private void HandleSlotClick(ShopAxisSlotData slot)
+        {
+            _data?.OnSlotClick?.Invoke(slot);
         }
 
         //# 레벨 5칸 눈금 — Level 칸까지 금색, 나머지 stone4. MaxLevel 을 넘는 칸은 숨긴다.

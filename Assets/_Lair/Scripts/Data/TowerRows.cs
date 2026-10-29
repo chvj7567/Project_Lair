@@ -21,6 +21,9 @@ namespace Lair.Data
         public int relicHardFromFloor;
         public int previewFloors;
         public int leaderboardTop;
+        //# 심연 결정 이정표 (monster-growth-currencies §2.3) — 층 번호가 every 의 배수면 bonus 추가. every 0 = 이정표 없음.
+        public int crystalMilestoneEvery;
+        public int crystalMilestoneBonus;
     }
 
     //# HeroArchetype_Tower.json — HeroArchetype 의 관계. 이 직업이 탑에 나올 때의 HP/공격력 보정. PK heroId.

@@ -45,6 +45,7 @@ namespace Lair.Meta
                     MetaProfileMigration.NormalizeFormation(profile);
                     MetaProfileMigration.NormalizeTower(profile);
                     MetaProfileMigration.NormalizeDaily(profile);
+                    MetaProfileMigration.NormalizeCurrencies(profile);
                 }
                 return profile;
             }

@@ -319,7 +319,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
 
-            Assert.AreEqual(11, p.Version);
+            Assert.AreEqual(12, p.Version);
             Assert.AreEqual(MetaProfileMigration.CurrentVersion, p.Version);
             Assert.IsNotNull(p.DailyDays);
             Assert.IsNotNull(p.DailyResults);

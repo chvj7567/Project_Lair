@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 → v12 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 11;
+        public const int CurrentVersion = 12;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -37,6 +37,8 @@ namespace Lair.Meta
             NormalizeTower(profile);
             //# 데일리(v11)도 데이터 비의존 행 정리라 같은 이유로 조기 반환보다 앞선다(daily-challenge §5.1). attemptsPerDay 클램프는 하지 않는다(설정 로드 전일 수 있음).
             NormalizeDaily(profile);
+            //# 육성 재화(v12)도 데이터 비의존 행 정리라 같은 이유로 조기 반환보다 앞선다(monster-growth-currencies §7.3). 소급 지급은 하지 않는다(정산 함수 소관).
+            NormalizeCurrencies(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -136,6 +138,8 @@ namespace Lair.Meta
                     continue;
                 }
                 existing.ClearTime = Math.Min(existing.ClearTime, entry.ClearTime);
+                //# 한쪽이라도 지급됐으면 지급된 층 — 중복 행 병합이 재지급을 만들지 않게.
+                existing.CrystalPaid = existing.CrystalPaid || entry.CrystalPaid;
             }
             profile.TowerFloorClears = merged;
 
@@ -190,6 +194,37 @@ namespace Lair.Meta
             }
         }
 
+        //# Currencies (§7.3-4): null→빈 리스트, null 행/빈 id/Soul 행 제거, Amount<0→0, TotalEarned<Amount→Amount, TotalEarned<1 행 제거, 같은 id 중복은 각 최댓값 한 행.
+        //# ECurrency 에 없는 id 는 지우지 않는다 — 읽는 지점이 무시한다(relics §3.6 선례).
+        public static void NormalizeCurrencies(MetaProfile profile)
+        {
+            if (profile.Currencies == null)
+            {
+                profile.Currencies = new List<CurrencyEntry>();
+            }
+            profile.Currencies.RemoveAll(entry => entry == null || string.IsNullOrEmpty(entry.CurrencyId) || entry.CurrencyId == ECurrency.Soul.ToString());
+            foreach (CurrencyEntry entry in profile.Currencies)
+            {
+                entry.Amount = Math.Max(0, entry.Amount);
+                entry.TotalEarned = Math.Max(entry.TotalEarned, entry.Amount);
+            }
+            profile.Currencies.RemoveAll(entry => entry.TotalEarned < 1);
+
+            List<CurrencyEntry> merged = new List<CurrencyEntry>();
+            foreach (CurrencyEntry entry in profile.Currencies)
+            {
+                CurrencyEntry existing = merged.Find(e => e.CurrencyId == entry.CurrencyId);
+                if (existing == null)
+                {
+                    merged.Add(entry);
+                    continue;
+                }
+                existing.Amount = Math.Max(existing.Amount, entry.Amount);
+                existing.TotalEarned = Math.Max(existing.TotalEarned, entry.TotalEarned);
+            }
+            profile.Currencies = merged;
+        }
+
         //# DifficultyClears: null→빈 리스트, 범위 밖/MaxDifficulty<1/Stage>ClearedStage 행 제거, 같은 Stage 중복은 최댓값 한 행. SelectedDifficulty 음수→0.
         private static void NormalizeDifficulty(MetaProfile profile, bool skipRange)
         {
@@ -210,6 +245,12 @@ namespace Lair.Meta
                     continue;
                 }
                 existing.MaxDifficulty = Math.Max(existing.MaxDifficulty, entry.MaxDifficulty);
+                existing.AwakenPaid = Math.Max(existing.AwakenPaid, entry.AwakenPaid);
+            }
+            //# 각성석 지급 기록 불변식 0 <= AwakenPaid <= MaxDifficulty (§7.3-5).
+            foreach (DifficultyClearEntry entry in merged)
+            {
+                entry.AwakenPaid = Math.Max(0, Math.Min(entry.MaxDifficulty, entry.AwakenPaid));
             }
             profile.DifficultyClears = merged;
 

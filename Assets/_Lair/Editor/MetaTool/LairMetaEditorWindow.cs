@@ -111,6 +111,12 @@ namespace Lair.EditorTools
                 {
                     statKind = (EMonsterStatKind)EditorGUILayout.EnumPopup("StatKind", item.StatKind);
                 }
+                EMonster species = item.Species;
+                if (effectKind != EShopEffectKind.MonsterStat && effectKind != EShopEffectKind.SpawnerPeriod)
+                {
+                    species = (EMonster)EditorGUILayout.EnumPopup("Species", item.Species);
+                }
+                ECurrency currency = (ECurrency)EditorGUILayout.EnumPopup("Currency (결제 재화)", item.Currency);
                 float perLevelMul = EditorGUILayout.FloatField("PerLevelMul (레벨당 배율)", item.PerLevelMul);
                 int maxLevel = EditorGUILayout.IntField("MaxLevel", item.MaxLevel);
                 int basePrice = EditorGUILayout.IntField("BasePrice", item.BasePrice);
@@ -123,6 +129,8 @@ namespace Lair.EditorTools
                     item.Description = description;
                     item.EffectKind = effectKind;
                     item.StatKind = statKind;
+                    item.Species = species;
+                    item.Currency = currency;
                     item.PerLevelMul = perLevelMul;
                     item.MaxLevel = maxLevel;
                     item.BasePrice = basePrice;

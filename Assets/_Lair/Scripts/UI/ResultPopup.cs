@@ -52,6 +52,12 @@ namespace Lair.UI
         public decimal DailyStreakMultiplier = 1m;
         //# 데일리 "다시 도전" 판정·씬 이동 — 날짜/남은 도전 판정은 호출부 소유. 반환 = 씬 이동을 시작했는가(false 면 버튼 재활성).
         public System.Func<bool> OnDailyRetry;
+        //# 육성 재화(monster-growth-currencies §8.4) — 이번 판 특수 재화 획득(0 은 행 없음). 소울 줄에 칩으로 합친다.
+        public List<CurrencyGain> CurrencyGains = new List<CurrencyGain>();
+        //# 유물 띠 잔해 변형 — HasRelicShard 일 때만 아래 두 필드가 유효(뽑힌 등급의 후보가 모두 최대 중첩).
+        public bool HasRelicShard;
+        public int RelicShardAmount;
+        public string RelicShardRarity;
     }
 
     //# 결과 팝업 항목 줄 표시 확정값 — View 는 이 값을 그대로 표시만 한다(Rule 02 §6).
@@ -64,7 +70,8 @@ namespace Lair.UI
         public bool ShowHeroHpRow;     //# 패배 전용 "영웅 남은 HP" 줄
         public string HeroHpText;      //# "18%"
         public bool ShowSoulsRow;      //# 메타 미할당이면 숨김
-        public string SoulsText;       //# "+180"
+        public string SoulsText;       //# "+180" / 특수 재화가 있으면 "+180 소울  +25 각성석" (재화 색 칩)
+        public string SoulsLabelText;  //# "소울" / 특수 재화가 있으면 "보상"
         public bool ShowXpRow;
         public string XpText;          //# "+60"
         public bool ShowDifficultyRow;     //# Normal/Hard 판에서만 "난이도" 줄
@@ -112,6 +119,7 @@ namespace Lair.UI
         [SerializeField] private GameObject _newBadge;
         [SerializeField] private GameObject _rowSouls;
         [SerializeField] private CHText _soulsText;
+        [SerializeField] private CHText _soulsLabelText;   //# 소울 줄 라벨 — 특수 재화가 있으면 "보상"(monster-growth-currencies §8.4)
         [SerializeField] private GameObject _rowXp;
         [SerializeField] private CHText _xpText;
         [SerializeField] private GameObject _rowHeroHp;
@@ -235,10 +243,36 @@ namespace Lair.UI
                 RetryLabelText = LookupString(TowerStrings.Retry, "다시 도전"),
                 RetryInteractable = true,
             }, arg);
+            rows = WithCurrencyGains(rows, arg);
             if (arg.IsDaily)
                 return WithDaily(rows, arg);
             return arg.IsTower ? WithTower(rows, arg) : rows;
         }
+
+        //# 재화 칩 (§8.4) — 특수 재화 획득이 있으면 라벨 "보상" + "+180 소울  +25 각성석"(값은 재화 색). 없으면 기존 "소울" / "+180".
+        public static ResultRowsData WithCurrencyGains(ResultRowsData rows, ResultPopupArg arg)
+        {
+            rows.SoulsLabelText = LookupString(1465, "소울");
+            if (arg.CurrencyGains == null || arg.CurrencyGains.Count == 0)
+                return rows;
+            GrowthDatabase growth = GrowthDatabase.Current;
+            StringBuilder sb = new StringBuilder();
+            sb.Append(Chip($"+{arg.SoulsGained}", GrowthText.CurrencyColorHex(ECurrency.Soul, growth), rows.SoulsLabelText));
+            foreach (CurrencyGain gain in arg.CurrencyGains)
+            {
+                if (gain.Amount < 1)
+                    continue;
+                sb.Append("  ").Append(Chip($"+{gain.Amount}", GrowthText.CurrencyColorHex(gain.Currency, growth),
+                    GrowthText.CurrencyName(gain.Currency, growth, id => LookupString(id, string.Empty))));
+            }
+            rows.SoulsLabelText = LookupString(GrowthStrings.RewardLabel, "보상");
+            rows.SoulsText = sb.ToString();
+            return rows;
+        }
+
+        //# 칩 한 개 = "+N"(재화 색) + 작은 재화 이름. 아이콘 칩은 프리팹 배선 후 교체 대상.
+        private static string Chip(string amount, string colorHex, string name)
+            => $"<color={colorHex}>{amount}</color> <size=75%>{name}</size>";
 
         //# 데일리 변형 (daily-challenge §9.4) — 부제 "데일리 · 10월 27일", 난이도 줄을 "오늘의 순위"(집계 전 "순위 집계 중")로, 첫 승리 배너, 신기록·해금 배너·다음 확률 줄 없음.
         public static ResultRowsData WithDaily(ResultRowsData rows, ResultPopupArg arg)
@@ -347,6 +381,7 @@ namespace Lair.UI
             }
             SetRow(_rowClear, _clearTimeText, rows.ShowClearRow, rows.ClearTimeText);
             SetRow(_rowSouls, _soulsText, rows.ShowSoulsRow, rows.SoulsText);
+            SetText(_soulsLabelText, rows.SoulsLabelText);
             SetRow(_rowXp, _xpText, rows.ShowXpRow, rows.XpText);
             SetRow(_rowHeroHp, _heroHpText, rows.ShowHeroHpRow, rows.HeroHpText);
             SetRow(_rowDifficulty, _difficultyText, rows.ShowDifficultyRow, rows.DifficultyText);
