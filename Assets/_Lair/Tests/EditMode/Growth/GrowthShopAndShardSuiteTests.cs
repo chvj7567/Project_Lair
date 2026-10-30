@@ -187,15 +187,15 @@ namespace Lair.Tests.EditMode
         {
             MetaConfig cfg = MixedConfig();
             MetaProfile p = new MetaProfile { Souls = 99999 };
-            p.AddCurrency(ECurrency.MoonSeal, 49);
+            p.AddCurrency(ECurrency.MoonSeal, 94);
             ShopService shop = new ShopService(p, cfg, c => true);
 
             bool lv1 = shop.Buy("Nest_Wisp");
             bool lv2 = shop.Buy("Nest_Wisp");
             bool lv3 = shop.Buy("Nest_Wisp");
 
-            Assert.IsTrue(lv1 && lv2, "20 + 30 = 49 이하");
-            Assert.IsFalse(lv3, "남은 0 < 45");
+            Assert.IsTrue(lv1 && lv2, "20 + 30 = 50 <= 94");
+            Assert.IsFalse(lv3, "남은 44 < 45");
             Assert.AreEqual(2, p.GetShopLevel("Nest_Wisp"));
             Assert.AreEqual(99999, p.Souls, "특수 재화 부족을 소울로 대신 내지 않는다");
         }
