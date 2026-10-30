@@ -499,14 +499,14 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 종_행의_각성_표기는_상점_레벨이_0이면_숨겨지고_축_칩과_코스트를_담는다()
+        public void 종_행의_체급_표기는_상점_레벨이_0이면_숨겨지고_축_칩과_코스트를_담는다()
         {
             FormationViewModel vm = Build(1, 1, awaken: m => m == EMonster.Reaper ? 2 : 0);
             IReadOnlyList<FormationSpeciesData> rows = vm.BuildSpecies();
 
             FormationSpeciesData reaper = rows[2];
             Assert.IsTrue(reaper.ShowAwaken);
-            Assert.AreEqual("각성 Lv 2", reaper.AwakenText);
+            Assert.AreEqual("체급 Lv 2", reaper.AwakenText, "표시명 각성 → 체급 (monster-growth-currencies §3.1 U-6)");
             Assert.IsFalse(rows[0].ShowAwaken);
             Assert.AreEqual(EBuildAxis.Dps, reaper.Axis);
             Assert.AreEqual("코스트 3", reaper.CostText);
