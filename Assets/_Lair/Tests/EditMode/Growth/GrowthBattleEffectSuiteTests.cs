@@ -668,6 +668,38 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(1f, mover.SpeedScale, 0.0001f);
         }
 
+        //# IHitFeedbackSpawner 스파이 — 세 멤버 모두 구현(부분 더블 금지).
+        private class SpySpawner : IHitFeedbackSpawner
+        {
+            public readonly List<string> Texts = new List<string>();
+            public int Popups;
+            public int Impacts;
+
+            public void SpawnImpact(Vector3 pos, Color color, HitVictimKind victim) => ++Impacts;
+            public void SpawnPopup(Vector3 pos, int amount, Color color) => ++Popups;
+            public void SpawnTextPopup(Vector3 pos, string text, Color color) => Texts.Add(text);
+        }
+
+        [Test]
+        public void 잔상_회피는_피해_숫자_대신_MISS_를_한_번_띄우고_피격_연출은_없다()
+        {
+            Traits((EMonster.Phantom, 1));
+            Health hp = Phantom(out SimpleMover _);
+            DamageFeedback feedback = hp.gameObject.AddComponent<DamageFeedback>();
+            Invoke(feedback, "Awake");
+            Invoke(feedback, "OnEnable");
+            SpySpawner spy = new SpySpawner();
+            feedback.SetSpawnerForTest(spy);
+
+            feedback.StampDamageColor(Color.white);
+            hp.TakeDamage(999);
+
+            CollectionAssert.AreEqual(new[] { "MISS" }, spy.Texts);
+            Assert.AreEqual(0, spy.Popups, "피해 숫자 없음");
+            Assert.AreEqual(0, spy.Impacts);
+            Assert.AreEqual(30, hp.Current);
+        }
+
         [Test]
         public void 소급_재적용은_잔상_회피를_다시_채우지_않고_풀_재사용은_회피를_비운다()
         {

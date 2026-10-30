@@ -128,6 +128,23 @@ namespace Lair.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 둥지_스폰_보호는_지정_시간이_지나면_받는_피해_배율이_1로_돌아온다()
+        {
+            GameObject go = new GameObject("Spawned");
+            _spawned.Add(go);
+            Health hp = go.AddComponent<Health>();
+            hp.SetMax(1000);
+            yield return null;
+
+            hp.GrantSpawnGuard(0.5f, 0.3f);
+            float guarded = hp.EffectiveDamageTakenMul;
+            yield return new WaitForSeconds(0.4f);
+
+            Assert.AreEqual(0.5f, guarded, 0.0001f);
+            Assert.AreEqual(1f, hp.EffectiveDamageTakenMul, 0.0001f, "Time.time 기준 만료");
+        }
+
+        [UnityTest]
         public IEnumerator 전투_스탯_적용을_거친_역병귀는_각성_독_지속과_받는_피해를_한_번만_반영해_독을_건다()
         {
             BalanceConfig balance = ScriptableObject.CreateInstance<BalanceConfig>();
