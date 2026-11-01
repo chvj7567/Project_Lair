@@ -108,7 +108,7 @@ ul.k{margin:6px 0 0;padding-left:18px}
 <div class="grid g4">
   <div class="pnl card" style="--c:var(--gold)"><div class="nm"><span class="ic">☀</span>매일 새 판</div><div class="sub">영웅 1명 + 규칙 2개 + 오늘의 유물 2개 + 카드 순서까지 날짜로 정해집니다. 모든 플레이어가 같은 판을 받습니다.</div></div>
   <div class="pnl card" style="--c:var(--blood)"><div class="nm"><span class="ic">3</span>하루 3번</div><div class="sub">전투를 시작하면 1번 사용. 셋 중 가장 좋은 기록 하나가 순위에 오릅니다.</div></div>
-  <div class="pnl card" style="--c:var(--soul)"><div class="nm"><span class="ic">◆</span>첫 승리 보상</div><div class="sub">그날 처음 이기면 소울 <b class="s">+150</b>(연속 일수에 따라 최대 <b class="s">+240</b>)과 유물 1개 확정.</div></div>
+  <div class="pnl card" style="--c:var(--soul)"><div class="nm"><span class="ic">◆</span>첫 승리 보상</div><div class="sub">그날 처음 이기면 소울 <b class="s">+150</b>(연속 일수에 따라 최대 <b class="s">+240</b>)과 유물 1개 확정. 판이 끝날 때마다 <b style="color:#d8e4ff">달빛 인장</b>도 받아요(져도).</div></div>
   <div class="pnl card" style="--c:var(--sky)"><div class="nm"><span class="ic">♕</span>데일리 순위</div><div class="sub">져도 순위에 오릅니다. 매일 새 순위표가 열립니다.</div></div>
 </div>
 
@@ -200,22 +200,23 @@ ul.k{margin:6px 0 0;padding-left:18px}
 <h2>⑥ 보상</h2>
 <div class="grid g3">
   <div class="pnl"><div class="big" style="--c:var(--bone)">매 판</div>
-    <ul class="k"><li>평소처럼 소울 · 영주 경험 (져도 받음)</li><li>평소 유물 드랍은 <b class="r">없음</b></li></ul></div>
+    <ul class="k"><li>평소처럼 소울 · 영주 경험 (져도 받음)</li><li><b style="color:#d8e4ff">달빛 인장 +3 x 연속 배율</b> (져도 받음, 반올림) - 상점 「몬스터 강화」의 둥지 강화에 써요</li><li>평소 유물 드랍은 <b class="r">없음</b></li><li>도중에 나가면 아무것도 없음</li></ul></div>
   <div class="pnl"><div class="big" style="--c:var(--soul)">그날 첫 승리</div>
-    <ul class="k"><li>보너스 소울 <b class="s">+150 x 연속 배율</b></li><li>유물 <b class="g">1개 확정</b> (그날 영웅의 유물 중에서)</li><li>두 번째 승리부터는 보너스 없음</li></ul></div>
+    <ul class="k"><li>보너스 소울 <b class="s">+150 x 연속 배율</b></li><li>달빛 인장 <b style="color:#d8e4ff">+5 x 연속 배율</b> 추가</li><li>유물 <b class="g">1개 확정</b> (그날 영웅의 유물 중에서. 그 등급 유물을 이미 다 모았으면 유물 잔해)</li><li>두 번째 승리부터는 보너스 없음</li></ul></div>
   <div class="pnl"><div class="big" style="--c:var(--gold)">연속 일수</div>
     <ul class="k"><li>데일리 1판을 <b class="g">끝내면</b> 참가 1일 - 져도 인정</li><li>시작만 하고 나가면 참가가 아닙니다</li><li>하루 빠지면 1일부터 다시</li></ul></div>
 </div>
 <table class="tbl" style="margin-top:12px">
-  <tr><th>연속</th><th>배율</th><th>첫 승리 보너스 소울</th></tr>
-  <tr><td>1일</td><td>x1.0</td><td class="n">+150</td></tr>
-  <tr><td>2일</td><td>x1.1</td><td class="n">+165</td></tr>
-  <tr><td>3일</td><td>x1.2</td><td class="n">+180</td></tr>
-  <tr><td>4일</td><td>x1.3</td><td class="n">+195</td></tr>
-  <tr><td>5일</td><td>x1.4</td><td class="n">+210</td></tr>
-  <tr><td>6일</td><td>x1.5</td><td class="n">+225</td></tr>
-  <tr><td>7일 이상</td><td>x1.6</td><td class="n">+240 (최대)</td></tr>
+  <tr><th>연속</th><th>배율</th><th>첫 승리 보너스 소울</th><th>달빛 인장 (판마다 / 첫 승리 추가)</th></tr>
+  <tr><td>1일</td><td>x1.0</td><td class="n">+150</td><td>3 / +5</td></tr>
+  <tr><td>2일</td><td>x1.1</td><td class="n">+165</td><td>3 / +6</td></tr>
+  <tr><td>3일</td><td>x1.2</td><td class="n">+180</td><td>4 / +6</td></tr>
+  <tr><td>4일</td><td>x1.3</td><td class="n">+195</td><td>4 / +7</td></tr>
+  <tr><td>5일</td><td>x1.4</td><td class="n">+210</td><td>4 / +7</td></tr>
+  <tr><td>6일</td><td>x1.5</td><td class="n">+225</td><td>5 / +8</td></tr>
+  <tr><td>7일 이상</td><td>x1.6</td><td class="n">+240 (최대)</td><td>5 / +8</td></tr>
 </table>
+<p class="sub">하루 3판을 다 하고 한 번 이기면 달빛 인장은 1일째 14개, 7일 이상 연속이면 23개예요.</p>
 
 <h2>⑦ 데일리 순위</h2>
 <div class="grid g3">
@@ -243,7 +244,7 @@ ul.k{margin:6px 0 0;padding-left:18px}
 <div class="grid g3">
   <div class="pnl res"><div class="ttl" style="color:var(--gold)">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 10월 27일 · 첫 승리</div>
     <div class="row"><span class="k">클리어 시간</span><span>2:51.3</span></div>
-    <div class="row"><span class="k">소울</span><span>+175</span></div>
+    <div class="row"><span class="k">보상</span><span><span style="color:var(--soul)">+175 소울</span> · <span style="color:#d8e4ff">+11 달빛 인장</span></span></div>
     <div class="row"><span class="k">영주 경험</span><span>+60</span></div>
     <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">3위</span></div>
     <div class="banner">데일리 첫 승리 +195 <small>연속 4일 x1.3</small></div>
@@ -251,26 +252,26 @@ ul.k{margin:6px 0 0;padding-left:18px}
     <div class="btns"><div class="btn">다시 도전 (남은 2)</div><div class="btn go">마을로</div></div></div>
   <div class="pnl res"><div class="ttl" style="color:var(--gold)">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 다시 도전</div>
     <div class="row"><span class="k">클리어 시간</span><span>2:38.9</span></div>
-    <div class="row"><span class="k">소울</span><span>+182</span></div>
+    <div class="row"><span class="k">보상</span><span><span style="color:var(--soul)">+182 소울</span> · <span style="color:#d8e4ff">+4 달빛 인장</span></span></div>
     <div class="row"><span class="k">영주 경험</span><span>+60</span></div>
     <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">2위</span></div>
     <div class="sub" style="margin-bottom:8px">보너스·확정 유물 없음. 기록이 좋아져 순위가 올랐어요.</div>
     <div class="btns"><div class="btn">다시 도전 (남은 1)</div><div class="btn go">마을로</div></div></div>
   <div class="pnl res"><div class="ttl" style="color:var(--blood)">패배</div><div class="sub" style="text-align:center;margin-bottom:8px">데일리 · 마지막 도전</div>
     <div class="row"><span class="k">영웅 남은 HP</span><span>12%</span></div>
-    <div class="row"><span class="k">소울</span><span>+52</span></div>
+    <div class="row"><span class="k">보상</span><span><span style="color:var(--soul)">+52 소울</span> · <span style="color:#d8e4ff">+4 달빛 인장</span></span></div>
     <div class="row"><span class="k">영주 경험</span><span>+20</span></div>
     <div class="row"><span class="k">오늘의 순위</span><span style="color:var(--gold)">9위</span></div>
     <div class="btns"><div class="btn off">다시 도전 (남은 0)</div><div class="btn go">마을로</div></div></div>
 </div>
-<p class="sub">소울·경험 숫자는 예시입니다. 순위는 기록이 올라간 뒤 표시되며, 그 전에는 "순위 집계 중"으로 나옵니다.</p>
+<p class="sub">소울·경험 숫자는 예시입니다(달빛 인장은 연속 4일 기준). 순위는 기록이 올라간 뒤 표시되며, 그 전에는 "순위 집계 중"으로 나옵니다.</p>
 
 <h2>⑨ 데일리 판이 바꾸는 것 / 바꾸지 않는 것</h2>
 <div class="grid g3">
   <div class="pnl"><div class="big" style="--c:var(--blood)">바뀌지 않음</div>
     <ul class="k no"><li>챕터 진행 (스테이지 해금)</li><li>스테이지 최단 기록 · 스테이지 랭킹</li><li>Normal / Hard 해금</li><li>월드맵에서 골라 둔 스테이지 · 난이도</li><li>무한의 탑 기록</li><li>챕터 판의 유물 연패 보정</li></ul></div>
   <div class="pnl"><div class="big" style="--c:var(--soul)">그대로 쌓임</div>
-    <ul class="k yes"><li>소울 · 영주 경험</li><li>전체 판수 · 승리 수</li><li>도감 (본 몬스터 · 고른 카드)</li><li>도전과제</li><li>첫 승리 확정 유물 (내 유물 도감)</li></ul></div>
+    <ul class="k yes"><li>소울 · 영주 경험</li><li>전체 판수 · 승리 수</li><li>도감 (본 몬스터 · 고른 카드)</li><li>도전과제</li><li>첫 승리 확정 유물 (내 유물 도감)</li><li>달빛 인장 (상점 둥지 강화용)</li></ul></div>
 </div>
 
 <h2>⑩ 자주 묻는 질문</h2>

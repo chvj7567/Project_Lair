@@ -95,7 +95,7 @@
 | 항목 | 값 | 출처 |
 |---|---|---|
 | 층 클리어(탑 승리는 항상 그 시즌 첫 클리어 - 클리어한 층은 재도전 불가) | 그 층의 **탑 유물 등급 단계**별 1개 층당 지급량: 1~10층 **1**, 11~20층 **2**, 21층 이상 **3** | 신규 `Difficulty_TowerCrystal`(난이도 인덱스 = 탑 유물 등급 단계 0/1/2, 경계는 기존 `TowerConfig.relicNormalFromFloor` 11 · `relicHardFromFloor` 21 재사용) |
-| 10층마다 이정표 보너스 | 층 번호가 `crystalMilestoneEvery`(10)의 배수면 **+10** | `TowerConfig` 신규 필드 2개 |
+| 10층마다 이정표 보너스 | 층 번호가 `crystalMilestoneEvery`(10)의 배수면 **+10**. `crystalMilestoneEvery` = 0 이면 이정표 없음(보너스 0, 로드 오류 아님 - 구현 반영 2026-11-01) | `TowerConfig` 신규 필드 2개 |
 | 패배 | 0 | - |
 | 시즌 교체 | **보유량 유지**. 층 기록이 지워지므로(기존 `NormalizeTowerSeason`) 새 시즌에 같은 층을 다시 깨면 다시 지급 | §7 `CrystalPaid` |
 
@@ -129,8 +129,10 @@
 3) 유물 후보 C(g) = { 그 등급, 그 영웅 테이블, 현재 중첩 < maxStack 인 유물 }
 4) C(g) 가 비어 있지 않으면 → 기존처럼 Relic_Drop.weight 비례로 유물 1개, 중첩 +1
    C(g) 가 비어 있으면     → 유물 대신 RelicRarity_Shard.shardAmount(g) 만큼 잔해 지급
-5) 어느 쪽이든 "획득" 으로 본다: 승리 굴림이면 RelicMissStreak = 0
+5) 어느 쪽이든 "획득" 으로 본다: RelicMissStreak = 0 (승리 굴림·패배 굴림 모두 - 기존 relics.md §2.5 "획득 = 초기화")
 ```
+
+- **연패 카운터(`RelicMissStreak`) 규칙 - 확정 (2026-11-01 사용자 결정 U-18)**: ① 승리 굴림 미획득 → +1 ② 패배 굴림 미획득 → 변화 없음(패배 확률 계산은 pity 를 읽지 않음) ③ 획득(유물·잔해) → 승리·패배 굴림 모두 0 으로 초기화 ④ 데일리 확정 굴림 → 읽지도 쓰지도 않음.
 
 | 등급 | 잔해 (`RelicRarity_Shard`) | 근거 |
 |---|---|---|
@@ -142,7 +144,7 @@
 
 | 경로 | 확률 단계 | 잔해 규칙 | `RelicMissStreak` |
 |---|---|---|---|
-| 챕터 승리 / 패배 굴림 | 기존(승리 정상 · 패배 x0.25 · pity · 첫 유물 보장) | C | 승리 굴림 획득(유물·잔해) 시 0. 패배 굴림은 기존대로 읽지 않음 |
+| 챕터 승리 / 패배 굴림 | 기존(승리 정상 · 패배 x0.25 · pity · 첫 유물 보장) | C | 획득(유물·잔해) 시 승리·패배 굴림 모두 0. 미획득 시 승리 굴림만 +1, 패배 굴림은 변화 없음(패배 확률은 pity 를 읽지 않음) |
 | 탑 승리 / 패배 굴림 | 기존(층 유물 등급 단계 입력) | C | 챕터와 같음 |
 | 데일리 첫 승리 확정 굴림 | 확률 단계 생략(기존) | C - 확정 굴림이 이제 **항상 유물이나 잔해 중 하나**를 준다 | 기존대로 읽지도 쓰지도 않음 |
 
@@ -236,7 +238,7 @@
 검산(시안 1·3단계 값 사이 보간): 가시 (10+25)/2 = 17.5 → 17 / 원한 (8+20)/2 = 14 / 처형 (15+40)/2 = 27.5 → 28 / 저주 1·2·3.
 
 - **규칙 상세**
-  - 가시 껍질: 영웅의 **기본 공격**(근접·원거리 모두)이 도깨비불에 맞을 때만. 영웅 스킬 피해는 반사하지 않는다(광역 스킬 1회로 도깨비불 여러 마리 반사가 폭주하는 것을 막음). 반사 피해 = `Max(1, Round(받은 피해 x 비율))`. 범위 기본 공격(광전사 `Cleave`)은 맞은 도깨비불마다 반사 - 광전사 상대 상성(편성 힌트 "약한 떼는 쉽게 쓸립니다")에 대한 역상성이며 크기는 게이트 MG4.
+  - 가시 껍질: 영웅의 **기본 공격**(근접·원거리 모두)이 도깨비불에 맞을 때만. 영웅 스킬 피해는 반사하지 않는다(광역 스킬 1회로 도깨비불 여러 마리 반사가 폭주하는 것을 막음). 반사 피해 = `Max(1, floor(받은 피해 x 비율 + 0.5))` - 0.5 는 올림(역병귀 독 틱과 같은 반올림, 2026-11-01 사용자 결정 U-16. 예: 받은 피해 25 x 0.10 = 2.5 → 3). 범위 기본 공격(광전사 `Cleave`)은 맞은 도깨비불마다 반사 - 광전사 상대 상성(편성 힌트 "약한 떼는 쉽게 쓸립니다")에 대한 역상성이며 크기는 게이트 MG4.
   - 원한: 중첩 없음, 다시 걸리면 지속 시간만 5초로 갱신. 공격력 배율은 기존 몬스터 버프 경로(`MonsterBuffService`)의 시한 버프로 건다(`EMonsterBuff.BerserkPower` 는 "데미지 ↑, 미사용 자리" 로 남아 있어 재사용 후보 - 구현 판단).
   - 처형: 영웅 HP 비율은 피해를 줄 때마다 읽는다.
   - 저주 누적: 받는 피해 배율 = `1 + 단계값 x 중첩수` 를 영웅의 다른 받는 피해 배율(`BossBulwark` x0.6 등)과 **곱으로** 합성. 성기사의 디버프 저항 배율이 이 가산분에 적용된다(`CursedBanner` 의 `IPenaltyScalable` 선례).
@@ -501,7 +503,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 **DailyConfig 추가 필드**: `sealPerFinish` int 3 (0 이상), `sealFirstWin` int 5 (0 이상). 연속 배율은 기존 `streakBonusPerDay`·`streakBonusMaxDays` 재사용.
 
-**TowerConfig 추가 필드**: `crystalMilestoneEvery` int 10 (1 이상), `crystalMilestoneBonus` int 10 (0 이상).
+**TowerConfig 추가 필드**: `crystalMilestoneEvery` int 10 (0 이상, **0 = 이정표 없음** - 구현 반영 2026-11-01, 기획 초안의 "1 이상" 에서 완화), `crystalMilestoneBonus` int 10 (0 이상).
 
 **MetaProfile 변경** - §7.
 
@@ -512,7 +514,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 3. `AwakenStat`: `monster` 가 `EMonster` 값, `statIndex` 1부터 연속, `perLevelMul > 0`, **6종 모두 1행 이상**.
 4. `NestMastery`: `level` 1~3 연속, 각 단계의 필수 paramKey 존재(FirstSpawnAdvance = `advanceSec` / SpawnPeriod = `periodMul` / SpawnGuard = `damageTakenMul`·`durationSec`).
 5. `MonsterTrait`: 6종을 정확히 한 번씩, `trait` 중복 없음. `MonsterTrait_Param`: 각 (종족, 단계 1~3) 에 그 특성의 필수 paramKey 가 모두 있음(위 표).
-6. `Difficulty_Awaken`: `difficulty` 가 1 이상이고 `Difficulty.json` 범위 안, 값 >= 0. `Difficulty_TowerCrystal`: 0~최대 난이도 전부 덮음, 값 >= 0. `RelicRarity_Shard`: 3등급 전부, 값 >= 1.
+6. `Difficulty_Awaken`: `difficulty` 가 1 이상이고 `Difficulty.json` 범위 안, 값 >= 0. `Difficulty_TowerCrystal`: 0~최대 난이도 전부 덮음, 값 >= 0. `RelicRarity_Shard`: 3등급 전부, 값 >= 1. `TowerConfig`: `crystalMilestoneEvery >= 0`(0 = 이정표 없음), `crystalMilestoneBonus >= 0` - 위반 시 탑 데이터 로드 오류(`TowerDatabase` 오류 수집).
 7. `MetaConfig.ShopItems`: EffectKind 가 MonsterAwaken/NestMastery/MonsterTrait 인 항목은 `Currency != Soul`, 그 종족의 데이터 행(AwakenStat/MonsterTrait)이 존재, `MaxLevel` 이 각 데이터의 최대 단계와 같음(각성 5, 둥지 = NestMastery 행 수 3, 특성 3).
 8. **로드 실패 시**: 오류 로그 후 "육성 재화 비활성" - 상점의 각성·둥지·특성 칸은 잠김 표시, 재화 지급 없음, 효과 미적용, 잔해 변환 없음(유물 드랍은 기존 규칙으로 동작). 보유 재화·레벨은 지우지 않는다.
 
@@ -550,6 +552,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 ```
 
 - 호출 시점: (1) `EndBattle` 정산(기록 갱신 직후), (2) 마을 진입 시 1회(데이터 로드 후). (2) 가 **업데이트 이전 기록의 소급 지급**을 처리한다 - 이미 Normal/Hard·탑을 깬 기존 유저는 첫 마을 진입에 받는다(토스트 1481 `이전 기록 보상 {0} +{1}` 을 재화별 1회).
+- **(1) `EndBattle` 정산의 표시 분리 (2026-11-01 사용자 결정 U-17)**: 탑 승리·챕터 Normal/Hard 승리 정산은 정산 함수가 함께 지급한 양을 둘로 나눈다. **이번 판분**(탑 = 이번 층의 층당 지급량 + 이정표 보너스, 챕터 = 이번 스테이지·난이도의 첫 클리어분 + 반복분)만 결과창 재화 칩(§8.4)에 넣고, 같은 정산이 함께 지급한 **이전 기록 소급분**(아직 미지급이던 다른 층·다른 스테이지)은 결과창 칩에 합치지 않고 토스트 1481 `이전 기록 보상 {0} +{1}` 로 재화별 1회 띄운다. 칩 숫자가 "이번 판에 번 양" 과 항상 같게 하기 위함이다.
 - 소급을 마이그레이션에서 하지 않는 이유: 마이그레이션은 JSON 로드 전에도 안전해야 한다(`difficulty-select.md` §3.1 선례). 정산 함수는 데이터 로드 후에만 돈다.
 - 반복 승리분(2/4), 인장, 잔해는 그 판의 `EndBattle` 에서 바로 지급(소급 없음 - 데일리 기록은 최근 7일만 남아 소급 근거가 없고, 잔해는 이번 규칙 변경 이후에만 생김).
 
@@ -622,7 +625,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - 「스탯 강화」 섹션(전종 7항목)은 행 레이아웃 변경 없음(기존 단일 셀 구조). 종족 행만 새 레이아웃 - 셀 타입은 하나(`ShopItemCell`)를 유지하고 `RowKind` 에 종족 4칸 종류를 하나 더한다(`shop-single-scroll-sections.md` 의 RowKind 분기 선례).
 - 「몬스터 강화」 섹션 헤더 문구 그대로.
 
-**상점 지갑 (헤더 줄 오른쪽)**: 기존 소울 알약 오른쪽 정렬을 유지하고 그 왼쪽으로 **해금된 특수 재화 알약**을 덧붙인다. 알약 1개 = 112x32(아이콘 16 + 숫자 글자 14), 간격 8. 해금된 것만 표시(처음 플레이어는 지금과 똑같이 소울만). 잔해는 상점에서 쓰지 않으므로 표시하지 않는다. 최대 4개(소울 + 3) = 4 x 112 + 3 x 8 = **472** 폭. "현재 강화" 요약줄은 같은 줄 왼쪽에 남고, 폭을 `모달 내부 폭 - 지갑 폭 - 16` 으로 줄여 넘치는 글자는 말줄임(…) 처리한다(모달 내부 폭 828 기준 4알약일 때 828 - 472 - 16 = 340). 모달 860 폭은 `ui-redesign` 시안 값이며 `ShopPopup.prefab` 루트 크기는 미확인 - 구현 시 프리팹 실측 폭으로 같은 식을 다시 계산한다(내부 폭이 520 미만이면 지갑 472 + 여백 16 + 요약줄 최소 32 가 안 들어가므로 보고).
+**상점 지갑 (헤더 줄 오른쪽)**: 기존 소울 알약 오른쪽 정렬을 유지하고 그 왼쪽으로 **해금된 특수 재화 알약**을 덧붙인다. 알약 1개 = 112x32(아이콘 16 + 숫자 글자 14), 간격 8. **구현 현행 (2026-11-01)**: 특수 재화 알약은 공용 알약 위젯(`CurrencyPillView`) 3개를 프리팹에 고정 배치하고, 위젯 슬롯과 재화의 대응(각성석 · 달빛 인장 · 심연 결정)이 고정이다 - 화면 배치는 소울 알약 바로 왼쪽부터 각성석 · 달빛 인장 · 심연 결정(목업 그대로). 잠긴 재화의 알약은 숨긴다. 결과창 재화 칩(§8.4)도 같은 위젯을 쓴다(지갑 = 숫자만, 칩 = `+N` + 재화 이름). 해금된 것만 표시(처음 플레이어는 지금과 똑같이 소울만). 잔해는 상점에서 쓰지 않으므로 표시하지 않는다. 최대 4개(소울 + 3) = 4 x 112 + 3 x 8 = **472** 폭. "현재 강화" 요약줄은 같은 줄 왼쪽에 남고, 폭을 `모달 내부 폭 - 지갑 폭 - 16` 으로 줄여 넘치는 글자는 말줄임(…) 처리한다(모달 내부 폭 828 기준 4알약일 때 828 - 472 - 16 = 340). 모달 860 폭은 `ui-redesign` 시안 값이며 `ShopPopup.prefab` 루트 크기는 미확인 - 구현 시 프리팹 실측 폭으로 같은 식을 다시 계산한다(내부 폭이 520 미만이면 지갑 472 + 여백 16 + 요약줄 최소 32 가 안 들어가므로 보고).
 
 ### 8.2 마을 HUD - **변경 없음** (대안 비교)
 
@@ -659,6 +662,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 데일리 | 클리어 시간·남은 HP / 소울 / 영주 경험 / 오늘의 순위 | 라벨 `보상`, 칩 `+190 소울` `+11 달빛 인장` (연속 4일차 첫 승리 판 = 4 + 7) |
 | 탑 승리 | 클리어 시간 / 도달 층 / 소울 / 영주 경험 | 라벨 `보상`, 칩 `+180 소울` `+11 심연 결정` (10층 = 층당 1 + 이정표 10, 합산값 1칩) |
 
+- **특수 재화 칩 = 이번 판분만** (U-17, §7.2-(1)). 업데이트 이전 기록의 소급분은 보통 마을 진입 정산(§7.2-(2))이 먼저 토스트로 지급하므로, 전투 정산에서 소급분이 함께 나오는 것은 그 뒤에도 미지급 기록이 남은 경우(예: 마을에서 클라우드 세이브를 복원해 `CrystalPaid` 가 없는 층 기록이 들어온 직후 바로 출격)뿐이다. 예: 그 상태에서 10층을 깨면 칩은 `+11 심연 결정`(10층분), 함께 정산된 1~9층분 9 는 토스트 `이전 기록 보상 심연 결정 +9`. 챕터 각성석도 같은 규칙(칩 = 이번 스테이지분, 다른 스테이지 소급분 = 토스트).
 - 칩 = 재화 아이콘 14 + `+N`(글자 16, 재화 색) + 재화 이름(글자 12). 줄 폭 472 안 최대 2칩(소울 + 특수 1종). 한 판에 특수 재화는 모드별 1종만 생기므로 3칩 이상은 없다(잔해는 유물 띠에 표시).
 - 폭 검산: 라벨 `보상` 48 + 칩 `+180 소울` 104 + 간격 12 + 칩 `+25 각성석` 132 = 296 ≤ 472 - 28(좌우 패딩).
 - 지급량 0 이면 칩 없음(라벨도 `소울` 유지).
@@ -844,7 +848,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 데이터 | 출하 JSON 10개 로드, 행 수(5/3/8/3/4/6/42/2/3/3), §6.3 각 위반이 로드 오류, ShopItems 신규 18항목 무결성 |
 | 가격 | 각성 10/15/22/33/50, 둥지 20/30/45, 특성 3/6/12, 결제 재화 분기, 잔액 부족·잠김 구매 거부 |
 | 지급 | 각성석 첫 클리어/반복/패배/Easy 0, Hard 첫 클리어 25 만, E-5 정산, 소급 정산 멱등(두 번 호출해도 1회분). 인장 반올림 표(§2.2) 전 행, 뒤로가기 0. 결정 층당 1/2/3·이정표·`CrystalPaid` 멱등·시즌 교체 후 재지급 |
-| 잔해 | 등급 후보 판정(최대 중첩 무관), 뽑힌 등급 후보 0 → 잔해, 등급 미완성 시 기존과 동일 결과(시드 고정 회귀), pity 0 리셋, 데일리 확정 굴림 잔해, 패배 굴림 pity 불변 |
+| 잔해 | 등급 후보 판정(최대 중첩 무관), 뽑힌 등급 후보 0 → 잔해, 등급 미완성 시 기존과 동일 결과(시드 고정 회귀), pity 0 리셋(유물·잔해 획득 시 승리·패배 굴림 모두), 데일리 확정 굴림 잔해, 패배 굴림 미획득 시 pity 불변 (U-18) |
 | 교환 | 3/5/8 → 1, 부족·미해금 거부, Soul 대상 교환 없음 |
 | 배율 | 각성 `PerLevelMul^Lv` 종족별, 받는 피해 곱 합성(`DamageTakenScale` 리셋 후에도 유지), 독 피해·지속 배율, 둥지 누적(Lv3 = 3효과), 특성 단계 파라미터 조회 |
 | MetaProfile | v11 → v12 기본값, §7.3 정리 규칙, 멱등, `CopyFrom` 재화 복사 |
@@ -887,7 +891,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 ---
 
-## 13. 사용자 결정 항목 - **U-1~U-15 전부 추천안으로 확정 (2026-10-29)**
+## 13. 사용자 결정 항목 - **U-1~U-15 전부 추천안으로 확정 (2026-10-29), U-16~U-18 확정 (2026-11-01)**
 
 아래 "결정" 열의 추천안이 확정값이다. "대안" 열은 기록용으로만 남긴다.
 
@@ -907,6 +911,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | U-13 | 독장판 대체 카드 = **끈질긴 저주**(Debuff 축 시한 디버프 지속 +25%/픽) (§15.3) | 쇠약(디버프 걸린 영웅 이동 x0.85) / 고통의 낙인(디버프 종류당 받는 피해 +5%) | 카드 정체성 |
 | U-14 | `HeroPoisonAura` enum 자리 보존 + `LingeringCurse` 신규 추가 (§15.3) | 독장판 자리를 개명해 재사용 | 세이브 문자열 호환 |
 | U-15 | Debuff Tier1 = 역병귀 독 최대 중첩 +2 (§15.2) | 독 피해 x1.3 | 시너지 정체성 |
+| U-16 (2026-11-01 확정) | 가시 껍질 반사량 반올림 = **0.5 올림** `Max(1, floor(피해 x 비율 + 0.5))` - 역병귀 독 틱과 같은 규칙 (§3.4) | 은행가 반올림(0.5 → 짝수) | 2.5 → 2 가 되는 경우가 있어 독과 반올림이 갈림 |
+| U-17 (2026-11-01 확정) | 탑(·챕터) 결과창 재화 칩 = **이번 판분만**, 이전 층·스테이지 소급분 = 토스트 1481 로 분리 (§7.2-(1), §8.4) | 칩에 소급분 합산 | 칩 숫자가 이번 판 수입과 어긋나 혼동 |
+| U-18 (2026-11-01 확정) | 패배 굴림에서 유물·잔해를 얻어도 `RelicMissStreak` = 0 (기존 relics.md 규칙 유지) (§2.4) | 패배 획득은 카운터 보존 | 표 문구가 "패배 굴림은 읽지 않음" 이라 초기화 여부가 모호했음 |
 | U-11 | 육성 구매 레이어는 **기존 SO `MetaConfig.ShopItems` 에 추가**, 효과 수치만 JSON (§6) | 구매 레이어까지 JSON 신설 | Rule 02 §11(밸런스 = JSON)과 "병렬 시스템 금지" 의 충돌 - 기존 상점 항목이 SO 라 같은 표면을 택함 |
 
 ---
@@ -933,7 +940,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 부착 | 역병귀 기본 공격 적중 시 | 기존 `PlagueSlowOnHit` 와 같은 `IAttacker.OnHit` 경로 |
 | 중첩 | 적중마다 **+1**, 최대 **3** (Debuff Tier1 이면 5) | 여러 역병귀가 영웅 하나의 독을 공유 |
 | 지속 | **3초**, 재적중·전염 때 3초로 **갱신**(연장 누적 아님). 전 중첩이 한 타이머를 공유 | 끊기면 중첩 전부 사라짐 |
-| 피해 | 1초마다 `Max(1, Round(중첩 수 x 1중첩 피해))` | `PoisonAura` 의 1초 틱 패턴 |
+| 피해 | 1초마다 `Max(1, Round(중첩 수 x 1중첩 피해))` - Round 는 0.5 올림(`floor(x + 0.5)`, 구현 `MidpointRounding.AwayFromZero`). 가시 껍질 반사(§3.4)도 같은 규칙 | `PoisonAura` 의 1초 틱 패턴 |
 | 1중첩 피해 | 건 역병귀의 최종 공격력 x **1.0** x `PoisonDamage` 배율. 재적중 시 `Max(현재, 새 값)` | 체급·상점·카드·각성이 모두 반영됨 |
 | 성기사 | `IDebuffAxisAura` (신앙의 가호: 지속 x0.6) · 정화의 빛 해제 대상 | §15.5 |
 | 상태 아이콘 | 영웅 HP바 아래 아이콘(`IStatusVisual`) + 중첩 숫자 `xN`. 아이콘 이미지 = "역병의 손길" 카드 아이콘 재사용 | 신규 스프라이트 없음 |
@@ -1027,7 +1034,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
   - `EMonsterStatKind.SlowFactor` → `PoisonDamage` 개명, `StatMultiplier`, `DungeonPowerSummary`, `MetaConfig.asset` `PlagueVenomUp`(PerLevelMul 1.04, Description).
   - 성기사 정화의 빛 슬롯 목록(`IsPurgeable`), Strings 206·1412.
 - **수정·확인 대상 테스트**: `StatMultiplierTests`, `ContinuousSpawnEffectTests`, `BuildSynergyTiersTests`, `SynergyTierDescriptionTests`, `SynergyRealStringTableTests`, `Chapter5PaladinLogicTests`, `Chapter5DataValidationTests`, `DungeonPowerSummaryEdgeTests`, `ShopPopupSummaryTextEdgeTests`, `MetaConfigAssetRegressionTests`, `RelicAuraTests`, `SpawnerStatusCell*Tests`, `FormationCardAndSealTests`, `ForcedCardDrawTests`, `CardBorderColorsTests`, 카드 데이터 무결성(28장·축당 7장) 테스트, PlayMode `ContinuousSpawnIntegrationTest`·`SimPickStrategy`. 신규 테스트: 독 중첩/갱신/최대 피해 Max·상한·Tier1 +2·성기사 x0.6·정화 해제, 끈질긴 저주 지속 배율(가산 1+0.25n, 영구·Swarm 둔화 제외, 성기사와 곱).
-- **구현 시 함께 갱신할 문서 (이 기획서에서는 고치지 않음)**: `project_lair_concept.md` §5.2 Debuff Tier1 줄·§11 Debuff 카드 표(3번 행), `card-renewal.md` §3 카드 표·§4 시너지 표·§7 누적표, `chapter-5.md` 신앙의 가호·정화의 빛 슬롯 목록, `continuous-spawn-round.md` 역병귀 둔화 언급, `monster-species-enhancement.md` §10 `PlagueVenomUp` 메모, `card-illustrations.md` 카드 목록, `hero-status-icons.md` 아이콘 목록.
+- **구현 시 함께 갱신할 문서 (이 기획서에서는 고치지 않음 - 2026-11-01 각 문서에 반영 완료, 각 문서 변경 이력 참조)**: `project_lair_concept.md` §5.2 Debuff Tier1 줄·§11 Debuff 카드 표(3번 행), `card-renewal.md` §3 카드 표·§4 시너지 표·§7 누적표, `chapter-5.md` 신앙의 가호·정화의 빛 슬롯 목록, `continuous-spawn-round.md` 역병귀 둔화 언급, `monster-species-enhancement.md` §10 `PlagueVenomUp` 메모, `card-illustrations.md` 카드 목록, `hero-status-icons.md` 아이콘 목록.
 
 ---
 
@@ -1038,3 +1045,10 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - 명명 일관성: `ECurrency`(`Soul`/`AwakenStone`/`MoonSeal`/`AbyssCrystal`/`RelicShard`), `ENestMasteryEffect`(`FirstSpawnAdvance`/`SpawnPeriod`/`SpawnGuard`), `EMonsterTrait` 6값, `EShopEffectKind.MonsterAwaken`/`NestMastery`/`MonsterTrait`, `EMonsterStatKind.PoisonDamage`/`DamageTaken`/`KnockbackTaken`/`PoisonDuration`, `ECardId.LingeringCurse`, `PlagueToxinOnHit`/`PlagueToxinAura`, `AwakenPaid`, `CrystalPaid`, `CurrencyEntry`, `Awaken_<종족>`/`Nest_<종족>`/`Trait_<종족>` 를 본문 전체에서 같은 표기로 사용.
 - 스코프: 슬라이스 5개(§11.1)로 분할 구현 가능. 기획 자체는 "콘텐츠별 보상 차별화" 한 가설을 위한 한 묶음이라 기획서는 하나로 둔다.
 - UI 목업: `.mockups/monster-growth-currencies.html`.
+
+---
+
+## 변경 이력
+
+- **2026-10-29**: 초안 + 사용자 결정 U-1~U-15 확정, CLAUDE.md §8 승격.
+- **2026-11-01 (구현·테스트 완료 후 현행화)**: 사용자 결정 U-16(가시 껍질 반사 0.5 올림, §3.4·§15.1) · U-17(탑·챕터 결과창 재화 칩 = 이번 판분, 소급분 = 토스트 1481, §7.2·§8.4) · U-18(유물·잔해 획득 시 승리·패배 굴림 모두 연패 카운터 0, §2.4) 반영. 구현이 기획과 다르게 한 2점을 현행으로 반영 - `TowerConfig.crystalMilestoneEvery` 0 허용(= 이정표 없음, §2.3·§6.2·§6.3), 상점 지갑·결과창 칩이 공용 알약 위젯 `CurrencyPillView` 사용(§8.1). §15.8 의 "함께 갱신할 문서" 7건은 같은 날 각 문서에 반영 완료.

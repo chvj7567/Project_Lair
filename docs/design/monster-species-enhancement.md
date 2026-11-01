@@ -287,7 +287,7 @@ ShopItemDef(효과종류+레벨) → MetaProfile.ShopLevels(저장/클라우드�
 - **스펙 커버리지**: spec §3.1 종족개별 → §2·5·7 / §3.2 HP·공격력 배수 → §2 / §3.3 3축 곱연산 → §2·8 / §3.4 5단계 → §2.2·§4.1(MaxLevel 5) / §3.5 발광·틴트X → §4 / §4.3 시각(전투 발광 + 메뉴 미리보기 — 색은 종족색 정확 일치, 세기는 선형 근사[§7 셀 재량, 곡선은 전투 프리팹 소관], 현재 Lv + 다음 Lv 힌트) → §4·§5.2 / §4.4 2탭 → §5·9 / §5 경제 → §3 / §7 열린 결정 3건(단일/분리·셀·발광축) → §2.1·§5·§4.2 전부 닫음. 갭 0.
 - **레포 관례 정합(검증 완료)**: 종족 아이콘은 인스펙터 switch resolver(CodexPopup 관례)로 배선 — Enum 키 로드 아님(§5.3). `BuildCellData(…, ShopTab)` 테스트 시그니처 보존(Icon 은 Rebuild 주입).
 - **design-reviewer 1차 반영(BLOCKER 1 + 개선 2)**: (BLOCKER) 발광색을 프리팹 필드/UI 재사용 두 곳에서 → **단일 SoT `Lair.Data.SpeciesGlowColor`** 로 통합, 전투·셀이 같은 메서드 읽음 → Phantom(#82ABE6)·Wraith(#C0CCE6) 정규화로 다크 배경 가시 + "메뉴 색=전장 색" 구조 보장(§4.2·§4.3·§5.2·§9). (개선①) `SpeciesGlowColor` max=0.90 정규화에 Wraith 포함 + §4.1 가시성 게이트 "6종 개별 확인"으로 명시. (개선②) §8.2 파워 가파름 2.58배로 정정, §3.2 글로벌 만렙 총액 ≈11.8천 정정.
-- **기존 `PlagueVenomUp` 관계**: 스탯 강화 탭의 `PlagueVenomUp`(Plague SlowFactor 강화)과 신규 `Enhance_Plague`(Plague HP·공격력)는 **대상 스탯이 다른 별개 축**(둔화 vs 체력/화력)이며 탭도 `EffectKind` 로 분리되어 기능 충돌 없음. 두 항목이 "Plague 를 키운다"는 점만 겹치나 강화하는 값이 달라 중복 아님.
+- **기존 `PlagueVenomUp` 관계**: 스탯 강화 탭의 `PlagueVenomUp`(「짙은 역병」 - 2026-10-29 부터 Plague **독 피해 +4%/Lv**, `EMonsterStatKind.PoisonDamage` = 이전 `SlowFactor` 정수 5 개명, PerLevelMul 0.98 → 1.04)과 신규 `Enhance_Plague`(Plague HP·공격력)는 **대상 스탯이 다른 별개 축**(독 피해 배율 vs 체력/화력 - 독 1중첩 피해가 역병귀 공격력에 비례하므로 두 축은 곱으로 함께 커진다)이며 탭도 `EffectKind` 로 분리되어 기능 충돌 없음. 두 항목이 "Plague 를 키운다"는 점만 겹치나 강화하는 값이 달라 중복 아님.
 - **내부 일관성**: 배수 1.18(§2·9), 가격 150·1.6(§3·9), 발광 [1.5,1.9,2.3,2.7,3.2](§4·9), 셀 밝기 level/MaxLevel(§5·9) — 본문·표·구현요청 동일.
 - **시그니처/명명 일관성**: `EShopEffectKind.MonsterSpecies`·`ShopItemDef.Species`·`GetSpeciesMul`·`MonsterEnhancementVisual.ApplyLevel(int, EMonster)`·`_emissionByLevel`·`Lair.Data.SpeciesGlowColor`·`ShopTab{Stat,Species}`·`Enhance_<EMonster>` — plan(+ §4.3 delta)과 글자 그대로 일치. `_enhanceGlowColor` 필드는 제거되어 문서 전체에서 미참조(설명 문맥 §4.2·§9 제외).
 - **모호 표현 0**: "적당히/유연하게/또는(디자인 결정)" 없음.
@@ -296,3 +296,9 @@ ShopItemDef(효과종류+레벨) → MetaProfile.ShopLevels(저장/클라우드�
 - **UI 목업**: `.mockups/monster-species-enhancement.html` 작성(다크 #262626 · 흰 아웃라인 · Jua · MonsterIcons 재사용 · 2탭 · 발광 프레임 · 구매 흐름).
 
 판정: **통과**.
+
+---
+
+## 변경 이력
+
+- **2026-11-01**: §10 `PlagueVenomUp` 메모를 현행(독 피해 +4%/Lv, `PoisonDamage`)으로 갱신 - 몬스터 육성 재화 분리 §15.4. 이 기획서의 `Enhance_<종>` 표시명 "각성" 은 2026-10-29 "체급" 으로 바뀌었으며(세이브 키 `Enhance_*` 는 불변) 단일 진실은 `monster-growth-currencies.md` §3.1 이다.

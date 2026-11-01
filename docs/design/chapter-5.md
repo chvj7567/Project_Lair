@@ -4,6 +4,7 @@
 > 입력: `CLAUDE.md` §8 ⑦(챕터 5 승격 2026-10-18) · `chapter-4.md`(선례 형식·도출식 적용) · `chapter-3-hero.md` · `chapter-system.md`(§0.4 도출식·상한, §3 규칙 6종, §3.2 임계 이격, E-1) · `hero-skills.md` · `project_lair_concept.md`(§5.2 4축 시너지, 카드 28장 표) · 실제 코드/데이터(`ChapterGate.cs` · `StageProgress.cs` · `ChapterDatabase.cs` · `AutoCombatAI.cs` · `HeroAuraRunner.cs` · `BattleContext.cs` · `PlagueSlowOnHit.cs` · `Card/Auras/*.cs` · `Card/Effects/*.cs` · `Art/Cards/Items/*.asset` · `WorldMapViewModel.cs` · `Chapter.json` · `Stage.json` · `Stage_Rule*.json` · `HeroArchetype.json` · `hero_skills.json` · `balance_config.json` · `Strings_Ko.json`)
 > **시안(합의용, 사용자 기열람)**: `.mockups/hero-ch5-paladin.html`(영웅 5단계 · 팔레트 A/B · 스킬 FX · 전투 미니 프리뷰) · `.mockups/scene-bg-ch5-frost.html`(배경, 4장 대비). 메인이 `node .mockups/server.js` 로 `http://localhost:8777/` 제공. **시안의 수치(스테이지 표·보스 트리거)는 초안이며 본 문서 §5.3·§5.2 가 대체한다**(차이는 §5.5).
 > **데이터 구조표**: 본 문서 §2 (신규 스키마 2종 `HeroArchetype_Guard` · `HeroArchetype_DebuffResist` - 사용자 승인 게이트 대상)
+> **변경 이력 (2026-11-01)**: 몬스터 육성 재화 분리(`monster-growth-currencies.md` §15) 구현에 맞춰 현행화 - 역병귀 적중 효과 둔화(`SlowAura`) → 독(`PlagueToxinAura`, 부착 컴포넌트 `PlagueToxinOnHit`), 독장판(`HeroPoisonAura`/`PoisonAura`) 삭제 → 끈질긴 저주(`LingeringCurse`) 신설, 신앙의 가호 대상·정화의 빛 해제 목록·편성 힌트 1412(`약화·독에 저항합니다. 디버프보다 힘으로 맞서세요.`)·응징 출처·G11 지표 갱신. §1.2 발견 3·§1.3 의 손실 분석은 당시(둔화 기준) 기록이며 현행 값은 각 줄의 "(2026-11-01 현행)" 주석을 따른다.
 
 ---
 
@@ -36,8 +37,8 @@
 
 | 출처 | 축 | aura | 지속(에셋 실측) | 효과 | 패시브 대상 |
 |---|---|---|---|---|---|
-| 역병귀 적중 (`PlagueSlowOnHit`) | Debuff (몬스터) | `SlowAura` | 1.5초/적중, 연장 누적 | 이동 x0.8 (`PlagueSlowBoost` x0.75, T1 x0.8) | **대상 (시한)** |
-| `HeroPoisonAura` (P) | Debuff | `PoisonAura` | 5초 | 고정 독장판 안에서 5 DPS | **대상 (시한)** |
+| 역병귀 적중 (`PlagueToxinOnHit`, 2026-10-29 `PlagueSlowOnHit` 에서 교체) | Debuff (몬스터) | `PlagueToxinAura` | 3초/적중, 재적중 시 3초로 **갱신**(연장 누적 아님) | 독 1중첩/적중(최대 3, T1 이면 5), 1초마다 중첩 x 역병귀 공격력 x 독 피해 배율(`PlagueSlowBoost` "역병의 손길" x1.4/픽) | **대상 (시한)** |
+| ~~`HeroPoisonAura` (P)~~ | Debuff | ~~`PoisonAura`~~ | - | 2026-10-29 카드 삭제(대체 카드 `LingeringCurse` 는 디버프가 아니라 Debuff 축 시한 디버프 지속 x(1 + 0.25n) 보정 - 신앙의 가호 x0.6 과 같은 부착 지점에서 곱) | - |
 | `Fear` (A) | Debuff | `FearAura` | 3초 | 도주 | **대상 (시한)** |
 | `Bleed` (A) | Debuff | `BleedAura` | 10초 | 매 1초 최대 HP 2% (코드상 이동 여부 무관) | **대상 (시한)** |
 | `Weaken` (A) | Debuff | `WeakenAura` | 10초 | 공격력 x0.5 | **대상 (시한)** |
@@ -52,7 +53,7 @@
 
 **발견 2 - aura 타입으로 정의하면 다른 축이 함께 약해진다.** Swarm 의 `Slow` 카드는 역병귀 둔화와 같은 `SlowAura` 클래스이고, `TimeStop`(Swarm)·`MarkOfDeath`(Dps)도 같은 `ApplyHeroAura` 경로다. "영웅이 받는 모든 디버프"로 정의하면 Swarm 2장·Dps 1장이 함께 약해져 "Debuff 만 약" 가설이 흐려진다.
 
-**발견 3 - "디버프 3개 이상" 정화 조건은 사실상 발동하지 않는다.** 액티브 카드는 30초마다 1장이고, 패시브 적용 후 시한 디버프 지속은 Fear 1.8초 · Bleed 6.0초 · Weaken 6.0초다. 액티브 디버프끼리는 겹치지 않으므로 동시에 붙는 대상 디버프는 보통 "역병귀 둔화 + 액티브 1종" = 2종이고, 3종은 패시브 픽 직후 독장판(3.0초)까지 겹쳐야 나온다. 그래서 정화 조건을 **2종 이상**으로 낮춘다(§4).
+**발견 3 - "디버프 3개 이상" 정화 조건은 사실상 발동하지 않는다.** 액티브 카드는 30초마다 1장이고, 패시브 적용 후 시한 디버프 지속은 Fear 1.8초 · Bleed 6.0초 · Weaken 6.0초다. 액티브 디버프끼리는 겹치지 않으므로 동시에 붙는 대상 디버프는 보통 "역병귀 둔화 + 액티브 1종" = 2종이고, 3종은 패시브 픽 직후 독장판(3.0초)까지 겹쳐야 나온다. 그래서 정화 조건을 **2종 이상**으로 낮춘다(§4). (2026-11-01 현행: 독장판이 삭제되고 역병귀 둔화가 독으로 바뀌어 현실적 조합은 "역병귀 독 + 액티브 1종" = 2종이다. 정화 조건 2종 결론은 그대로.)
 
 **패시브 정의 대안**
 
@@ -70,8 +71,8 @@
 
 | 카드 / 시너지 | 기본 | 성기사 | 손실 |
 |---|---|---|---|
-| `PlagueSlowBoost` · `SpawnPlagues` · T1 (역병귀 둔화) | 적중당 1.5초 연장, 역병귀 쿨다운 1.0 이라 공격 중 매초 +0.5초씩 쌓여 역병귀가 죽은 뒤에도 남음 | 적중당 0.9초 -> 공격 중 커버율 0.9 / 1.0 = 90%, 역병귀 사망 0.9초 뒤 해제. **응징 표적**(§3.3)으로 역병귀(HP 50)가 60 피해 1타에 우선 처치 | 둔화가 "누적 지속"에서 "공격 중에만 90%"로 바뀌고 역병귀 생존 시간이 짧아짐 |
-| `HeroPoisonAura` (P) | 5 DPS x 5초 = 25 | 5 x 3.0초 = 15 | -40% (-10) |
+| `PlagueSlowBoost` · `SpawnPlagues` · T1 (역병귀 둔화) | 적중당 1.5초 연장, 역병귀 쿨다운 1.0 이라 공격 중 매초 +0.5초씩 쌓여 역병귀가 죽은 뒤에도 남음 | 적중당 0.9초 -> 공격 중 커버율 0.9 / 1.0 = 90%, 역병귀 사망 0.9초 뒤 해제. **응징 표적**(§3.3)으로 역병귀(HP 50)가 60 피해 1타에 우선 처치 | 둔화가 "누적 지속"에서 "공격 중에만 90%"로 바뀌고 역병귀 생존 시간이 짧아짐. **(2026-11-01 현행)** 효과가 독으로 바뀌어 독 지속 3초 → 1.8초(x0.6, 중첩·피해는 보정 없음). 역병귀 쿨다운 1.0 이라 공격 중에는 매 적중 갱신으로 계속 유지되고, 역병귀 사망·이탈 후 1.8초 뒤 해제. 응징 표적 규칙은 그대로 |
+| ~~`HeroPoisonAura` (P)~~ | 5 DPS x 5초 = 25 | 5 x 3.0초 = 15 | -40% (-10). **(2026-11-01 현행)** 카드 삭제. 대체 `LingeringCurse` 3픽이면 시한 디버프 지속 x1.75 x0.6 = x1.05 로 신앙의 가호를 상쇄(`monster-growth-currencies.md` §15.3·게이트 PQ5) |
 | `HeroAttackDown` (P) | 공격력 x0.75 (감소 25%) | 1 - 0.25 x 0.6 = **x0.85** (감소 15%) | 감소분 -40% |
 | `Fear` (A) | 3.0초 도주 | 1.8초 | -1.2초 |
 | `Bleed` (A) | 2% x 10초 = 최대 HP 20% | 2% x 6초 = 12% | -8%p |
@@ -210,11 +211,11 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 | 대기 | 필드에 몬스터 없음 | 제자리 정지 (중앙 복귀 없음) | 몬스터 등장 -> 이동 |
 | 이동 | 표적 거리 > `range`(1.6) | 표적 방향으로 `moveSpeed`(2.9) 이동 | 거리 <= 1.6 -> 교전 |
 | 교전 | 표적 거리 <= 1.6 | 정지 + 단일 공격(쿨다운 1.1). 기존 교전 히스테리시스(`_engageBuffer`) 그대로 | 표적 사망 -> 표적 재선택. 사거리 + 버퍼 이탈 -> 이동 |
-| 응징 (표적 규칙) | 몬스터 M 이 영웅에게 **대상 디버프를 부착**(현행 출처는 역병귀 적중 둔화뿐 - 역병귀 사거리 1.0 이라 가해자는 항상 영웅 곁이므로 거리 조건을 두지 않는다) | 표적을 M 으로 즉시 교체하고 `retributionLockSec`(2.0) 동안 고정(일반 표적 히스테리시스 `_retargetMargin` 1.5 무시). 이동/교전 상태는 위 규칙 그대로 | M 사망 · 2.0초 경과 -> 일반 표적 규칙(최근접 + `_retargetMargin` 히스테리시스) |
+| 응징 (표적 규칙) | 몬스터 M 이 영웅에게 **대상 디버프를 부착**(현행 출처는 역병귀 적중 독뿐(2026-10-29 둔화에서 교체) - 역병귀 사거리 1.0 이라 가해자는 항상 영웅 곁이므로 거리 조건을 두지 않는다) | 표적을 M 으로 즉시 교체하고 `retributionLockSec`(2.0) 동안 고정(일반 표적 히스테리시스 `_retargetMargin` 1.5 무시). 이동/교전 상태는 위 규칙 그대로 | M 사망 · 2.0초 경과 -> 일반 표적 규칙(최근접 + `_retargetMargin` 히스테리시스) |
 
 - 일반 표적: 기사와 같은 최근접 + 거리 기준 고정 표적(`_retargetMargin` 1.5).
 - 응징 중 다른 몬스터가 다시 디버프를 걸면 표적을 그 몬스터로 바꾸고 2.0초를 새로 잰다(가장 최근 가해자 우선).
-- 카드 출처 디버프(Fear·Bleed·Weaken·독장판·`HeroAttackDown`)는 가해 몬스터가 없으므로 응징을 발동하지 않는다.
+- 카드 출처 디버프(Fear·Bleed·Weaken·`HeroAttackDown`, 독장판은 2026-10-29 삭제)는 가해 몬스터가 없으므로 응징을 발동하지 않는다.
 - 공포(`FleeMode`)가 걸리면 기존 순서대로 FleeMode 가 우선한다(성기사는 1.8초로 짧아짐).
 
 **AI 대안 비교 (디버프 반응 방식)**
@@ -231,9 +232,9 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 |---|---|---|---|
 | 1 | Update 게이트 순서: 사망 -> TimeStop(`IAttacker.Enabled`) -> 도약 -> 스폰 게이트 -> `IsAttacking` -> 타깃 없음 -> 고정 타깃 -> FleeMode -> 중앙 끌림 -> Kite/Skirmish/Charge -> 교전/이동 | Guardian 은 별도 이동 분기가 없고 **표적 해석 단계**만 바뀐다 | 응징 표적은 고정 타깃 해석(`ResolveStickyTarget`) 자리에서 덮어쓴다. 이후 교전/이동은 기존 Melee 경로. `aiType == Guardian` 일 때만 활성(`GuardSettings` 주입), 다른 4영웅 동작 불변 |
 | 2 | 중앙 끌림 `_centerPullEnabled` | 성기사는 끌림 없음 | 프리팹 플래그 off (Charger 처럼 코드 강제가 아니라 프리팹 값) |
-| 3 | `PlagueSlowOnHit.HandleHit(IHealth target)` 는 가해 몬스터를 영웅에 전달하지 않음 | 응징 표적에 가해자 정보가 필요 | 영웅 쪽에서 "디버프를 건 몬스터"를 알 수 있는 통지가 필요하다는 요구만 고정. 방식은 gameplay-programmer 판단 |
-| 4 | `HeroAuraRunner.Attach` 연장(`Remain += duration`) | 패시브는 첫 부착뿐 아니라 **연장분에도** 적용돼야 함 | 대상 출처의 `duration` 인자 자체를 x0.6 해서 넘기면 연장도 자동으로 x0.6. 두 부착 경로(BattleContext·PlagueSlowOnHit 직접 호출) 모두 적용 |
-| 5 | `SlowAura` 공유 슬롯 | 역병귀 둔화(대상)와 Swarm `Slow` 카드(제외)가 같은 타입이라 한 슬롯에 합쳐짐 | 패시브 배율은 부착 호출 단위로 출처에 따라 적용(역병귀 0.9초, `Slow` 카드 10초 그대로). 정화 처리는 §4 E-C5-5 |
+| 3 | `PlagueSlowOnHit.HandleHit(IHealth target)` 는 가해 몬스터를 영웅에 전달하지 않음 (2026-10-29 `PlagueToxinOnHit` 로 교체 - 같은 요구 적용) | 응징 표적에 가해자 정보가 필요 | 영웅 쪽에서 "디버프를 건 몬스터"를 알 수 있는 통지가 필요하다는 요구만 고정. 방식은 gameplay-programmer 판단 |
+| 4 | `HeroAuraRunner.Attach` 연장(`Remain += duration`) | 패시브는 첫 부착뿐 아니라 **연장분에도** 적용돼야 함 | 대상 출처의 `duration` 인자 자체를 x0.6 해서 넘기면 연장도 자동으로 x0.6. 두 부착 경로(BattleContext·`PlagueToxinOnHit` 직접 호출, 2026-10-29 이전 `PlagueSlowOnHit`) 모두 적용 |
+| 5 | `SlowAura` 공유 슬롯 | (2026-10-29 이전) 역병귀 둔화(대상)와 Swarm `Slow` 카드(제외)가 같은 타입이라 한 슬롯에 합쳐짐 | **(현행)** 역병귀는 별도 타입 `PlagueToxinAura` 를 쓰므로 `SlowAura` 출처는 Swarm `Slow` 카드뿐이다. 공유 슬롯 문제 해소. 정화 처리는 §4 · E-C5-1 |
 | 6 | 영구 디버프 강도 | `HeroAttackDownAura`(P·T2)·`EternalBleedAura`(T3) 는 생성 시 배율·비율을 받음 | 대상 영웅이면 생성 배율을 §2.2 `penaltyMul` 식으로 보정 (0.75 -> 0.85, 0.85 -> 0.91, 0.01 -> 0.006) |
 | 7 | `HeroHologramMode`(마을 쇼케이스) | 성기사도 쇼케이스 영웅 | 마을에서는 전투·AI 컴포넌트 off(다른 4영웅과 같은 경로) |
 | 8 | `BattleController` 영웅별 분기 | Charger 주입(675행 인접)·로드아웃 맵(837행)·`WarmVisual`(1609행) | §8 체크리스트 |
@@ -279,12 +280,12 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 | 스킬 (`$type`, `fileName`) | 게이트 | 필드 / 값 | 효과 · 처치 타수 |
 |---|---|---|---|
 | **심판의 망치** `JudgmentHammerSkillData`, `HeroSkill_JudgmentHammer` ("심판의 망치") | 85% | `damage` 110 / `cooldown` 6.0 / `radius` 2.4 / `stunSec` 0.6 / `castRange` 5.0 | 현재 표적 몬스터가 영웅에게서 5.0 이내이면 그 위치에 빛의 망치가 떨어져 반경 2.4 안 몬스터에 110 피해 + 0.6초 기절(공격·이동 정지). 처치 타수: Phantom·Plague·Hex·Reaper 1타, Wisp 2타, Wraith 5타 |
-| **정화의 빛** `PurifyingLightSkillData`, `HeroSkill_PurifyingLight` ("정화의 빛") | 65% | `triggerDebuffCount` 2 / `healPercent` 0.08 / `cooldown` 12.0 | 영웅에게 붙은 **대상 시한 디버프 슬롯**(`SlowAura` · `PoisonAura` · `FearAura` · `BleedAura` · `WeakenAura`)이 2종 이상이면 그 슬롯을 전부 해제하고 최대 HP 8% 회복. 영구 디버프(`HeroAttackDownAura` · `EternalBleedAura`)는 해제하지 않는다(이미 패시브로 감소분 x0.6). `PoisonAura` 는 상태 아이콘(`IStatusVisual`)이 없지만 개수에 포함한다. **`SlowAura` 슬롯은 출처와 무관하게 1종으로 세고 해제한다**(Swarm `Slow` 카드만으로 생긴 슬롯 포함, E-C5-1) |
+| **정화의 빛** `PurifyingLightSkillData`, `HeroSkill_PurifyingLight` ("정화의 빛") | 65% | `triggerDebuffCount` 2 / `healPercent` 0.08 / `cooldown` 12.0 | 영웅에게 붙은 **대상 시한 디버프 슬롯**(`SlowAura` · `PlagueToxinAura` · `FearAura` · `BleedAura` · `WeakenAura` - 2026-10-29 `PoisonAura` 삭제 → `PlagueToxinAura` 추가)이 2종 이상이면 그 슬롯을 전부 해제하고 최대 HP 8% 회복. 독은 중첩 전부가 한 슬롯이라 1종으로 센다. 영구 디버프(`HeroAttackDownAura` · `EternalBleedAura`)는 해제하지 않는다(이미 패시브로 감소분 x0.6). **`SlowAura` 슬롯은 1종으로 세고 해제한다**(현행 출처는 Swarm `Slow` 카드뿐, E-C5-1) |
 | **성역** `SanctuarySkillData`, `HeroSkill_Sanctuary` ("성역") | 45% | `durationSec` 6.0 / `damageTakenMul` 0.6 / `radius` 2.6 / `monsterSpeedMul` 0.7 / `cooldown` 18.0 / `triggerMonsterCount` 3 / `triggerRadius` 2.6 | 반경 2.6 안 몬스터가 3마리 이상이면 시전 위치에 성역을 펼친다: 6.0초 동안 영웅 받는 피해 x0.6(위치 무관) + 성역 안 몬스터 이동 x0.7 |
 
 - `loadout` row: `{heroId: "Paladin", hpFraction: 0.85, skill: "HeroSkill_JudgmentHammer"}`, `{.., 0.65, "HeroSkill_PurifyingLight"}`, `{.., 0.45, "HeroSkill_Sanctuary"}`.
 - 자동 시전 우선순위(동시에 조건 참): 정화의 빛 > 성역 > 심판의 망치. 근거: 정화는 조건이 드물게 맞으므로 맞을 때 놓치지 않고, 성역은 포위 시 생존기, 망치는 6초마다 도는 상시 딜.
-- 정화 조건 2종 근거(§1.2 발견 3): 패시브 적용 후 액티브 디버프는 서로 겹치지 않아 "역병귀 둔화 + 액티브 1종"이 현실적 최대치다. 3종으로 두면 G13 에서 발동 0회가 나올 위험이 높다.
+- 정화 조건 2종 근거(§1.2 발견 3): 패시브 적용 후 액티브 디버프는 서로 겹치지 않아 "역병귀 둔화 + 액티브 1종"(2026-11-01 현행: "역병귀 독 + 액티브 1종")이 현실적 최대치다. 3종으로 두면 G13 에서 발동 0회가 나올 위험이 높다.
 - 이론 보조 DPS(참고): 망치 110 x 3마리 / 6.0 = 55.0. 성역 평균 받는 피해 = 1 - 0.4 x (6.0 / 18.0) = x0.867. 정화 회복 최대 8% / 12초.
 - 받는 피해 곱연산: 성역 x0.6 과 `BossBulwark` x0.6 이 겹치면 0.36(엣지 E-C5-3).
 - 컷인(시간정지 1.9초 x 3회) 재사용.
@@ -476,7 +477,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 - 고정 요구 (방식은 gameplay-programmer 판단):
   1. 디버프 부착 시 **출처**(Debuff 축 카드 / 역병귀 적중 / 그 외)를 구분할 수 있어야 한다 - 패시브 대상 판정(§1.2) 단일 진실.
   2. 영웅이 "자신에게 대상 디버프를 건 몬스터"를 알 수 있어야 한다 - 응징 표적(§3.3).
-  3. 두 부착 경로(`BattleContext.ApplyHeroAura` · `PlagueSlowOnHit` 직접 `Attach`) 모두 패시브가 적용돼야 한다.
+  3. 두 부착 경로(`BattleContext.ApplyHeroAura` · `PlagueToxinOnHit` 직접 `Attach`, 2026-10-29 이전 `PlagueSlowOnHit`) 모두 패시브가 적용돼야 한다.
 - 신규 스킬 효과 컨텍스트: 몬스터 기절(`JudgmentHammer`), 영웅 대상 시한 디버프 개수 조회·일괄 해제 + 최대 HP 비율 회복(`PurifyingLight`). 광전사 `IBerserkerSkillContext` 처럼 별도 컨텍스트로 둘지 기존 확장인지는 gameplay-programmer 판단.
 
 ### 7.4 에셋 키 / 데이터 파일 (파일명 = Enum 값명)
@@ -507,7 +508,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 | 9 | `BattleController` | ① `EHeroAi.Guardian` 분기(Guard 설정 주입, Charger 분기 675행 인접, row 없으면 전투 진입 중단 로그) ② `DebuffResist` 주입 ③ 로드아웃 맵(837행)에 `{ EHero.Paladin, EData.HeroSkillLoadout_Paladin }` ④ `WarmVisual`(1609행)에 Paladin FX 3종 ⑤ 챕터 5 영웅 프리팹 ⑥ 랭킹 제출 `hero` | `BattleController.cs` |
 | 10 | `ChapterDatabase` / `ChapterDatabaseLoader` | `HeroArchetype_Guard` / `HeroArchetype_DebuffResist` 로드·FK·역방향 검증(`AddCharges` 패턴 복제), 로더 목록 2종 추가 | `ChapterDatabase.cs` 261~298행 |
 | 11 | `AutoCombatAI` | Guardian 응징 표적 (다른 4영웅 경로 불변) | §3.3 |
-| 12 | 디버프 부착 경로 | `HeroAuraRunner` / `BattleContext.ApplyHeroAura` / `PlagueSlowOnHit` / `DebuffSynergyTier2` · `DebuffSynergyTier3` · `HeroAttackDownEffect` (영구 강도) | §1.2, §3.3 #4~6 |
+| 12 | 디버프 부착 경로 | `HeroAuraRunner` / `BattleContext.ApplyHeroAura` / `PlagueToxinOnHit`(2026-10-29 이전 `PlagueSlowOnHit`) / `DebuffSynergyTier2` · `DebuffSynergyTier3` · `HeroAttackDownEffect` (영구 강도) | §1.2, §3.3 #4~6 |
 | 13 | 스킬 | `JudgmentHammerSkillData` `PurifyingLightSkillData` `SanctuarySkillData` 신규 `$type`, 컨텍스트 확장 | §4 |
 | 14 | `HeroStageVariantApplier` | 엔트리만 추가 (누락 시 로드 오류 E-11) | chapter-system §1.2 |
 | 15 | `RankingPopup` / `RecordsPopup` | 스테이지 선택 1~25, 기록 행 25 | chapter-system §2.3 |
@@ -549,7 +550,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 | `StageProgress` | 경계 20<->21, 25(종점), `IsUnlocked`(cleared 20 -> 21 해금, 22 잠금), `ResolveClearedStage` 상한 25, `MaxPlayableStage(25)` = 25, `ScaleHeroStat(50, 0.85, 1.40)` = 60 · `(50, 0.85, 1.80)` = 77 (.5 경계 2건) |
 | 마이그레이션 | v6 값 보존 · `Version == 6`, Cleared 21~25 보존, `StageRecords` 26 이상 제거 |
 | JSON 검증 | Guard / DebuffResist FK·범위, aiType=Guardian 의 Guard row 필수, 챕터 5 스테이지 5개, 트리거 0.75 / 0.35 검증 통과, **0.70 트리거 row 를 넣으면 검증 오류**(회귀) |
-| 신앙의 가호 | 대상 8출처 지속/강도 보정(역병귀 1.5 -> 0.9, 독 5 -> 3, Fear 3 -> 1.8, Bleed 10 -> 6, Weaken 10 -> 6, `HeroAttackDown` 0.75 -> 0.85, T2 0.85 -> 0.91, T3 0.01 -> 0.006), **연장분도 x0.6**(같은 타입 재부착), `PlagueSlowOnHit` 직접 경로 적용, 제외 3종(`Slow` 10 · `TimeStop` 5 · `MarkOfDeath` 5) 불변, DebuffResist row 없는 영웅(기존 4명) 불변 |
+| 신앙의 가호 | (2026-11-01 현행: 역병귀 독 3 -> 1.8 · 독장판 항목 삭제 · `LingeringCurse` 와 곱 합성 1.75 x 0.6 = 1.05) 대상 8출처 지속/강도 보정(역병귀 1.5 -> 0.9, 독 5 -> 3, Fear 3 -> 1.8, Bleed 10 -> 6, Weaken 10 -> 6, `HeroAttackDown` 0.75 -> 0.85, T2 0.85 -> 0.91, T3 0.01 -> 0.006), **연장분도 x0.6**(같은 타입 재부착 - 현행 독은 연장이 아니라 갱신이라 갱신 지속 1.8초), `PlagueSlowOnHit`(현행 `PlagueToxinOnHit`) 직접 경로 적용, 제외 3종(`Slow` 10 · `TimeStop` 5 · `MarkOfDeath` 5) 불변, DebuffResist row 없는 영웅(기존 4명) 불변 |
 | Guardian | 일반 최근접 + 고정 표적 회귀, 응징 발동(가해자 -> 즉시 표적), 2.0초 해제, 가해자 사망 해제, 재가해 시 갱신, 카드 출처 디버프는 미발동, FleeMode 우선, 중앙 끌림 없음, 다른 4영웅 경로 불변 |
 | 스킬 | 망치: 사거리 5.0 밖 미시전, 반경 2.4 피해 110 + 기절 0.6초 후 복귀 / 정화: 대상 시한 디버프 1종이면 미시전, 2종이면 전부 해제 + 8% 회복, 영구 디버프 유지, 회복이 HP 임계를 재무장하지 않음 / 성역: 3마리 미만 미시전, 받는 피해 x0.6 · 구역 몬스터 x0.7 · 6.0초 후 복구 / 우선순위 정화 > 성역 > 망치 |
 
@@ -562,7 +563,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 
 | 게이트 | 대상 | 측정 | 통과 기준 |
 |---|---|---|---|
-| **G11** | 성기사 AI | 실효 DPS(스킬 제외), 교전 시간 비율, 표적 도달 시간, 응징 발동 후 가해 역병귀 처치까지 시간, 역병귀 둔화 커버율(둔화 시간 / 생존 시간) | 실효 DPS 가 같은 인덱스 기사 DPS 의 95~120%(§3.2 중심 101~109% 를 감쌈), 교전 시간 비율 60% 이상, 응징 후 처치 평균 2.5초 이하, 둔화 커버율이 같은 빌드의 기사 대비 0.6배 이하 |
+| **G11** | 성기사 AI | 실효 DPS(스킬 제외), 교전 시간 비율, 표적 도달 시간, 응징 발동 후 가해 역병귀 처치까지 시간, 역병귀 독 커버율(독이 걸려 있는 시간 / 역병귀 생존 시간 - 2026-11-01 둔화 커버율에서 교체) | 실효 DPS 가 같은 인덱스 기사 DPS 의 95~120%(§3.2 중심 101~109% 를 감쌈), 교전 시간 비율 60% 이상, 응징 후 처치 평균 2.5초 이하, 독 커버율이 같은 빌드의 기사 대비 0.6배 이하 |
 | **G12** | Ch5 곡선 | 스테이지별 평균 처치 시간 | 각 `targetClearSec` +-15%, 톱니(5-1 기대 시간 < 4-5 기대 시간), 4축 빌드별 편차 +-30초 |
 | **G13** | Ch5 보스 | 5-5 첫 도전 승률, 보스 구간 시간, 페이즈 후 필드 평균 몬스터 수, 빌드별 승률, 정화의 빛 발동 횟수 | 승률 40~50%(상점 만렙 봇 기준, M_ref 1.35), 필드 점유 평균 12마리 이상, **Debuff 빌드 승률 < Tank·Dps·Swarm 각 빌드 승률**, **Debuff 빌드 승률 >= 전체 평균의 0.5배**(죽은 빌드 방지). 어긋나면 `durationMul`/`penaltyMul` 만 조정 |
 | 보조 | 성수 샘(5-4) | 샘 개방 중 체류율 | 0.4 +-0.15 (`ruleFactor` 가정 검증) |
@@ -575,7 +576,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 
 | # | 케이스 | 처리 |
 |---|---|---|
-| E-C5-1 | 역병귀 둔화와 Swarm `Slow` 카드가 같은 `SlowAura` 슬롯에 합쳐짐 | 패시브 배율은 부착 호출 단위(역병귀 0.9초, `Slow` 10초 그대로). 합쳐진 뒤에는 출처를 구분할 수 없으므로 정화는 `SlowAura` 슬롯을 **출처와 무관하게 대상 1종으로 세고 해제**한다(`Slow` 카드만으로 생긴 슬롯도 포함). Swarm 손실은 "다른 대상 디버프와 겹친 순간"에만 생기는 드문 경우로 수용, G13 Swarm 승률로 확인 |
+| E-C5-1 | 역병귀 둔화와 Swarm `Slow` 카드가 같은 `SlowAura` 슬롯에 합쳐짐 | **(2026-11-01 현행) 해당 없음** - 역병귀가 `PlagueToxinAura`(별도 슬롯)를 쓰므로 `SlowAura` 는 Swarm `Slow` 카드 단독 슬롯이다. 정화는 `SlowAura` 를 대상 1종으로 세고 해제하는 규칙 그대로(아래 당시 기록 참고). 당시 기록: 패시브 배율은 부착 호출 단위(역병귀 0.9초, `Slow` 10초 그대로). 합쳐진 뒤에는 출처를 구분할 수 없으므로 정화는 `SlowAura` 슬롯을 **출처와 무관하게 대상 1종으로 세고 해제**한다(`Slow` 카드만으로 생긴 슬롯도 포함). Swarm 손실은 "다른 대상 디버프와 겹친 순간"에만 생기는 드문 경우로 수용, G13 Swarm 승률로 확인 |
 | E-C5-2 | 응징 대상 역병귀가 적중 직후 넉백·이동으로 영웅 사거리(1.6) 밖으로 벗어남 | 이동 상태로 다가가 처치. 그 사이 다른 몬스터는 무시(2.0초 한정) |
 | E-C5-3 | `BossBulwark`(x0.6)와 성역(x0.6) 동시 | 곱연산 0.36. 하한 없음, G13 보조 게이트로 확인 |
 | E-C5-4 | `HunterTraps`(x0.5)와 성역 감속(x0.7) 동시 | 곱연산 0.35 |

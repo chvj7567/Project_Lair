@@ -234,3 +234,9 @@
 - **시그니처/명명 일관**: `_cardImage`/`CardImage`/`_artImage`/`ApplyArt`/`CardArt`/`LoadCardImage`/`CardArtDir` — spec·plan·본문 전체 동일.
 - **검산**: 아트 rect(296×236)·필러박스(≈59px/측, 40%)·텍스트 밴드 분배(이름 50.4 + 설명 288×101.6)·최장 설명(30자→3줄@22pt, 16pt 하한 2줄) 전부 산식 명시. 모든 폭은 슬롯(320) 직속 좌표계 단일 출처(§3.2↔§3.4↔§6.5 동일).
 - **내부 일관성**: §3.2 ↔ §3.4 ↔ §6.5 수치 동일. NameText pivot/anchoredPosition 리셋이 §3.4·§6.5 양쪽에 명시.
+
+---
+
+## 변경 이력
+
+- **2026-11-01**: 카드 구성 변경 반영(`monster-growth-currencies.md` §15.3). 독장판 `HeroPoisonAura` 카드 삭제 → 「끈질긴 저주」 `LingeringCurse` 신설. 일러스트·아이콘 `CardArt/LingeringCurse.png` · `CardIcons/LingeringCurse.png` 추가, `HeroPoisonAura` 일러스트는 출하 카드 목록에서 빠진다. 카드 수는 28장 그대로이며, `ECardId` 는 `HeroPoisonAura`(13) 자리 보존 + `LingeringCurse`(28) 추가로 값 29개 중 출하 카드 28장이다(§6.1 "28값" 은 출하 카드 기준으로 읽는다).

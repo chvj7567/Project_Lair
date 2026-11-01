@@ -36,7 +36,7 @@ spec §2.1 의 권장 표를 카드 SO 실측으로 검증해 **확정**한다. 
 
 | Aura | 대표 ECardId | `_id` | 지속 | `_icon` GUID(앞 8자리) | 확정 사유 |
 |---|---|---|---|---|---|
-| SlowAura | `Slow` | 18 | 유한 10s | `5a8d7896` | 동명 카드 직결. 카드 둔화 + Plague 프로크 공용(같은 둔화 아이콘) |
+| SlowAura | `Slow` | 18 | 유한 10s | `5a8d7896` | 동명 카드 직결. (2026-10-29 현행: 출처는 Swarm `Slow` 카드뿐 - Plague 프로크는 독으로 바뀌어 아래 `PlagueToxinAura` 로 분리) |
 | FearAura | `Fear` | 15 | 유한 3s | `305f6836` | 동명 카드 직결 |
 | WeakenAura | `Weaken` | 17 | 유한 10s | `b1835a0d` | 동명 카드 직결 |
 | TimeStopAura | `TimeStop` | 23 | 유한 5s | `8ed87d63` | 동명 카드 직결 |
@@ -51,6 +51,16 @@ spec §2.1 의 권장 표를 카드 SO 실측으로 검증해 **확정**한다. 
 - 카드 `_id` 값(`ECardId` enum 정수값)은 SO 실측: Slow=18, Fear=15, Weaken=17, TimeStop=23, Bleed=16, MarkOfDeath=26, HeroAttackDown=14. spec 이 명시한 "HeroAttackDown 값 14" 와 일치 확인.
 
 > **단일 진실**: gameplay-programmer 의 8 Aura `IconCardId` 구현은 이 표를 따른다. plan Task 1 Step 2 의 코드 블록과 동일하다.
+
+**추가 행 (2026-10-29 몬스터 육성 재화 분리 - `monster-growth-currencies.md` §15.1·§3.4)** - 위 8행은 그대로, 아래 2행이 더해져 영웅 상태 아이콘은 10종이다.
+
+| Aura | 대표 ECardId | 지속 | 확정 사유 |
+|---|---|---|---|
+| PlagueToxinAura (역병귀 독) | `PlagueSlowBoost` ("역병의 손길" 카드 아이콘) | 유한 3s, 재적중 시 갱신 | 독 전용 카드 없음 → 독 피해를 강화하는 카드 아이콘 재사용(신규 스프라이트 0). 아이콘 옆 중첩 숫자 `xN`(`IStackedStatus`) |
+| CurseStackAura (저주술사 특성 "저주 누적") | `HexRangeBoost` (저주술사 카드 아이콘) | 유한 4s, 적중 시 갱신 | 저주술사 특성 디버프. 중첩 숫자 `xN` |
+
+- 독장판 `HeroPoisonAura` 카드 삭제(2026-10-29)로 `PoisonAura` 클래스도 삭제됐다(원래 상태 아이콘 비대상).
+- **슬롯 수 주의**: `IconSlotCount` 는 8 그대로인데 상태 종류는 10종이다. 10종이 동시에 걸리는 경우는 드물지만(시한 액티브 디버프는 30초마다 1장) 9번째부터는 lowest-free-slot 규칙상 표시되지 않는다 - 현행 수용, 실제 동시 표시 수가 8 을 넘는 판이 관측되면 슬롯 수 확장을 별도 검토.
 
 ---
 
@@ -151,7 +161,7 @@ IconSize 16 · spacing 2 (plan 제안):       8 × 16 + 7 × 2 = 142px  > 120  �
 ### 7.1 Enum
 
 - **신규 Enum 값 추가 없음.** 사용하는 `ECardId` 값 8종(Slow/Fear/Weaken/TimeStop/Bleed/MarkOfDeath/HeroAttackDown)은 이미 `CommonEnum.cs` 에 존재.
-- **제거**: `EVisual` 의 status 6값(`SlowStatus`/`FearStatus`/`WeakenStatus`/`AttackDownStatus`/`TimeStopStatus`/`BleedStatus`) 삭제. **`EVisual.PoisonAura` 는 유지**(독 장판 자체 visual). (plan Task 6 / spec §4)
+- **제거**: `EVisual` 의 status 6값(`SlowStatus`/`FearStatus`/`WeakenStatus`/`AttackDownStatus`/`TimeStopStatus`/`BleedStatus`) 삭제. **`EVisual.PoisonAura` 는 유지**(독 장판 자체 visual). (plan Task 6 / spec §4) (2026-11-01 현행: 독장판 카드 삭제로 `EVisual.PoisonAura` 는 enum 자리만 남고 코드 사용처 0)
 
 ### 7.2 Interface
 
@@ -208,3 +218,9 @@ IconSize 16 · spacing 2 (plan 제안):       8 × 16 + 7 × 2 = 142px  > 120  �
 - **구현 요청사항 완전성**: Enum(추가 0·제거 6) / Interface(`IStatusVisual` 교체) / 에셋 키(신규 0·기존 8 재사용) / SO 스키마(변경 0, 빌더 수치 표) 명세 완료.
 
 **Self-Review: 통과** (IconSize 16→12 1항목 보강 후 통과 — plan 제안값이 폭 120 초과라 검산 후 12 로 확정).
+
+---
+
+## 변경 이력
+
+- **2026-11-01**: 몬스터 육성 재화 분리 구현 반영 - 역병귀 프로크가 둔화(`SlowAura`) → 독(`PlagueToxinAura`, 아이콘 = 역병의 손길 + 중첩 숫자)으로 바뀌어 §2 에 행 추가, 저주술사 특성 `CurseStackAura` 행 추가, `PoisonAura` 삭제·`EVisual.PoisonAura` 사용처 0 표기, 8 슬롯 대 10종 주의 추가.

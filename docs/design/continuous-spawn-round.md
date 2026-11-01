@@ -86,10 +86,10 @@ Spawner 6개를 반지름 **14.0 유닛** ring에 60° 간격으로 균등 배�
 | ReaperAtkSpeed | Reaper | 공격 쿨다운 | ×0.7 |
 | HexRangeBoost | Hex | 사거리 | ×1.4 |
 | PhantomMoveSpeedBoost | Phantom | 이동속도 | ×1.5 |
-| PlagueSlowBoost | Plague | SlowFactorMul | ×0.75 |
+| PlagueSlowBoost | Plague | 독 피해 (`PoisonDamageMul`) | ×1.4 |
 
-**플레이그 둔화 계산**: 기준값 `BaseSlowFactor = 0.8`에 `SlowFactorMul`을 곱연산.
-1픽 시 0.8 × 0.75 = 0.6 (이동속도 60%로 감속).
+**플레이그 독 계산 (2026-10-29 현행 - 둔화에서 교체)**: 역병귀 적중마다 영웅에게 독 1중첩(최대 3), 지속 3초·재적중 시 3초로 갱신. 1초마다 `중첩 수 x 역병귀 공격력 x PoisonDamageMul` 피해. 1픽 시 기본 역병귀(공격력 2) 3중첩 = 2 x 1.4 x 3 = 8.4 → 초당 8. 상세는 `monster-growth-currencies.md` §15.1.
+(이전: 기준값 `BaseSlowFactor = 0.8` 에 `SlowFactorMul` ×0.75 곱 → 1픽 0.6 둔화.)
 
 ### 6.2 추가 소환 카드 (5장) — Spawner 동시 출력 +1
 
@@ -106,6 +106,8 @@ Spawner 6개를 반지름 **14.0 유닛** ring에 60° 간격으로 균등 배�
 
 ### 6.3 교체(융합) 카드 (2장) — Spawner 출력 종 영구 변경
 
+> (2026-11-01 현행 주의) 아래는 작성 당시 설계다. 두 카드는 2026-06-01 부터 종을 바꾸지 않는 강화 카드다 - `ReplaceWispsToWraith` 「공포의 군세」 = 도깨비불·망령 데미지 +30%, `ReplaceReapersToHex` 「처형 명령」 = 사신·저주술사 데미지 +30% (`card-renewal.md` 변경 이력 #2·#3).
+
 픽 시 매칭 Spawner의 출력 종을 대상 종으로 영구 변경한다.
 매칭 Spawner가 없으면 no-op. 이미 필드에 있는 몬스터는 변경되지 않는다.
 
@@ -118,7 +120,7 @@ Spawner 6개를 반지름 **14.0 유닛** ring에 60° 간격으로 균등 배�
 
 ### 6.4 환경 카드 (2장)
 
-HeroPoisonAura, HeroAttackDown — 별도 기획서 참조.
+HeroPoisonAura, HeroAttackDown — 별도 기획서 참조. (2026-10-29: HeroPoisonAura "독장판" 삭제 → LingeringCurse "끈질긴 저주"(영웅 디버프 지속 +25%/픽)로 대체 - `card-renewal.md` 변경 이력 · `monster-growth-currencies.md` §15.3)
 
 ### 6.5 카드 트리거 타이밍
 
@@ -132,6 +134,8 @@ HeroPoisonAura, HeroAttackDown — 별도 기획서 참조.
 **v0.6 (2026-05-31) 갱신**: 카드 리뉴얼 v0.6 부터 Plague Spawner 1개가 슬롯 #4 (180°, 주기 10.0s, 초기 지연 1.5s) 에 기본 배치된다. `SpawnPlagues`, `PlagueSlowBoost` 두 카드는 **활성화 상태**이며, Debuff 빌드 축의 작동 전제다 (`docs/design/card-renewal.md` §5 참조).
 
 이전(v0.5 이전) 정책: "스타터 Spawner 6개에 Plague는 포함되지 않음 — SpawnPlagues / PlagueSlowBoost 는 풀에 있어도 no-op (의도된 설계)" — 카드 리뉴얼 v0.6 으로 폐지됨.
+
+**2026-10-29 갱신**: 역병귀 기본 효과가 적중 시 둔화 → **적중 시 독**(최대 3중첩, 3초 갱신, 공격력 비례 초당 피해)으로 바뀌었다. 둔화는 Swarm `Slow` 카드에만 남는다.
 
 ---
 
@@ -177,3 +181,9 @@ ReplaceWispsToWraith, ReplaceReapersToHexs
 - 글로벌 카운터로 현재 필드 몬스터 수 추적
 - 스폰 직전 캡(18) 초과 여부 검사, 초과 시 skip
 - 몬스터 사망 시 카운터 -1
+
+---
+
+## 변경 이력
+
+- **2026-11-01**: 몬스터 육성 재화 분리 구현(`monster-growth-currencies.md` §15)에 맞춰 역병귀 둔화 서술을 독으로 현행화 - §6.1 PlagueSlowBoost 행·독 계산, §6.4 독장판 삭제 → 끈질긴 저주, §7 역병귀 효과. §6.3 교체 카드 2장이 현행 강화 카드라는 주의 추가.

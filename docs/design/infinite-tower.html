@@ -108,7 +108,7 @@ b.t{color:var(--tower)} b.g{color:var(--gold)} b.r{color:var(--blood)} b.s{color
   <div class="pnl cur" style="--c:var(--sky)"><div class="nm">한 층 = 한 판</div><div class="sub">5분 전투, 카드 고르기 그대로</div>영웅 5명이 돌아가며 등장</div>
   <div class="pnl cur" style="--c:var(--blood)"><div class="nm">5층마다 보스층</div><div class="sub">5 · 10 · 15 …층</div>영웅이 한 번 더 세짐</div>
   <div class="pnl cur" style="--c:var(--gold)"><div class="nm">깬 층은 저장</div><div class="sub">지면 같은 층 다시</div>처음부터 다시 오를 일 없음</div>
-  <div class="pnl cur" style="--c:var(--leg)"><div class="nm">보상</div><div class="sub">소울 · 영주 경험 · 유물</div>높은 층일수록 좋은 유물</div>
+  <div class="pnl cur" style="--c:var(--leg)"><div class="nm">보상</div><div class="sub">소울 · 영주 경험 · 유물 · 심연 결정</div>높은 층일수록 좋은 유물, 층을 깰 때마다 심연 결정</div>
   <div class="pnl cur" style="--c:var(--soul)"><div class="nm">시즌 순위</div><div class="sub">최고 층으로 겨룸</div>같은 층이면 더 빨리 깬 사람이 위</div>
 </div>
 
@@ -146,7 +146,7 @@ b.t{color:var(--tower)} b.g{color:var(--gold)} b.r{color:var(--blood)} b.s{color
       <div class="ndiv"></div>
       <div class="sub" style="color:var(--bone)">층 규칙</div>
       <div class="rule boss"><b>화살비</b>영웅 HP 75% 이하: 10초마다 몬스터 밀집 지점에 화살비</div>
-      <div class="rule boss"><b>사냥꾼의 덫</b>영웅 HP 35% 이하: 영웅 주변에 덫 설치</div>
+      <div class="rule boss"><b>덫</b>영웅 HP 35% 이하: 영웅 주변에 덫 설치</div>
       <div class="sub" style="margin-top:6px">규칙 출처: 2-5 사냥꾼 우두머리의 야영지</div>
       <div class="ndiv"></div>
       <div class="sub">승리 시 유물 확률 60% · 등급 보정 Easy</div>
@@ -235,7 +235,7 @@ b.t{color:var(--tower)} b.g{color:var(--gold)} b.r{color:var(--blood)} b.s{color
   <div class="pnl"><div class="big" style="--c:var(--gold);text-align:center">승리!</div><div class="sub" style="text-align:center;margin-bottom:8px">영웅 처치 · 탑 10층</div>
     <div class="row"><span class="k">클리어 시간</span><span>3:05.2</span></div>
     <div class="row"><span class="k">도달 층</span><span style="color:var(--tower)">10층</span></div>
-    <div class="row"><span class="k">소울</span><span>+157</span></div>
+    <div class="row"><span class="k">보상</span><span><span style="color:var(--soul)">+157 소울</span> · <span style="color:#2ec4c4">+11 심연 결정</span></span></div>
     <div class="row"><span class="k">영주 경험</span><span>+100</span></div>
     <div class="banner">10층 돌파!</div>
     <div class="rstrip"><div class="ic">ϟ</div><div><div class="sub">획득 유물 <span style="color:var(--sky);border:1px solid var(--sky);padding:0 4px">희귀</span></div><div style="color:var(--sky)">뇌운 조각</div></div></div>
@@ -257,6 +257,11 @@ b.t{color:var(--tower)} b.g{color:var(--gold)} b.r{color:var(--blood)} b.s{color
     <ul class="k"><li>이기면 소울 100 + 빨리 깰수록 추가 (남은 시간 2초당 1)</li><li>져도 영웅을 깎은 만큼 받음 (최대 60)</li><li>유물의 보상 보너스도 그대로 붙어요</li></ul></div>
   <div class="pnl" style="--c:var(--leg)"><span class="tag">층이 높을수록 좋아짐</span><div class="big">유물</div>
     <ul class="k"><li>이기면 일반층 <b class="t">30%</b> · 보스층 <b class="r">60%</b> 확률로 굴림</li><li>져도 그 1/4 확률로 굴림</li><li>그 층 영웅이 주는 유물이 나옵니다</li></ul></div>
+  <div class="pnl" style="--c:#2ec4c4"><span class="tag">층을 깰 때마다</span><div class="big">심연 결정</div>
+    <ul class="k"><li>1~10층 <b style="color:#2ec4c4">1</b>개 · 11~20층 2개 · 21층부터 3개</li><li>10 · 20 · 30 …층을 깨면 보너스 <b style="color:#2ec4c4">+10</b></li><li>지면 없음</li><li>상점 「몬스터 강화」에서 몬스터 고유 특성을 키워요</li><li>시즌이 바뀌어도 모은 결정은 그대로, 같은 층을 다시 깨면 또 받아요</li></ul></div>
+</div>
+<div class="bubbles">
+  <div class="bub">결과창에는 <b>이번에 깬 층의 결정</b>만 보입니다. 업데이트 전에 깨 둔 층의 결정은 마을에 들어갈 때 화면 위 "이전 기록 보상" 알림으로 따로 한 번 받아요.</div>
 </div>
 <div class="pnl" style="margin-top:12px">
   <div class="sub" style="margin-bottom:6px">유물 등급 보정 - 층 구간마다 한 단계씩</div>

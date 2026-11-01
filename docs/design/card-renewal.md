@@ -24,6 +24,20 @@
 | 6 | `SpawnerHaste` 3픽 캡 (§9.6 사전 의도 (a)) | QA 7차 후 발동 (선반영 안 함) | **전역 3픽 캡(2026-06-01)으로 포섭** — SpawnerHaste 단독 effect-cap 불요. 전역 캡으로 3픽 후 후보 제외되어 ×0.8³ = ×0.512 가 상한. `docs/design/card-3pick-cap.md` 참조 |
 | 7 | `EMonsterBuff` | Frenzy/IronWill/BerserkPower/GuardianRage | 현행 += `ToughHide`, `SwarmSpeed` (Slow 의 몬스터 가속용). §10.1 표 갱신 |
 
+## 변경 이력 — 2026-11-01 역병귀 독 전환 · 독장판 → 끈질긴 저주 (몬스터 육성 재화 분리 구현분)
+
+> 단일 진실: `docs/design/monster-growth-currencies.md` §15. 본문 §3.3·§3.5·§4.2·§6.3·§7·§9.1·§10.3·§10.5·§10.7 의 해당 줄을 현행으로 교체했다. 카드 총수 28장 · Debuff 축 P4 + A3 · 3/5/7 임계는 그대로다.
+
+| # | 카드 / 항목 | 이전 | 현행 (2026-10-29 승격 · 2026-11-01 구현 반영) |
+|---|---|---|---|
+| 1 | 역병귀 기본 효과 (`PlagueSlowOnHit` → `PlagueToxinOnHit`) | 적중 시 영웅 이동 x0.8, 1.5초 | 적중 시 영웅에게 **독**(`PlagueToxinAura`) - 적중마다 1중첩·최대 3, 3초 지속·재적중 시 3초로 갱신, 1초마다 `Max(1, Round(중첩 x 역병귀 공격력 x 독 피해 배율))` |
+| 2 | `PlagueSlowBoost` "역병의 손길" (ID 유지) | 둔화 x0.75/픽 (`PlagueSlowBoostEffect`) | **독 피해 x1.4/픽** (`PlagueToxinBoostEffect` `_toxinMul` 1.4, 3픽 x2.744) |
+| 3 | `HeroPoisonAura` "독장판" | 영웅 발밑 독장판 5 DPS | **카드 풀·SO·효과 클래스 삭제**, `ECardId.HeroPoisonAura` 는 자리(13)만 보존 |
+| 4 | `LingeringCurse` "끈질긴 저주" (신규, Debuff P, `ECardId` 28) | - | 영웅에게 걸린 Debuff 축 **시한** 디버프(독·공포·출혈·무력화) 지속 x(1 + 0.25 x 픽 수). 영구 디버프·Swarm `Slow` 둔화는 대상 아님. 편성 `Card_Species` 매핑 없음(항상 후보) |
+| 5 | Debuff 시너지 Tier1 | Plague SlowFactor x0.8 | **역병귀 독 최대 중첩 +2** (3 → 5) |
+| 6 | 상점 「짙은 역병」 `PlagueVenomUp` | 둔화 +2%/Lv | 독 피해 +4%/Lv (PerLevelMul 1.04) |
+| 7 | `EMonsterStatKind.SlowFactor` (값 5) | 둔화 배율 | `PoisonDamage` 로 개명(정수 5 유지) |
+
 ---
 
 ## § 헤더
@@ -45,7 +59,7 @@
 - **빌드 정체성** — 각 축의 효과군은 같은 *승리 패턴* 을 향한다.
   - Tank = 영웅을 **묶어 둔다** (HP·맷집·진로 방해)
   - Dps = 영웅을 **빠르게 깎는다** (공속·사거리·치사 누적)
-  - Debuff = 영웅을 **갉아내고 무력화** (둔화·출혈·공포·약화·독)
+  - Debuff = 영웅을 **갉아내고 무력화** (독·출혈·공포·약화 + 지속 연장. 2026-10-29 부터 둔화는 Swarm `Slow` 에만 있음)
   - Swarm = **머릿수로 압도** (스폰 수·이동 속도·스폰 주기 가속·전장 통제)
 - **결정 부담 최소** — 픽 한 번에 "이 카드가 어느 축인가"가 카드 테두리 색·헤더 텍스트 한 줄로 즉시 식별돼야 한다. 4색만 사용한다.
 - **No-op 회피** — 모든 카드가 픽 시점에 가시적 변화를 만든다. SpawnPlagues·PlagueSlowBoost 는 Plague Spawner 추가로 활성화. SpawnWraith 처럼 *Wraith 스포너 없음* 같은 경우엔 대응 시너지 임계 도달 시점에 우회 발화 경로를 마련하지 않고 **교체 카드를 그 자리에 두는** 정책으로 단순화한다 (§9.1 엣지 참조).
@@ -61,13 +75,13 @@
 |---|---|---|---|---|
 | Tank | `#22C55E` 초록 | Wisp · Wraith | "영웅을 묶어 둔다" | 영웅 진로를 막아 다른 축 몬스터/카드가 일할 시간을 만든다 |
 | Dps | `#EF4444` 빨강 | Reaper · Hex | "빠르게 깎는다" | 공속·사거리·치사 누적으로 영웅 HP 를 직접 깎는다 |
-| Debuff | `#A855F7` 보라 | Plague + 액티브 저주 콤보 | "갉아내고 무력화한다" | 둔화/출혈/공포로 영웅의 행동을 제약 → 다른 축 효율 ↑ |
+| Debuff | `#A855F7` 보라 | Plague + 액티브 저주 콤보 | "갉아내고 무력화한다" | 독/출혈/공포/약화로 영웅을 깎고 행동을 제약 → 다른 축 효율 ↑ (2026-10-29 둔화 → 독) |
 | Swarm | `#1F2937` 검정 | Phantom (+ 보조 Plague) | "머릿수로 압도한다" | 스폰 수/주기/속도를 늘려 영웅이 행동할 틈을 안 준다 |
 
 ### 색 선택 근거 (컨셉 §11.4 몬스터 매핑과 정합)
 - Tank 초록 = Wisp 색(`#22C55E`) — 가장 익숙한 탱커 종 색 그대로.
 - Dps 빨강 = Reaper 색(`#EF4444`) — 깡딜 종 색 그대로.
-- Debuff 보라 = Plague 색(`#A855F7`) — 둔화 디버퍼 색 그대로.
+- Debuff 보라 = Plague 색(`#A855F7`) — 독 디버퍼(2026-10-29 이전 둔화 디버퍼) 색 그대로.
 - Swarm 검정 = Phantom 색(`#1F2937`) — 스웜 종 색 그대로.
 
 → "내가 픽한 카드 색 = 내가 키우는 몬스터 색" 직관 매핑. 색·종 학습이 1회로 끝난다.
@@ -131,9 +145,9 @@
 
 | # | ECardId | 분류 | T | 한글명 (현행) | 효과 요약 (현행 SO description) | 핵심 수치 (현행) | Effect 클래스 | 중첩 정책 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | `PlagueSlowBoost` | 보존 (Plague Spawner 활성화) | P | 역병의 손길 | 플레이그 둔화 효과 강화 | `_slowFactor=0.75` (BaseSlowFactor 0.8 × 0.75 = 0.6 곱연산, `PlagueSlowBoostEffect.cs` 주석) | `PlagueSlowBoostEffect` | 곱연산 누적 |
+| 1 | `PlagueSlowBoost` | 리뉴얼 (2026-10-29 둔화 → 독, ID 유지) | P | 역병의 손길 | 역병귀 독 피해 강화 | `_toxinMul=1.4` (`PoisonDamage` 배율, 3픽 x2.744) | `PlagueToxinBoostEffect` | 곱연산 누적 |
 | 2 | `SpawnPlagues` | 보존 (Plague Spawner 활성화) | P | 역병 증식 | 플레이그 Spawner 출력 +1 | `+1` (SO `data` 비어있음) | `SpawnPlaguesEffect` | 가산 누적 |
-| 3 | `HeroPoisonAura` | 보존 | P | 독장판 | 영웅 발 밑 독 장판 (DPS 5) | `_dps=5 _duration=5 _radius=1.25` | `HeroPoisonAuraEffect` | 지속시간 누적: 잔여+5s |
+| 3 | `LingeringCurse` | 신규 (2026-10-29, 독장판 `HeroPoisonAura` 삭제 자리) | P | 끈질긴 저주 | 영웅 디버프 지속 +25% | `_durationBonusPerPick=0.25` (Debuff 축 시한 디버프 지속 x(1 + 0.25n), 3픽 x1.75) | `LingeringCurseEffect` | 가산 누적 (배율 가산) |
 | 4 | `HeroAttackDown` | 보존 | P | 약화의 저주 | 영웅 공격력 영구 -25% | SO `data` 비어있음 — `HeroAttackDownAura(atk)` 생성자 기본 `factor=0.75f` (`HeroAttackDownAura.cs:23`) | `HeroAttackDownEffect` → `HeroAttackDownAura` | 곱연산 누적 (`OnAttached` 가 매번 `PowerScale *= 0.75`, 2픽=×0.5625) |
 | 5 | `Fear` | 보존 | A | 공포 | 영웅 3초간 도주 | `_duration=3` | `FearEffect` | 지속시간 누적 |
 | 6 | `Bleed` | 보존 | A | 출혈 | 영웅 이동 시 HP 감소 (10초) | `_ratio=0.02 _duration=10` | `BleedEffect` | 지속시간 누적 |
@@ -171,11 +185,11 @@
 |---|---|---|---|---|---|---|---|---|
 | Tank | 4 | 3 | 7 | 3 (WispHpBoost · SpawnWraith · IronWill) | 4 (WraithDamageBoost 데미지→HP · ReplaceWispsToWraith 교체→Power · WallOfWisps 소환→ToughHide · Berserk→GuardianRage) | 0 | 0 | 0 |
 | Dps | 4 | 3 | 7 | 4 (ReaperAtkSpeed · HexRangeBoost · SpawnReapers · Frenzy) | 1 (ReplaceReapersToHex 교체→Power) | 1 (BloodThirst: Swarm→Dps) | 1 (MarkOfDeath) | 0 |
-| Debuff | 4 | 3 | 7 | 7 (PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown · Fear · Bleed · Weaken) | 0 | 0 | 0 | 0 |
+| Debuff | 4 | 3 | 7 | 5 (SpawnPlagues · HeroAttackDown · Fear · Bleed · Weaken) | 1 (PlagueSlowBoost 둔화→독, 2026-10-29) | 0 | 1 (LingeringCurse, 2026-10-29) | 0 |
 | Swarm | 4 | 3 | 7 | 3 (PhantomMoveSpeedBoost · SpawnPhantoms · TimeStop) | 1 (Slow: Debuff→Swarm 이동+리뉴얼) | 1 (SpawnWisps: Tank→Swarm) | 1 (SpawnerHaste) | 1 (Multiply 잔존) |
 
 > **검산 (카드당 1분류 기준)**: 16 = 4×4 ✓ / 12 = 4×3 ✓ / 28 = 16 + 12 ✓.
-> 분류 합산: 보존 17 (Tank 3 + Dps 4 + Debuff 7 + Swarm 3) + 리뉴얼 6 (Tank 4 + Dps 1 + Swarm 1) + 축이동 2 (Dps 1 + Swarm 1) + 신규 2 (Dps 1 + Swarm 1) + 잔존 1 (Swarm Multiply) = 17 + 6 + 2 + 2 + 1 = **28** ✓. 가로행 검산: Tank 3+4=7, Dps 4+1+1+1=7, Debuff 7=7, Swarm 3+1+1+1=7 — 모두 7 ✓.
+> 분류 합산 (2026-11-01 현행): 보존 15 (Tank 3 + Dps 4 + Debuff 5 + Swarm 3) + 리뉴얼 7 (Tank 4 + Dps 1 + Debuff 1 + Swarm 1) + 축이동 2 (Dps 1 + Swarm 1) + 신규 3 (Dps 1 + Debuff 1 + Swarm 1) + 잔존 1 (Swarm Multiply) = 15 + 7 + 2 + 3 + 1 = **28** ✓. 가로행 검산: Tank 3+4=7, Dps 4+1+1+1=7, Debuff 5+1+1=7, Swarm 3+1+1+1+1=7 — 모두 7 ✓. (2026-06-01 기준은 보존 17 · 리뉴얼 6 · 신규 2 였다.)
 >
 > 분류 정의 (현행): **보존** = SO·효과 그대로. **리뉴얼** = SO 파일·enum 자리는 유지하되 `_effect` 클래스/효과를 교체. **축이동** = `_axis` 필드만 변경. **신규** = SO·enum 신규 생성. **잔존** = 원안 폐기 대상이나 아직 에셋·enum 에 남아있음. (Tank 의 WraithDamageBoost 는 데미지→HP 효과 교체 + Dps→Tank 축이동을 둘 다 했으나 리뉴얼로 귀속.)
 
@@ -197,7 +211,7 @@
 |---|---|---|---|
 | **Tank** | Wisp·Wraith HP ×1.3 (글로벌 영구) | Wisp·Wraith Power ×1.2 (글로벌 영구) | **필드 캡 +6** (18→24, 영구) |
 | **Dps** | Reaper·Hex Power ×1.3 | Reaper·Hex Cooldown ×0.8 (=공속 +25%) | Reaper·Hex Range ×1.3 |
-| **Debuff** | Plague SlowFactor ×0.8 (강한 둔화 추가) | **HeroAttackDown 자동 등록** (영웅 공격력 ×0.85 영구) | **출혈 영구 등록** — 영웅 이동 시 1s당 HP -1%, 라운드 끝까지 |
+| **Debuff** | **역병귀 독 최대 중첩 +2** (3 → 5, 2026-10-29 Plague SlowFactor x0.8 에서 교체) | **HeroAttackDown 자동 등록** (영웅 공격력 ×0.85 영구) | **출혈 영구 등록** — 영웅 이동 시 1s당 HP -1%, 라운드 끝까지 |
 | **Swarm** | Phantom·Wisp MoveSpeed ×1.3 | **모든 스포너 주기 ×0.85** (영구) | **모든 스포너 동시 출력 +1** (영구) |
 
 ### 4.3 수치 근거 — 컨셉 §8 밸런싱과 정합
@@ -242,12 +256,12 @@
 ### 5.2 근거
 
 - **#1(0°) vs #4(180°) 중 #4 선택 이유**:
-  - #1 은 영웅 등 뒤 / #4 는 영웅 정면 — 컨셉 §4.1 의 *영웅은 자동 이동* 구조에서 정면 스포너의 몬스터를 먼저 만난다. Plague 의 둔화는 **영웅이 둔화 상태인 시간을 길게 만드는 것이 핵심** 이므로 영웅이 더 자주 접촉하는 #4 가 효과 가시성에 유리.
+  - #1 은 영웅 등 뒤 / #4 는 영웅 정면 — 컨셉 §4.1 의 *영웅은 자동 이동* 구조에서 정면 스포너의 몬스터를 먼저 만난다. Plague 의 둔화는 **영웅이 둔화 상태인 시간을 길게 만드는 것이 핵심** 이므로 영웅이 더 자주 접촉하는 #4 가 효과 가시성에 유리. (2026-11-01 현행: 역병귀 효과는 둔화가 아니라 적중 시 독이지만, 독도 재적중마다 지속이 갱신돼 접촉 빈도가 핵심이라 #4 선택 근거는 유지된다.)
   - Wisp 스포너가 2개(#1·#4)였던 구조에서 1개 남기면, **#1(0°) Wisp · #4(180°) Plague** 가 *대칭 위치*로 좌우 균형 유지. 시야상 한쪽이 비지 않음.
 - **주기 10.0s 근거**:
   - Plague HP 50 / DPS 5 (컨셉 §11.3) — Wisp HP 200 보다 훨씬 약함.
   - 9.0s → 10.0s 로 약간 느리게 = 약한 종이 너무 많이 쌓이지 않도록.
-  - Plague 의 둔화 효과는 *한 마리만 닿아도 발동* 이라 수량보다 *접촉 지속*이 핵심.
+  - Plague 의 둔화 효과는 *한 마리만 닿아도 발동* 이라 수량보다 *접촉 지속*이 핵심. (2026-11-01 현행: 독은 여러 역병귀가 영웅 하나의 독 중첩을 공유하므로 수량도 중첩 속도에 기여한다.)
 - **초기 지연 1.5s 보존 근거**:
   - 6개 스포너의 초기 지연이 0 / 0.5 / 1.0 / 1.5 / 2.0 / 2.5 로 균등 분산되어 시작 직후 몰림을 방지(`continuous-spawn-round.md §3.1`). #4 자리를 그대로 쓰면 이 분산이 유지됨.
 
@@ -299,7 +313,7 @@
 |---|---|---|
 | Tank | WispHpBoost, WraithDamageBoost(HP리뉴얼), SpawnWraith, ReplaceWispsToWraith(Power강화) | IronWill, WallOfWisps(ToughHide 리뉴얼), Berserk(GuardianRage 리뉴얼) |
 | Dps | ReaperAtkSpeed, HexRangeBoost, SpawnReapers, ReplaceReapersToHex(Power강화) | Frenzy, BloodThirst, MarkOfDeath(신규) |
-| Debuff | PlagueSlowBoost, SpawnPlagues, HeroPoisonAura, HeroAttackDown | Fear, Bleed, Weaken |
+| Debuff | PlagueSlowBoost(독 리뉴얼), SpawnPlagues, LingeringCurse(신규, 독장판 대체), HeroAttackDown | Fear, Bleed, Weaken |
 | Swarm | PhantomMoveSpeedBoost, SpawnPhantoms, SpawnWisps, SpawnerHaste(신규) | TimeStop, Multiply(잔존, SwarmRush 미구현), Slow(리뉴얼) |
 
 → 4 × (P4 + A3) = 28 ✓ (현행 에셋 28장 모두 확인: 패시브 16 + 액티브 12).
@@ -312,9 +326,9 @@
 
 | 정책 | 의미 | 적용 카드 (현행) |
 |---|---|---|
-| **곱연산 누적** | K픽 = 기준값^K | 종 글로벌 스탯 강화 (HP·Power·Cooldown·Range·MoveSpeed·SlowFactor 배율 카드). 현행 Power 강화 = ReplaceWispsToWraith·ReplaceReapersToHex (RegisterMonsterTypeBuff dict 곱연산) |
-| **가산 누적** | K픽 = 기준값 ×K | Spawner 동시 출력 +N 카드 (SpawnWraith·SpawnReapers·SpawnPlagues·SpawnPhantoms·SpawnWisps) |
-| **지속시간 누적** | 효과 진행 중 재픽 시 잔여+duration | 영웅 대상 액티브 디버프·오라 (Fear·Bleed·Weaken·Slow·MarkOfDeath·HeroPoisonAura) |
+| **곱연산 누적** | K픽 = 기준값^K | 종 글로벌 스탯 강화 (HP·Power·Cooldown·Range·MoveSpeed·PoisonDamage 배율 카드 - `SlowFactor` 는 2026-10-29 `PoisonDamage` 로 개명). 현행 Power 강화 = ReplaceWispsToWraith·ReplaceReapersToHex (RegisterMonsterTypeBuff dict 곱연산) |
+| **가산 누적** | K픽 = 기준값 ×K | Spawner 동시 출력 +N 카드 (SpawnWraith·SpawnReapers·SpawnPlagues·SpawnPhantoms·SpawnWisps). LingeringCurse 는 지속 배율 보너스가 가산(1 + 0.25 x K) |
+| **지속시간 누적** | 효과 진행 중 재픽 시 잔여+duration | 영웅 대상 액티브 디버프·오라 (Fear·Bleed·Weaken·Slow·MarkOfDeath). 독장판 `HeroPoisonAura` 는 2026-10-29 삭제 |
 | **버프 dedup (시한/영구)** | 같은 `EMonsterBuff` 는 인스턴스 1개만 — 시한은 Remain 연장, 영구는 유지. 효과량 1배 고정 | `MonsterBuffService` 위임 (IronWill·Frenzy·GuardianRage·ToughHide·Slow 의 SwarmSpeed). `AddBuff` dedup |
 | **곱연산 누적 (영구)** | 영구 효과 배율 곱연산 | HeroAttackDown (영구 ×0.75 → 2픽 ×0.5625, `HeroAttackDownAura.OnAttached` 가 매번 곱) |
 | **즉시(소환/주기) 영구** | 픽마다 1회 적용 | FastBreeding(Multiply, 팬텀 주기 ×0.6 곱연산), SpawnerHaste(모든 주기 ×0.8 곱연산) |
@@ -327,7 +341,7 @@
 
 위 §3 표의 "중첩 정책" 컬럼 참조. 본 절은 **액티브 카드 중첩** 만 별도 정리:
 
-- **영웅 대상 액티브의 기본 정책 = 지속시간 누적**. 효과량은 1픽 기준값 그대로, 재픽 시 잔여시간 + base duration 연장. (Fear·Bleed·Weaken·Slow·MarkOfDeath·HeroPoisonAura.)
+- **영웅 대상 액티브의 기본 정책 = 지속시간 누적**. 효과량은 1픽 기준값 그대로, 재픽 시 잔여시간 + base duration 연장. (Fear·Bleed·Weaken·Slow·MarkOfDeath. HeroPoisonAura 는 2026-10-29 삭제.)
 - **`WallOfWisps`(ToughHide)**: (원안: 즉시 소환 가산 누적) → **현행: 즉시 소환 아님.** `EMonsterBuff.ToughHide` 영구 등록 + `AddBuff` dedup → 멱등에 가까움 (중복 픽해도 영구 buff 1개만).
 - **`Frenzy` / `IronWill` / `Berserk(GuardianRage)`**: 몬스터 글로벌 버프 (`MonsterBuffService`) 위임. `AddBuff` dedup — 시한은 Remain 을 더 큰 값으로 연장, 효과량 1배 고정.
 - **`MarkOfDeath`**: 영웅 받는 데미지 ×1.5 — `MarkOfDeathAura` (`HeroAura` 패턴). 지속시간 누적 (잔여+5s).
@@ -433,7 +447,7 @@
 
 - **Dps Tier1·2·3 (Reaper·Hex 강화)** — Reaper 스포너가 Hex 로 교체된 빌드(ReplaceReapersToHex 픽)에서 Reaper 가 필드에 없을 수 있음. RegisterMonsterTypeBuff 는 "이후 스폰 + 현재 필드 소급" 이므로 *Reaper 가 0마리면 무영향, 다시 Reaper 가 스폰되면 자동 반영* — 시스템상 이미 안전. 별도 처리 불요.
 - **Tank Tier1·2 (Wisp·Wraith 강화)** — 동일 처리. 모든 Wisp 가 Wraith 로 교체된 빌드에서 Wisp 0마리 → 무영향, Wraith 만 강화됨 → 의도된 결과.
-- **Debuff Tier1 (Plague SlowFactor)** — Plague Spawner 가 1개 보장되므로 항상 작동.
+- **Debuff Tier1 (역병귀 독 최대 중첩 +2, 2026-10-29 SlowFactor 에서 교체)** — 기본 배치는 Plague Spawner 1개가 있어 작동한다. 던전 편성에서 역병귀를 빼면 효과는 기록만 되고 역병귀가 없는 동안은 무영향(종 전역 retroactive).
 - **Swarm Tier3 (모든 스포너 동시 출력 +1)** — Plague Spawner 가 1개 → 동시 출력 2 가능. 캡 18 영향 미미 (Plague Power 2).
 
 ### 9.2 같은 카드 K번 픽 → 시너지 카운트 K번 누적
@@ -608,7 +622,7 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 - `DpsSynergyTier1` — ctx.RegisterMonsterTypeBuff(Reaper, Power, 1.3) + (Hex, Power, 1.3)
 - `DpsSynergyTier2` — ctx.RegisterMonsterTypeBuff(Reaper, Cooldown, 0.8) + (Hex, Cooldown, 0.8)
 - `DpsSynergyTier3` — ctx.RegisterMonsterTypeBuff(Reaper, Range, 1.3) + (Hex, Range, 1.3)
-- `DebuffSynergyTier1` — ctx.RegisterMonsterTypeBuff(Plague, SlowFactor, 0.8)
+- `DebuffSynergyTier1` — (2026-10-29 현행) 역병귀 독 최대 중첩 +2 (3 → 5). 이전: ctx.RegisterMonsterTypeBuff(Plague, SlowFactor, 0.8)
 - `DebuffSynergyTier2` — new HeroAttackDownEffect { _factor=0.85 }.Apply(ctx) (효과량 0.75 → 0.85 로 약화 인스턴스)
 - `DebuffSynergyTier3` — ctx.ApplyHeroAura(new EternalBleedAura(0.01f), -1f)
 - `SwarmSynergyTier1` — ctx.RegisterMonsterTypeBuff(Phantom, MoveSpeed, 1.3) + (Wisp, MoveSpeed, 1.3)
@@ -654,7 +668,7 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 | SpawnPhantoms | 3 | Swarm |
 | ReplaceWispsToWraith | 0 | Tank |
 | ReplaceReapersToHex | 1 | Dps |
-| HeroPoisonAura | 2 | Debuff |
+| HeroPoisonAura | 2 | Debuff (2026-10-29 SO 삭제 - enum 자리만 보존) |
 | HeroAttackDown | 2 | Debuff |
 | Fear | 2 | Debuff |
 | Bleed | 2 | Debuff |
@@ -670,6 +684,7 @@ plan Task 11 의 12 클래스. 각 클래스의 Apply(IBattleContext ctx) 본문
 - `Assets/_Lair/Art/Cards/Items/WallOfWisps.asset` — 현행 `_id=25, _axis=0, _displayName="단단한 살갗", _description="위스프·레이스 받는 데미지 -25% (영구)"`, `_effect: ToughHideEffect` (data 비어있음). (원안: displayName "위스프 장벽" / 소환 카드)
 - `Assets/_Lair/Art/Cards/Items/MarkOfDeath.asset` — `_id=26, _axis=1, _displayName="죽음의 표식", _description="다음 5초간 영웅이 받는 데미지 +50%"`, `_effect: MarkOfDeathEffect {_dmgTakenMul:1.5, _duration:5}`
 - `Assets/_Lair/Art/Cards/Items/SpawnerHaste.asset` — `_id=27, _axis=3, _displayName="던전의 박동", _description="모든 스포너 주기 -20% (영구)"`, `_effect: SpawnerHasteEffect {_periodMul:0.8}`
+- (2026-10-29 추가) `LingeringCurse.asset` — `_id=28, _axis=2, _displayName="끈질긴 저주", _description="영웅 디버프 지속 +25%"`, `_effect: LingeringCurseEffect {_durationBonusPerPick:0.25}`. 같은 날 `HeroPoisonAura.asset` 삭제, `PlagueSlowBoost.asset` 의 `_effect` 는 `PlagueToxinBoostEffect {_toxinMul:1.4}` 로 교체.
 
 **효과 SerializeReference**: 각 SO 의 `_effect` 필드는 위 §10.4 표의 현행 클래스 인스턴스. 수치는 §3 표·§10.4 표 그대로.
 
@@ -701,7 +716,7 @@ _initialDelay: 1.5     # 보존
 > **패시브 풀 16장** (모두 SO 파일 실재):
 > - WispHpBoost · WraithDamageBoost · SpawnWraith · ReplaceWispsToWraith (Tank 4)
 > - ReaperAtkSpeed · HexRangeBoost · SpawnReapers · ReplaceReapersToHex (Dps 4)
-> - PlagueSlowBoost · SpawnPlagues · HeroPoisonAura · HeroAttackDown (Debuff 4)
+> - PlagueSlowBoost · SpawnPlagues · LingeringCurse · HeroAttackDown (Debuff 4 - 2026-10-29 HeroPoisonAura → LingeringCurse)
 > - PhantomMoveSpeedBoost · SpawnPhantoms · SpawnWisps · SpawnerHaste (Swarm 4)
 > - 합계 = 16 ✓ (Tank/Dps/Debuff/Swarm 각 4장 균등)
 >

@@ -85,7 +85,7 @@
 
 - **탱커**: 위스프, 레이스 — HP↑, 영웅 진로 방해
 - **딜러**: 리퍼, 미믹 — DPS↑, 약함
-- **유틸**: 팬텀(시야 차단), 플레이그(둔화), 임프(텔레포트)
+- **유틸**: 팬텀(시야 차단), 플레이그(독 - 2026-10-29 둔화에서 교체), 임프(텔레포트)
 - **광역**: 위스프 킹(분열), 좀비(자폭)
 - **보조**: 네크로맨서(부활), 샤먼(버프)
 
@@ -97,7 +97,7 @@
 |---|---|---|---|
 | **Tank** | Wisp·Wraith HP ×1.3 (글로벌 영구) | Wisp·Wraith Power ×1.2 (글로벌 영구) | 필드 글로벌 캡 +6 (18→24, 영구) |
 | **Dps** | Reaper·Hex Power ×1.3 | Reaper·Hex Cooldown ×0.8 (=공속 +25%) | Reaper·Hex Range ×1.3 |
-| **Debuff** | Plague SlowFactor ×0.8 (강한 둔화 추가) | HeroAttackDown 자동 등록 (영웅 공격력 ×0.85 영구, 카드와 곱연산 누적) | 영구 출혈 등록 — 영웅 이동 시 1s당 HP -1%, 라운드 끝까지 |
+| **Debuff** | 역병귀 독 최대 중첩 +2 (3 → 5) | HeroAttackDown 자동 등록 (영웅 공격력 ×0.85 영구, 카드와 곱연산 누적) | 영구 출혈 등록 — 영웅 이동 시 1s당 HP -1%, 라운드 끝까지 |
 | **Swarm** | Phantom·Wisp MoveSpeed ×1.3 | 모든 스포너 주기 ×0.85 (영구) | 모든 스포너 동시 출력 +1 (영구) |
 
 수치·발동 규칙·누적 정책은 `docs/design/card-renewal.md` §4 (12개 빌드 시너지 Tier 표) 가 단일 진실이다. 시너지가 *선택지 카드에 자연스럽게 노출되도록* 카드 픽 팝업 상단에 4축 빌드 카운트 바를 노출한다 (`card-renewal.md` §8).
@@ -219,7 +219,7 @@ spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` + 기획서 
 | 탱커 | 레이스 | 500 | 20 | 매우 느림, 강력한 벽 |
 | 딜러 | 리퍼 | 100 | 40 | 평타 깡패 |
 | 딜러 | 헥스 | 60 | 30 | 원거리 |
-| 유틸 | 플레이그 | 50 | 5 | 공격 시 영웅 둔화 20% |
+| 유틸 | 플레이그 | 50 | 5 | 적중 시 영웅에게 독 (적중마다 1중첩·최대 3중첩, 3초 지속·재적중 시 3초로 갱신, 1초마다 중첩 수 x 역병귀 공격력 피해) - 2026-10-29 둔화 20% 에서 교체 |
 | 유틸 | 팬텀 | 30 | 5 | 떼로 몰림, 시야 차단 |
 
 **카드 28장 — 4축 × 7장 (패시브 4 + 액티브 3)** (카드 리뉴얼 v0.6)
@@ -252,13 +252,13 @@ spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` + 기획서 
 | 6 | BloodThirst | A | (v0.6 Swarm→Dps 축 이동) 처치 시 주변 몬스터 HP +30 회복, 30s |
 | 7 | MarkOfDeath | A | (신규) 영웅에게 표식 — 5s간 영웅 받는 데미지 ×1.5 |
 
-*Debuff 축 (7장: P4 + A3)* — Plague + 액티브 저주 콤보. "갉아내고 무력화" (둔화·출혈·공포·약화·독).
+*Debuff 축 (7장: P4 + A3)* — Plague + 액티브 저주 콤보. "갉아내고 무력화" (독·출혈·공포·약화 + 디버프 지속 연장). 둔화는 Swarm `Slow` 카드에만 남는다(2026-10-29).
 
 | # | ECardId | T | 효과 요약 |
 |---|---|---|---|
-| 1 | PlagueSlowBoost | P | Plague 종 SlowFactor ×0.75 (강한 둔화) |
+| 1 | PlagueSlowBoost | P | "역병의 손길" — 역병귀 독 피해 ×1.4/픽 (ID 유지, 2026-10-29 둔화 강화에서 교체) |
 | 2 | SpawnPlagues | P | Plague 스포너 동시 출력 +1 (Plague Spawner #4 활성화 — `continuous-spawn-round.md` §3.1) |
-| 3 | HeroPoisonAura | P | 영웅 발 밑 독장판 5 DPS, 5s 지속 (영웅 이동 시 따라 이동) |
+| 3 | LingeringCurse | P | "끈질긴 저주" — 영웅에게 걸린 Debuff 축 시한 디버프(독·공포·출혈·무력화) 지속 +25%/픽 (2026-10-29 독장판 `HeroPoisonAura` 삭제 후 대체, `HeroPoisonAura` 는 enum 자리만 보존) |
 | 4 | HeroAttackDown | P | 영웅 공격력 영구 ×0.75 |
 | 5 | Fear | A | 영웅 3s 도주 |
 | 6 | Bleed | A | 영웅 이동 시 1s당 HP -2%, 10s |
@@ -301,8 +301,8 @@ spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` + 기획서 
 
 | 대상 | 메쉬 | 색상 | 비고 |
 |---|---|---|---|
-| 독 장판 | Plane (또는 Cylinder Y스케일 0.05) | 연두 반투명 `#84CC16 α=0.5` | 환경 카드 효과 |
-| 둔화 표시 | 영웅에 자식 Sphere | 하늘 반투명 `#0EA5E9 α=0.4` | 영웅이 둔화 상태일 때 |
+| 독 장판 | Plane (또는 Cylinder Y스케일 0.05) | 연두 반투명 `#84CC16 α=0.5` | (폐기 2026-10-29 — 독장판 카드 삭제) |
+| 둔화 표시 | 영웅에 자식 Sphere | 하늘 반투명 `#0EA5E9 α=0.4` | 영웅이 둔화 상태일 때 (현행 출처는 Swarm `Slow` 카드뿐. 상태 표시는 HP바 아래 아이콘으로 교체됨 — `hero-status-icons.md`) |
 | 공포 표시 | 영웅 위 Cube | 보라 `#A855F7` | 영웅이 도망 중일 때 |
 | 출혈 표시 | 영웅 색상 변경 | 진빨강 `#991B1B` | 영웅이 출혈 중일 때 |
 
@@ -376,3 +376,4 @@ spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` + 기획서 
 - **v0.5 (2026-05-22)**: §11.3 패시브 카드 15장 설명을 지속 스폰 시맨틱으로 갱신. 추가 5장(7~11번)을 "영웅 근처에 N마리 즉시 소환" → "해당 종 Spawner 동시 출력 +1(영구)"로, 교체 2장(12~13번)을 "필드 몬스터 전부 변환" → "Spawner 출력 종 영구 변경(필드 몬스터 즉살 없음)"으로 정정. 강화 6장(1~6번)에는 카테고리 머리줄을 추가해 "영구 글로벌 타입 버프(이후 스폰 전부 + 현재 필드 소급)"임을 명시. 카드 매수·이름·ID 불변, 설명 텍스트만 조정. `continuous-spawn-round.md` §3 을 단일 진실로 정합.
 - **v0.7 (2026-06-10)**: **v0.2 단계 진입 — 마을(허브) + 메타 진행 1차분 승격.** §7.1 신설: 마을 씬(중앙 해골 영웅 idle + 상하좌우 메뉴), 상점(소울 레벨제 영구 업그레이드)·영주 레벨·영웅 선택·도감/기록·고정 도전과제. 세이브 로컬 JSON, 서버는 v0.3+. 신규 영웅/몬스터/카드 리소스는 잠금 슬롯+더미로 자리만. §11.2 표의 메타 진행 ✅ 승격, 메인 메뉴는 마을이 겸임. spec `2026-06-10-village-meta-hub-design.md`, plan `2026-06-10-village-meta-hub.md` 와 정합.
 - **v0.6 (2026-05-31)**: 카드 전체 리뉴얼. 25장 → 28장. 카테고리 7종 → 4축(Tank/Dps/Debuff/Swarm). 2-Layer 시너지(빌드 카운트 임계 3/5/7 + 카드 중첩) 도입. Plague Spawner 1개 추가 (Spawner #4: Wisp→Plague). Multiply enum 자리 보존 + SwarmRushEffect 효과 교체 (Phantom 6마리 즉시 소환). Berserk enum 자리 보존 + GuardianRageEffect 효과 교체 (Wisp·Wraith 한정 HP×2 + 받는데미지×0.5). Slow 카드 축 이동 (Debuff → Swarm) + 몬스터 이속 ×1.3 이중 효과. 신규 3장 (WallOfWisps/MarkOfDeath/SpawnerHaste). §5.2 시너지 방향성 4축 × 3Tier 재정렬, §11.3 카드 정의 28장 재작성, §11.4 카드 테두리 색 7색 → 4색 매핑. §4.2 트리거(HP 10%/30s) 유지. spec `docs/superpowers/specs/2026-05-31-card-renewal-design.md`, plan `docs/superpowers/plans/2026-05-31-card-renewal.md`, 기획서 `docs/design/card-renewal.md` 와 정합.
+- **2026-11-01 (몬스터 육성 재화 분리 구현 후 현행화)**: 역병귀 기본 효과 둔화 → 독(§5.1·§11.3 몬스터 표), Debuff 시너지 Tier1 = 독 최대 중첩 +2(§5.2), Debuff 카드 표 1·3번 행 교체(역병의 손길 = 독 피해 ×1.4/픽, 독장판 삭제 → 끈질긴 저주), §11.4 독 장판 비주얼 폐기 표기. 상점 「짙은 역병」 = 독 피해 +4%/Lv. 단일 진실 `docs/design/monster-growth-currencies.md` §15.
