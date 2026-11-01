@@ -1,5 +1,7 @@
 # 상점 단일 스크롤뷰 + 섹션 헤더 (탭 제거)
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변.
+
 > 입력: spec `docs/superpowers/specs/2026-07-25-shop-single-scroll-sections-design.md` · plan `docs/superpowers/plans/2026-07-25-shop-single-scroll-sections.md`
 > 이 기획서는 plan 의 `⟨기획서 확정⟩` 자리(헤더 스타일·높이·요약줄·간격·빈 섹션)를 닫는다. 파일 구조·시그니처·TDD 골격은 plan 이 SoT, 도메인 시각/UX 수치는 본 문서가 SoT. 상점 항목·가격·효과는 무변경(spec §2).
 
@@ -10,7 +12,7 @@
 - **목표**: 상점의 「스탯 강화」/「몬스터 강화」 **탭을 제거**하고, 단일 세로 스크롤에 **섹션 헤더 행 + 항목 행**을 순서대로 얹은 통합 목록으로 재구성한다. 추가 클릭 없이 전체 강화 항목을 스크롤로 연속 탐색.
 - **검증 가설**: 탭 전환(추가 클릭) 제거 + 섹션 헤더 그룹핑이 (a) 강화 항목 전체 인지·탐색을 빠르게 하는가, (b) 스탯/몬스터 두 축의 관계를 한 화면 흐름에서 더 잘 읽히게 하는가.
 - **현재 단계 범위 적합성**: **범위 내**. spec §1·§2 가 "기존 상점 UI 재구성 — 신규 기능 아님, 항목·가격·효과 무변경"으로 확인. CLAUDE.md §8 메타(상점) 범위 내. 신규 리소스 0(헤더는 CHText + 기존 톤 색/내장 스프라이트로 배선).
-- **핵심 메커니즘**: `CHPoolingScrollView` 는 셀 타입 1개만 바인딩하므로, 헤더 행과 항목 행을 **한 셀 타입**(`ShopItemCell`)이 `RowKind`(SectionHeader/Item)로 분기해 그린다. `BuildCellData(profile,cfg)` 가 [스탯 헤더 + 스탯 항목들 + 몬스터 헤더 + 종족 항목들] 통합 리스트를 반환. 탭 상태·필터·버튼 전부 제거.
+- **핵심 메커니즘**: `CHPoolingScrollView` 는 셀 타입 1개만 바인딩하므로, 헤더 행과 항목 행을 **한 셀 타입**(`ShopItemCell`)이 `RowKind`(SectionHeader/Item)로 분기해 그린다. `BuildCellData(profile,cfg)` 가 [스탯 헤더 + 스탯 항목들 + 몬스터 헤더 + 몬스터 항목들] 통합 리스트를 반환. 탭 상태·필터·버튼 전부 제거.
 
 ---
 
@@ -82,10 +84,10 @@
 |---|---|---|
 | 역할 | **상태 readout** — 지금 내가 **이미 산** 강화의 집계("현재 강화  HP +10% · 공속 +5%") | **내비게이션 라벨** — 목록의 **구매 가능** 항목 그룹 제목 |
 | 답하는 질문 | "내가 지금 뭘 가졌나" | "목록 어디쯤 / 무슨 그룹인가" |
-| 범위 | 글로벌 스탯 강화 집계(`DungeonPowerSummary`, 종족 강화는 미포함 — monster-species §6) | 스탯/몬스터 두 섹션 라벨 |
+| 범위 | 글로벌 스탯 강화 집계(`DungeonPowerSummary`, 몬스터 강화는 미포함 — monster-species §6) | 스탯/몬스터 두 섹션 라벨 |
 
 - 두 요소는 **상태(가진 것) vs 위치(살 것의 구획)** 로 축이 달라 겹치지 않는다. 요약줄은 스크롤과 무관하게 상단 고정 상태판, 헤더는 스크롤되는 목록 내 구획선.
-- 요약줄은 종족 강화를 포함하지 않으므로(monster-species §6) 헤더가 새로 만든 "몬스터 강화" 구획과도 정보 중복이 없다.
+- 요약줄은 몬스터 강화를 포함하지 않으므로(monster-species §6) 헤더가 새로 만든 "몬스터 강화" 구획과도 정보 중복이 없다.
 - **무변경**: `Rebuild` 의 요약줄 세팅·`BuildSummaryText`·`DungeonPowerSummary.Build` 전부 그대로(스코프 최소화).
 
 ---
@@ -138,7 +140,7 @@
 - `ShopItemCellData` 에 추가: `public ShopRowKind RowKind;`(기본 Item), `public string HeaderText;`(헤더 행일 때 섹션 제목). 기존 항목 필드는 Item 행에서만 유효.
 
 ### 시그니처 변경
-- `BuildCellData(profile, cfg)` **2-arg 단일** — 통합 리스트 [스탯 헤더 + 스탯 항목들 + 몬스터 헤더 + 종족 항목들] 반환. **빈 섹션 헤더 제외**(§5): 섹션 항목을 먼저 모아 `count>0` 일 때만 헤더+항목 append.
+- `BuildCellData(profile, cfg)` **2-arg 단일** — 통합 리스트 [스탯 헤더 + 스탯 항목들 + 몬스터 헤더 + 몬스터 항목들] 반환. **빈 섹션 헤더 제외**(§5): 섹션 항목을 먼저 모아 `count>0` 일 때만 헤더+항목 append.
 - **제거**: 3-arg `BuildCellData(profile,cfg,ShopTab)`, `MatchesTab`, `_tab`, `SelectTab`, `UpdateTabHighlight`, 탭 `[SerializeField]`(`_statTabButton`/`_speciesTabButton`/`_statTabBg`/`_speciesTabBg`)·`TabActiveColor`/`TabInactiveColor`, InitUI 탭 배선.
 - `Rebuild` 은 `BuildCellData(_arg.Profile, _arg.Config)` 무탭 호출. 아이콘 주입 루프 유지(헤더 행은 `Species=null`→`Icon=null`, 무해).
 

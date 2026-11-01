@@ -56,7 +56,7 @@ ul.k{margin:6px 0 0;padding-left:18px}
 .bub{position:relative;background:#f4efe0;color:#1b1f2a;border:3px solid var(--ink);padding:8px 10px;font-size:13px;line-height:1.5}
 .bub b{color:var(--cc)}
 .bub::before{content:"";position:absolute;left:18px;top:-12px;border:6px solid transparent;border-bottom-color:#f4efe0}
-/*# 종족 카드 */
+/*# 몬스터 카드 */
 .sp{border-left:5px solid var(--sc)}
 .sp .t{display:flex;align-items:center;gap:10px;font-size:18px;color:var(--sc)}
 .sp .face{width:40px;height:40px;border:3px solid var(--sc);background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:22px}
@@ -98,9 +98,9 @@ ul.k{margin:6px 0 0;padding-left:18px}
 <h2>① 한눈에 보기</h2>
 <div class="grid g5">
   <div class="pnl cur" style="--c:var(--soul)"><div class="nm"><span class="ic">◆</span>소울</div><div class="from">모든 전투</div><div class="to"><span class="arrow">→</span> 체급: 체력·공격력</div></div>
-  <div class="pnl cur" style="--c:var(--aw)"><div class="nm"><span class="ic">▲</span>각성석</div><div class="from">Normal · Hard 스테이지</div><div class="to"><span class="arrow">→</span> 각성: 종족 역할 강화</div></div>
+  <div class="pnl cur" style="--c:var(--aw)"><div class="nm"><span class="ic">▲</span>각성석</div><div class="from">Normal · Hard 스테이지</div><div class="to"><span class="arrow">→</span> 각성: 몬스터 역할 강화</div></div>
   <div class="pnl cur" style="--c:var(--ms)"><div class="nm"><span class="ic">☾</span>달빛 인장</div><div class="from">데일리</div><div class="to"><span class="arrow">→</span> 둥지: 더 빨리, 더 안전하게 등장</div></div>
-  <div class="pnl cur" style="--c:var(--ac)"><div class="nm"><span class="ic">◇</span>심연 결정</div><div class="from">무한의 탑</div><div class="to"><span class="arrow">→</span> 특성: 종족 고유 능력</div></div>
+  <div class="pnl cur" style="--c:var(--ac)"><div class="nm"><span class="ic">◇</span>심연 결정</div><div class="from">무한의 탑</div><div class="to"><span class="arrow">→</span> 특성: 몬스터 고유 능력</div></div>
   <div class="pnl cur" style="--c:var(--rs)"><div class="nm"><span class="ic">✱</span>유물 잔해</div><div class="from">이미 다 모은 등급의 유물이 또 나올 때</div><div class="to"><span class="arrow">→</span> 위 세 재화로 교환</div></div>
 </div>
 
@@ -124,29 +124,29 @@ ul.k{margin:6px 0 0;padding-left:18px}
   </div>
   <div class="shhd">몬스터 강화</div>
   <div class="srow" style="--sc:#28E66E">
-    <div class="shead"><div class="face">●</div>도깨비불</div>
+    <div class="shead"><div class="face">●</div><span style="font-size:10px">풋내기</span><br>도깨비불</div>
     <div class="slot can" style="--c:var(--soul)"><div class="a">체급<span class="pp"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div><div class="d">체력·공격력 +18%/Lv</div><div class="p"><span class="ic" style="--c:var(--soul)">◆</span>384</div></div>
     <div class="slot can" style="--c:var(--aw)"><div class="a">각성<span class="pp"><i class="on"></i><i></i><i></i><i></i><i></i></span></div><div class="d">받는 피해 -4%/Lv</div><div class="p"><span class="ic" style="--c:var(--aw)">▲</span>15</div></div>
     <div class="slot can" style="--c:var(--ms)"><div class="a">둥지<span class="pp"><i></i><i></i><i></i></span></div><div class="d">다음: 첫 등장 2초 빠르게</div><div class="p"><span class="ic" style="--c:var(--ms)">☾</span>20</div></div>
     <div class="slot" style="--c:var(--ac)"><div class="a">특성<span class="pp"><i></i><i></i><i></i></span></div><div class="d">가시 껍질 반사 10%</div><div class="p"><span class="ic" style="--c:var(--ac)">◇</span>3</div></div>
   </div>
   <div class="srow" style="--sc:#E64141">
-    <div class="shead"><div class="face">†</div>사신</div>
+    <div class="shead"><div class="face">†</div><span style="font-size:10px">풋내기</span><br>사신</div>
     <div class="slot max" style="--c:var(--soul)"><div class="a">체급<span class="pp"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="d">체력·공격력 +18%/Lv</div><div class="p">MAX</div></div>
     <div class="slot" style="--c:var(--aw)"><div class="a">각성<span class="pp"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div><div class="d">공격 간격 -5%/Lv</div><div class="p" style="color:#6c7385">▲ 50</div></div>
     <div class="slot lock" style="--c:var(--ms)"><div class="a">둥지</div><div class="d"></div><div class="p" style="color:var(--sub);font-size:11px">■ 1-5 클리어 시 해금</div></div>
     <div class="slot lock" style="--c:var(--ac)"><div class="a">특성</div><div class="d"></div><div class="p" style="color:var(--sub);font-size:11px">■ 5-5 클리어 시 해금</div></div>
   </div>
-  <div class="sub">종족마다 한 줄. 칸을 누르면 바로 강화됩니다. 아직 열리지 않은 재화의 칸은 어둡게 잠겨 있고, 지갑에는 열린 재화만 보입니다.</div>
+  <div class="sub">몬스터마다 한 줄. 몬스터 이름 앞에는 등급("풋내기")이 붙어요 - 강화 항목 이름도 "풋내기 도깨비불 체급"처럼 보여요. 칸을 누르면 바로 강화됩니다. 아직 열리지 않은 재화의 칸은 어둡게 잠겨 있고, 지갑에는 열린 재화만 보입니다.</div>
 </div>
 <div class="bubbles">
   <div class="bub" style="--cc:#1f9e74"><b>체급</b> (소울) - 체력과 공격력이 함께 커집니다. 5단계면 2.3배. 지금 상점과 똑같아요.</div>
-  <div class="bub" style="--cc:#c9701e"><b>각성</b> (각성석) - 그 종족의 역할이 더 확실해집니다. 탱커는 더 단단하게, 딜러는 더 빠르게.</div>
-  <div class="bub" style="--cc:#5a6a90"><b>둥지</b> (달빛 인장) - 그 종족이 들어간 둥지가 더 일찍, 더 자주, 더 안전하게 몬스터를 내보냅니다.</div>
-  <div class="bub" style="--cc:#1a8f8f"><b>특성</b> (심연 결정) - 종족마다 단 하나뿐인 특수 능력이 생기고 3단계까지 강해집니다.</div>
+  <div class="bub" style="--cc:#c9701e"><b>각성</b> (각성석) - 그 몬스터의 역할이 더 확실해집니다. 탱커는 더 단단하게, 딜러는 더 빠르게.</div>
+  <div class="bub" style="--cc:#5a6a90"><b>둥지</b> (달빛 인장) - 그 몬스터가 들어간 둥지가 더 일찍, 더 자주, 더 안전하게 몬스터를 내보냅니다.</div>
+  <div class="bub" style="--cc:#1a8f8f"><b>특성</b> (심연 결정) - 몬스터마다 단 하나뿐인 특수 능력이 생기고 3단계까지 강해집니다.</div>
 </div>
 
-<h2>④ 종족별 육성표</h2>
+<h2>④ 몬스터별 육성표</h2>
 <div class="grid g3">
   <div class="pnl sp" style="--sc:#28E66E"><div class="t"><span class="face">●</span><div>도깨비불<div class="role">탱커 · 기본 잡몹</div></div></div>
     <div class="line" style="--c:var(--aw)"><span class="k">각성</span>받는 피해 감소 (5단계 -18%)</div>
@@ -167,7 +167,7 @@ ul.k{margin:6px 0 0;padding-left:18px}
     <div class="line" style="--c:var(--aw)"><span class="k">각성</span>더 빨리 달림 (5단계 이동속도 +34%)</div>
     <div class="line" style="--c:var(--ac)"><span class="k">특성</span><div>잔상 - 첫 공격을 피하고 잠깐 가속<div class="tiers"><span>1 · 1번 회피</span><span>2 · 더 빠른 가속</span><span>3 · 2번 회피</span></div></div></div></div>
 </div>
-<div class="pnl dark" style="margin-top:12px;--c:var(--ms)"><b style="color:var(--ms)">둥지 (모든 종족 공통)</b> - 1단계 첫 등장 2초 빠르게 · 2단계 등장 간격 7% 짧게 · 3단계 막 나온 몬스터가 3초간 피해를 절반만 받음. 단계는 쌓입니다.</div>
+<div class="pnl dark" style="margin-top:12px;--c:var(--ms)"><b style="color:var(--ms)">둥지 (모든 몬스터 공통)</b> - 1단계 첫 등장 2초 빠르게 · 2단계 등장 간격 7% 짧게 · 3단계 막 나온 몬스터가 3초간 피해를 절반만 받음. 단계는 쌓입니다.</div>
 
 <h2>④-2 역병귀가 바뀝니다 - 둔화 대신 독</h2>
 <div class="grid g3">
@@ -224,10 +224,10 @@ ul.k{margin:6px 0 0;padding-left:18px}
 
 <h2>⑦ 이렇게 강해집니다</h2>
 <div class="pnl"><div class="tl">
-  <div class="st" style="--c:var(--soul)"><b>처음</b> - 소울로 좋아하는 종족의 체급을 올립니다. 지금과 같아요.</div>
-  <div class="st" style="--c:var(--aw)"><b>1-1을 깨면</b> - Normal이 열리고 각성석이 생깁니다. 1-1 Normal 한 판이면 각성 1단계. 챕터 하나를 Normal·Hard로 정복하면 주력 종족 하나가 각성 끝.</div>
-  <div class="st" style="--c:var(--ms)"><b>1-5를 깨면</b> - 데일리가 열립니다. 매일 3판이면 일주일 만에 한 종족의 둥지 3단계 완성, 한 달이면 6종 모두.</div>
-  <div class="st" style="--c:var(--ac)"><b>5-5를 깨면</b> - 탑이 열립니다. 3층이면 첫 특성, 11층이면 한 종족 특성 완성. 특성이 붙으면 더 높이 올라가고, 더 많은 결정을 법니다.</div>
+  <div class="st" style="--c:var(--soul)"><b>처음</b> - 소울로 좋아하는 몬스터의 체급을 올립니다. 지금과 같아요.</div>
+  <div class="st" style="--c:var(--aw)"><b>1-1을 깨면</b> - Normal이 열리고 각성석이 생깁니다. 1-1 Normal 한 판이면 각성 1단계. 챕터 하나를 Normal·Hard로 정복하면 주력 몬스터 하나가 각성 끝.</div>
+  <div class="st" style="--c:var(--ms)"><b>1-5를 깨면</b> - 데일리가 열립니다. 매일 3판이면 일주일 만에 한 몬스터의 둥지 3단계 완성, 한 달이면 6종 모두.</div>
+  <div class="st" style="--c:var(--ac)"><b>5-5를 깨면</b> - 탑이 열립니다. 3층이면 첫 특성, 11층이면 한 몬스터 특성 완성. 특성이 붙으면 더 높이 올라가고, 더 많은 결정을 법니다.</div>
   <div class="st" style="--c:var(--rs)"><b>유물을 거의 다 모으면</b> - 겹친 유물이 잔해가 되어, 탑에서 막혔을 때 결정으로 바꿔 벽을 넘는 데 씁니다.</div>
   <div class="st" style="--c:var(--gold)"><b>전부 다 키우면</b> - Normal·Hard 첫 클리어 약 50판 + 데일리 한 달 + 탑 두 시즌 정도. 그래도 Hard는 여전히 질 수 있게 맞춥니다.</div>
 </div></div>
@@ -238,7 +238,7 @@ ul.k{margin:6px 0 0;padding-left:18px}
   <div class="q"><span class="id">U-1</span><div>다 모은 등급의 유물이 또 나오면 → <b>잔해로 바꿔 준다</b> (아직 덜 모은 유물이 나올 확률은 그대로)<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 최대로 모은 유물 하나하나를 다시 뽑히게 함(수집이 느려짐)</span></div></div>
   <div class="q"><span class="id">U-3</span><div>데일리에서도 키운 몬스터 그대로 싸운다 (상점 강화도 이미 적용 중)<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 데일리에서는 특성만 끄기</span></div></div>
   <div class="q"><span class="id">U-2</span><div>탑 시즌이 바뀌면 같은 층을 다시 깨서 결정을 또 받는다<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 예전 최고 층보다 높이 올라가야만 받음</span></div></div>
-  <div class="q"><span class="id">U-4</span><div>상점에서 종족 하나를 한 줄 네 칸(체급·각성·둥지·특성)으로 보여 준다<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 칸마다 한 줄씩(목록이 4배 길어짐)</span></div></div>
+  <div class="q"><span class="id">U-4</span><div>상점에서 몬스터 하나를 한 줄 네 칸(체급·각성·둥지·특성)으로 보여 준다<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 칸마다 한 줄씩(목록이 4배 길어짐)</span></div></div>
   <div class="q"><span class="id">U-5</span><div>마을 화면 위쪽에는 소울만 표시하고, 다른 재화는 상점·유물 도감·결과창에서 보여 준다<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 소울을 누르면 재화 전체가 펼쳐짐(나중에)</span></div></div>
   <div class="q"><span class="id">U-6</span><div>지금 소울 강화 이름 "○○ 각성"을 "○○ 체급"으로 바꾼다 (새 "각성"과 헷갈리지 않게)<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 새 축 이름을 바꿈</span></div></div>
   <div class="q"><span class="id">U-7</span><div>이미 Normal·Hard·탑을 깬 기록이 있으면 업데이트 후 그만큼 재화를 한 번에 준다<br><span class="rec">확정</span><span class="alt">검토했던 다른 안: 지금부터만 지급</span></div></div>

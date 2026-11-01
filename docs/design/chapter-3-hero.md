@@ -1,5 +1,7 @@
 # 챕터 3 "그림자 성채" + 신규 영웅 암살자 (Assassin) - 기능 기획서
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변.
+
 > 작성: game-designer · 날짜: 2026-10-08 · 단계: v0.3
 > 입력: `docs/design/chapter-system.md`(§1 데이터 구조, §3 규칙 6종, §4 챕터/스테이지 표·톱니형 곡선·`ruleFactor`, §5 궁수 영웅, §10 결정 항목) · `hero-2d-conversion.md` · `hero-stage-variant.md` · `hero-skills.md` · `project_lair_concept.md`(빌드 4축, 몬스터 목록) · 시안 `hero-archer-2d.html` / `hero-2d-conversion.html`
 > **시안(합의용)**: `.mockups/hero-ch3-2d.html` (메인이 `node .mockups/server.js` 로 `http://localhost:8777/hero-ch3-2d.html` 제공)
@@ -158,7 +160,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=3 엔트리 5개 추가
 | 교전 | 표적 거리 <= 1.6 | 정지 + 표적 응시 + 기본 공격(쿨다운 0.7). 교전 시간 누적 | 표적 사망 -> 표적 재선택(추적). `strikeWindowSec` 초과 또는 군중 판정 -> 슬립 |
 | 슬립 | (교전 시간 >= `strikeWindowSec`) 또는 (`crowdRadius` 안 몬스터 >= `crowdCount`), 그리고 슬립 쿨다운 경과, `minDwellSec` 경과 | 군중(반경 3.0 안) 무게중심 반대 방향으로 `slipDistance` 이동, `slipInvulnSec` 무적. 무게중심이 자기 위치와 같으면 원점 방향 | 이동 완료 -> 추적 |
 
-- **표적 선택**(threatScore = 공격력 x 공격 배율 ÷ 쿨다운 ÷ max(1, 현재 HP), 쿨다운은 버프(프렌지 등) 반영 실효값): `huntRadius` 안 모든 몬스터 중 `threatScore` 최대, 동점이면 가까운 몬스터. 봉인(`SealedNest`)된 종족이 필드에 없으면 후보에서 자연 제외. 후보가 없으면 가장 가까운 몬스터.
+- **표적 선택**(threatScore = 공격력 x 공격 배율 ÷ 쿨다운 ÷ max(1, 현재 HP), 쿨다운은 버프(프렌지 등) 반영 실효값): `huntRadius` 안 모든 몬스터 중 `threatScore` 최대, 동점이면 가까운 몬스터. 봉인(`SealedNest`)된 몬스터가 필드에 없으면 후보에서 자연 제외. 후보가 없으면 가장 가까운 몬스터.
 - **표적 유지**: 다른 몬스터 점수가 현재 표적 점수의 `retargetScoreMul`(1.5)배를 넘을 때만 교체.
 - 슬립은 스킬이 아니라 **AI 기본 행동**이다(HP 게이트 없음, 처음부터 사용). 스킬 `연막 탄`은 시전 직후 슬립을 쿨다운 무시로 1회 발동한다.
 - 중앙 끌림(`_centerPullEnabled`)은 암살자 프리팹에서 끈다.
@@ -379,7 +381,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=3 엔트리 5개 추가
 | `StageProgress` | 선형 <-> (챕터, 인덱스) 경계(10<->11, 15), `IsUnlocked` 챕터 경계(cleared 10 -> 11 해금, 12 잠금), `ResolveClearedStage` 상한(MaxStage=15), `ScaleStat` 단일 반올림(Assassin 0.70 x 2.06, 소수 경계 0.5) |
 | 마이그레이션 | v5(Cleared 0/5/10)->v6 값 보존·`Version == 6`, `StageRecords` 범위 밖 제거, 클라우드 복원 후 재적용 |
 | JSON 검증 | `HeroArchetype_Skirmish` FK·aiType 일치, 챕터 3 스테이지 5개, 트리거 hpFraction 0.75 / 0.35 가 스킬 게이트/패시브 임계와 불일치 |
-| 표적 점수 | `threatScore` 순위(Hex > Reaper > Phantom > Plague > Wisp > Wraith 기본 수치), HP 증가 카드 후 순위 하락, 공격력 증가 카드 후 순위 상승, 동점 시 가까운 몬스터, `retargetScoreMul` 히스테리시스, 봉인 종족 제외 |
+| 표적 점수 | `threatScore` 순위(Hex > Reaper > Phantom > Plague > Wisp > Wraith 기본 수치), HP 증가 카드 후 순위 하락, 공격력 증가 카드 후 순위 상승, 동점 시 가까운 몬스터, `retargetScoreMul` 히스테리시스, 봉인 몬스터 제외 |
 | Skirmisher 상태 | 추적->교전->슬립 전이, `strikeWindowSec` 2.8 경과 슬립, 군중 3마리 슬립, 슬립 쿨다운 5.0, `minDwellSec` 진동 방지, 슬립 목적지 `arenaSoftRadius` 클램프, 공포(FleeMode) 우선, 기사·궁수 경로 회귀(동작 불변) |
 | 스킬 | 그림자 습격 처치 시 쿨다운 환급 50%, 거리 < 2.5 면 미시전, 칼날 선풍 4틱·피해 배율 0.7, 연막 탄 몬스터 속도/사거리 배율·하한·지속 후 복구, 시전 직후 슬립 1회 |
 
@@ -421,7 +423,7 @@ CLAUDE.md §8 "챕터 구조 허용" 항목을 다음과 같이 개정하는 것
 | E-C3-4 | 그림자 습격 순간이동 목적지가 전장 밖 | 목적지를 `arenaSoftRadius` 7.0 안으로 클램프 |
 | E-C3-5 | `BossBulwark`(x0.6)와 `칼날 선풍`(x0.7) 동시 | 곱연산 0.42. 하한 없음, G7 에서 영웅 생존 시간 확인 |
 | E-C3-6 | 연막 지대 `monsterMinRange` 0.8 이 영웅 충돌 거리보다 작음 | `DenseFog` 와 같이 충돌 거리 + 0.1 로 상향하고 보고(chapter-system E-7) |
-| E-C3-7 | 3-4 `SealedNest`(Hex) 중 `threatScore` 1위 종이 필드에 없음 | 봉인 종족은 후보 부재로 자연 제외, 2위(Reaper) 이하로 표적 |
+| E-C3-7 | 3-4 `SealedNest`(Hex) 중 `threatScore` 1위 종이 필드에 없음 | 봉인 몬스터는 후보 부재로 자연 제외, 2위(Reaper) 이하로 표적 |
 | E-C3-8 | 클라우드 복원 시 구버전(MaxStage 10) 클라이언트가 ClearedStage 11~15 문서를 복원 | Clamp 로 10 까지 보존되는 데이터 손실 가능. 챕터 3 출시 시 신버전 동시 배포(chapter-system §2.2 알려진 제약과 같은 성격) |
 | E-C3-9 | 성수 샘(3-3) 위에서 슬립이 발동 | 샘 체류는 보장하지 않음(체류율 0.3 가정). 의도된 비효율 |
 | E-C3-10 | `HunterTraps` 덫 안으로 슬립 목적지가 들어감 | 덫은 몬스터 대상(영웅 무해) |

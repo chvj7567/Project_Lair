@@ -1,5 +1,7 @@
 # 인게임 상태 셀 강화 레벨 표현 (도감 동일)
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변. 셀의 몬스터 이름에는 등급 접두어가 붙는다(좁으면 2줄, `dungeon-formation.md` §0.2).
+
 > 입력: spec `docs/superpowers/specs/2026-07-26-ingame-spawner-cell-enhance-level-design.md` · plan `docs/superpowers/plans/2026-07-26-ingame-spawner-cell-enhance-level.md`
 > 이 기획서는 plan 의 `⟨기획서 확정⟩` 자리(발광 오버레이 크기·배지 위치·스케일 헤드룸·발광 세기·레벨 소스 배선)를 닫는다. 파일 구조·시그니처·TDD 골격은 plan 이 SoT, 레벨→시각 매핑 값은 도감 기획서 `docs/design/monster-codex-prefab-icon-enhancement.md` §2·3·4 가 **공유 SoT**(본 문서는 그 값을 **읽기만** 하고, 상태 셀 전용 배치·기하만 확정).
 
@@ -7,8 +9,8 @@
 
 ## § 헤더
 
-- **목표**: 인게임 하단 6칸 상태 패널의 각 셀(`SpawnerStatusCell`) 중앙 아이콘에, 그 종족의 상점 강화 레벨(Lv0~5)을 **도감(`CodexCell`)과 동일한 4채널**(발광 오버레이·아이콘 틴트·스케일·"Lv N" 배지)로 반영한다. Lv0 은 담백한 원본.
-- **검증 가설**: 전장에서 이미 발광하는 몬스터(`MonsterEnhancementVisual`)와 상태 셀 아이콘이 **같은 종족색·같은 밝기 티어**로 호응해, "내가 키운 종족"이 HUD 에서도 즉시 읽히는가. 두 표현이 **같은 레벨 소스**(`GetShopLevel("Enhance_"+종)`)와 **같은 시각 매핑 SoT**(`EnhanceLevelVisual`)를 공유해 "전장 = 도감 = 상태 셀" 일치가 유지되는가.
+- **목표**: 인게임 하단 6칸 상태 패널의 각 셀(`SpawnerStatusCell`) 중앙 아이콘에, 그 몬스터의 상점 강화 레벨(Lv0~5)을 **도감(`CodexCell`)과 동일한 4채널**(발광 오버레이·아이콘 틴트·스케일·"Lv N" 배지)로 반영한다. Lv0 은 담백한 원본.
+- **검증 가설**: 전장에서 이미 발광하는 몬스터(`MonsterEnhancementVisual`)와 상태 셀 아이콘이 **같은 몬스터색·같은 밝기 티어**로 호응해, "내가 키운 몬스터"이 HUD 에서도 즉시 읽히는가. 두 표현이 **같은 레벨 소스**(`GetShopLevel("Enhance_"+종)`)와 **같은 시각 매핑 SoT**(`EnhanceLevelVisual`)를 공유해 "전장 = 도감 = 상태 셀" 일치가 유지되는가.
 - **현재 단계 범위 적합성**: **범위 내**. 신규 몬스터/카드/영웅/레벨 리소스 제작 0 — 기존 `MonsterIcons`·`SpeciesGlowColor`·`UISoftGlow.png`(도감 작업 L 이 신설한 라디얼 소프트글로우, 이미 레포에 존재) 재사용. spec §2 "신규 리소스 0" 준수. 신규 에셋 0건.
 - **핵심 메커니즘**: 도감의 레벨→시각 매핑 3배열 + 4채널 적용 로직을 공유 헬퍼 `Lair.UI.EnhanceLevelVisual` 로 추출(plan Task 1) → `CodexCell`·`SpawnerStatusCell` 이 동일 코드를 호출(drift 방지). 상태 셀은 작고 빽빽하므로(아이콘 64px, 셀 134×170) **배치·기하만 셀 전용으로 확정**하고, 매핑 값·색은 도감 SoT 를 그대로 공유한다.
 
@@ -50,7 +52,7 @@
 
 ## 3. 발광 오버레이 크기·배치 (⟨기획서 확정⟩)
 
-**적용**: 아이콘 **뒤**(z-order상 Icon 앞 형제)에 종족색 라디얼 소프트글로우 `_glowOverlay`(Image, `UISoftGlow.png`). `_glowOverlay.color = SpeciesGlowColor(종)` + 알파만 레벨로 조절. Lv0 = 비활성.
+**적용**: 아이콘 **뒤**(z-order상 Icon 앞 형제)에 몬스터색 라디얼 소프트글로우 `_glowOverlay`(Image, `UISoftGlow.png`). `_glowOverlay.color = SpeciesGlowColor(종)` + 알파만 레벨로 조절. Lv0 = 비활성.
 
 ### 결정: 76×76, 아이콘 중심 정렬
 
@@ -173,7 +175,7 @@ Lv5 아이콘 = 64×1.10 = **70.4px**, 중심(67,115) 고정, 사방 +3.2px:
 ### 결정: 바인드 시 조회 — `RebindSnapshot` 에서 `MetaSession.GetOrLoad().GetShopLevel("Enhance_" + snapshot.CurrentType)`
 
 - **키 형식**: `"Enhance_" + snapshot.CurrentType`(EMonster.ToString → "Enhance_Wisp" 등). 도감 `CodexPopup` 이 쓰는 `profile.GetShopLevel("Enhance_" + type)` 와 **글자 그대로 동일**(SoT 정합, 확인: `CodexPopup.cs:184`).
-- **호출 시점**: `RebindSnapshot` 끝(종족·수 변경 시마다 재조회). 종족이 카드로 바뀌면 새 종족 레벨을 재조회.
+- **호출 시점**: `RebindSnapshot` 끝(몬스터·수 변경 시마다 재조회). 몬스터가 카드로 바뀌면 새 몬스터 레벨을 재조회.
 
 **근거 & 대안**:
 
@@ -191,9 +193,9 @@ Lv5 아이콘 = 64×1.10 = **70.4px**, 중심(67,115) 고정, 사방 +3.2px:
 
 전장의 실제 몬스터는 `MonsterEnhancementVisual.ApplyLevel(level, species)` 로 `SpeciesGlowColor(species) × emission[level]` 발광한다(레벨은 `ApplyMetaBonuses` → `GetShopLevel("Enhance_"+type)`). 상태 셀도 **같은 레벨 소스**(§7)와 **같은 색 SoT**(`SpeciesGlowColor`)를 읽는다.
 
-- **같은 색만이 아니라 같은 레벨 티어**: 전장 몬스터와 상태 셀이 둘 다 `GetShopLevel("Enhance_"+type)` 를 읽으므로, 필드에서 밝게 빛나는 종족은 HUD 셀도 **같은 밝기 티어**로 빛난다(단순 색 일치가 아니라 밝기 일치). 플레이어가 "저 무리를 키웠다"를 필드·HUD 양쪽에서 동일 신호로 읽는다.
+- **같은 색만이 아니라 같은 레벨 티어**: 전장 몬스터와 상태 셀이 둘 다 `GetShopLevel("Enhance_"+type)` 를 읽으므로, 필드에서 밝게 빛나는 몬스터는 HUD 셀도 **같은 밝기 티어**로 빛난다(단순 색 일치가 아니라 밝기 일치). 플레이어가 "저 무리를 키웠다"를 필드·HUD 양쪽에서 동일 신호로 읽는다.
 - **역할 분담**: 전장 발광 = 전투 중 "지금 강한 무리" 즉각 인지 / 상태 셀 4채널 = 스폰 슬롯별 "어느 종을 얼마나 키웠나"를 정적으로 요약. 같은 색·레벨로 묶여 두 화면이 한 언어로 읽힌다.
-- **종색 이중 신호**: 셀 테두리(`_border`)도 이미 종족색이다(§1). 여기에 종족색 아우라(§3)가 더해져 종족 식별이 강화되되, 발광은 레벨>0 일 때만 켜져 "강화 여부"를 추가로 전달(테두리=종 식별, 아우라=강화 신호).
+- **종색 이중 신호**: 셀 테두리(`_border`)도 이미 몬스터색이다(§1). 여기에 몬스터색 아우라(§3)가 더해져 몬스터 식별이 강화되되, 발광은 레벨>0 일 때만 켜져 "강화 여부"를 추가로 전달(테두리=종 식별, 아우라=강화 신호).
 
 ---
 
@@ -201,12 +203,12 @@ Lv5 아이콘 = 64×1.10 = **70.4px**, 중심(67,115) 고정, 사방 +3.2px:
 
 | 셀 상태 | 아이콘 틴트 | 발광 오버레이 | 배지 | 스케일 |
 |---|---|---|---|---|
-| 종족 + 강화(Lv1~5) | 종족색 Lerp(§6) | α by Lv(§3·6) | "Lv N"(§4) | by Lv(§5) |
-| 종족 + 미강화(Lv0) | white(원본) | off | 숨김 | 1.0 |
+| 몬스터 + 강화(Lv1~5) | 몬스터색 Lerp(§6) | α by Lv(§3·6) | "Lv N"(§4) | by Lv(§5) |
+| 몬스터 + 미강화(Lv0) | white(원본) | off | 숨김 | 1.0 |
 | 아이콘 없음(스프라이트 미해결) | (아이콘 숨김) | off | 숨김 | 1.0 |
 
 - **Lv0 = 담백**: 발광·배지·틴트·스케일 전부 항등 → 미강화 종은 원본 그대로. 강화한 종만 셀에서 도드라진다.
-- **풀 재사용 리셋(락)**: `RebindSnapshot` 이 매 바인드마다 4채널을 **전부 재설정**(Lv0 이면 명시 off). `OnEnable` 의 기존 리셋(아이콘 sprite/active)에 오버레이 off·배지 off·스케일 1·icon.color white 를 추가하되, **실제 재설정 소유권은 `RebindSnapshot` 의 `Apply` 호출**(RecordsStageCell 교훈 — OnEnable 리셋 의존 금지, 바인드가 소유). 종족 전이 시 이전 종족의 배지·발광·스케일 잔상 0.
+- **풀 재사용 리셋(락)**: `RebindSnapshot` 이 매 바인드마다 4채널을 **전부 재설정**(Lv0 이면 명시 off). `OnEnable` 의 기존 리셋(아이콘 sprite/active)에 오버레이 off·배지 off·스케일 1·icon.color white 를 추가하되, **실제 재설정 소유권은 `RebindSnapshot` 의 `Apply` 호출**(RecordsStageCell 교훈 — OnEnable 리셋 의존 금지, 바인드가 소유). 몬스터 전이 시 이전 몬스터의 배지·발광·스케일 잔상 0.
 
 ---
 
@@ -236,7 +238,7 @@ Lv5 아이콘 = 64×1.10 = **70.4px**, 중심(67,115) 고정, 사방 +3.2px:
 - **신규 필드 없음**. 레벨은 `RebindSnapshot` 에서 `MetaSession.GetOrLoad().GetShopLevel("Enhance_" + snapshot.CurrentType)` 조회(§7). `SpawnerSnapshot` 무변경.
 
 ### SpawnerStatusCell 위젯 필드 (`[SerializeField] private`, Rule 02 §6.1)
-- `_glowOverlay` (Image) — 아이콘 뒤 종족색 발광 아우라(§3). 스프라이트 = `UISoftGlow.png`. 초기 비활성.
+- `_glowOverlay` (Image) — 아이콘 뒤 몬스터색 발광 아우라(§3). 스프라이트 = `UISoftGlow.png`. 초기 비활성.
 - `_levelBadge` (CHText) — 우상단 "Lv N" 배지(§4). 초기 비활성.
 - `_iconRect` (RectTransform) — 스케일 대상 = 기존 `_icon`(Icon)의 RectTransform(§5).
 
@@ -274,6 +276,6 @@ EnhanceLevelVisual.Apply(lv, snapshot.CurrentType, _icon, _glowOverlay, _levelBa
 - **모호 표현 0**: 발광 세기·레벨 소스 등 두 갈래 후보를 각각 한 갈래로 단정. fallback 은 "값 불변, 위치만" 으로 명시.
 - **스코프**: 단일 구현 단위(공유 헬퍼 추출 + 상태 셀 4채널 배선). 분할 불필요.
 - **구현 요청사항 완전성**: Enum(없음)·Interface(EnhanceLevelVisual, `Apply` 시그니처에 alphaScale **미포함**으로 §6과 정합)·에셋 키(UISoftGlow 재사용)·SO 스키마(신규 없음)·위젯 필드·배선 로직·프리팹 z-order·**아이콘 스프라이트 전제(도감 동일 MonsterIcons 정합 확인 완료)** 전부 명세.
-- **UI 목업**: `.mockups/ingame-spawner-cell-enhance-level.html` 작성 — 실측 134×170 셀 6칸을 real `SpeciesGlowColor` hex(#28E66E 등)·발광 α·틴트·스케일·배지로 렌더, 종족별 레벨 슬라이더로 Lv0~5 겹침 없음 검증. z-order(발광=아이콘 뒤, 배지=맨 위, ×N=아이콘 위) 반영.
+- **UI 목업**: `.mockups/ingame-spawner-cell-enhance-level.html` 작성 — 실측 134×170 셀 6칸을 real `SpeciesGlowColor` hex(#28E66E 등)·발광 α·틴트·스케일·배지로 렌더, 몬스터별 레벨 슬라이더로 Lv0~5 겹침 없음 검증. z-order(발광=아이콘 뒤, 배지=맨 위, ×N=아이콘 위) 반영.
 
 판정: **통과** (신규 에셋 0건 — 도감 SoT·기존 `UISoftGlow.png` 재사용).

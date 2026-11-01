@@ -1,5 +1,7 @@
 # 배틀 HUD(BattleHud) 비주얼 폴리시
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변.
+
 ## § 헤더
 
 - **목표**: 승인된 목업 `.mockups/battle-hud-redesign.html` 의 마감(금테 이중 프레임·유리 광택 패널, 보스 바 금테+광택 fill+눈금 마름모 보석, 30초 이하 붉은 맥동, 5초 이하 금색 맥동, 시너지 행 색 띠·발광, 빌드 슬롯 종류색 테두리, 스포너 셀 프레임·Lv 배지·광택 진행바)를 Unity `BattleHud.prefab` 과 그 하위 프리팹에 옮긴다. 배치·좌표·문구·동작·ViewModel 은 한 글자도 바꾸지 않고, 그 위에 **장식 레이어와 스프라이트만 얹는다.**
@@ -128,13 +130,13 @@ HUD 위치·간격(피치 170)은 `SpawnerStatusPanel`(Container + 셀 6개)이 
 
 | 요소 | 방식 | 스프라이트·수치 | 코드 참조 |
 |---|---|---|---|
-| 프레임 | 기존 `_border` Image 의 스프라이트를 `BattleHudSmallFrame`(Sliced, fillCenter 끔)로 교체. 코드가 종 대표색을 `color` 로 곱하므로 금 헤어라인은 종족색을 띤 어두운 선이 된다(§9) | `BattleHudSmallFrame`(신규) | 기존 `_border` |
+| 프레임 | 기존 `_border` Image 의 스프라이트를 `BattleHudSmallFrame`(Sliced, fillCenter 끔)로 교체. 코드가 종 대표색을 `color` 로 곱하므로 금 헤어라인은 몬스터색을 띤 어두운 선이 된다(§9) | `BattleHudSmallFrame`(신규) | 기존 `_border` |
 | 바탕 | 기존 `InnerBackground` 를 `Px_Solid` Simple + `#0d1220` 알파 0.90 로 교체. 자식 `DecoCellGrad`(stretch, `WorldMapGradientV`, `#171e2e` 알파 0.90), `DecoCellGloss`(`WorldMapGradientV`, 흰색 알파 0.08, 148x10, 로컬 (4,3)). `InnerBackground` Image 에 `Shadow` (0,−3) 색 `#000000` 알파 0.40 | `WorldMapGradientV` | 없음 |
 | 색 띠 + 발광 | 기존 `ColorChip`(`_colorChip`)의 스프라이트를 `BattleHudChipBar`(Simple)로 교체, 크기 4x56 → 10x62 (중심 불변; 코어 4x56 + 사방 3px 발광이 스프라이트에 구워져 있고 코드의 축 색 틴트가 곱해진다) | `BattleHudChipBar`(신규) | 기존 `_colorChip` |
 | 아이콘 슬롯 | 기존 `IconSlot` 스프라이트를 `WorldMapMedalOpen`, 색 `#2a3350`. `Icon`(`_icon`)·`GlowOverlay`(`_glowOverlay`)·`MaxLevelRing`(`_maxLevelRing`) 불변 | `WorldMapMedalOpen` | 기존 `IconSlot` |
 | Lv 배지 | 기존 `LevelBadge`(`_levelBadgeRoot`)의 Image 스프라이트를 `WorldMapBadge`(Sliced), 색 `#e9b53e`. `BadgeText` 글자 색은 기존 코드(`EnhanceLevelVisual`)가 정한 값 그대로 | `WorldMapBadge` | 기존 `_levelBadgeRoot` |
 | 진행바 테두리 | 기존 `ProgressBackground` 색 `#05070c`(스프라이트 `Px_Solid`) 유지. 자식 `DecoProgressFrame`: Sliced, fillCenter 끔, stretch 오프셋 −1 (50x8 → 52x10) | `BattleHudTrackFrame`(신규) | 없음 |
-| 진행바 광택 fill | 기존 `Fill`(`_progressFill`, Filled)의 스프라이트를 `BattleHudGaugeFill`, Type·Fill Method 유지. 코드가 매 프레임 `GaugeColor` 로 칠하므로 종족색 명암 그라데이션이 된다 | `BattleHudGaugeFill`(신규) | 기존 `_progressFill` |
+| 진행바 광택 fill | 기존 `Fill`(`_progressFill`, Filled)의 스프라이트를 `BattleHudGaugeFill`, Type·Fill Method 유지. 코드가 매 프레임 `GaugeColor` 로 칠하므로 몬스터색 명암 그라데이션이 된다 | `BattleHudGaugeFill`(신규) | 기존 `_progressFill` |
 
 검산: `DecoCellGloss` 폭 148 = 156 − 8. 칩 높이 62 = 코어 56 + 3×2, 셀 높이 64 ≥ 62. 진행바 테두리 52 = 50 + 2, 10 = 8 + 2.
 
@@ -329,7 +331,7 @@ HUD 위치·간격(피치 170)은 `SpawnerStatusPanel`(Container + 셀 6개)이 
 - 보스 HP 100 → 0 구간: 30% 이하에서 fill 이 주황으로 바뀌고, 눈금(90%~10%)을 넘을 때마다 해당 보석이 금빛으로 켜지며, 큰 피해 시 지연 잔상이 0.7초에 걸쳐 따라오는지. 상태 아이콘 슬롯 8개가 모두 보이는지.
 - 시너지 4축 0장 → 7장 구간에서 행이 어둡게 시작해 1장 이상에서 색 띠·글로우가 켜지는지, 접기/펼치기 후 프레임이 잘리지 않는지(우상단 오른쪽 가장자리 x ≤ 1280 확인).
 - 빌드 슬롯 패시브 9칸·액티브 5칸의 빈 슬롯 inset, 획득 시 종류색 테두리·발광, ×2 이상 배지.
-- 스포너 6셀: 종족별 색 띠·프레임, 강화 Lv 1~5 배지 색, 진행바 종족색 명암.
+- 스포너 6셀: 몬스터별 색 띠·프레임, 강화 Lv 1~5 배지 색, 진행바 몬스터색 명암.
 - §4.2 의 프레임 비용 확인 후 폴백 여부 결정.
 
 ---
@@ -351,9 +353,9 @@ HUD 위치·간격(피치 170)은 `SpawnerStatusPanel`(Container + 셀 6개)이 
 | 시너지 패널 세로 그라데이션 | `#0c111dc0 → #0a0e18b0` | 단색 `#0b101b` 알파 0.72 | 두 색 차이가 알파 0.06 이하라 단색으로 충분 |
 | 빌드 개수 배지 | 종류색 테두리 | `WorldMapNamePlate` 흰 림 | 종류색을 칠하려면 코드 참조 추가 필요 |
 | 빌드 섹션 카운트 텍스트 글로우 | `5/9` 소울색 글로우 | 없음 | 위 텍스트 글로우와 같은 사유 |
-| 스포너 프레임 금 헤어라인 | 금색 `#8a6a2c88` | 종족색을 곱한 어두운 선 | 기존 코드가 `_border.color` 를 종 대표색으로 칠함(동작 불변 우선) |
-| 스포너 아이콘 슬롯 배경 | 종족색 라디얼 | 고정 어두운 청색 메달 `#2a3350` | 종족색 라디얼은 코드 참조 추가 필요, 종족 구분은 색 띠·`GlowOverlay` 가 담당 |
-| 스포너 진행바 | 흰색 하이라이트 → 종족색 → 어두운 종족색, 외곽 발광 | 종족색 명암 그라데이션(밝기 1.00→0.55), 흰색 하이라이트·발광 없음 | 스프라이트 틴트는 곱셈이라 흰색으로 밝힐 수 없음 |
+| 스포너 프레임 금 헤어라인 | 금색 `#8a6a2c88` | 몬스터색을 곱한 어두운 선 | 기존 코드가 `_border.color` 를 종 대표색으로 칠함(동작 불변 우선) |
+| 스포너 아이콘 슬롯 배경 | 몬스터색 라디얼 | 고정 어두운 청색 메달 `#2a3350` | 몬스터색 라디얼은 코드 참조 추가 필요, 몬스터 구분은 색 띠·`GlowOverlay` 가 담당 |
+| 스포너 진행바 | 흰색 하이라이트 → 몬스터색 → 어두운 몬스터색, 외곽 발광 | 몬스터색 명암 그라데이션(밝기 1.00→0.55), 흰색 하이라이트·발광 없음 | 스프라이트 틴트는 곱셈이라 흰색으로 밝힐 수 없음 |
 | 스포너 Lv 배지 위치·글자 색 | 셀 좌하단, 글자 `#1a1206` | 프리팹 기존 위치·`EnhanceLevelVisual` 글자 색 | 위치·동작 불변 원칙 |
 | 호버·눌림 이동 | `.cbtn:hover` 밝기 | 기존 Selectable 눌림 색 | 모바일 중심 UI |
 | 목업 하단 도구(슬라이더·재생·체크박스) | 시안 조작용 | 구현 대상 아님 | 시안 전용 |

@@ -4,6 +4,7 @@
 > 입력: `CLAUDE.md` §8 ⑦(챕터 5 승격 2026-10-18) · `chapter-4.md`(선례 형식·도출식 적용) · `chapter-3-hero.md` · `chapter-system.md`(§0.4 도출식·상한, §3 규칙 6종, §3.2 임계 이격, E-1) · `hero-skills.md` · `project_lair_concept.md`(§5.2 4축 시너지, 카드 28장 표) · 실제 코드/데이터(`ChapterGate.cs` · `StageProgress.cs` · `ChapterDatabase.cs` · `AutoCombatAI.cs` · `HeroAuraRunner.cs` · `BattleContext.cs` · `PlagueSlowOnHit.cs` · `Card/Auras/*.cs` · `Card/Effects/*.cs` · `Art/Cards/Items/*.asset` · `WorldMapViewModel.cs` · `Chapter.json` · `Stage.json` · `Stage_Rule*.json` · `HeroArchetype.json` · `hero_skills.json` · `balance_config.json` · `Strings_Ko.json`)
 > **시안(합의용, 사용자 기열람)**: `.mockups/hero-ch5-paladin.html`(영웅 5단계 · 팔레트 A/B · 스킬 FX · 전투 미니 프리뷰) · `.mockups/scene-bg-ch5-frost.html`(배경, 4장 대비). 메인이 `node .mockups/server.js` 로 `http://localhost:8777/` 제공. **시안의 수치(스테이지 표·보스 트리거)는 초안이며 본 문서 §5.3·§5.2 가 대체한다**(차이는 §5.5).
 > **데이터 구조표**: 본 문서 §2 (신규 스키마 2종 `HeroArchetype_Guard` · `HeroArchetype_DebuffResist` - 사용자 승인 게이트 대상)
+> **용어 정리 (2026-11-01)**: 몬스터 6종을 가리키던 "종족" 표기 2곳을 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0).
 > **변경 이력 (2026-11-01)**: 몬스터 육성 재화 분리(`monster-growth-currencies.md` §15) 구현에 맞춰 현행화 - 역병귀 적중 효과 둔화(`SlowAura`) → 독(`PlagueToxinAura`, 부착 컴포넌트 `PlagueToxinOnHit`), 독장판(`HeroPoisonAura`/`PoisonAura`) 삭제 → 끈질긴 저주(`LingeringCurse`) 신설, 신앙의 가호 대상·정화의 빛 해제 목록·편성 힌트 1412(`약화·독에 저항합니다. 디버프보다 힘으로 맞서세요.`)·응징 출처·G11 지표 갱신. §1.2 발견 3·§1.3 의 손실 분석은 당시(둔화 기준) 기록이며 현행 값은 각 줄의 "(2026-11-01 현행)" 주석을 따른다.
 
 ---
@@ -85,7 +86,7 @@
 
 ### 1.4 4축 빌드 가위바위보 (가설, G11~G13 으로 검증)
 
-몬스터 처치 타수(HP: Phantom 30 · Plague 50 · Hex 60 · Reaper 100 · Wisp 200 · Wraith 500, 상점 종족 강화·카드 HP 배율 미적용 기준):
+몬스터 처치 타수(HP: Phantom 30 · Plague 50 · Hex 60 · Reaper 100 · Wisp 200 · Wraith 500, 상점 몬스터 강화·카드 HP 배율 미적용 기준):
 
 | 종 | HP | 5-1 기본 공격(60) | 5-5 기본 공격(83) | 심판의 망치(110) |
 |---|---|---|---|---|
@@ -297,7 +298,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=5 엔트리 5개 추가
 
 ### 5.1 규칙 배정 (신규 규칙 0종, 기존 6종 재사용)
 
-콘셉트: 서리 대주교가 대성당 곳곳에 봉인과 결계를 걸었다. 봉인 대상은 시안대로 Hex(Dps) · Plague(Debuff)다. 6종족 모두 Ch1~4 에서 한 번씩 봉인됐으므로 Ch5 는 두 번째 봉인이며, Plague 봉인은 "Debuff 약" 챕터에서 축 몬스터마저 늦게 열리는 마감 압박이다.
+콘셉트: 서리 대주교가 대성당 곳곳에 봉인과 결계를 걸었다. 봉인 대상은 시안대로 Hex(Dps) · Plague(Debuff)다. 몬스터 6종 모두 Ch1~4 에서 한 번씩 봉인됐으므로 Ch5 는 두 번째 봉인이며, Plague 봉인은 "Debuff 약" 챕터에서 축 몬스터마저 늦게 열리는 마감 압박이다.
 
 | 스테이지 | 규칙 | 의도 |
 |---|---|---|

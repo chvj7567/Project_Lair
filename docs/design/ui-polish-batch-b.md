@@ -1,5 +1,7 @@
 # 상점·도감·기록 팝업(ShopPopup / CodexPopup / RecordsPopup) 통합 비주얼 폴리시
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변.
+
 ## § 헤더
 
 - **목표**: 이미 구현·승인된 선행 폴리시 5종(`synergy-modal-visual-polish.md` · `build-modal-visual-polish.md` · `card-selection-visual-polish.md` · `village-hud-visual-polish.md` · `worldmap-popup-visual-polish.md`, 이하 "선행서")의 디자인 언어(금색 이중 프레임·모서리 장식·상단 광택·룬/금 페이드 라인, 금테 제목판+마름모, 붉은 입체 닫기 버튼, 유리 inset, 상태색 발광, 마름모 보석, 금색 슬림 스크롤바, 입체 버튼 톤 탭)를 **상점 · 도감 · 기록** 세 팝업과 그 셀 3종(`ShopItemCell` · `CodexCell` · `RecordsStageCell`)에 한 번에 입힌다. 세 팝업은 **공통 틀**(§2)을 한 번 정의해 같이 쓰고, 팝업별 차이만 §3~§5 에 적는다.
@@ -135,7 +137,7 @@
 | `HeaderText` | 좌중앙, 피벗 (0,0.5) | (36,0) · 400x34 | 22, `#e8e1cf` |
 | `StateRing` | stretch | 0 | `Px_Ring` Sliced fillCenter 끔, 색은 코드가 칠함(소울/금) |
 | `IconSlot` | 좌중앙, 피벗 (0,0.5) | (12,0) · 68x68 | `Px_PanelSunk` Sliced |
-| `IconImage` | 좌중앙, 피벗 (0.5,0.5) | (46,0) · 52x52 | 종족 아이콘(PreserveAspect) |
+| `IconImage` | 좌중앙, 피벗 (0.5,0.5) | (46,0) · 52x52 | 몬스터 아이콘(PreserveAspect) |
 | `GlowFrame` / `GlowHintRing` | 좌중앙, 피벗 (0.5,0.5) | (46,0) · 76x76 / 84x84 | `Px_Ring` Sliced fillCenter 끔, 색·알파는 코드가 칠함 |
 | `NameText` | 좌상단, 피벗 (0,1) | (96,−6) · 250x32 | 22(자동 크기), `#e8e1cf` |
 | `LevelPips`(+ `LevelPip0~4`) | 좌상단, 피벗 (0,1) | (96,−44) · 130x12. 눈금 각 20x12, 좌중앙 피벗 (0,0.5), x = 0 / 26 / 52 / 78 / 104 | `Px_Solid`, 색은 코드가 칠함(금/`#48546e`) |
@@ -180,8 +182,8 @@
 | 상태 링 | 기존 `StateRing` 스프라이트 `Px_Ring` → `CardSelectArtRing`(Sliced, fillCenter 끔). 색은 기존 코드가 칠함(구매 가능 `#5ef0b4` / 만렙 `#f7c64a`). 켜짐 조건(구매 가능이거나 만렙)은 기존 코드 그대로 | `CardSelectArtRing` | 기존 `_stateRing` |
 | 상태 띠 | `StateRing` 자식 `DecoStateStrip`: 앵커 (0,0)–(0,1), 피벗 (0,0.5), 위치 (3,0), 크기 4 x (높이 −6) = 4x102, 스프라이트 `Px_Solid`, 프리팹 색 `#5ef0b4` 알파 1.0, **색은 코드 틴트(상태색)** | `Px_Solid` | **신규 `_stateTinted[1]`** |
 | 상태 발광 | `StateRing` 자식 `DecoStateGlow`: 앵커 (0,0.5), 피벗 (0.5,0.5), 위치 (5,0), 크기 44x108, 프리팹 색 `#5ef0b4` 알파 0.40, **색은 코드 틴트(상태색)**. `DecoStateStrip` 앞(자식 인덱스 0) | `UISoftGlow` | **신규 `_stateTinted[0]`** |
-| 종족 아이콘 슬롯 | 기존 `IconSlot` 스프라이트 `Px_PanelSunk` → `Px_Solid`, Simple, 색 `#05070c` 알파 0.85. 자식 `DecoIconRing`(stretch 0, §2.4). `IconSlot` 은 코드가 `SetActive` 로 켜고 끄므로 링도 함께 토글 | `Px_Solid`, `CardSelectArtRing` | 기존 `_iconSlot` |
-| 종족 발광 프레임·힌트 링 | 기존 `GlowFrame`·`GlowHintRing` 불변(스프라이트·색·알파는 코드 소유) | — | 기존 `_glowFrame`·`_glowHintRing` |
+| 몬스터 아이콘 슬롯 | 기존 `IconSlot` 스프라이트 `Px_PanelSunk` → `Px_Solid`, Simple, 색 `#05070c` 알파 0.85. 자식 `DecoIconRing`(stretch 0, §2.4). `IconSlot` 은 코드가 `SetActive` 로 켜고 끄므로 링도 함께 토글 | `Px_Solid`, `CardSelectArtRing` | 기존 `_iconSlot` |
+| 몬스터 발광 프레임·힌트 링 | 기존 `GlowFrame`·`GlowHintRing` 불변(스프라이트·색·알파는 코드 소유) | — | 기존 `_glowFrame`·`_glowHintRing` |
 | 레벨 눈금 5칸 | 기존 `LevelPip0~4`(`_levelPips[5]`) 스프라이트 `Px_Solid` → `VillageHudGem`(Simple), 크기 20x12 → 24x24. 위치 (0 / 26 / 52 / 78 / 104, 0)·앵커·피벗 (0,0.5) 불변. 색은 기존 코드가 칠함(켜짐 `#f7c64a` / 꺼짐 `#48546e`). 프리팹 초기 색 `#48546e` 유지. 눈금 중심 y = 44 + 6 = 50 → 마름모 영역 y 38~62 가 `NameText` 하단 38·`DescText` 상단 62 와 맞닿고 겹치지 않는다(렌더 대각선 24 × 28/36 = 18.7 이라 실제 모양은 y 40.7~59.3) | `VillageHudGem` | 기존 `_levelPips` |
 | 이름·설명·가격 | 기존 `NameText` · `DescText` · `PriceText` 불변 | — | 기존 |
 | 구매 버튼 면 | 기존 `BuyButton` Image 와 세 슬롯 `_buySoulSprite`(`Px_BtnSoul`) · `_buyOffSprite`(`Px_BtnOff`) · `_buyGoldSprite`(`Px_BtnGold`) **불변**(글자색 대비를 코드 변경 없이 보장 — §부록 결정 2). 버튼에 `Shadow` 추가: effectDistance (0,−3), 색 `#000000` 알파 0.47 | — | 기존 `_buyButton` · `_buyButtonImage` |
@@ -231,7 +233,7 @@
 | 객체 | 앵커·피벗 | 위치 · 크기 | 현재 값 |
 |---|---|---|---|
 | `IconSlot` | 상단 중앙, 피벗 (0.5,1) | (0,−8) · 92x92 | `Px_PanelSunk` Sliced, raycast 꺼짐(코드가 토글하지 않음 — 잠금 더미도 빈 슬롯으로 보인다) |
-| `GlowOverlay` | 상단 중앙, 피벗 (0.5,1) | (0,−4) · 100x100 | `Px_Ring` Sliced fillCenter 끔, 종족색 알파는 `EnhanceLevelVisual` 소유(`_glowOverlay`) |
+| `GlowOverlay` | 상단 중앙, 피벗 (0.5,1) | (0,−4) · 100x100 | `Px_Ring` Sliced fillCenter 끔, 몬스터색 알파는 `EnhanceLevelVisual` 소유(`_glowOverlay`) |
 | `Icon` | 상단 중앙, 피벗 (0.5,1) | (0,−12) · 84x84 | 카드 일러스트·몬스터 아이콘(`_icon`, `_iconRect`) |
 | `NameText` | 하단 stretch-x, 피벗 (0.5,0) | (0,6) · 폭 −8 높이 30 | 17(자동 크기), `#e8e1cf` 가운데 |
 | `LevelBadge` | 우상단, 피벗 (1,1) | (−6,−6) · 48x24 | CHText "Lv N" 16 `#f7c64a`, 강화 Lv>0 일 때만 켜짐(`_levelBadge`) |
@@ -392,7 +394,7 @@ A 로 정한다. 검증: 셀 폭 424 = 뷰포트 424, 위젯 오프셋은 전부
 
 ### 7.1 유지 (이름·타입·의미 불변)
 
-- `ShopPopup`: 기존 전부(`_dimButton` · `_closeButton` · `_soulText` · `_bonusSummaryText` · `_scrollView` · 종족 아이콘 6종). `CodexPopup`: 기존 전부(`_monsterTab` · `_cardTab` · 두 스크롤뷰 · `_collectedText` · 종족 아이콘 6종). `RecordsPopup`: 기존 전부(`_statRunsText` … `_statTopCardText` · `_scrollView`).
+- `ShopPopup`: 기존 전부(`_dimButton` · `_closeButton` · `_soulText` · `_bonusSummaryText` · `_scrollView` · 몬스터 아이콘 6종). `CodexPopup`: 기존 전부(`_monsterTab` · `_cardTab` · 두 스크롤뷰 · `_collectedText` · 몬스터 아이콘 6종). `RecordsPopup`: 기존 전부(`_statRunsText` … `_statTopCardText` · `_scrollView`).
 - `ShopItemCell` 기존 전부(`_nameText` … `_buyGoldSprite`). 세 버튼 스프라이트 슬롯은 현재 `Px_Btn*` 를 **그대로 가리킨다**.
 - `CodexCell` 기존 전부. `_normalSprite`·`_dummySprite` 슬롯은 **가리키는 스프라이트만 교체**(필드 유지).
 - `RecordsStageCell` 기존 전부. `_normalSprite`·`_lockedSprite` 슬롯은 **가리키는 스프라이트만 교체**.
@@ -470,7 +472,7 @@ A 로 정한다. 검증: 셀 폭 424 = 뷰포트 424, 위젯 오프셋은 전부
 
 ### 9.4 수동 확인 (사용자 육안, 마을 씬에서 각 팝업을 열어)
 
-- 상점: 소울 0 / 충분한 소울에서 구매 가능(녹색 링·띠·발광) · 소울 부족(링 없음) · 만렙(금 링) 3상태, 섹션 헤더 2종(스탯 강화·몬스터 강화) 배너·금 라인·마름모, 종족 강화 셀의 아이콘 슬롯 링과 발광 프레임 겹침, 구매 직후 스크롤 위치 복원과 상태 링 갱신, 스크롤바가 목록이 넘칠 때만 보이는지.
+- 상점: 소울 0 / 충분한 소울에서 구매 가능(녹색 링·띠·발광) · 소울 부족(링 없음) · 만렙(금 링) 3상태, 섹션 헤더 2종(스탯 강화·몬스터 강화) 배너·금 라인·마름모, 몬스터 강화 셀의 아이콘 슬롯 링과 발광 프레임 겹침, 구매 직후 스크롤 위치 복원과 상태 링 갱신, 스크롤바가 목록이 넘칠 때만 보이는지.
 - 도감: 탭 전환 시 금 링이 선택 탭에만 있는지, 몬스터 Lv0/Lv5·미조우·잠금 더미 셀 구분, 카드 28장 스크롤과 스크롤바, 이름 명패 위 글자 가독성, 수집 칩 안의 텍스트 정렬.
 - 기록: 스테이지 5개·잠금 행·선택 중 행(금 링+배지), 챕터 확장 시 25행 스크롤바, 셀 좌우 테두리가 잘리지 않는지, 통계 타일 5칸 상단 페이드 색이 값 색과 일치하는지.
 - 세 팝업 공통: 닫기 X·Dim 클릭으로 닫히는지, 닫기 X 눌림 시 어두워지는지, 장식이 클릭을 막지 않는지, 제목판이 모달 상단 경계에 걸쳐 보이는지.

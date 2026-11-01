@@ -1,5 +1,7 @@
 # Content Audit — 2026-06-26 — Slow 카드 이중 효과 배율(SlowMonsterAccelMul×1.3 / SlowHeroSlowFactor×0.5) BalanceConfig 손잡이 미설계
 
+> 용어 정리 (2026-11-01): "전 종족" 3곳을 "전 몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0).
+
 > 작성: Daily Content Audit Routine
 > 날짜: 2026-06-26
 > 축: Swarm (액티브 #7)
@@ -33,7 +35,7 @@
 | `_heroFactor` | `0.5` | `SlowEffect.cs` 하드코딩 |
 | `_monsterMul` | `1.3` | `SlowEffect.cs` 하드코딩 |
 | `_duration` | `10`초 | `SlowEffect.cs` 하드코딩 |
-| 버프 종류 | `EMonsterBuff.SwarmSpeed` | 전 종족 적용, dedup (동일 버프 스택 불가) |
+| 버프 종류 | `EMonsterBuff.SwarmSpeed` | 전 몬스터 적용, dedup (동일 버프 스택 불가) |
 | 지속시간 정책 | duration-stack (남은 시간 연장) | card-renewal.md §7.2 |
 
 ### 1.2 이중 효과 구조
@@ -41,7 +43,7 @@
 Slow 카드는 한 번의 픽으로 **두 벡터를 동시에 움직인다**:
 
 1. **영웅 이속 감속** (`_heroFactor=0.5`): 영웅의 이동속도를 10초 동안 ×0.5로 떨어뜨린다 — 영웅이 느려질수록 몬스터가 더 많은 타격 기회를 얻는다.
-2. **몬스터 이속 가속** (`_monsterMul=1.3`): `EMonsterBuff.SwarmSpeed` 를 통해 전 종족 이속을 10초 동안 ×1.3로 높인다 — 몬스터가 빠르게 따라붙는다.
+2. **몬스터 이속 가속** (`_monsterMul=1.3`): `EMonsterBuff.SwarmSpeed` 를 통해 전 몬스터 이속을 10초 동안 ×1.3로 높인다 — 몬스터가 빠르게 따라붙는다.
 
 두 값 모두 `SlowEffect.cs` 에 하드코딩되어 있으며, `BalanceConfig.asset` 에 대응 손잡이가 없다.
 
@@ -77,7 +79,7 @@ Slow 카드는 한 번의 픽으로 **두 벡터를 동시에 움직인다**:
 
 #### Flow 1 — 기준 플로우 (Slow 단독)
 1. 플레이어가 30초 시점 액티브 픽에서 Slow 선택
-2. `SlowEffect.Apply(_ctx)` 호출 → `EMonsterBuff.SwarmSpeed` 등록 (전 종족), 영웅 속도 ×0.5 적용
+2. `SlowEffect.Apply(_ctx)` 호출 → `EMonsterBuff.SwarmSpeed` 등록 (전 몬스터), 영웅 속도 ×0.5 적용
 3. 10초 동안 몬스터 이속 ×1.3, 영웅 이속 ×0.5 유지
 4. 10초 후 버프 만료 → 원래 속도 복귀
 5. **밸런스 포인트**: `SlowMonsterAccelMul=1.3` 이 너무 낮으면 체감 효과 미미, 너무 높으면 몬스터 폭주

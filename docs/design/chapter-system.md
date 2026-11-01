@@ -1,5 +1,7 @@
 # 챕터 시스템 (0단계 기반 정비 + 1단계 챕터 프레임워크 + 2챕터) - 기능 기획서
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*`·규칙 파라미터 `lockedSpecies` 불변. 봉인된 둥지는 던전 편성 개편 후 "봉인 대상 몬스터가 속한 종족의 둥지 1곳" 을 막는다(`dungeon-formation.md` §0.7).
+
 > 작성: game-designer · 날짜: 2026-10-03 · 단계: v0.3
 > 입력: 승인된 로드맵 플랜 `C:\Users\TSK\.claude\plans\witty-napping-hoare.md` · `hero-stage-variant.md` · `hero-skills.md` · `village-meta-hub.md` · `village-hud-layout.md` · 코드 `StageProgress.cs` / `MetaProfile.cs` / `ActiveTriggerService.cs` / `AutoCombatAI.cs` / `HeroSelectPopup.cs` / `HeroStageVariantConfig.cs` / `balance_config.json` / `hero_skills.json`
 > **UI 목업**: `.mockups/chapter-worldmap.html` (사용자 승인 게이트 대상)
@@ -201,7 +203,7 @@ SO (Object 참조): HeroStageVariantConfig  <- 스테이지별 초상/발광/스
 | `stageIndex` | int | 복합 PK(2) | |
 | `ruleIndex` | int | 복합 PK(3) | |
 | `paramKey` | string | 복합 PK(4) | 예 "radius" (규칙별 필수 키 §3.4) |
-| `value` | float | | 수치. 종족 지정은 `EMonster` 정수값(Wisp=0 ... Phantom=5, 순서 불변) |
+| `value` | float | | 수치. 몬스터 지정은 `EMonster` 정수값(Wisp=0 ... Phantom=5, 순서 불변) |
 
 **Stage_Rule_TriggerRow** - `Stage_Rule_Trigger.json` (EData `Stage_Rule_Trigger`). 선택적 관계: HP 구간 발동 규칙(보스 페이즈)만 row 존재. 없으면 "스테이지 시작부터 상시 활성".
 
@@ -355,7 +357,7 @@ SO (Object 참조): HeroStageVariantConfig  <- 스테이지별 초상/발광/스
 |---|---|---|---|
 | `HolySpring` 성수 샘 | 상시 | 주기적으로 열리는 회복 지대 - 영웅이 안에 있으면 회복 | Ch1 S2, Ch2 S4 |
 | `DenseFog` 짙은 안개 | 상시 | 몬스터 공격 사거리 배율 하향 | Ch1 S3, Ch2 S3·S4 |
-| `SealedNest` 봉인된 둥지 | 상시(해제 조건) | 특정 종족 스포너 1개 봉인, 영웅 HP 구간에서 해제 | Ch1 S4, Ch2 S2 |
+| `SealedNest` 봉인된 둥지 | 상시(해제 조건) | 특정 몬스터 스포너 1개 봉인, 영웅 HP 구간에서 해제 | Ch1 S4, Ch2 S2 |
 | `BossBulwark` 수호 결계 | 보스 페이즈 | 영웅 받는 피해 감소(1회) | Ch1 S5 (트리거 0.55) |
 | `ArrowRain` 화살비 | 보스 페이즈 | 몬스터 밀집 지점에 범위 연속 피해 반복 | Ch2 S5 (트리거 0.75) |
 | `HunterTraps` 사냥꾼의 덫 | 보스 페이즈 | 영웅 주변에 덫 설치 - 몬스터 감속·지속 피해 | Ch2 S5 (트리거 0.35) |
@@ -395,11 +397,11 @@ SO (Object 참조): HeroStageVariantConfig  <- 스테이지별 초상/발광/스
 
 | paramKey | Ch1 S4 | Ch2 S2 | 설명 |
 |---|---|---|---|
-| `lockedSpecies` | 1 (Wraith) | 5 (Phantom) | 봉인할 종족 (`EMonster` 정수값) |
+| `lockedSpecies` | 1 (Wraith) | 5 (Phantom) | 봉인할 몬스터 (`EMonster` 정수값) |
 | `unlockHpFraction` | 0.60 | 0.70 | 영웅 HP 비율이 이 값 이하가 되면 해제 |
 
-- 봉인 중: 해당 종족 스포너의 **주기 스폰 타이머가 진행하지 않고 스폰하지 않는다.** 카드의 **즉시 소환 효과(SpawnWraith 등)는 봉인과 무관하게 작동**한다(플레이어 대응책으로 남김 - 대안 "즉시 소환도 차단"은 카드 선택 낭비 불만을 만든다고 판단해 기각).
-- 해제 순간: 스포너 타이머 0 으로 리셋(**즉시 1회 스폰 버스트**) + 알림 "{종족명} 둥지의 봉인이 풀렸다!" + 해제 연출(봉인 사슬 파괴 파티클).
+- 봉인 중: 해당 몬스터 스포너의 **주기 스폰 타이머가 진행하지 않고 스폰하지 않는다.** 카드의 **즉시 소환 효과(SpawnWraith 등)는 봉인과 무관하게 작동**한다(플레이어 대응책으로 남김 - 대안 "즉시 소환도 차단"은 카드 선택 낭비 불만을 만든다고 판단해 기각).
+- 해제 순간: 스포너 타이머 0 으로 리셋(**즉시 1회 스폰 버스트**) + 알림 "{몬스터명} 둥지의 봉인이 풀렸다!" + 해제 연출(봉인 사슬 파괴 파티클).
 - UI: 스포너 상태 UI(`BuildPanel`/`BuildModalPopup` 의 스포너 셀)에 "봉인 - 영웅 HP {x}% 이하 해제" 표기, 제단 비주얼은 회색 조 + 사슬.
 - 설명: `StageRule_1223` "{0} 둥지가 봉인되어 있다 - 영웅 HP {1}% 이하에서 해제".
 
@@ -449,7 +451,7 @@ SO (Object 참조): HeroStageVariantConfig  <- 스테이지별 초상/발광/스
 
 ### 4.1 규칙 배정과 환산 계수 `ruleFactor`
 
-**dps-share 표 (환산 기준)** - 종족별 "공급률 x DPS" 비중(`balance_config.json`: spawnPeriod, power/cooldown)
+**dps-share 표 (환산 기준)** - 몬스터별 "공급률 x DPS" 비중(`balance_config.json`: spawnPeriod, power/cooldown)
 
 | 종 | DPS | 스폰주기(s) | DPS/주기 | 비중 |
 |---|---|---|---|---|
@@ -764,7 +766,7 @@ HP 비율 시퀀스(내림차순): 90 패시브 -> **85 스킬** -> 80 패시브
 | `StageLeaderboard` / `RankingPopup` / `RecordsPopup` | §2.3 |
 | `HeroStageVariantApplier` | 조회 키 (챕터, 인덱스) |
 | `AutoCombatAI` | §5.3 카이팅 분기 (기사 경로 불변) |
-| 스포너(`Spawner`) | 종족 단위 "봉인" 상태 + 해제 시 즉시 1회 스폰 |
+| 스포너(`Spawner`) | 몬스터 단위 "봉인" 상태 + 해제 시 즉시 1회 스폰 |
 | 스포너 상태 UI(`BuildPanel` 계열) | 봉인 표기 |
 | 몬스터 | 사거리 배율 최종 곱 적용 지점, 속도 배율 임시 적용(덫) |
 | `VillageController` / `VillageHud` | §6.4 문구, 쇼케이스 영웅 교체 |
@@ -814,7 +816,7 @@ HP 비율 시퀀스(내림차순): 90 패시브 -> **85 스킬** -> 80 패시브
 |---|---|---|
 | E-1 | 성수 샘 회복으로 영웅 HP 가 이미 지난 패시브/스킬/보스 임계 위로 올라감 | 임계 판정은 **지금까지의 최저 HP 비율** 기준 단조. 재진입해도 재발동 없음 |
 | E-2 | 영웅이 한 프레임에 여러 임계를 건너뜀(대량 피해) | 건너뛴 모든 임계를 높은 값부터 순서대로 1회씩 처리(기존 패시브 큐 규칙과 동일) |
-| E-3 | 봉인 종족 스포너가 이미 소환된 몬스터를 가진 채 봉인 | 봉인은 **주기 스폰만** 막음. 필드 몬스터는 유지 |
+| E-3 | 봉인 몬스터 스포너가 이미 소환된 몬스터를 가진 채 봉인 | 봉인은 **주기 스폰만** 막음. 필드 몬스터는 유지 |
 | E-4 | 봉인 해제 임계(0.70/0.60)가 패시브 카드 팝업과 같은 순간 | 팝업 처리 후 해제(스폰 버스트는 팝업이 닫힌 뒤) |
 | E-5 | 보스 페이즈 활성 중 일시정지(카드 선택) | 규칙 갱신이 `BattleClock` 이라 정지. 타이머(예: 결계 15초)도 정지 |
 | E-6 | 영웅 사망/승리 직후 남은 효과 | 전투 종료 시 전 규칙 비활성화, FX 풀 반환 |

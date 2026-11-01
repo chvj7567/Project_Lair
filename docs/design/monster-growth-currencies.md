@@ -1,19 +1,19 @@
 # 몬스터 육성 재화 분리 - 기능 기획서
 
-> 작성: game-designer · 날짜: 2026-10-29 · 단계: v0.3 · 전제: 종족 강화(`monster-species-enhancement.md`)·상점 단일 스크롤(`shop-single-scroll-sections.md`)·난이도(`difficulty-select.md`)·유물 2차(`relics.md`)·던전 편성(`dungeon-formation.md`)·무한의 탑(`infinite-tower.md`)·데일리(`daily-challenge.md`) 구현 완료
-> 입력: 사용자 합의 시안(재화 4종 + 육성 3축) · 코드 `MetaConfig.cs`(ShopItemDef) / `MetaBattleBonus.cs` / `MetaProfile.cs`(Version 11) / `SoulRewardCalculator.cs` / `PlagueSlowOnHit.cs` / `Health.cs`(DamageTakenScale) / `CommonEnum.cs`(EMonsterStatKind·EMonsterBuff·EShopEffectKind) · 데이터 `MetaConfig.asset`(ShopItems 13항목) / `balance_config.json` / `Relic*.json` / `TowerConfig.json` / `DailyConfig.json` / `Difficulty.json` / `FormationMonster.json` / `Strings_Ko.json`(현행 최대 id 1464)
-> **UI 목업**: `.mockups/monster-growth-currencies.html` (상점 종족 행 4칸 · 상점 재화 지갑 · 유물 도감 잔해 교환 줄 · 결과창 재화 칩 · 마을 HUD)
+> 작성: game-designer · 날짜: 2026-10-29 · 단계: v0.3 · 전제: 몬스터 강화(`monster-species-enhancement.md`)·상점 단일 스크롤(`shop-single-scroll-sections.md`)·난이도(`difficulty-select.md`)·유물 2차(`relics.md`)·던전 편성(`dungeon-formation.md`)·무한의 탑(`infinite-tower.md`)·데일리(`daily-challenge.md`) 구현 완료
+> 입력: 사용자 합의 시안(재화 4종 + 육성 3축) · 코드 `MetaConfig.cs`(ShopItemDef) / `MetaBattleBonus.cs` / `MetaProfile.cs`(Version 11) / `SoulRewardCalculator.cs` / `PlagueSlowOnHit.cs` / `Health.cs`(DamageTakenScale) / `CommonEnum.cs`(EMonsterStatKind·EMonsterBuff·EShopEffectKind) · 데이터 `MetaConfig.asset`(ShopItems 13항목) / `balance_config.json` / `Relic*.json` / `TowerConfig.json` / `DailyConfig.json` / `Difficulty.json` / `FormationMonster.json`(2026-11-01 던전 편성 개편으로 삭제 예정 - `dungeon-formation.md` §0.5) / `Strings_Ko.json`(현행 최대 id 1464)
+> **UI 목업**: `.mockups/monster-growth-currencies.html` (상점 몬스터 행 4칸 · 상점 재화 지갑 · 유물 도감 잔해 교환 줄 · 결과창 재화 칩 · 마을 HUD)
 > **데이터 구조표**: 본 문서 §6 (사용자 승인 게이트 대상 - 신규 JSON 스키마 10종 + 기존 스키마 필드 추가 5곳: `ShopItemDef.Currency` · `DailyConfig` · `TowerConfig` · `DifficultyClearEntry` · `TowerFloorClearEntry`)
 
 ---
 
 ## § 헤더
 
-- **목표**: 지금은 모든 콘텐츠가 소울만 주고 소울은 상점에서만 쓰여 "어느 콘텐츠를 해도 보상이 같다". 소울은 **기본 체급(HP·공격력)** 재화로 그대로 두고, 콘텐츠마다 **고유 특수 재화**와 **고유 육성 축**을 붙인다 - 난이도 Normal/Hard = 각성석 → 종족 역할 스탯, 데일리 = 달빛 인장 → 종족별 둥지 숙련, 무한의 탑 = 심연 결정 → 종족 고유 특성, 유물 중복 = 유물 잔해 → 세 특수 재화로 보조 교환.
-- **검증 가설**: (1) 콘텐츠마다 다른 재화·다른 육성 축을 주면 "오늘은 무엇을 할까" 의 선택 이유가 생겨 Normal/Hard·데일리·탑 각각의 재방문이 늘어나는가(v0.3 재방문 가설 보강). (2) 체급(굵은 배율) 하나뿐이던 종족 육성에 역할 스탯·둥지·특성 축이 붙으면 "내 주력 종족" 판타지가 편성·카드 축 선택과 맞물려 빌드 다양성이 커지는가. (3) 새 축이 기존 상점 파이프에 곱연산으로만 얹혀도 컨셉 §8 튜닝 창(평균 빌드 영웅 사망 2~4분)과 Hard·탑 도전성이 무너지지 않는가.
+- **목표**: 지금은 모든 콘텐츠가 소울만 주고 소울은 상점에서만 쓰여 "어느 콘텐츠를 해도 보상이 같다". 소울은 **기본 체급(HP·공격력)** 재화로 그대로 두고, 콘텐츠마다 **고유 특수 재화**와 **고유 육성 축**을 붙인다 - 난이도 Normal/Hard = 각성석 → 몬스터 역할 스탯, 데일리 = 달빛 인장 → 몬스터별 둥지 숙련, 무한의 탑 = 심연 결정 → 몬스터 고유 특성, 유물 중복 = 유물 잔해 → 세 특수 재화로 보조 교환.
+- **검증 가설**: (1) 콘텐츠마다 다른 재화·다른 육성 축을 주면 "오늘은 무엇을 할까" 의 선택 이유가 생겨 Normal/Hard·데일리·탑 각각의 재방문이 늘어나는가(v0.3 재방문 가설 보강). (2) 체급(굵은 배율) 하나뿐이던 몬스터 육성에 역할 스탯·둥지·특성 축이 붙으면 "내 주력 몬스터" 판타지가 편성·카드 축 선택과 맞물려 빌드 다양성이 커지는가. (3) 새 축이 기존 상점 파이프에 곱연산으로만 얹혀도 컨셉 §8 튜닝 창(평균 빌드 영웅 사망 2~4분)과 Hard·탑 도전성이 무너지지 않는가.
 - **현재 단계 범위 적합성**: **범위 내 - 2026-10-29 사용자 승인, CLAUDE.md §8 "몬스터 육성 재화 분리 허용" 으로 승격 반영 완료.** (승인 전 기록:) 범위 밖 항목의 명시 승격 요청 - 사용자 승인 필요. CLAUDE.md §8 의 무한의 탑 항목이 "탑 전용 재화/상점" 을, 유물 2차 항목이 "유물 판매" 를 계속 금지하고, 난이도 항목은 "영웅 능력치 배율에 한정" 이다. 셋 다 이 기획과 충돌하므로 §12 에 수정 문안 초안을 둔다. **승인 전에는 구현에 착수하지 않는다.** 신규 몬스터·신규 스테이지 규칙·★ 목표·별도 메인 메뉴/세팅 화면 금지는 그대로 지킨다(신규 화면 0 - 상점·유물 도감·결과창 안에서만 표시). 서버는 Firebase 클라이언트 범위 유지(재화는 `MetaProfile` 일부로 기존 클라우드 백업에 실린다).
 - **함께 반영한 사용자 결정 (2026-10-29)**: 역병귀 기본 효과 "적중 시 둔화" → "적중 시 독", Debuff 축 패시브 "독장판" 삭제 후 대체 카드 "끈질긴 저주" 1장 신설(축 7장 유지). 육성 축(각성·특성)이 이 변경에 연동되므로 같은 기획서에서 다룬다 - §15. 구현은 육성과 독립 슬라이스(F)로 먼저 할 수 있다.
-- **핵심 메커니즘**: (a) 육성 3축은 **새 병렬 시스템이 아니라 기존 상점 파이프에 얹는다** - `MetaConfig.ShopItems` 에 종족 x 축 18항목을 추가하고, `ShopItemDef` 에 결제 재화 필드 하나를 더해 `ShopService`(가격·구매) → `ShopLevels`(저장·클라우드) → `MetaBattleBonus`(전투 시작 배율) 를 그대로 쓴다. (b) 각 축의 효과 수치는 JSON(`AwakenStat` / `NestMastery*` / `MonsterTrait*`) 이 들고, 전투 시작에 종족별 독립 곱연산 축으로 적용된다. (c) 특수 재화는 해당 콘텐츠의 결과 정산에서만 생기고, 유물 드랍이 "그 등급 유물이 이미 모두 최대 중첩" 이면 유물 대신 잔해가 나온다.
+- **핵심 메커니즘**: (a) 육성 3축은 **새 병렬 시스템이 아니라 기존 상점 파이프에 얹는다** - `MetaConfig.ShopItems` 에 몬스터 x 축 18항목을 추가하고, `ShopItemDef` 에 결제 재화 필드 하나를 더해 `ShopService`(가격·구매) → `ShopLevels`(저장·클라우드) → `MetaBattleBonus`(전투 시작 배율) 를 그대로 쓴다. (b) 각 축의 효과 수치는 JSON(`AwakenStat` / `NestMastery*` / `MonsterTrait*`) 이 들고, 전투 시작에 몬스터별 독립 곱연산 축으로 적용된다. (c) 특수 재화는 해당 콘텐츠의 결과 정산에서만 생기고, 유물 드랍이 "그 등급 유물이 이미 모두 최대 중첩" 이면 유물 대신 잔해가 나온다.
 
 ---
 
@@ -29,7 +29,7 @@
 | C-4 | 역병귀 특성 "역병 구름"(사망 위치 독장판) | **"전염"** - 역병귀가 쓰러지면 근처 영웅의 독 중첩 +1/+2/+3, 지속 갱신 | 사용자 결정(2026-10-29)으로 역병귀 기본 효과가 "적중 시 독" 이 되어 독장판 특성은 같은 축 중복이다. 시안 수치 0.8%/초도 유물 전투 효과 풀셋의 4배였다 (§3.4, §15) |
 | C-5 | 각성 Plague "둔화강도 +5%p·지속 +0.2초/Lv" | **독 피해 x1.05/Lv · 독 지속 x1.10/Lv**, 둔화 하한 폐지 | 역병귀가 더는 둔화를 걸지 않는다(§15). 지속 강화는 카이팅 영웅(궁수·암살자)에게 독이 끊기지 않게 하는 역할 (§3.2) |
 | C-6 | 달빛 인장 연속 보너스 +10%/일 | 같은 공식(`DailyConfig.streakBonusPerDay`)을 쓰되 **반올림(0.5 올림)** 지급 | 기준값이 3·5 로 작아 내림이면 1.1~1.3배 구간 보너스가 0이 된다 (§2.2 표) |
-| C-7 | 셀 안 4"줄" | 종족 행 1줄 안에 **4"칸"**(체급·각성·둥지·특성) | 상점 스크롤은 모든 행 높이가 84px 고정(`shop-single-scroll-sections.md` §2). 4줄에 구매 버튼 4개는 84px 에 들어가지 않는다 (§8.1) |
+| C-7 | 셀 안 4"줄" | 몬스터 행 1줄 안에 **4"칸"**(체급·각성·둥지·특성) | 상점 스크롤은 모든 행 높이가 84px 고정(`shop-single-scroll-sections.md` §2). 4줄에 구매 버튼 4개는 84px 에 들어가지 않는다 (§8.1) |
 
 시안 수치 중 그대로 확정한 것: 각성석 첫 클리어 10/25 · 반복 승리 2/4 · 패배 0, 각성 Wisp/Wraith/Reaper/Hex/Phantom 레벨당 값, 인장 판당 3 · 첫 승리 +5 · 연속 최대 7일, 숙련 Lv1 첫 스폰 -2초 · Lv2 주기 x0.93, 심연 결정 층당 1/2/3 · 10층마다 +10 · 시즌 교체 후 보유량 유지, 특성 5종의 1단계·3단계 값(가시 껍질·원한·처형·저주 누적·잔상), 잔해 교환 3/5/8.
 
@@ -39,10 +39,10 @@
 
 | 재화 (`ECurrency`) | 표시명 | 획득 콘텐츠 | 해금 (표시 시작) | 용도 (육성 축) | 표시 색 |
 |---|---|---|---|---|---|
-| `Soul` | 소울 | 모든 전투(기존 공식) | 처음 | 체급(종족 HP·공격력) + 전종 스탯 강화 - **변경 없음** | `#5ef0b4` (기존) |
-| `AwakenStone` | 각성석 | 챕터 Normal/Hard 승리 | `ClearedStage >= 1` (1-1 Easy 클리어 = Normal 첫 해금과 같은 시점) | 각성 - 종족 역할 스탯 Lv0~5 | `#ff9f43` |
-| `MoonSeal` | 달빛 인장 | 데일리 판 종료 | `ClearedStage >= DailyConfig.unlockClearedStage` (5 = 1-5 클리어, 데일리 해금과 같은 값) | 둥지 - 종족별 둥지 숙련 Lv0~3 | `#d8e4ff` |
-| `AbyssCrystal` | 심연 결정 | 무한의 탑 층 클리어 | `ClearedStage >= TowerConfig.unlockClearedStage` (25 = 5-5 클리어, 탑 해금과 같은 값) | 특성 - 종족 고유 특성 1~3단계 | `#2ec4c4` |
+| `Soul` | 소울 | 모든 전투(기존 공식) | 처음 | 체급(몬스터 HP·공격력) + 전종 스탯 강화 - **변경 없음** | `#5ef0b4` (기존) |
+| `AwakenStone` | 각성석 | 챕터 Normal/Hard 승리 | `ClearedStage >= 1` (1-1 Easy 클리어 = Normal 첫 해금과 같은 시점) | 각성 - 몬스터 역할 스탯 Lv0~5 | `#ff9f43` |
+| `MoonSeal` | 달빛 인장 | 데일리 판 종료 | `ClearedStage >= DailyConfig.unlockClearedStage` (5 = 1-5 클리어, 데일리 해금과 같은 값) | 둥지 - 몬스터별 둥지 숙련 Lv0~3 | `#d8e4ff` |
+| `AbyssCrystal` | 심연 결정 | 무한의 탑 층 클리어 | `ClearedStage >= TowerConfig.unlockClearedStage` (25 = 5-5 클리어, 탑 해금과 같은 값) | 특성 - 몬스터 고유 특성 1~3단계 | `#2ec4c4` |
 | `RelicShard` | 유물 잔해 | 유물 드랍이 최대 중첩 등급에 걸림 | 처음 획득한 순간 (`TotalEarned >= 1`) | 각성석·인장·결정으로 교환(보조) | `#c8a27a` |
 
 - **해금 조건을 따로 저장하지 않는다**: 각 재화의 해금은 그 재화를 주는 콘텐츠의 기존 해금 값을 그대로 읽는다(값이 두 곳에 있으면 한쪽만 튜닝돼 어긋난다). 잔해만 콘텐츠 해금이 없으므로 "처음 얻은 순간" 이다.
@@ -170,20 +170,20 @@
 
 ### 3.1 체급 (소울) - 수치 변경 없음, 표시명만 변경
 
-기존 `Enhance_<종족>` 6항목(PerLevelMul 1.18, Lv0~5, 150 x 1.6^Lv) 그대로. 단 **"각성" 이라는 이름이 이번 각성석 축과 겹치므로** 표시명을 바꾼다(사용자 결정 U-6).
+기존 `Enhance_<몬스터>` 6항목(PerLevelMul 1.18, Lv0~5, 150 x 1.6^Lv) 그대로. 단 **"각성" 이라는 이름이 이번 각성석 축과 겹치므로** 표시명을 바꾼다(사용자 결정 U-6).
 
 | 위치 | 현행 | 변경 |
 |---|---|---|
 | `MetaConfig.ShopItems[Enhance_*].DisplayName` | `도깨비불 각성` 등 6개 | `도깨비불 체급` 등 6개 |
-| `MetaConfig.ShopItems[Enhance_*].Description` | `도깨비불 HP·공격력 +18%/Lv` | `HP·공격력 +18%/Lv` (종족명은 행 머리에 있으므로 칸 폭 140 에 맞춰 줄임) |
+| `MetaConfig.ShopItems[Enhance_*].Description` | `도깨비불 HP·공격력 +18%/Lv` | `HP·공격력 +18%/Lv` (몬스터명은 행 머리에 있으므로 칸 폭 140 에 맞춰 줄임) |
 | `Strings_Ko` 1400 (편성 팔레트) | `각성 Lv {0}` | `체급 Lv {0}` |
 | `ShopItemDef.Id` · `ShopLevels` 키 | `Enhance_Wisp` 등 | **변경 없음** (세이브 키 보존) |
 
-### 3.2 각성 (각성석) - 종족 역할 스탯 Lv0~5
+### 3.2 각성 (각성석) - 몬스터 역할 스탯 Lv0~5
 
-각 종족의 역할(컨셉 §5.2 카드 4축: Tank = Wisp·Wraith, Dps = Reaper·Hex, Debuff = Plague, Swarm = Phantom)을 굵게 만드는 한두 개 스탯. 레벨당 배율을 곱연산(`PerLevelMul^Lv`)한다.
+각 몬스터의 역할(컨셉 §5.2 카드 4축: Tank = Wisp·Wraith, Dps = Reaper·Hex, Debuff = Plague, Swarm = Phantom)을 굵게 만드는 한두 개 스탯. 레벨당 배율을 곱연산(`PerLevelMul^Lv`)한다.
 
-| 종족 | 스탯 (`EMonsterStatKind`) | 레벨당 배율 | Lv1 | Lv5 | 효과 읽기 |
+| 몬스터 | 스탯 (`EMonsterStatKind`) | 레벨당 배율 | Lv1 | Lv5 | 효과 읽기 |
 |---|---|---|---|---|---|
 | Wisp 도깨비불 | `DamageTaken` (신규) | x0.96 | 0.960 | 0.815 | 받는 피해 -18.5% |
 | Wraith 망령 | `KnockbackTaken` (신규) | x0.85 | 0.850 | 0.444 | 넉백 거리 -55.6% |
@@ -203,9 +203,9 @@
   - `KnockbackTaken`: 몬스터가 받는 넉백 세기(`knockbackStrength`)에 곱한다.
   - `PoisonDuration`: 역병귀가 영웅에게 거는 독(§15.1)의 지속 시간에 곱한다. `PoisonDamage` 는 독 초당 피해에 곱한다.
 
-### 3.3 둥지 (달빛 인장) - 종족별 둥지 숙련 Lv0~3
+### 3.3 둥지 (달빛 인장) - 몬스터별 둥지 숙련 Lv0~3
 
-레벨은 **종족별**로 저장하고, 전투에서는 **그 종족이 편성된 둥지 전부**에 적용된다(같은 종 최대 2곳, 보스 후 3곳 - `dungeon-formation.md`). 레벨이 오르면 아래 효과가 **누적**된다(Lv3 = Lv1 + Lv2 + Lv3 효과).
+레벨은 **몬스터별**로 저장하고, 전투에서는 **그 몬스터가 출격한 둥지**에 적용된다(2026-11-01 현행: 던전 편성은 둥지마다 몬스터 자리가 고정되고 한 몬스터는 한 몬스터에만 속하므로 한 몬스터는 최대 1곳 - `dungeon-formation.md` §0. 이전 "같은 종 최대 2곳, 보스 후 3곳" 은 폐지). 레벨이 오르면 아래 효과가 **누적**된다(Lv3 = Lv1 + Lv2 + Lv3 효과).
 
 | Lv | 효과 (`ENestMasteryEffect`) | 값 | 적용 |
 |---|---|---|---|
@@ -222,11 +222,11 @@
 | **레벨별 다른 효과 3단 (채택)** | 시안 그대로. Lv 마다 "새로운 것이 열린다" | 3단이라 단계마다 체감이 커야 한다 - 서로 다른 효과가 맞다 |
 | 주기 단일 배율 x0.93^Lv | 단순 | 체급과 같은 "숫자만 커지는" 축이 되어 축 정체성이 약하다 |
 
-### 3.4 특성 (심연 결정) - 종족 고유 특성 1~3단계
+### 3.4 특성 (심연 결정) - 몬스터 고유 특성 1~3단계
 
-종족마다 고유 특성 1개. 단계가 오르면 같은 특성의 수치만 커진다(Lv0 = 특성 없음).
+몬스터마다 고유 특성 1개. 단계가 오르면 같은 특성의 수치만 커진다(Lv0 = 특성 없음).
 
-| 종족 | 특성 (`EMonsterTrait`) | 표시명 | 1단계 | 2단계 | 3단계 | 성기사 디버프 저항 |
+| 몬스터 | 특성 (`EMonsterTrait`) | 표시명 | 1단계 | 2단계 | 3단계 | 성기사 디버프 저항 |
 |---|---|---|---|---|---|---|
 | Wisp | `ThornShell` | 가시 껍질 | 영웅 **기본 공격** 피해의 10% 를 영웅에게 반사 | 17% | 25% | 비대상 (피해) |
 | Wraith | `Grudge` | 원한 | 쓰러지면 반경 3.0 안 몬스터 공격력 x1.08, 5초 | x1.14 | x1.20 | 비대상 (몬스터 버프) |
@@ -245,11 +245,11 @@
   - 전염: 독 최대 중첩(기본 3, Debuff Tier1 이면 5)을 넘지 않는다. 영웅에게 독이 없으면 새로 건다(중첩 = 단계값, 1중첩 피해 = 그 역병귀의 독 피해). 반경 밖이면 효과 없음. 독 규칙은 §15.1 이 단일 진실.
   - 잔상: "첫 피격" = 스폰 후 처음 받는 피해 인스턴스(기본 공격·스킬·규칙 피해 모두). 회피 시 피해 0, 피격 연출은 "MISS" 피해 숫자 1회(기존 피해 숫자 경로).
 - **역병 구름을 전염으로 바꾼 이유(C-4)**: 역병귀 기본 효과가 독이 되면서(§15) 사망 위치 독장판은 "독을 한 번 더" 일 뿐이라 정체성이 겹친다. 전염은 독을 새로 만들지 않고 **역병귀가 죽어도 독이 끊기지 않게** 한다 - 역병귀를 먼저 잡는 영웅(광전사 범위 베기, 암살자 약자 사냥)에 대한 역상성. 대안 "독 걸린 영웅 받는 피해 증가" 는 저주술사 특성 저주 누적과 같은 축이라 기각.
-- **"정답 특성" 방지**: 특성은 종족마다 다른 상황에서 빛나도록 골랐다 - 가시는 근접·광역 영웅, 원한은 탱커가 많이 죽는 장기전, 처형은 마무리, 저주는 저주술사 둥지 2곳 편성, 전염은 역병귀가 빨리 죽는 상대(광전사·암살자), 잔상은 광역기 위주 영웅. 같은 결정 비용(§3.5)으로 단일 특성의 처치 시간 기여가 2배 이상 벌어지면 게이트 MG4 실패로 본다.
+- **"정답 특성" 방지**: 특성은 몬스터마다 다른 상황에서 빛나도록 골랐다 - 가시는 근접·광역 영웅, 원한은 탱커가 많이 죽는 장기전, 처형은 마무리, 저주는 저주술사 둥지 2곳 편성, 전염은 역병귀가 빨리 죽는 상대(광전사·암살자), 잔상은 광역기 위주 영웅. 같은 결정 비용(§3.5)으로 단일 특성의 처치 시간 기여가 2배 이상 벌어지면 게이트 MG4 실패로 본다.
 
 ### 3.5 가격 - 기존 `ShopService.PriceOf` 공식 그대로
 
-공식: `floor(BasePrice x PriceGrowth^현재Lv)`. 6종 통일(종족별 차등 없음 - `monster-species-enhancement.md` §2.2 "정답 종족 없음" 원칙 유지).
+공식: `floor(BasePrice x PriceGrowth^현재Lv)`. 6종 통일(몬스터별 차등 없음 - `monster-species-enhancement.md` §2.2 "정답 몬스터 없음" 원칙 유지).
 
 | 축 | 재화 | BasePrice | PriceGrowth | 레벨별 가격 | 1종 만렙 | 6종 만렙 |
 |---|---|---|---|---|---|---|
@@ -266,7 +266,7 @@
 ### 3.6 적용 파이프 - 신규 병렬 시스템 0
 
 ```
-MetaConfig.ShopItems (기존 SO)  ── 18항목 추가: Awaken_<종족> / Nest_<종족> / Trait_<종족>
+MetaConfig.ShopItems (기존 SO)  ── 18항목 추가: Awaken_<몬스터> / Nest_<몬스터> / Trait_<몬스터>
    ShopItemDef + Currency 필드(신규, 기본 Soul)
         │
 ShopService (기존) ── 가격 공식 그대로, 결제 재화만 Currency 로 분기
@@ -274,14 +274,14 @@ ShopService (기존) ── 가격 공식 그대로, 결제 재화만 Currency �
 MetaProfile.ShopLevels (기존) ── 레벨 저장·클라우드 동기 그대로 (새 리스트 없음)
         │
 MetaBattleBonus.From (기존) ── EffectKind 3종 추가 분기
-   MonsterAwaken → AwakenStat(JSON) 의 종족별 스탯 배율 = PerLevelMul^Lv  (종족 x 스탯 곱 축)
-   NestMastery   → NestMastery_Param(JSON) 의 Lv 이하 효과 누적             (종족별 둥지 값)
-   MonsterTrait  → MonsterTrait_Param(JSON) 의 (종족, 단계) 수치           (종족별 특성 파라미터)
+   MonsterAwaken → AwakenStat(JSON) 의 몬스터별 스탯 배율 = PerLevelMul^Lv  (몬스터 x 스탯 곱 축)
+   NestMastery   → NestMastery_Param(JSON) 의 Lv 이하 효과 누적             (몬스터별 둥지 값)
+   MonsterTrait  → MonsterTrait_Param(JSON) 의 (몬스터, 단계) 수치           (몬스터별 특성 파라미터)
         │
 BattleController 전투 시작 적용 (기존 ApplyMetaBonuses 경로)
 ```
 
-- `ShopItemDef.PerLevelMul` 은 각성 항목에서 쓰지 않는다 - 각성 레벨당 배율은 종족마다 스탯이 1~2개라 `AwakenStat` JSON 이 가진다(SO 한 칸에 두 값을 담을 수 없음). 둥지·특성 항목도 `PerLevelMul` 미사용. 이 세 EffectKind 의 `PerLevelMul` 은 1.0 고정.
+- `ShopItemDef.PerLevelMul` 은 각성 항목에서 쓰지 않는다 - 각성 레벨당 배율은 몬스터마다 스탯이 1~2개라 `AwakenStat` JSON 이 가진다(SO 한 칸에 두 값을 담을 수 없음). 둥지·특성 항목도 `PerLevelMul` 미사용. 이 세 EffectKind 의 `PerLevelMul` 은 1.0 고정.
 - 적용 순서는 결과에 영향이 없다(모두 곱연산). 상점 체급·전종 → 각성 → 유물 → 전투 중 카드 순 누적.
 - 전투 중 레벨은 변하지 않는다(상점은 마을에만 있음 - 기존 스냅샷 원칙).
 
@@ -316,10 +316,10 @@ BattleController 전투 시작 적용 (기존 ApplyMetaBonuses 경로)
 
 | 시스템 | 상호작용 | 결정 |
 |---|---|---|
-| 소울 상점 (체급·전종) | 같은 상점, 같은 스크롤, 같은 `ShopLevels`. 체급과 각성은 같은 종족 행 안의 다른 칸 | 표시명 "각성 → 체급" 변경(§3.1). 상단 "현재 강화" 요약줄은 전종 강화만 유지(기존 결정 유지) |
+| 소울 상점 (체급·전종) | 같은 상점, 같은 스크롤, 같은 `ShopLevels`. 체급과 각성은 같은 몬스터 행 안의 다른 칸 | 표시명 "각성 → 체급" 변경(§3.1). 상단 "현재 강화" 요약줄은 전종 강화만 유지(기존 결정 유지) |
 | 카드 시너지 4축 (Tank/Dps/Debuff/Swarm) | 각성 스탯이 축의 역할을 굵게 한다: Tank ↔ Wisp·Wraith 받는 피해, Dps ↔ Reaper 공속·Hex 사거리, Debuff ↔ Plague 독, Swarm ↔ Phantom 이속 + 둥지 숙련(주기) | 모두 곱연산 누적. Debuff 축 카드 구성 변경(독장판 삭제 → 끈질긴 저주)은 §15. 카드 후보 필터(`Card_Species`)는 편성 기준 그대로 - 육성이 카드 제시에 영향 없음 |
 | 유물 | 능력치 유물과 같은 `_typeModifiers` 곱 표면. 드랍은 §2.4 C 로 변경 | `relics.md` §2.4·E-4 수정 필요(구현 요청 §11) |
-| 던전 편성 | 둥지 숙련은 편성된 둥지에 적용, 특성·각성은 출력 중인 종에만 의미 | 편성 코스트·상한·같은 종 제한은 **육성과 무관하게 그대로** - 육성한 종의 코스트를 올리지 않는다(편성의 맞교환 긴장은 코스트가 담당) |
+| 던전 편성 | 둥지 숙련은 그 몬스터가 출격한 둥지에 적용, 특성·각성은 출격한 몬스터에만 의미 | (2026-11-01 현행) 편성의 코스트·상한·같은 종 제한은 **폐지**됐다(`dungeon-formation.md` §0). 둥지는 몬스터 자리로 고정되고 몬스터 안에서 몬스터를 고르며, 지금은 몬스터당 몬스터 1개라 6종 모두 출격 - 육성은 항상 전부 쓰인다. 편성 화면은 몬스터에 고를 수 있는 몬스터가 2개 이상이 될 때까지 숨김 |
 | 난이도 | Normal/Hard 의 영웅 배율은 그대로, 보상에 각성석 추가 | Normal/Hard 판은 최단·랭킹 제외 규칙 그대로 |
 | 데일리 | **육성 3축 모두 적용**(사용자 시안 권장) | 근거: 데일리 §3 은 "결정적 진행(상점)은 적용, 무작위(개인 유물)는 끔" 원칙이다. 육성은 레벨을 사서 올리는 결정적 진행이라 상점과 같은 쪽이다. 잔해 교환이 무작위 드랍에서 오지만 비율이 작아(§2.4) 순위 불공정 요인으로는 상점 레벨 차이보다 작다. 시간 예산은 게이트 MG7(데일리 DQ2 재검증) |
 | 데일리 순위 | 점수 규칙·제출 규칙 불변 | - |
@@ -348,13 +348,13 @@ BattleController 전투 시작 적용 (기존 ApplyMetaBonuses 경로)
 Currency (엔티티)  "재화 하나"                                             <- 5행
  |-- Currency_Exchange (관계, 복합키 fromCurrency+toCurrency)  "교환 비율"   <- 3행 (잔해 → 3종)
 
-AwakenStat (엔티티, 복합키 monster+statIndex)  "종족의 각성 스탯 한 줄"     <- 8행
+AwakenStat (엔티티, 복합키 monster+statIndex)  "몬스터의 각성 스탯 한 줄"     <- 8행
      monster ──► EMonster 값명 (= ShopItemDef.Species, EffectKind MonsterAwaken)
 
 NestMastery (엔티티, PK level)  "숙련 단계 하나의 효과 종류"                 <- 3행
  +-- NestMastery_Param (관계, level+paramKey)  "그 단계 효과 수치 하나"      <- 4행
 
-MonsterTrait (엔티티, PK monster)  "종족 고유 특성 하나"                     <- 6행
+MonsterTrait (엔티티, PK monster)  "몬스터 고유 특성 하나"                     <- 6행
  +-- MonsterTrait_Param (관계, monster+tier+paramKey)  "단계별 특성 수치 하나" <- 42행
 
 Difficulty (기존)
@@ -377,9 +377,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 **관계 판정 메모**
 - `ShopItemDef.Currency`: 모든 상점 항목이 정확히 하나의 결제 재화를 가진다 → **필수 1:1**, 직접 필드(§11-1-3). 기존 13항목은 `Soul`(enum 0)이 기본값이라 에셋 재저장 없이 호환.
-- `AwakenStat`: 종족 하나가 스탯 1~2개(Wraith·Plague 2개) → **그룹 내 여러 항목**, 복합키 `monster + statIndex`(§11-1-4).
+- `AwakenStat`: 몬스터 하나가 스탯 1~2개(Wraith·Plague 2개) → **그룹 내 여러 항목**, 복합키 `monster + statIndex`(§11-1-4).
 - `NestMastery` + `_Param`: 단계마다 효과 종류가 달라 필드 구성이 다르다(Lv1 초, Lv2 배율, Lv3 배율+초). 한 row 에 다 두면 sentinel 이 생기므로 키-값 관계로 분리(`Relic_Effect_Param` 선례).
-- `MonsterTrait_Param`: 특성마다 파라미터 종류·개수가 다르다(가시 1개, 원한 3개) → 키-값. 고정 파라미터(반경 등)도 단계마다 행을 둔다 - 조회가 "(종족, 단계) 의 전체 집합" 한 번으로 끝나고, 단계별로 반경을 바꾸는 튜닝도 데이터만으로 가능.
+- `MonsterTrait_Param`: 특성마다 파라미터 종류·개수가 다르다(가시 1개, 원한 3개) → 키-값. 고정 파라미터(반경 등)도 단계마다 행을 둔다 - 조회가 "(몬스터, 단계) 의 전체 집합" 한 번으로 끝나고, 단계별로 반경을 바꾸는 튜닝도 데이터만으로 가능.
 - `Difficulty_Awaken`: Easy 는 각성석이 없다 → **선택적 관계**, Easy 행 없음(0 으로 채우지 않음).
 - `Difficulty_TowerCrystal`: 탑 등급 단계 3개 모두 값이 있다 → 필수 1:1 이지만 기존 `Difficulty.json` 스키마·테스트를 건드리지 않고 기능 단위로 떼어 낼 수 있게 관계 데이터로 분리(`Difficulty_Relic` 선례). 키 `difficulty` 는 탑 유물 등급 단계 인덱스(0/1/2) - 탑은 이미 이 인덱스를 `Difficulty_Relic` 조회에 쓴다(`infinite-tower.md` §3.8).
 - `RelicRarity_Shard`: 3등급 모두 값 → 필수 1:1, 같은 이유로 분리.
@@ -394,7 +394,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 |---|---|---|---|
 | `Currency` | `ECurrency` | `Soul` | 결제 재화. 기존 13항목 = Soul, 신규 18항목 = 축별 재화 |
 
-**신규 ShopItems 18항목** (`MetaConfig.asset`, 등록 순서 = 종족 enum 순 x 축 순)
+**신규 ShopItems 18항목** (`MetaConfig.asset`, 등록 순서 = 몬스터 enum 순 x 축 순)
 
 | Id | EffectKind | Species | Currency | MaxLevel | BasePrice | PriceGrowth | PerLevelMul | DisplayName | Description |
 |---|---|---|---|---|---|---|---|---|---|
@@ -404,10 +404,10 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | `Awaken_Hex` | MonsterAwaken | Hex | AwakenStone | 5 | 10 | 1.5 | 1.0 | 저주술사 각성 | 사거리 +6%/Lv |
 | `Awaken_Plague` | MonsterAwaken | Plague | AwakenStone | 5 | 10 | 1.5 | 1.0 | 역병귀 각성 | 독 피해 +5% · 지속 +10%/Lv |
 | `Awaken_Phantom` | MonsterAwaken | Phantom | AwakenStone | 5 | 10 | 1.5 | 1.0 | 환령 각성 | 이동속도 +6%/Lv |
-| `Nest_<종족>` x6 | NestMastery | 각 종족 | MoonSeal | 3 | 20 | 1.5 | 1.0 | `<종족> 둥지` | (칸 표시는 §8.1 - 다음 단계 효과를 데이터로 계산) |
-| `Trait_<종족>` x6 | MonsterTrait | 각 종족 | AbyssCrystal | 3 | 3 | 2.0 | 1.0 | `<종족> 특성` | (칸 표시는 특성 이름 + 단계 값을 데이터로 계산) |
+| `Nest_<몬스터>` x6 | NestMastery | 각 몬스터 | MoonSeal | 3 | 20 | 1.5 | 1.0 | `<몬스터> 둥지` | (칸 표시는 §8.1 - 다음 단계 효과를 데이터로 계산) |
+| `Trait_<몬스터>` x6 | MonsterTrait | 각 몬스터 | AbyssCrystal | 3 | 3 | 2.0 | 1.0 | `<몬스터> 특성` | (칸 표시는 특성 이름 + 단계 값을 데이터로 계산) |
 
-- `<종족>` 표시명은 기존 종족 한글명(도깨비불·망령·사신·저주술사·역병귀·환령).
+- `<몬스터>` 표시명은 기존 몬스터 한글명(도깨비불·망령·사신·저주술사·역병귀·환령). **(2026-11-01 확정)** 화면에는 등급 접두어가 붙은 몬스터 표시 이름을 쓴다 -> `풋내기 도깨비불 체급` · `풋내기 도깨비불 각성` · `풋내기 도깨비불 둥지` · `풋내기 도깨비불 특성` 형태로 `Enhance_`/`Awaken_`/`Nest_`/`Trait_` 24항목 모두(`dungeon-formation.md` §0.2, 항목 키 불변).
 - 각성 `Description` 은 칸 폭 140 에 들어가는 고정 문구(기존 상점 관례 - 정적 설명). 둥지·특성은 단계마다 내용이 달라 `Description` 대신 데이터(`NestMastery*`/`MonsterTrait*`)로 칸 문구를 만든다(§8.1).
 
 **CurrencyRow** - `Currency.json` (`EData.Currency`). 핵심 엔티티: "재화 하나". 5행.
@@ -427,7 +427,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | `fromAmount` | int | | 3 / 5 / 8 |
 | `toAmount` | int | | 1 / 1 / 1 |
 
-**AwakenStatRow** - `AwakenStat.json`. "종족의 각성 스탯 한 줄". 8행.
+**AwakenStatRow** - `AwakenStat.json`. "몬스터의 각성 스탯 한 줄". 8행.
 
 | 필드 | 타입 | 키 | 설명 |
 |---|---|---|---|
@@ -454,11 +454,11 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 3 | `damageTakenMul` | 0.5 |
 | 3 | `durationSec` | 3.0 |
 
-**MonsterTraitRow** - `MonsterTrait.json`. "종족 고유 특성 하나". 6행.
+**MonsterTraitRow** - `MonsterTrait.json`. "몬스터 고유 특성 하나". 6행.
 
 | 필드 | 타입 | 키/관계 | 설명 |
 |---|---|---|---|
-| `monster` | string | PK, `EMonster` 값명 | 종족 1 : 특성 1 |
+| `monster` | string | PK, `EMonster` 값명 | 몬스터 1 : 특성 1 |
 | `trait` | string | `EMonsterTrait` 값명 | ThornShell / Grudge / Execute / CurseStack / Contagion / Afterimage |
 | `nameKey` | int | 필수 1:1 → Strings_Ko | 1483~1488 |
 | `descKey` | int | 필수 1:1 → Strings_Ko | 1489~1494 (포맷 인자 = 그 단계 Param 값) |
@@ -513,9 +513,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 2. `Currency_Exchange`: `fromCurrency`·`toCurrency` 가 Currency 에 존재하고 서로 다름, `fromAmount >= 1`, `toAmount >= 1`, `toCurrency` 가 `Soul`·`RelicShard` 가 아님(소울 환전 금지).
 3. `AwakenStat`: `monster` 가 `EMonster` 값, `statIndex` 1부터 연속, `perLevelMul > 0`, **6종 모두 1행 이상**.
 4. `NestMastery`: `level` 1~3 연속, 각 단계의 필수 paramKey 존재(FirstSpawnAdvance = `advanceSec` / SpawnPeriod = `periodMul` / SpawnGuard = `damageTakenMul`·`durationSec`).
-5. `MonsterTrait`: 6종을 정확히 한 번씩, `trait` 중복 없음. `MonsterTrait_Param`: 각 (종족, 단계 1~3) 에 그 특성의 필수 paramKey 가 모두 있음(위 표).
+5. `MonsterTrait`: 6종을 정확히 한 번씩, `trait` 중복 없음. `MonsterTrait_Param`: 각 (몬스터, 단계 1~3) 에 그 특성의 필수 paramKey 가 모두 있음(위 표).
 6. `Difficulty_Awaken`: `difficulty` 가 1 이상이고 `Difficulty.json` 범위 안, 값 >= 0. `Difficulty_TowerCrystal`: 0~최대 난이도 전부 덮음, 값 >= 0. `RelicRarity_Shard`: 3등급 전부, 값 >= 1. `TowerConfig`: `crystalMilestoneEvery >= 0`(0 = 이정표 없음), `crystalMilestoneBonus >= 0` - 위반 시 탑 데이터 로드 오류(`TowerDatabase` 오류 수집).
-7. `MetaConfig.ShopItems`: EffectKind 가 MonsterAwaken/NestMastery/MonsterTrait 인 항목은 `Currency != Soul`, 그 종족의 데이터 행(AwakenStat/MonsterTrait)이 존재, `MaxLevel` 이 각 데이터의 최대 단계와 같음(각성 5, 둥지 = NestMastery 행 수 3, 특성 3).
+7. `MetaConfig.ShopItems`: EffectKind 가 MonsterAwaken/NestMastery/MonsterTrait 인 항목은 `Currency != Soul`, 그 몬스터의 데이터 행(AwakenStat/MonsterTrait)이 존재, `MaxLevel` 이 각 데이터의 최대 단계와 같음(각성 5, 둥지 = NestMastery 행 수 3, 특성 3).
 8. **로드 실패 시**: 오류 로그 후 "육성 재화 비활성" - 상점의 각성·둥지·특성 칸은 잠김 표시, 재화 지급 없음, 효과 미적용, 잔해 변환 없음(유물 드랍은 기존 규칙으로 동작). 보유 재화·레벨은 지우지 않는다.
 
 ---
@@ -583,12 +583,12 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 > 목업: `.mockups/monster-growth-currencies.html` - `dungeon-formation.html`·`relics.html`·`infinite-tower.html` 의 CSS 변수·패널·버튼·결과창 레이아웃 그대로. 상점 행은 실제 프리팹 기준 **660x84 단일 컬럼**(`ShopItemPoolingScrollView._columnCount: 1`). 재화 아이콘은 목업에서 기호 글자이며 실제로는 신규 도트 아이콘 4종(§11.4).
 
-### 8.1 상점 - 「몬스터 강화」 종족 행 = 4칸 (대안 비교)
+### 8.1 상점 - 「몬스터 강화」 몬스터 행 = 4칸 (대안 비교)
 
 | 안 | 내용 | trade-off | 판정 |
 |---|---|---|---|
-| **A. 종족 행 1줄 안에 4칸 (권장)** | 기존 종족 행(660x84) 하나를 체급·각성·둥지·특성 4칸으로 나누고, **칸 전체가 구매 버튼** | 행 수 6 그대로(스크롤 길이 불변), 종족 하나의 성장 현황이 한 줄에 보인다. 칸 폭이 140 이라 설명은 한 줄 요약만 | **채택** |
-| B. 축마다 행 분리 | 종족당 4행 = 24행 | 설명을 길게 쓸 수 있지만 스크롤이 4배(24 x 84 + 23 x 간격). 종족 묶음이 흐려진다 | 기각 |
+| **A. 몬스터 행 1줄 안에 4칸 (권장)** | 기존 몬스터 행(660x84) 하나를 체급·각성·둥지·특성 4칸으로 나누고, **칸 전체가 구매 버튼** | 행 수 6 그대로(스크롤 길이 불변), 몬스터 하나의 성장 현황이 한 줄에 보인다. 칸 폭이 140 이라 설명은 한 줄 요약만 | **채택** |
+| B. 축마다 행 분리 | 몬스터당 4행 = 24행 | 설명을 길게 쓸 수 있지만 스크롤이 4배(24 x 84 + 23 x 간격). 몬스터 묶음이 흐려진다 | 기각 |
 | C. 행 높이 키우기 | 모든 행을 4줄 높이로 | 프레임워크가 행 높이를 하나로만 쓰므로 헤더·전종 강화 행까지 같이 커져 빈 공간 낭비 | 기각 |
 | D. 가변 높이 지원 | `CHPoolingScrollView` 확장 | 인프라(패키지) 변경이 되는 별도 스코프 | 기각 |
 
@@ -596,7 +596,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 | 요소 | 좌표 (x, y) | 크기 | 내용 |
 |---|---|---|---|
-| 종족 머리 | (0, 0) | 80x84 | 아이콘 56x56 (12, 6) + 기존 발광 프레임(체급 레벨) / 종족명 (0, 64) 80x16 글자 12 가운데 |
+| 몬스터 머리 | (0, 0) | 80x84 | 아이콘 52x52 (14, 4) + 기존 발광 프레임(체급 레벨) / 몬스터 이름 2줄(2026-11-01 등급 접두어 적용, `dungeon-formation.md` §0.2): 접두어 (0, 58) 80x10 글자 10 가운데("풋내기") + 기존 이름 (0, 70) 80x12 글자 12 가운데("저주술사" 4자 x 12 = 48 <= 80). 검산: 아이콘 끝 4 + 52 = 56 < 58, 이름 끝 70 + 12 = 82 <= 84 |
 | 칸 1 체급 | (84, 6) | 140x72 | |
 | 칸 2 각성 | (228, 6) | 140x72 | |
 | 칸 3 둥지 | (372, 6) | 140x72 | |
@@ -622,7 +622,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 잠김 (재화 미해금) | 칸 전체 밝기 0.45 + 자물쇠, 레벨 눈금 숨김 | 토스트 1331 |
 
 - 칸 폭 140 - 좌우 여백 8 x 2 = 124px, 한국어 11px 글자 폭 10px 기준 한 줄 12자(124 ÷ 10 = 12.4). 효과 문구는 §8.5 에서 모두 12자 이내 두 줄로 맞췄다.
-- 「스탯 강화」 섹션(전종 7항목)은 행 레이아웃 변경 없음(기존 단일 셀 구조). 종족 행만 새 레이아웃 - 셀 타입은 하나(`ShopItemCell`)를 유지하고 `RowKind` 에 종족 4칸 종류를 하나 더한다(`shop-single-scroll-sections.md` 의 RowKind 분기 선례).
+- 「스탯 강화」 섹션(전종 7항목)은 행 레이아웃 변경 없음(기존 단일 셀 구조). 몬스터 행만 새 레이아웃 - 셀 타입은 하나(`ShopItemCell`)를 유지하고 `RowKind` 에 몬스터 4칸 종류를 하나 더한다(`shop-single-scroll-sections.md` 의 RowKind 분기 선례).
 - 「몬스터 강화」 섹션 헤더 문구 그대로.
 
 **상점 지갑 (헤더 줄 오른쪽)**: 기존 소울 알약 오른쪽 정렬을 유지하고 그 왼쪽으로 **해금된 특수 재화 알약**을 덧붙인다. 알약 1개 = 112x32(아이콘 16 + 숫자 글자 14), 간격 8. **구현 현행 (2026-11-01)**: 특수 재화 알약은 공용 알약 위젯(`CurrencyPillView`) 3개를 프리팹에 고정 배치하고, 위젯 슬롯과 재화의 대응(각성석 · 달빛 인장 · 심연 결정)이 고정이다 - 화면 배치는 소울 알약 바로 왼쪽부터 각성석 · 달빛 인장 · 심연 결정(목업 그대로). 잠긴 재화의 알약은 숨긴다. 결과창 재화 칩(§8.4)도 같은 위젯을 쓴다(지갑 = 숫자만, 칩 = `+N` + 재화 이름). 해금된 것만 표시(처음 플레이어는 지금과 똑같이 소울만). 잔해는 상점에서 쓰지 않으므로 표시하지 않는다. 최대 4개(소울 + 3) = 4 x 112 + 3 x 8 = **472** 폭. "현재 강화" 요약줄은 같은 줄 왼쪽에 남고, 폭을 `모달 내부 폭 - 지갑 폭 - 16` 으로 줄여 넘치는 글자는 말줄임(…) 처리한다(모달 내부 폭 828 기준 4알약일 때 828 - 472 - 16 = 340). 모달 860 폭은 `ui-redesign` 시안 값이며 `ShopPopup.prefab` 루트 크기는 미확인 - 구현 시 프리팹 실측 폭으로 같은 식을 다시 계산한다(내부 폭이 520 미만이면 지갑 472 + 여백 16 + 요약줄 최소 32 가 안 들어가므로 보고).
@@ -738,7 +738,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | E-10 | 잔해 변환이 첫 유물 보장 판에서 | 보유 0개면 후보가 빌 수 없음 - 발생 불가 |
 | E-11 | 영웅 테이블에 특정 등급이 아예 없음(예 성기사 Legendary 는 1종) | 그 등급 유물이 1개라도 있으면 등급 후보, 없으면 등급 후보에서 빠짐 - 테이블에 없는 등급은 잔해도 없음 |
 | E-12 | 잔해 교환 연타 | 1탭 1회. 잔해 부족 시 버튼 off |
-| E-13 | 편성에서 종을 뺀 경우 | 그 종의 각성·둥지·특성은 그 판에 효과 없음(레벨은 유지) |
+| E-13 | 편성에서 그 몬스터를 고르지 않은 경우 | 그 몬스터의 각성·둥지·특성은 그 판에 효과 없음(레벨은 유지). (2026-11-01 현행: 몬스터당 몬스터 1개라 지금은 발생하지 않는다 - 같은 몬스터에 고를 수 있는 몬스터가 2개 이상 생기면 적용) |
 | E-14 | 독 중첩 상한 도달 상태의 재적중·전염 | 중첩 유지, 지속만 갱신(§15.1) |
 | E-15 | 가시 껍질 반사로 영웅 사망 | 정상 승리(`EndBattle(Win)`) - 유물 화상/번개 선례 |
 | E-16 | 수호 결계(`BossBulwark`) 중 반사·독 피해 | 기존 `TakeDamage` 경로가 x0.6 처리(특성 쪽 예외 없음) |
@@ -755,8 +755,8 @@ MetaProfile (세이브 루트, Version 11 → 12)
 |---|---|---|---|
 | MG1 | 회귀: 모든 육성 Lv0 + 잔해 규칙 적용 상태의 처치 시간 분포 vs 도입 전 | 평균 ±3초, 승률 ±2%p | 구현 버그(육성 0 은 기존과 동일해야 함) |
 | MG2 | 전 육성 만렙(각성 5·둥지 3·특성 3, 6종) + 상점 만렙 + 유물 풀셋, 모든 (스테이지, 난이도) | Hard 승률 ≤ 90% (`relics.md` R3 와 같은 상한 - 육성을 더해도 완화하지 않음), p10 처치 시간 ≥ 60초, 최소 ≥ 30초 | 특성 수치 → 각성 배율 순으로 인하 |
-| MG3 | 각성 종족 간 기여도: 단일 종 각성 Lv5 만 켠 처치 시간 감소율 | 6종의 최대/최소 비 ≤ 2.0 | 편차 큰 종의 `AwakenStat.perLevelMul` 조정 |
-| MG4 | 특성 종족 간 기여도: 단일 종 특성 3단계만 켠 처치 시간 감소율 | 각 3%~12%, 최대/최소 비 ≤ 2.0. 광전사 상대 가시 껍질 반사 피해 비중 ≤ 영웅 총 피해의 15% | `MonsterTrait_Param` 수치 조정 |
+| MG3 | 각성 몬스터 간 기여도: 단일 종 각성 Lv5 만 켠 처치 시간 감소율 | 6종의 최대/최소 비 ≤ 2.0 | 편차 큰 종의 `AwakenStat.perLevelMul` 조정 |
+| MG4 | 특성 몬스터 간 기여도: 단일 종 특성 3단계만 켠 처치 시간 감소율 | 각 3%~12%, 최대/최소 비 ≤ 2.0. 광전사 상대 가시 껍질 반사 피해 비중 ≤ 영웅 총 피해의 15% | `MonsterTrait_Param` 수치 조정 |
 | MG5 | 경제 페이싱 | 각성 6종 만렙 승리 수 40~70 / 둥지 6종 만렙 일수(하루 3판) 22~35 / 특성 6종 만렙이 한 시즌 안에 되는 플레이어 비율(시뮬 벽 모델) ≤ 30% / 1-1 Hard 반복분 ≤ 각성석 수입의 20% | 가격 `BasePrice` / 지급량 조정 |
 | MG6 | 독 피해 비중 | 독 배율 최대(4.26배) 판에서 영웅 총 피해 중 독 비중 ≤ 35% | `PlagueSlowBoost` 픽당 배율 → 각성 배율 순 인하 |
 | MG10 | 역병귀 독 전환 + 카드 교체 (§15.7 게이트 PQ1~PQ6) | §15.7 표 | §15.7 표 |
@@ -776,13 +776,13 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 슬라이스 | 범위 | 선행 |
 |---|---|---|
 | A. 재화 기반 | `ECurrency`, `Currency*` JSON·로더, `MetaProfile` v12·마이그레이션·`CopyFrom`, `ShopItemDef.Currency` + `ShopService` 재화 분기, 상점 지갑 알약, 결과창 재화 칩, 각성석·인장·결정 지급(정산 함수 포함) | 승인 |
-| B. 각성 | `AwakenStat`, `EMonsterStatKind` 3값, `MetaBattleBonus` 종족 x 스탯 배율, 받는 피해·넉백·독 피해·독 지속 적용, 상점 칸 2 | A + F |
+| B. 각성 | `AwakenStat`, `EMonsterStatKind` 3값, `MetaBattleBonus` 몬스터 x 스탯 배율, 받는 피해·넉백·독 피해·독 지속 적용, 상점 칸 2 | A + F |
 | F. 역병귀 독 전환 + Debuff 카드 교체 | §15 전부 (육성과 독립 - **가장 먼저 구현 가능**) | 승인 |
 | C. 둥지 | `NestMastery*`, 스포너 적용(첫 스폰·주기·스폰 보호), 상점 칸 3 | A |
 | D. 특성 | `MonsterTrait*`, 6특성 동작, 성기사 저항 연동, 상점 칸 4 | A |
 | E. 잔해 | `RelicDropRoller` 등급 단위 변환, `RelicRarity_Shard`, 결과창 띠 변형, 유물 도감 교환 줄 | A |
 
-종족 행 4칸 UI 는 A 에서 골격(체급 칸 + 잠긴 3칸)을 만들고 B/C/D 가 칸을 연다.
+몬스터 행 4칸 UI 는 A 에서 골격(체급 칸 + 잠긴 3칸)을 만들고 B/C/D 가 칸을 연다.
 
 ### 11.2 Enum (`CommonEnum.cs`, 전부 기존 값 뒤에 append)
 
@@ -804,9 +804,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - JSON 10개: `Assets/_Lair/Data/Json/<EData 값명>.json`, Addressables 주소 = 파일명. 기존 `DailyConfig.json`·`TowerConfig.json` 에 필드 2개씩 추가.
 - `MetaConfig.asset`: 18항목 추가(§6.2 표), 기존 `Enhance_*` 6항목 `DisplayName`·`Description` 변경(§3.1).
 - `Strings_Ko.json`: 1465~1498 추가, 1400 문구 변경.
-- 스프라이트 4개: `Assets/_Lair/Art/Sprites/Currency/{AwakenStone,MoonSeal,AbyssCrystal,RelicShard}.png` (16x16 도트, 기존 `Px_SoulCoin` 톤). 소울은 기존 `Px_SoulCoin` 재사용. 결과창·상점·도감은 인스펙터 `[SerializeField] Sprite` + `ECurrency` switch resolver(종족 아이콘 `SpeciesIcon` 관례).
+- 스프라이트 4개: `Assets/_Lair/Art/Sprites/Currency/{AwakenStone,MoonSeal,AbyssCrystal,RelicShard}.png` (16x16 도트, 기존 `Px_SoulCoin` 톤). 소울은 기존 `Px_SoulCoin` 재사용. 결과창·상점·도감은 인스펙터 `[SerializeField] Sprite` + `ECurrency` switch resolver(몬스터 아이콘 `SpeciesIcon` 관례).
 - 특성 FX: 신규 FX 프리팹 없음. 기존 피해 숫자·버프 연출 재사용(잔상 = "MISS" 피해 숫자, 전염 = 독 피해 숫자 색 + 상태 아이콘 중첩 숫자 갱신).
-- 프리팹: `ShopItemCell.prefab` 종족 4칸 요소, `ShopPopup.prefab` 지갑 알약 3개, `RelicPopup.prefab` 교환 줄, `ResultPopup.prefab` 재화 칩 2개·유물 띠 잔해 변형 요소. 신규 `[SerializeField]` 미연결 0.
+- 프리팹: `ShopItemCell.prefab` 몬스터 4칸 요소, `ShopPopup.prefab` 지갑 알약 3개, `RelicPopup.prefab` 교환 줄, `ResultPopup.prefab` 재화 칩 2개·유물 띠 잔해 변형 요소. 신규 `[SerializeField]` 미연결 0.
 - UI 배선은 **목업 `.mockups/monster-growth-currencies.html` 승인 이후**(Rule 00 UI 게이트), 데이터는 §6 승인 이후.
 
 ### 11.5 SO 스키마 / 수치 필드
@@ -819,13 +819,13 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - `Scripts/Meta/MetaProfile.cs`: `Currencies`, `CurrencyEntry`, `DifficultyClearEntry.AwakenPaid`, `TowerFloorClearEntry.CrystalPaid`, `Version = 12`, `CopyFrom`, 잔액 조회/가산/차감 헬퍼(차감은 잔액 부족 시 실패 반환).
 - `Scripts/Meta/MetaProfileMigration.cs`: §7.3.
 - `Scripts/Meta/ShopService.cs`: 결제 재화 분기(소울 = `Souls`, 그 외 = `Currencies`), 잠긴 재화 항목 구매 거부.
-- `Scripts/Meta/MetaBattleBonus.cs`: EffectKind 3종 집계 - 종족 x 스탯 배율 조회, 종족별 둥지 레벨, 종족별 특성 단계.
+- `Scripts/Meta/MetaBattleBonus.cs`: EffectKind 3종 집계 - 몬스터 x 스탯 배율 조회, 몬스터별 둥지 레벨, 몬스터별 특성 단계.
 - `Scripts/Battle/StatMultiplier.cs`: `SlowFactorMul` → `PoisonDamageMul` 개명 + 축 3개(`DamageTaken`·`KnockbackTaken`·`PoisonDuration`).
 - 신규 정산 순수 함수(난수 없음): 각성석(첫 클리어 정산 + 반복), 인장(연속 배율 반올림), 결정(층당 + 이정표 + `CrystalPaid` 정산).
 - `Scripts/Meta/RelicDropRoller.cs`: §2.4 C(등급 후보 판정 변경, 잔해 결과 타입) - 챕터·탑·데일리 확정 굴림 공통.
 - `Scripts/Battle/BattleController.cs`: `EndBattle` 정산 순서 = 소울/XP → 기록 갱신 → **재화 정산(모드별)** → 유물 굴림(유물 또는 잔해) → 저장 → `ResultPopupArg` 재화 필드. 전투 시작 적용(각성·둥지·특성).
 - `Scripts/Village/*` 마을 진입 정산 호출(소급) + 토스트 1481.
-- `Scripts/UI/ShopPopup*`·`ShopItemCell`: 종족 4칸 `RowKind`, 지갑.
+- `Scripts/UI/ShopPopup*`·`ShopItemCell`: 몬스터 4칸 `RowKind`, 지갑.
 - `Scripts/UI/Village/RelicPopup*`: 교환 줄(ViewModel 이 교환 가능·잠김 판단, View 는 표시만).
 - `Scripts/UI/ResultPopup.cs`: `ResultPopupArg` 신규 필드 - `CurrencyGains`(`List<CurrencyGain>{Currency, Amount}`, 0 은 행 없음), `HasRelicShard`(bool), `RelicShardAmount`(int, `HasRelicShard` 일 때만 유효), `RelicShardRarity`(string, 같음).
 - **`ShopItems` 를 순회하는 기존 소비처 - 신규 18항목이 새지 않게 할 규칙** (grep `ShopItems`·`GetShopLevel` 기준 전수):
@@ -835,8 +835,8 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | `MetaBattleBonus.From` | EffectKind switch | 3종 분기 추가(위) |
 | `ShopService` (가격·구매·만렙) | `FindShopItem` + 소울 차감 | 결제 재화 분기, 잠긴 재화 거부 |
 | `DungeonPowerSummary.Build` ("현재 강화" 요약줄) | `SpawnerPeriod` 아니면 전부 `GetStatMul(item.StatKind)` 로 집계 | **`EffectKind == MonsterStat` 또는 `SpawnerPeriod` 만** 집계. 신규 3종은 `StatKind` 기본값 0(Hp)이라 거르지 않으면 HP 줄에 잘못 섞인다 |
-| `ShopPopup.AppendSection` | `MonsterSpecies` 여부로 섹션 분배 | 스탯 섹션 = `MonsterStat`·`SpawnerPeriod` 만. 몬스터 섹션 = 종족마다 **1행**, 그 행이 같은 `Species` 의 `Enhance_`·`Awaken_`·`Nest_`·`Trait_` 4항목을 칸으로 묶는다(신규 18항목이 개별 행으로 뜨지 않음) |
-| `BattleController` 종족 강화 레벨(1186행 부근), `SpawnerStatusCell`·`CodexPopup`·`VillageController` 의 `"Enhance_" + 종족` | 체급 레벨만 읽음 | 변경 없음(체급 발광·표시는 체급 축 그대로) |
+| `ShopPopup.AppendSection` | `MonsterSpecies` 여부로 섹션 분배 | 스탯 섹션 = `MonsterStat`·`SpawnerPeriod` 만. 몬스터 섹션 = 몬스터마다 **1행**, 그 행이 같은 `Species` 의 `Enhance_`·`Awaken_`·`Nest_`·`Trait_` 4항목을 칸으로 묶는다(신규 18항목이 개별 행으로 뜨지 않음) |
+| `BattleController` 몬스터 강화 레벨(1186행 부근), `SpawnerStatusCell`·`CodexPopup`·`VillageController` 의 `"Enhance_" + 몬스터` | 체급 레벨만 읽음 | 변경 없음(체급 발광·표시는 체급 축 그대로) |
 | "상점 전 항목 만렙" 판정·지표(`relics.md` R6, 데일리 DQ5, 도전과제가 있다면) | 전 항목 | **결제 재화 `Soul` 항목만**으로 정의를 고정(특수 재화 축은 별도 지표 MG5) |
 
 - 확인 보고 항목: ① 몬스터 받는 피해 합성이 `DamageTakenScale` 을 덮지 않음 ② 넉백 적용 지점(영웅 스킬 4종)에서 `KnockbackTaken` 곱 ③ 봉인 해제 후 첫 스폰과 `SpawnPrelude` 처리 일치 ④ `EMonsterBuff.BerserkPower` 재사용 가능 여부.
@@ -850,7 +850,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | 지급 | 각성석 첫 클리어/반복/패배/Easy 0, Hard 첫 클리어 25 만, E-5 정산, 소급 정산 멱등(두 번 호출해도 1회분). 인장 반올림 표(§2.2) 전 행, 뒤로가기 0. 결정 층당 1/2/3·이정표·`CrystalPaid` 멱등·시즌 교체 후 재지급 |
 | 잔해 | 등급 후보 판정(최대 중첩 무관), 뽑힌 등급 후보 0 → 잔해, 등급 미완성 시 기존과 동일 결과(시드 고정 회귀), pity 0 리셋(유물·잔해 획득 시 승리·패배 굴림 모두), 데일리 확정 굴림 잔해, 패배 굴림 미획득 시 pity 불변 (U-18) |
 | 교환 | 3/5/8 → 1, 부족·미해금 거부, Soul 대상 교환 없음 |
-| 배율 | 각성 `PerLevelMul^Lv` 종족별, 받는 피해 곱 합성(`DamageTakenScale` 리셋 후에도 유지), 독 피해·지속 배율, 둥지 누적(Lv3 = 3효과), 특성 단계 파라미터 조회 |
+| 배율 | 각성 `PerLevelMul^Lv` 몬스터별, 받는 피해 곱 합성(`DamageTakenScale` 리셋 후에도 유지), 독 피해·지속 배율, 둥지 누적(Lv3 = 3효과), 특성 단계 파라미터 조회 |
 | MetaProfile | v11 → v12 기본값, §7.3 정리 규칙, 멱등, `CopyFrom` 재화 복사 |
 | 문자열 | 1465~1498 연속·포맷 인자 수, 1400 변경 |
 | 프리팹 | 신규 `[SerializeField]` 미연결 0 |
@@ -861,7 +861,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 ### 12.1 신규 항목 (무한의 탑·데일리 항목 뒤에 추가)
 
-> - **몬스터 육성 재화 분리 허용 (2026-10-29 v0.3 승격) - 단 기존 몬스터 6종의 상점 육성 3축과 콘텐츠별 특수 재화 4종에 한정** - 소울은 기존대로 모든 전투에서 얻고 종족 체급(HP·공격력)·전종 스탯 강화에 쓴다. 챕터 Normal/Hard 승리는 각성석(종족 역할 스탯 Lv0~5), 데일리 판 종료는 달빛 인장(종족별 둥지 숙련 Lv0~3), 무한의 탑 층 클리어는 심연 결정(종족 고유 특성 1~3단계)을 주며, 유물 드랍에서 뽑힌 등급의 유물이 모두 최대 중첩이면 유물 대신 유물 잔해가 나와 마을 유물 도감에서 세 재화로 교환된다. 육성은 기존 상점 파이프(`MetaConfig.ShopItems`·`ShopLevels`·`MetaBattleBonus`)에 독립 곱연산 축으로만 얹으며 챕터·데일리·탑 모든 전투에 적용된다. 허용 범위는 ① 재화·육성 JSON(`Currency`, `Currency_Exchange`, `AwakenStat`, `NestMastery*`, `MonsterTrait*`, `Difficulty_Awaken`, `Difficulty_TowerCrystal`, `RelicRarity_Shard`)과 `DailyConfig`·`TowerConfig` 보상 필드, `ShopItemDef` 결제 재화 필드 ② `MetaProfile` 의 특수 재화 잔액·첫 클리어 지급 기록 저장(Version 12)·클라우드 동기 호환 ③ 상점 「몬스터 강화」 종족 행 4칸(체급·각성·둥지·특성)과 상점 재화 표시, 유물 도감 잔해 교환 줄, 결과창 재화 표시 ④ 유물 드랍의 최대 중첩 등급 잔해 변환 ⑤ 역병귀 기본 효과를 적중 시 둔화 → 적중 시 독(지속 피해·중첩)으로 교체하고, Debuff 축 패시브 카드 "독장판"(`HeroPoisonAura`)을 "끈질긴 저주"(`LingeringCurse` - Debuff 축 시한 디버프 지속 연장)로 교체(카드 총수 28장·축당 7장 유지), 연동되는 카드 "역병의 손길"·Debuff 시너지 Tier1·상점 "짙은 역병" 효과 교체. **잔해 교환 외의 재화 간 환전, 유료 재화·재화 구매, 육성 초기화/환급, 신규 몬스터, 신규 스테이지 규칙, ★ 목표는 계속 금지.** 별도 메인 메뉴/세팅 화면 금지는 유지(신규 화면 없음). 랭킹·최단 기록 규칙은 기존(Easy 한정) 그대로다. 수치는 qa-simulator 게이트 MG1~MG10(역병귀 독 전환 PQ1~PQ6 포함)으로 확정한다. 세부는 `docs/design/monster-growth-currencies.md`.
+> - **몬스터 육성 재화 분리 허용 (2026-10-29 v0.3 승격) - 단 기존 몬스터 6종의 상점 육성 3축과 콘텐츠별 특수 재화 4종에 한정** - 소울은 기존대로 모든 전투에서 얻고 몬스터 체급(HP·공격력)·전종 스탯 강화에 쓴다. 챕터 Normal/Hard 승리는 각성석(몬스터 역할 스탯 Lv0~5), 데일리 판 종료는 달빛 인장(몬스터별 둥지 숙련 Lv0~3), 무한의 탑 층 클리어는 심연 결정(몬스터 고유 특성 1~3단계)을 주며, 유물 드랍에서 뽑힌 등급의 유물이 모두 최대 중첩이면 유물 대신 유물 잔해가 나와 마을 유물 도감에서 세 재화로 교환된다. 육성은 기존 상점 파이프(`MetaConfig.ShopItems`·`ShopLevels`·`MetaBattleBonus`)에 독립 곱연산 축으로만 얹으며 챕터·데일리·탑 모든 전투에 적용된다. 허용 범위는 ① 재화·육성 JSON(`Currency`, `Currency_Exchange`, `AwakenStat`, `NestMastery*`, `MonsterTrait*`, `Difficulty_Awaken`, `Difficulty_TowerCrystal`, `RelicRarity_Shard`)과 `DailyConfig`·`TowerConfig` 보상 필드, `ShopItemDef` 결제 재화 필드 ② `MetaProfile` 의 특수 재화 잔액·첫 클리어 지급 기록 저장(Version 12)·클라우드 동기 호환 ③ 상점 「몬스터 강화」 몬스터 행 4칸(체급·각성·둥지·특성)과 상점 재화 표시, 유물 도감 잔해 교환 줄, 결과창 재화 표시 ④ 유물 드랍의 최대 중첩 등급 잔해 변환 ⑤ 역병귀 기본 효과를 적중 시 둔화 → 적중 시 독(지속 피해·중첩)으로 교체하고, Debuff 축 패시브 카드 "독장판"(`HeroPoisonAura`)을 "끈질긴 저주"(`LingeringCurse` - Debuff 축 시한 디버프 지속 연장)로 교체(카드 총수 28장·축당 7장 유지), 연동되는 카드 "역병의 손길"·Debuff 시너지 Tier1·상점 "짙은 역병" 효과 교체. **잔해 교환 외의 재화 간 환전, 유료 재화·재화 구매, 육성 초기화/환급, 신규 몬스터, 신규 스테이지 규칙, ★ 목표는 계속 금지.** 별도 메인 메뉴/세팅 화면 금지는 유지(신규 화면 없음). 랭킹·최단 기록 규칙은 기존(Easy 한정) 그대로다. 수치는 qa-simulator 게이트 MG1~MG10(역병귀 독 전환 PQ1~PQ6 포함)으로 확정한다. 세부는 `docs/design/monster-growth-currencies.md`.
 
 ### 12.2 기존 항목 수정 (before → after)
 
@@ -900,9 +900,9 @@ MetaProfile (세이브 루트, Version 11 → 12)
 | U-1 | 유물 잔해 = **등급 단위 변환**(뽑힌 등급의 후보가 모두 최대 중첩일 때), `relics.md` E-4 폐지 (§2.4) | 유물 단위 복귀(시안 문구 그대로) / 후보 0 일 때만 / 감소 가중치 | 유물 수집 속도와 `relics.md` D-3(환급 없음)을 바꾸는 결정 |
 | U-2 | 심연 결정 **시즌마다 재획득** (§2.3) | 평생 최고 층 초과분만(세이브 필드 1개 추가) | 시즌 교체 주기와 특성 완성 속도의 관계 |
 | U-3 | 데일리 판에 **육성 3축 모두 적용** (§5) | 특성만 끄기 / 전부 끄기 | 순위 공정성 대 꾸준함 보상. 상점 적용 원칙과는 일관 |
-| U-4 | 상점 종족 행 = **1줄 4칸** (§8.1) | 축별 4행(24행) | "셀 안 4줄" 시안을 84px 고정 높이에 맞춘 변경 |
+| U-4 | 상점 몬스터 행 = **1줄 4칸** (§8.1) | 축별 4행(24행) | "셀 안 4줄" 시안을 84px 고정 높이에 맞춘 변경 |
 | U-5 | 마을 HUD 상단바 **변경 없음**, 특수 재화는 상점 지갑·결과창·도감에서 표시 (§8.2) | 소울 칩 탭 → 지갑 펼침(후속) | 재화 발견성 대 HUD 혼잡 |
-| U-6 | 기존 소울 종족 강화 표시명 **"각성" → "체급"** (§3.1, Strings 1400 포함) | 새 축 이름을 "각성" 대신 다른 이름으로 | 이름 충돌 해소 방향 |
+| U-6 | 기존 소울 몬스터 강화 표시명 **"각성" → "체급"** (§3.1, Strings 1400 포함) | 새 축 이름을 "각성" 대신 다른 이름으로 | 이름 충돌 해소 방향 |
 | U-7 | 기존 기록(Normal/Hard·탑) **소급 지급** (§7.2) | 소급 없음 | 기존 유저 형평 |
 | U-8 | 둥지 Lv3 = **스폰 직후 3초 받는 피해 -50%** (시안 보호막에서 변경, C-3) | 흡수 보호막 신설 | 신규 시스템 비용 |
 | U-9 | 역병귀 특성 = **전염**(쓰러지면 영웅 독 +1/+2/+3중첩) (C-4) | 독 걸린 영웅 받는 피해 증가 / 사망 위치 독장판(시안) | 독 전환 후 특성 정체성 |
@@ -970,7 +970,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 - 적용 대상: `IDebuffAxisAura.IsDebuffAxis == true` 이고 **시한(duration ≥ 0)** 인 오라 - 독(`PlagueToxinAura`) · 공포 · 출혈 · 무력화. 영구 디버프(`HeroAttackDown`·`EternalBleed`)와 Swarm `Slow` 카드 둔화(Debuff 축 아님)는 대상 아님.
 - 배율: `1 + 0.25 x 픽 수` (가산, 3픽 1.75). 부착 시점의 지속에 곱한다 - 성기사 `신앙의 가호` x0.6 이 곱해지는 **같은 지점**(Attach 의 Debuff 축 지속 보정)에서 곱으로 합성(성기사 상대 3픽 = 1.75 x 0.6 = 1.05).
 - 검산: 독 3초 → 3픽 5.25초 / 출혈 10초 → 17.5초 / 공포 3초 → 5.25초 / 무력화 10초 → 17.5초.
-- 카드 테두리 범위: `ECardScope.Hero`(종족 무관). **편성 `Card_Species` 매핑 대상 아님** - 어떤 편성에서도 3택1 후보에서 빠지지 않는다(`HeroAttackDown` 과 같음). 역병귀를 빼도 공포·출혈·무력화를 늘리므로 의미가 있다.
+- 카드 테두리 범위: `ECardScope.Hero`(몬스터 무관). **편성 `Card_Species` 매핑 대상 아님** - 어떤 편성에서도 3택1 후보에서 빠지지 않는다(`HeroAttackDown` 과 같음). 역병귀를 빼도 공포·출혈·무력화를 늘리므로 의미가 있다.
 - 카드 데이터: `cards.json` 행 `{"id": "LingeringCurse", "axis": "Debuff", "displayName": "끈질긴 저주", "description": "영웅 디버프 지속 +25%"}` + 효과 `LingeringCurseEffect`(파라미터 `durationBonusPerPick` 0.25). `card_pools.json` passive 의 `HeroPoisonAura` 자리에 `LingeringCurse`.
 - **카드 일러스트 필요**: 모든 카드가 일러스트를 갖고 있다(`card-illustrations.md`). 신규 1장 `Assets/_Lair/Art/Cards/` 일러스트 + SO `LingeringCurse.asset`. 아트 제작 전 임시로 `HeroAttackDown` 일러스트 사용은 **하지 않는다**(도감에서 두 카드가 같아 보임) - 일러스트를 구현 완료 조건에 포함.
 
@@ -1042,7 +1042,7 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 - Placeholder 잔존: 0건. 미확정 수치는 "qa-simulator 검증 후 결정" + 게이트 MG1~MG9 지표로 명시.
 - 내부 일관성: 가격 130/95/21 · 총 780/570/126(§3.5·§4.2·§6.2·§11.5), 지급 10/25·2/4 · 3/5 · 1/2/3 + 10(§2·§6.2), 잔해 1/3/8 · 교환 3/5/8(§2.4·§6.2), 특성 단계 값(§3.4·§6.2) 동일. `MonsterTrait_Param` 42행(§6.1·§6.2·§11.7), 신규 JSON 10개(헤더·§11.2·§11.4·§11.7) 일치.
-- 명명 일관성: `ECurrency`(`Soul`/`AwakenStone`/`MoonSeal`/`AbyssCrystal`/`RelicShard`), `ENestMasteryEffect`(`FirstSpawnAdvance`/`SpawnPeriod`/`SpawnGuard`), `EMonsterTrait` 6값, `EShopEffectKind.MonsterAwaken`/`NestMastery`/`MonsterTrait`, `EMonsterStatKind.PoisonDamage`/`DamageTaken`/`KnockbackTaken`/`PoisonDuration`, `ECardId.LingeringCurse`, `PlagueToxinOnHit`/`PlagueToxinAura`, `AwakenPaid`, `CrystalPaid`, `CurrencyEntry`, `Awaken_<종족>`/`Nest_<종족>`/`Trait_<종족>` 를 본문 전체에서 같은 표기로 사용.
+- 명명 일관성: `ECurrency`(`Soul`/`AwakenStone`/`MoonSeal`/`AbyssCrystal`/`RelicShard`), `ENestMasteryEffect`(`FirstSpawnAdvance`/`SpawnPeriod`/`SpawnGuard`), `EMonsterTrait` 6값, `EShopEffectKind.MonsterAwaken`/`NestMastery`/`MonsterTrait`, `EMonsterStatKind.PoisonDamage`/`DamageTaken`/`KnockbackTaken`/`PoisonDuration`, `ECardId.LingeringCurse`, `PlagueToxinOnHit`/`PlagueToxinAura`, `AwakenPaid`, `CrystalPaid`, `CurrencyEntry`, `Awaken_<몬스터>`/`Nest_<몬스터>`/`Trait_<몬스터>` 를 본문 전체에서 같은 표기로 사용.
 - 스코프: 슬라이스 5개(§11.1)로 분할 구현 가능. 기획 자체는 "콘텐츠별 보상 차별화" 한 가설을 위한 한 묶음이라 기획서는 하나로 둔다.
 - UI 목업: `.mockups/monster-growth-currencies.html`.
 
@@ -1050,5 +1050,6 @@ MetaProfile (세이브 루트, Version 11 → 12)
 
 ## 변경 이력
 
+- **2026-11-01 (용어·편성 현행화)**: 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 일괄 정리(새 "종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0, 코드 `Species*` 불변). 던전 편성 개편 반영 - §3.3 둥지 숙련 적용 대상(한 몬스터 최대 1곳), §5 편성 행(코스트·상한·같은 종 제한 폐지), E-13(지금은 발생 불가), 헤더 입력의 `FormationMonster.json` 삭제 예정 표기. 등급 접두어 확정분 - §6.2 상점 항목 표시명 24개 `풋내기 <몬스터> <축>`, §8.1 상점 몬스터 행 머리 이름 2줄(접두어 위 글자 10 / 이름 아래 글자 12, 아이콘 52x52).
 - **2026-10-29**: 초안 + 사용자 결정 U-1~U-15 확정, CLAUDE.md §8 승격.
 - **2026-11-01 (구현·테스트 완료 후 현행화)**: 사용자 결정 U-16(가시 껍질 반사 0.5 올림, §3.4·§15.1) · U-17(탑·챕터 결과창 재화 칩 = 이번 판분, 소급분 = 토스트 1481, §7.2·§8.4) · U-18(유물·잔해 획득 시 승리·패배 굴림 모두 연패 카운터 0, §2.4) 반영. 구현이 기획과 다르게 한 2점을 현행으로 반영 - `TowerConfig.crystalMilestoneEvery` 0 허용(= 이정표 없음, §2.3·§6.2·§6.3), 상점 지갑·결과창 칩이 공용 알약 위젯 `CurrencyPillView` 사용(§8.1). §15.8 의 "함께 갱신할 문서" 7건은 같은 날 각 문서에 반영 완료.

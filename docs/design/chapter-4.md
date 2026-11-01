@@ -1,5 +1,7 @@
 # 챕터 4 "불꽃의 용광로" + 신규 영웅 광전사 (Berserker) - 기능 기획서
 
+> 용어 정리 (2026-11-01): 몬스터 6종을 가리키던 "종족" 표기를 "몬스터" 로 바꿨다("종족" = 이그니스 등 6묶음, `dungeon-formation.md` §0). 코드 `Species*` 불변.
+
 > 작성: game-designer · 날짜: 2026-10-17 · 단계: v0.3
 > 입력: `CLAUDE.md` §8(챕터 4 승격 2026-10-17) · `chapter-system.md`(§0.4 도출식·상한, §1 데이터 구조, §3 규칙 6종, §4 곡선, §6 월드맵) · `chapter-3-hero.md`(선례 형식·§7 구현 요청·§8 테스트) · `hero-skills.md` · `project_lair_concept.md`(§5.2 4축 시너지, §8 밸런싱) · 실제 코드/데이터(`ChapterGate.cs` · `MetaProfileMigration.cs` · `ChapterDatabase.cs` · `BattleController.cs` · `Chapter.json` · `Stage.json` · `Stage_Rule*.json` · `HeroArchetype*.json` · `hero_skills.json` · `Strings_Ko.json`)
 > **시안(합의용)**: `.mockups/scene-bg-ch4-ember.html`(배경, 3장 대비 신규) · `.mockups/hero-ch4-berserker.html`(영웅 5단계 시안 - 암살자 `hero-ch3-2d.html` 리그 재사용, 실루엣 R2'/R3' 실측 표 + 팔레트 색상각 실측). 메인이 `node .mockups/server.js` 로 `http://localhost:8777/` 제공.
@@ -175,7 +177,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=4 엔트리 5개 추가
 | 이동 | 목표 군집이 있고 목표 몬스터 거리 > `range`(1.8) | 목표 몬스터 방향으로 `moveSpeed`(3.4) 이동. 목적지는 `arenaSoftRadius` 안으로 클램프 | 거리 <= 1.8 -> 교전 |
 | 교전 | 목표 몬스터 거리 <= 1.8 | 정지 + 범위 베기(쿨다운 1.2). 군집이 베기 반경 안에서 소멸하는 동안 같은 자리 유지 | 목표 사망/소멸 -> 목표 재선택. 재평가(1.0초 주기)에서 더 큰 군집(현재 목표 군집 수 + 2 이상)이 생기면 -> 이동 |
 
-- **목표 선택**: `huntRadius`(10.0) 안 모든 몬스터 중 `clusterScore` = (그 몬스터 중심 `clusterRadius`(2.2) 안 몬스터 수, 자신 포함) 최대인 몬스터. 동점이면 영웅에게 가까운 몬스터. 봉인(`SealedNest`)된 종족은 필드에 없으므로 자연 제외. 후보가 1마리뿐이면 그 몬스터.
+- **목표 선택**: `huntRadius`(10.0) 안 모든 몬스터 중 `clusterScore` = (그 몬스터 중심 `clusterRadius`(2.2) 안 몬스터 수, 자신 포함) 최대인 몬스터. 동점이면 영웅에게 가까운 몬스터. 봉인(`SealedNest`)된 몬스터는 필드에 없으므로 자연 제외. 후보가 1마리뿐이면 그 몬스터.
 - **목표 유지**: 다른 군집 수가 현재 목표 군집 수 + `retargetCountMargin`(2) 이상일 때만 교체. 상태 전이 후 `minDwellSec`(0.4) 동안 재전이 금지.
 - 슬립·후퇴 같은 이탈 행동 없음. 공포(`FleeMode`) 카드가 걸리면 기존 순서대로 FleeMode 가 우선한다.
 
@@ -468,7 +470,7 @@ SO (Object 참조): HeroStageVariantConfig <- ChapterId=4 엔트리 5개 추가
 | `StageProgress` | 선형 <-> (챕터, 인덱스) 경계(15<->16, 20), `IsUnlocked` 챕터 경계(cleared 15 -> 16 해금, 17 잠금), `ResolveClearedStage` 상한(MaxStage=20), `ScaleStat` 단일 반올림(Berserker 0.60 x 1.55 = 46.5 -> 47 소수 경계 0.5) |
 | 마이그레이션 | v6(Cleared 0/10/15)->v6 값 보존·`Version == 6`, Cleared 16~20 보존, `StageRecords` 범위 밖(21 이상) 제거, 클라우드 복원 후 재적용 |
 | JSON 검증 | `HeroArchetype_Charge` · `HeroArchetype_Cleave` FK, aiType=Charger 영웅의 Charge row 필수, 챕터 4 스테이지 5개, 트리거 hpFraction 0.55 / 0.35 가 스킬 게이트/패시브 임계와 불일치, 규칙 필수 키 집합 일치 |
-| 군집 선택 | `clusterScore` 순위(군집 수 최대 우선, 동점 시 가까운 몬스터), `retargetCountMargin` 2 히스테리시스, 봉인 종족 제외, 후보 없음 시 제자리 대기 |
+| 군집 선택 | `clusterScore` 순위(군집 수 최대 우선, 동점 시 가까운 몬스터), `retargetCountMargin` 2 히스테리시스, 봉인 몬스터 제외, 후보 없음 시 제자리 대기 |
 | Charger 상태 | 이동->교전->재평가 전이, `minDwellSec` 진동 방지, 목적지 `arenaSoftRadius` 클램프, 공포(FleeMode) 우선, 기사·궁수·암살자 경로 회귀(동작 불변) |
 | 범위 베기 | 반경 2.2 안 가까운 순 최대 4마리, 첫 대상 100% · 나머지 x0.5, 반경 밖 제외, 단일 판정 영웅(기사·궁수·암살자) 회귀 |
 | 스킬 | 분쇄 도약 최소 거리 3.0 미만 미시전·도약 중 무적 0.3초, 사슬 갈고리 최대 6마리·4마리 미만 미시전, 피의 광란 쿨다운 x0.6 · 받는 피해 x1.2 · 6.0초 후 복구, 우선순위(갈고리 > 광란 > 도약) |
