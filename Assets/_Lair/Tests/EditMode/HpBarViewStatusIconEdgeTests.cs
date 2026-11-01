@@ -10,7 +10,7 @@ namespace Lair.Tests.EditMode
 {
     //# HpBarView 상태 아이콘 행 — 엣지/회귀 보강 (test-engineer).
     //# 기본 Add/Remove/같은key중복 정상 케이스는 HpBarViewTests 가 이미 커버 — 여기선 망라.
-    //# 다중 동시 + 부분 제거 / 슬롯 경계(>8) / 빈슬롯 후 재추가 / null sprite graceful /
+    //# 다중 동시 + 부분 제거 / 슬롯 경계(>10) / 빈슬롯 후 재추가 / null sprite graceful /
     //# 미등록 key 제거 no-op / ClearStatusIcons 를 검증한다.
     public class HpBarViewStatusIconEdgeTests
     {
@@ -19,7 +19,7 @@ namespace Lair.Tests.EditMode
         private GameObject _iconRow;
         private Image[] _iconSlots;
 
-        private const int SlotCount = 8;
+        private const int SlotCount = 10;
 
         [SetUp]
         public void SetUp()
@@ -40,7 +40,7 @@ namespace Lair.Tests.EditMode
             SetPrivate("_fill", fill);
             SetPrivate("_txtHp", txtHp);
 
-            //# 상태 아이콘 행 — 8 슬롯 Image + 컨테이너(기본 비활성).
+            //# 상태 아이콘 행 — 10 슬롯 Image + 컨테이너(기본 비활성).
             _iconRow = new GameObject("StatusIconRow");
             _iconRow.transform.SetParent(_barGo.transform, false);
             _iconSlots = new Image[SlotCount];
@@ -107,9 +107,9 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(_iconRow.activeSelf);
         }
 
-        //# 2. 슬롯 경계 — 8개 채운 뒤 9번째 추가는 graceful no-op (예외 없음, 추가 무시).
+        //# 2. 슬롯 경계 — 10개 채운 뒤 11번째 추가는 graceful no-op (예외 없음, 추가 무시).
         [Test]
-        public void AddStatusIcon_8개초과_조용히무시_예외없음()
+        public void AddStatusIcon_10개초과_조용히무시_예외없음()
         {
             Sprite sp = MakeSprite();
             for (int i = 0; i < SlotCount; i++)
@@ -117,10 +117,10 @@ namespace Lair.Tests.EditMode
                 _view.AddStatusIcon($"k{i}", sp);
             }
 
-            //# 9번째 — 빈 슬롯 없음. 예외 없이 무시.
+            //# 11번째 — 빈 슬롯 없음. 예외 없이 무시.
             Assert.DoesNotThrow(() => _view.AddStatusIcon("overflow", sp));
 
-            //# 8 슬롯 전부 활성, 추가분은 어디에도 안 들어감.
+            //# 10 슬롯 전부 활성, 추가분은 어디에도 안 들어감.
             foreach (Image slot in _iconSlots)
             {
                 Assert.IsTrue(slot.gameObject.activeSelf);
@@ -235,6 +235,27 @@ namespace Lair.Tests.EditMode
         {
             Assert.DoesNotThrow(() => _view.ClearStatusIcons());
             Assert.IsFalse(_iconRow.activeSelf);
+        }
+
+        //# 출하 프리팹 — 상태 10종 동시 표시용 10 슬롯이 모두 인스펙터 연결돼 있고, 슬롯 폭 합이 바 폭 120 안이다.
+        [Test]
+        public void 출하_HpBar_프리팹은_아이콘_슬롯_10개가_연결되고_폭_120_안이다()
+        {
+            GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Lair/Art/UI/HpBar.prefab");
+            Assert.IsNotNull(prefab);
+            HpBarView view = prefab.GetComponent<HpBarView>();
+            Image[] slots = (Image[])typeof(HpBarView).GetField("_iconSlots", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(view);
+
+            Assert.AreEqual(10, slots.Length);
+            float width = 0f;
+            foreach (Image slot in slots)
+            {
+                Assert.IsNotNull(slot);
+                width += ((RectTransform)slot.transform).sizeDelta.x;
+            }
+            HorizontalLayoutGroup row = prefab.GetComponentInChildren<HorizontalLayoutGroup>(true);
+            width += row.spacing * (slots.Length - 1);
+            Assert.LessOrEqual(width, ((RectTransform)prefab.transform).sizeDelta.x);
         }
 
         //# 참고: 같은 key 중복(슬롯 1개 유지)은 HpBarViewTests.AddStatusIcon_같은key중복_슬롯1개만사용 가

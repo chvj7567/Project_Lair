@@ -12,7 +12,7 @@ namespace Lair.Character
         [SerializeField] private Image _fill;     //# HpBar 내부 Fill (채움)
         [SerializeField] private CHText _txtHp;   //# HpBar 내부 txtHp ("현재/최대")
 
-        //# 상태 아이콘 행 — HorizontalLayoutGroup 컨테이너(기본 비활성) + 정적 8 슬롯.
+        //# 상태 아이콘 행 — HorizontalLayoutGroup 컨테이너(기본 비활성) + 정적 10 슬롯(상태 10종 동시 최악).
         //# 몬스터 바도 이 프리팹을 공유 — 컨테이너 기본 비활성이라 영웅 경로만 채워진다.
         [SerializeField] private GameObject _statusIconRow;
         [SerializeField] private Image[] _iconSlots;

@@ -41,11 +41,11 @@ namespace Lair.Tests.EditMode
                 .GetField("_txtHp", BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.SetValue(_view, _txtHp);
 
-            //# 상태 아이콘 행 위젯 — 8 슬롯 Image + 컨테이너(기본 비활성).
+            //# 상태 아이콘 행 위젯 — 10 슬롯 Image + 컨테이너(기본 비활성).
             _iconRow = new GameObject("StatusIconRow");
             _iconRow.transform.SetParent(_barGo.transform, false);
-            _iconSlots = new Image[8];
-            for (int i = 0; i < 8; i++)
+            _iconSlots = new Image[10];
+            for (int i = 0; i < 10; i++)
             {
                 _iconSlots[i] = new GameObject($"Slot{i}").AddComponent<Image>();
                 _iconSlots[i].transform.SetParent(_iconRow.transform, false);
