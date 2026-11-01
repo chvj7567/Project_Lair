@@ -80,21 +80,27 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 출하_Card_Species_16행은_모두_ECardId_값명과_편성_종이다()
+        public void 출하_Card_Species_18행은_모두_ECardId_값명과_편성_종이다()
         {
             FormationDataSet set = FormationDataSet.Shipped();
-            Assert.AreEqual(16, set.CardSpecies.Count);
+            Assert.AreEqual(18, set.CardSpecies.Count);
             string[] cardNames = Enum.GetNames(typeof(ECardId));
             foreach (Card_SpeciesRow row in set.CardSpecies)
             {
                 CollectionAssert.Contains(cardNames, row.cardId);
                 Assert.IsTrue(FormationDatabase.TryParseMonster(row.monster, out _), row.monster);
             }
-            Assert.AreEqual(16, set.CardSpecies.Select(r => r.cardId + "|" + r.monster).Distinct().Count(), "복합키 (cardId, monster) 중복 없음");
-            Assert.AreEqual(15, set.CardSpecies.Select(r => r.cardId).Distinct().Count(), "Berserk 만 두 종에 걸침");
+            Assert.AreEqual(18, set.CardSpecies.Select(r => r.cardId + "|" + r.monster).Distinct().Count(), "복합키 (cardId, monster) 중복 없음");
+            Assert.AreEqual(15, set.CardSpecies.Select(r => r.cardId).Distinct().Count(), "Berserk·두 종 데미지 카드 2장만 두 종에 걸침");
             CollectionAssert.AreEquivalent(
                 new[] { "Wisp", "Wraith" },
                 set.CardSpecies.Where(r => r.cardId == "Berserk").Select(r => r.monster).ToArray());
+            CollectionAssert.AreEquivalent(
+                new[] { "Wisp", "Wraith" },
+                set.CardSpecies.Where(r => r.cardId == "ReplaceWispsToWraith").Select(r => r.monster).ToArray());
+            CollectionAssert.AreEquivalent(
+                new[] { "Reaper", "Hex" },
+                set.CardSpecies.Where(r => r.cardId == "ReplaceReapersToHex").Select(r => r.monster).ToArray());
             Assert.DoesNotThrow(() => set.BuildCards(set.Build()));
         }
 

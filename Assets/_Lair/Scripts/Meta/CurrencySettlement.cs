@@ -19,6 +19,13 @@ namespace Lair.Meta
         public int Retroactive;
     }
 
+    //# 탑 승리 심연 결정 정산 결과 — 이번 판 층분(결과창 칩)과 소급분(토스트 1481)을 나눈다.
+    public struct TowerCrystalGain
+    {
+        public int ThisRun;
+        public int Retroactive;
+    }
+
     //# 재화 해금 규칙 (monster-growth-currencies §1) — 해금 값을 따로 저장하지 않고 그 재화를 주는 콘텐츠의 기존 해금 값을 읽는다.
     public static class CurrencyRules
     {
@@ -177,6 +184,25 @@ namespace Lair.Meta
             }
             profile.AddCurrency(ECurrency.AbyssCrystal, total);
             return total;
+        }
+
+        //# 탑 승리 한 판의 결정 — 이번 판 층이 미지급이었으면 그 층분이 이번 판분, 함께 정산된 나머지 미지급 층은 소급분.
+        public static TowerCrystalGain SettleTowerWin(MetaProfile profile, GrowthDatabase growth, TowerDatabase tower, int relicMaxIndex, int floor)
+        {
+            TowerCrystalGain gain = new TowerCrystalGain();
+            if (profile == null || profile.TowerFloorClears == null)
+                return gain;
+            foreach (TowerFloorClearEntry entry in profile.TowerFloorClears)
+            {
+                if (entry != null && entry.Floor == floor && entry.CrystalPaid == false)
+                {
+                    gain.ThisRun = CrystalsForFloor(floor, growth, tower, relicMaxIndex);
+                }
+            }
+            int total = SettleTowerCrystals(profile, growth, tower, relicMaxIndex);
+            gain.ThisRun = Math.Min(gain.ThisRun, total);
+            gain.Retroactive = total - gain.ThisRun;
+            return gain;
         }
 
         //# 데일리 판 하나의 달빛 인장 — 판 종료분 + (그날 첫 승리면) 첫 승리분, 각각 floor(기본 x 연속 배율 + 0.5) (§2.2). 지급은 호출부.

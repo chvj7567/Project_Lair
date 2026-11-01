@@ -387,6 +387,18 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 가시_껍질_반사량의_0점5는_올림한다()
+        {
+            Traits((EMonster.Wisp, 3));
+            GameObject wisp = Monster(EMonster.Wisp, Vector3.zero, 10);
+            _traits.OnMonsterConfigured(wisp, EMonster.Wisp, true);
+
+            Hit(_heroAtk, wisp.GetComponent<Health>());
+
+            Assert.AreEqual(10000 - 3, _heroHp.Current, "실제 감소 10 x 0.25 = 2.5 → 3 (독 틱과 같은 AwayFromZero)");
+        }
+
+        [Test]
         public void 가시_껍질_반사는_최소_1이다()
         {
             Traits((EMonster.Wisp, 1));

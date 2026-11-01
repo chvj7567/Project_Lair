@@ -112,13 +112,14 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 도깨비불을_사신으로_바꾸면_도깨비불_카드_3장만_제외된다()
+        public void 도깨비불을_사신으로_바꾸면_도깨비불_전용_카드_2장만_제외된다()
         {
             EMonster[] swapped = { EMonster.Reaper, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom };
             List<ECardId> excluded = Excluded(new HashSet<EMonster>(swapped)).OrderBy(id => id).ToList();
             CollectionAssert.AreEquivalent(
-                new[] { ECardId.WispHpBoost, ECardId.SpawnWisps, ECardId.ReplaceWispsToWraith }, excluded);
+                new[] { ECardId.WispHpBoost, ECardId.SpawnWisps }, excluded);
             Assert.IsTrue(_cards.IsAvailable(ECardId.Berserk, new HashSet<EMonster>(swapped).Contains), "분노는 망령이 남아 후보");
+            Assert.IsTrue(_cards.IsAvailable(ECardId.ReplaceWispsToWraith, new HashSet<EMonster>(swapped).Contains), "도깨비불·망령 데미지 카드는 망령이 남아 후보");
         }
 
         [Test]

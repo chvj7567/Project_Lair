@@ -200,6 +200,42 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 탑_승리_정산은_이번_층분과_이전_미지급_층_소급분을_나눈다()
+        {
+            GrowthDatabase growth = GrowthTestKit.Shipped();
+            TowerDatabase tower = GrowthTestKit.ShippedTower();
+            MetaProfile p = new MetaProfile();
+            int season = tower.Config.seasonId;
+            p.RecordTowerClear(1, 30f, season);
+            p.RecordTowerClear(2, 30f, season);
+            p.RecordTowerClear(3, 30f, season);
+
+            TowerCrystalGain gain = CurrencySettlement.SettleTowerWin(p, growth, tower, 2, 3);
+
+            Assert.AreEqual(1, gain.ThisRun, "이번 판 3층분만 결과창 칩");
+            Assert.AreEqual(2, gain.Retroactive, "1·2층 미지급분은 소급 토스트");
+            Assert.AreEqual(3, p.GetCurrency(ECurrency.AbyssCrystal));
+        }
+
+        [Test]
+        public void 이미_결정을_받은_층을_다시_깨면_이번_판분은_0이다()
+        {
+            GrowthDatabase growth = GrowthTestKit.Shipped();
+            TowerDatabase tower = GrowthTestKit.ShippedTower();
+            MetaProfile p = new MetaProfile();
+            int season = tower.Config.seasonId;
+            p.RecordTowerClear(1, 30f, season);
+            CurrencySettlement.SettleTowerCrystals(p, growth, tower, 2);
+            p.RecordTowerClear(1, 20f, season);
+
+            TowerCrystalGain gain = CurrencySettlement.SettleTowerWin(p, growth, tower, 2, 1);
+
+            Assert.AreEqual(0, gain.ThisRun);
+            Assert.AreEqual(0, gain.Retroactive);
+            Assert.AreEqual(1, p.GetCurrency(ECurrency.AbyssCrystal));
+        }
+
+        [Test]
         public void 시즌이_바뀌면_지난_시즌_미지급_층은_지급하지_않고_보유_결정은_유지된다()
         {
             GrowthDatabase growth = GrowthTestKit.Shipped();

@@ -129,7 +129,7 @@ namespace Lair.Battle
             //# amount = 도깨비불이 실제로 잃은 HP (MeleeAttacker 가 TakeDamage 전후 차이로 통지).
             if (amount <= 0)
                 return;
-            _hero.TakeDamage(Mathf.Max(1, Mathf.RoundToInt(amount * Param(EMonster.Wisp, "reflectRatio"))));
+            _hero.TakeDamage(Math.Max(1, (int)Math.Round(amount * Param(EMonster.Wisp, "reflectRatio"), MidpointRounding.AwayFromZero)));
         }
 
         //# 저주 누적 — 저주술사 적중마다 영웅 받는 피해 +perStack/중첩, 마지막 적중 후 stackSec 유지.

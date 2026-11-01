@@ -1956,19 +1956,24 @@ namespace Lair.Battle
                 return gains;
             if (_spec.IsTower)
             {
-                CurrencySettlement.AddGain(gains, ECurrency.AbyssCrystal,
-                    CurrencySettlement.SettleTowerCrystals(profile, growth, TowerDatabase.Current, DifficultyTable.CurrentMaxIndex));
+                TowerCrystalGain crystal = CurrencySettlement.SettleTowerWin(profile, growth, TowerDatabase.Current, DifficultyTable.CurrentMaxIndex, _spec.Floor.Floor);
+                CurrencySettlement.AddGain(gains, ECurrency.AbyssCrystal, crystal.ThisRun);
+                ShowRetroToast(ECurrency.AbyssCrystal, crystal.Retroactive, growth);
                 return gains;
             }
             ChapterAwakenGain awaken = CurrencySettlement.SettleChapterWin(profile, growth, _effectiveDifficulty, awakenPaidBefore);
             CurrencySettlement.AddGain(gains, ECurrency.AwakenStone, awaken.ThisRun);
-            //# 같은 정산이 함께 지급한 업데이트 이전 기록분 — 결과창 칩이 아니라 소급 토스트(1481)로 알린다.
-            if (awaken.Retroactive > 0)
-            {
-                ToastView.Show(string.Format(LookupFormat(GrowthStrings.RetroReward, "이전 기록 보상 {0} +{1}"),
-                    GrowthText.CurrencyName(ECurrency.AwakenStone, growth, id => LookupFormat(id, string.Empty)), awaken.Retroactive));
-            }
+            ShowRetroToast(ECurrency.AwakenStone, awaken.Retroactive, growth);
             return gains;
+        }
+
+        //# 같은 정산이 함께 지급한 업데이트 이전 기록분 — 결과창 칩이 아니라 소급 토스트(1481)로 알린다.
+        private void ShowRetroToast(ECurrency currency, int amount, GrowthDatabase growth)
+        {
+            if (amount < 1)
+                return;
+            ToastView.Show(string.Format(LookupFormat(GrowthStrings.RetroReward, "이전 기록 보상 {0} +{1}"),
+                GrowthText.CurrencyName(currency, growth, id => LookupFormat(id, string.Empty)), amount));
         }
 
         //# 데일리 판 종료 정산 결과 — 결과창·순위 제출 입력.
