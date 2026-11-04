@@ -18,6 +18,11 @@ namespace Lair.Character
         //# index0=Lv0(티어0) · 1=T1 · 2=T2 · 3=T3, 종별 §6.3.7 표의 월드 높이값.
         [SerializeField] private float[] _hpBarHeightByTier;
 
+        //# 등급 외형(monster-grades §3.2) — 1등급 프리팹은 기본값(하한 0, 종족 발광색)이라 현행과 같다. 등급 Variant 가 직렬화로 덮는다.
+        [SerializeField] private float _gradeEmissionFloor;      //# 등급 발광 하한 [0, 0, 1.5, 2.3, 3.2]
+        [SerializeField] private bool _useGradeGlowColor;        //# 등급 3~5 = 등급 발광색, 1·2 = SpeciesGlowColor
+        [SerializeField] private Color _gradeGlowColor = Color.white;
+
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
         private const int MaxLevel = 5;
@@ -27,13 +32,15 @@ namespace Lair.Character
         //# 레벨(0~5)→바닥 문장 단계(0=숨김·1=링1·2=링2·3=링2+파편) — Lv2·Lv4·Lv5 에서 갱신(§6.3.1).
         private static readonly int[] SigilStageByLevel = { 0, 0, 1, 1, 2, 3 };
 
-        //# level: 0 = 미강화(발광 off), 1~N = _emissionByLevel[level-1] 세기 × SpeciesGlowColor(species).
-        //# 발광 판정은 기존 계약 그대로(변경 없음) — 티어/문장/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
+        //# level: 0 = 미강화, 1~N = _emissionByLevel[level-1] 세기. 세기 = max(등급 하한, 강화 곡선)(monster-grades §3.2), 0 이면 발광 off.
+        //# 색 = 등급 발광색(등급 3~5) 또는 SpeciesGlowColor(species). 티어/문장/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
         public void ApplyLevel(int level, EMonster species)
         {
-            bool on = level >= 1 && _emissionByLevel != null && level <= _emissionByLevel.Length;
-            float intensity = on ? Mathf.Max(0f, _emissionByLevel[level - 1]) : 0f;
-            Color emission = on ? SpeciesVisual.SpeciesGlowColor(species) * intensity : Color.black;
+            bool curveOn = level >= 1 && _emissionByLevel != null && level <= _emissionByLevel.Length;
+            float intensity = Mathf.Max(_gradeEmissionFloor, curveOn ? Mathf.Max(0f, _emissionByLevel[level - 1]) : 0f);
+            bool on = intensity > 0f;
+            Color glow = _useGradeGlowColor ? _gradeGlowColor : SpeciesVisual.SpeciesGlowColor(species);
+            Color emission = on ? glow * intensity : Color.black;
             ApplyEmission(on, emission);
 
             int clampedLevel = Mathf.Clamp(level, 0, MaxLevel);

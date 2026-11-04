@@ -56,6 +56,13 @@
         Hex,       //# 저주술사 — 원거리 캐스터 (구 Archer, 3)
         Plague,    //# 역병귀 — 둔화 디버퍼 (구 Spider, 4)
         Phantom,   //# 환령 — 스웜 (구 Bat, 5)
+        //# 몬스터 등급 2~5 (monster-grades §11) — <기준>G<등급>. 정수 직렬화라 append-only, 순서 = 기준 6종 순 x 등급 2~5 (MonsterGrades 가 산술로 해석).
+        WispG2, WispG3, WispG4, WispG5,
+        WraithG2, WraithG3, WraithG4, WraithG5,
+        ReaperG2, ReaperG3, ReaperG4, ReaperG5,
+        HexG2, HexG3, HexG4, HexG5,
+        PlagueG2, PlagueG3, PlagueG4, PlagueG5,
+        PhantomG2, PhantomG3, PhantomG4, PhantomG5,
     }
 
     //# CHMSound 채널 키. 값명 = 에셋 파일명(Bgm.mp3) 정확 일치(Rule 03 §2).

@@ -236,7 +236,7 @@ namespace Lair.Battle
             Hook hook = new Hook
             {
                 Transform = t,
-                Species = tag != null ? tag.Key : (EMonster)(-1),
+                Species = tag != null ? MonsterGrades.BaseOf(tag.Key) : (EMonster)(-1),
                 Health = t.GetComponent<Health>(),
                 Attacker = t.GetComponent<MeleeAttacker>(),
                 Mover = t.GetComponent<SimpleMover>(),

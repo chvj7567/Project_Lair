@@ -411,7 +411,7 @@ namespace Lair.UI
             {
                 Spawner sp = _attachedSpawners[i];
                 if (sp == null) continue;
-                if (sp.CurrentType == type) RecomputeAt(i);
+                if (MonsterGrades.SameSpecies(sp.CurrentType, type)) RecomputeAt(i);
             }
         }
 

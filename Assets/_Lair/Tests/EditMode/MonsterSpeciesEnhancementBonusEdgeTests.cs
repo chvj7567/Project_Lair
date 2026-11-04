@@ -155,7 +155,7 @@ namespace Lair.Tests.EditMode
 
             MetaBattleBonus bonus = MetaBattleBonus.From(oldProfile, cfg);
 
-            foreach (EMonster species in System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
                 Assert.AreEqual(1f, bonus.GetSpeciesMul(species), 1e-4f, $"{species} 구세이브 기본 1배수");
             }

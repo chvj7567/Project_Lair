@@ -77,7 +77,7 @@ namespace Lair.Battle
                     //# 적용 종 한정 매핑이 있으면 tag.Key 가 그 집합에 들어있을 때만 적용.
                     if (TargetTypes.TryGetValue(b.Type, out HashSet<EMonster> allowed))
                     {
-                        if (tag == null || allowed.Contains(tag.Key) == false) continue;
+                        if (tag == null || allowed.Contains(MonsterGrades.BaseOf(tag.Key)) == false) continue;
                     }
 
                     switch (b.Type)

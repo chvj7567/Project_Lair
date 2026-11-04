@@ -16,7 +16,7 @@ namespace Lair.Tests.EditMode
     public class GrowthShopAndShardSuiteTests : RelicStaticStateTestBase
     {
         private const string MetaConfigPath = "Assets/_Lair/Data/MetaConfig.asset";
-        private static readonly EMonster[] Species = (EMonster[])Enum.GetValues(typeof(EMonster));
+        private static readonly EMonster[] Species = System.Linq.Enumerable.ToArray(MonsterGrades.BaseMonsters);
 
         private GrowthDatabase _prevGrowth;
 

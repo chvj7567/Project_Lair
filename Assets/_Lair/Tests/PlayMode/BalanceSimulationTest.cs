@@ -45,7 +45,7 @@ namespace Lair.Tests.PlayMode
         private const int GateGamesPerScenario = 30;
 
         //# 게이트 시드 대상 6종 — Enhance_<EMonster> Id 로 MetaSession.Profile 에 강화 레벨 주입.
-        private static readonly EMonster[] AllSpecies = (EMonster[])System.Enum.GetValues(typeof(EMonster));
+        private static readonly EMonster[] AllSpecies = System.Linq.Enumerable.ToArray(MonsterGrades.BaseMonsters);
 
         //# LairTestRunner.KeyExcludeSim 과 동일 문자열 — Editor 어셈블리 참조를 끌어오지 않으려 리터럴로 미러.
         //# 값이 바뀌면 LairTestRunner 와 이 상수를 함께 갱신해야 한다.

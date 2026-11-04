@@ -46,7 +46,7 @@ namespace Lair.Tests.EditMode
         public void 도감_몬스터_해금_셀은_종별_아이콘을_싣는다()
         {
             MetaProfile profile = new MetaProfile();
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 profile.SeenMonsters.Add(type.ToString());
             }
@@ -54,7 +54,7 @@ namespace Lair.Tests.EditMode
 
             List<CodexCellData> list = CodexPopup.BuildMonsterCellData(profile, NewConfig(), _ => icon);
 
-            int monsterCount = Enum.GetValues(typeof(EMonster)).Length;
+            int monsterCount = MonsterGrades.BaseMonsters.Count;
             for (int i = 0; i < monsterCount; ++i)
             {
                 Assert.AreSame(icon, list[i].Icon, $"몬스터 {i}번 셀에 아이콘 누락");

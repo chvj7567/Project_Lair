@@ -51,14 +51,14 @@ namespace Lair.Data
         public float[] PassiveThresholds => _passiveThresholds;
         public float[] ActiveThresholds => _activeThresholds;
 
-        //# EMonster 키로 스탯 행 조회. 미발견 시 null + 경고.
+        //# EMonster 키로 스탯 행 조회 — 등급 몬스터는 기준 몬스터 행(monster-grades §6). 미발견 시 null + 경고.
         public CharacterStat GetMonster(EMonster key)
         {
             if (_monsters != null)
             {
                 foreach (MonsterStatRow row in _monsters)
                 {
-                    if (row != null && row.Key == key) return row.Stat;
+                    if (row != null && row.Key == MonsterGrades.BaseOf(key)) return row.Stat;
                 }
             }
             Debug.LogWarning($"[BalanceConfig] 몬스터 스탯 미발견: {key}");
@@ -72,7 +72,7 @@ namespace Lair.Data
             {
                 foreach (MonsterStatRow row in _monsters)
                 {
-                    if (row != null && row.Key == key) return row.SpawnPeriod;
+                    if (row != null && row.Key == MonsterGrades.BaseOf(key)) return row.SpawnPeriod;
                 }
             }
             Debug.LogWarning($"[BalanceConfig] 스폰 주기 미발견: {key}");

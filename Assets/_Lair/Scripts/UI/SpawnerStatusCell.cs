@@ -146,7 +146,7 @@ namespace Lair.UI
             //# 종명 한글 — SpeciesVisual 단일 SoT (인게임 표기 통일).
             if (_speciesText != null)
             {
-                _speciesText.SetText(SpeciesVisual.SpeciesName(snapshot.CurrentType));
+                _speciesText.SetText(SpeciesVisual.MonsterName(snapshot.CurrentType, FormationDatabase.Current, LookupText));
             }
 
             //# ×N — N≥2 일 때만 노출.
@@ -166,7 +166,7 @@ namespace Lair.UI
             int lv = 0;
             if (iconSprite != null)
             {
-                lv = Mathf.Clamp(MetaSession.GetOrLoad().GetShopLevel("Enhance_" + snapshot.CurrentType), 0, EnhanceLevelVisual.MaxLevel);
+                lv = Mathf.Clamp(MetaSession.GetOrLoad().GetShopLevel("Enhance_" + MonsterGrades.BaseOf(snapshot.CurrentType)), 0, EnhanceLevelVisual.MaxLevel);
             }
             EnhanceLevelVisual.Apply(lv, snapshot.CurrentType, _icon, _glowOverlay, _levelBadge, _iconRect, Color.white);
             //# Apply 는 _levelBadge(자식 텍스트)만 토글 — 다크 칩 부모까지 lv0 에 통째 숨기려 셀이 부모를 토글(§10).
@@ -208,8 +208,13 @@ namespace Lair.UI
             return RemainingText(_progressSource.RemainingSeconds);
         }
 
+        private static string LookupText(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
         //# 종 → 중앙 아이콘 스프라이트 매핑 (인스펙터 직접 참조). 미할당이면 null → 아이콘 숨김.
-        private Sprite SpeciesSprite(EMonster type) => type switch
+        private Sprite SpeciesSprite(EMonster type) => MonsterGrades.BaseOf(type) switch
         {
             EMonster.Wisp    => _wispIcon,
             EMonster.Wraith  => _wraithIcon,
@@ -221,7 +226,7 @@ namespace Lair.UI
         };
 
         //# 종 색상 매핑 (기획서 §2.4 · 컨셉 §11.4).
-        public static Color SpeciesColor(EMonster type) => type switch
+        public static Color SpeciesColor(EMonster type) => MonsterGrades.BaseOf(type) switch
         {
             EMonster.Wisp    => new Color(0.133f, 0.773f, 0.369f, 1f),   //# #22C55E
             EMonster.Wraith  => new Color(0.420f, 0.447f, 0.502f, 1f),   //# #6B7280

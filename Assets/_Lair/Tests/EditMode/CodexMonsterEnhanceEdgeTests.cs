@@ -30,7 +30,7 @@ namespace Lair.Tests.EditMode
         private static MetaProfile AllSeen()
         {
             MetaProfile p = new MetaProfile();
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 p.SeenMonsters.Add(type.ToString());
             }
@@ -43,7 +43,7 @@ namespace Lair.Tests.EditMode
         {
             List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
 
-            EMonster[] all = (EMonster[])Enum.GetValues(typeof(EMonster));
+            EMonster[] all = System.Linq.Enumerable.ToArray(MonsterGrades.BaseMonsters);
             Assert.AreEqual(all.Length, list.Count, "잠금 더미 0일 때 몬스터 셀 수 = 종족 수");
             for (int i = 0; i < all.Length; ++i)
             {
@@ -57,7 +57,7 @@ namespace Lair.Tests.EditMode
         {
             List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
 
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 CodexCellData cell = list.Find(c => c.Species == type);
                 Assert.IsNotNull(cell);
@@ -71,7 +71,7 @@ namespace Lair.Tests.EditMode
         {
             List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
 
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 CodexCellData cell = list.Find(c => c.Species == type);
                 Assert.IsNotNull(cell);

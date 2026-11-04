@@ -213,7 +213,7 @@ namespace Lair.Tests.EditMode
         {
             ChapterDatabase db = WorldMapTestSupport.ShippedDb();
 
-            foreach (EMonster species in Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
                 Assert.AreEqual(0, StageRuleText.SealUnlockHpPercent(db.GetRules(1, 2)[0], species), "샘");
                 Assert.AreEqual(0, StageRuleText.SealUnlockHpPercent(db.GetRules(1, 5)[0], species), "결계");
@@ -232,7 +232,7 @@ namespace Lair.Tests.EditMode
                 {
                     foreach (StageRuleData data in db.GetRules(chapter, stage))
                     {
-                        foreach (EMonster species in Enum.GetValues(typeof(EMonster)))
+                        foreach (EMonster species in MonsterGrades.BaseMonsters)
                         {
                             int percent = StageRuleText.SealUnlockHpPercent(data, species);
                             if (percent > 0)

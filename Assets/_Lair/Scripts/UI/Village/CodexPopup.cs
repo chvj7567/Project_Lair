@@ -138,7 +138,8 @@ namespace Lair.UI
 
             List<CodexCellData> cells = _showCards
                 ? BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards)
-                : BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon);
+                : BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon, FormationDatabase.Current,
+                    id => CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty);
             if (_collectedText != null)
             {
                 _collectedText.SetText(BuildCollectedText(cells));
@@ -182,7 +183,15 @@ namespace Lair.UI
         }
 
         //# 종 → 도감 아이콘 매핑 (인스펙터 직접 참조). 미할당이면 null → 색칩 fallback.
-        private Sprite SpeciesIcon(EMonster type) => type switch
+        //# 종족 보유 최고 등급 몬스터 — 편성 데이터가 없으면 기준 몬스터.
+        private static EMonster OwnedTopOf(EMonster baseMonster, MetaProfile profile, FormationDatabase formation)
+        {
+            if (formation == null || formation.TryGetRace(baseMonster, out ERace race) == false)
+                return baseMonster;
+            return formation.HighestOwned(race, profile.GetRaceGrade(race));
+        }
+
+        private Sprite SpeciesIcon(EMonster type) => MonsterGrades.BaseOf(type) switch
         {
             EMonster.Wisp    => _wispIcon,
             EMonster.Wraith  => _wraithIcon,
@@ -195,18 +204,23 @@ namespace Lair.UI
 
         //# 몬스터 탭 — 6종 + 잠금 더미 (해금 = SeenMonsters 포함, 기획서 §6).
         //# 미조우도 아이콘은 싣는다 — CodexCell 이 SilhouetteColor 틴트로 실루엣 처리.
+        //# 도감은 기준 몬스터 6칸(등급 몬스터는 기준 항목에 합산, monster-grades §6). 이름 = 그 종족 보유 최고 등급 접두어 + 기존 이름.
         public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg, Func<EMonster, Sprite> iconResolver)
+            => BuildMonsterCellData(profile, cfg, iconResolver, null, null);
+
+        public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg, Func<EMonster, Sprite> iconResolver,
+            FormationDatabase formation, Func<int, string> text)
         {
             List<CodexCellData> list = new List<CodexCellData>();
             if (profile == null || cfg == null)
                 return list;
 
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 bool seen = profile.SeenMonsters.Contains(type.ToString());
                 list.Add(new CodexCellData
                 {
-                    DisplayName = seen ? SpeciesVisual.SpeciesName(type) : "???",
+                    DisplayName = seen ? SpeciesVisual.MonsterName(OwnedTopOf(type, profile, formation), formation, text) : "???",
                     Unlocked = seen,
                     Icon = iconResolver != null ? iconResolver(type) : null,
                     TintColor = SpawnerStatusCell.SpeciesColor(type),

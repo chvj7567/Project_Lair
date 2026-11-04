@@ -32,7 +32,7 @@ namespace Lair.Battle
                 if (filter.HasValue)
                 {
                     MonsterTag tag = e.Transform != null ? e.Transform.GetComponent<MonsterTag>() : null;
-                    if (tag == null || tag.Key != filter.Value) continue;
+                    if (tag == null || MonsterGrades.SameSpecies(tag.Key, filter.Value) == false) continue;
                 }
                 result.Add(e.Health);
             }

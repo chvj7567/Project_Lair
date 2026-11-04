@@ -738,19 +738,24 @@ namespace Lair.Battle
             => ApplyMonsterStatsCore(character, key, resetCurrent);
 
         //# 반환 = 그 몬스터의 Health (스폰 경로가 스폰 보호를 거는 데 재사용 — GetComponent 중복 회피). 적용 불가면 null.
+        //# key = 그 개체의 EMonster(등급 몬스터면 <기준>G<n>). 스탯·배율·육성·카드는 기준 몬스터 키, HP·공격력만 개체 등급 배율을 곱한다(monster-grades §6).
         private Health ApplyMonsterStatsCore(GameObject character, EMonster key, bool resetCurrent)
         {
             if (character == null)
                 return null;
-            BalanceConfig.CharacterStat raw = _balance?.GetMonster(key);
+            EMonster species = MonsterGrades.BaseOf(key);
+            BalanceConfig.CharacterStat raw = _balance?.GetMonster(species);
             if (raw == null)
                 return null;
-            StatMultiplier mul = _typeModifiers.TryGetValue(key, out StatMultiplier m) ? m : StatMultiplier.Identity;
+            StatMultiplier mul = _typeModifiers.TryGetValue(species, out StatMultiplier m) ? m : StatMultiplier.Identity;
+            FormationDatabase formation = FormationDatabase.Current;
+            float gradeHp = formation != null ? formation.HpMulOf(key) : 1f;
+            float gradeAtk = formation != null ? formation.AtkMulOf(key) : 1f;
 
             Health health = character.GetComponent<Health>();
             if (health != null)
             {
-                health.SetMax(Mathf.Max(1, Mathf.RoundToInt(raw.Hp * mul.HpMul)), resetCurrent);
+                health.SetMax(Mathf.Max(1, Mathf.RoundToInt(raw.Hp * mul.HpMul * gradeHp)), resetCurrent);
                 //# 각성 받는 피해·넉백 — DamageTakenScale 을 덮지 않는 별도 배율 (monster-growth-currencies §3.2).
                 health.ConfigureGrowthTaken(mul.DamageTakenMul, mul.KnockbackTakenMul);
             }
@@ -767,7 +772,7 @@ namespace Lair.Battle
                 attacker.Configure(
                     range,
                     Mathf.Max(0.05f, raw.Cooldown * mul.CooldownMul),
-                    Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul)));
+                    Mathf.Max(1, Mathf.RoundToInt(raw.Power * mul.PowerMul * gradeAtk)));
             }
 
             SimpleMover mover = character.GetComponent<SimpleMover>();
@@ -790,12 +795,12 @@ namespace Lair.Battle
             Lair.Character.MonsterEnhancementVisual visual = character.GetComponent<Lair.Character.MonsterEnhancementVisual>();
             if (visual != null)
             {
-                int level = _speciesLevels.TryGetValue(key, out int lv) ? lv : 0;
-                visual.ApplyLevel(level, key);
+                int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
+                visual.ApplyLevel(level, species);
             }
 
-            //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다.
-            _traits?.OnMonsterConfigured(character, key, resetCurrent);
+            //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다. 특성은 기준 몬스터 단위.
+            _traits?.OnMonsterConfigured(character, species, resetCurrent);
             return health;
         }
 
@@ -1139,7 +1144,7 @@ namespace Lair.Battle
                 //# BalanceConfig 종별 base 주기 주입 — 카드 ScalePeriod(곱연산) 보다 시간상 먼저 (기획서 §3.3).
                 if (_balance != null)
                 {
-                    sp.SetBasePeriod(_balance.GetSpawnPeriod(sp.CurrentType));
+                    sp.SetBasePeriod(_balance.GetSpawnPeriod(MonsterGrades.BaseOf(sp.CurrentType)));
                 }
             }
             //# 전투 시작 직후 스폰 개시 — 영웅 입장 완료를 기다리지 않고 첫 Tick 에 즉시 첫 스폰.
@@ -1159,10 +1164,11 @@ namespace Lair.Battle
             {
                 if (sp == null)
                     continue;
-                BalanceConfig.CharacterStat raw = _balance.GetMonster(sp.CurrentType);
+                EMonster species = MonsterGrades.BaseOf(sp.CurrentType);
+                BalanceConfig.CharacterStat raw = _balance.GetMonster(species);
                 if (raw == null)
                     continue;
-                StatMultiplier mul = _typeModifiers.TryGetValue(sp.CurrentType, out StatMultiplier m) ? m : StatMultiplier.Identity;
+                StatMultiplier mul = _typeModifiers.TryGetValue(species, out StatMultiplier m) ? m : StatMultiplier.Identity;
                 Vector3 d = sp.transform.position - center;
                 float distance = new Vector2(d.x, d.z).magnitude;
                 sp.SetFirstSpawnDelay(SpawnTravelCompensation.FirstSpawnDelay(
@@ -1184,7 +1190,7 @@ namespace Lair.Battle
             MetaBattleBonus bonus = MetaBattleBonus.From(profile, _metaConfig);
 
             //# 몬스터 전종 글로벌 — 카드 RegisterMonsterTypeBuff 와 동일 표면(StatMultiplier)에서 곱연산 누적.
-            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
                 {
@@ -1202,7 +1208,7 @@ namespace Lair.Battle
             }
 
             //# 종족별 강화 — 전종 글로벌과 같은 _typeModifiers 표면의 Hp·Power 축에 곱연산 접기(monster-species-enhancement §2).
-            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 float speciesMul = bonus.GetSpeciesMul(type);
                 if (Mathf.Approximately(speciesMul, 1f))
@@ -1218,7 +1224,7 @@ namespace Lair.Battle
             }
 
             //# 각성 — 종족 x 스탯 독립 곱 축(AwakenStat.json, monster-growth-currencies §3.2). 같은 _typeModifiers 표면.
-            foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 foreach (EMonsterStatKind kind in (EMonsterStatKind[])System.Enum.GetValues(typeof(EMonsterStatKind)))
                 {
@@ -1249,7 +1255,7 @@ namespace Lair.Battle
             GrowthDatabase growth = GrowthDatabase.Current;
             if (growth != null)
             {
-                foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+                foreach (EMonster type in MonsterGrades.BaseMonsters)
                 {
                     int nestLevel = bonus.GetNestLevel(type);
                     if (nestLevel > 0)
@@ -1262,7 +1268,7 @@ namespace Lair.Battle
             {
                 foreach (Spawner sp in _spawners)
                 {
-                    if (sp != null && _nestEffects.TryGetValue(sp.CurrentType, out NestMasteryEffects nest) && Mathf.Approximately(nest.PeriodMul, 1f) == false)
+                    if (sp != null && _nestEffects.TryGetValue(MonsterGrades.BaseOf(sp.CurrentType), out NestMasteryEffects nest) && Mathf.Approximately(nest.PeriodMul, 1f) == false)
                     {
                         sp.ScalePeriod(nest.PeriodMul);
                     }
@@ -1307,7 +1313,7 @@ namespace Lair.Battle
                 float mul = _relicBonus.GetStatMul(kind);
                 if (Mathf.Approximately(mul, 1f))
                     continue;
-                foreach (EMonster type in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+                foreach (EMonster type in MonsterGrades.BaseMonsters)
                 {
                     if (_typeModifiers.TryGetValue(type, out StatMultiplier m) == false)
                     {
@@ -1365,7 +1371,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && _nestEffects.TryGetValue(sp.CurrentType, out NestMasteryEffects nest) && nest.FirstSpawnAdvanceSec > 0f)
+                if (sp != null && _nestEffects.TryGetValue(MonsterGrades.BaseOf(sp.CurrentType), out NestMasteryEffects nest) && nest.FirstSpawnAdvanceSec > 0f)
                 {
                     sp.AdvanceFirstSpawnDelay(nest.FirstSpawnAdvanceSec);
                 }
@@ -1433,7 +1439,7 @@ namespace Lair.Battle
                 return false;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && sp.IsLocked && sp.CurrentType == species)
+                if (sp != null && sp.IsLocked && MonsterGrades.SameSpecies(sp.CurrentType, species))
                     return true;
             }
             return false;
@@ -1511,8 +1517,8 @@ namespace Lair.Battle
         {
             if (_model != null && _model.Result != BattleResult.None)
                 return;
-            //# v0.2 메타 — 도감 등장 종 기록 (HashSet — 중복 무해).
-            _seenMonsters.Add(type);
+            //# v0.2 메타 — 도감 등장 종 기록 (HashSet — 중복 무해). 등급 몬스터는 기준 몬스터 항목에 합산(monster-grades §6).
+            _seenMonsters.Add(MonsterGrades.BaseOf(type));
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(type);
             if (prefab == null)
@@ -1532,7 +1538,7 @@ namespace Lair.Battle
                 p.transform.position = exactPos + offset;
                 Health spawned = ApplyMonsterStatsCore(p.gameObject, type, resetCurrent: true);
                 //# 둥지 숙련 Lv3 스폰 보호 — 둥지에서 나온 몬스터만(카드·유물 소환 제외), 스폰 직후 durationSec 동안 받는 피해 배율.
-                if (spawned != null && _nestEffects.TryGetValue(type, out NestMasteryEffects nest) && nest.GuardSec > 0f)
+                if (spawned != null && _nestEffects.TryGetValue(MonsterGrades.BaseOf(type), out NestMasteryEffects nest) && nest.GuardSec > 0f)
                 {
                     spawned.GrantSpawnGuard(nest.GuardDamageTakenMul, nest.GuardSec);
                 }
@@ -1559,7 +1565,9 @@ namespace Lair.Battle
             {
                 if (plague.Key == null || plague.Key.gameObject.activeInHierarchy == false || plague.Value == null || plague.Value.IsAlive == false)
                     continue;
-                ApplyMonsterStatsCore(plague.Key.gameObject, EMonster.Plague, resetCurrent: false);
+                //# 등급 역병귀의 HP·공격력 배율을 잃지 않게 개체 자신의 키로 재적용한다.
+                MonsterTag plagueTag = plague.Key.GetComponent<MonsterTag>();
+                ApplyMonsterStatsCore(plague.Key.gameObject, plagueTag != null ? plagueTag.Key : EMonster.Plague, resetCurrent: false);
             }
         }
 
@@ -1580,9 +1588,9 @@ namespace Lair.Battle
                 if (e?.Health == null || e.Health.IsAlive == false || e.Transform == null)
                     continue;
                 MonsterTag tag = e.Transform.GetComponent<MonsterTag>();
-                if (tag == null || tag.Key != type)
+                if (tag == null || MonsterGrades.SameSpecies(tag.Key, type) == false)
                     continue;
-                ApplyMonsterStats(e.Transform.gameObject, type, resetCurrent: false);
+                ApplyMonsterStats(e.Transform.gameObject, tag.Key, resetCurrent: false);
             }
 
             //# 카드 source 가 있으면 픽 누적 추적 (직접 호출 / 시뮬레이션 외 경로는 _currentCardScope null).
@@ -1678,7 +1686,7 @@ namespace Lair.Battle
 
         //# 스포너 상태 UI — VM 이 SpawnerSnapshot 채울 때 사용. 없는 종이면 빈 array.
         public IReadOnlyList<BattleViewModel.AppliedBuff> GetAppliedBuffs(EMonster type)
-            => _typeModifierPicks.TryGetValue(type, out List<BattleViewModel.AppliedBuff> list)
+            => _typeModifierPicks.TryGetValue(MonsterGrades.BaseOf(type), out List<BattleViewModel.AppliedBuff> list)
                 ? (IReadOnlyList<BattleViewModel.AppliedBuff>)list
                 : System.Array.Empty<BattleViewModel.AppliedBuff>();
 
@@ -1694,7 +1702,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && sp.CurrentType == type)
+                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, type))
                 {
                     sp.IncrementOutput();
                 }
@@ -1717,7 +1725,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && sp.CurrentType == from)
+                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, from))
                 {
                     sp.ReplaceOutput(to);
                 }
@@ -1760,7 +1768,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && sp.CurrentType == type)
+                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, type))
                 {
                     sp.ScalePeriod(mul);
                 }
@@ -2165,7 +2173,7 @@ namespace Lair.Battle
         {
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && sp.CurrentType == species)
+                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, species))
                     return true;
             }
             return false;
@@ -2527,8 +2535,10 @@ namespace Lair.Battle
         {
             if (_model != null && _model.Result != BattleResult.None)
                 return;
+            //# 카드·유물이 기준 몬스터로 소환하면 그 종족에 편성된 등급 몬스터로 나온다(풀 워밍 대상과 같은 프리팹).
+            key = DeployedOf(key);
             //# v0.2 메타 — 도감 등장 종 기록 (카드 소환 경로 포함).
-            _seenMonsters.Add(key);
+            _seenMonsters.Add(MonsterGrades.BaseOf(key));
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null)
@@ -2545,6 +2555,19 @@ namespace Lair.Battle
             p.transform.position = nearHero + offset;
             //# 지속 스폰 — 카드 소환 몬스터도 글로벌 타입 모디파이어 적용 (신규 Pop → resetCurrent:true)
             ApplyMonsterStats(p.gameObject, key, resetCurrent: true);
+        }
+
+        //# 그 종족으로 이번 판 출전 중인 몬스터 — 편성 비활성·미편성이면 요청 값 그대로.
+        private EMonster DeployedOf(EMonster monster)
+        {
+            if (_formation == null)
+                return monster;
+            foreach (EMonster deployed in _formation)
+            {
+                if (MonsterGrades.SameSpecies(deployed, monster))
+                    return deployed;
+            }
+            return monster;
         }
 
 #if UNITY_EDITOR

@@ -30,7 +30,7 @@ namespace Lair.Tests.EditMode
             Dictionary<EMonster, StatMultiplier> typeMods = new Dictionary<EMonster, StatMultiplier>();
 
             //# 1) 글로벌 스탯 — 모든 종에 같은 배수 적용(ApplyMetaBonuses 전반 루프).
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 foreach (EMonsterStatKind kind in (EMonsterStatKind[])Enum.GetValues(typeof(EMonsterStatKind)))
                 {
@@ -42,7 +42,7 @@ namespace Lair.Tests.EditMode
             }
 
             //# 2) 종족 강화 — Hp·Power 두 축에 단일 배수(ApplyMetaBonuses 후반 루프).
-            foreach (EMonster type in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster type in MonsterGrades.BaseMonsters)
             {
                 float speciesMul = bonus.GetSpeciesMul(type);
                 if (Mathf.Approximately(speciesMul, 1f))

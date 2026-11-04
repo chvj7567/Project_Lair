@@ -737,7 +737,7 @@ namespace Lair.Tests.EditMode
         {
             MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
             MetaProfile p = new MetaProfile();
-            foreach (EMonster m in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster m in MonsterGrades.BaseMonsters)
             {
                 p.SetShopLevel("Awaken_" + m, 5);
             }

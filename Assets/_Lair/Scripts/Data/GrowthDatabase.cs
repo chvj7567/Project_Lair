@@ -322,7 +322,7 @@ namespace Lair.Data
                 }
                 list.Add(row);
             }
-            foreach (EMonster monster in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster monster in MonsterGrades.BaseMonsters)
             {
                 if (grouped.TryGetValue(monster, out List<AwakenStatRow> list) == false)
                 {
@@ -429,7 +429,7 @@ namespace Lair.Data
                 _traits[monster] = row;
                 _traitKinds[monster] = trait;
             }
-            foreach (EMonster monster in (EMonster[])Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster monster in MonsterGrades.BaseMonsters)
             {
                 if (_traits.ContainsKey(monster) == false)
                 {

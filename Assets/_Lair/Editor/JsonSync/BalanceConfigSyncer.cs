@@ -18,7 +18,7 @@ namespace Lair.EditorTools
         public static string ExportToJson(BalanceConfig config)
         {
             List<MonsterStatRowDto> monsters = new List<MonsterStatRowDto>();
-            foreach (EMonster monster in Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster monster in MonsterGrades.BaseMonsters)
             {
                 BalanceConfig.CharacterStat stat = config.GetMonster(monster);
                 if (stat == null)

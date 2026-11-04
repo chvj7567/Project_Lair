@@ -124,7 +124,7 @@ namespace Lair.Tests.PlayMode.Character
         [UnityTest]
         public IEnumerator 종족별_발광색이_SpeciesGlowColor_방향과_일치한다()
         {
-            foreach (EMonster species in System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
                 MonsterEnhancementVisual v = NewVisual(out Renderer rd);
                 v.ApplyLevel(3, species);

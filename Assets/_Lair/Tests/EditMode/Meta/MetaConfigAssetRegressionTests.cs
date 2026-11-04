@@ -41,7 +41,7 @@ namespace Lair.Tests.EditMode
             //# 소울 결제 13품목 — 육성 3축 18항목(특수 재화 결제)은 별도 (monster-growth-currencies §6.2).
             Assert.AreEqual(13, _cfg.ShopItems.FindAll(d => d.Currency == ECurrency.Soul).Count);
             Assert.AreEqual(31, _cfg.ShopItems.Count, "소울 13 + 각성·둥지·특성 18");
-            foreach (EMonster species in (EMonster[])System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
                 Assert.AreEqual(ECurrency.AwakenStone, _cfg.FindShopItem("Awaken_" + species).Currency);
                 Assert.AreEqual(ECurrency.MoonSeal, _cfg.FindShopItem("Nest_" + species).Currency);

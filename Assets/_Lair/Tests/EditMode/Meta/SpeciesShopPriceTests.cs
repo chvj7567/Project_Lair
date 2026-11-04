@@ -103,7 +103,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 여섯종족_모두_동일_가격곡선을_공유한다()
         {
-            foreach (EMonster species in System.Enum.GetValues(typeof(EMonster)))
+            foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
                 ShopItemDef def = new ShopItemDef
                 {

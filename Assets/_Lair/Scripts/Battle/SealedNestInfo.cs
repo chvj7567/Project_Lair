@@ -19,7 +19,7 @@ namespace Lair.Battle
         {
             if (data.RuleId != EStageRule.SealedNest)
                 return 0;
-            if ((EMonster)(int)Math.Round(data.Params["lockedSpecies"]) != species)
+            if (MonsterGrades.SameSpecies((EMonster)(int)Math.Round(data.Params["lockedSpecies"]), species) == false)
                 return 0;
             return (int)Math.Round(data.Params["unlockHpFraction"] * 100f);
         }
