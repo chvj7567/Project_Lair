@@ -73,7 +73,8 @@ namespace Lair.UI
 
             bool isHeader = data.RowKind == ShopPopup.ShopRowKind.SectionHeader;
             //# 종족 행 4칸 — 칸 위젯이 배선된 프리팹에서만. 미배선이면 기존 단일 항목(체급) 표시로 폴백(monster-growth-currencies §8.1).
-            bool speciesRow = isHeader == false && data.Slots != null && _speciesRow != null && _axisSlots.Length >= data.Slots.Length;
+            //# 프리팹 칸이 데이터보다 적으면(승급 칸 배선 전) 있는 칸까지만 표시한다.
+            bool speciesRow = isHeader == false && data.Slots != null && _speciesRow != null && _axisSlots.Length > 0;
             SetHeaderWidgetsActive(isHeader);
             SetItemWidgetsActive(isHeader == false && speciesRow == false);
             if (_speciesRow != null)

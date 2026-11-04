@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Lair.Data;
 using Lair.Meta;
+using Lair.UI;
 using NUnit.Framework;
 
 namespace Lair.Tests.EditMode
@@ -93,6 +94,25 @@ namespace Lair.Tests.EditMode
 
             Assert.IsTrue(cards.IsAvailable(ECardId.WispHpBoost, m => MonsterGradesOutputting(outputs, m)));
             Assert.IsFalse(cards.IsAvailable(ECardId.SpawnReapers, m => MonsterGradesOutputting(outputs, m)));
+        }
+
+        [Test]
+        public void 상점_몬스터_행은_승급_칸을_5번째로_갖고_행_머리에_보유_등급_접두어가_붙는다()
+        {
+            MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
+            MetaProfile p = new MetaProfile { Souls = 500 };
+            p.SetRaceGrade(ERace.Ignis, 5);
+
+            List<ShopItemCellData> cells = ShopPopup.BuildCellData(p, cfg, null, null, WorldMapTestSupport.Text, _db);
+            ShopItemCellData wisp = cells.Find(c => c.Species == EMonster.Wisp);
+            ShopItemCellData reaper = cells.Find(c => c.Species == EMonster.Reaper);
+
+            Assert.AreEqual(5, wisp.Slots.Length);
+            Assert.IsTrue(wisp.Slots[4].IsPromotion);
+            Assert.IsTrue(wisp.Slots[4].IsMax, "군주 보유 = 최고 등급");
+            StringAssert.Contains("군주", wisp.SpeciesName);
+            Assert.IsFalse(reaper.Slots[4].CanBuy, "견습 소울 800 > 보유 500");
+            Assert.AreEqual(ECurrency.Soul, reaper.Slots[4].LackingCurrency);
         }
 
         private static bool MonsterGradesOutputting(HashSet<EMonster> outputs, EMonster species)

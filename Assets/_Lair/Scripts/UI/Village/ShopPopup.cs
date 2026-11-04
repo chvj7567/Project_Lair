@@ -63,6 +63,12 @@ namespace Lair.UI
         public string LockText;           //# "1-1 클리어 시 해금" — 데이터가 없으면 빈 문자열
         public Sprite CurrencyIcon;
         public bool TintIcon;             //# 전용 아이콘이 없어 소울 코인을 재화 색으로 물들인 임시 표시
+
+        //# 승급 칸 (monster-grades §5.1) — 상점 항목이 아니라 GradePromotion 으로 구매. 가격은 재화 2종이라 PriceText 로 표시(아이콘 없음).
+        public bool IsPromotion;
+        public ERace Race;
+        public string PriceText;          //# 비어 있지 않으면 가격 띠에 숫자 대신 이 문구 ("소울 1,500 · 각성석 30" / "최고 등급")
+        public ECurrency LackingCurrency; //# 재화 부족 토스트용 — 처음 모자라는 재화
     }
 
     //# 소울 상점 — 레벨제 영구 업그레이드 단일 스크롤 + 섹션 헤더 (기획서 §1). 탭 제거.
@@ -211,6 +217,11 @@ namespace Lair.UI
         {
             if (slot == null || slot.IsAvailable == false || slot.IsMax)
                 return;
+            if (slot.IsPromotion)
+            {
+                HandlePromote(slot);
+                return;
+            }
             if (slot.IsLocked)
             {
                 if (string.IsNullOrEmpty(slot.LockText) == false)
@@ -255,13 +266,33 @@ namespace Lair.UI
             return pills;
         }
 
+        //# 승급 칸 — 재화 부족이면 1482 토스트, 성공하면 구매와 같은 저장·갱신 경로.
+        private void HandlePromote(ShopAxisSlotData slot)
+        {
+            if (_arg == null)
+                return;
+            if (slot.CanBuy == false)
+            {
+                ToastView.Show(string.Format(LookupString(GrowthStrings.CurrencyShort),
+                    GrowthText.CurrencyName(slot.LackingCurrency, GrowthDatabase.Current, LookupString)), EToastKind.Warning);
+                return;
+            }
+            if (GradePromotion.TryPromote(_arg.Profile, FormationDatabase.Current, slot.Race) == false)
+                return;
+            AfterPurchase();
+        }
+
         private void HandleBuy(string itemId)
         {
             if (_arg == null || _arg.Shop == null)
                 return;
             if (_arg.Shop.Buy(itemId) == false)
                 return;
+            AfterPurchase();
+        }
 
+        private void AfterPurchase()
+        {
             //# 구매 전 최상단 인덱스 기억 — Rebuild 의 SetItemList 가 스크롤을 맨 위로 리셋하므로 직후 복원한다.
             int keepIndex = _scrollView != null ? _scrollView.FirstVisibleIndex : 0;
             _arg.OnPurchased?.Invoke();
@@ -298,24 +329,29 @@ namespace Lair.UI
         public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg)
             => BuildCellData(profile, cfg, null, GrowthDatabase.Current, null);
 
-        //# shop 이 null 이면 기본 해금 규칙의 ShopService 로 칸 잠김을 판정한다. text 는 칸 문구용(null 이면 축 이름 기본값).
         public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, ShopService shop, GrowthDatabase growth, Func<int, string> text)
+            => BuildCellData(profile, cfg, shop, growth, text, FormationDatabase.Current);
+
+        //# shop 이 null 이면 기본 해금 규칙의 ShopService 로 칸 잠김을 판정한다. text 는 칸 문구용(null 이면 축 이름 기본값).
+        //# formation 이 있으면 종족 행에 승급 칸·등급 접두어 이름을 붙인다(monster-grades §5, dungeon-formation §0.2). null 이면 기존 4칸.
+        public static List<ShopItemCellData> BuildCellData(MetaProfile profile, MetaConfig cfg, ShopService shop, GrowthDatabase growth, Func<int, string> text,
+            FormationDatabase formation)
         {
             List<ShopItemCellData> list = new List<ShopItemCellData>();
             if (profile == null || cfg == null)
                 return list;
             ShopService service = shop ?? new ShopService(profile, cfg);
 
-            //# 스탯 강화 섹션 (전종 글로벌: MonsterStat/SpawnerPeriod) → 몬스터 강화 섹션 (종족 1행 = 체급 항목 + 같은 종족 육성 3칸).
-            AppendSection(list, cfg, profile, "스탯 강화", false, service, growth, text);
-            AppendSection(list, cfg, profile, "몬스터 강화", true, service, growth, text);
+            //# 스탯 강화 섹션 (전종 글로벌: MonsterStat/SpawnerPeriod) → 몬스터 강화 섹션 (종족 1행 = 체급 항목 + 같은 종족 육성 3칸 + 승급 칸).
+            AppendSection(list, cfg, profile, "스탯 강화", false, service, growth, text, formation);
+            AppendSection(list, cfg, profile, "몬스터 강화", true, service, growth, text, formation);
             return list;
         }
 
         //# 섹션 항목을 먼저 모아 1개 이상일 때만 [헤더 + 항목들] append — 빈 섹션 헤더 제외 (기획서 §5).
         //# 육성 3축 항목(MonsterAwaken/NestMastery/MonsterTrait)은 독립 행을 만들지 않고 같은 종족 체급 행의 칸으로 묶인다(§11.6).
         private static void AppendSection(List<ShopItemCellData> list, MetaConfig cfg, MetaProfile profile, string headerText, bool isSpecies,
-            ShopService shop, GrowthDatabase growth, Func<int, string> text)
+            ShopService shop, GrowthDatabase growth, Func<int, string> text, FormationDatabase formation)
         {
             List<ShopItemCellData> items = new List<ShopItemCellData>();
             foreach (ShopItemDef def in cfg.ShopItems)
@@ -333,14 +369,27 @@ namespace Lair.UI
                 if (def.EffectKind != EShopEffectKind.MonsterSpecies)
                     continue;
                 ShopItemCellData cell = MakeCell(def, profile);
-                cell.SpeciesName = SpeciesVisual.SpeciesName(def.Species);
-                cell.Slots = new[]
+                ShopAxisSlotData[] axes =
                 {
                     MakeSlot(def, GrowthStrings.AxisBody, "체급", profile, shop, growth, text),
                     MakeSlot(FindAxisItem(cfg, EShopEffectKind.MonsterAwaken, def.Species), GrowthStrings.AxisAwaken, "각성", profile, shop, growth, text),
                     MakeSlot(FindAxisItem(cfg, EShopEffectKind.NestMastery, def.Species), GrowthStrings.AxisNest, "둥지", profile, shop, growth, text),
                     MakeSlot(FindAxisItem(cfg, EShopEffectKind.MonsterTrait, def.Species), GrowthStrings.AxisTrait, "특성", profile, shop, growth, text),
                 };
+                if (formation != null && formation.TryGetRace(def.Species, out ERace race))
+                {
+                    //# 행 머리·항목 이름 = 보유 최고 등급 접두어 + 기존 이름(좁은 칸 2줄, §0.2). 아이콘은 기준 몬스터(V7).
+                    EMonster top = formation.HighestOwned(race, profile.GetRaceGrade(race));
+                    cell.SpeciesName = SpeciesVisual.MonsterNameTwoLine(top, formation, text);
+                    string prefix = SpeciesVisual.GradePrefix(MonsterGrades.GradeOf(top), formation, text);
+                    cell.DisplayName = string.IsNullOrEmpty(prefix) ? def.DisplayName : prefix + " " + def.DisplayName;
+                    cell.Slots = new[] { axes[0], axes[1], axes[2], axes[3], MakePromotionSlot(race, profile, formation, growth, text) };
+                }
+                else
+                {
+                    cell.SpeciesName = SpeciesVisual.SpeciesName(def.Species);
+                    cell.Slots = axes;
+                }
                 items.Add(cell);
             }
             if (items.Count == 0)
@@ -399,6 +448,49 @@ namespace Lair.UI
                     slot.EffectText = def.Description;
                     break;
             }
+            return slot;
+        }
+
+        //# 승급 칸 (monster-grades §5.1·§11 UI) — 제목 "승급" · 다음 등급 문구 · 비용(소울 + 특수 1종) / 군주면 "최고 등급".
+        private const string PromotionColorHex = "#f7c64a";
+        private const int StrPromote = 1516;            //# 승급
+        private const int StrPromoteToFirst = 1517;     //# 견습으로 승급 (1517~1520 = 등급 2~5)
+        private const int StrTopGrade = 1521;           //# 최고 등급
+
+        private static ShopAxisSlotData MakePromotionSlot(ERace race, MetaProfile profile, FormationDatabase formation, GrowthDatabase growth, Func<int, string> text)
+        {
+            string title = text != null ? text(StrPromote) : null;
+            ShopAxisSlotData slot = new ShopAxisSlotData
+            {
+                AxisName = string.IsNullOrEmpty(title) ? "승급" : title,
+                IsAvailable = true,
+                IsPromotion = true,
+                Race = race,
+                ColorHex = PromotionColorHex,
+            };
+            int next = GradePromotion.NextGrade(profile, formation, race);
+            if (next == 0)
+            {
+                slot.IsMax = true;
+                slot.EffectText = SpeciesVisual.GradePrefix(profile.GetRaceGrade(race), formation, text);
+                slot.PriceText = text != null ? text(StrTopGrade) : "최고 등급";
+                return slot;
+            }
+            IReadOnlyList<GradeCost> costs = formation.PromotionCostOf(next);
+            slot.EffectText = text != null ? text(StrPromoteToFirst + next - 2) : string.Empty;
+            StringBuilder price = new StringBuilder();
+            foreach (GradeCost cost in costs)
+            {
+                if (price.Length > 0)
+                {
+                    price.Append(" · ");
+                }
+                price.Append(GrowthText.CurrencyName(cost.Currency, growth, text)).Append(' ').Append(cost.Amount.ToString("N0"));
+            }
+            slot.PriceText = price.ToString();
+            ECurrency lacking = ECurrency.Soul;
+            slot.CanBuy = costs.Count > 0 && GradePromotion.CanAfford(profile, costs, out lacking);
+            slot.LackingCurrency = lacking;
             return slot;
         }
 

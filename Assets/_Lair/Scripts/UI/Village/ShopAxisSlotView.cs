@@ -39,13 +39,13 @@ namespace Lair.UI
             SetText(_effectText, data.EffectText);
             if (_priceText != null)
             {
-                string price = data.IsLocked ? data.LockText : data.IsMax ? "MAX" : $"{data.Price:N0}";
+                string price = data.IsLocked ? data.LockText : string.IsNullOrEmpty(data.PriceText) == false ? data.PriceText : data.IsMax ? "MAX" : $"{data.Price:N0}";
                 _priceText.SetText(price);
                 _priceText.SetColor(data.IsMax ? UiDotPalette.Gold : data.CanBuy ? currencyColor : UiDotPalette.Stone4);
             }
             if (_currencyIcon != null)
             {
-                bool showIcon = data.IsLocked == false && data.IsMax == false && data.CurrencyIcon != null;
+                bool showIcon = data.IsLocked == false && data.IsMax == false && data.CurrencyIcon != null && string.IsNullOrEmpty(data.PriceText);
                 _currencyIcon.gameObject.SetActive(showIcon);
                 if (showIcon)
                 {
