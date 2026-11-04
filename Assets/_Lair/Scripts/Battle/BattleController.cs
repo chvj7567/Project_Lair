@@ -549,8 +549,7 @@ namespace Lair.Battle
             {
                 StageRuleContext ctx = new StageRuleContext(
                     _heroHealth, _hero.transform, _spawners, _zone, _rangeModifier, ReapplyAllMonsterStats,
-                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider,
-                    FormationDatabase.Current != null ? FormationDatabase.Current.CostOf : (System.Func<EMonster, int>)null);
+                    text => ToastView.Show(text, EToastKind.Warning), CHText.StringProvider);
                 _ruleRunner = new StageRuleRunner(ctx, _heroHealth, rules);
                 _ruleRunner.Start();
             }
@@ -1090,13 +1089,7 @@ namespace Lair.Battle
         private static EMonster[] ResolveFormation()
         {
             MetaProfile profile = MetaSession.GetOrLoad();
-            return FormationSave.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, warn: Debug.LogWarning);
-        }
-
-        //# 편성 종 수 — 편성 비활성이면 0(워밍 배수 1 유지).
-        private int FormationCount(EMonster key)
-        {
-            return _formation != null ? FormationRules.CountOf(_formation, key) : 0;
+            return FormationSave.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, profile.GetRaceGrade, warn: Debug.LogWarning);
         }
 
         //# 슬롯 i 의 스포너 출력 종 = 편성[i] (§6.4). 기존 Spawner.ReplaceOutput 재사용 — 제단 틴트는 OnOutputTypeChanged 로 갱신.
@@ -1105,7 +1098,7 @@ namespace Lair.Battle
         {
             if (_formation == null || _spawners == null)
                 return;
-            EMonster[] defaults = FormationDatabase.Current.DefaultFormation();
+            EMonster[] defaults = FormationDatabase.Current.DefaultFormation(null);
             if (_spawners.Length != defaults.Length)
             {
                 Debug.LogError($"[BattleController] 스포너 수({_spawners.Length}) 가 FormationSlot 수({defaults.Length}) 와 다름 — 편성 미적용");
@@ -1118,9 +1111,9 @@ namespace Lair.Battle
                     Debug.LogError($"[BattleController] 씬 스포너 {i + 1} 이 비어 있음 — 편성 미적용");
                     return;
                 }
-                if (_spawners[i].CurrentType != defaults[i])
+                if (MonsterGrades.SameSpecies(_spawners[i].CurrentType, defaults[i]) == false)
                 {
-                    Debug.LogWarning($"[BattleController] 씬 스포너 {i + 1} 의 출력 종이 FormationSlot 기본 편성({defaults[i]})과 다름 — 편성은 절대 대입이라 적용 계속");
+                    Debug.LogWarning($"[BattleController] 씬 스포너 {i + 1} 의 출력 종족이 FormationSlot({defaults[i]})과 다름 — 편성은 절대 대입이라 적용 계속");
                 }
             }
             for (int i = 0; i < _spawners.Length; ++i)
@@ -2460,14 +2453,14 @@ namespace Lair.Battle
                 }
             }
 
-            //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 6종 각 10마리 비축. 편성에서 같은 종이 여러 곳이면 그 곳 수만큼 배수(§6.4).
-            foreach (EMonster key in new[] { EMonster.Wisp, EMonster.Wraith, EMonster.Reaper,
-                                        EMonster.Hex, EMonster.Plague, EMonster.Phantom })
+            //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 편성된 6몬스터 각 10마리 비축(편성 비활성이면 기준 6종). 종족당 둥지 1곳이라 배수 없음(§0.7).
+            IReadOnlyList<EMonster> warmMonsters = _formation != null ? _formation : MonsterGrades.BaseMonsters;
+            foreach (EMonster key in warmMonsters)
             {
                 GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
                 if (prefab != null)
                 {
-                    CHMPool.Instance.CreatePool(prefab, count: 10 * System.Math.Max(1, FormationCount(key)));
+                    CHMPool.Instance.CreatePool(prefab, count: 10);
                 }
             }
 

@@ -45,7 +45,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();
 
-            Assert.AreEqual(12, p.Version);
+            Assert.AreEqual(13, p.Version);
             Assert.IsNotNull(p.Relics);
             Assert.AreEqual(0, p.Relics.Count);
             Assert.AreEqual(0, p.RelicMissStreak);
@@ -122,7 +122,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, HeroOf);
 
-            Assert.AreEqual(12, p.Version);
+            Assert.AreEqual(13, p.Version);
             Assert.AreEqual(5, p.Souls);
             Assert.AreEqual(3, p.ClearedStage);
             Assert.AreEqual(2, p.SelectedStage);
@@ -143,7 +143,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(12, loaded.Version);
+            Assert.AreEqual(13, loaded.Version);
             Assert.AreEqual(1, loaded.Relics.Count);
             Assert.AreEqual(4, loaded.GetRelicStack("SwiftBoots"));
             Assert.AreEqual(0, loaded.RelicMissStreak);
@@ -177,7 +177,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(12, p.Version);
+            Assert.AreEqual(13, p.Version);
             Assert.AreEqual(13, p.ClearedStage);
             Assert.AreEqual(2, p.GetMaxClearedDifficulty(12));
             Assert.AreEqual(3, p.GetRelicStack("HeartOfStone"));
@@ -337,7 +337,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile copy = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
 
-            Assert.AreEqual(12, copy.Version);
+            Assert.AreEqual(13, copy.Version);
             Assert.AreEqual(2, copy.Relics.Count);
             Assert.AreEqual(2, copy.GetRelicStack("SoulPurse"));
             Assert.AreEqual(1, copy.GetRelicStack("KingsCrownShard"));
@@ -357,7 +357,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(12, loaded.Version);
+            Assert.AreEqual(13, loaded.Version);
             Assert.AreEqual(13, loaded.ClearedStage);
             Assert.AreEqual(99, loaded.GetRelicStack("HeartOfStone"), "저장은 비클램프");
             Assert.AreEqual(4, loaded.GetRelicStack("GhostRelic"));
@@ -429,7 +429,7 @@ namespace Lair.Tests.EditMode
             live.CopyFrom(cloud);
             MetaProfileMigration.Apply(live, HeroOf);
 
-            Assert.AreEqual(12, live.Version);
+            Assert.AreEqual(13, live.Version);
             Assert.AreEqual(0, live.Relics.Count, "v7 문서에는 유물이 없다 — 문서 기준 전체 대체");
             Assert.AreEqual(0, live.RelicMissStreak);
             Assert.IsTrue(live.BattleSpeedOn, "배속은 로컬 유지");

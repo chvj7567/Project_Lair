@@ -5,11 +5,11 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 → v12 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
+    //# MetaProfile v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 → v12 → v13 마이그레이션 (chapter-system §2.2, chapter-3-hero §7.3) — 스키마 변경 없이 ClearedStage/SelectedStage 범위 의미만 0~5 → 0~MaxStage(v6 = 챕터 3 추가로 15).
     //# 멱등 — 로컬 로드 경로와 클라우드 복원(CopyFrom) 직후 동일 함수로 재적용한다. Unity 비의존.
     public static class MetaProfileMigration
     {
-        public const int CurrentVersion = 12;
+        public const int CurrentVersion = 13;
 
         //# 챕터 데이터로 SelectedHero 단계를 수행하는 편의 오버로드 — chapters 가 null 이면 5단계는 건너뛴다.
         public static void Apply(MetaProfile profile, ChapterDatabase chapters)
@@ -39,6 +39,8 @@ namespace Lair.Meta
             NormalizeDaily(profile);
             //# 육성 재화(v12)도 데이터 비의존 행 정리라 같은 이유로 조기 반환보다 앞선다(monster-growth-currencies §7.3). 소급 지급은 하지 않는다(정산 함수 소관).
             NormalizeCurrencies(profile);
+            //# 몬스터 등급(v13)도 데이터 비의존 행 정리라 같은 이유로 조기 반환보다 앞선다(monster-grades §8). 구버전은 빈 목록 = 모든 종족 1등급.
+            NormalizeRaceGrades(profile);
             if (heroIdOfLinearStage == null && profile.Version >= CurrentVersion)
                 return;
 
@@ -196,6 +198,31 @@ namespace Lair.Meta
 
         //# Currencies (§7.3-4): null→빈 리스트, null 행/빈 id/Soul 행 제거, Amount<0→0, TotalEarned<Amount→Amount, TotalEarned<1 행 제거, 같은 id 중복은 각 최댓값 한 행.
         //# ECurrency 에 없는 id 는 지우지 않는다 — 읽는 지점이 무시한다(relics §3.6 선례).
+        //# RaceGrades: null→빈 리스트, ERace 값명이 아니거나 등급 2~5 밖인 행 제거, 같은 종족 중복은 최고 등급 한 행.
+        //# 종족별 데이터 최고 등급 클램프는 하지 않는다 — Race_Monster 로드 전일 수 있다(읽는 지점이 보유 등급 이하 몬스터만 고른다).
+        public static void NormalizeRaceGrades(MetaProfile profile)
+        {
+            List<RaceGradeEntry> merged = new List<RaceGradeEntry>();
+            if (profile.RaceGrades != null)
+            {
+                foreach (RaceGradeEntry entry in profile.RaceGrades)
+                {
+                    if (entry == null || FormationDatabase.TryParseEnum(entry.Race, out ERace _) == false)
+                        continue;
+                    if (entry.Grade <= MonsterGrades.MinGrade || entry.Grade > MonsterGrades.MaxGrade)
+                        continue;
+                    RaceGradeEntry existing = merged.Find(e => e.Race == entry.Race);
+                    if (existing == null)
+                    {
+                        merged.Add(new RaceGradeEntry { Race = entry.Race, Grade = entry.Grade });
+                        continue;
+                    }
+                    existing.Grade = Math.Max(existing.Grade, entry.Grade);
+                }
+            }
+            profile.RaceGrades = merged;
+        }
+
         public static void NormalizeCurrencies(MetaProfile profile)
         {
             if (profile.Currencies == null)

@@ -20,8 +20,6 @@ namespace Lair.Battle
         private readonly Action _reapplyMonsterStats;
         private readonly Action<string> _notify;
         private readonly IStringProvider _strings;
-        //# 봉인 대체 규칙(코스트 최고 둥지)용 종별 코스트 조회 — null 이면 전 종 동률(슬롯 번호 최소).
-        private readonly Func<EMonster, int> _costOf;
 
         //# 스냅샷 재사용 버퍼 — 데미지로 몬스터가 죽어 Monsters 가 수정돼도 열거와 변형을 분리. 메인스레드 전용.
         private readonly List<CharacterRegistry.Entry> _buffer = new List<CharacterRegistry.Entry>();
@@ -36,10 +34,8 @@ namespace Lair.Battle
 
         public StageRuleContext(
             Health heroHealth, Transform hero, IReadOnlyList<Spawner> spawners, BattleZone zone,
-            MonsterRangeModifier range, Action reapplyMonsterStats, Action<string> notify, IStringProvider strings,
-            Func<EMonster, int> costOf = null)
+            MonsterRangeModifier range, Action reapplyMonsterStats, Action<string> notify, IStringProvider strings)
         {
-            _costOf = costOf;
             _heroHealth = heroHealth;
             _hero = hero;
             _spawners = spawners ?? Array.Empty<Spawner>();
@@ -83,7 +79,7 @@ namespace Lair.Battle
             _reapplyMonsterStats?.Invoke();
         }
 
-        //# 정확히 1곳 봉인(§5.1-C) — 대상 선정은 FormationRules.PickSealedSlot 이 소유(팝업 봉인 예고와 같은 함수).
+        //# 봉인 종족의 둥지 1곳 봉인(dungeon-formation §0.7) — 대상 선정은 FormationRules.PickSealedSlot 이 소유(팝업 봉인 예고와 같은 함수).
         public Vector3[] LockSpawners(EMonster species)
         {
             List<Spawner> targets = new List<Spawner>();
@@ -92,7 +88,7 @@ namespace Lair.Battle
             {
                 outputs[i] = _spawners[i] != null ? _spawners[i].CurrentType : species;
             }
-            int index = FormationRules.PickSealedSlot(outputs, species, _costOf, i => _spawners[i] != null && _spawners[i].IsLocked == false);
+            int index = FormationRules.PickSealedSlot(outputs, species, i => _spawners[i] != null && _spawners[i].IsLocked == false);
             if (index >= 0)
             {
                 _spawners[index].Lock();

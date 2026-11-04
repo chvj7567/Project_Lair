@@ -129,7 +129,7 @@ namespace Lair.Tests.EditMode
             MetaProfileMigration.Apply(p, (System.Func<int, string>)null);
             MetaProfileMigration.Apply(p, (System.Func<int, string>)null);
 
-            Assert.AreEqual(12, p.Version);
+            Assert.AreEqual(13, p.Version);
             Assert.AreEqual(1, p.Currencies.Count);
             Assert.AreEqual(7, p.GetCurrency(ECurrency.AwakenStone));
             Assert.AreEqual(9, p.GetCurrencyTotalEarned(ECurrency.AwakenStone));

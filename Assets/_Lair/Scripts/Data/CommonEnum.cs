@@ -1,4 +1,4 @@
-namespace Lair.Data
+﻿namespace Lair.Data
 {
     //# Rule 09 — 여러 시스템에서 참조되는 공용 Enum 단일 파일.
     //# Rule 08 — 값명은 에셋(프리팹/씬) 파일명과 정확히 일치해야 함.
@@ -151,7 +151,7 @@ namespace Lair.Data
         Difficulty_Relic_Rarity,
         //# 던전 편성 JSON 5종 (dungeon-formation §3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
         FormationConfig,
-        FormationMonster,
+        FormationMonster,          //# 폐기(2026-11-01 종족 개편, JSON 삭제) — 정수 직렬화 안전을 위해 자리만 보존
         FormationSlot,
         Card_Species,
         Chapter_FormationHint,
@@ -171,6 +171,11 @@ namespace Lair.Data
         Difficulty_Awaken,
         Difficulty_TowerCrystal,
         RelicRarity_Shard,
+        //# 던전 편성 종족·등급 개편 JSON (dungeon-formation §0.5) + 승급 비용 (monster-grades §8). append-only.
+        Race,
+        Grade,
+        Race_Monster,
+        Grade_Promotion,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.
@@ -423,5 +428,16 @@ namespace Lair.Data
     {
         Hero,
         Monster,
+    }
+
+    //# 몬스터 종족 (dungeon-formation §0.2) — 둥지 6곳이 종족 하나씩의 자리. Race.json race 값명 = 이 값명. append-only.
+    public enum ERace
+    {
+        Ignis,     //# 이그니스 — 불 (도깨비불)
+        Lemur,     //# 레무르 — 떠도는 영혼 (망령)
+        Nox,       //# 눅스 — 밤 (사신)
+        Hexia,     //# 헥시아 — 저주 (저주술사)
+        Miar,      //# 미아르 — 독기 (역병귀)
+        Phantas,   //# 판타스 — 환영 (환령)
     }
 }

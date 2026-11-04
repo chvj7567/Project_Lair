@@ -692,10 +692,10 @@ namespace Lair.Village
                 return;
             }
 
-            //# 편성 잠김(1-1 클리어 전) 또는 편성 데이터 로드 실패 -> 현행처럼 팝업 없이 바로 입장(기본 편성/씬 배치).
+            //# 편성 잠김(1-1 클리어 전)·고를 몬스터가 2개 이상인 종족 없음·편성 데이터 로드 실패 -> 팝업 없이 바로 입장 (dungeon-formation §0.3 U-D A).
             MetaProfile profile = MetaSession.GetOrLoad();
             FormationDatabase formation = FormationDatabase.Current;
-            if (formation == null || FormationRules.IsUnlocked(formation.Config, profile.ClearedStage) == false)
+            if (FormationRules.ShouldShowPopup(formation, profile.ClearedStage, profile.GetRaceGrade) == false)
             {
                 EnterBattle();
                 return;

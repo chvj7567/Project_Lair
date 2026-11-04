@@ -64,9 +64,9 @@ namespace Lair.Tests.EditMode
         public void 기본_편성은_제외_0장이고_종_하나가_빠지면_그_종에만_의존하는_카드만_제외된다()
         {
             List<Card_SpeciesRow> rows = FormationDataSet.Shipped().CardSpecies;
-            foreach (EMonster missing in _db.DefaultFormation())
+            foreach (EMonster missing in _db.DefaultFormation(null))
             {
-                HashSet<EMonster> outputs = new HashSet<EMonster>(_db.DefaultFormation());
+                HashSet<EMonster> outputs = new HashSet<EMonster>(_db.DefaultFormation(null));
                 outputs.Remove(missing);
 
                 List<ECardId> expected = rows
@@ -148,41 +148,6 @@ namespace Lair.Tests.EditMode
             HashSet<EMonster> worst = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
             int count = FormationTestKit.Actives().Count(name => _cards.IsAvailable(FormationTestKit.Card(name), worst.Contains));
             Assert.GreaterOrEqual(count, 3);
-        }
-
-        [Test]
-        public void 유효한_모든_편성에서_패시브와_액티브_후보가_3장_미만으로_내려가지_않는다()
-        {
-            string[] passives = FormationTestKit.Passives();
-            string[] actives = FormationTestKit.Actives();
-            EMonster[] all = (EMonster[])Enum.GetValues(typeof(EMonster));
-            int minPassive = int.MaxValue;
-            int minActive = int.MaxValue;
-            int validCount = 0;
-            EMonster[] f = new EMonster[6];
-            int total = 1;
-            for (int i = 0; i < 6; ++i)
-            {
-                total *= all.Length;
-            }
-            for (int code = 0; code < total; ++code)
-            {
-                int rest = code;
-                for (int i = 0; i < 6; ++i)
-                {
-                    f[i] = all[rest % all.Length];
-                    rest /= all.Length;
-                }
-                if (FormationRules.IsValid(f, _db.Config.costCap, _db.Config.maxPerSpeciesExpanded, _db.CostOf) == false)
-                    continue;
-                ++validCount;
-                HashSet<EMonster> outputs = new HashSet<EMonster>(f);
-                minPassive = Math.Min(minPassive, passives.Count(n => _cards.IsAvailable(FormationTestKit.Card(n), outputs.Contains)));
-                minActive = Math.Min(minActive, actives.Count(n => _cards.IsAvailable(FormationTestKit.Card(n), outputs.Contains)));
-            }
-            Assert.Greater(validCount, 0);
-            Assert.GreaterOrEqual(minPassive, 3, "패시브 최소 후보");
-            Assert.GreaterOrEqual(minActive, 3, "액티브 최소 후보");
         }
 
         [Test]
@@ -269,9 +234,9 @@ namespace Lair.Tests.EditMode
             return spawners;
         }
 
-        private static StageRuleContext MakeContext(IReadOnlyList<Spawner> spawners, Func<EMonster, int> costOf, Action<string> notify = null)
+        private static StageRuleContext MakeContext(IReadOnlyList<Spawner> spawners, Action<string> notify = null)
         {
-            return new StageRuleContext(null, null, spawners, null, null, null, notify, new DifficultyTestSupport.RealStrings(), costOf);
+            return new StageRuleContext(null, null, spawners, null, null, null, notify, new DifficultyTestSupport.RealStrings());
         }
 
         private static int LockedIndex(Spawner[] spawners)
@@ -291,8 +256,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 봉인_종이_있으면_그_종_둥지_1곳만_봉인하고_위치를_돌려준다()
         {
-            Spawner[] spawners = MakeSpawners(_db.DefaultFormation());
-            StageRuleContext ctx = MakeContext(spawners, _db.CostOf);
+            Spawner[] spawners = MakeSpawners(_db.DefaultFormation(null));
+            StageRuleContext ctx = MakeContext(spawners);
 
             Vector3[] positions = ctx.LockSpawners(EMonster.Wraith);
 
@@ -306,7 +271,7 @@ namespace Lair.Tests.EditMode
         public void 봉인_종이_여러_곳이면_슬롯_번호_최소_1곳만_봉인한다()
         {
             Spawner[] spawners = MakeSpawners(EMonster.Wraith, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom);
-            StageRuleContext ctx = MakeContext(spawners, _db.CostOf);
+            StageRuleContext ctx = MakeContext(spawners);
 
             Assert.AreEqual(1, ctx.LockSpawners(EMonster.Wraith).Length);
             Assert.AreEqual(0, LockedIndex(spawners));
@@ -314,33 +279,10 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 봉인_종이_없으면_코스트_최고_둥지_1곳을_봉인하고_실제_봉인_종을_알려준다()
-        {
-            Spawner[] spawners = MakeSpawners(EMonster.Plague, EMonster.Hex, EMonster.Reaper, EMonster.Reaper, EMonster.Phantom, EMonster.Plague);
-            StageRuleContext ctx = MakeContext(spawners, _db.CostOf);
-
-            Assert.AreEqual(1, ctx.LockSpawners(EMonster.Wraith).Length);
-            Assert.AreEqual(2, LockedIndex(spawners), "코스트 3 사신 슬롯 3·4 -> 3");
-            Assert.AreEqual(EMonster.Reaper, ctx.SealedSpeciesOf(EMonster.Wraith), "대체 규칙으로 사신 둥지가 봉인됨");
-            Assert.AreEqual(EMonster.Hex, ctx.SealedSpeciesOf(EMonster.Hex), "요청한 적 없는 종은 그대로");
-        }
-
-        [Test]
-        public void 코스트_조회가_없으면_봉인_종_없을_때_첫_둥지를_봉인한다()
-        {
-            Spawner[] spawners = MakeSpawners(EMonster.Plague, EMonster.Hex, EMonster.Reaper, EMonster.Reaper, EMonster.Phantom, EMonster.Plague);
-            StageRuleContext ctx = MakeContext(spawners, null);
-
-            ctx.LockSpawners(EMonster.Wraith);
-
-            Assert.AreEqual(0, LockedIndex(spawners));
-        }
-
-        [Test]
         public void 해제는_봉인한_그_둥지만_풀고_두_번째_해제는_무동작이다()
         {
-            Spawner[] spawners = MakeSpawners(_db.DefaultFormation());
-            StageRuleContext ctx = MakeContext(spawners, _db.CostOf);
+            Spawner[] spawners = MakeSpawners(_db.DefaultFormation(null));
+            StageRuleContext ctx = MakeContext(spawners);
             ctx.LockSpawners(EMonster.Wraith);
 
             ctx.UnlockSpawners(EMonster.Wraith);
@@ -355,12 +297,12 @@ namespace Lair.Tests.EditMode
             Spawner[] spawners = MakeSpawners(EMonster.Wraith, EMonster.Hex);
             spawners[0].Lock();
             spawners[1].Lock();
-            StageRuleContext ctx = MakeContext(spawners, _db.CostOf);
+            StageRuleContext ctx = MakeContext(spawners);
             Assert.AreEqual(0, ctx.LockSpawners(EMonster.Wraith).Length, "모든 둥지가 이미 봉인");
 
             Spawner[] partly = MakeSpawners(EMonster.Wraith, EMonster.Wraith, EMonster.Hex);
             partly[0].Lock();
-            StageRuleContext second = MakeContext(partly, _db.CostOf);
+            StageRuleContext second = MakeContext(partly);
             Assert.AreEqual(1, second.LockSpawners(EMonster.Wraith).Length);
             Assert.IsTrue(partly[1].IsLocked, "이미 봉인된 슬롯 1 대신 다음 망령 둥지");
             Assert.IsFalse(partly[2].IsLocked);
@@ -369,8 +311,8 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 스포너_목록이_null이거나_비면_빈_위치_배열이다()
         {
-            Assert.AreEqual(0, MakeContext(null, _db.CostOf).LockSpawners(EMonster.Wraith).Length);
-            Assert.AreEqual(0, MakeContext(new Spawner[0], _db.CostOf).LockSpawners(EMonster.Wraith).Length);
+            Assert.AreEqual(0, MakeContext(null).LockSpawners(EMonster.Wraith).Length);
+            Assert.AreEqual(0, MakeContext(new Spawner[0]).LockSpawners(EMonster.Wraith).Length);
         }
 
         [Test]
@@ -378,7 +320,7 @@ namespace Lair.Tests.EditMode
         {
             Spawner[] spawners = MakeSpawners(EMonster.Hex, EMonster.Wraith);
             Spawner[] withHole = { null, spawners[0], spawners[1] };
-            StageRuleContext ctx = MakeContext(withHole, _db.CostOf);
+            StageRuleContext ctx = MakeContext(withHole);
 
             Vector3[] positions = null;
             Assert.DoesNotThrow(() => positions = ctx.LockSpawners(EMonster.Wraith));
@@ -389,11 +331,11 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 봉인된_둥지도_카드_출력_종은_그대로이고_봉인은_종을_바꾸지_않는다()
         {
-            Spawner[] spawners = MakeSpawners(_db.DefaultFormation());
-            MakeContext(spawners, _db.CostOf).LockSpawners(EMonster.Wraith);
+            Spawner[] spawners = MakeSpawners(_db.DefaultFormation(null));
+            MakeContext(spawners).LockSpawners(EMonster.Wraith);
             for (int i = 0; i < spawners.Length; ++i)
             {
-                Assert.AreEqual(_db.DefaultFormation()[i], spawners[i].CurrentType);
+                Assert.AreEqual(_db.DefaultFormation(null)[i], spawners[i].CurrentType);
             }
         }
 
@@ -401,7 +343,7 @@ namespace Lair.Tests.EditMode
         public void 해제_알림_문구는_봉인된_둥지의_종_이름으로_채워진다()
         {
             List<string> notices = new List<string>();
-            StageRuleContext ctx = MakeContext(new Spawner[0], _db.CostOf, notices.Add);
+            StageRuleContext ctx = MakeContext(new Spawner[0], notices.Add);
             ctx.ShowNotice(SealedNestRule.UnlockNoticeStringId, SpeciesVisual.SpeciesName(EMonster.Reaper));
             Assert.AreEqual(1, notices.Count);
             Assert.AreEqual("사신 둥지의 봉인이 풀렸다!", notices[0]);

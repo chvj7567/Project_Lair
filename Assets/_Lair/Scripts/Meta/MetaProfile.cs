@@ -10,7 +10,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 12;
+        public int Version = 13;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -55,6 +55,8 @@ namespace Lair.Meta
         public int DailyStreak;
         //# 몬스터 육성 재화(v12, monster-growth-currencies §7.1) — 한 번이라도 얻은 특수 재화만 행 존재(TotalEarned >= 1). 소울은 Souls 그대로(행 없음).
         public List<CurrencyEntry> Currencies = new List<CurrencyEntry>();
+        //# 몬스터 등급(v13, monster-grades §8) — 승급한 종족만 행 존재(Grade 2~5). 행 없음 = 1등급만 보유.
+        public List<RaceGradeEntry> RaceGrades = new List<RaceGradeEntry>();
         //# 전투 2배속 토글 마지막 상태 — 로컬 선호값이라 CopyFrom(클라우드 복원)이 복사하지 않는다(DisplayName 선례).
         public bool BattleSpeedOn;
         //# 사용자 지정 표시명. 빈 값이면 기본명("영주 #"+deviceId 앞4자 대문자) 사용. 로컬 전용 — 클라우드 동기 대상 아님(기획서 §1).
@@ -619,6 +621,64 @@ namespace Lair.Meta
             DailyStreak = other.DailyStreak;
             //# 특수 재화 — 빠뜨리면 복원 시 재화 전부 유실(§7.4). 행은 새 인스턴스로.
             Currencies = CopyCurrencies(other.Currencies);
+            //# 보유 등급 — 빠뜨리면 복원 시 승급이 전부 유실된다. 행은 새 인스턴스로.
+            RaceGrades = CopyRaceGrades(other.RaceGrades);
+        }
+
+        private static List<RaceGradeEntry> CopyRaceGrades(List<RaceGradeEntry> source)
+        {
+            List<RaceGradeEntry> copy = new List<RaceGradeEntry>();
+            if (source == null)
+                return copy;
+            foreach (RaceGradeEntry entry in source)
+            {
+                copy.Add(entry == null ? null : new RaceGradeEntry { Race = entry.Race, Grade = entry.Grade });
+            }
+            return copy;
+        }
+
+        //# 종족의 보유 최고 등급 — 행이 없으면 1. 조회는 부수효과 0.
+        public int GetRaceGrade(ERace race)
+        {
+            RaceGradeEntry entry = FindRaceGrade(race);
+            return entry != null ? Math.Max(MonsterGrades.MinGrade, entry.Grade) : MonsterGrades.MinGrade;
+        }
+
+        //# 보유 최고 등급 기록 — 1 이하면 행 제거(행 없음 = 1등급).
+        public void SetRaceGrade(ERace race, int grade)
+        {
+            if (RaceGrades == null)
+            {
+                RaceGrades = new List<RaceGradeEntry>();
+            }
+            RaceGradeEntry entry = FindRaceGrade(race);
+            if (grade <= MonsterGrades.MinGrade)
+            {
+                if (entry != null)
+                {
+                    RaceGrades.Remove(entry);
+                }
+                return;
+            }
+            if (entry == null)
+            {
+                RaceGrades.Add(new RaceGradeEntry { Race = race.ToString(), Grade = grade });
+                return;
+            }
+            entry.Grade = grade;
+        }
+
+        private RaceGradeEntry FindRaceGrade(ERace race)
+        {
+            if (RaceGrades == null)
+                return null;
+            string key = race.ToString();
+            foreach (RaceGradeEntry entry in RaceGrades)
+            {
+                if (entry != null && entry.Race == key)
+                    return entry;
+            }
+            return null;
         }
 
         private static List<CurrencyEntry> CopyCurrencies(List<CurrencyEntry> source)
@@ -752,6 +812,14 @@ namespace Lair.Meta
         public string CurrencyId;    //# ECurrency 값명 (Soul 제외), PK
         public int Amount;           //# 현재 잔액. 불변식 >= 0
         public int TotalEarned;      //# 누적 획득. 불변식 >= 1, >= Amount
+    }
+
+    //# 종족 하나의 보유 최고 등급 — 승급한 종족만 행 존재. JsonUtility 직렬화 대상 (monster-grades §8).
+    [Serializable]
+    public class RaceGradeEntry
+    {
+        public string Race;   //# ERace 값명, PK
+        public int Grade;     //# 보유 최고 등급. 불변식 2~5
     }
 
     //# 보유 유물 하나 — 보유한 유물만 행 존재(Stack >= 1). JsonUtility 직렬화 대상.

@@ -9,11 +9,14 @@ using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
-    //# 던전 편성 본격 스위트 공용 — 출하 JSON 5종을 변경 가능한 리스트로 읽어 한 곳만 비틀어 DB 를 만든다(위반 케이스용).
+    //# 던전 편성 본격 스위트 공용 — 출하 JSON 8종을 변경 가능한 리스트로 읽어 한 곳만 비틀어 DB 를 만든다(위반 케이스용).
     public class FormationDataSet
     {
         public FormationConfigRow Config;
-        public List<FormationMonsterRow> Monsters;
+        public List<RaceRow> Races;
+        public List<GradeRow> Grades;
+        public List<Race_MonsterRow> RaceMonsters;
+        public List<Grade_PromotionRow> Promotions;
         public List<FormationSlotRow> Slots;
         public List<Chapter_FormationHintRow> Hints;
         public List<Card_SpeciesRow> CardSpecies;
@@ -25,7 +28,10 @@ namespace Lair.Tests.EditMode
             return new FormationDataSet
             {
                 Config = JsonUtility.FromJson<FormationConfigRow>(File.ReadAllText(Dir + "FormationConfig.json")),
-                Monsters = new List<FormationMonsterRow>(JsonArrayUtility.FromJsonArray<FormationMonsterRow>(File.ReadAllText(Dir + "FormationMonster.json"))),
+                Races = new List<RaceRow>(JsonArrayUtility.FromJsonArray<RaceRow>(File.ReadAllText(Dir + "Race.json"))),
+                Grades = new List<GradeRow>(JsonArrayUtility.FromJsonArray<GradeRow>(File.ReadAllText(Dir + "Grade.json"))),
+                RaceMonsters = new List<Race_MonsterRow>(JsonArrayUtility.FromJsonArray<Race_MonsterRow>(File.ReadAllText(Dir + "Race_Monster.json"))),
+                Promotions = new List<Grade_PromotionRow>(JsonArrayUtility.FromJsonArray<Grade_PromotionRow>(File.ReadAllText(Dir + "Grade_Promotion.json"))),
                 Slots = new List<FormationSlotRow>(JsonArrayUtility.FromJsonArray<FormationSlotRow>(File.ReadAllText(Dir + "FormationSlot.json"))),
                 Hints = new List<Chapter_FormationHintRow>(JsonArrayUtility.FromJsonArray<Chapter_FormationHintRow>(File.ReadAllText(Dir + "Chapter_FormationHint.json"))),
                 CardSpecies = new List<Card_SpeciesRow>(JsonArrayUtility.FromJsonArray<Card_SpeciesRow>(File.ReadAllText(Dir + "Card_Species.json"))),
@@ -36,14 +42,14 @@ namespace Lair.Tests.EditMode
         public FormationDatabase Build()
         {
             return FormationDatabase.Build(
-                Config, Monsters.ToArray(), Slots.ToArray(), Hints.ToArray(),
+                Config, Races.ToArray(), Grades.ToArray(), RaceMonsters.ToArray(), Promotions.ToArray(), Slots.ToArray(), Hints.ToArray(),
                 WorldMapTestSupport.FullDb().Chapters.Select(c => c.chapterId).ToList(),
                 id => WorldMapTestSupport.Text(id).Length > 0);
         }
 
         public FormationDatabase BuildWithoutCrossCheck()
         {
-            return FormationDatabase.Build(Config, Monsters.ToArray(), Slots.ToArray(), Hints.ToArray());
+            return FormationDatabase.Build(Config, Races.ToArray(), Grades.ToArray(), RaceMonsters.ToArray(), Promotions.ToArray(), Slots.ToArray(), Hints.ToArray());
         }
 
         public FormationCardSpecies BuildCards(FormationDatabase db)
@@ -74,16 +80,16 @@ namespace Lair.Tests.EditMode
             return rows;
         }
 
-        //# 기본 편성과 다른 유효 편성 (사신 2 + 저주술사 + 환령 2 + 역병귀 = 코스트 11, 종당 2).
-        public static EMonster[] AlteredValid()
+        //# 출하 기본 편성(슬롯 1~6 = 이그니스·눅스·헥시아·레무르·미아르·판타스의 1등급).
+        public static EMonster[] Default()
         {
-            return new[] { EMonster.Reaper, EMonster.Reaper, EMonster.Hex, EMonster.Phantom, EMonster.Plague, EMonster.Phantom };
+            return new[] { EMonster.Wisp, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom };
         }
 
-        //# 코스트 14 (도깨비불 2 + 망령 + 사신 + 역병귀 + 환령) — 상한 13 초과, 종당 2 이내.
-        public static EMonster[] Cost14()
+        //# 슬롯-종족이 어긋난 옛 편성(사신 2 + 저주술사 + 환령 2 + 역병귀).
+        public static EMonster[] Mismatched()
         {
-            return new[] { EMonster.Wisp, EMonster.Wisp, EMonster.Wraith, EMonster.Reaper, EMonster.Plague, EMonster.Phantom };
+            return new[] { EMonster.Reaper, EMonster.Reaper, EMonster.Hex, EMonster.Phantom, EMonster.Plague, EMonster.Phantom };
         }
 
         public static HashSet<EMonster> Outputs(params EMonster[] monsters)

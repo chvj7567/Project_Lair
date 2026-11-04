@@ -17,7 +17,7 @@ namespace Lair.UI
         public Action<List<FormationSlotEntry>> OnSortie;
     }
 
-    //# 던전 편성 팝업 (dungeon-formation §7) — 침입 요약 + 둥지 칸 6 + 코스트 게이지 + 종 팔레트 6 + 하단 바. 칸·행은 프리팹 정적 배치(스크롤 없음).
+    //# 던전 편성 팝업 (dungeon-formation §0.10) — 침입 요약 + 둥지 칸 6(종족 고정) + 우측 종족 정보·보유 몬스터 행 최대 5 + 하단 바. 칸·행은 프리팹 정적 배치(스크롤 없음).
     //# 표시·입력만 한다. 모든 계산은 FormationViewModel (Rule 02 §6).
     public class FormationPopup : UIBase
     {
@@ -27,9 +27,6 @@ namespace Lair.UI
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private CHButton _resetButton;
         [SerializeField] private CHButton _sortieButton;
-        [SerializeField] private Image _sortieBackground;
-        [SerializeField] private Sprite _sortieOnSprite;     //# 유효 편성 — 붉은 출격 버튼
-        [SerializeField] private Sprite _sortieOffSprite;    //# 무효 편성 — 회색(누르면 토스트)
 
         //# 침입 요약
         [SerializeField] private CHText _stageNumberText;    //# "2-2"
@@ -43,19 +40,17 @@ namespace Lair.UI
         [SerializeField] private GameObject _sealForecastRoot;
         [SerializeField] private CHText _sealForecastText;
 
-        //# 둥지 칸 6 + 종 팔레트 6 (프리팹 인스턴스 정적 배치)
+        //# 둥지 칸 6 + 선택 둥지 종족의 몬스터 행 최대 5(등급 1~5) (프리팹 인스턴스 정적 배치)
         [SerializeField] private FormationNestTile[] _nestTiles = new FormationNestTile[0];
         [SerializeField] private FormationSpeciesRow[] _speciesRows = new FormationSpeciesRow[0];
 
-        //# 코스트 게이지
-        [SerializeField] private CHText _costGaugeText;
-        [SerializeField] private Image[] _costPips = new Image[0];
+        //# 우측 상단 종족 정보 행 (종족 이름 + 성격 문구)
+        [SerializeField] private CHText _raceNameText;
+        [SerializeField] private CHText _raceDescText;
+        [SerializeField] private Image _raceBorder;
 
-        //# 종 아이콘 — 인덱스 = (int)EMonster (도감 몬스터 아이콘 재사용)
+        //# 몬스터 아이콘 — 인덱스 = (int)기준 몬스터 (도감 몬스터 아이콘 재사용, 등급 몬스터도 기준 아이콘 — monster-grades V7)
         [SerializeField] private Sprite[] _monsterIcons = new Sprite[0];
-
-        private static readonly Color PipOn = new Color32(0xf7, 0xc6, 0x4a, 0xff);
-        private static readonly Color PipOff = new Color32(0x0a, 0x0d, 0x14, 0xff);
 
         private FormationViewModel _vm;
         private Action<List<FormationSlotEntry>> _onSortie;
@@ -103,40 +98,34 @@ namespace Lair.UI
                 int index = i;
                 _nestTiles[i].SetClickHandler(() => _vm?.SelectNest(index), closeDisposable);
             }
-            IReadOnlyList<FormationSpeciesData> species = _vm.BuildSpecies();
-            for (int i = 0; i < _speciesRows.Length && i < species.Count; ++i)
+            //# 행 목록은 선택 둥지마다 바뀌므로 클릭은 행 인덱스로 받아 그 순간의 목록에서 몬스터를 찾는다.
+            for (int i = 0; i < _speciesRows.Length; ++i)
             {
                 if (_speciesRows[i] == null)
                     continue;
-                EMonster monster = species[i].Monster;
-                _speciesRows[i].SetClickHandler(() => HandlePlace(monster), closeDisposable);
+                int index = i;
+                _speciesRows[i].SetClickHandler(() => HandlePlace(index), closeDisposable);
             }
 
             ShowSummary();
             Refresh();
         }
 
-        //# 팔레트 클릭 — 불가하면 VM 이 돌려준 토스트 문구를 띄운다.
-        private void HandlePlace(EMonster monster)
+        //# 몬스터 행 클릭 — 선택 둥지에 그 몬스터 지정(VM 이 소속·보유를 판정).
+        private void HandlePlace(int rowIndex)
         {
             if (_vm == null)
                 return;
-            string toast = _vm.Place(monster);
-            if (string.IsNullOrEmpty(toast) == false)
-            {
-                ToastView.Show(toast, EToastKind.Warning);
-            }
+            IReadOnlyList<FormationSpeciesData> rows = _vm.BuildSpecies();
+            if (rowIndex < 0 || rowIndex >= rows.Count)
+                return;
+            _vm.Place(rows[rowIndex].Monster);
         }
 
         private void HandleSortie()
         {
             if (_vm == null)
                 return;
-            if (_vm.TrySortie(out string toast) == false)
-            {
-                ToastView.Show(toast, EToastKind.Warning);
-                return;
-            }
             Action<List<FormationSlotEntry>> onSortie = _onSortie;
             List<FormationSlotEntry> rows = _vm.BuildSaveRows();
             Close(reuse: true);
@@ -195,15 +184,27 @@ namespace Lair.UI
                 }
             }
             IReadOnlyList<FormationSpeciesData> species = _vm.BuildSpecies();
-            for (int i = 0; i < _speciesRows.Length && i < species.Count; ++i)
+            for (int i = 0; i < _speciesRows.Length; ++i)
             {
                 if (_speciesRows[i] != null)
                 {
-                    _speciesRows[i].Show(species[i], IconOf(species[i].Monster));
+                    FormationSpeciesData row = i < species.Count ? species[i] : null;
+                    _speciesRows[i].Show(row, row != null ? IconOf(row.Monster) : null);
                 }
             }
-
-            RefreshGauge();
+            if (_raceNameText != null)
+            {
+                _raceNameText.SetText(_vm.SelectedRaceName);
+                _raceNameText.SetColor(_vm.SelectedRaceColor);
+            }
+            if (_raceDescText != null)
+            {
+                _raceDescText.SetText(_vm.SelectedRaceDesc);
+            }
+            if (_raceBorder != null)
+            {
+                _raceBorder.color = _vm.SelectedRaceColor;
+            }
             if (_sealForecastRoot != null)
             {
                 _sealForecastRoot.SetActive(_vm.HasSealForecast);
@@ -212,37 +213,11 @@ namespace Lair.UI
             {
                 _sealForecastText.SetText(_vm.SealForecastText);
             }
-            if (_sortieBackground != null)
-            {
-                _sortieBackground.sprite = _vm.CanSortie ? _sortieOnSprite : _sortieOffSprite;
-            }
-        }
-
-        //# 코스트 게이지 — 사용분 금색, 남은분 어두운 칸, 상한 밖 초과분·문자는 적색(무효 편성).
-        private void RefreshGauge()
-        {
-            if (_costGaugeText != null)
-            {
-                _costGaugeText.SetText(_vm.CostGaugeText);
-                _costGaugeText.SetColor(_vm.IsInvalid ? UiDotPalette.Blood : BoneColor);
-            }
-            int shown = _vm.PipCount;
-            for (int i = 0; i < _costPips.Length; ++i)
-            {
-                if (_costPips[i] == null)
-                    continue;
-                _costPips[i].gameObject.SetActive(i < shown);
-                if (i >= shown)
-                    continue;
-                bool used = i < _vm.CostSum;
-                bool over = i >= _vm.CostCap;
-                _costPips[i].color = used ? (over ? UiDotPalette.Blood : PipOn) : PipOff;
-            }
         }
 
         private Sprite IconOf(EMonster monster)
         {
-            int index = (int)monster;
+            int index = (int)MonsterGrades.BaseOf(monster);
             return index >= 0 && index < _monsterIcons.Length ? _monsterIcons[index] : null;
         }
     }

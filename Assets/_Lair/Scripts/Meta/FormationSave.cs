@@ -4,7 +4,7 @@ using Lair.Data;
 
 namespace Lair.Meta
 {
-    //# 편성 세이브 행(MetaProfile.Formation) 변환 + 전투 EffectiveFormation 결정 (dungeon-formation §3.1, §6.3). 데이터 규칙은 Lair.Data.FormationRules 소유 - 의존은 Meta -> Data 한 방향.
+    //# 편성 세이브 행(MetaProfile.Formation) 변환 + 전투 EffectiveFormation 결정 (dungeon-formation §3.1, §6.3, §0.6). 데이터 규칙은 Lair.Data.FormationRules 소유 - 의존은 Meta -> Data 한 방향.
     public static class FormationSave
     {
         //# 저장 행 → 편성. 정확히 6행이고 슬롯 1~6 을 한 번씩 덮고 종이 EMonster 값명일 때만, 아니면 null(= 기본 편성/무효).
@@ -55,28 +55,32 @@ namespace Lair.Meta
             return saved != null && saved.Count > 0 && FromSaved(saved) == null;
         }
 
-        //# 전투 시작 EffectiveFormation (§6.3) — 프로필을 수정하지 않는다. 데이터 미로드(db null)면 null(= 씬 인스펙터 배치 그대로).
-        //# fixedFormation: 외부(데일리 등)가 넘기는 고정 편성 — 6칸이면 저장 편성 대신 그대로 쓴다. costCapOverride/maxPerSpeciesOverride: 0 이면 데이터값.
+        //# 전투 시작 EffectiveFormation (§6.3·§0.6) — 프로필을 수정하지 않는다. 데이터 미로드(db null)면 null(= 씬 인스펙터 배치 그대로).
+        //# 0행·잠김이면 기본 편성(종족별 보유 최고 등급). 저장 편성의 무효 슬롯(타 종족·미보유 등급)은 그 슬롯만 보유 최고 등급으로 대체한다.
+        //# fixedFormation: 외부(데일리 등)가 넘기는 고정 편성 — 6칸이면 저장 편성 대신 그대로 쓴다.
         public static EMonster[] Resolve(
-            FormationDatabase db, IReadOnlyList<FormationSlotEntry> saved, int clearedStage,
-            EMonster[] fixedFormation = null, int costCapOverride = 0, int maxPerSpeciesOverride = 0, Action<string> warn = null)
+            FormationDatabase db, IReadOnlyList<FormationSlotEntry> saved, int clearedStage, Func<ERace, int> ownedGradeOf,
+            EMonster[] fixedFormation = null, Action<string> warn = null)
         {
             if (db == null)
                 return null;
             if (fixedFormation != null && fixedFormation.Length == FormationDatabase.SlotCount)
                 return (EMonster[])fixedFormation.Clone();
             if (FormationRules.IsUnlocked(db.Config, clearedStage) == false || saved == null || saved.Count == 0)
-                return db.DefaultFormation();
+                return db.DefaultFormation(ownedGradeOf);
 
             EMonster[] candidate = FromSaved(saved);
-            int costCap = costCapOverride > 0 ? costCapOverride : db.Config.costCap;
-            int maxPerSpecies = maxPerSpeciesOverride > 0 ? maxPerSpeciesOverride : FormationRules.MaxPerSpecies(db.Config, clearedStage);
-            string issue = candidate == null ? "저장 편성 모양이 올바르지 않음" : FormationRules.Describe(candidate, costCap, maxPerSpecies, db.CostOf);
-            if (issue == null)
-                return candidate;
-            warn?.Invoke($"[Formation] 저장 편성이 무효({issue}) — 기본 편성으로 시작");
-            return db.DefaultFormation();
+            if (candidate == null)
+            {
+                warn?.Invoke("[Formation] 저장 편성 모양이 올바르지 않음 — 기본 편성으로 시작");
+                return db.DefaultFormation(ownedGradeOf);
+            }
+            EMonster[] repaired = FormationRules.Repair(candidate, db, ownedGradeOf, out int count);
+            if (count > 0)
+            {
+                warn?.Invoke($"[Formation] 저장 편성의 둥지 {count}곳이 무효 — 그 둥지만 종족 보유 최고 등급으로 시작");
+            }
+            return repaired;
         }
-
     }
 }

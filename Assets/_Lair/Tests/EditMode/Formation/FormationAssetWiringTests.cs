@@ -54,11 +54,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 팝업은_둥지_칸_6과_종_행_6을_정적으로_가진다()
+        public void 팝업은_둥지_칸_6과_몬스터_행_5를_정적으로_가진다()
         {
             FormationPopup popup = Load<FormationPopup>("FormationPopup");
             Assert.AreEqual(6, popup.GetComponentsInChildren<FormationNestTile>(true).Length);
-            Assert.AreEqual(6, popup.GetComponentsInChildren<FormationSpeciesRow>(true).Length);
+            Assert.AreEqual(5, popup.GetComponentsInChildren<FormationSpeciesRow>(true).Length, "등급 1~5 최대 5행 (dungeon-formation §0.10)");
         }
 
         [Test]
@@ -72,14 +72,15 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 편성_JSON_5종과_팝업이_Addressables에_등록돼_있다()
+        public void 편성_JSON_8종과_팝업이_Addressables에_등록돼_있고_FormationMonster는_빠졌다()
         {
             string groups = File.ReadAllText("Assets/AddressableAssetsData/AssetGroups/Default Local Group.asset")
                 + File.ReadAllText("Assets/AddressableAssetsData/AssetGroups/Resource.asset");
-            foreach (string address in new[] { "FormationConfig", "FormationMonster", "FormationSlot", "Card_Species", "Chapter_FormationHint", "FormationPopup" })
+            foreach (string address in new[] { "FormationConfig", "FormationSlot", "Race", "Grade", "Race_Monster", "Grade_Promotion", "Card_Species", "Chapter_FormationHint", "FormationPopup" })
             {
                 StringAssert.Contains("m_Address: " + address + "\n", groups.Replace("\r\n", "\n"), address);
             }
+            StringAssert.DoesNotContain("m_Address: FormationMonster\n", groups.Replace("\r\n", "\n"), "FormationMonster.json 삭제됨");
         }
     }
 }

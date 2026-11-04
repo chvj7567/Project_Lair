@@ -138,18 +138,22 @@ namespace Lair.Battle
             }
         }
 
-        //# 던전 편성 JSON 5종 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 편성 기능 비활성(마을 바로 출격, 전투 씬 기본 배치, 저장 편성 보존) — dungeon-formation §3.3-8.
+        //# 던전 편성 JSON 8종(종족·등급·승급 비용 포함) — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → 편성 기능 비활성(마을 바로 출격, 전투 씬 기본 배치, 저장 편성 보존) — dungeon-formation §3.3-8.
         //# Card_Species 만 실패하면 카드 후보 제외만 꺼진다(E-2).
         private static async Task LoadFormationAsync(ChapterDatabase chapters)
         {
             FormationDatabase.Current = null;
             FormationCardSpecies.Current = null;
             string configJson = await LoadTextAsync(EData.FormationConfig);
-            string monsterJson = await LoadTextAsync(EData.FormationMonster);
+            string raceJson = await LoadTextAsync(EData.Race);
+            string gradeJson = await LoadTextAsync(EData.Grade);
+            string raceMonsterJson = await LoadTextAsync(EData.Race_Monster);
+            string promotionJson = await LoadTextAsync(EData.Grade_Promotion);
             string slotJson = await LoadTextAsync(EData.FormationSlot);
             string hintJson = await LoadTextAsync(EData.Chapter_FormationHint);
             string cardJson = await LoadTextAsync(EData.Card_Species);
-            if (configJson == null || monsterJson == null || slotJson == null || hintJson == null)
+            if (configJson == null || raceJson == null || gradeJson == null || raceMonsterJson == null || promotionJson == null
+                || slotJson == null || hintJson == null)
             {
                 Debug.LogError("[ChapterDatabaseLoader] 던전 편성 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 편성 기능 비활성");
                 return;
@@ -163,7 +167,10 @@ namespace Lair.Battle
                 }
                 FormationDatabase.Current = FormationDatabase.Build(
                     JsonUtility.FromJson<FormationConfigRow>(configJson),
-                    JsonArrayUtility.FromJsonArray<FormationMonsterRow>(monsterJson),
+                    JsonArrayUtility.FromJsonArray<RaceRow>(raceJson),
+                    JsonArrayUtility.FromJsonArray<GradeRow>(gradeJson),
+                    JsonArrayUtility.FromJsonArray<Race_MonsterRow>(raceMonsterJson),
+                    JsonArrayUtility.FromJsonArray<Grade_PromotionRow>(promotionJson),
                     JsonArrayUtility.FromJsonArray<FormationSlotRow>(slotJson),
                     JsonArrayUtility.FromJsonArray<Chapter_FormationHintRow>(hintJson),
                     chapterIds,

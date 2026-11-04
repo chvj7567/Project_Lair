@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Lair.Battle;
 using Lair.Data;
@@ -14,57 +15,55 @@ namespace Lair.Village
         public int Index;               //# 0~5
         public string TitleText;        //# "둥지 3"
         public EMonster Monster;
-        public string NameText;
+        public int Grade;               //# 1~5 — 아이콘 테두리·크기 등급 표현
+        public string NameText;         //# "견습 도깨비불" (접두어 포함)
+        public string RaceText;         //# "이그니스"
+        public string GradeText;        //# "2등급 · 보유 2등급"
         public Color SpeciesColor;
-        public string CostText;         //# "코스트 3"
-        public int Cost;                //# 금색 칸 개수
         public bool IsSelected;
-        public bool IsDefault;          //# 기본 편성과 같은 종 — 회색 원 표식
+        public bool IsDefault;          //# 기본 편성(보유 최고 등급)과 같은 몬스터 — 회색 원 표식
         public bool IsSealed;           //# 봉인 예정 칸 — 사슬 표식
     }
 
-    //# 종 팔레트 행 한 개의 확정 표시값.
+    //# 선택 둥지 종족의 보유 몬스터 행 한 개의 확정 표시값 (등급순, 최대 5).
     public class FormationSpeciesData
     {
         public EMonster Monster;
-        public string NameText;
+        public int Grade;
+        public string NameText;         //# "견습 도깨비불"
+        public string GradeText;        //# "2등급 · HP·공격력 x1.10 · 보유 최고"
         public Color SpeciesColor;
-        public string CostText;         //# "코스트 3"
-        public string CountText;        //# "편성 2 / 3"
-        public string AwakenText;       //# "각성 Lv 2"
-        public bool ShowAwaken;         //# 상점 각성 Lv 0 이면 숨김
+        public string AwakenText;       //# "체급 Lv 2"
+        public bool ShowAwaken;         //# 상점 체급 Lv 0 이면 숨김
         public EBuildAxis Axis;         //# 축 칩 (이름은 axis.ToString())
-        public bool Dimmed;             //# 선택 둥지에 넣으면 무효가 되는 종
+        public bool IsSelected;         //# 지금 이 둥지에 출전 중
     }
 
-    //# 던전 편성 팝업 ViewModel (dungeon-formation §7) — 코스트 합·종별 수·행 활성·봉인 예고·토스트 문구·저장 행 계산.
+    //# 던전 편성 팝업 ViewModel (dungeon-formation §0.3·§0.10) — 둥지 6곳(종족 고정)마다 보유한 등급의 몬스터 하나를 고른다.
     //# View 를 모르고 프로필은 읽기만 한다(저장은 출격 콜백 소유자). Unity 오브젝트 비의존(Color 값만).
     public class FormationViewModel
     {
-        //# Strings_Ko id (dungeon-formation §7.5 — 1393 시작 연속 배정).
-        public const int StrCostGauge = 1397;      //# 코스트 {0} / {1}
-        public const int StrCostOf = 1398;         //# 코스트 {0}
-        public const int StrCountOf = 1399;        //# 편성 {0} / {1}
-        public const int StrAwaken = 1400;         //# 각성 Lv {0}
+        //# Strings_Ko id.
+        public const int StrAwaken = 1400;         //# 체급 Lv {0}
         public const int StrNest = 1401;           //# 둥지 {0}
-        public const int StrToastCost = 1402;      //# 코스트가 부족합니다 (필요 {0} · 남은 코스트 {1})
-        public const int StrToastSpecies = 1403;   //# {0}은(는) 최대 {1}곳까지 편성할 수 있습니다
         public const int StrSealForecast = 1404;   //# 봉인 예정: 둥지 {0} ({1}) · 영웅 HP {2}% 에서 해제
-        public const int StrToastInvalid = 1405;   //# 코스트를 초과한 편성입니다. 고친 뒤 출격하세요
+        public const int StrNestGrade = 1522;      //# {0}등급 · 보유 {1}등급
+        public const int StrRowGrade = 1523;       //# {0}등급 · HP·공격력 x{1}
+        public const int StrOwnedTop = 1524;       //# 보유 최고
 
         private readonly FormationDatabase _db;
         private readonly Func<int, string> _text;
         private readonly Func<EMonster, int> _awakenLevelOf;
+        private readonly Func<ERace, int> _ownedGradeOf;
         private readonly EMonster[] _formation;
         private readonly EMonster[] _defaults;
-        private readonly int _maxPerSpecies;
         private readonly StageRuleData _sealRule;
         private readonly EMonster _sealSpecies;
         private int _selected;
 
         public event Action OnChanged;
 
-        //# stage: 선형 스테이지 번호. awakenLevelOf: 종 → 상점 각성 레벨(Enhance_<종>).
+        //# stage: 선형 스테이지 번호. awakenLevelOf: 기준 몬스터 → 상점 체급 레벨(Enhance_<기준 몬스터>).
         public FormationViewModel(
             FormationDatabase db, ChapterDatabase chapters, MetaProfile profile, int stage,
             Func<int, string> text, Func<EMonster, int> awakenLevelOf)
@@ -72,10 +71,11 @@ namespace Lair.Village
             _db = db;
             _text = text ?? (id => string.Empty);
             _awakenLevelOf = awakenLevelOf ?? (monster => 0);
-            _defaults = db.DefaultFormation();
+            _ownedGradeOf = profile.GetRaceGrade;
+            _defaults = db.DefaultFormation(_ownedGradeOf);
             EMonster[] saved = FormationSave.FromSaved(profile.Formation);
-            _formation = saved ?? db.DefaultFormation();
-            _maxPerSpecies = FormationRules.MaxPerSpecies(db.Config, profile.ClearedStage);
+            //# 무효 슬롯(타 종족·미보유 등급)은 보유 최고 등급으로 바꿔 보여 주고, 출격 때 그대로 저장된다(§0.6 · U-C A 안내 없음).
+            _formation = saved != null ? FormationRules.Repair(saved, db, _ownedGradeOf, out int _) : db.DefaultFormation(_ownedGradeOf);
             Stage = stage;
 
             StageNumberText = StageLabels.Number(stage);
@@ -119,20 +119,9 @@ namespace Lair.Village
         public string DifficultyText { get; }      //# Easy 면 빈 문자열(칩 숨김)
 
         public int SelectedIndex => _selected;
-        public int CostCap => _db.Config.costCap;
-        public int MaxPerSpecies => _maxPerSpecies;
-        public int CostSum => FormationRules.CostSum(_formation, _db.CostOf);
-        public string CostGaugeText => string.Format(_text(StrCostGauge), CostSum, CostCap);
 
-        //# 코스트 합이 상한 초과이거나 종당 최대 초과(무효 복원 편성 등) — 게이지 적색 + 출격 비활성.
-        public bool IsInvalid => FormationRules.IsValid(_formation, CostCap, _maxPerSpecies, _db.CostOf) == false;
-        public bool CanSortie => IsInvalid == false;
-
-        //# 게이지 칸 수 = max(상한, 코스트 합). 앞 CostSum 칸이 사용분, 상한 밖은 초과 칸.
-        public int PipCount => Math.Max(CostCap, CostSum);
-
-        //# 봉인된 둥지 스테이지에서 봉인될 둥지 인덱스 — 아니면 -1. 전투와 같은 FormationRules.PickSealedSlot.
-        public int SealedIndex => _sealRule != null ? FormationRules.PickSealedSlot(_formation, _sealSpecies, _db.CostOf) : -1;
+        //# 봉인된 둥지 스테이지에서 봉인될 둥지 인덱스 — 아니면 -1. 전투와 같은 FormationRules.PickSealedSlot(종족 둥지 1곳).
+        public int SealedIndex => _sealRule != null ? FormationRules.PickSealedSlot(_formation, _sealSpecies) : -1;
 
         public bool HasSealForecast => SealedIndex >= 0;
 
@@ -144,9 +133,23 @@ namespace Lair.Village
                 if (index < 0)
                     return string.Empty;
                 int percent = SealedNestInfo.AnyUnlockHpPercent(_sealRule);
-                return string.Format(_text(StrSealForecast), index + 1, SpeciesVisual.SpeciesName(_formation[index]), percent);
+                return string.Format(_text(StrSealForecast), index + 1, RaceName(_db.SlotRace(index)), percent);
             }
         }
+
+        //# 선택 둥지 종족 정보 행 (우측 패널 상단).
+        public string SelectedRaceName => RaceName(_db.SlotRace(_selected));
+
+        public string SelectedRaceDesc
+        {
+            get
+            {
+                RaceRow row = _db.RaceRowOf(_db.SlotRace(_selected));
+                return row != null ? _text(row.descKey) : string.Empty;
+            }
+        }
+
+        public Color SelectedRaceColor => SpeciesVisual.SpeciesGlowColor(_db.MonstersOf(_db.SlotRace(_selected))[0]);
 
         public void SelectNest(int index)
         {
@@ -156,40 +159,22 @@ namespace Lair.Village
             OnChanged?.Invoke();
         }
 
-        //# 선택 둥지에 monster 배치. 불가하면 토스트 문구를 돌려주고 상태는 그대로, 성공/무동작이면 null.
-        //# 성공 시 다음 둥지로 선택 이동(6 다음은 1).
-        public string Place(EMonster monster)
+        //# 선택 둥지에 monster 지정 — 그 종족 보유 몬스터만. 같은 몬스터·무효면 무동작. 성공 시 다음 둥지로 선택 이동(6 다음은 1).
+        public void Place(EMonster monster)
         {
-            EFormationPlace result = FormationRules.CanPlace(_formation, _selected, monster, CostCap, _maxPerSpecies, _db.CostOf);
-            switch (result)
-            {
-                case EFormationPlace.Same:
-                    return null;
-                case EFormationPlace.OverCost:
-                    int remaining = CostCap - (CostSum - _db.CostOf(_formation[_selected]));
-                    return string.Format(_text(StrToastCost), _db.CostOf(monster), remaining);
-                case EFormationPlace.OverSpecies:
-                    return string.Format(_text(StrToastSpecies), SpeciesVisual.SpeciesName(monster), _maxPerSpecies);
-            }
+            if (_formation[_selected] == monster || FormationRules.IsAllowed(_db, _selected, monster, _ownedGradeOf) == false)
+                return;
             _formation[_selected] = monster;
             _selected = (_selected + 1) % _formation.Length;
             OnChanged?.Invoke();
-            return null;
         }
 
-        //# 표시 편성을 기본 편성으로 되돌림(저장은 출격 때) — 선택은 둥지 1.
+        //# 표시 편성을 기본 편성(보유 최고 등급)으로 되돌림(저장은 출격 때) — 선택은 둥지 1.
         public void ResetToDefault()
         {
             Array.Copy(_defaults, _formation, _formation.Length);
             _selected = 0;
             OnChanged?.Invoke();
-        }
-
-        //# 출격 시도 — 무효면 토스트 문구와 함께 false.
-        public bool TrySortie(out string toast)
-        {
-            toast = IsInvalid ? _text(StrToastInvalid) : null;
-            return IsInvalid == false;
         }
 
         //# 저장 행 — 기본 편성과 같으면 0행, 다르면 6행.
@@ -201,43 +186,58 @@ namespace Lair.Village
         public FormationNestData GetNest(int index)
         {
             EMonster monster = _formation[index];
-            int cost = _db.CostOf(monster);
+            ERace race = _db.SlotRace(index);
+            int grade = MonsterGrades.GradeOf(monster);
             return new FormationNestData
             {
                 Index = index,
                 TitleText = string.Format(_text(StrNest), index + 1),
                 Monster = monster,
-                NameText = SpeciesVisual.SpeciesName(monster),
+                Grade = grade,
+                NameText = SpeciesVisual.MonsterName(monster, _db, _text),
+                RaceText = RaceName(race),
+                GradeText = string.Format(_text(StrNestGrade), grade, _ownedGradeOf(race)),
                 SpeciesColor = SpeciesVisual.SpeciesGlowColor(monster),
-                CostText = string.Format(_text(StrCostOf), cost),
-                Cost = cost,
                 IsSelected = index == _selected,
                 IsDefault = monster == _defaults[index],
                 IsSealed = index == SealedIndex,
             };
         }
 
+        //# 선택 둥지 종족의 보유 몬스터 행(등급순).
         public IReadOnlyList<FormationSpeciesData> BuildSpecies()
         {
             List<FormationSpeciesData> list = new List<FormationSpeciesData>();
-            foreach (EMonster monster in _db.Monsters)
+            ERace race = _db.SlotRace(_selected);
+            foreach (EMonster monster in _db.OwnedMonstersOf(race, _ownedGradeOf(race)))
             {
-                int awaken = _awakenLevelOf(monster);
-                EFormationPlace place = FormationRules.CanPlace(_formation, _selected, monster, CostCap, _maxPerSpecies, _db.CostOf);
+                int grade = MonsterGrades.GradeOf(monster);
+                int awaken = _awakenLevelOf(MonsterGrades.BaseOf(monster));
+                string gradeText = string.Format(_text(StrRowGrade), grade, _db.HpMulOf(monster).ToString("0.00", CultureInfo.InvariantCulture));
+                if (monster == _defaults[_selected])
+                {
+                    gradeText += " · " + _text(StrOwnedTop);
+                }
                 list.Add(new FormationSpeciesData
                 {
                     Monster = monster,
-                    NameText = SpeciesVisual.SpeciesName(monster),
+                    Grade = grade,
+                    NameText = SpeciesVisual.MonsterName(monster, _db, _text),
+                    GradeText = gradeText,
                     SpeciesColor = SpeciesVisual.SpeciesGlowColor(monster),
-                    CostText = string.Format(_text(StrCostOf), _db.CostOf(monster)),
-                    CountText = string.Format(_text(StrCountOf), FormationRules.CountOf(_formation, monster), _maxPerSpecies),
                     AwakenText = string.Format(_text(StrAwaken), awaken),
                     ShowAwaken = awaken > 0,
                     Axis = SpeciesVisual.SpeciesAxis(monster),
-                    Dimmed = place == EFormationPlace.OverCost || place == EFormationPlace.OverSpecies,
+                    IsSelected = monster == _formation[_selected],
                 });
             }
             return list;
+        }
+
+        private string RaceName(ERace race)
+        {
+            RaceRow row = _db.RaceRowOf(race);
+            return row != null ? _text(row.nameKey) : race.ToString();
         }
     }
 }
