@@ -1,0 +1,6 @@
+upstream: https://github.com/patch-gg/pixelfx
+commit:   a84159688af3ca37a4be05a0d422b94451b2e24e
+version:  0.3.0
+vendored: src/, tools/ (minus build-gallery/serve), docs/AUTHORING.md, docs/CATALOG.md, LICENSE
+excluded: gallery/ (incl. the Patch Pixel font, which is NOT MIT-licensed) -- never add it.
+update:   re-copy from a new upstream commit, bump this file and THIRD_PARTY_NOTICES.md at repo root.
