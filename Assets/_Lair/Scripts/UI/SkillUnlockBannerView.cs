@@ -33,12 +33,17 @@ namespace Lair.UI
 
         public override void InitUI(UIArg arg) => HideImmediate();
 
-        //# 모바일 종횡비에서 캔버스 실폭이 1280 초과면 풀폭 밴드가 _offscreenX(1300) 로는 안 빠짐 → 일부 잔존.
-        //# 밴드 실폭(rect.width) 으로 보정해 해상도 무관 완전 퇴장 보장.
+        //# 퇴장 거리 >= 캔버스 폭/2 + 밴드 폭/2 (와이드 캔버스 논리 폭 1680 에서도 완전 퇴장). 캔버스 못 구하면 기존값.
         private float OffscreenX()
         {
             float bandWidth = _root != null ? _root.rect.width : 0f;
-            return Mathf.Max(_offscreenX, bandWidth);
+            float canvasWidth = 0f;
+            if (_root != null)
+            {
+                RectTransform canvasRect = _root.root as RectTransform;
+                canvasWidth = canvasRect != null ? canvasRect.rect.width : 0f;
+            }
+            return Mathf.Max(_offscreenX, bandWidth, (canvasWidth + bandWidth) * 0.5f);
         }
 
         public void HideImmediate()
