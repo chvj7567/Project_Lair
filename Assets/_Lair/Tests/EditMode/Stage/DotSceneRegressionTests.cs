@@ -212,6 +212,7 @@ namespace Lair.Tests.EditMode
             SerializedObject so = new SerializedObject(lf);
             Assert.IsTrue(so.FindProperty("_renderWorldInBars").boolValue);
             Assert.AreEqual(16f / 9f, so.FindProperty("_targetAspect").floatValue, 1e-4f);
+            Assert.AreEqual(21f / 9f, so.FindProperty("_maxAspect").floatValue, 1e-3f);
         }
 
         [Test]
@@ -481,7 +482,9 @@ namespace Lair.Tests.EditMode
         {
             LetterboxFramer lf = DotSceneTestUtil.Find<LetterboxFramer>(_scene);
             Assert.IsNotNull(lf);
-            Assert.IsTrue(new SerializedObject(lf).FindProperty("_renderWorldInBars").boolValue);
+            SerializedObject so = new SerializedObject(lf);
+            Assert.IsTrue(so.FindProperty("_renderWorldInBars").boolValue);
+            Assert.AreEqual(0f, so.FindProperty("_maxAspect").floatValue, 1e-4f);
         }
 
         [Test]

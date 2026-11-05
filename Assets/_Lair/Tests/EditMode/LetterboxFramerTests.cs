@@ -54,5 +54,54 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(1f, rect.width, 1e-4f);
             Assert.AreEqual(1f, rect.height, 1e-4f);
         }
+
+        private const float MaxAspect = 21f / 9f;
+
+        private static void AssertRect(Rect r, float x, float y, float w, float h)
+        {
+            Assert.AreEqual(x, r.x, 1e-4f);
+            Assert.AreEqual(y, r.y, 1e-4f);
+            Assert.AreEqual(w, r.width, 1e-4f);
+            Assert.AreEqual(h, r.height, 1e-4f);
+        }
+
+        [TestCase(1920, 1080)]
+        [TestCase(2400, 1080)]
+        [TestCase(2520, 1080)]
+        public void 클램프_범위_안_종횡비는_풀_rect(int w, int h)
+        {
+            //# 2520x1080 = 정확히 21:9 경계 포함.
+            AssertRect(LetterboxFramer.ComputeViewportRect(w, h, Aspect, MaxAspect), 0f, 0f, 1f, 1f);
+        }
+
+        [Test]
+        public void 클램프_최대_종횡비_초과면_좌우_띠()
+        {
+            //# 2640x1080 (22:9 초과) → 21:9 박스 폭 0.95455.
+            AssertRect(LetterboxFramer.ComputeViewportRect(2640, 1080, Aspect, MaxAspect), 0.02273f, 0f, 0.95455f, 1f);
+        }
+
+        [Test]
+        public void 클램프_16대10은_위아래_띠()
+        {
+            AssertRect(LetterboxFramer.ComputeViewportRect(1920, 1200, Aspect, MaxAspect), 0f, 0.05f, 1f, 0.9f);
+        }
+
+        [Test]
+        public void 클램프_4대3은_위아래_띠()
+        {
+            AssertRect(LetterboxFramer.ComputeViewportRect(2048, 1536, Aspect, MaxAspect), 0f, 0.125f, 1f, 0.75f);
+        }
+
+        [TestCase(0f)]
+        [TestCase(-1f)]
+        public void 최대_종횡비_0이하면_3인자와_동일(float max)
+        {
+            //# 회귀 — 2400x1080 현행 필러박스 x 0.1, w 0.8.
+            Rect r = LetterboxFramer.ComputeViewportRect(2400, 1080, Aspect, max);
+            AssertRect(r, 0.1f, 0f, 0.8f, 1f);
+            Rect legacy = LetterboxFramer.ComputeViewportRect(2400, 1080, Aspect);
+            Assert.AreEqual(legacy, r);
+        }
     }
 }
