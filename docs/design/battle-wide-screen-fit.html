@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>배틀 와이드 화면 가이드</title>
+<style>
+body{margin:0;background:#0b0e14;color:#e8e1cf;font-family:sans-serif;padding:16px;max-width:760px;margin:auto;line-height:1.6}
+h1{font-size:20px}h2{font-size:16px;color:#c9a24a;margin-top:24px}
+.card{background:#0d1220;border:1px solid #3a4a63;border-radius:8px;padding:12px;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #3a4a63;padding:6px;text-align:left}
+.scr{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.box{height:40px;background:#1f2938;position:relative;border:1px solid #3a4a63}
+.box i{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);background:#26324a;border-left:2px dashed #7bd88f;border-right:2px dashed #7bd88f}
+.decide{background:#2a2412;border:2px solid #c9a24a;border-radius:8px;padding:12px;margin-top:24px}
+.tag{color:#7bd88f}
+</style></head><body>
+<h1>배틀 화면이 폰 전체를 쓰게 됩니다</h1>
+<p>긴 폰(20:9 등)에서 마을은 화면을 가득 채우는데 전투 화면만 양옆이 비어 보였습니다. 이제 전투도 화면 끝까지 채웁니다.</p>
+
+<h2>이렇게 바뀝니다</h2>
+<div class="card"><b>1. 배경이 꽉 찹니다</b><br>던전 바닥과 장식이 화면 양 끝까지 이어집니다. 불티도 끝까지 날립니다.</div>
+<div class="card"><b>2. 전투 구역은 그대로</b><br>영웅과 몬스터가 싸우는 자리는 어느 폰에서나 똑같습니다. 넓은 폰이라고 유리하지 않습니다.
+<div class="scr"><div class="box" style="width:100%"><i style="width:56%"></i></div></div>
+<small>점선 안이 모든 기기에서 같은 전투 구역입니다.</small></div>
+<div class="card"><b>3. 버튼과 정보는 가장자리로</b><br>체력, 타이머, 시너지 같은 정보가 화면 모서리에 붙습니다. 노치·홈바에 가려지지 않게 안쪽으로 비켜 줍니다.</div>
+<div class="card"><b>4. 팝업은 지금 그대로</b><br>결과창, 카드 선택 등은 지금 크기로 화면 한가운데 뜨고, 배경만 양옆까지 어두워집니다.</div>
+
+<h2>화면 비율별 모습</h2>
+<table><tr><th>화면</th><th>모습</th></tr>
+<tr><td>일반 16:9</td><td>지금과 같음</td></tr>
+<tr><td>긴 폰 (19.5:9 ~ 21:9)</td><td class="tag">전체 화면 사용</td></tr>
+<tr><td>더 긴 폰 (22:9 이상)</td><td>양 끝에 얇은 검은 띠가 조금 남음</td></tr>
+<tr><td>태블릿 (4:3, 16:10)</td><td>위아래에 띠가 남음 (지금과 같음)</td></tr></table>
+
+<h2>그대로인 것</h2>
+<div class="card">마을·로딩 화면, 전투 규칙과 밸런스, 랭킹 기록은 변하지 않습니다.</div>
+
+<div class="decide"><b>결정해 주세요</b>
+<ol>
+<li>아주 긴 폰(22:9 이상)에서 양 끝 얇은 띠를 허용할까요? <br><b>추천: 허용</b> (대안은 화면을 확대해 위아래가 잘리게 하는 것 — 전투 구역이 달라져 비추천)</li>
+<li>태블릿의 위아래 띠를 그대로 둘까요? <br><b>추천: 그대로</b> (없애려면 세로로 더 긴 배경 그림을 새로 그려야 함)</li>
+<li>체력·버튼 같은 정보를 화면 맨 가장자리에 붙일까요? <br><b>추천: 가장자리</b> (대안은 전투 구역 가장자리에 고정 — 긴 폰에서 가운데로 몰림)</li>
+</ol></div>
+</body></html>
