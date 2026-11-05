@@ -27,16 +27,20 @@ namespace Lair.Battle
         //# 배경 카메라가 게임 카메라의 자세·직교 크기를 매 프레임 따라 한다(UI 는 16:9 박스 안에만 그려짐).
         [SerializeField] private bool _renderWorldInBars;
 
+        //# 최대 종횡비(battle-wide-screen-fit §2.5). 0 = 현행(클램프 없음, 미러 항상). >0 이면 [_targetAspect, _maxAspect] 는 풀 rect.
+        [SerializeField] private float _maxAspect;
+
         //# 마지막으로 적용한 화면 크기 — 변동 시에만 재계산.
         private int _lastWidth;
         private int _lastHeight;
+        //# 이번 rect 에서 띠가 있어 배경 카메라 미러가 필요한지.
+        private bool _mirrorActive;
 
         private void OnEnable()
         {
             //# 풀/씬 재진입 시 강제 1회 재적용 위해 캐시 무효화.
             _lastWidth = 0;
             _lastHeight = 0;
-            ConfigureBackgroundCamera();
             Apply();
         }
 
@@ -49,7 +53,7 @@ namespace Lair.Battle
 
             //# 표준 Camera API 만 사용 — URP/빌트인 무관하게 단색 클리어 전용으로 동작.
             _backgroundCamera.clearFlags = CameraClearFlags.SolidColor;
-            bool mirror = _renderWorldInBars && _gameCamera != null;
+            bool mirror = _mirrorActive && _gameCamera != null;
             _backgroundCamera.backgroundColor = mirror ? _gameCamera.backgroundColor : _letterboxColor;
             _backgroundCamera.cullingMask = mirror ? ~0 : 0;
             _backgroundCamera.rect = new Rect(0f, 0f, 1f, 1f);
@@ -68,7 +72,7 @@ namespace Lair.Battle
         //# 게임 카메라가 이번 프레임에 움직인 뒤(흔들림 포함) 배경 카메라가 같은 자세로 따라간다.
         private void LateUpdate()
         {
-            if (_renderWorldInBars == false || _backgroundCamera == null || _gameCamera == null)
+            if (_mirrorActive == false || _backgroundCamera == null || _gameCamera == null)
                 return;
             Transform g = _gameCamera.transform;
             _backgroundCamera.transform.SetPositionAndRotation(g.position, g.rotation);
@@ -91,12 +95,17 @@ namespace Lair.Battle
             _lastWidth = Screen.width;
             _lastHeight = Screen.height;
 
-            Rect rect = ComputeViewportRect(Screen.width, Screen.height, _targetAspect);
+            Rect rect = ComputeViewportRect(Screen.width, Screen.height, _targetAspect, _maxAspect);
 
             if (_gameCamera != null)
             {
                 _gameCamera.rect = rect;
             }
+
+            //# 풀 rect 면 띠가 없으므로 미러(이중 렌더)를 끈다. _maxAspect 0(로딩 씬)은 현행대로 항상 미러.
+            bool fullRect = _maxAspect > 0f && rect.width >= 1f && rect.height >= 1f;
+            _mirrorActive = _renderWorldInBars && fullRect == false;
+            ConfigureBackgroundCamera();
 
             if (_uiCanvas != null && _gameCamera != null)
             {
@@ -106,6 +115,20 @@ namespace Lair.Battle
                 _uiCanvas.worldCamera = _gameCamera;
                 _uiCanvas.planeDistance = 1f;
             }
+        }
+
+        //# maxAspect > 0 이면 종횡비가 [targetAspect, maxAspect] 안일 때 풀 rect, maxAspect 초과면 maxAspect 박스(좌우 띠). 0 이하면 현행.
+        public static Rect ComputeViewportRect(int screenWidth, int screenHeight, float targetAspect, float maxAspect)
+        {
+            if (maxAspect <= 0f || screenWidth <= 0 || screenHeight <= 0 || targetAspect <= 0f)
+                return ComputeViewportRect(screenWidth, screenHeight, targetAspect);
+
+            float windowAspect = (float)screenWidth / screenHeight;
+            if (windowAspect >= targetAspect && windowAspect <= maxAspect)
+                return new Rect(0f, 0f, 1f, 1f);
+
+            float boxAspect = windowAspect > maxAspect ? maxAspect : targetAspect;
+            return ComputeViewportRect(screenWidth, screenHeight, boxAspect);
         }
 
         //# 화면(w×h) 안에서 targetAspect 박스를 중앙 정렬한 정규화 viewport rect 를 계산.

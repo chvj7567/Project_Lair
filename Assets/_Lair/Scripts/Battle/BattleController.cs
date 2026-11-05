@@ -35,6 +35,10 @@ namespace Lair.Battle
         //# 전장 배경 스프라이트 렌더러(씬 'Backdrop') — 챕터 backdropKey 가 기본(Battle_Backdrop)이 아니면 시작 시 해당 스프라이트로 교체(chapter-system §7.4).
         [SerializeField] private SpriteRenderer _backdropRenderer;
 
+        //# battle-wide-screen-fit §3 — HUD 는 HudRoot(Safe Area), 팝업은 PopupRoot(1280x720 중앙)에 붙는다. null 이면 CHMUI 기본 루트(기존 동작).
+        [SerializeField] private Transform _hudRoot;
+        [SerializeField] private Transform _popupRoot;
+
         //# 지속 스폰 — 종별 누적 스탯 배율 (§3.0.1). 강화 카드가 곱연산 갱신, Pop 시 적용.
         private readonly Dictionary<EMonster, StatMultiplier> _typeModifiers = new();
 
@@ -238,8 +242,17 @@ namespace Lair.Battle
 
             //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
+            if (_hudRoot != null)
+            {
+                CHMUI.Instance.SetRoot(_hudRoot);
+            }
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
                 new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
+            //# HUD 이후 모든 팝업/배너/토스트는 PopupRoot — await 이후라 다른 UI 가 먼저 뜨지 않는다.
+            if (_popupRoot != null)
+            {
+                CHMUI.Instance.SetRoot(_popupRoot);
+            }
             if (hudUI == null)
             {
                 Debug.LogError("[BattleController] BattleHud UI 표시 실패(프리팹 로드/캔버스 확보 불가) — HUD 없이 부팅 계속");
