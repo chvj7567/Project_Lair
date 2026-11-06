@@ -73,16 +73,17 @@ namespace Lair.Tests.UI
             AssertRect("SpawnerStatusPanel", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(1006f, 64f));
         }
 
+        //# resolution-adaptation B1: 우측 패널 2개를 32 위로 이동(-112→-80, -387→-355).
         [Test]
         public void 시너지_패널은_우상단_펼침_165x247이다()
         {
-            AssertRect("BuildSynergyPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -112f), new Vector2(165f, 247f));
+            AssertRect("BuildSynergyPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -80f), new Vector2(165f, 247f));
         }
 
         [Test]
         public void 빌드_패널은_우상단_펼침_165x239다()
         {
-            AssertRect("BuildPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -387f), new Vector2(165f, 239f));
+            AssertRect("BuildPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -355f), new Vector2(165f, 239f));
         }
 
         [Test]
