@@ -48,18 +48,19 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 <h2>점검 결과 한눈에</h2>
 <div class="card">확인한 화면 요소: <b>47개</b> (마을·전투·로딩의 화면 틀 3개, 팝업과 HUD 25개, 목록 칸 18개, 로딩 문구·진행바 묶음 1개)
 <table style="margin-top:8px"><tr><th>결과</th><th>개수</th><th>내용</th></tr>
-<tr><td class="bad">문제 있음</td><td>7</td><td>마을 화면 틀, 마을 메인 화면, 침입 지도·데일리·편성·탑 팝업(4), 유물 팝업</td></tr>
+<tr><td class="bad">문제 있음</td><td>9</td><td>마을 화면 틀, 마을 메인 화면, 침입 지도·데일리·편성·탑 팝업(4), 유물 팝업, <b>로딩 화면 틀(정정)</b>, <b>전투 결과창(정정)</b></td></tr>
 <tr><td class="mid">조건부 문제</td><td>1</td><td>전투 화면: 폰 아래쪽 제스처 바가 클 때 오른쪽 빌드 창이 아래 슬롯과 겹침</td></tr>
-<tr><td class="mid">불안정</td><td>1</td><td>로딩 화면: 지금은 괜찮지만 아주 긴 폰(25:9 이상)에서 글자가 잘릴 수 있음</td></tr>
 <tr><td>아직 확인 못 함</td><td>2</td><td>스킬 해금 배너가 아주 긴 폰에서 끝까지 닿는지, 체력바가 붙는 자리</td></tr>
 <tr><td class="tag">문제 없음</td><td>나머지</td><td>마을 팝업 8개, 전투 팝업 4개, 확인창, 토스트, 전투 화면 틀. 목록 칸 18개는 부모 팝업을 따르며 칸 하나하나의 크기는 확인하지 못했습니다.</td></tr></table></div>
+
+<div class="card" style="border-color:#ff6b5a"><b class="bad">정정 안내</b><br>앞선 안내에서 "로딩 화면은 문제없다, 화면 옆·위아래 띠가 폰의 카메라 구멍·제스처 바를 가려 준다"고 했는데 <b>틀렸습니다.</b> 띠가 가려 주는 것은 양옆(긴 폰)과 태블릿 위아래뿐입니다. 긴 폰(S25+ 등)과 16:9 폰에서는 화면 아래 제스처 바 영역이 로딩 화면 안으로 들어와서, <b>진행바와 퍼센트 글자의 절반 이상이 제스처 바에 가려집니다</b>. 같은 종류의 실수가 <b>팝업</b>에도 있었습니다. 유물 팝업·전투 결과창 아래쪽이 제스처 바에 걸쳐 있었습니다(마을 팝업 4종은 2만큼). 아래 계획에 반영했습니다.</div>
 
 <h2>이렇게 바뀝니다</h2>
 <div class="card"><b>1. 버튼 크기는 그대로, 빈 곳만 늘어남</b><br>긴 폰에서는 버튼 사이 빈 곳만 넓어지고, 태블릿에서는 위아래 빈 곳이 늘어납니다.</div>
 <div class="card"><b>2. 카메라 구멍·제스처 바 피하기</b><br>마을 버튼이 폰의 카메라 구멍과 아래 제스처 바를 피해 안쪽에 놓입니다. 배경 그림은 화면 끝까지 그대로 보입니다.</div>
-<div class="card"><b>3. 팝업은 항상 한가운데</b><br>침입 지도, 데일리, 편성, 탑 팝업이 어느 화면에서도 정중앙에 뜨고 아래가 잘리지 않습니다. 유물 팝업도 잘리지 않습니다.</div>
+<div class="card"><b>3. 팝업은 항상 한가운데, 제스처 바 위</b><br>침입 지도, 데일리, 편성, 탑 팝업이 어느 화면에서도 정중앙에 뜨고 아래가 잘리지 않습니다. 팝업도 마을 버튼처럼 카메라 구멍·제스처 바를 피한 영역 한가운데에 뜹니다. 어두운 배경 막은 화면 끝까지 덮습니다. 유물 팝업은 3% 줄고, 전투 결과창은 조금 위로 올라갑니다.</div>
 <div class="card"><b>4. 전투 화면은 거의 그대로</b><br>전투 구역과 띠 모양은 건드리지 않습니다. 오른쪽 빌드 창 두 개만 조금 위로 올려, 아래 제스처 바가 큰 폰에서도 아래 슬롯과 겹치지 않게 합니다.</div>
-<div class="card"><b>5. 로딩 화면은 어느 폰에서도 같은 크기</b><br>지금처럼 가운데 16:9 영역 안에 그려집니다. 크기 계산 방식만 고정해서 아주 긴 폰에서도 글자가 잘리지 않게 합니다.</div>
+<div class="card"><b>5. 로딩 화면: 같은 크기 + 제스처 바 피하기</b><br>지금처럼 가운데 16:9 영역 안에 그려집니다. 크기 계산 방식을 고정해서 아주 긴 폰에서도 글자가 잘리지 않게 하고, <b>진행바·퍼센트·설명 글이 화면 아래 제스처 바 위로 올라오게</b> 합니다(카메라 구멍이 위에 있으면 제목도 그 아래로). 배경 그림과 뒤 배경 연출은 그대로 화면 끝까지 채워집니다.</div>
 <div class="card"><b>6. 하단 버튼 순서가 조금 바뀝니다 (마을)</b><br>오른쪽 위협도 카드와 겹치지 않도록 <b>탑</b> 버튼이 <b>지도</b> 버튼 왼쪽으로 옮겨갑니다. (탑 · 지도 · 방어하기)</div>
 
 <h2>마을 (변경 후)</h2>
@@ -80,12 +81,21 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
   <div class="hud inset"><div class="b btop bsp">속도·종료</div><div class="b btop btm">타이머</div><div class="b btop bbs" style="top:calc(.2px*13);height:calc(.2px*89)">보스 체력</div><div class="b btop bcd">카운트다운</div>
   <div class="b bsy">시너지</div><div class="b bbd">빌드</div><div class="b bst">스포너 상태</div></div></div></div></div>
 
-<h2>로딩 (S25+)</h2>
-<div class="row"><div><div class="cap">가운데 16:9 영역 안에 그려지고 좌우는 어두운 띠 (지금과 같음)</div>
- <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="band" style="left:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div><div class="band" style="right:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div>
-  <div class="b lt" style="top:calc(.2px*20);width:calc(.2px*800);height:calc(.2px*110)">로딩 제목</div>
-  <div class="b lt" style="bottom:calc(.2px*70);width:calc(.2px*800);height:calc(.2px*40)">설명 문구</div>
-  <div class="b lt" style="bottom:calc(.2px*16);width:calc(.2px*500);height:calc(.2px*30)">진행바</div></div></div></div>
+<h2>로딩 (S25+, 아래 붉은 띠 = 제스처 바)</h2>
+<div class="row">
+ <div><div class="cap"><b class="bad">지금</b> — 진행바와 퍼센트가 제스처 바에 가려짐</div>
+  <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="band" style="left:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div><div class="band" style="right:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div>
+   <div class="b lt" style="top:calc(.2px*20);width:calc(.2px*800);height:calc(.2px*110)">로딩 제목</div>
+   <div class="b lt" style="bottom:calc(.2px*70);width:calc(.2px*800);height:calc(.2px*40)">설명 문구</div>
+   <div class="b lt" style="bottom:calc(.2px*24);width:calc(.2px*490);height:calc(.2px*30);border-color:#ff6b5a;background:#4a1d1d">진행바</div>
+   <div style="position:absolute;left:0;right:0;bottom:0;height:calc(.2px*42);background:#ff6b5a55"></div></div></div>
+ <div><div class="cap"><b class="tag">변경 후</b> — 모두 제스처 바 위</div>
+  <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="band" style="left:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div><div class="band" style="right:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div>
+   <div class="b lt" style="top:calc(.2px*20);width:calc(.2px*800);height:calc(.2px*110)">로딩 제목</div>
+   <div class="b lt" style="bottom:calc(.2px*112);width:calc(.2px*800);height:calc(.2px*40)">설명 문구</div>
+   <div class="b lt" style="bottom:calc(.2px*66);width:calc(.2px*490);height:calc(.2px*30)">진행바</div>
+   <div style="position:absolute;left:0;right:0;bottom:0;height:calc(.2px*42);background:#ff6b5a55"></div></div></div>
+</div>
 
 <h2>침입 지도 (S25+ 기준)</h2>
 <div class="row">
@@ -99,7 +109,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 
 <h2>화면별 어디에 뜨나</h2>
 <table><tr><th>화면 요소</th><th>마을</th><th>전투</th><th>로딩</th></tr>
-<tr><td>메인 화면(HUD)</td><td>안전영역 안쪽</td><td>안전영역 안쪽</td><td>가운데 영역</td></tr>
+<tr><td>메인 화면(HUD)</td><td>안전영역 안쪽</td><td>안전영역 안쪽</td><td>가운데 영역, 제스처 바 위</td></tr>
 <tr><td>팝업 전부</td><td>화면 정중앙</td><td>화면 정중앙</td><td>없음</td></tr>
 <tr><td>확인창</td><td>정중앙, 어두운 막 전체</td><td>정중앙, 어두운 막 전체</td><td>없음</td></tr>
 <tr><td>토스트(알림)</td><td>아래 가운데</td><td>아래 가운데</td><td>없음</td></tr>
@@ -119,10 +129,12 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 <ol>
 <li>마을 하단 버튼 순서를 <b>탑 · 지도 · 방어하기</b> 로 바꿔도 될까요? <br><b>추천: 바꾼다</b> (대안은 순서 유지 + 오른쪽 스테이지 카드를 줄이기 — 카드 안 작업이 큼)</li>
 <li>태블릿에서 버튼·팝업을 키우지 않고 여백만 늘려도 될까요? <br><b>추천: 여백만</b></li>
-<li>마을 팝업은 카메라 구멍을 직접 피하지 않고 "항상 한가운데 + 크기 제한"으로 보호할까요? <br><b>추천: 그렇다</b> (긴 폰에서는 구멍과 겹칠 일이 없음)</li>
+<li>(앞선 3번 질문은 <b>취소</b>합니다. 팝업이 제스처 바에 걸리는 것이 확인되어 아래 8번으로 바꿉니다.)</li>
 <li>카메라 구멍이 매우 큰 16:9 폰처럼 아주 좁은 경우는 지원 밖으로 둘까요? <br><b>추천: 지원 밖</b></li>
 <li>로딩 화면을 지금처럼 가운데 16:9 영역에만 그리고, 크기 계산만 고정할까요? <br><b>추천: 지금처럼</b> (대안은 긴 폰에서 로딩도 전체 폭으로 넓히기 — 배경을 새로 손봐야 함)</li>
 <li>전투 오른쪽 시너지·빌드 창을 조금 위로 올려, 아래 제스처 바가 큰 폰에서도 겹치지 않게 할까요? <br><b>추천: 올린다</b> (대안은 그대로 두고 그런 폰을 지원 밖으로 — 16:9 폰 일부가 해당)</li>
 <li>스킬 해금 배너가 아주 긴 폰에서 끝까지 안 닿으면, 팝업 어두운 막처럼 좌우로 늘릴까요? <br><b>추천: 늘린다</b> (먼저 실제 화면으로 확인한 뒤 필요할 때만)</li>
+<li><b>(신규, 3번 대체)</b> 팝업도 마을·전투 버튼처럼 카메라 구멍·제스처 바를 피한 영역 한가운데에 뜨게 하고, 어두운 배경 막 16개를 화면 끝까지 늘리며, 유물 팝업을 3% 줄이고 전투 결과창을 조금 위로 올릴까요? <br><b>추천: 그렇다</b> (대안은 큰 팝업을 자동으로 줄여 맞추는 기능을 새로 만들기 — 코드 추가, 또는 팝업이 제스처 바에 걸치는 것을 허용 — 가려지는 버튼이 생길 수 있음)</li>
+<li><b>(신규)</b> 로딩 화면의 진행바·퍼센트·설명 글이 화면 아래 제스처 바에 가려지지 않도록, 마을·전투에서 쓰는 안전영역 맞춤 기능을 로딩 화면에도 붙일까요? <br><b>추천: 그렇다</b> (대안은 글과 진행바를 폰마다 따로 올리는 개별 조정 — 값을 비율마다 정해야 해서 번거로움)</li>
 </ol></div>
 </body></html>
