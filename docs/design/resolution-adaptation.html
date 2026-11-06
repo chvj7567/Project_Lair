@@ -7,14 +7,14 @@ h1{font-size:20px}h2{font-size:16px;color:#c9a24a;margin-top:24px}
 .card{background:#0d1220;border:1px solid #3a4a63;border-radius:8px;padding:12px;margin:8px 0}
 table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #3a4a63;padding:6px;text-align:left}
 .decide{background:#2a2412;border:2px solid #c9a24a;border-radius:8px;padding:12px;margin-top:24px}
-.tag{color:#7bd88f}.bad{color:#ff6b5a}
+.tag{color:#7bd88f}.bad{color:#ff6b5a}.mid{color:#e0b84a}
 .row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
 .cap{font-size:12px;margin:2px 0 8px}
 .s{--k:.2px;position:relative;overflow:hidden;border:1px solid #3a4a63;background:linear-gradient(#141b2b,#0b1020)}
 .hud{position:absolute;left:0;top:0;right:0;bottom:0}
 .hud.inset{left:calc(var(--k)*88);bottom:calc(var(--k)*42)}
 .cut{position:absolute;left:0;top:0;bottom:0;width:calc(var(--k)*88);background:#ff6b5a44}
-.b{position:absolute;box-sizing:border-box;border:1px solid #5aa9ff;background:#0d1220ee;font-size:9px;display:flex;align-items:center;justify-content:center;color:#e8e1cf}
+.b{position:absolute;box-sizing:border-box;border:1px solid #5aa9ff;background:#0d1220ee;font-size:9px;display:flex;align-items:center;justify-content:center;color:#e8e1cf;overflow:hidden}
 .top{left:0;right:0;top:0;height:calc(var(--k)*88)}
 .lm{left:calc(var(--k)*16);top:calc(var(--k)*104);width:calc(var(--k)*240);height:calc(var(--k)*496);border-color:#c9a24a}
 .rec{right:calc(var(--k)*16);top:calc(var(--k)*104);width:calc(var(--k)*256);height:calc(var(--k)*216)}
@@ -25,42 +25,67 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
 .so{margin-left:calc(var(--k)*-62);width:calc(var(--k)*232);border-color:#ff6b5a;background:#3b1a1a}
 .ar{top:50%;margin-top:calc(var(--k)*-34);width:calc(var(--k)*48);height:calc(var(--k)*68);left:50%;border-color:#c9a24a}
 .al{margin-left:calc(var(--k)*-224)}.an{margin-left:calc(var(--k)*176)}
-.clash{background:#4a1d1d;border:2px solid #ff6b5a}
+.btop{top:calc(var(--k)*16);left:50%;height:calc(var(--k)*69)}
+.bsp{margin-left:calc(var(--k)*-539);width:calc(var(--k)*120)}
+.btm{margin-left:calc(var(--k)*-403);width:calc(var(--k)*104)}
+.bbs{margin-left:calc(var(--k)*-277);width:calc(var(--k)*557)}
+.bcd{margin-left:calc(var(--k)*301);width:calc(var(--k)*115)}
+.bsy{right:calc(var(--k)*13);top:calc(var(--k)*80);width:calc(var(--k)*165);height:calc(var(--k)*247)}
+.bbd{right:calc(var(--k)*13);top:calc(var(--k)*355);width:calc(var(--k)*165);height:calc(var(--k)*239)}
+.bst{bottom:calc(var(--k)*16);height:calc(var(--k)*64);left:50%;margin-left:calc(var(--k)*-503);width:calc(var(--k)*1006)}
 .pop{position:absolute;box-sizing:border-box;border:2px solid #c9a24a;background:#0d1220;width:calc(var(--k)*1136);height:calc(var(--k)*640);font-size:9px}
 .pop i{position:absolute;box-sizing:border-box;font-style:normal;display:flex;align-items:center;justify-content:center}
 .pop .map{background:#1f2938;border:1px solid #3a4a63}
 .pop .dif{background:#26324a;border:1px solid #5aa9ff}
 .pop .sel{background:#7a2a2a;border:1px solid #ff6b5a}
 .dim{position:absolute;inset:0;background:#040609cc}
+.band{position:absolute;background:#02040888}
+.lt{left:50%;transform:translateX(-50%);text-align:center}
 </style></head><body>
-<h1>어떤 폰·태블릿에서도 화면이 안 겹치고 안 잘립니다</h1>
-<p>긴 폰(S25+ 등)에서 마을 버튼들이 서로 겹치고, 침입 지도의 난이도 선택과 "이 스테이지로 선택" 버튼이 화면 아래로 잘렸습니다. 이제 화면 비율이 달라도 같은 모양이 그대로 유지됩니다.</p>
+<h1>어떤 폰·태블릿에서도 모든 화면이 안 겹치고 안 잘립니다</h1>
+<p>마을뿐 아니라 <b>전투와 로딩 화면, 그리고 팝업 전부</b>를 하나하나 확인했습니다. 긴 폰(S25+ 등)에서 마을 버튼이 겹치고 침입 지도 아래가 잘리던 문제를 모든 화면에서 다시 일어나지 않게 정리합니다.</p>
+
+<h2>점검 결과 한눈에</h2>
+<div class="card">확인한 화면 요소: <b>47개</b> (마을·전투·로딩의 화면 틀 3개, 팝업과 HUD 25개, 목록 칸 18개, 로딩 문구·진행바 묶음 1개)
+<table style="margin-top:8px"><tr><th>결과</th><th>개수</th><th>내용</th></tr>
+<tr><td class="bad">문제 있음</td><td>7</td><td>마을 화면 틀, 마을 메인 화면, 침입 지도·데일리·편성·탑 팝업(4), 유물 팝업</td></tr>
+<tr><td class="mid">조건부 문제</td><td>1</td><td>전투 화면: 폰 아래쪽 제스처 바가 클 때 오른쪽 빌드 창이 아래 슬롯과 겹침</td></tr>
+<tr><td class="mid">불안정</td><td>1</td><td>로딩 화면: 지금은 괜찮지만 아주 긴 폰(25:9 이상)에서 글자가 잘릴 수 있음</td></tr>
+<tr><td>아직 확인 못 함</td><td>2</td><td>스킬 해금 배너가 아주 긴 폰에서 끝까지 닿는지, 체력바가 붙는 자리</td></tr>
+<tr><td class="tag">문제 없음</td><td>나머지</td><td>마을 팝업 8개, 전투 팝업 4개, 확인창, 토스트, 전투 화면 틀. 목록 칸 18개는 부모 팝업을 따르며 칸 하나하나의 크기는 확인하지 못했습니다.</td></tr></table></div>
 
 <h2>이렇게 바뀝니다</h2>
-<div class="card"><b>1. 화면이 길어도 버튼 크기는 그대로</b><br>긴 폰에서는 버튼 사이 빈 곳만 넓어지고, 태블릿(4:3)에서는 위아래 빈 곳이 늘어납니다. 버튼이 커지거나 줄지 않습니다.</div>
-<div class="card"><b>2. 카메라 구멍·제스처 바 피하기</b><br>폰 화면 한쪽의 카메라 구멍과 아래쪽 제스처 바를 마을 버튼이 피해서 안쪽에 놓입니다. 배경 그림은 화면 끝까지 그대로 보입니다.</div>
-<div class="card"><b>3. 팝업은 항상 한가운데</b><br>침입 지도, 데일리, 편성, 탑 팝업이 어느 화면에서도 정중앙에 뜨고 아래가 잘리지 않습니다. 팝업 뒤 어두운 막은 화면 끝까지 덮입니다.</div>
-<div class="card"><b>4. 하단 버튼 순서가 조금 바뀝니다</b><br>화면이 좁을 때 오른쪽 위협도 카드와 겹치지 않도록 <b>탑</b> 버튼이 <b>지도</b> 버튼 왼쪽으로 옮겨갑니다. (탑 · 지도 · 방어하기)</div>
+<div class="card"><b>1. 버튼 크기는 그대로, 빈 곳만 늘어남</b><br>긴 폰에서는 버튼 사이 빈 곳만 넓어지고, 태블릿에서는 위아래 빈 곳이 늘어납니다.</div>
+<div class="card"><b>2. 카메라 구멍·제스처 바 피하기</b><br>마을 버튼이 폰의 카메라 구멍과 아래 제스처 바를 피해 안쪽에 놓입니다. 배경 그림은 화면 끝까지 그대로 보입니다.</div>
+<div class="card"><b>3. 팝업은 항상 한가운데</b><br>침입 지도, 데일리, 편성, 탑 팝업이 어느 화면에서도 정중앙에 뜨고 아래가 잘리지 않습니다. 유물 팝업도 잘리지 않습니다.</div>
+<div class="card"><b>4. 전투 화면은 거의 그대로</b><br>전투 구역과 띠 모양은 건드리지 않습니다. 오른쪽 빌드 창 두 개만 조금 위로 올려, 아래 제스처 바가 큰 폰에서도 아래 슬롯과 겹치지 않게 합니다.</div>
+<div class="card"><b>5. 로딩 화면은 어느 폰에서도 같은 크기</b><br>지금처럼 가운데 16:9 영역 안에 그려집니다. 크기 계산 방식만 고정해서 아주 긴 폰에서도 글자가 잘리지 않게 합니다.</div>
+<div class="card"><b>6. 하단 버튼 순서가 조금 바뀝니다 (마을)</b><br>오른쪽 위협도 카드와 겹치지 않도록 <b>탑</b> 버튼이 <b>지도</b> 버튼 왼쪽으로 옮겨갑니다. (탑 · 지도 · 방어하기)</div>
 
-<h2>화면 비율별 마을 모습 (변경 후)</h2>
+<h2>마을 (변경 후)</h2>
 <div class="row">
  <div><div class="cap"><b>S25+ 같은 긴 폰 (19.5:9)</b> — 빨간 띠는 카메라 구멍</div>
-  <div class="s" style="--w:1560;--h:720;width:calc(.2px*1560);height:calc(.2px*720)"><div class="cut"></div>
+  <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="cut"></div>
    <div class="hud inset"><div class="b top">상단 바</div><div class="b lm">메뉴 8개</div><div class="b rec">전적</div><div class="b stg">스테이지 카드</div>
-   <div class="b bt tw">탑</div><div class="b bt hr">지도</div><div class="b bt so">방어하기</div><div class="b ar al">◀</div><div class="b ar an">▶</div></div></div></div>
- <div><div class="cap"><b>일반 16:9</b> — 지금과 같음</div>
-  <div class="s" style="width:calc(.2px*1280);height:calc(.2px*720)">
-   <div class="hud"><div class="b top">상단 바</div><div class="b lm">메뉴 8개</div><div class="b rec">전적</div><div class="b stg">스테이지 카드</div>
-   <div class="b bt tw">탑</div><div class="b bt hr">지도</div><div class="b bt so">방어하기</div><div class="b ar al">◀</div><div class="b ar an">▶</div></div></div></div>
- <div><div class="cap"><b>21:9 와이드</b> — 가운데 빈 곳이 넓어짐</div>
-  <div class="s" style="width:calc(.2px*1680);height:calc(.2px*720)">
-   <div class="hud"><div class="b top">상단 바</div><div class="b lm">메뉴 8개</div><div class="b rec">전적</div><div class="b stg">스테이지 카드</div>
    <div class="b bt tw">탑</div><div class="b bt hr">지도</div><div class="b bt so">방어하기</div><div class="b ar al">◀</div><div class="b ar an">▶</div></div></div></div>
  <div><div class="cap"><b>태블릿 4:3</b> — 위아래 빈 곳이 늘어남</div>
   <div class="s" style="width:calc(.2px*1280);height:calc(.2px*960)">
    <div class="hud"><div class="b top">상단 바</div><div class="b lm">메뉴 8개</div><div class="b rec">전적</div><div class="b stg">스테이지 카드</div>
    <div class="b bt tw">탑</div><div class="b bt hr">지도</div><div class="b bt so">방어하기</div><div class="b ar al">◀</div><div class="b ar an">▶</div></div></div></div>
 </div>
+
+<h2>전투 (S25+, 오른쪽 창을 올린 모습)</h2>
+<div class="row"><div><div class="cap">상단 가운데 정보, 오른쪽 시너지·빌드, 아래 가운데 스포너 슬롯</div>
+ <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="cut"></div>
+  <div class="hud inset"><div class="b btop bsp">속도·종료</div><div class="b btop btm">타이머</div><div class="b btop bbs" style="top:calc(.2px*13);height:calc(.2px*89)">보스 체력</div><div class="b btop bcd">카운트다운</div>
+  <div class="b bsy">시너지</div><div class="b bbd">빌드</div><div class="b bst">스포너 상태</div></div></div></div></div>
+
+<h2>로딩 (S25+)</h2>
+<div class="row"><div><div class="cap">가운데 16:9 영역 안에 그려지고 좌우는 어두운 띠 (지금과 같음)</div>
+ <div class="s" style="width:calc(.2px*1560);height:calc(.2px*720)"><div class="band" style="left:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div><div class="band" style="right:0;top:0;bottom:0;width:calc(.2px*(1560 - 1280)/2)"></div>
+  <div class="b lt" style="top:calc(.2px*20);width:calc(.2px*800);height:calc(.2px*110)">로딩 제목</div>
+  <div class="b lt" style="bottom:calc(.2px*70);width:calc(.2px*800);height:calc(.2px*40)">설명 문구</div>
+  <div class="b lt" style="bottom:calc(.2px*16);width:calc(.2px*500);height:calc(.2px*30)">진행바</div></div></div></div>
 
 <h2>침입 지도 (S25+ 기준)</h2>
 <div class="row">
@@ -72,21 +97,32 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid 
    <div class="pop" style="left:calc(.2px*212);top:calc(.2px*40)"><i class="map" style="left:calc(.2px*232);top:calc(.2px*80);width:calc(.2px*520);height:calc(.2px*472)">지도</i><i class="dif" style="left:calc(.2px*512);top:calc(.2px*512);width:calc(.2px*240);height:calc(.2px*108)">난이도</i><i class="sel" style="left:calc(.2px*768);top:calc(.2px*564);width:calc(.2px*352);height:calc(.2px*56)">선택</i></div></div></div>
 </div>
 
+<h2>화면별 어디에 뜨나</h2>
+<table><tr><th>화면 요소</th><th>마을</th><th>전투</th><th>로딩</th></tr>
+<tr><td>메인 화면(HUD)</td><td>안전영역 안쪽</td><td>안전영역 안쪽</td><td>가운데 영역</td></tr>
+<tr><td>팝업 전부</td><td>화면 정중앙</td><td>화면 정중앙</td><td>없음</td></tr>
+<tr><td>확인창</td><td>정중앙, 어두운 막 전체</td><td>정중앙, 어두운 막 전체</td><td>없음</td></tr>
+<tr><td>토스트(알림)</td><td>아래 가운데</td><td>아래 가운데</td><td>없음</td></tr>
+<tr><td>스킬 해금 배너</td><td>없음</td><td>가운데 띠</td><td>없음</td></tr></table>
+
 <h2>지원하는 화면</h2>
 <table><tr><th>화면</th><th>모습</th></tr>
 <tr><td>일반 16:9</td><td class="tag">지금과 같음</td></tr>
 <tr><td>긴 폰 (19.5:9 ~ 22:9 이상)</td><td class="tag">버튼 사이 빈 곳만 넓어짐, 구멍 피해서 배치</td></tr>
-<tr><td>태블릿 (16:10, 4:3)</td><td class="tag">위아래 빈 곳이 늘어남, 팝업은 가운데</td></tr>
+<tr><td>태블릿 (16:10, 4:3)</td><td class="tag">마을은 위아래 빈 곳 증가, 전투·로딩은 지금처럼 위아래 띠</td></tr>
 <tr><td>세로 화면</td><td>지원하지 않음</td></tr></table>
 
 <h2>그대로인 것</h2>
-<div class="card">전투 화면, 로딩 화면, 게임 규칙·밸런스, 랭킹 기록은 변하지 않습니다. 새 화면이나 설정 메뉴도 추가되지 않습니다.</div>
+<div class="card">전투 구역과 전투 화면의 띠 모양, 게임 규칙·밸런스, 랭킹 기록은 변하지 않습니다. 새 화면이나 설정 메뉴도 추가되지 않습니다.</div>
 
 <div class="decide"><b>결정해 주세요</b>
 <ol>
-<li>하단 버튼 순서를 <b>탑 · 지도 · 방어하기</b> 로 바꿔도 될까요? <br><b>추천: 바꾼다</b> (대안은 순서 유지 + 오른쪽 스테이지 카드를 줄이기 — 카드 안 그림 작업이 커짐)</li>
-<li>태블릿에서 버튼·팝업을 키우지 않고 여백만 늘려도 될까요? <br><b>추천: 여백만</b> (키우려면 태블릿용 크기를 따로 조정해야 함)</li>
-<li>팝업은 카메라 구멍을 직접 피하지 않고 "항상 한가운데 + 크기 제한"으로 보호할까요? <br><b>추천: 그렇다</b> (긴 폰에서는 구멍과 겹칠 일이 없음. 대안은 팝업 12종에 어두운 막을 따로 손보는 작업 추가)</li>
-<li>카메라 구멍이 매우 큰 16:9 폰처럼 아주 좁은 경우는 지원 밖으로 둘까요? <br><b>추천: 지원 밖</b> (대안은 화면 전체를 줄여 맞추는 방식 — 구현이 복잡)</li>
+<li>마을 하단 버튼 순서를 <b>탑 · 지도 · 방어하기</b> 로 바꿔도 될까요? <br><b>추천: 바꾼다</b> (대안은 순서 유지 + 오른쪽 스테이지 카드를 줄이기 — 카드 안 작업이 큼)</li>
+<li>태블릿에서 버튼·팝업을 키우지 않고 여백만 늘려도 될까요? <br><b>추천: 여백만</b></li>
+<li>마을 팝업은 카메라 구멍을 직접 피하지 않고 "항상 한가운데 + 크기 제한"으로 보호할까요? <br><b>추천: 그렇다</b> (긴 폰에서는 구멍과 겹칠 일이 없음)</li>
+<li>카메라 구멍이 매우 큰 16:9 폰처럼 아주 좁은 경우는 지원 밖으로 둘까요? <br><b>추천: 지원 밖</b></li>
+<li>로딩 화면을 지금처럼 가운데 16:9 영역에만 그리고, 크기 계산만 고정할까요? <br><b>추천: 지금처럼</b> (대안은 긴 폰에서 로딩도 전체 폭으로 넓히기 — 배경을 새로 손봐야 함)</li>
+<li>전투 오른쪽 시너지·빌드 창을 조금 위로 올려, 아래 제스처 바가 큰 폰에서도 겹치지 않게 할까요? <br><b>추천: 올린다</b> (대안은 그대로 두고 그런 폰을 지원 밖으로 — 16:9 폰 일부가 해당)</li>
+<li>스킬 해금 배너가 아주 긴 폰에서 끝까지 안 닿으면, 팝업 어두운 막처럼 좌우로 늘릴까요? <br><b>추천: 늘린다</b> (먼저 실제 화면으로 확인한 뒤 필요할 때만)</li>
 </ol></div>
 </body></html>
