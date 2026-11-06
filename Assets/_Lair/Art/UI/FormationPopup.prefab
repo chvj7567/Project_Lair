@@ -3312,7 +3312,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 800, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7148248917127010600
 CanvasRenderer:
@@ -4144,9 +4144,6 @@ MonoBehaviour:
   _closeButton: {fileID: 8587449545984272353}
   _resetButton: {fileID: 1379154623633133591}
   _sortieButton: {fileID: 2211469889507923974}
-  _sortieBackground: {fileID: 7457032620015083956}
-  _sortieOnSprite: {fileID: 21300000, guid: 720655879b7e852468a71b8dab00105d, type: 3}
-  _sortieOffSprite: {fileID: 21300000, guid: aa412f8313980d2418d6f50f47c036db, type: 3}
   _stageNumberText: {fileID: 1015025041339893603}
   _stageNameText: {fileID: 3038155241432321796}
   _heroText: {fileID: 2132393205165966947}
@@ -4171,26 +4168,9 @@ MonoBehaviour:
   - {fileID: 8442525614437262295}
   - {fileID: 3704929086568833797}
   - {fileID: 8389425552447049302}
-  _costGaugeText: {fileID: 853646338897045731}
-  _costPips:
-  - {fileID: 3033524224712330095}
-  - {fileID: 4250641547630775706}
-  - {fileID: 8635786323899767247}
-  - {fileID: 2025162748826912956}
-  - {fileID: 2647321862371234376}
-  - {fileID: 7550382225997745863}
-  - {fileID: 2674408942351036884}
-  - {fileID: 1393828949539355135}
-  - {fileID: 6043988332165972209}
-  - {fileID: 729675072473393790}
-  - {fileID: 5062087922166904604}
-  - {fileID: 7953349787023602589}
-  - {fileID: 481449637828044892}
-  - {fileID: 7802944495774478739}
-  - {fileID: 6425903808386092859}
-  - {fileID: 8813911175214594404}
-  - {fileID: 2354184768984379498}
-  - {fileID: 1768281559434370481}
+  _raceNameText: {fileID: 0}
+  _raceDescText: {fileID: 0}
+  _raceBorder: {fileID: 0}
   _monsterIcons:
   - {fileID: 21300000, guid: c57bbfb501504ccf91eed43c568b76ff, type: 3}
   - {fileID: 21300000, guid: 3925f948af2d443ab68a10b15b0af5fb, type: 3}
@@ -4251,11 +4231,11 @@ RectTransform:
   - {fileID: 4446485988202350691}
   m_Father: {fileID: 7322453048659179323}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 72, y: -40}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1136, y: 640}
-  m_Pivot: {x: 0, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5053813628940945432
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -6317,6 +6317,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1118221662}
+  - component: {fileID: 1118221663}
   m_Layer: 5
   m_Name: PopupRoot
   m_TagString: Untagged
@@ -6338,11 +6339,25 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1305827984}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1280, y: 720}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1118221663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1118221661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0fde0dc01e0ab14f86728dd6951a571, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gameCamera: {fileID: 1226533503}
+  _target: {fileID: 1118221662}
 --- !u!1 &1226533501
 GameObject:
   m_ObjectHideFlags: 0
@@ -6400,9 +6415,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.0005313158
+    y: 0.125
     width: 1
-    height: 0.99893737
+    height: 0.75
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
