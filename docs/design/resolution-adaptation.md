@@ -91,7 +91,7 @@
 |---|---|---|
 | 764x524 | 중앙 | Shop, Codex, Quest, Cloud, LordLevel, Ranking |
 | 524x604 | 중앙 | Records |
-| 1180x684 | 중앙 | Relic |
+| 1136x640 (`ModalBody`, scale 1) | 중앙 | Relic 본체. 루트 직계에 장식 글로우 `DecoModalGlow` 1180x684 가 함께 있다(**정정**: 초판은 이 글로우의 크기를 패널로 오인했다) |
 | **1136x640** | **좌상단 (0,1), pivot (0,1), 위치 (72,−40)** | **WorldMap, Daily, Formation, Tower** |
 
 근거: `WorldMapPopup.prefab` 3889~3893행(`Panel`), `DailyPopup.prefab` 984~987행, `FormationPopup.prefab` 4254~4257행, `TowerPopup.prefab` 1478~1481행. 1280x720 에서는 정중앙이지만(72=(1280−1136)/2, 40=(720−640)/2) 화면이 변하면 중앙에서 벗어난다.
@@ -207,7 +207,7 @@
 | 8 | `RankingPopup` | Village | 팝업 | 캔버스 직접 | 764x524 중앙 (`RankingPopup.prefab` 4000~4003행, dim 6263~6266행) | OK M1~M7 | V1 |
 | 9 | `CloudPopup` | Village | 팝업 | 캔버스 직접 | 764x524 중앙 (`CloudPopup.prefab` 5178~5181행, 배경 6992~6995행) | OK M1~M7 | V1 |
 | 10 | `WorldMapPopup` (침입 지도) | Village | 팝업 | 캔버스 직접 | 패널 1136x640 좌상단 (72,−40), Dim 스트레치 (`WorldMapPopup.prefab` 3889~3893, 1644~1648행) | ✗ M2~M5 패널 아래·선택 버튼 잘림(§1.6), ✗ M7 오른쪽 잘림·`CloseButton` 화면 밖, OK M1·M6 (V3 후에도 M2~M5 패널 아래 680 이 하단 인셋 띠 678 을 2 침범, §2.6) | V3 + P1 |
-| 11 | `RelicPopup` | Village | 팝업 | 캔버스 직접 | 패널 1180x684 중앙 (`RelicPopup.prefab` 10210~10213행, dim 2828~2831행) | ✗ M2~M5 위·아래 각 (684−H)/2 = 15.9·20.0·27.8·35.0 잘림, ✗ M7 좌우 각 35.8 잘림, OK M1·M6. **정정**: Expand 후에도 M2~M5 에서 패널 아래(360+342 = 702)가 하단 인셋 띠(678..720)를 24 침범(§2.6) | V1 + P1 |
+| 11 | `RelicPopup` | Village | 팝업 | 캔버스 직접 | **정정**: 본체 `ModalBody` 1136x640 중앙 scale 1 + 장식 글로우 `DecoModalGlow` 1180x684 (`RelicPopup.prefab` 10210~10213행의 1180x684 는 글로우 값이며 본체는 구현 리뷰에서 확인; dim 2828~2831행) | 본체 기준 ✗ M4 위·아래 각 (640−628.4)/2 = 5.8, ✗ M5 각 (640−614.0)/2 = 13.0, ✗ M7 좌우 각 (1136−1108.5)/2 = 13.8, OK M1·M2·M3·M6 (글로우 잘림은 장식이라 판정 제외). 인셋: 본체는 현행(캔버스 중앙) 아래 360+320 = 680 → 하단 인셋 띠(678) 2 침범, P1 후(안전영역 중앙) 339+320 = 659 ≤ 678 → **침범 0**. 글로우는 P1 후 339+342 = 681 → 3 침범(장식) → scale 0.97 로 670.7 해소 | V1 + P1 (글로우만 scale) |
 | 12 | `FormationPopup` | Village | 팝업 | 캔버스 직접 | 1136x640 좌상단 (72,−40) (`FormationPopup.prefab` 4254~4257행; `Dim` rect 는 읽지 않음) | ✗ M2~M5, ✗ M7 (WorldMap 과 동일, V3 후 인셋 띠 2 침범) | V3 + P1 |
 | 13 | `TowerPopup` | Village | 팝업 | 캔버스 직접 | 1136x640 좌상단 (72,−40) (`TowerPopup.prefab` 1478~1481행) | ✗ M2~M5, ✗ M7 (V3 후 인셋 띠 2 침범) | V3 + P1 |
 | 14 | `DailyPopup` | Village | 팝업 | 캔버스 직접 | 1136x640 좌상단 (72,−40) (`DailyPopup.prefab` 984~987행) | ✗ M2~M5, ✗ M7 (V3 후 인셋 띠 2 침범) | V3 + P1 |
@@ -273,7 +273,8 @@
 
 | 패널 | 높이 / dy | 아래 끝 | 하단 인셋 띠(678) 침범 | 판정 M2~M5 |
 |---|---|---|---|---|
-| Relic | 684 / 0 | 702 | **24** | ✗ |
+| Relic 본체 `ModalBody` | 640 / 0 | 현행 680 → P1 후 659 | 현행 2 → P1 후 **0** | 현행 ✗(2), P1 후 OK |
+| Relic 장식 `DecoModalGlow` | 684 / 0 | 현행 702 → P1 후 681 | 현행 24 → P1 후 **3** (장식) | scale 0.97 로 670.7 해소 |
 | Result (배틀) | 652 / +24 | 710 | **32** | ✗ |
 | WorldMap·Daily·Formation·Tower (V3 후) | 640 / 0 | 680 | **2** | ✗ |
 | Records | 604 / 0 | 662 | 0 | OK |
@@ -283,7 +284,7 @@
 | Confirm | 364 / 0 | 542 | 0 | OK |
 | Synergy | 480 / 0 | 600 | 0 | OK |
 
-M1(인셋 0)·M6·M7(마을 캔버스가 길어 중앙이 아래로 이동하나 인셋이 20·25 로 작음: M6 Relic 아래 = 400 + 342 = 742 ≤ 780, M7 480 + 342 = 822 ≤ 935)은 OK. 배틀 M6·M7 은 띠가 흡수. 따라서 침범은 **캔버스 높이 720 이고 하단 인셋 42 인 M2~M5(및 16:9 + 하단 인셋 조건 사례)** 에서만 생긴다. 침범하는 것은 패널 프레임이며, 그 안의 버튼이 띠에 있는지는 읽지 않았다(확인 못 함) — 프레임이 걸치는 것 자체를 겹침으로 판정한다. 보정 P1.
+M1(인셋 0)·M6·M7(마을 캔버스가 길어 중앙이 아래로 이동하나 인셋이 20·25 로 작음: M6 Relic 본체 아래 = 400 + 320 = 720 ≤ 780, M7 480 + 320 = 800 ≤ 935; 글로우도 742·822 로 안쪽)은 OK. 배틀 M6·M7 은 띠가 흡수. 따라서 침범은 **캔버스 높이 720 이고 하단 인셋 42 인 M2~M5(및 16:9 + 하단 인셋 조건 사례)** 에서만 생긴다. 침범하는 것은 패널 프레임이며, 그 안의 버튼이 띠에 있는지는 읽지 않았다(확인 못 함) — 프레임이 걸치는 것 자체를 겹침으로 판정한다. 보정 P1.
 
 ---
 
@@ -361,21 +362,21 @@ M1(인셋 0)·M6·M7(마을 캔버스가 길어 중앙이 아래로 이동하나
 
 형제 순서 `HudRoot` → `PopupRoot`.
 
-**2차 개정 (D3 폐기, P1)**: 1차 개정은 `PopupRoot` 를 Safe Area 미적용 전체 스트레치로 두고(`Dim` 수정 0건) 팝업이 인셋을 침범하지 않는다고 보았으나 §2.6 에서 틀림이 확인됐다(Relic 24, Result 32, 640 높이 패널 2 침범). 대안:
+**2차 개정 (D3 폐기, P1)**: 1차 개정은 `PopupRoot` 를 Safe Area 미적용 전체 스트레치로 두고(`Dim` 수정 0건) 팝업이 인셋을 침범하지 않는다고 보았으나 §2.6 에서 틀림이 확인됐다(Relic 본체 2·장식 글로우 24, Result 32, 640 높이 패널 2 침범). 대안:
 
 | 안 | 내용 | 코드 | 프리팹 수정 | 판정 |
 |---|---|---|---|---|
-| **P1-A. `PopupRoot` 에 `SafeAreaFitter` + `Dim` 오버행 + 패널 2개 값 보정 (권장)** | 패널이 안전영역 중앙에 놓임. `Dim` 은 세로·가로로 넘치게 늘려 인셋 띠·구멍도 덮음 | 신규 0 (기존 컴포넌트 재사용) | `Dim` 16개 sizeDelta, `RelicPopup` 패널 scale 0.97, `ResultPopup` 패널 dy 보정 | 채택 |
+| **P1-A. `PopupRoot` 에 `SafeAreaFitter` + `Dim` 오버행 + 패널 2개 값 보정 (권장)** | 패널이 안전영역 중앙에 놓임. `Dim` 은 세로·가로로 넘치게 늘려 인셋 띠·구멍도 덮음 | 신규 0 (기존 컴포넌트 재사용) | `Dim` 16개 sizeDelta, `RelicPopup` 장식 글로우 `DecoModalGlow` scale 0.97, `ResultPopup` 패널 dy 보정 | 채택 |
 | P1-B. 큰 패널에 자동 맞춤(scale-to-fit) 컴포넌트 | 안전영역에 맞춰 패널을 줄임 | 신규 컴포넌트 필요 | 패널 17개에 부착 | 폐기(재사용 가능한 정적 값으로 충분) |
 | P1-C. 프레임 걸침을 허용하고 버튼만 안전영역 안에 두기 | 검사 대상이 버튼으로 축소 | 없음 | 버튼 위치 전수 확인 필요(미확인) | 폐기(사용자 기준은 인셋 띠 위 겹침 0) |
 
 P1-A 상세 값:
 - `PopupRoot` 앵커가 안전영역이 되므로 마을 `Dim`(현행 스트레치 offset 0)은 안전영역에서 끊긴다 → 팝업 `Dim` 의 `m_SizeDelta` 를 (800, 400) 으로 한다(가로 ±400, 세로 ±200 오버행. 필요한 오버행은 예시 최대 인셋 가로 88·세로 42 이므로 충분).
 - `Dim` 대상 16개: 마을 12(Shop·Quest·Codex·Records·LordLevel·Ranking·Cloud·Relic·WorldMap·Formation·Tower·Daily), 배틀 4(Result·CardSelection·BuildModal·SynergyModal; 현행 (800,0) → (800,400)). `ConfirmPopup` 은 이미 (4800,2800), `HeroSelectPopup` 은 도달 불가라 제외.
-- `RelicPopup` 패널: `m_LocalScale` (1,1,1) → **(0.97,0.97,1)**. 684 × 0.97 = 663.5 ≤ 678 (아래 끝 339 + 331.8 = 670.8 ≤ 678), 폭 1180 × 0.97 = 1144.6.
+- `RelicPopup` **장식 글로우 `DecoModalGlow`**(정정: 패널이 아니라 글로우): `m_LocalScale` (1,1,1) → **(0.97,0.97,1)**. 684 × 0.97 = 663.5, 아래 끝 339 + 331.7 = 670.7 ≤ 678(보정 전 681, 3 침범 해소), 폭 1180 × 0.97 = 1144.6. 본체 `ModalBody` 1136x640 scale 1 은 보정 없음(아래 끝 339 + 320 = 659 ≤ 678).
 - `ResultPopup` 패널: `m_AnchoredPosition.y` −24 → **−10**. 아래 끝 = 339 + 10 + 326 = 675 ≤ 678, 위 끝 = 339 − 10 − 326 = 3 ≥ 0 (안전영역 높이 678 기준, 하단 인셋 42).
 - 640 높이 패널(WorldMap·Daily·Formation·Tower): 안전영역 중앙 339 + 320 = 659 ≤ 678 → 보정 불필요.
-- 인셋 0(M1)에서는 결과가 현행과 같다(Relic 은 scale 0.97 만큼 작아짐, Result 는 14 위로 이동).
+- 인셋 0(M1)에서는 결과가 현행과 같다(Relic 은 장식 글로우만 0.97 로 작아짐, 본체 불변; Result 는 14 위로 이동).
 - **배틀 `PopupRoot`**: 현행 중앙 고정 1280x720(`Battle.unity` 6341~6344행)을 앵커 (0,0)~(1,1)·offset 0 으로 바꾸고 `SafeAreaFitter`(`_gameCamera` = 배틀 `Main Camera`) 를 붙인다. 안전영역 폭은 M1 에서 1280 이상이라 패널 배치가 달라지지 않는다.
 
 `Dim` 이 위 오버행 수치 때문에 인셋이 300 논리 이상인 기기에서는 모자랄 수 있다(예시 최대 88·42 의 3배 이상 여유라 지원 범위 안에서는 충분).
@@ -409,7 +410,7 @@ P1-A 상세 값:
 | **B2** | `SkillUnlockBanner` (#20) | 밴드 폭이 `PopupRoot` 폭(1280)이라 와이드에서 좌우가 빌 수 있음(미확인) | **V4 캡처로 먼저 확인.** 비어 보이면 `Band` `m_SizeDelta` (0,84) → **(800,84)** (Dim 과 같은 ±400 오버행, 최대 필요 ±200) | §2.3 #20 |
 | **C1** | Loading `Canvas` (S3), `LoadingHud` (#44) | 스케일러 Match 0.5, 해석에 따라 논리 크기 1637~1920 | `CanvasScaler` Expand (§3.3). 요소 값 불변 | §1.7 |
 | **C2** (신규, 정정) | Loading `Panel` (#44, S3) | M1~M5·조건 사례에서 하단 인셋 63 이 `ProgressBarBg` 27·`PercentText` 23 를 덮음 | `Panel` 에 기존 `SafeAreaFitter` 부착(`_gameCamera` = 로딩 `Main Camera`, `_target` = `Panel` 자신). `Panel` 앵커가 (인셋/박스) 로 줄어들어 하단 요소가 63 위로 올라감 → 새 `ProgressBarBg` 위치 99..143(아래 기준), `PercentText` 103..147, `DescText` 167..223, 모두 인셋 63 위. 상단 인셋도 반영. 배경·월드 미러·`LetterboxBackground` 불변. 요소 값 불변 | §1.8 |
-| **P1** (신규, 정정) | 팝업 마을 12 + 배틀 4 + 마을·배틀 `PopupRoot` | Relic 24, Result 32, 640 높이 패널 2 가 하단 인셋 띠 침범 | §3.4 P1-A: `PopupRoot` 에 `SafeAreaFitter`(배틀 `PopupRoot` 는 1280x720 중앙 → 스트레치로 변경), 팝업 `Dim` 16개 `m_SizeDelta` (800,400), `RelicPopup` 패널 scale 0.97, `ResultPopup` 패널 y −24 → −10 | §2.6 |
+| **P1** (신규, 정정) | 팝업 마을 12 + 배틀 4 + 마을·배틀 `PopupRoot` | Result 32, 640 높이 패널(Relic 본체 포함) 2, Relic 장식 글로우 24(P1 후 3)가 하단 인셋 띠 침범 | §3.4 P1-A: `PopupRoot` 에 `SafeAreaFitter`(배틀 `PopupRoot` 는 1280x720 중앙 → 스트레치로 변경), 팝업 `Dim` 16개 `m_SizeDelta` (800,400), `RelicPopup` `DecoModalGlow` scale 0.97, `ResultPopup` 패널 y −24 → −10 | §2.6 |
 
 **보정 없음으로 확정한 항목**: 마을 팝업 중 Shop·Quest·Codex·Records·LordLevel·Ranking·Cloud(캔버스·인셋 모두 OK, `Dim` 오버행 값만 P1 에서 변경)·`HeroSelectPopup`(레거시, 도달 불가)·배틀 팝업 CardSelection·BuildModal·SynergyModal(패널 값 OK, `Dim` 값만 P1)·`ConfirmPopup`·`ToastView`·`BuildSynergyPanel`/`SpawnerStatusPanel` 단독·셀 18종(부모 따름).
 
@@ -466,9 +467,9 @@ P1-A 상세 값:
 ## 6. 팝업 공통 규칙 (전 씬)
 
 1. **패널은 중앙 앵커**: `anchorMin = anchorMax = pivot = (0.5, 0.5)`, 위치 (0,0), 크기 고정. 한 모서리 기준 앵커 금지.
-2. **패널 상한**: 마을 팝업 패널 ≤ **1180x684** (현행 최대 `RelicPopup`). 배틀 팝업은 `PopupRoot` 1280x720 안(현행 최대 `ResultPopup` 600x652).
+2. **패널 상한**: 마을 팝업 본체 ≤ **1136x640** (현행 최대 WorldMap·Daily·Formation·Tower·Relic `ModalBody`; Relic 장식 글로우 1180x684 는 장식이라 제외). 배틀 팝업은 `PopupRoot` 1280x720 안(현행 최대 `ResultPopup` 600x652).
 3. **`Dim`** (P1 후): 마을·배틀 모두 스트레치 + `sizeDelta == (800,400)`(가로 ±400, 세로 ±200 오버행)이라 `PopupRoot`(안전영역)보다 넓게 화면 끝·인셋 띠까지 덮는다. 공용 `ConfirmPopup` = 4800x2800.
-3-1. **패널은 안전영역 안**: 패널 아래 끝 = 안전영역 중앙 + dy + 높이/2 ≤ 안전영역 아래(하단 인셋 42 에서 678). 침범하는 패널 `RelicPopup`·`ResultPopup` 은 §3.4 값으로 보정.
+3-1. **패널은 안전영역 안**: 패널 아래 끝 = 안전영역 중앙 + dy + 높이/2 ≤ 안전영역 아래(하단 인셋 42 에서 678). 침범하는 `ResultPopup` 패널과 `RelicPopup` 장식 글로우는 §3.4 값으로 보정(Relic 본체는 침범 0).
 4. **넘침 정책**: 패널은 줄이지 않는다. 긴 목록은 `CHPoolingScrollView` 안에서 스크롤.
 5. **하단 고정 버튼**: 패널 안 좌표 유지, 패널 아래 끝에서 20 위(`SelectButton` 아래 끝 620 / 패널 640).
 6. **태블릿 확대 없음**: 4:3 에서 팝업·HUD 를 키우지 않는다(D2).
@@ -479,7 +480,8 @@ P1-A 상세 값:
 |---|---|---|---|
 | Shop·Codex·Quest·Cloud·LordLevel·Ranking | 764x524 | 258 | 98 |
 | Records | 524x604 | 378 | 58 |
-| Relic | 1180x684 | 50 | 18 |
+| Relic 본체 `ModalBody` | 1136x640 | 72 | 40 |
+| Relic 장식 `DecoModalGlow` (장식) | 1180x684 → scale 0.97 후 1144.6x663.5 | 67.7 | 28.2 |
 | WorldMap·Daily·Formation·Tower (V3 후) | 1136x640 | 72 | 40 |
 
 ### 6.2 침입 지도 구체 재배치 (최종, 모든 비율 공통)
@@ -527,7 +529,7 @@ C2 후 위치 (M2~M5, 하단 인셋 63): `Panel` 아래가 63 올라가므로 `P
 |---|---|
 | 16:9 폰 + 마을 가로 인셋 합 > 120 논리 | 지원 하한 밖 |
 | 마을 하단 인셋 > 60 논리 | 지원 하한 밖 |
-| 마을·배틀 팝업 (P1 후) | `PopupRoot` 가 안전영역이므로 가로·세로 인셋과 무관하게 패널이 안전영역 안. 단 안전영역 폭·높이가 패널보다 작으면 침범(마을 하한 높이 678 미만 또는 폭 1145 미만 = Relic 0.97 폭) |
+| 마을·배틀 팝업 (P1 후) | `PopupRoot` 가 안전영역이므로 가로·세로 인셋과 무관하게 패널이 안전영역 안. 단 안전영역 폭·높이가 패널보다 작으면 침범(마을 하한 높이 678 미만 또는 폭 1136 미만 = 가장 넓은 본체 폭) |
 | 로딩 상단 인셋 > 32 | C2 의 `SafeAreaFitter` 가 `Panel` 을 줄여 `TitleSmall` 이 인셋 아래로 내려감 |
 | 배틀 16:9 폰 + 하단 인셋 > 46 논리 | 지원 하한 밖(B1 후) |
 | 회전·분할 화면 | `SafeAreaFitter` 가 변화 감지, Expand 가 하한 보장 |
@@ -563,7 +565,7 @@ C2 후 위치 (M2~M5, 하단 인셋 63): `Panel` 아래가 63 올라가므로 `P
 | `Village.unity` `PopupRoot` | 컴포넌트 추가 | 기존 `SafeAreaFitter` (`_gameCamera` = 마을 `Main Camera`, `_target` = 자신) | P1 |
 | `Battle.unity` `PopupRoot` | anchor/size, 컴포넌트 | (0.5,0.5)/1280x720 → (0,0)~(1,1)/offset 0, `SafeAreaFitter`(`_gameCamera` = 배틀 `Main Camera`) | P1 |
 | 팝업 `Dim` 16개 (마을 12: Shop·Quest·Codex·Records·LordLevel·Ranking·Cloud·Relic·WorldMap·Formation·Tower·Daily, 배틀 4: Result·CardSelection·BuildModal·SynergyModal) | `m_SizeDelta` | 마을 (0,0) / 배틀 (800,0) → **(800,400)** | P1 |
-| `RelicPopup.prefab` 패널 | `m_LocalScale` | (1,1,1) → (0.97,0.97,1) | P1 |
+| `RelicPopup.prefab` 장식 글로우 `DecoModalGlow` (본체 `ModalBody` 는 불변) | `m_LocalScale` | (1,1,1) → (0.97,0.97,1) | P1 |
 | `ResultPopup.prefab` 패널 | `m_AnchoredPosition.y` | −24 → −10 | P1 |
 
 ### 10.3 코드 연결점
@@ -591,9 +593,9 @@ C2 후 위치 (M2~M5, 하단 인셋 63): `Panel` 아래가 63 올라가므로 `P
 | T5 | 하단 버튼 순서 | `TowerButton` x < `HeroButton` x < `SortieButton` x | V2 반영 |
 | T6 | **인벤토리 순회** | `AssetDatabase.FindAssets("t:Prefab", "Assets/_Lair/Art/UI")` 로 모든 프리팹을 열거해 §2 의 분류 목록(EUI 22 + 보조 3 + 셀 18 = 43)과 대조 | 목록에 없는 프리팹 0, 목록에만 있는 프리팹 0 (신규 UI 추가 시 실패) |
 | T7 | **팝업 앵커 순회** | EUI 팝업 프리팹(마을 13: Shop·Quest·Codex·Records·HeroSelect·LordLevel·Ranking·Cloud·WorldMap·Relic·Formation·Tower·Daily, 배틀 4: Result·CardSelection·BuildModal·SynergyModal, 공용 Confirm)의 루트 직계 자식 중 스트레치가 아닌 것 | 전부 `anchorMin == anchorMax == pivot == (0.5,0.5)` (단, `ResultPopup` y −10(P1 후)·`CardSelectionPopup` y −40 오프셋 허용) |
-| T8 | **팝업 패널 크기 순회** | 위 프리팹의 non-stretch 자식 `sizeDelta` | 마을 팝업 ≤ 1180x684, 배틀·공용 ≤ 1280x720 |
+| T8 | **팝업 패널 크기 순회** | 위 프리팹의 non-stretch 자식 `sizeDelta` | 마을 팝업 본체 ≤ 1136x640 (`DecoModalGlow` 등 `Deco*` 장식 제외), 배틀·공용 ≤ 1280x720 |
 | T9 | **Dim 순회** | 위 프리팹의 `Dim`(`_dimButton` 또는 `_backgroundButton` 연결 오브젝트) rect | 마을 12 + 배틀 4: anchor (0,0)~(1,1), `sizeDelta == (800,400)` (P1). `ConfirmPopup`: sizeDelta ≥ (4800,2800). `HeroSelectPopup` 제외(도달 불가) |
-| T10 | **패널 안전 순회** | 위 패널을 M1~M7 + 조건 사례의 `PopupRoot`(= 안전영역: 캔버스 − 인셋) 중앙에 배치(`m_AnchoredPosition`·`m_LocalScale` 반영) | 패널 ⊂ 안전영역. 특히 M2~M5 하단 인셋 42: `RelicPopup` 아래 끝 ≤ 678, `ResultPopup` 아래 끝 ≤ 678 |
+| T10 | **패널 안전 순회** | 위 패널을 M1~M7 + 조건 사례의 `PopupRoot`(= 안전영역: 캔버스 − 인셋) 중앙에 배치(`m_AnchoredPosition`·`m_LocalScale` 반영) | 패널 ⊂ 안전영역. 특히 M2~M5 하단 인셋 42: `RelicPopup` 본체 `ModalBody` 아래 끝 = 659 ≤ 678 (보정 없음), `DecoModalGlow` 는 scale 0.97 반영 후 670.7 ≤ 678 (별도 단언), `ResultPopup` 아래 끝 = 675 ≤ 678 |
 | T11 | 배틀 HUD 겹침 | `BattleHud.prefab` 을 `HudRoot` 논리 크기로 배치: 상단 중앙 클러스터·우측 패널 2개·`SpawnerStatusPanel` | M1~M7 + 조건 사례(W 1280, 하단 인셋 42) 에서 교차 면적 0 (B1 반영 후) |
 | T12 | 루트 배선 | `Village.unity` 의 `HudRoot`(`SafeAreaFitter` 포함)·`PopupRoot`, `VillageController` 필드 연결 | null 0, `HudRoot` 가 `PopupRoot` 앞 형제 |
 | T13 | 로딩 레터박스 불변 | `Loading.unity` `LetterboxFramer` | `_targetAspect` 1.7777778, `_maxAspect` 0 유지 |
@@ -620,7 +622,7 @@ C2 후 위치 (M2~M5, 하단 인셋 63): `Panel` 아래가 63 올라가므로 `P
 | V5 | Battle | `BattleHud` + 팝업 5종(Result·CardSelection·BuildModal·SynergyModal·Confirm) M1~M7 | 패널 전체 안, `Dim` 이 화면 끝까지, 하단 인셋 기기에서 `BuildPanel`↔`SpawnerStatusPanel` 겹침 없음 |
 | V6 | Battle | 레터박스 불변 | M5·M6·M7 에서 띠 모양이 변경 전과 동일 |
 | V7 | Loading | 7해상도 캡처 + 캔버스 `rect.size` 로그(W3). **하단 인셋 확인**: 하단 인셋이 있는 기기(Device Simulator, 또는 Game 뷰에 인셋 63px 시뮬) 에서 M1~M5 캡처 | 논리 1920x1080, 텍스트·진행바·퍼센트 안 잘림, **진행바·퍼센트·설명이 하단 인셋 띠 위**(겹침 0), 상단 인셋이 있으면 `TitleSmall` 이 구멍 아래, 띠 모양 불변, 배경·월드가 인셋 영역까지 채워짐 |
-| V9 | 마을·배틀 | 하단 인셋 기기에서 큰 팝업 3개(`RelicPopup`, `ResultPopup`, 침입 지도) M2~M5 | 패널 프레임 전체가 하단 인셋 띠 위, `Dim` 이 띠·구멍까지 덮음 |
+| V9 | 마을·배틀 | 하단 인셋 기기에서 큰 팝업 3개(`RelicPopup`, `ResultPopup`, 침입 지도) M2~M5 | 패널 프레임(Relic 은 본체와 글로우 모두) 전체가 하단 인셋 띠 위, `Dim` 이 띠·구멍까지 덮음 |
 | V8 | 공용 | 토스트 1개, 확인창 1개를 마을·배틀 각 M2 에서 | 가운데, 하단 버튼과 안 겹침 |
 
 qa-simulator 밸런스 게이트: 불필요.
@@ -638,7 +640,7 @@ qa-simulator 밸런스 게이트: 불필요.
 | D5 | 로딩 화면을 16:9 박스 안에만 두는 현행을 유지할까(Expand 로 크기만 고정)? | 유지 | 로딩 UI·배경을 와이드에서 전체 폭으로 확장(배경·미러 재작업, 범위 확대) | **신규.** 초판 "로딩 불변"과 부분 충돌(스케일러만 바뀜) |
 | D6 | 배틀 우측 패널 2개를 위로 32 올려 하단 인셋 기기(16:9 폰)에서도 겹치지 않게 할까? | 올린다(B1) | 현행 유지 + 16:9 하단 인셋 폰을 지원 밖으로 | **신규.** 초판 "배틀 불변"과 충돌 |
 | D7 | 스킬 해금 배너 밴드가 와이드에서 모자라면 `Dim` 처럼 가로로 늘릴까? | 늘린다(B2, 캡처 확인 후) | 그대로 | **신규** |
-| D8 | 팝업도 HUD 처럼 Safe Area 안에 놓고(마을·배틀 `PopupRoot` 에 기존 `SafeAreaFitter`), 배경 어두운 막(`Dim`) 16개를 위아래·좌우로 늘리며, 유물 팝업을 3% 줄이고 결과창을 14 위로 올릴까? | 그렇다(P1-A) | 큰 패널에 자동 맞춤 컴포넌트 신규(P1-B, 코드 추가) / 프레임 걸침 허용(P1-C, 사용자 기준 위반) | **신규.** 초판·1차 D3 와 반대, D3 폐기 |
+| D8 | 팝업도 HUD 처럼 Safe Area 안에 놓고(마을·배틀 `PopupRoot` 에 기존 `SafeAreaFitter`), 배경 어두운 막(`Dim`) 16개를 위아래·좌우로 늘리며, 유물 팝업의 장식 글로우를 3% 줄이고 결과창을 14 위로 올릴까? | 그렇다(P1-A) | 큰 패널에 자동 맞춤 컴포넌트 신규(P1-B, 코드 추가) / 프레임 걸침 허용(P1-C, 사용자 기준 위반) | **신규.** 초판·1차 D3 와 반대, D3 폐기 |
 | D9 | 로딩 `Panel` 에 기존 `SafeAreaFitter` 를 붙여 하단 인셋(진행바·퍼센트)을 피하게 할까? | 그렇다(C2) | 하단 요소를 인셋만큼 올리는 개별 오프셋(비율마다 값·코드 필요) | **신규.** 1차 개정 "로딩 보정은 C1 뿐"을 정정 |
 
 ---
@@ -646,10 +648,10 @@ qa-simulator 밸런스 게이트: 불필요.
 ## 13. Self-Review
 
 - Placeholder·모호 표현·두 갈래 위임 표현: 0건(열린 선택은 12장에만).
-- 내부 일관성: 하한 폭 1160·높이 660(마을), 상한 1180x684, `TowerButton` x −228, B1 값 −80/−355 가 §3·§4·§5·§10·§11 에서 동일. 검산: 폭 1160 = 2×580, 높이 660 = 320+340, 가로 겹침 `b−14` = 626 − (640 − b), B1 후 `b−46` = 594 − (640 − b), 인벤토리 47 = 3 + 22 + 3 + 18 + 1, 프리팹 43 = 22 + 3 + 18.
+- 내부 일관성: 하한 폭 1160·높이 660(마을), 본체 상한 1136x640, `TowerButton` x −228, B1 값 −80/−355 가 §3·§4·§5·§10·§11 에서 동일. 검산: 폭 1160 = 2×580, 높이 660 = 320+340, 가로 겹침 `b−14` = 626 − (640 − b), B1 후 `b−46` = 594 − (640 − b), 인벤토리 47 = 3 + 22 + 3 + 18 + 1, 프리팹 43 = 22 + 3 + 18.
 - 식별자: `HudRoot`, `PopupRoot`, `SafeAreaFitter`, `CHMUI.SetRoot`, `VillageController`, `_hudRoot`, `_popupRoot` 통일.
 - 확인 못 한 항목 명시: #20, #25, 셀 18행, 패널 내부 텍스트 넘침, 패널 안 버튼이 인셋 띠에 있는지(P1-C 폐기 사유), `CanvasScaler` 해석(H1/H2).
-- 2차 개정 검산: 로딩 겹침 = 인셋 − 요소 시작값 (63 − 36 = 27, 63 − 40 = 23, 63 − 44 = 19). C2 후 위치 = 36 + 63 = 99, 40 + 63 = 103, 104 + 63 = 167. Relic 아래 끝 = 360 + 684/2 = 702 → 702 − 678 = 24; scale 0.97 → 339 + 331.8 = 670.8 ≤ 678. Result 아래 끝 = 360 + 24 + 326 = 710 → 32; 보정 후 339 + 10 + 326 = 675 ≤ 678. 640 패널 = 339 + 320 = 659. 인벤토리 집계 7 → 9 (S3, #16 추가).
+- 2차 개정 검산: 로딩 겹침 = 인셋 − 요소 시작값 (63 − 36 = 27, 63 − 40 = 23, 63 − 44 = 19). C2 후 위치 = 36 + 63 = 99, 40 + 63 = 103, 104 + 63 = 167. Relic 장식 글로우 아래 끝 = 360 + 684/2 = 702 → 702 − 678 = 24 (P1 후 681 → 3); scale 0.97 → 339 + 331.7 = 670.7 ≤ 678. Relic 본체 = 339 + 320 = 659 (침범 0). Result 아래 끝 = 360 + 24 + 326 = 710 → 32; 보정 후 339 + 10 + 326 = 675 ≤ 678. 640 패널 = 339 + 320 = 659. 인벤토리 집계 7 → 9 (S3, #16 추가).
 - 이 문서 안의 "띠가 인셋을 흡수" 서술은 §3.1.1 규칙(띠px ≥ 인셋px)만 남기고 모두 계산으로 대체했다.
 - 스코프: 단일 구현 단위(표시 계층 보정). 신규 JSON·Enum·Interface·프리팹·화면 없음. §8 위반 없음.
 - UI 목업: `.mockups/resolution-adaptation.html` 갱신.
