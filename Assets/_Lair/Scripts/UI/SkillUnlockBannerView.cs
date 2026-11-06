@@ -33,24 +33,43 @@ namespace Lair.UI
 
         public override void InitUI(UIArg arg) => HideImmediate();
 
-        //# 퇴장 거리 >= 캔버스 폭/2 + 밴드 폭/2 (와이드 캔버스 논리 폭 1680 에서도 완전 퇴장). 캔버스 못 구하면 기존값.
-        private float OffscreenX()
+        [SerializeField] private float _offscreenMargin = 100f;   //# 캔버스 끝에서 밴드가 더 벗어나는 여유(px, 부모 로컬)
+
+        //# 부모 로컬(앵커 기준점 원점) 캔버스 좌우 끝 + 밴드 폭 + 마진 → 밴드(pivot 0.5) 중심이 놓일 완전 퇴장 X.
+        public static void ComputeHiddenX(float canvasLeft, float canvasRight, float bandWidth, float margin, out float leftX, out float rightX)
         {
-            float bandWidth = _root != null ? _root.rect.width : 0f;
-            float canvasWidth = 0f;
-            if (_root != null)
+            leftX = canvasLeft - bandWidth * 0.5f - margin;
+            rightX = canvasRight + bandWidth * 0.5f + margin;
+        }
+
+        //# 캔버스 월드 좌우 끝을 _root 부모 로컬로 변환 — PopupRoot(SafeArea) 중심이 캔버스 중심과 어긋나도 자동 반영.
+        private void GetHiddenX(out float leftX, out float rightX)
+        {
+            float bandWidth = _root.rect.width;
+            float canvasLeft = -bandWidth * 0.5f;
+            float canvasRight = bandWidth * 0.5f;
+            RectTransform parent = _root.parent as RectTransform;
+            RectTransform canvasRect = _root.root as RectTransform;
+            if (parent != null && canvasRect != null)
             {
-                RectTransform canvasRect = _root.root as RectTransform;
-                canvasWidth = canvasRect != null ? canvasRect.rect.width : 0f;
+                Vector3[] corners = new Vector3[4];
+                canvasRect.GetWorldCorners(corners);
+                //# 앵커 기준점(부모 rect 에서 앵커 중앙) 원점으로 평행이동 — anchoredPosition 과 같은 좌표계.
+                float anchorRefX = parent.rect.xMin + (_root.anchorMin.x + _root.anchorMax.x) * 0.5f * parent.rect.width;
+                canvasLeft = parent.InverseTransformPoint(corners[0]).x - anchorRefX;
+                canvasRight = parent.InverseTransformPoint(corners[2]).x - anchorRefX;
             }
-            return Mathf.Max(_offscreenX, bandWidth, (canvasWidth + bandWidth) * 0.5f);
+            ComputeHiddenX(canvasLeft, canvasRight, bandWidth, Mathf.Max(_offscreenMargin, 0f), out leftX, out rightX);
+            leftX = Mathf.Min(leftX, -_offscreenX);
+            rightX = Mathf.Max(rightX, _offscreenX);
         }
 
         public void HideImmediate()
         {
             if (_root == null)
                 return;
-            _root.anchoredPosition = new Vector2(-OffscreenX(), _root.anchoredPosition.y);
+            GetHiddenX(out float leftX, out float rightX);
+            _root.anchoredPosition = new Vector2(leftX, _root.anchoredPosition.y);
         }
 
         public IEnumerator PlayCo(string text)
@@ -59,10 +78,15 @@ namespace Lair.UI
                 _label.SetText(text);
 
             float y = _root != null ? _root.anchoredPosition.y : 0f;
-            float offscreenX = OffscreenX();
+            float leftX = 0f;
+            float rightX = 0f;
+            if (_root != null)
+            {
+                GetHiddenX(out leftX, out rightX);
+            }
 
             //# 인 — 왼쪽밖 → 중앙
-            yield return SlideCo(new Vector2(-offscreenX, y), new Vector2(0f, y), _slideInDuration);
+            yield return SlideCo(new Vector2(leftX, y), new Vector2(0f, y), _slideInDuration);
             //# 홀드
             float t = 0f;
             while (t < _holdDuration)
@@ -71,7 +95,7 @@ namespace Lair.UI
                 yield return null;
             }
             //# 아웃 — 중앙 → 오른쪽밖
-            yield return SlideCo(new Vector2(0f, y), new Vector2(offscreenX, y), _slideOutDuration);
+            yield return SlideCo(new Vector2(0f, y), new Vector2(rightX, y), _slideOutDuration);
 
             HideImmediate();
         }
