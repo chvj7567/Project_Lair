@@ -24,6 +24,10 @@ namespace Lair.Village
         //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
 
+        //# resolution-adaptation §3.4 — HUD 는 HudRoot, 이후 팝업·토스트는 PopupRoot(둘 다 Safe Area). 둘 다 null 이면 기존 동작.
+        [SerializeField] private RectTransform _hudRoot;
+        [SerializeField] private RectTransform _popupRoot;
+
         private VillageViewModel _vm;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
         private HeroStageVariantApplier _showcaseApplier;
@@ -39,6 +43,12 @@ namespace Lair.Village
 
         private async void Start()
         {
+            //# HUD 이전 ToastView.Show(소급 정산 등)도 PopupRoot 로 뜨게 맨 앞에서 전환 — OnSceneLoaded 가 루트를 리셋하므로 진입마다 호출.
+            if (_popupRoot != null)
+            {
+                CHMUI.Instance.SetRoot(_popupRoot);
+            }
+
             //# 씬 진입점 BGM 전환 일원화 — 이전 씬 BGM(전투 Bgm 등) 정지 후 마을 루프 BGM 0초부터 재생.
             CHMSound.Instance.StopAllBGM();
             CHMSound.Instance.Play(EAudio.VillageBgm);
@@ -74,6 +84,10 @@ namespace Lair.Village
             //# 캐러셀 — VM 스테이지 이동 시 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
             _vm.OnStageChanged += HandleStageChanged;
 
+            if (_hudRoot != null)
+            {
+                CHMUI.Instance.SetRoot(_hudRoot);
+            }
             UIBase hud = await CHMUI.Instance.ShowUIAsync(EUI.VillageHud,
                 new VillageHudArg
                 {
@@ -82,6 +96,11 @@ namespace Lair.Village
                     OnSortie = Sortie,
                     PortraitOf = stage => _stageVariantConfig != null ? _stageVariantConfig.GetStage(stage).Portrait : null,
                 });
+            //# HUD 이후 모든 팝업/토스트는 PopupRoot.
+            if (_popupRoot != null)
+            {
+                CHMUI.Instance.SetRoot(_popupRoot);
+            }
             if (hud == null)
             {
                 Debug.LogError("[VillageController] VillageHud 표시 실패(프리팹 로드/캔버스 확보 불가)");
