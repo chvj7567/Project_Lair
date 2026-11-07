@@ -69,12 +69,12 @@
 | 0 | idle | 8 | 8 | O | |
 | 1 | walk | 8 | 10 | O | |
 | 2 | run | 8 | 14 | O | |
-| 3 | slash01 | 8 | 13.33 | X | **타격 = F4, 종료 = F7** (`OnAttackStrike` 0.31s / `OnAttackEnd` 0.58s — 클립 길이 0.6s 는 v1 과 동일 유지) |
-| 4 | slash02 | 8 | 13.33 | X | slash01/stab 복제(`copyOf`) 가능 |
-| 5 | stab | 8 | 13.33 | X | 타이밍 동일 |
+| 3 | slash01 | 8 | 8 | X | **타격 = F4(0.5s), 종료 = F7** — 기사 실측: 기존 17프레임@15fps, `OnAttackStrike` 0.5s 유지. 락 해제는 `_attackEndFallback` 1.8s |
+| 4 | slash02 | 8 | 8 | X | slash01/stab 복제(`copyOf`) 가능 |
+| 5 | stab | 8 | 6.25 | X | **타격 = F5(0.8s)** — 기사 실측: 기존 20프레임@12fps×1.0204, `OnAttackStrike` 0.8s 유지 | 타이밍 동일 |
 | 6 | hit | 6 | 12 | X | |
 | 7 | death | 8 | 10 | X | 마지막 프레임 hold |
-| 8 | spawn | 8 | 6 | X | 등장 연출, 클립 약 1.33초(v1 과 동일 길이), 스폰 게이트는 fallback 1.8초 그대로 |
+| 8 | spawn | 8 | 6 | X | 등장 연출, 기사 기존 16프레임@12fps=1.33초 길이 유지, 스폰 게이트는 fallback 1.8초 그대로 |
 
 - 남는 셀은 완전 투명.
 - 타격 프레임(F4)에서 무기가 목표에 닿는 포즈 — 옮기면 판정과 그림이 어긋난다.
