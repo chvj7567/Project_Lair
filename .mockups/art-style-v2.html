@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>아트 스타일 v2 목업</title>
+<style>
+:root{--ink:#0a0d18;--plate:#141a2e;--edge:#3a4670;--gold:#f6c64a;--bg:#0b0e18;--tx:#e8ecf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0}
+.note{background:#1a2036;border:1px solid var(--edge);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.6;margin:8px 0 14px}
+.note b{color:var(--gold)}
+#stageHost{position:relative;width:100%;overflow:hidden}
+#stage{position:relative;width:1280px;height:720px;transform-origin:0 0;image-rendering:pixelated;overflow:hidden;border-radius:6px;background:#222}
+#stage canvas{position:absolute;image-rendering:pixelated}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,0) 45%,rgba(4,6,14,.78) 100%)}
+.lbl{position:absolute;color:#fff;font-weight:900;font-size:17px;line-height:1;text-align:center;
+ background:var(--plate);border:3px solid var(--ink);border-radius:6px;box-shadow:inset 0 0 0 2px var(--edge);
+ padding:6px 4px;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;letter-spacing:.5px}
+.pill{position:absolute;height:34px;border-radius:17px;background:rgba(5,8,18,.62);border:2px solid rgba(0,0,0,.6);
+ color:#fff;font-weight:900;font-size:19px;line-height:30px;text-align:right;padding-right:14px;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill}
+.ico{position:absolute;image-rendering:pixelated}
+.tx{position:absolute;color:#fff;font-weight:900;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill}
+.chip{position:absolute;right:0;top:300px;width:230px;height:84px;background:rgba(10,13,24,.78);border:3px solid var(--ink);border-right:0;border-radius:10px 0 0 10px;box-shadow:inset 0 0 0 2px #7a5a14,0 0 22px rgba(246,198,74,.55)}
+.bar{position:absolute;height:14px;border-radius:7px;background:#0a0d18;border:2px solid #000}
+.bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(#ffb85a,#e0701e)}
+.badge{position:absolute;width:30px;height:30px;border-radius:50%;background:#e8344a;color:#fff;font-weight:900;font-size:16px;text-align:center;line-height:28px;border:2px solid #fff;z-index:9;display:none;box-shadow:0 0 0 2px #000}
+.ann .badge{display:block}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;margin:12px 0}
+.legend div{background:#1a2036;border:1px solid var(--edge);border-radius:8px;padding:8px 12px;font-size:13px;line-height:1.5}
+.legend b{display:inline-block;width:22px;height:22px;border-radius:50%;background:#e8344a;text-align:center;line-height:22px;margin-right:6px}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:10px}
+.cmp section{background:#141a2e;border:1px solid var(--edge);border-radius:8px;padding:12px;text-align:center}
+.cmp h3{margin:0 0 6px;font-size:15px}
+.cmp canvas{image-rendering:pixelated;background:#5a6a62;border-radius:4px;margin:4px}
+.cmp p{font-size:12px;color:#aeb8d8;margin:6px 0 0}
+label{font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>아트 스타일 v2 목업 — 치비 고밀도 도트</h1>
+<div class="note">
+<b>이건 최종 아트가 아니에요.</b> 제가 코드로 점을 찍어 만든 <b>스타일·레이아웃 합의용 시안</b>이라 그림 솜씨는 거칩니다.
+확인하실 것은 <b>비율(큰 머리) · 두꺼운 외곽선 · 3단 음영 · 바닥 모자이크 · 라벨판 아이콘 UI · 알약 재화바 · 따뜻한 포인트 광원</b> 같은 "룩의 규칙"이에요.
+실제 그림은 코덱스 등으로 만들고, 이 규칙으로 검수합니다.
+<br><label><input type="checkbox" id="annT"> 번호 표시 켜기</label>
+</div>
+
+<div id="stageHost"><div id="stage">
+ <canvas id="bg" width="1280" height="720"></canvas>
+ <canvas id="fire" style="left:690px;top:392px"></canvas>
+ <canvas id="wisp" style="left:440px;top:470px"></canvas>
+ <canvas id="hero" style="left:560px;top:430px"></canvas>
+ <div class="vig"></div>
+
+ <!-- 좌상단 프로필 -->
+ <div style="position:absolute;left:18px;top:14px;width:98px;height:98px;background:#10162a;border:4px solid var(--ink);box-shadow:inset 0 0 0 3px #6a5a2a;border-radius:6px"></div>
+ <canvas id="avatar" class="ico" style="left:22px;top:18px"></canvas>
+ <div class="tx" style="left:134px;top:20px;font-size:22px">던전 영주</div>
+ <div class="tx" style="left:134px;top:50px;font-size:19px;color:#ffe9a8">Lv.12</div>
+ <div class="bar" style="left:134px;top:82px;width:190px"><i style="width:48%"></i></div>
+
+ <!-- 재화 알약 -->
+ <div class="pill" id="p1" style="left:760px;top:18px;width:170px">1,240</div>
+ <div class="pill" id="p2" style="left:944px;top:18px;width:150px">12</div>
+ <div class="pill" id="p3" style="left:1108px;top:18px;width:150px">3</div>
+ <canvas id="c1" class="ico" style="left:750px;top:10px"></canvas>
+ <canvas id="c2" class="ico" style="left:934px;top:10px"></canvas>
+ <canvas id="c3" class="ico" style="left:1098px;top:10px"></canvas>
+
+ <!-- 좌측 메뉴 -->
+ <div id="leftMenu"></div>
+
+ <!-- 우측 챕터 칩 -->
+ <div class="chip">
+  <div class="tx" style="left:18px;top:14px;font-size:18px">챕터 1-2 클리어</div>
+  <div class="tx" style="left:18px;top:46px;font-size:18px;color:#ffd24a">0 / 1</div>
+ </div>
+
+ <!-- 하단 메뉴 -->
+ <div id="botMenu"></div>
+
+ <!-- 출격 -->
+ <canvas id="door" class="ico" style="left:1118px;top:566px"></canvas>
+ <div class="lbl" style="left:1092px;top:662px;width:170px;height:44px;font-size:24px;line-height:28px">출격</div>
+
+ <div class="badge" style="left:628px;top:410px">1</div>
+ <div class="badge" style="left:300px;top:360px">2</div>
+ <div class="badge" style="left:78px;top:560px">3</div>
+ <div class="badge" style="left:820px;top:56px">4</div>
+ <div class="badge" style="left:760px;top:372px">5</div>
+</div></div>
+
+<div class="legend">
+ <div><b>1</b>치비 비율 — 머리가 몸의 약 45%, 눈이 크고 읽힘. 2px 짙은 외곽선 + 3단 음영(좌상단 광원)</div>
+ <div><b>2</b>바닥 모자이크 — 16px 블록으로 의도적 저해상도. 캐릭터가 고밀도라 배경이 낮아야 캐릭터가 뜸</div>
+ <div><b>3</b>큰 아이콘 + 라벨판 — 아이콘 128, 아래 짙은 판에 흰 글자(굵은 외곽선). 잠김은 어둡게 + 자물쇠</div>
+ <div><b>4</b>알약 재화 바 — 반투명 어두운 바 + 선명한 재화 아이콘</div>
+ <div><b>5</b>포인트 광원 — 차가운 배경에 따뜻한 불로 시선 유도. 불은 별도 FX 시트(애니메이션)</div>
+</div>
+
+<h2 style="font-size:16px;margin:18px 0 4px">같은 월드 크기에서 v1(현행) vs v2 비교</h2>
+<div class="cmp">
+ <section><h3>v1 현행 — 몸 31도트·1도트 외곽선·평면</h3><canvas id="v1h"></canvas><canvas id="v1w"></canvas><p>작고 얼굴이 안 읽힘, 음영 없음</p></section>
+ <section><h3>v2 신규 — 몸 56도트·2px 외곽선·3단 음영</h3><canvas id="v2h"></canvas><canvas id="v2w"></canvas><p>같은 월드 크기(PPU 2배)로 표정과 형태가 읽힘</p></section>
+</div>
+</div>
+
+<script>
+//# ---------- 유틸 ----------
+const INK='#0e0a1c';
+function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+function hex(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function mix(h,t,f){const a=hex(h),b=hex(t);return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*f).toString(16).padStart(2,'0')).join('')}
+function px(ctx,x,y,c){ctx.fillStyle=c;ctx.fillRect(x,y,1,1)}
+function rng(seed){let s=seed;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+
+//# 단색 하나로 3단 음영을 자동 생성하며 도형을 채움
+function shape(ctx,k,pred,box,col,flat){
+ const x0=Math.floor(box[0]*k),y0=Math.floor(box[1]*k),x1=Math.ceil(box[2]*k),y1=Math.ceil(box[3]*k);
+ const w=x1-x0,h=y1-y0,sh=mix(col,'#1a1038',.38),hi=mix(col,'#ffffff',.30);
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
+  if(!pred((x+.5)/k,(y+.5)/k))continue;
+  const nx=(x-x0)/w-.5,ny=(y-y0)/h-.5,t=nx*.55+ny*.75;
+  let c=col;
+  if(!flat){ if(t>.2)c=sh; else if(t<-.34)c=hi; }
+  px(ctx,x,y,c);
+ }
+}
+const E=(cx,cy,rx,ry)=>(x,y)=>((x-cx)/rx)**2+((y-cy)/ry)**2<=1;
+const R=()=>()=>true;
+function shp(ctx,k,kind,a,col,flat){ //# kind: 'e'(cx,cy,rx,ry) 'r'(x0,y0,x1,y1)
+ if(kind==='e')shape(ctx,k,E(a[0],a[1],a[2],a[3]),[a[0]-a[2],a[1]-a[3],a[0]+a[2],a[1]+a[3]],col,flat);
+ else shape(ctx,k,R(),a,col,flat);
+}
+function outline(c,th,col){
+ const ctx=c.getContext('2d'),w=c.width,h=c.height,id=ctx.getImageData(0,0,w,h),d=id.data;
+ let m=new Uint8Array(w*h);for(let i=0;i<w*h;i++)m[i]=d[i*4+3]>0?1:0;
+ for(let t=0;t<th;t++){
+  const n=m.slice();
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+   if(m[y*w+x])continue;
+   if((x>0&&m[y*w+x-1])||(x<w-1&&m[y*w+x+1])||(y>0&&m[(y-1)*w+x])||(y<h-1&&m[(y+1)*w+x])){n[y*w+x]=2;}
+  }
+  const rgb=hex(col);
+  for(let i=0;i<w*h;i++)if(n[i]===2&&!m[i]){d[i*4]=rgb[0];d[i*4+1]=rgb[1];d[i*4+2]=rgb[2];d[i*4+3]=255;n[i]=1}
+  m=n;
+ }
+ ctx.putImageData(id,0,0);
+}
+function place(c,cssScale){c.style.width=c.width*cssScale+'px';c.style.height=c.height*cssScale+'px'}
+
+//# ---------- 영웅(모험가) ----------
+//# k=도트 배율(1=v2, 0.55=v1), style 'v2' | 'v1'
+function drawHero(k,v1){
+ const W=Math.ceil(48*k)+8,H=Math.ceil(64*k)+8,c=mk(W,H),g=c.getContext('2d');
+ g.translate(4,4);
+ const f=v1;
+ //# 검(뒤)
+ shp(g,k,'r',[36,22,39,44],'#c9d3e6',f);shp(g,k,'r',[34,43,41,46],'#f2b73a',f);shp(g,k,'r',[36,46,39,52],'#7a4a2a',f);
+ //# 다리·신발
+ shp(g,k,'r',[18,47,23.5,57],'#4a3a66',f);shp(g,k,'r',[24.5,47,30,57],'#4a3a66',f);
+ shp(g,k,'e',[20.5,58,4.5,2.8],'#2c2440',f);shp(g,k,'e',[27.5,58,4.5,2.8],'#2c2440',f);
+ //# 몸통
+ shp(g,k,'r',[16,33,32,49],'#3f86d8',f);
+ shp(g,k,'r',[16,44,32,46.5],'#f2b73a',f);
+ shp(g,k,'r',[22,33,26,40],'#e8eef8',f);
+ //# 팔
+ shp(g,k,'e',[14.5,41,3,6],'#3f86d8',f);shp(g,k,'e',[33.5,41,3,6],'#3f86d8',f);
+ shp(g,k,'e',[14.5,47,2.6,2.6],'#f3c9a0',f);shp(g,k,'e',[33.5,47,2.6,2.6],'#f3c9a0',f);
+ //# 머리: 머리카락 → 얼굴
+ shp(g,k,'e',[24,21,14,11.5],'#7a4a2a',f);
+ shp(g,k,'e',[24,26,11.5,8],'#f3c9a0',f);
+ //# 앞머리
+ shape(g,k,(x,y)=>y<24&&((x-24)/14)**2+((y-21)/11.5)**2<=1&&(y<19||Math.abs(x-24)>6||(x+y)%5<3),[10,9,38,26],'#7a4a2a',f);
+ //# 얼굴
+ if(!v1){
+  shp(g,k,'r',[18,24.5,21,28.5],'#1c1430',true);shp(g,k,'r',[27,24.5,30,28.5],'#1c1430',true);
+  px(g,Math.floor(18*k),Math.floor(24.5*k),'#fff');px(g,Math.floor(27*k),Math.floor(24.5*k),'#fff');
+  px(g,Math.floor(19*k),Math.floor(26.5*k),'#7ec8ff');px(g,Math.floor(28*k),Math.floor(26.5*k),'#7ec8ff');
+  shp(g,k,'r',[15.5,29,18,30.5],'#f0928a',true);shp(g,k,'r',[30,29,32.5,30.5],'#f0928a',true);
+  shp(g,k,'r',[22.5,31,25.5,32],'#a04a4a',true);
+ }else{
+  px(g,Math.floor(19*k),Math.floor(26*k),'#000');px(g,Math.floor(28*k),Math.floor(26*k),'#000');
+ }
+ outline(c,v1?1:2,INK);
+ return c;
+}
+//# ---------- 도깨비불(몬스터) ----------
+function drawWisp(k,v1){
+ const W=Math.ceil(48*k)+8,H=Math.ceil(48*k)+8,c=mk(W,H),g=c.getContext('2d');g.translate(4,4);const f=v1;
+ shape(g,k,(x,y)=>y>=4&&y<22&&Math.abs(x-24)<=(y-4)*.5+ (y>14?(y-14)*.3:0)&&((x-24)/9)**2+(y-17)/16<=1.2,[12,4,36,22],'#ffcf4a',f);
+ shape(g,k,(x,y)=>y>=8&&y<24&&Math.abs(x-24)<=(y-8)*.32,[16,8,32,24],'#fff3b0',f);
+ shp(g,k,'e',[24,30,16,14],'#3fd0b0',f);
+ shp(g,k,'e',[24,33,12,9],'#7ef0d6',true);
+ if(!v1){
+  shp(g,k,'e',[18.5,29,3.2,4],'#1c1430',true);shp(g,k,'e',[29.5,29,3.2,4],'#1c1430',true);
+  px(g,Math.floor(17.5*k),Math.floor(27.5*k),'#fff');px(g,Math.floor(28.5*k),Math.floor(27.5*k),'#fff');
+  shp(g,k,'r',[22,35,26,36.5],'#2a6a5a',true);
+ }else{px(g,Math.floor(19*k),Math.floor(29*k),'#000');px(g,Math.floor(29*k),Math.floor(29*k),'#000')}
+ outline(c,v1?1:2,INK);
+ return c;
+}
+//# ---------- 아이콘 ----------
+function icon(name){
+ const c=mk(34,34),g=c.getContext('2d');g.translate(3,3);const k=1;
+ const A=(kind,a,col)=>shp(g,k,kind,a,col,false);
+ if(name==='crown'){
+  A('r',[5,15,25,24],'#f2b73a');
+  [8,15,22].forEach(x=>shape(g,k,(px_,py)=>Math.abs(px_-x)<=(py-6)*.5+.5&&py>=6&&py<16,[x-5,6,x+5,16],'#f2b73a'));
+  A('e',[15,19.5,2,2],'#e8344a');A('e',[8,17.5,1.3,1.3],'#3fd0b0');A('e',[22,17.5,1.3,1.3],'#3fd0b0');
+ }else if(name==='bag'){
+  A('e',[15,19,9.5,8],'#9a6a3a');A('r',[11,9,19,13],'#7a4a2a');A('r',[10,11,20,13],'#f2b73a');
+  A('e',[15,20,3.3,3.3],'#f2d34a');
+ }else if(name==='book'){
+  A('r',[6,6,24,25],'#7a4acc');A('r',[21,7,24,24],'#f1e6c8');A('r',[9,13,18,16],'#f2b73a');
+ }else if(name==='gem'){
+  shape(g,k,(x,y)=>Math.abs(x-15)/10+Math.abs(y-16)/10<=1,[5,6,25,26],'#52d7ff');
+  shape(g,k,(x,y)=>Math.abs(x-15)/4+Math.abs(y-12)/4<=1,[11,8,19,16],'#d8f8ff',true);
+ }else if(name==='scroll'){
+  A('r',[9,7,22,24],'#f1e6c8');A('e',[15.5,7,8,2.6],'#9a6a3a');A('e',[15.5,24,8,2.6],'#9a6a3a');
+  [11,14,17,20].forEach(y=>A('r',[11,y,20,y+1],'#9a8a6a'));
+ }else if(name==='shield'){
+  shape(g,k,(x,y)=>y>=5&&y<=26&&Math.abs(x-15)<=10-Math.max(0,y-14)*.8,[5,5,25,27],'#4a78d8');
+  A('r',[14,8,16,22],'#f2b73a');A('r',[10,12,20,14],'#f2b73a');
+ }else if(name==='door'){
+  shape(g,k,(x,y)=>x>=5&&x<=25&&y>=5&&(y>=11||((x-15)/10)**2+((y-11)/6)<=1),[5,5,25,28],'#8a94a8');
+  shape(g,k,(x,y)=>x>=9&&x<=21&&y>=11&&(y>=15||((x-15)/6)**2+((y-15)/4)<=1),[9,9,21,28],'#7a4a2a');
+  A('e',[6,16,1.6,2.6],'#52d7ff');A('e',[24,16,1.6,2.6],'#52d7ff');
+ }else if(name==='soul'){A('e',[15,15,8,8],'#52e8c0');A('e',[13,12,2.4,2.4],'#d8fff4')}
+ else if(name==='stone'){shape(g,k,(x,y)=>Math.abs(x-15)/9+Math.abs(y-15)/10<=1,[6,5,24,26],'#c070ff')}
+ else if(name==='moon'){A('e',[15,15,9,9],'#ffe27a');A('e',[19,13,7,7],'#2a3050')}
+ outline(c,1,INK);return c;
+}
+function lockOverlay(){
+ const c=mk(22,24),g=c.getContext('2d');g.translate(3,3);
+ shape(g,1,(x,y)=>Math.abs(x-8)>=4.5&&Math.abs(x-8)<=6.5&&y<8||y>=6&&false,[2,0,14,10],'#aab4cc');
+ shp(g,1,'r',[1,8,15,18],'#aab4cc',false);shp(g,1,'e',[8,13,1.5,2],'#2a3050',true);
+ outline(c,1,INK);return c;
+}
+
+//# ---------- 배경 ----------
+function drawBg(){
+ const c=document.getElementById('bg'),g=c.getContext('2d'),r=rng(7);
+ const B=16,cols=80,rows=45;
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  const cx=(x-cols/2)/(cols/2);
+  let base=(Math.abs(cx)<.34&&y>8)?'#5a6c68':'#465852';
+  if(Math.abs(cx)<.12&&y>10)base='#5a3a78';
+  let col=mix(base,r()>.5?'#ffffff':'#0a1020',r()*.13);
+  if(y<8)col=mix('#26402e','#08140c',r()*.5);
+  g.fillStyle=col;g.fillRect(x*B,y*B,B,B);
+ }
+ //# 카펫 장식 줄
+ for(let y=12;y<rows;y+=3){g.fillStyle='#e0b24a';g.fillRect((cols/2)*B-24,y*B+4,48,6)}
+ //# 수풀
+ function bush(cx,cy,n,sp){for(let i=0;i<n;i++){const x=cx+(r()-.5)*sp,y=cy+(r()-.5)*sp*.7,s=8+r()*14;
+  g.fillStyle=mix('#2f7a4a',r()>.5?'#c8ffd0':'#04100a',.1+r()*.35);g.beginPath();
+  for(let a=0;a<6;a++){const ang=a*Math.PI/3,rad=s*(.7+r()*.5);g.lineTo(Math.round((x+Math.cos(ang)*rad)/4)*4,Math.round((y+Math.sin(ang)*rad*.8)/4)*4)}
+  g.closePath();g.fill()}}
+ bush(120,170,60,230);bush(1160,170,60,230);bush(70,520,40,170);bush(1210,520,40,170);bush(640,70,30,360);
+ //# 기둥
+ [[300,130],[980,130]].forEach(([x,y])=>{g.fillStyle='#313c4a';g.fillRect(x-30,y,60,170);g.fillStyle='#46546a';g.fillRect(x-30,y,18,170);g.fillStyle='#0b0f1a';g.fillRect(x-33,y-3,66,3)});
+}
+drawBg();
+
+//# ---------- 캐릭터 배치 ----------
+(function(){
+ const h=drawHero(1,false);h.id='hero';const el=document.getElementById('hero');
+ el.width=h.width;el.height=h.height;el.getContext('2d').drawImage(h,0,0);place(el,2.1);
+ const w=drawWisp(1,false),we=document.getElementById('wisp');
+ we.width=w.width;we.height=w.height;we.getContext('2d').drawImage(w,0,0);place(we,1.9);
+ const av=document.getElementById('avatar');
+ av.width=90;av.height=90;av.style.width='90px';av.style.height='90px';
+ const ag=av.getContext('2d');ag.imageSmoothingEnabled=false;ag.drawImage(h,3,3,48,34,6,4,84,60);
+})();
+
+//# ---------- 재화 아이콘 ----------
+['c1:soul','c2:stone','c3:moon'].forEach(s=>{const [id,n]=s.split(':'),el=document.getElementById(id),ic=icon(n);
+ el.width=ic.width;el.height=ic.height;el.getContext('2d').drawImage(ic,0,0);place(el,1.7)});
+
+//# ---------- 메뉴 ----------
+function menuBtn(parent,name,label,x,y,locked,dot){
+ const ic=icon(name),c=document.createElement('canvas');c.width=ic.width;c.height=ic.height;c.getContext('2d').drawImage(ic,0,0);
+ c.className='ico';c.style.left=x+'px';c.style.top=y+'px';place(c,2.4);
+ if(locked)c.style.filter='brightness(.45) saturate(.5)';
+ parent.appendChild(c);
+ if(locked){const l=lockOverlay(),lc=document.createElement('canvas');lc.width=l.width;lc.height=l.height;lc.getContext('2d').drawImage(l,0,0);
+  lc.className='ico';lc.style.left=(x+22)+'px';lc.style.top=(y+20)+'px';place(lc,2.3);parent.appendChild(lc)}
+ const t=document.createElement('div');t.className='lbl';t.textContent=label;
+ t.style.left=(x-4)+'px';t.style.top=(y+78)+'px';t.style.width='90px';t.style.height='32px';parent.appendChild(t);
+ if(dot){const d=document.createElement('div');d.style.cssText='position:absolute;left:'+(x+66)+'px;top:'+(y+2)+'px;width:16px;height:16px;border-radius:50%;background:#e8344a;border:2px solid #000';parent.appendChild(d)}
+}
+const lm=document.getElementById('leftMenu');
+menuBtn(lm,'scroll','퀘스트',16,150,false,true);menuBtn(lm,'gem','유물',16,280,false,false);menuBtn(lm,'crown','영주',16,410,true,false);
+const bm=document.getElementById('botMenu');
+[['shield','편성',false,false],['bag','상점',false,true],['book','도감',false,false],['gem','유물',false,false],['scroll','기록',true,false],['crown','랭킹',true,false]]
+ .forEach((m,i)=>menuBtn(bm,m[0],m[1],150+i*118,578,m[2],m[3]));
+(function(){const ic=icon('door'),d=document.getElementById('door');d.width=ic.width;d.height=ic.height;d.getContext('2d').drawImage(ic,0,0);place(d,3.9)})();
+
+//# ---------- 모닥불(포인트 광원) 애니 ----------
+(function(){
+ const fc=document.getElementById('fire');fc.width=40;fc.height=44;place(fc,2.6);fc.style.left='700px';fc.style.top='430px';
+ const g=fc.getContext('2d');
+ //# 장작
+ function frame(t){
+  const buf=mk(40,44),b=buf.getContext('2d');b.translate(4,2);
+  const s=Math.sin(t/110),s2=Math.sin(t/70+1);
+  shp(b,1,'e',[16,14+s*1.2,9+s2,12+s*2],'#e8442a',false);
+  shp(b,1,'e',[16,17,6.5,8.5+s],'#ff9a2a',true);
+  shp(b,1,'e',[16,20,3.6,5.5],'#fff0a0',true);
+  shp(b,1,'r',[3,28,29,34],'#7a4a2a',false);shp(b,1,'e',[8,31,6,3.2],'#6a3a1c',false);shp(b,1,'e',[24,31,6,3.2],'#6a3a1c',false);
+  outline(buf,1,INK);
+  fc.getContext('2d').clearRect(0,0,40,44);fc.getContext('2d').drawImage(buf,0,0);
+  requestAnimationFrame(frame);
+ }
+ requestAnimationFrame(frame);
+ //# 불빛 번짐
+ const gl=document.createElement('div');gl.style.cssText='position:absolute;left:640px;top:390px;width:260px;height:200px;border-radius:50%;background:radial-gradient(rgba(255,170,60,.38),rgba(255,170,60,0) 70%);pointer-events:none';
+ document.getElementById('stage').insertBefore(gl,document.querySelector('.vig'));
+})();
+
+//# ---------- 비교 ----------
+(function(){
+ const put=(id,src,sc)=>{const el=document.getElementById(id);el.width=src.width;el.height=src.height;el.getContext('2d').drawImage(src,0,0);place(el,sc)};
+ put('v1h',drawHero(.55,true),4.3);put('v1w',drawWisp(.55,true),4.3);
+ put('v2h',drawHero(1,false),2.4);put('v2w',drawWisp(1,false),2.4);
+})();
+
+//# ---------- 스케일/토글 ----------
+function fit(){const s=Math.min(1,(document.getElementById('stageHost').clientWidth)/1280);
+ const st=document.getElementById('stage');st.style.transform='scale('+s+')';document.getElementById('stageHost').style.height=720*s+'px'}
+addEventListener('resize',fit);fit();
+document.getElementById('annT').addEventListener('change',e=>document.getElementById('stage').classList.toggle('ann',e.target.checked));
+</script>
+</body>
+</html>
