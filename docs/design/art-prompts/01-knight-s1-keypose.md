@@ -1,30 +1,47 @@
 # 단계 1-① 기사(Knight) S1 (1-1 스테이지 영웅) — 스타일 확정용 키포즈
 
 목적: 전체 시트 전에 "해골 영웅의 새 치비 버전" 한 장을 승인받는다. 승인본이 이후 모든 기사 프롬프트의 참조 이미지가 된다.
-기존 디자인 기준: `Assets/_Lair/Art/Sprites/CardArt/Fear.png` (상아색 해골, 낮은 어두운 캡, 형광 초록 눈, 갈비뼈, 왼쪽 어깨 낡은 천, 어두운 반바지, 오른손 소검).
 
-첨부 3장: ① 레퍼런스 스크린샷(스타일) ② `.mockups/art-style-v2.html` 스크린샷(스타일) ③ `CardArt/Fear.png`(캐릭터 디자인)
+## 실제 게임에서 확인한 기존 기사 S1 (2026-11-07 전투 화면 실측)
+- 상단 표기 "침입자 기사 · 1단계", HP 4000. 1024x768 화면에서 키 약 55px · 폭 약 40px 로 작고 마른 편.
+- 창백한 상아색 뼈, 낮은 어두운 캡(정수리), 형광 초록 눈, 드러난 갈비뼈, 왼쪽 어깨 어두운 천, 어두운 반바지, 오른손 은색 한손 소검(위로 비스듬히).
+- 디자인 원본: `Assets/_Lair/Art/Sprites/CardArt/Fear.png`
 
-## 프롬프트 (복붙)
+## 코덱스에 첨부할 이미지 3장
+1. 레퍼런스 스크린샷(치비 도트 RPG) — 스타일 참고
+2. `.mockups/art-style-v2.html` 화면 캡처 — 스타일 참고
+3. `CardArt/Fear.png` — 캐릭터 디자인 원본
+
+## 프롬프트 (한글, 복붙)
 
 ```
-STYLE (apply to everything):
-Chibi high-density pixel art for a mobile RPG. 2.5-head-tall proportion, head about 40-45% of body height.
-Thick dark 2px outline (#0A0D14, NOT pure black). 3-tone cel shading plus one highlight, light from top-left.
-High-saturation palette, max 48 colors per character. Crisp pixels: no anti-aliasing, no dithering, no blur, no gradients, no glow.
-Camera: game seen from slightly above, character facing RIGHT.
-NO text, NO labels, NO grid lines, NO frame numbers, NO cast shadow on the ground.
-Background: flat solid pure magenta #FF00FF only (never use magenta inside the character).
-Attached images: use the first two for pixel style, outline thickness and layout only. The third (skeleton card art) is the CHARACTER DESIGN to keep. Do NOT draw any human.
+[스타일 — 모든 그림에 적용]
+모바일 RPG용 치비 고밀도 도트 아트. 2.5등신, 머리 크기는 키의 40~45%.
+어두운 2px 굵은 외곽선(#0A0D14, 순검정 금지). 3톤 셀 셰이딩 + 하이라이트 1단계, 빛은 왼쪽 위에서.
+채도 높은 팔레트, 캐릭터당 최대 48색. 선명한 픽셀: 안티앨리어싱·디더링·블러·그라데이션·글로우 금지.
+시점: 살짝 위에서 내려다보는 게임 카메라, 캐릭터는 오른쪽을 본다.
+글자·라벨·격자선·프레임 번호·바닥 그림자 금지.
+배경: 순수 마젠타 #FF00FF 단색만 (캐릭터 안에 마젠타 사용 금지).
+첨부 이미지 1·2번은 픽셀 스타일, 외곽선 두께, 포즈 배치만 참고. 3번(해골 카드 일러스트)이 지켜야 할 캐릭터 디자인이다. 사람 캐릭터는 절대 그리지 않는다.
 
-TASK:
-Character: the same cute SKELETON knight as the third image, redrawn chibi. Warm ivory bone (#E8E0C8) skull and bones, big round skull head, two glowing green eye dots (#4ADE80), visible rib cage, no flesh, no hair.
-Gear: low dark cap on the skull, worn dark cloth rag on the LEFT shoulder, dark shorts, one-handed short sword with a silver blade in the RIGHT hand angled upward. No armor, no cloak.
-Make ONE character design sheet on a 1024x1024 canvas, 4 poses in a 2x2 layout, same size and same baseline in each:
- 1) idle, sword held up at an angle
- 2) wind-up, sword pulled back (facing right)
- 3) slash, sword swung forward
- 4) hit reaction (leaning back, eye dots flickering)
-Each pose about 400 px tall, centered in its own 512x512 quadrant, at least 40 px margin from the quadrant edge.
-Body (feet to head top) uses the same pixel size in all poses.
+[작업]
+캐릭터: 3번 이미지와 같은 귀여운 해골 기사를 치비 비율로 다시 그린다.
+- 따뜻한 상아색(#E8E0C8) 뼈, 둥글고 큰 해골 머리, 형광 초록(#4ADE80) 눈 점 2개, 보이는 갈비뼈, 살·머리카락 없음.
+- 장비: 정수리에 낮은 어두운 캡, 왼쪽 어깨에 낡은 어두운 천 조각, 어두운 반바지, 오른손에 은색 칼날의 한손 소검(위로 비스듬히). 갑옷·망토 없음.
+
+1024x1024 캔버스에 2x2 배치로 4가지 포즈를 한 장에 그린다. 모든 포즈의 크기와 발 위치(바닥선)가 같아야 한다.
+ 1) 대기: 검을 비스듬히 위로 든 자세
+ 2) 준비: 검을 뒤로 젖힌 자세 (오른쪽을 봄)
+ 3) 베기: 검을 앞으로 휘두른 자세
+ 4) 피격: 뒤로 젖혀지며 눈 점이 깜빡이는 자세
+각 포즈는 512x512 칸의 중앙에 키 약 400px로 배치하고, 칸 가장자리에서 최소 40px 떨어뜨린다.
+몸(발부터 머리 꼭대기)의 도트 크기는 모든 포즈에서 동일하게 유지한다.
 ```
+
+## 승인 체크 (제가 확인)
+- 외곽선 2px 일정, 머리 비율 40~45%, 색 48개 이하, 마젠타 침범 없음
+- 4포즈의 크기·발 위치 동일, 잘림 없음
+- 상아색 뼈 · 초록 눈 · 낮은 어두운 캡 · 소검(오른손) 유지 여부
+
+## 다음 순서
+승인 → 기사 애니메이션 프레임(대기 8 → 걷기 8 → 달리기 8 → 공격 9×3 → 피격 6 → 사망 8 → 등장 16, 한 번에 4~6프레임씩) → 마스크/앵커/Tier.json
