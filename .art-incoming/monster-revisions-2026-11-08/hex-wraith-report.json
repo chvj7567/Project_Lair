@@ -1,0 +1,1662 @@
+{
+  "method": "Exact extensionless source PNGs only; neither generated candidate used. No redraw or scaling.",
+  "grid": {
+    "width": 1374,
+    "height": 1145,
+    "cols": 6,
+    "rows": 5,
+    "cell": 229
+  },
+  "Hex": {
+    "source": "C:/Users/Tae/Desktop/Art/Monster/Hex",
+    "sourceSha256": "a36e4dc3b1cb2f988ca2eb68f628a3f921a7fce8477de06aaca8812033cbd1b7",
+    "projectile": {
+      "sourceRect": [
+        852,
+        350,
+        80,
+        65
+      ],
+      "translation": [
+        -14,
+        0
+      ],
+      "scale": 1,
+      "movedPixels": 2204,
+      "note": "Attack col4 projectile spill recovered from col5 then translated as a rigid patch. Col5/6 own original spells preserved."
+    },
+    "cleanup": {
+      "removedRedPixels": 31030,
+      "recoloredPixels": 0,
+      "attackMarginLowAlphaNoiseRemoved": 228
+    },
+    "validation": {
+      "changedPixels": 33644,
+      "alphaChangedPixels": 33588,
+      "sourceAlpha64PlusChangedPixels": 821,
+      "changedOutsideWraithColorMask": 0,
+      "sourceRedFringe": 31030,
+      "residualRedFringe": 0,
+      "sourceBlueDominant": 1268,
+      "residualBlueDominant": 1268,
+      "residualMagenta": 17796,
+      "cells": [
+        {
+          "row": 1,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                57,
+                15,
+                224,
+                225
+              ],
+              "marginViolations": 2
+            },
+            {
+              "threshold": 16,
+              "b": [
+                64,
+                21,
+                221,
+                213
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                14,
+                17,
+                223,
+                228
+              ],
+              "marginViolations": 10
+            },
+            {
+              "threshold": 16,
+              "b": [
+                59,
+                19,
+                214,
+                208
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                8,
+                14,
+                218,
+                225
+              ],
+              "marginViolations": 2
+            },
+            {
+              "threshold": 16,
+              "b": [
+                54,
+                16,
+                207,
+                197
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                1,
+                16,
+                227,
+                228
+              ],
+              "marginViolations": 41
+            },
+            {
+              "threshold": 16,
+              "b": [
+                45,
+                22,
+                199,
+                208
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                2,
+                32,
+                215,
+                228
+              ],
+              "marginViolations": 94
+            },
+            {
+              "threshold": 16,
+              "b": [
+                38,
+                37,
+                194,
+                218
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                18,
+                22,
+                210,
+                223
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                32,
+                27,
+                185,
+                213
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                56,
+                26,
+                224,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                64,
+                28,
+                221,
+                217
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                4,
+                4,
+                224,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                44,
+                27,
+                215,
+                212
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                4,
+                4,
+                218,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                30,
+                27,
+                208,
+                212
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                9,
+                4,
+                223,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                12,
+                34,
+                218,
+                213
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                4,
+                4,
+                223,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                24,
+                43,
+                181,
+                214
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                4,
+                28,
+                196,
+                224
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                34,
+                30,
+                186,
+                217
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                31,
+                3,
+                227,
+                228
+              ],
+              "marginViolations": 7
+            },
+            {
+              "threshold": 16,
+              "b": [
+                64,
+                22,
+                220,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                8,
+                225,
+                228
+              ],
+              "marginViolations": 10
+            },
+            {
+              "threshold": 16,
+              "b": [
+                57,
+                32,
+                212,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                2,
+                0,
+                222,
+                228
+              ],
+              "marginViolations": 34
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                46,
+                203,
+                219
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                1,
+                1,
+                227,
+                228
+              ],
+              "marginViolations": 31
+            },
+            {
+              "threshold": 16,
+              "b": [
+                41,
+                68,
+                194,
+                219
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                14,
+                0,
+                228,
+                218
+              ],
+              "marginViolations": 28
+            },
+            {
+              "threshold": 16,
+              "b": [
+                33,
+                93,
+                182,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                27,
+                200,
+                208
+              ],
+              "marginViolations": 7
+            },
+            {
+              "threshold": 16,
+              "b": [
+                59,
+                147,
+                128,
+                204
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                29,
+                1,
+                227,
+                223
+              ],
+              "marginViolations": 13
+            },
+            {
+              "threshold": 16,
+              "b": [
+                99,
+                113,
+                168,
+                165
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                227,
+                217
+              ],
+              "marginViolations": 49
+            },
+            {
+              "threshold": 16,
+              "b": [
+                60,
+                30,
+                187,
+                183
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                191
+              ],
+              "marginViolations": 23
+            },
+            {
+              "threshold": 16,
+              "b": [
+                52,
+                29,
+                182,
+                184
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                25,
+                7,
+                201,
+                201
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                44,
+                29,
+                191,
+                199
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                29,
+                21,
+                215,
+                209
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                38,
+                26,
+                188,
+                202
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                16,
+                21,
+                192,
+                213
+              ],
+              "marginViolations": 0
+            },
+            {
+              "threshold": 16,
+              "b": [
+                34,
+                24,
+                185,
+                202
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                54,
+                0,
+                224,
+                199
+              ],
+              "marginViolations": 65
+            },
+            {
+              "threshold": 16,
+              "b": [
+                63,
+                12,
+                216,
+                196
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                4,
+                2,
+                221,
+                200
+              ],
+              "marginViolations": 1
+            },
+            {
+              "threshold": 16,
+              "b": [
+                59,
+                22,
+                208,
+                195
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                14,
+                20,
+                228,
+                210
+              ],
+              "marginViolations": 5
+            },
+            {
+              "threshold": 16,
+              "b": [
+                47,
+                32,
+                199,
+                200
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                1,
+                6,
+                201,
+                200
+              ],
+              "marginViolations": 4
+            },
+            {
+              "threshold": 16,
+              "b": [
+                42,
+                29,
+                194,
+                194
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                35,
+                2,
+                228,
+                198
+              ],
+              "marginViolations": 22
+            },
+            {
+              "threshold": 16,
+              "b": [
+                38,
+                20,
+                187,
+                194
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                2,
+                198,
+                200
+              ],
+              "marginViolations": 7
+            },
+            {
+              "threshold": 16,
+              "b": [
+                32,
+                16,
+                182,
+                196
+              ],
+              "marginViolations": 0
+            }
+          ]
+        }
+      ],
+      "outsideAuthorizedMaskVisibleOrAlphaChanges": 0,
+      "transparentRgbZeroedOutsideMask": 1338,
+      "finalDecodedAlphaChanges": 33588,
+      "finalDecodedSourceAlpha64PlusChanged": 821,
+      "sourceHashUnchanged": true
+    },
+    "criteria": {
+      "redFringe": "alpha 1..63, R>2.5G and R>1.8B; excludes opaque gold/brown artwork",
+      "blue": "B>R and B>G (includes cool grey tint)",
+      "magenta": "B>G and R>1.1G",
+      "bounds": "All nonzero alpha and alpha>=16 reported separately; 4px inset is local x/y 4..224."
+    },
+    "outputSha256": "7b3eb280064efa10ec40c2ae59d06e157d516fdd4f45d58f80d77ca139a4a95a",
+    "note": "All Attack cells meet 4px margin at every alpha>0; alpha<16 border specks removed only after rigid projectile translation. Body artwork preserved except local spell overlap/translation."
+  },
+  "Wraith": {
+    "source": "C:/Users/Tae/Desktop/Art/Monster/Wraith",
+    "sourceSha256": "37fe93dbaf38149deb704c81ee6281a7d320efefbb1783c51502f2b97777327b",
+    "cleanup": {
+      "removedRedPixels": 0,
+      "recoloredPixels": 589644,
+      "attackMarginLowAlphaNoiseRemoved": 0
+    },
+    "validation": {
+      "changedPixels": 589644,
+      "alphaChangedPixels": 0,
+      "sourceAlpha64PlusChangedPixels": 498756,
+      "changedOutsideWraithColorMask": 0,
+      "sourceRedFringe": 37,
+      "residualRedFringe": 37,
+      "sourceBlueDominant": 583497,
+      "residualBlueDominant": 0,
+      "residualMagenta": 0,
+      "cells": [
+        {
+          "row": 1,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                9,
+                227,
+                228
+              ],
+              "marginViolations": 251
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                24,
+                204,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                15,
+                228,
+                228
+              ],
+              "marginViolations": 289
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                18,
+                203,
+                210
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                13,
+                228,
+                228
+              ],
+              "marginViolations": 479
+            },
+            {
+              "threshold": 16,
+              "b": [
+                45,
+                15,
+                199,
+                205
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                10,
+                228,
+                228
+              ],
+              "marginViolations": 700
+            },
+            {
+              "threshold": 16,
+              "b": [
+                41,
+                13,
+                208,
+                200
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 367
+            },
+            {
+              "threshold": 16,
+              "b": [
+                47,
+                19,
+                207,
+                211
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 1,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                17,
+                214,
+                228
+              ],
+              "marginViolations": 193
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                25,
+                202,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 347
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                25,
+                203,
+                216
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 459
+            },
+            {
+              "threshold": 16,
+              "b": [
+                29,
+                26,
+                204,
+                211
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 974
+            },
+            {
+              "threshold": 16,
+              "b": [
+                8,
+                27,
+                195,
+                209
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1205
+            },
+            {
+              "threshold": 16,
+              "b": [
+                22,
+                27,
+                228,
+                213
+              ],
+              "marginViolations": 96
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 755
+            },
+            {
+              "threshold": 16,
+              "b": [
+                0,
+                29,
+                197,
+                214
+              ],
+              "marginViolations": 108
+            }
+          ]
+        },
+        {
+          "row": 2,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                214,
+                228
+              ],
+              "marginViolations": 241
+            },
+            {
+              "threshold": 16,
+              "b": [
+                50,
+                25,
+                201,
+                216
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 325
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                25,
+                203,
+                216
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 750
+            },
+            {
+              "threshold": 16,
+              "b": [
+                46,
+                35,
+                198,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1344
+            },
+            {
+              "threshold": 16,
+              "b": [
+                43,
+                52,
+                192,
+                218
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1767
+            },
+            {
+              "threshold": 16,
+              "b": [
+                37,
+                73,
+                198,
+                217
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 2139
+            },
+            {
+              "threshold": 16,
+              "b": [
+                41,
+                87,
+                195,
+                217
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 3,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1316
+            },
+            {
+              "threshold": 16,
+              "b": [
+                92,
+                134,
+                157,
+                211
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1147
+            },
+            {
+              "threshold": 16,
+              "b": [
+                73,
+                86,
+                175,
+                193
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 2103
+            },
+            {
+              "threshold": 16,
+              "b": [
+                56,
+                36,
+                193,
+                205
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 2026
+            },
+            {
+              "threshold": 16,
+              "b": [
+                44,
+                26,
+                196,
+                202
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1511
+            },
+            {
+              "threshold": 16,
+              "b": [
+                43,
+                24,
+                197,
+                208
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 1302
+            },
+            {
+              "threshold": 16,
+              "b": [
+                45,
+                20,
+                198,
+                205
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 4,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                218,
+                228
+              ],
+              "marginViolations": 661
+            },
+            {
+              "threshold": 16,
+              "b": [
+                47,
+                19,
+                202,
+                212
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 266
+            },
+            {
+              "threshold": 16,
+              "b": [
+                49,
+                23,
+                198,
+                215
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 535
+            },
+            {
+              "threshold": 16,
+              "b": [
+                41,
+                18,
+                198,
+                211
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 401
+            },
+            {
+              "threshold": 16,
+              "b": [
+                39,
+                13,
+                199,
+                204
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 397
+            },
+            {
+              "threshold": 16,
+              "b": [
+                48,
+                21,
+                207,
+                211
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                228,
+                228
+              ],
+              "marginViolations": 497
+            },
+            {
+              "threshold": 16,
+              "b": [
+                48,
+                30,
+                207,
+                216
+              ],
+              "marginViolations": 0
+            }
+          ]
+        },
+        {
+          "row": 5,
+          "col": 6,
+          "bounds": [
+            {
+              "threshold": 1,
+              "b": [
+                0,
+                0,
+                212,
+                228
+              ],
+              "marginViolations": 335
+            },
+            {
+              "threshold": 16,
+              "b": [
+                51,
+                25,
+                201,
+                216
+              ],
+              "marginViolations": 0
+            }
+          ]
+        }
+      ],
+      "outsideAuthorizedMaskVisibleOrAlphaChanges": 0,
+      "transparentRgbZeroedOutsideMask": 1285,
+      "finalDecodedAlphaChanges": 0,
+      "finalDecodedSourceAlpha64PlusChanged": 498756,
+      "sourceHashUnchanged": true
+    },
+    "criteria": {
+      "redFringe": "alpha 1..63, R>2.5G and R>1.8B; excludes opaque gold/brown artwork",
+      "blue": "B>R and B>G (includes cool grey tint)",
+      "magenta": "B>G and R>1.1G",
+      "bounds": "All nonzero alpha and alpha>=16 reported separately; 4px inset is local x/y 4..224."
+    },
+    "outputSha256": "64563e1a15440f5bd770fe80aa2e721609b9312e56c4e360c7b2ddf9d0653b52",
+    "note": "Source alpha and geometry retained exactly. Every cool blue-dominant tint, including armor grey tint, is neutralized to luminance; warm ivory horns retained. Existing low-alpha source smoke may touch cell boundaries; see per-cell bounds. No smoke shape clipping or scaling applied."
+  },
+  "previews": {
+    "fps": 10,
+    "background": "#242424",
+    "note": "GIF previews composite source alpha; PNG alpha remains authoritative.",
+    "verifiedFrameCounts": 6
+  },
+  "visualInspection": "Full final PNG sheets visually inspected. GIFs decoded and verified as six-frame 229x229; full playback not observed."
+}
