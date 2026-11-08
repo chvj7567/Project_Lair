@@ -11,6 +11,8 @@ namespace Lair.Character
         [SerializeField] private float _fps = 30f;
 
         private const float FadeInSeconds = 0.3f;
+        private const float DesignCell = 160f;
+        private const float DefaultPpu = 100f;
 
         private float _elapsed;
         private float _startOffsetSec;
@@ -42,11 +44,14 @@ namespace Lair.Character
             gameObject.SetActive(false);
         }
 
-        //# 월드 크기·위치 지정 — 크기 s 는 호출자(MonsterGradeVisual)가 cellWorld 로 계산.
-        public void Place(Vector3 localPosition, float uniformScale)
+        //# 월드 크기·위치 지정 — 월드 가로 = 프레임 가로 px x sheetScale ÷ 160 x cellWorld(monster-grades §2.1).
+        //# 스프라이트 자연 가로 = 프레임 px ÷ PPU 이므로 localScale = sheetScale x cellWorld x PPU ÷ 160(자기 Sprite.pixelsPerUnit 로 환산, 임포트 PPU 비의존).
+        public void Place(Vector3 localPosition, float sheetScale, float cellWorld)
         {
+            float ppu = _frames != null && _frames.Length > 0 && _frames[0] != null ? _frames[0].pixelsPerUnit : DefaultPpu;
+            float uniform = sheetScale * cellWorld * ppu / DesignCell;
             transform.localPosition = localPosition;
-            transform.localScale = new Vector3(uniformScale, uniformScale, 1f);
+            transform.localScale = new Vector3(uniform, uniform, 1f);
         }
 
         private void Update()

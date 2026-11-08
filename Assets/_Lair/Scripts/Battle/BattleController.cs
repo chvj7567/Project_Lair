@@ -165,6 +165,8 @@ namespace Lair.Battle
 
         async void Start()
         {
+            //# 이펙트 동시 상한 카운터 초기화 — 이전 판 잔여 슬롯이 새 판에 새지 않게(MonsterGradeVisual.OnDisable 반납과 이중 안전망).
+            Lair.Character.GradeFxBudget.Reset();
             //# 매 Battle 진입(재시작 포함)마다 전투 BGM 을 0초부터 재생 — 프리웜 await 전에 정지해 마을 BGM 잔존 차단.
             CHMSound.Instance.StopAllBGM();
             CHMSound.Instance.Play(EAudio.Bgm);
@@ -518,7 +520,8 @@ namespace Lair.Battle
         //# 스포너 상태 UI — VM 이 Spawner / 본 컨트롤러 이벤트를 구독했으므로 함께 해제.
         private void OnDestroy()
         {
-            //# 씬 전환 직전 — 이번 판에 로드한 티어 시트 번들 해제(monster-tier-sheets §7.5).
+            //# 씬 전환 직전 — 이번 판에 로드한 티어 시트 번들 해제(monster-tier-sheets §7.5). 풀 인스턴스의 몸 스프라이트는 Animator 가 매 프레임 풋내기로 덮어쓰고
+            //# 세트 참조는 Pop(OnEnable) 에서 비우므로 풀 정리 순서와 무관하게 안전하다.
             _tierSheets?.Release();
             _tierSheets = null;
             Lair.Character.GradeFxBudget.Reset();
@@ -811,20 +814,27 @@ namespace Lair.Battle
                 _plagueInstances[character.transform] = health;
             }
 
+            //# 등급 연출(monster-grades) — 2~5등급 Variant 만 조회(1등급은 조회 0). Configure 가 sizeMul 을 정하므로 강화 시각(HP바 높이 합성)보다 먼저.
+            Lair.Character.IMonsterGradeVisual gradeVisual = null;
+            int grade = MonsterGrades.GradeOf(key);
+            if (grade > MonsterGrades.MinGrade && GradeFxDatabase.Current != null)
+            {
+                Lair.Character.LairCharacter lair = character.GetComponent<Lair.Character.LairCharacter>();
+                gradeVisual = lair != null ? lair.Get<Lair.Character.IMonsterGradeVisual>() : null;
+                if (resetCurrent && gradeVisual != null)
+                {
+                    gradeVisual.Configure(GradeFxDatabase.Current.SpecOf(species, grade));
+                }
+            }
+
             //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
             Lair.Character.MonsterEnhancementVisual visual = character.GetComponent<Lair.Character.MonsterEnhancementVisual>();
             if (visual != null)
             {
                 int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
                 visual.SetTierSheetProvider(_tierSheets);
+                visual.SetGradeVisual(gradeVisual);
                 visual.ApplyLevel(level, species);
-            }
-
-            //# 등급 연출(monster-grades) — 2~5등급 Variant 에만 컴포넌트가 있다. 데이터 없으면(Current==null) 연출 없이 기본 크기.
-            Lair.Character.MonsterGradeVisual gradeVisual = character.GetComponent<Lair.Character.MonsterGradeVisual>();
-            if (resetCurrent && gradeVisual != null && GradeFxDatabase.Current != null)
-            {
-                gradeVisual.Configure(GradeFxDatabase.Current.SpecOf(species, MonsterGrades.GradeOf(key)));
             }
 
             //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다. 특성은 기준 몬스터 단위.
@@ -1118,6 +1128,21 @@ namespace Lair.Battle
             }
         }
 
+        //# 종족 강화 레벨 캐시 — 스폰 시 발광·티어 시트 적용용 단일 출처. Id 문자열 파싱 없이 config 항목 순회로 Species→레벨 매핑.
+        private void CacheSpeciesLevels(MetaProfile profile)
+        {
+            _speciesLevels.Clear();
+            if (_metaConfig == null)
+                return;
+            foreach (ShopItemDef item in _metaConfig.ShopItems)
+            {
+                if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies)
+                    continue;
+                int level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
+                _speciesLevels[item.Species] = level;
+            }
+        }
+
         //# 편성 6둥지의 기준 몬스터 x 상점 강화 Lv → 티어(>0)인 종족만 병렬 로드. 모든 전투 모드 공통(챕터·탑·데일리), 실패는 풋내기 폴백.
         private async Task LoadMonsterTierSheets()
         {
@@ -1128,7 +1153,7 @@ namespace Lair.Battle
             if (_metaConfig == null)
                 return;
 
-            MetaProfile profile = MetaSession.GetOrLoad();
+            CacheSpeciesLevels(MetaSession.GetOrLoad());
             IReadOnlyList<EMonster> placed = _formation != null ? _formation : MonsterGrades.BaseMonsters;
             List<(EMonster, int)> needs = new List<(EMonster, int)>();
             HashSet<EMonster> seen = new HashSet<EMonster>();
@@ -1137,14 +1162,7 @@ namespace Lair.Battle
                 EMonster root = MonsterGrades.BaseOf(monster);
                 if (seen.Add(root) == false)
                     continue;
-                int level = 0;
-                foreach (ShopItemDef item in _metaConfig.ShopItems)
-                {
-                    if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies || item.Species != root)
-                        continue;
-                    level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
-                    break;
-                }
+                int level = _speciesLevels.TryGetValue(root, out int lv) ? lv : 0;
                 int tier = Lair.Character.MonsterEnhancementVisual.TierOfLevel(level);
                 if (tier > 0)
                 {
@@ -1304,15 +1322,7 @@ namespace Lair.Battle
                 }
             }
 
-            //# 종족 강화 레벨 캐시 — 스폰 시 발광 세기 적용용. Id 문자열 파싱 없이 config 항목 순회로 Species→레벨 매핑.
-            _speciesLevels.Clear();
-            foreach (ShopItemDef item in _metaConfig.ShopItems)
-            {
-                if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies)
-                    continue;
-                int level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
-                _speciesLevels[item.Species] = level;
-            }
+            CacheSpeciesLevels(profile);
 
             //# 둥지 숙련 — 종족별 누적 효과 확정 + Lv2 주기 배율을 그 종족 둥지 전부에 곱한다(상점·유물·카드와 곱연산).
             _nestEffects.Clear();

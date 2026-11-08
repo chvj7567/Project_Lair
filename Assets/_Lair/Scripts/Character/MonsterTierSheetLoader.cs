@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Lair.Data;
 using UnityEngine;
@@ -75,7 +76,7 @@ namespace Lair.Character
                         {
                             _unload?.Invoke(lateKey);
                         }
-                    }, TaskScheduler.FromCurrentSynchronizationContext());
+                    }, SynchronizationContext.Current != null ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default);
                 }
             }
         }

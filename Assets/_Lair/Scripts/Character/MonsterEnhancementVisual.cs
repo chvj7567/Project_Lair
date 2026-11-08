@@ -22,6 +22,9 @@ namespace Lair.Character
 
         //# 전투 컨텍스트가 주입(BattleController). null 이면 시트 치환 없이 기존 표(_hpBarHeightByTier)만 쓴다.
         private IMonsterTierSheetProvider _tierProvider;
+        //# 등급 Variant 의 연출 진입점 — HP바 높이 x sizeMul 합성용(monster-grades §4). 1등급은 null → 배율 1.
+        private IMonsterGradeVisual _gradeVisual;
+        private const float HpBarPad = 0.08f;
 
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
@@ -33,6 +36,9 @@ namespace Lair.Character
         private static readonly int[] SigilStageByLevel = { 0, 0, 1, 1, 2, 3 };
 
         public void SetTierSheetProvider(IMonsterTierSheetProvider provider) => _tierProvider = provider;
+
+        //# 반드시 ApplyLevel 보다 먼저(Configure 가 sizeMul 을 정한 뒤) 주입.
+        public void SetGradeVisual(IMonsterGradeVisual gradeVisual) => _gradeVisual = gradeVisual;
 
         //# 레벨(0~5)→외형 티어(0~3). 로더가 필요 목록을 만들 때도 같은 표를 쓴다.
         public static int TierOfLevel(int level) => TierByLevel[Mathf.Clamp(level, 0, MaxLevel)];
@@ -68,11 +74,18 @@ namespace Lair.Character
             }
         }
 
+        //# HP바 하단 = heightWorld x sizeMul + 0.08 — 저장값은 heightWorld + 0.08 이라 패드를 빼고 곱한다. sizeMul 1(1등급) 이면 불변.
+        private float ScaleBySize(float heightWithPad)
+        {
+            float size = _gradeVisual != null ? _gradeVisual.SizeMul : 1f;
+            return (heightWithPad - HpBarPad) * size + HpBarPad;
+        }
+
         private void ApplyHpBarHeightValue(float height)
         {
             if (_hpBar == null)
                 return;
-            _hpBar.SetHeightAboveRoot(height);
+            _hpBar.SetHeightAboveRoot(ScaleBySize(height));
         }
 
         private void ApplyHpBarHeight(int tier)
@@ -81,7 +94,7 @@ namespace Lair.Character
                 return;
             if (tier < 0 || tier >= _hpBarHeightByTier.Length)
                 return;
-            _hpBar.SetHeightAboveRoot(_hpBarHeightByTier[tier]);
+            _hpBar.SetHeightAboveRoot(ScaleBySize(_hpBarHeightByTier[tier]));
         }
 
         //# 발광 채널만 조작 — 키워드 토글 + _EmissionColor 주입.

@@ -16,10 +16,9 @@ namespace Lair.Character
         [SerializeField] private GradeFxSheet[] _tornados;
         [SerializeField] private GradeFxSheet _sunburst;
 
-        //# 시안 world 길이 환산 — 프레임 px x 시트 스케일 ÷ 160 x cellWorld, 스프라이트 PPU 100 기준(monster-grades §2.1).
-        private const float FxPixelsPerUnit = 100f;
-        private const float DesignCell = 160f;
         private const float DefaultSpritePpu = 100f;
+        //# 몸 시트 셀 가장자리 여백(8px) 안으로 후광 폭을 제한 — 스프라이트 메시가 셀 사각형이라 그 밖은 잘린다(monster-sheet-v4 X3).
+        private const float MaxGlowTexels = 8f;
 
         private static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
         private static readonly int GlowWidthId = Shader.PropertyToID("_GlowWidth");
@@ -37,6 +36,9 @@ namespace Lair.Character
         private int _tornadoOn;
         private bool _sunburstOn;
         private bool _baseCaptured;
+        private float _sizeMul = 1f;
+
+        public float SizeMul => _sizeMul;
 
         private void Awake()
         {
@@ -65,13 +67,19 @@ namespace Lair.Character
         {
             CaptureBase();
             ResetLook();
-            if (_health != null) _health.OnDied += HandleDied;
+            if (_health != null)
+            {
+                _health.OnDied += HandleDied;
+            }
         }
 
         //# 풀 Push — 이펙트 슬롯 반납·재생 정지.
         private void OnDisable()
         {
-            if (_health != null) _health.OnDied -= HandleDied;
+            if (_health != null)
+            {
+                _health.OnDied -= HandleDied;
+            }
             ReleaseFx();
         }
 
@@ -80,6 +88,7 @@ namespace Lair.Character
             if (spec == null)
                 return;
             ResetLook();
+            _sizeMul = spec.SizeMul;
 
             if (_visualRoot != null)
             {
@@ -88,6 +97,10 @@ namespace Lair.Character
             if (_sigil != null)
             {
                 _sigil.localScale = _sigilBaseScale * spec.SizeMul;
+            }
+            if (_body != null && (spec.HasGlow || spec.Pulse != null))
+            {
+                _material = _body.material;
             }
             ApplyGlow(spec);
             ApplyFx(spec);
@@ -110,11 +123,10 @@ namespace Lair.Character
         //# 몸 외곽 후광 — 폭(월드) = widthCell x cellWorld, 셰이더는 텍스처 픽셀 단위라 스프라이트 PPU·sizeMul 로 환산.
         private void ApplyGlow(GradeFxSpec spec)
         {
-            if (_body == null || spec.HasGlow == false)
+            if (_body == null || _material == null || spec.HasGlow == false)
                 return;
-            _material = _body.material;
             float ppu = _body.sprite != null ? _body.sprite.pixelsPerUnit : DefaultSpritePpu;
-            float texels = spec.GlowWidthCell * _cellWorld * ppu / Mathf.Max(0.01f, spec.SizeMul);
+            float texels = Mathf.Min(MaxGlowTexels, spec.GlowWidthCell * _cellWorld * ppu / Mathf.Max(0.01f, spec.SizeMul));
             _material.SetColor(GlowColorId, spec.GlowColor);
             _material.SetFloat(GlowWidthId, texels);
             _material.SetFloat(GlowInnerId, 0.5f);
@@ -125,7 +137,7 @@ namespace Lair.Character
             if (spec.HasAura && _aura != null && GradeFxBudget.TryAcquireAura())
             {
                 _auraOn = true;
-                _aura.Place(new Vector3(0f, spec.AuraOffsetY * _cellWorld, 0f), FxScale(spec.AuraScale));
+                _aura.Place(new Vector3(0f, spec.AuraOffsetY * _cellWorld, 0f), spec.AuraScale, _cellWorld);
                 _aura.Play(spec.AuraOpacity, 0);
             }
             int tornadoSlot = 0;
@@ -140,19 +152,17 @@ namespace Lair.Character
                     if (GradeFxBudget.TryAcquireTornado() == false)
                         continue;
                     _tornadoOn++;
-                    sheet.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), FxScale(row.scale));
+                    sheet.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), row.scale, _cellWorld);
                     sheet.Play(row.opacity, row.frameOffset);
                 }
                 else if (_sunburst != null && GradeFxBudget.TryAcquireSunburst())
                 {
                     _sunburstOn = true;
-                    _sunburst.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), FxScale(row.scale));
+                    _sunburst.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), row.scale, _cellWorld);
                     _sunburst.Play(row.opacity, row.frameOffset);
                 }
             }
         }
-
-        private float FxScale(float sheetScale) => sheetScale * _cellWorld * FxPixelsPerUnit / DesignCell;
 
         //# 사망 순간 — 이펙트 즉시 숨김, 맥동 정지(밝기·채도 1.0). 몸 후광은 몸 알파를 따라 자연히 사라진다(셰이더가 몸 알파 기준).
         private void HandleDied()
@@ -170,8 +180,15 @@ namespace Lair.Character
         {
             ReleaseFx();
             _pulse = null;
-            if (_visualRoot != null) _visualRoot.localScale = _visualBaseScale;
-            if (_sigil != null) _sigil.localScale = _sigilBaseScale;
+            _sizeMul = 1f;
+            if (_visualRoot != null)
+            {
+                _visualRoot.localScale = _visualBaseScale;
+            }
+            if (_sigil != null)
+            {
+                _sigil.localScale = _sigilBaseScale;
+            }
             if (_material != null)
             {
                 _material.SetFloat(GlowWidthId, 0f);
@@ -196,13 +213,22 @@ namespace Lair.Character
                 GradeFxBudget.ReleaseSunburst();
                 _sunburstOn = false;
             }
-            if (_aura != null) _aura.Stop();
-            if (_sunburst != null) _sunburst.Stop();
+            if (_aura != null)
+            {
+                _aura.Stop();
+            }
+            if (_sunburst != null)
+            {
+                _sunburst.Stop();
+            }
             if (_tornados != null)
             {
                 foreach (GradeFxSheet sheet in _tornados)
                 {
-                    if (sheet != null) sheet.Stop();
+                    if (sheet != null)
+                    {
+                        sheet.Stop();
+                    }
                 }
             }
         }

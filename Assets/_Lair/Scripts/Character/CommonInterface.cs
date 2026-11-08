@@ -236,6 +236,8 @@ namespace Lair.Character
     //# 등급 몬스터(2~5등급 Variant)의 연출 진입점 — 크기·후광·오라·기둥·후광·맥동을 사양 하나로 적용. 1등급 프리팹에는 구현체가 없다.
     public interface IMonsterGradeVisual
     {
+        //# 이번 스폰에 적용된 몸 크기 배율(미설정·1등급 = 1). HP바 높이 합성에 쓴다.
+        float SizeMul { get; }
         void Configure(Lair.Data.GradeFxSpec spec);
     }
 }
