@@ -33,6 +33,7 @@ namespace Lair.Showcase
 
         private const float HpBarPad = 0.08f;
         private const float StartHoverDots = 10f;
+        private const float IdlePhaseStepSec = 0.37f;
 
         private sealed class SlotState
         {
@@ -40,6 +41,8 @@ namespace Lair.Showcase
             public ShowcaseActorData Actor;
             public CHPoolable Instance;
             public IMonsterShowcase Showcase;
+            public int Index;
+            public int AppliedLevel = -1;
             public EMonster Key;
             public Vector3 PrefabScale = Vector3.one;
             public Vector3 ShadowBaseScale = Vector3.one;
@@ -141,7 +144,14 @@ namespace Lair.Showcase
                         key => CHMResource.Instance.Unload(key),
                         Debug.LogWarning);
                 }
-                await _loader.LoadAsync(MonsterLooks.TierNeeds(looks));
+                MonsterTierSheetLoader loader = _loader;
+                await loader.LoadAsync(MonsterLooks.TierNeeds(looks));
+                if (_released)
+                {
+                    //# 로드 중 씬이 정리됐다 — ReleaseAll 은 이 로더를 이미 놓았으므로 늦게 도착한 시트를 여기서 해제.
+                    loader.Release();
+                    return;
+                }
                 foreach (SlotState state in _states)
                 {
                     if (_released)
@@ -173,6 +183,7 @@ namespace Lair.Showcase
                 }
                 SlotState state = new SlotState
                 {
+                    Index = _states.Count,
                     Slot = slot,
                     Actor = actor,
                     PosDots = actor.Waypoints[0],
@@ -206,6 +217,9 @@ namespace Lair.Showcase
 
         private async Task ApplyLookAsync(SlotState state, MonsterLook look, ShowcaseDatabase db)
         {
+            //# 같은 (몬스터, 강화 Lv) 로 이미 적용돼 있으면 건너뜀 — OnChanged 마다 6슬롯 전부 재적용 방지.
+            if (state.Instance != null && state.Key == look.Monster && state.AppliedLevel == look.Level)
+                return;
             EMonster key = look.Monster;
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
             if (prefab == null && key != look.Base)
@@ -225,7 +239,7 @@ namespace Lair.Showcase
             bool sameInstance = state.Instance != null && state.Key == key;
             if (sameInstance == false)
             {
-                //# 외형이 자리표시자(풋내기·티어 0)와 같으면 교체 생략 — 로딩 초반 계정.
+                //# 외형이 자리표시자(풋내기·티어 0)와 같으면 교체 생략 — 로딩 초반 계산.
                 bool samePlaceholder = state.Instance == null && state.Slot.Placeholder != null && look.Tier == 0 && MonsterGrades.GradeOf(key) == MonsterGrades.MinGrade;
                 if (samePlaceholder)
                     return;
@@ -234,6 +248,7 @@ namespace Lair.Showcase
                     return;
             }
             MonsterLookApplier.Apply(state.Instance.gameObject, key, look.Base, look.Level, sameInstance == false, _loader);
+            state.AppliedLevel = look.Level;
             FitToHeight(state, key, db);
         }
 
@@ -261,6 +276,10 @@ namespace Lair.Showcase
                 state.Showcase.SetShowcaseMode(true);
                 int order = _scene == EScene.Loading && state.Actor.OrderBase > 0 ? state.Actor.OrderBase : state.Slot.DefaultOrder;
                 state.Showcase.SetSorting(state.Slot.SortingLayerId, order);
+                if (_scene == EScene.Loading)
+                {
+                    state.Showcase.SetIdlePhase(state.Index * IdlePhaseStepSec);
+                }
             }
             if (state.Slot.Placeholder != null)
             {
@@ -270,7 +289,7 @@ namespace Lair.Showcase
             return true;
         }
 
-        //# 표시 높이 상한 — H = (HP바 높이 − 0.08) x 48(도트), 상한 초과 시 루트 스케일·그림자에 fit 배율(monster-showcase §4.2).
+        //# 표시 높이 상한 — H = (HP바 높이 − 0.08) x 48(도트), 상한 초과 시 루트 스케일·그림자에 fit 배율(village-monster-showcase §4.2).
         private void FitToHeight(SlotState state, EMonster key, ShowcaseDatabase db)
         {
             float fitMax = db.SceneRowOf(_scene).fitMaxHeightDots;
@@ -297,6 +316,7 @@ namespace Lair.Showcase
             CHMPool.Instance.Push(state.Instance);
             state.Instance = null;
             state.Showcase = null;
+            state.AppliedLevel = -1;
             if (state.Slot.Shadow != null)
             {
                 state.Slot.Shadow.transform.localScale = state.ShadowBaseScale;

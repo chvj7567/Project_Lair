@@ -65,13 +65,19 @@ namespace Lair.Data
             return null;
         }
 
+        //# 숫자 문자열("99")처럼 정의되지 않은 값이 파싱되는 것을 막는다.
+        private static bool TryParseEnum<T>(string text, out T value) where T : struct, Enum
+        {
+            return Enum.TryParse(text, out value) && Enum.IsDefined(typeof(T), value);
+        }
+
         private static bool IsShowcaseScene(EScene scene) => scene == EScene.Village || scene == EScene.Loading;
 
         private void LoadScenes(Showcase_SceneRow[] rows, List<string> errors)
         {
             foreach (Showcase_SceneRow row in rows ?? Array.Empty<Showcase_SceneRow>())
             {
-                if (row == null || Enum.TryParse(row.scene, out EScene scene) == false || IsShowcaseScene(scene) == false || _scenes.ContainsKey(scene))
+                if (row == null || TryParseEnum(row.scene, out EScene scene) == false || IsShowcaseScene(scene) == false || _scenes.ContainsKey(scene))
                 {
                     errors.Add($"Showcase_Scene.json scene '{row?.scene}' 가 잘못됨(Village|Loading, 중복 금지)");
                     continue;
@@ -97,7 +103,7 @@ namespace Lair.Data
             Dictionary<(EScene, EMonster), List<Showcase_Actor_WaypointRow>> byActor = new Dictionary<(EScene, EMonster), List<Showcase_Actor_WaypointRow>>();
             foreach (Showcase_Actor_WaypointRow row in waypoints ?? Array.Empty<Showcase_Actor_WaypointRow>())
             {
-                if (row == null || Enum.TryParse(row.scene, out EScene scene) == false || Enum.TryParse(row.monster, out EMonster monster) == false)
+                if (row == null || TryParseEnum(row.scene, out EScene scene) == false || TryParseEnum(row.monster, out EMonster monster) == false)
                 {
                     errors.Add($"Showcase_Actor_Waypoint.json '{row?.scene}/{row?.monster}' 가 잘못됨(EScene·EMonster 값명)");
                     continue;
@@ -113,8 +119,8 @@ namespace Lair.Data
             HashSet<(EScene, EMonster)> seen = new HashSet<(EScene, EMonster)>();
             foreach (Showcase_ActorRow row in actors ?? Array.Empty<Showcase_ActorRow>())
             {
-                if (row == null || Enum.TryParse(row.scene, out EScene scene) == false || _scenes.ContainsKey(scene) == false
-                    || Enum.TryParse(row.monster, out EMonster monster) == false || MonsterGrades.IsBase(monster) == false
+                if (row == null || TryParseEnum(row.scene, out EScene scene) == false || _scenes.ContainsKey(scene) == false
+                    || TryParseEnum(row.monster, out EMonster monster) == false || MonsterGrades.IsBase(monster) == false
                     || seen.Add((scene, monster)) == false)
                 {
                     errors.Add($"Showcase_Actor.json '{row?.scene}/{row?.monster}' 가 잘못됨(씬 행 존재·기준 몬스터·복합키 중복 금지)");

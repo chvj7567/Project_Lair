@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Lair.Character
 {
@@ -16,6 +17,8 @@ namespace Lair.Character
         //# 몸 렌더러가 0번. 나머지(오라 원판·이펙트 자식)는 몸 기준 상대 order 를 유지한 채 함께 옮긴다.
         [SerializeField] private SpriteRenderer[] _renderers;
         [SerializeField] private MonsterEnhancementVisual _enhancement;
+        //# 프리팹 루트의 SortingGroup — 있으면 정렬은 그룹 하나로(내부 렌더러 상대 order 유지), 없으면 렌더러별.
+        [SerializeField] private SortingGroup _group;
 
         private static readonly int SpeedId = Animator.StringToHash("Speed");
 
@@ -25,6 +28,8 @@ namespace Lair.Character
         private int[] _baseLayers;
         private int[] _baseOrders;
         private Vector3 _visualBaseLocalPosition;
+        private int _baseGroupLayer;
+        private int _baseGroupOrder;
         private bool _captured;
         private bool _on;
 
@@ -51,6 +56,11 @@ namespace Lair.Character
             if (_visualRoot != null)
             {
                 _visualBaseLocalPosition = _visualRoot.localPosition;
+            }
+            if (_group != null)
+            {
+                _baseGroupLayer = _group.sortingLayerID;
+                _baseGroupOrder = _group.sortingOrder;
             }
         }
 
@@ -138,17 +148,36 @@ namespace Lair.Character
             }
         }
 
+        public void SetIdlePhase(float seconds)
+        {
+            if (_animator == null)
+                return;
+            //# 첫 평가를 강제해 현재 상태(Idle)의 해시·길이를 얻은 뒤 그 위상으로 이동 — 6마리가 같은 프레임에 숨 쉬지 않게(로딩 i x 0.37s).
+            _animator.Update(0f);
+            AnimatorStateInfo info = _animator.GetCurrentAnimatorStateInfo(0);
+            if (info.length > 0f)
+            {
+                _animator.Play(info.fullPathHash, 0, Mathf.Repeat(seconds / info.length, 1f));
+            }
+        }
+
         public void SetVisualOffset(Vector3 worldOffset)
         {
             if (_visualRoot != null)
             {
-                _visualRoot.position = transform.position + worldOffset;
+                _visualRoot.position = transform.TransformPoint(_visualBaseLocalPosition) + worldOffset;
             }
         }
 
         public void SetSorting(int sortingLayerId, int bodyOrder)
         {
             Capture();
+            if (_group != null)
+            {
+                _group.sortingLayerID = sortingLayerId;
+                _group.sortingOrder = bodyOrder;
+                return;
+            }
             if (_renderers == null || _renderers.Length == 0)
                 return;
             int delta = bodyOrder - _baseOrders[0];
@@ -163,6 +192,11 @@ namespace Lair.Character
 
         private void RestoreSorting()
         {
+            if (_group != null)
+            {
+                _group.sortingLayerID = _baseGroupLayer;
+                _group.sortingOrder = _baseGroupOrder;
+            }
             if (_renderers == null)
                 return;
             for (int i = 0; i < _renderers.Length; i++)
@@ -185,6 +219,7 @@ namespace Lair.Character
 
 #if UNITY_EDITOR || UNITY_INCLUDE_TESTS
         public bool IsOnForTest => _on;
+        public void SetGroupForTest(SortingGroup group) => _group = group;
         public void SetForTest(Behaviour[] behaviours, Collider[] colliders, GameObject[] hidden)
         {
             _battleBehaviours = behaviours;

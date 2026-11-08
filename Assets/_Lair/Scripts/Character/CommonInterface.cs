@@ -252,6 +252,8 @@ namespace Lair.Character
         void SetMoving(bool moving);
         //# 몸(Visual2D)을 루트 기준 월드 오프셋만큼 띄운다(비행 흔들림). 이펙트는 발 위치 유지.
         void SetVisualOffset(Vector3 worldOffset);
+        //# Idle 애니메이션을 seconds 만큼 진행한 위상으로 맞춘다(로딩 몬스터 6마리의 시작 위상 분산).
+        void SetIdlePhase(float seconds);
         //# 모든 SpriteRenderer 의 정렬을 (레이어, 몸 order 기준)으로 옮긴다. 이펙트의 상대 order 는 유지.
         void SetSorting(int sortingLayerId, int bodyOrder);
         //# 현재 표시 높이(월드) — 등급·티어 적용 후 fit 계산용.
