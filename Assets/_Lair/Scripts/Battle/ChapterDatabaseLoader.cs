@@ -60,6 +60,7 @@ namespace Lair.Battle
                 await LoadDifficultyAsync();
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
+                await LoadGradeFxAsync();
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
                 await LoadGrowthAsync();
@@ -135,6 +136,38 @@ namespace Lair.Battle
                 //# 검증 오류뿐 아니라 JSON 파싱 등 일반 예외도 폴백 — 챕터 로드는 성공 유지.
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 유물 기능 비활성");
                 RelicDatabase.Current = null;
+            }
+        }
+
+        //# 몬스터 등급 연출 JSON 6종(Grade.sizeMul + 신규 5종, monster-grades §8) — 실패해도 챕터 로드는 성공. Current=null → 연출 없음(등급 몬스터도 크기 1·이펙트 없음).
+        private static async Task LoadGradeFxAsync()
+        {
+            GradeFxDatabase.Current = null;
+            string gradeJson = await LoadTextAsync(EData.Grade);
+            string glowJson = await LoadTextAsync(EData.Grade_Glow);
+            string auraJson = await LoadTextAsync(EData.Grade_Aura);
+            string pulseJson = await LoadTextAsync(EData.Grade_Pulse);
+            string fxJson = await LoadTextAsync(EData.Grade_Fx);
+            string colorJson = await LoadTextAsync(EData.Monster_GradeFxColor);
+            if (gradeJson == null || glowJson == null || auraJson == null || pulseJson == null || fxJson == null || colorJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 등급 연출 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 등급 연출 비활성");
+                return;
+            }
+            try
+            {
+                GradeFxDatabase.Current = GradeFxDatabase.Build(
+                    JsonArrayUtility.FromJsonArray<GradeRow>(gradeJson),
+                    JsonArrayUtility.FromJsonArray<Grade_GlowRow>(glowJson),
+                    JsonArrayUtility.FromJsonArray<Grade_AuraRow>(auraJson),
+                    JsonArrayUtility.FromJsonArray<Grade_PulseRow>(pulseJson),
+                    JsonArrayUtility.FromJsonArray<Grade_FxRow>(fxJson),
+                    JsonArrayUtility.FromJsonArray<Monster_GradeFxColorRow>(colorJson));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 등급 연출 비활성");
+                GradeFxDatabase.Current = null;
             }
         }
 

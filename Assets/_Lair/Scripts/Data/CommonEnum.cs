@@ -194,6 +194,12 @@
         Grade,
         Race_Monster,
         Grade_Promotion,
+        //# 몬스터 등급 연출(시트 없는 크기·후광·오라·이펙트, monster-grades 8). append-only.
+        Grade_Glow,
+        Grade_Aura,
+        Grade_Pulse,
+        Grade_Fx,
+        Monster_GradeFxColor,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.

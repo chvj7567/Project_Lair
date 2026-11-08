@@ -26,6 +26,7 @@ namespace Lair.Data
     {
         public int grade;
         public int prefixKey;
+        public float sizeMul = 1f;   //# 등급 몸 크기 배율(monster-grades 8, 필수 1:1) - 1등급 1.0
         public float hpMul;
         public float atkMul;
     }
