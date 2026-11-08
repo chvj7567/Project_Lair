@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>풋내기 몬스터 새 그림 - 플레이어 가이드</title>
+<style>
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; --gold:#fde047; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.6; }
+  .wrap { max-width:880px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p { margin:6px 0; }
+  .sub { color:var(--dim); }
+  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card h3 { margin:0 0 6px; font-size:15px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; margin-right:4px; background:#1e293b; color:var(--dim); }
+  .ok { background:#14351f; color:#86efac; }
+  .no { background:#3b1a1a; color:#fca5a5; }
+  .warn { background:#3a2e10; color:#fcd34d; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#18233a; font-weight:600; }
+  .swatch { display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:6px; vertical-align:-2px; border:1px solid #0a0d14; }
+  .strip { display:flex; gap:4px; margin:8px 0 2px; }
+  .strip span { flex:1; text-align:center; padding:8px 0; border-radius:6px; background:#1b2740; border:1px solid var(--line); font-size:12px; color:var(--dim); }
+  .strip span.hot { background:#4a2a12; border-color:#f59e0b; color:#fde68a; font-weight:700; }
+  .strip span.dead { background:#161b26; color:#475569; }
+  .decide { margin-top:34px; background:#1a1730; border:2px solid #a78bfa; border-radius:12px; padding:16px 18px; }
+  .decide h2 { border:0; margin:0 0 8px; color:#ddd6fe; }
+  .decide ol { margin:0; padding-left:20px; }
+  .decide li { margin:12px 0; }
+  .rec { display:block; margin-top:2px; color:#86efac; font-size:14px; }
+  .note { color:var(--dim); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>풋내기 몬스터 6종, 새 그림으로 교체</h1>
+<p class="sub">전투에서 보이는 도깨비불 · 망령 · 사신 · 저주술사 · 역병귀 · 환령의 모습이 새로 그린 그림으로 바뀝니다. 힘과 크기, 전투 방식은 그대로입니다.</p>
+
+<h2>이번에 바뀌는 것</h2>
+<div class="grid">
+  <div class="card"><h3>새 모습</h3><p>표정이 풍부한 새 그림으로 교체됩니다. 이동 · 공격 · 맞았을 때 · 쓰러질 때 모두 새 동작입니다.</p></div>
+  <div class="card"><h3>크기는 그대로</h3><p>전장에서 차지하는 키와 서 있는 자리는 지금과 같습니다. 체력바도 같은 높이에 뜹니다.</p></div>
+  <div class="card"><h3>맞았을 때</h3><p>찡그리는 새 맞는 동작이 들어갑니다. 맞을 때 색이 뒤집히며 번쩍이는 연출은 그대로 유지합니다.</p></div>
+  <div class="card"><h3>빛나는 부분 / 강화 장식</h3><p>눈, 구슬, 룬 같은 빛나는 부분과 강화 단계별 장식(뿔 · 왕관 · 날개 등)도 새 모습에 맞춰 다시 만듭니다.</p></div>
+</div>
+
+<h2>몬스터별 새 모습</h2>
+<table>
+  <tr><th>몬스터</th><th>빛나는 곳</th><th>강화하면 커지는 것</th></tr>
+  <tr><td><span class="swatch" style="background:#22c55e"></span>도깨비불</td><td>머리 위 불꽃</td><td>불꽃이 길어지고, 금 왕관이 얹히고, 작은 불꽃 둘이 몸 주위를 돕니다</td></tr>
+  <tr><td><span class="swatch" style="background:#9ca3af"></span>망령</td><td>가슴의 하얀 마름모</td><td>뿔과 어깨 가시가 커지고, 금 왕관, 마지막엔 찢어진 수의 날개가 펼쳐집니다</td></tr>
+  <tr><td><span class="swatch" style="background:#ef4444"></span>사신</td><td>붉은 눈, 낫 날</td><td>낫과 망토가 커지고, 금 어깨 갑옷, 마지막엔 붉은 영혼불 둘이 떠다닙니다</td></tr>
+  <tr><td><span class="swatch" style="background:#eab308"></span>저주술사</td><td>구슬, 모자 보석</td><td>모자가 길어지고, 구슬이 늘고, 금 별 문장, 마지막엔 마도서가 떠다닙니다</td></tr>
+  <tr><td><span class="swatch" style="background:#a855f7"></span>역병귀</td><td>거품</td><td>거품이 늘고, 금 왕관, 마지막엔 뿔이 금빛이 되고 독구름이 양옆에 깔립니다</td></tr>
+  <tr><td><span class="swatch" style="background:#475569"></span>환령</td><td>푸른 눈</td><td>귀와 날개가 커지고, 큰 금 왕관, 마지막엔 날개가 두 쌍이 됩니다</td></tr>
+</table>
+
+<h2>공격할 때의 모습</h2>
+<p>새 그림은 공격 준비 동작이 깁니다. 하지만 피해는 지금처럼 공격하는 순간 들어갑니다. 그래서 준비 동작을 아주 짧게(0.1초) 줄여서, 피해가 들어가는 바로 그 즈음에 때리는 모습이 나오도록 맞춥니다.</p>
+<div class="strip"><span>준비</span><span>준비</span><span>준비</span><span class="hot">때림</span><span>여운</span><span>복귀</span></div>
+<p class="note">앞 세 칸은 눈 깜짝할 새 지나가고(0.1초), 때리는 모습이 약 0.1초에 나옵니다. 전체 공격 모션은 0.4초입니다.</p>
+
+<h2>움직임 6가지</h2>
+<table>
+  <tr><th>동작</th><th>길이</th><th>달라지는 점</th></tr>
+  <tr><td>가만히 있기</td><td>지금과 같음</td><td>새 그림으로 바뀜</td></tr>
+  <tr><td>걷기</td><td>지금과 같음</td><td>새 그림으로 바뀜</td></tr>
+  <tr><td>공격</td><td>0.4초</td><td>동작이 6컷으로 더 부드러워짐</td></tr>
+  <tr><td>맞았을 때</td><td>0.25초(지금과 같음)</td><td>3컷에서 6컷으로, 찡그린 표정이 생김</td></tr>
+  <tr><td>쓰러질 때</td><td>0.5초(지금과 같음)</td><td>부서져 흩어지는 새 연출</td></tr>
+  <tr><td>등장</td><td><span class="tag warn">이번엔 안 씀</span></td><td>그림은 준비해 두지만 지금의 서서히 나타나는 방식을 그대로 씁니다</td></tr>
+</table>
+
+<h2>전투에 미치는 영향</h2>
+<div class="grid">
+  <div class="card"><span class="tag ok">그대로</span><p>체력, 공격력, 공격 속도, 사거리, 이동 속도, 스폰 주기, 카드 효과, 시너지 모두 바뀌지 않습니다.</p></div>
+  <div class="card"><span class="tag ok">그대로</span><p>맞았을 때 번쩍임, 데미지 숫자, 체력바 위치, 바닥 원판, 강화 링.</p></div>
+  <div class="card"><span class="tag no">바뀜</span><p>몬스터의 그림, 동작 컷 수, 빛나는 부분, 강화 장식 그림.</p></div>
+</div>
+
+<h2>알아두면 좋은 위험</h2>
+<div class="grid">
+  <div class="card"><h3>작은 몬스터는 세부가 흐려질 수 있어요</h3><p>크기를 지금과 똑같이 유지하려고 큰 그림을 많이 줄입니다. 환령 · 역병귀 · 도깨비불처럼 원래 작은 몬스터는 이빨, 눈동자의 반짝임 같은 작은 세부가 사라질 수 있습니다. 눈, 윤곽, 큰 장식은 남습니다.</p></div>
+  <div class="card"><h3>좁아 보일 수 있어요</h3><p>키를 맞추기 때문에 옆으로 퍼진 환령 · 역병귀는 지금보다 조금 좁게 보일 수 있습니다.</p></div>
+  <div class="card"><h3>도트 느낌이 달라질 수 있어요</h3><p>줄이면서 색을 48가지로 정리해 도트 그림처럼 보이게 합니다. 눈으로 보고 어색하면 색을 더 줄입니다.</p></div>
+  <div class="card"><h3>승급한 몬스터와 그림이 달라져요</h3><p>견습 ~ 군주(승급 몬스터 24종)는 아직 게임에 들어오지 않았고 옛 그림을 바탕으로 만들어 둔 상태입니다. 풋내기만 새 그림이 되면 승급했을 때 모습이 갑자기 바뀌어 보입니다.</p></div>
+</div>
+
+<div class="decide">
+  <h2>결정해 주세요</h2>
+  <ol>
+    <li>승급 몬스터(견습 ~ 군주 24종)를 어떻게 할까요?<span class="rec">추천: 이번엔 풋내기만 바꾸고, 승급 몬스터는 새 그림을 바탕으로 다시 만드는 후속 작업으로 나눕니다. 그때까지 승급 몬스터 제작은 멈춥니다.</span></li>
+    <li>공격할 때 준비 동작을 어떻게 보여 줄까요?<span class="rec">추천: 0.1초로 줄여 때리는 순간에 맞춥니다. 전투 수치는 안 바뀝니다.</span></li>
+    <li>맞을 때 색이 뒤집히며 번쩍이는 연출을 계속 쓸까요?<span class="rec">추천: 계속 씁니다. 맞는 동작은 자주 생략돼서 번쩍임이 유일한 피격 표시일 때가 많습니다.</span></li>
+    <li>맞는 동작을 얼마나 길게 할까요?<span class="rec">추천: 0.25초(지금과 같음).</span></li>
+    <li>작은 몬스터의 세부가 흐려져도 크기를 지금대로 둘까요, 아니면 크게 만들까요?<span class="rec">추천: 크기는 그대로 둡니다. 크게 만들려면 별도 승인이 필요합니다.</span></li>
+    <li>등장 줄 그림을 파일에는 남겨둘까요?<span class="rec">추천: 남겨 둡니다(지금은 쓰지 않음).</span></li>
+    <li>색 수를 48가지로 줄여 도트처럼 만들까요, 원래 색을 그대로 쓸까요?<span class="rec">추천: 48가지로 줄이고, 눈으로 보고 부족하면 32가지까지 줄입니다.</span></li>
+    <li>빛나는 부분과 강화 장식이 자동으로 만들어진 뒤, 어색한 곳을 손으로 고치는 것을 허용할까요?<span class="rec">추천: 허용합니다.</span></li>
+  </ol>
+</div>
+
+<p class="note" style="margin-top:20px">눈으로 보는 미리보기는 <b>monster-sheet-v4 목업 페이지</b>에서 확인할 수 있습니다(동작 재생, 빛나는 부분 전후, 강화 단계 비교, 크기 비교).</p>
+
+</div>
+</body>
+</html>
