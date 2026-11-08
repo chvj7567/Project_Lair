@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Lair.Battle;
+using Lair.Showcase;
 using Lair.Stage;
 using Lair.Village;
 using NUnit.Framework;
@@ -420,10 +421,27 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(2.8125f, DotStageCoverFit.OrthoSizeForCover(reference, 2.15f, 48f), 1e-4f);
         }
 
+        //# 마을 장식 몬스터 6마리는 VillageWanderer 6개 → MonsterShowcaseStage 슬롯 6(그림자 6)으로 바뀌었다(village-monster-showcase). 보호 의도(마을에 6마리가 정확히 있다)는 유지.
         [Test]
-        public void 마을_배회자_프리팹_인스턴스는_6개다()
+        public void 마을_씬에는_배회자_프리팹이_없고_쇼케이스_무대_하나가_슬롯_6개를_가진다()
         {
-            Assert.AreEqual(6, DotSceneTestUtil.FindAll<VillageWanderer>(_scene).Count);
+            Assert.AreEqual(0, DotSceneTestUtil.FindAll<VillageWanderer>(_scene).Count, "구 배회자는 쇼케이스로 대체");
+            Assert.AreEqual(1, DotSceneTestUtil.FindAll<MonsterShowcaseStage>(_scene).Count);
+            Assert.AreEqual(6, ShowcaseSceneUtil.Slots(_scene).Count);
+        }
+
+        [Test]
+        public void 마을_쇼케이스_슬롯은_기준_6종족을_하나씩_그림자와_함께_가진다()
+        {
+            List<ShowcaseSceneUtil.SlotInfo> slots = ShowcaseSceneUtil.Slots(_scene);
+            HashSet<int> species = new HashSet<int>();
+            foreach (ShowcaseSceneUtil.SlotInfo slot in slots)
+            {
+                Assert.IsNotNull(slot.Holder, $"{slot.Species} Holder");
+                Assert.IsNotNull(slot.Shadow, $"{slot.Species} 그림자");
+                species.Add(slot.Species);
+            }
+            Assert.AreEqual(6, species.Count, "종족 중복·누락 없음");
         }
 
         [Test]
