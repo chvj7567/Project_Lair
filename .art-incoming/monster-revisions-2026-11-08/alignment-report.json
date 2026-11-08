@@ -1,0 +1,897 @@
+{
+  "grid": {
+    "width": 1374,
+    "height": 1145,
+    "columns": 6,
+    "rows": 5,
+    "cell": 229
+  },
+  "coordinates": "Top-left origin; rows/columns one-based; positive dy is down",
+  "method": "Recomputed from exact desktop originals. Integer vertical translation only; common anatomical target per row with error <=0.5px. All pixels with alpha>8 translate unchanged RGBA. Only exterior pixels with alpha<=8 whose translation leaves the cell may remain stationary in empty output locations, or be discarded if that location is occupied by translated art. No scaling or recoloring.",
+  "faintCleanupMaximumAlpha": 8,
+  "limitation": null,
+  "species": [
+    {
+      "name": "Phantom",
+      "source": "C:/Users/Tae/Desktop/Art/Monster/Phantom",
+      "sourceSha256": "67c216ee5a7f05050a3c9de22a54b5f9eb8a75ef1128fd3493e050dbe18fc7e2",
+      "anchor": "Mean Y of the two cyan eye component centroids; excludes wings.",
+      "unchangedRows": [
+        {
+          "row": 2,
+          "animation": "Attack"
+        },
+        {
+          "row": 3,
+          "animation": "Death"
+        },
+        {
+          "row": 4,
+          "animation": "Spawn"
+        }
+      ],
+      "rows": [
+        {
+          "row": 1,
+          "animation": "Idle",
+          "targetY": 115,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 117.645,
+              "alphaAbove8YBounds": [
+                40,
+                197
+              ],
+              "requestedDy": -3,
+              "dx": 0,
+              "dy": -3,
+              "anchorAfter": 114.645,
+              "remainingError": -0.355000000000004,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 114.645,
+              "measuredOutputError": -0.355000000000004
+            },
+            {
+              "column": 2,
+              "anchorBefore": 112.49,
+              "alphaAbove8YBounds": [
+                40,
+                187
+              ],
+              "requestedDy": 3,
+              "dx": 0,
+              "dy": 3,
+              "anchorAfter": 115.49,
+              "remainingError": 0.4899999999999949,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 115.49,
+              "measuredOutputError": 0.4899999999999949
+            },
+            {
+              "column": 3,
+              "anchorBefore": 98.82,
+              "alphaAbove8YBounds": [
+                26,
+                175
+              ],
+              "requestedDy": 16,
+              "dx": 0,
+              "dy": 16,
+              "anchorAfter": 114.82,
+              "remainingError": -0.18000000000000682,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 6,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 114.82,
+              "measuredOutputError": -0.18000000000000682
+            },
+            {
+              "column": 4,
+              "anchorBefore": 111.14500000000001,
+              "alphaAbove8YBounds": [
+                36,
+                187
+              ],
+              "requestedDy": 4,
+              "dx": 0,
+              "dy": 4,
+              "anchorAfter": 115.14500000000001,
+              "remainingError": 0.14500000000001023,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 2,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 115.14500000000001,
+              "measuredOutputError": 0.14500000000001023
+            },
+            {
+              "column": 5,
+              "anchorBefore": 119.54,
+              "alphaAbove8YBounds": [
+                46,
+                191
+              ],
+              "requestedDy": -5,
+              "dx": 0,
+              "dy": -5,
+              "anchorAfter": 114.54,
+              "remainingError": -0.45999999999999375,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 114.54,
+              "measuredOutputError": -0.45999999999999375
+            },
+            {
+              "column": 6,
+              "anchorBefore": 122.03,
+              "alphaAbove8YBounds": [
+                45,
+                197
+              ],
+              "requestedDy": -7,
+              "dx": 0,
+              "dy": -7,
+              "anchorAfter": 115.03,
+              "remainingError": 0.030000000000001137,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 115.03,
+              "measuredOutputError": 0.030000000000001137
+            }
+          ],
+          "measuredMaxAnchorError": 0.4899999999999949
+        },
+        {
+          "row": 5,
+          "animation": "Walk",
+          "targetY": 120,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 121.715,
+              "alphaAbove8YBounds": [
+                45,
+                192
+              ],
+              "requestedDy": -2,
+              "dx": 0,
+              "dy": -2,
+              "anchorAfter": 119.715,
+              "remainingError": -0.2849999999999966,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 1,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 119.715,
+              "measuredOutputError": -0.2849999999999966
+            },
+            {
+              "column": 2,
+              "anchorBefore": 116.275,
+              "alphaAbove8YBounds": [
+                43,
+                185
+              ],
+              "requestedDy": 4,
+              "dx": 0,
+              "dy": 4,
+              "anchorAfter": 120.275,
+              "remainingError": 0.2750000000000057,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 1,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 120.275,
+              "measuredOutputError": 0.2750000000000057
+            },
+            {
+              "column": 3,
+              "anchorBefore": 104.445,
+              "alphaAbove8YBounds": [
+                31,
+                175
+              ],
+              "requestedDy": 16,
+              "dx": 0,
+              "dy": 16,
+              "anchorAfter": 120.445,
+              "remainingError": 0.4449999999999932,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 120.445,
+              "measuredOutputError": 0.4449999999999932
+            },
+            {
+              "column": 4,
+              "anchorBefore": 117.62,
+              "alphaAbove8YBounds": [
+                46,
+                187
+              ],
+              "requestedDy": 2,
+              "dx": 0,
+              "dy": 2,
+              "anchorAfter": 119.62,
+              "remainingError": -0.37999999999999545,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 119.62,
+              "measuredOutputError": -0.37999999999999545
+            },
+            {
+              "column": 5,
+              "anchorBefore": 125.195,
+              "alphaAbove8YBounds": [
+                53,
+                193
+              ],
+              "requestedDy": -5,
+              "dx": 0,
+              "dy": -5,
+              "anchorAfter": 120.195,
+              "remainingError": 0.19499999999999318,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 120.195,
+              "measuredOutputError": 0.19499999999999318
+            },
+            {
+              "column": 6,
+              "anchorBefore": 127.36500000000001,
+              "alphaAbove8YBounds": [
+                52,
+                198
+              ],
+              "requestedDy": -7,
+              "dx": 0,
+              "dy": -7,
+              "anchorAfter": 120.36500000000001,
+              "remainingError": 0.3650000000000091,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 120.36500000000001,
+              "measuredOutputError": 0.3650000000000091
+            }
+          ],
+          "measuredMaxAnchorError": 0.4449999999999932
+        }
+      ],
+      "validation": {
+        "noVisibleArtCropping": true,
+        "unchangedRowsRgbaIdentical": true,
+        "translatedPixelsRgbaIdentical": true,
+        "sourceUnchanged": true,
+        "nonzeroAlphaPixelsBefore": 575292,
+        "nonzeroAlphaPixelsAfter": 575292,
+        "discardedFaintPixels": 0,
+        "stationaryFaintPixels": 10,
+        "maxAnchorError": 0.4899999999999949,
+        "outputAnchorsIndependentlyMeasured": true,
+        "visiblePixelsAlphaAbove8RgbaIdentical": true,
+        "noPerFrameScaling": true,
+        "discardedPixelsMaximumAlpha": 0
+      },
+      "output": "E:/UnityProject/Project_Lair/.art-incoming/monster-revisions-2026-11-08/Phantom.png"
+    },
+    {
+      "name": "Plague",
+      "source": "C:/Users/Tae/Desktop/Art/Monster/Plague",
+      "sourceSha256": "e1e845ed3daa8d3a7dfad59ac245820edf3f0670ceca8794d467e0bb30314073",
+      "anchor": "Lower body support: lowest scanline containing at least 60 opaque purple body pixels; excludes separate droplet and particles, retains deformation.",
+      "unchangedRows": [
+        {
+          "row": 2,
+          "animation": "Attack"
+        },
+        {
+          "row": 3,
+          "animation": "Death"
+        },
+        {
+          "row": 4,
+          "animation": "Spawn"
+        }
+      ],
+      "rows": [
+        {
+          "row": 1,
+          "animation": "Idle",
+          "targetY": 182,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 183,
+              "alphaAbove8YBounds": [
+                44,
+                214
+              ],
+              "requestedDy": -1,
+              "dx": 0,
+              "dy": -1,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 1,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 2,
+              "anchorBefore": 188,
+              "alphaAbove8YBounds": [
+                57,
+                214
+              ],
+              "requestedDy": -6,
+              "dx": 0,
+              "dy": -6,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 3,
+              "anchorBefore": 187,
+              "alphaAbove8YBounds": [
+                63,
+                218
+              ],
+              "requestedDy": -5,
+              "dx": 0,
+              "dy": -5,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 4,
+              "anchorBefore": 177,
+              "alphaAbove8YBounds": [
+                37,
+                216
+              ],
+              "requestedDy": 5,
+              "dx": 0,
+              "dy": 5,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 131,
+              "discardedFaintPixels": 228,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 5,
+              "anchorBefore": 176,
+              "alphaAbove8YBounds": [
+                22,
+                214
+              ],
+              "requestedDy": 6,
+              "dx": 0,
+              "dy": 6,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 23,
+              "discardedFaintPixels": 110,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 6,
+              "anchorBefore": 181,
+              "alphaAbove8YBounds": [
+                40,
+                216
+              ],
+              "requestedDy": 1,
+              "dx": 0,
+              "dy": 1,
+              "anchorAfter": 182,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 1,
+              "discardedFaintPixels": 15,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 182,
+              "measuredOutputError": 0
+            }
+          ],
+          "measuredMaxAnchorError": 0
+        },
+        {
+          "row": 5,
+          "animation": "Walk",
+          "targetY": 177,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 179,
+              "alphaAbove8YBounds": [
+                42,
+                210
+              ],
+              "requestedDy": -2,
+              "dx": 0,
+              "dy": -2,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 5,
+              "discardedFaintPixels": 3,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 2,
+              "anchorBefore": 186,
+              "alphaAbove8YBounds": [
+                66,
+                210
+              ],
+              "requestedDy": -9,
+              "dx": 0,
+              "dy": -9,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 13,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 3,
+              "anchorBefore": 162,
+              "alphaAbove8YBounds": [
+                38,
+                198
+              ],
+              "requestedDy": 15,
+              "dx": 0,
+              "dy": 15,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 7,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 4,
+              "anchorBefore": 144,
+              "alphaAbove8YBounds": [
+                21,
+                187
+              ],
+              "requestedDy": 33,
+              "dx": 0,
+              "dy": 33,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 10,
+              "discardedFaintPixels": 43,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 5,
+              "anchorBefore": 175,
+              "alphaAbove8YBounds": [
+                52,
+                203
+              ],
+              "requestedDy": 2,
+              "dx": 0,
+              "dy": 2,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 21,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            },
+            {
+              "column": 6,
+              "anchorBefore": 179,
+              "alphaAbove8YBounds": [
+                47,
+                210
+              ],
+              "requestedDy": -2,
+              "dx": 0,
+              "dy": -2,
+              "anchorAfter": 177,
+              "remainingError": 0,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 11,
+              "discardedFaintPixels": 10,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 177,
+              "measuredOutputError": 0
+            }
+          ],
+          "measuredMaxAnchorError": 0
+        }
+      ],
+      "validation": {
+        "noVisibleArtCropping": true,
+        "unchangedRowsRgbaIdentical": true,
+        "translatedPixelsRgbaIdentical": true,
+        "sourceUnchanged": true,
+        "nonzeroAlphaPixelsBefore": 822770,
+        "nonzeroAlphaPixelsAfter": 822361,
+        "discardedFaintPixels": 409,
+        "stationaryFaintPixels": 223,
+        "maxAnchorError": 0,
+        "outputAnchorsIndependentlyMeasured": true,
+        "visiblePixelsAlphaAbove8RgbaIdentical": true,
+        "noPerFrameScaling": true,
+        "discardedPixelsMaximumAlpha": 1
+      },
+      "output": "E:/UnityProject/Project_Lair/.art-incoming/monster-revisions-2026-11-08/Plague.png"
+    },
+    {
+      "name": "Wisp",
+      "source": "C:/Users/Tae/Desktop/Art/Monster/Wisp",
+      "sourceSha256": "4004f7c97fbc4f97308f83eeca3c3a9e64fdfe98c5edad707fc581da8da079dc",
+      "anchor": "Mean Y of the two dark eye component centroids; excludes flame tip and body outline; retains face tilt.",
+      "unchangedRows": [
+        {
+          "row": 2,
+          "animation": "Attack"
+        },
+        {
+          "row": 3,
+          "animation": "Death"
+        },
+        {
+          "row": 4,
+          "animation": "Spawn"
+        }
+      ],
+      "rows": [
+        {
+          "row": 1,
+          "animation": "Idle",
+          "targetY": 146,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 148.565,
+              "alphaAbove8YBounds": [
+                25,
+                220
+              ],
+              "requestedDy": -3,
+              "dx": 0,
+              "dy": -3,
+              "anchorAfter": 145.565,
+              "remainingError": -0.4350000000000023,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 145.565,
+              "measuredOutputError": -0.4350000000000023
+            },
+            {
+              "column": 2,
+              "anchorBefore": 139.07999999999998,
+              "alphaAbove8YBounds": [
+                19,
+                213
+              ],
+              "requestedDy": 7,
+              "dx": 0,
+              "dy": 7,
+              "anchorAfter": 146.07999999999998,
+              "remainingError": 0.07999999999998408,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 52,
+              "discardedFaintPixels": 57,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 146.07999999999998,
+              "measuredOutputError": 0.07999999999998408
+            },
+            {
+              "column": 3,
+              "anchorBefore": 134.09500000000003,
+              "alphaAbove8YBounds": [
+                15,
+                206
+              ],
+              "requestedDy": 12,
+              "dx": 0,
+              "dy": 12,
+              "anchorAfter": 146.09500000000003,
+              "remainingError": 0.09500000000002728,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 324,
+              "discardedFaintPixels": 84,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 146.09500000000003,
+              "measuredOutputError": 0.09500000000002728
+            },
+            {
+              "column": 4,
+              "anchorBefore": 143.66,
+              "alphaAbove8YBounds": [
+                19,
+                214
+              ],
+              "requestedDy": 2,
+              "dx": 0,
+              "dy": 2,
+              "anchorAfter": 145.66,
+              "remainingError": -0.3400000000000034,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 18,
+              "discardedFaintPixels": 40,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 145.66,
+              "measuredOutputError": -0.3400000000000034
+            },
+            {
+              "column": 5,
+              "anchorBefore": 151.555,
+              "alphaAbove8YBounds": [
+                30,
+                223
+              ],
+              "requestedDy": -6,
+              "dx": 0,
+              "dy": -6,
+              "anchorAfter": 145.555,
+              "remainingError": -0.4449999999999932,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 38,
+              "discardedFaintPixels": 6,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 145.555,
+              "measuredOutputError": -0.4449999999999932
+            },
+            {
+              "column": 6,
+              "anchorBefore": 149.265,
+              "alphaAbove8YBounds": [
+                25,
+                222
+              ],
+              "requestedDy": -3,
+              "dx": 0,
+              "dy": -3,
+              "anchorAfter": 146.265,
+              "remainingError": 0.26499999999998636,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 0,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 0,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 146.265,
+              "measuredOutputError": 0.26499999999998636
+            }
+          ],
+          "measuredMaxAnchorError": 0.4449999999999932
+        },
+        {
+          "row": 5,
+          "animation": "Walk",
+          "targetY": 139,
+          "frames": [
+            {
+              "column": 1,
+              "anchorBefore": 141.29000000000002,
+              "alphaAbove8YBounds": [
+                25,
+                212
+              ],
+              "requestedDy": -2,
+              "dx": 0,
+              "dy": -2,
+              "anchorAfter": 139.29000000000002,
+              "remainingError": 0.29000000000002046,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 15,
+              "discardedFaintPixels": 27,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 139.29000000000002,
+              "measuredOutputError": 0.29000000000002046
+            },
+            {
+              "column": 2,
+              "anchorBefore": 136.4,
+              "alphaAbove8YBounds": [
+                22,
+                207
+              ],
+              "requestedDy": 3,
+              "dx": 0,
+              "dy": 3,
+              "anchorAfter": 139.4,
+              "remainingError": 0.4000000000000057,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 176,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 139.4,
+              "measuredOutputError": 0.4000000000000057
+            },
+            {
+              "column": 3,
+              "anchorBefore": 126.26,
+              "alphaAbove8YBounds": [
+                23,
+                195
+              ],
+              "requestedDy": 13,
+              "dx": 0,
+              "dy": 13,
+              "anchorAfter": 139.26,
+              "remainingError": 0.2599999999999909,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 262,
+              "discardedFaintPixels": 40,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 139.26,
+              "measuredOutputError": 0.2599999999999909
+            },
+            {
+              "column": 4,
+              "anchorBefore": 136.43,
+              "alphaAbove8YBounds": [
+                20,
+                205
+              ],
+              "requestedDy": 3,
+              "dx": 0,
+              "dy": 3,
+              "anchorAfter": 139.43,
+              "remainingError": 0.4300000000000068,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 138,
+              "discardedFaintPixels": 0,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 0,
+              "measuredOutputAnchorY": 139.43,
+              "measuredOutputError": 0.4300000000000068
+            },
+            {
+              "column": 5,
+              "anchorBefore": 153.285,
+              "alphaAbove8YBounds": [
+                39,
+                211
+              ],
+              "requestedDy": -14,
+              "dx": 0,
+              "dy": -14,
+              "anchorAfter": 139.285,
+              "remainingError": 0.2849999999999966,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 148,
+              "discardedFaintPixels": 23,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 139.285,
+              "measuredOutputError": 0.2849999999999966
+            },
+            {
+              "column": 6,
+              "anchorBefore": 141.28,
+              "alphaAbove8YBounds": [
+                24,
+                212
+              ],
+              "requestedDy": -2,
+              "dx": 0,
+              "dy": -2,
+              "anchorAfter": 139.28,
+              "remainingError": 0.28000000000000114,
+              "cleanupThresholdAlpha": 8,
+              "stationaryFaintPixels": 6,
+              "discardedFaintPixels": 9,
+              "maxStationaryAlpha": 1,
+              "maxDiscardedAlpha": 1,
+              "measuredOutputAnchorY": 139.28,
+              "measuredOutputError": 0.28000000000000114
+            }
+          ],
+          "measuredMaxAnchorError": 0.4300000000000068
+        }
+      ],
+      "validation": {
+        "noVisibleArtCropping": true,
+        "unchangedRowsRgbaIdentical": true,
+        "translatedPixelsRgbaIdentical": true,
+        "sourceUnchanged": true,
+        "nonzeroAlphaPixelsBefore": 877621,
+        "nonzeroAlphaPixelsAfter": 877335,
+        "discardedFaintPixels": 286,
+        "stationaryFaintPixels": 1177,
+        "maxAnchorError": 0.4449999999999932,
+        "outputAnchorsIndependentlyMeasured": true,
+        "visiblePixelsAlphaAbove8RgbaIdentical": true,
+        "noPerFrameScaling": true,
+        "discardedPixelsMaximumAlpha": 1
+      },
+      "output": "E:/UnityProject/Project_Lair/.art-incoming/monster-revisions-2026-11-08/Wisp.png"
+    }
+  ]
+}
