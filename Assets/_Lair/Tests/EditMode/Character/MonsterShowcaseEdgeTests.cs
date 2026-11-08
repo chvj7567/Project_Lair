@@ -232,9 +232,13 @@ namespace Lair.Tests.Character
             showcase.SetForTest(new Behaviour[0], new Collider[0], new GameObject[0]);
             Assert.DoesNotThrow(() => showcase.SetSorting(0, 5), "_renderers 미배선");
 
-            SpriteRenderer body = NewRenderer(root, "Visual2D", 0, 10);
-            TestReflection.SetField(showcase, "_renderers", new SpriteRenderer[] { body, null });
-            Assert.DoesNotThrow(() => showcase.SetSorting(0, 5));
+            //# Capture 는 첫 호출 때 배열 길이로 굳는다 - 배선(_renderers)은 Awake 전에 끝나는 것이 production 계약이라 null 섞인 배열은 새 인스턴스로 검증.
+            GameObject root2 = NewRoot("WithNull");
+            MonsterShowcase showcase2 = root2.AddComponent<MonsterShowcase>();
+            showcase2.SetForTest(new Behaviour[0], new Collider[0], new GameObject[0]);
+            SpriteRenderer body = NewRenderer(root2, "Visual2D", 0, 10);
+            TestReflection.SetField(showcase2, "_renderers", new SpriteRenderer[] { body, null });
+            Assert.DoesNotThrow(() => showcase2.SetSorting(0, 5));
             Assert.AreEqual(5, body.sortingOrder);
         }
 
@@ -252,7 +256,7 @@ namespace Lair.Tests.Character
             showcase.SetShowcaseMode(true);
 
             showcase.SetVisualOffset(new Vector3(0f, 0.25f, 0f));
-            Assert.AreEqual(new Vector3(3f, 0.25f, 4f), visual.transform.position, "비행 흔들림은 루트 + 오프셋(이펙트는 발 위치 유지)");
+            Assert.AreEqual(new Vector3(3f, 0.45f, 4f), visual.transform.position, "비행 흔들림 = 루트 기준 몸 기본 위치(로컬 0.2) + 오프셋 0.25 (3c25b46 이후, 몸 기본 높이를 잃지 않음)");
 
             showcase.SetShowcaseMode(false);
             Assert.AreEqual(new Vector3(0f, 0.2f, 0f), visual.transform.localPosition, "복구 후 풀 Pop 직후 위치");
