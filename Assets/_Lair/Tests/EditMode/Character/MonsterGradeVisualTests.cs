@@ -117,6 +117,13 @@ namespace Lair.Tests.Character
             mi.Invoke(_visual, null);
         }
 
+        //# .material 접근 에러 로그는 SetUp 에서 켠 플래그가 테스트 본문까지 유지되지 않아 호출 직전에 켠다(TearDown 에서 복원).
+        private void Configure(GradeFxSpec spec)
+        {
+            LogAssert.ignoreFailingMessages = true;
+            _visual.Configure(spec);
+        }
+
         private Material BodyMaterial => _body.sharedMaterial;
 
         private static Grade_FxRow Tornado(float x, int frameOffset)
@@ -199,7 +206,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 한등급_사양은_이펙트를_켜지_않고_머티리얼도_복제하지_않는다()
         {
-            _visual.Configure(Spec(1f, false, 0f, false, 0, false, false));
+            Configure(Spec(1f, false, 0f, false, 0, false, false));
 
             Assert.IsFalse(_visual.AuraOnForTest);
             Assert.AreEqual(0, _visual.TornadoOnForTest);
@@ -213,9 +220,9 @@ namespace Lair.Tests.Character
         [Test]
         public void Configure_null_은_상태를_바꾸지_않는다()
         {
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
-            _visual.Configure(null);
+            Configure(null);
 
             Assert.IsTrue(_visual.AuraOnForTest, "이전 적용 유지");
             Assert.AreEqual(1.225f, _visual.SizeMul);
@@ -224,7 +231,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 정예_사양은_크기_오라_기둥_2개를_켜고_후광은_켜지_않는다()
         {
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.AreEqual(1.225f, _visual.SizeMul);
             Assert.AreEqual(BaseVisualScale * 1.225f, _visualRoot.localScale, "Visual2D = 기본 스케일 x sizeMul(T1)");
@@ -241,7 +248,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 이펙트_위치는_셀_비율_x_cellWorld_이고_sizeMul_을_곱하지_않는다()
         {
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.AreEqual(-0.325f * CellWorld, _tornados[0].transform.localPosition.x, 0.0001f, "x = offsetX x cellWorld (x1.225 아님)");
             Assert.AreEqual(0.0875f * CellWorld, _tornados[0].transform.localPosition.y, 0.0001f);
@@ -252,7 +259,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 군주_사양은_오라_기둥_4개_후광_맥동을_모두_켠다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Assert.IsTrue(_visual.AuraOnForTest);
             Assert.AreEqual(4, _visual.TornadoOnForTest);
@@ -266,8 +273,8 @@ namespace Lair.Tests.Character
         [Test]
         public void Configure_를_두번_호출해도_슬롯_누수와_크기_이중_곱셈이_없다()
         {
-            _visual.Configure(Spec5());
-            _visual.Configure(Spec5());
+            Configure(Spec5());
+            Configure(Spec5());
 
             Assert.AreEqual(BaseVisualScale * 1.3f, _visualRoot.localScale, "x1.3 이지 x1.69 가 아님");
             Assert.AreEqual(BaseSigilScale * 1.3f, _sigil.localScale);
@@ -279,9 +286,9 @@ namespace Lair.Tests.Character
         [Test]
         public void 낮은_등급으로_다시_Configure_하면_이전_높은_등급의_이펙트가_꺼진다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
-            _visual.Configure(Spec(1.075f, true, 0.0125f, true, 0, false, false));
+            Configure(Spec(1.075f, true, 0.0125f, true, 0, false, false));
 
             Assert.AreEqual(0, _visual.TornadoOnForTest);
             Assert.IsFalse(_sunburst.PlayingForTest);
@@ -298,7 +305,7 @@ namespace Lair.Tests.Character
         {
             Fill(GradeFxBudget.TryAcquireTornado, 23);
 
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.AreEqual(1, _visual.TornadoOnForTest, "24 상한 - 23 사용 중 → 1개만");
             Assert.IsTrue(_tornados[0].PlayingForTest);
@@ -311,7 +318,7 @@ namespace Lair.Tests.Character
         public void 기둥_슬롯을_반납하면_다음_몬스터가_다시_켠다()
         {
             Fill(GradeFxBudget.TryAcquireTornado, 23);
-            _visual.Configure(Spec4());
+            Configure(Spec4());
             Assert.AreEqual(0, RemainingTornado(), "상한 도달");
 
             Invoke("OnDisable");
@@ -321,7 +328,7 @@ namespace Lair.Tests.Character
             Assert.AreEqual(0, GradeFxBudget.AuraCountForTest);
 
             Invoke("OnEnable");
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.AreEqual(1, _visual.TornadoOnForTest, "반납 후 재사용된 몬스터가 다시 슬롯 1개를 얻음(2번째는 상한)");
         }
@@ -331,7 +338,7 @@ namespace Lair.Tests.Character
         {
             Fill(GradeFxBudget.TryAcquireAura, GradeFxBudget.AuraCap);
 
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.IsFalse(_visual.AuraOnForTest);
             Assert.IsFalse(_aura.PlayingForTest);
@@ -345,7 +352,7 @@ namespace Lair.Tests.Character
         {
             Fill(GradeFxBudget.TryAcquireSunburst, GradeFxBudget.SunburstCap);
 
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Assert.IsFalse(_sunburst.PlayingForTest);
             Assert.IsTrue(_visual.AuraOnForTest);
@@ -357,7 +364,7 @@ namespace Lair.Tests.Character
         public void 생략한_후광_몬스터가_Disable_돼도_다른_몬스터의_후광_슬롯을_반납하지_않는다()
         {
             Fill(GradeFxBudget.TryAcquireSunburst, GradeFxBudget.SunburstCap);
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Invoke("OnDisable");
 
@@ -368,11 +375,11 @@ namespace Lair.Tests.Character
         public void 기둥_슬롯이_부족하거나_시트가_없으면_예외없이_건너뛴다()
         {
             TestReflection.SetField(_visual, "_tornados", new[] { _tornados[0] });
-            Assert.DoesNotThrow(() => _visual.Configure(Spec(1.225f, false, 0f, false, 4, false, false)));
+            Assert.DoesNotThrow(() => Configure(Spec(1.225f, false, 0f, false, 4, false, false)));
             Assert.AreEqual(1, _visual.TornadoOnForTest, "시트 슬롯 1개 → 1개만");
 
             TestReflection.SetField(_visual, "_tornados", null);
-            Assert.DoesNotThrow(() => _visual.Configure(Spec(1.225f, false, 0f, false, 4, false, false)));
+            Assert.DoesNotThrow(() => Configure(Spec(1.225f, false, 0f, false, 4, false, false)));
             Assert.AreEqual(0, _visual.TornadoOnForTest);
             Assert.AreEqual(24, RemainingTornado());
         }
@@ -382,7 +389,7 @@ namespace Lair.Tests.Character
         {
             TestReflection.SetField(_visual, "_aura", null);
 
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Assert.IsFalse(_visual.AuraOnForTest);
             Assert.AreEqual(0, GradeFxBudget.AuraCountForTest);
@@ -393,7 +400,7 @@ namespace Lair.Tests.Character
         [Test]
         public void Push_OnDisable_은_슬롯을_반납하고_모든_시트를_멈춘다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Invoke("OnDisable");
 
@@ -410,7 +417,7 @@ namespace Lair.Tests.Character
         [Test]
         public void Pop_OnEnable_은_크기_후광_밝기_맥동을_기본값으로_되돌린다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             Invoke("OnDisable");
 
             Invoke("OnEnable");
@@ -426,7 +433,7 @@ namespace Lair.Tests.Character
         [Test]
         public void Pop_후_맥동은_정지_상태라_Update_가_밝기를_바꾸지_않는다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             Invoke("OnDisable");
             Invoke("OnEnable");
 
@@ -438,7 +445,7 @@ namespace Lair.Tests.Character
         [Test]
         public void OnDisable_이후_사망_이벤트가_와도_이중_반납하지_않는다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             Invoke("OnDisable");
             Fill(GradeFxBudget.TryAcquireAura, 3);
 
@@ -452,7 +459,7 @@ namespace Lair.Tests.Character
         {
             for (int i = 0; i < 5; i++)
             {
-                _visual.Configure(Spec5());
+                Configure(Spec5());
                 Invoke("OnDisable");
                 Invoke("OnEnable");
             }
@@ -468,7 +475,7 @@ namespace Lair.Tests.Character
         public void 사망_순간_이펙트가_숨겨지고_슬롯이_반납되며_맥동이_멈춘다()
         {
             Fill(GradeFxBudget.TryAcquireAura, 5);
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             Invoke("Update");
 
             _health.TakeDamage(_health.Max);
@@ -488,7 +495,7 @@ namespace Lair.Tests.Character
         public void 사망_후_풀로_반환돼_OnDisable_이_불려도_슬롯을_이중_반납하지_않는다()
         {
             Fill(GradeFxBudget.TryAcquireAura, 5);
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             _health.TakeDamage(_health.Max);
 
             Invoke("OnDisable");
@@ -501,7 +508,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 사망한_몬스터의_몸_후광_폭은_리셋하지_않고_몸_알파를_따라가게_둔다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
             float width = BodyMaterial.GetFloat("_GlowWidth");
             Assert.Greater(width, 0f);
 
@@ -526,7 +533,7 @@ namespace Lair.Tests.Character
         {
             SetBodySprite(266.483f);
 
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Assert.AreEqual(8f, BodyMaterial.GetFloat("_GlowWidth"), 0.0001f, "0.075 x 0.7205 x 266.483 ÷ 1.3 = 11.08 → 8 로 clamp");
             Assert.AreEqual(0.5f, BodyMaterial.GetFloat("_GlowInner"), 0.0001f);
@@ -537,7 +544,7 @@ namespace Lair.Tests.Character
         {
             SetBodySprite(266.483f);
 
-            _visual.Configure(Spec(1.075f, true, 0.0125f, true, 0, false, false));
+            Configure(Spec(1.075f, true, 0.0125f, true, 0, false, false));
 
             Assert.AreEqual(0.0125f * CellWorld * 266.483f / 1.075f, BodyMaterial.GetFloat("_GlowWidth"), 0.001f, "약 2.23 texel");
         }
@@ -547,7 +554,7 @@ namespace Lair.Tests.Character
         {
             _body.sprite = null;
 
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             Assert.AreEqual(0.075f * CellWorld * 100f / 1.3f, BodyMaterial.GetFloat("_GlowWidth"), 0.001f);
         }
@@ -558,7 +565,7 @@ namespace Lair.Tests.Character
             GradeFxSpec spec = Spec4();
             spec.GlowColor = new Color(0.25f, 0.5f, 0.75f, 1f);
 
-            _visual.Configure(spec);
+            Configure(spec);
 
             Color applied = BodyMaterial.GetColor("_GlowColor");
             Assert.AreEqual(0.25f, applied.r, 0.001f);
@@ -569,7 +576,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 맥동은_밝기_채도_범위_안에서만_움직인다()
         {
-            _visual.Configure(Spec5());
+            Configure(Spec5());
 
             for (int i = 0; i < 30; i++)
             {
@@ -586,7 +593,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 후광_없이_맥동만_있는_데이터도_맥동하고_후광_폭은_0_이다()
         {
-            _visual.Configure(Spec(1.3f, false, 0f, false, 0, false, true));
+            Configure(Spec(1.3f, false, 0f, false, 0, false, true));
 
             Invoke("Update");
 
@@ -598,7 +605,7 @@ namespace Lair.Tests.Character
         [Test]
         public void 맥동_없는_사양은_Update_가_밝기를_건드리지_않는다()
         {
-            _visual.Configure(Spec4());
+            Configure(Spec4());
 
             Invoke("Update");
 
@@ -611,7 +618,7 @@ namespace Lair.Tests.Character
         {
             TestReflection.SetField(_visual, "_body", null);
 
-            Assert.DoesNotThrow(() => _visual.Configure(Spec5()));
+            Assert.DoesNotThrow(() => Configure(Spec5()));
 
             Assert.AreEqual(BaseVisualScale * 1.3f, _visualRoot.localScale);
             Assert.IsTrue(_visual.AuraOnForTest);
