@@ -6,6 +6,7 @@ using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
+using Lair.Showcase;
 using Lair.Net;
 using Lair.UI;
 using UnityEngine;
@@ -27,6 +28,8 @@ namespace Lair.Village
         //# resolution-adaptation §3.4 — HUD 는 HudRoot, 이후 팝업·토스트는 PopupRoot(둘 다 Safe Area). 둘 다 null 이면 기존 동작.
         [SerializeField] private RectTransform _hudRoot;
         [SerializeField] private RectTransform _popupRoot;
+        //# 마을 몬스터 쇼케이스(village-monster-showcase) — 보유 6마리를 전투와 같은 외형으로 표시. null 이면 정적 배치 그대로.
+        [SerializeField] private MonsterShowcaseStage _monsterShowcase;
 
         private VillageViewModel _vm;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
@@ -80,6 +83,10 @@ namespace Lair.Village
             await MetaSession.EnsureNetworkAsync();
 
             await SpawnIdleHero();
+
+            //# 몬스터 쇼케이스 — 프로필·편성 준비 후 시작, 구매·승급·복원(VM 변경 통지)은 프레임당 1회 합쳐 갱신(§8).
+            StartMonsterShowcase();
+            _vm.OnChanged += HandleProfileChangedForShowcase;
 
             //# 캐러셀 — VM 스테이지 이동 시 쇼케이스 재스킨 + SelectedStage 로컬 저장(클라우드 백업 제외, 기획서 §4.5).
             _vm.OnStageChanged += HandleStageChanged;
@@ -246,13 +253,28 @@ namespace Lair.Village
             _showcaseApplier = null;
         }
 
+        private async void StartMonsterShowcase()
+        {
+            if (_monsterShowcase == null)
+                return;
+            await _monsterShowcase.PrepareAsync();
+        }
+
+        private void HandleProfileChangedForShowcase()
+        {
+            _monsterShowcase?.RequestRefresh();
+        }
+
         private void OnDestroy()
         {
             if (_vm != null)
             {
                 _vm.OnStageChanged -= HandleStageChanged;
+                _vm.OnChanged -= HandleProfileChangedForShowcase;
             }
             ReleaseShowcase();
+            //# 씬 정리 — 쇼케이스 몬스터를 복구해 영속 풀에 반환하고 티어 시트 해제(풀 인스턴스가 씬과 함께 파괴돼 고아가 되는 것을 방지).
+            _monsterShowcase?.ReleaseAll();
         }
 
         //# 전투 전용 컴포넌트만 끈다 — Animator/CharacterAnimationDriver 는 유지 (idle 루프).
@@ -748,8 +770,10 @@ namespace Lair.Village
             EnterBattle();
         }
 
-        private static void EnterBattle()
+        private void EnterBattle()
         {
+            //# 씬 언로드 전에 쇼케이스 정리(풀 반환 + T 시트 해제) — 전투 시작 시 GradeFxBudget 카운터가 0 이도록.
+            _monsterShowcase?.ReleaseAll();
             SceneManager.LoadScene(EScene.Battle.ToString());
         }
     }

@@ -240,4 +240,21 @@ namespace Lair.Character
         float SizeMul { get; }
         void Configure(Lair.Data.GradeFxSpec spec);
     }
+
+    //# ===== 마을·로딩 쇼케이스 =====
+
+    //# 몬스터 루트 파사드의 쇼케이스 진입점(village-monster-showcase §3) — 전투 프리팹을 순수 비주얼로 만든다.
+    //# SetShowcaseMode(false) 한 번으로 풀 Pop 직후와 같은 상태로 복구돼야 한다(풀 Push 전 호출).
+    public interface IMonsterShowcase
+    {
+        void SetShowcaseMode(bool on);
+        //# Animator Speed 직접 기록(CharacterAnimationDriver 가 꺼져 있다) — Idle ↔ Move.
+        void SetMoving(bool moving);
+        //# 몸(Visual2D)을 루트 기준 월드 오프셋만큼 띄운다(비행 흔들림). 이펙트는 발 위치 유지.
+        void SetVisualOffset(Vector3 worldOffset);
+        //# 모든 SpriteRenderer 의 정렬을 (레이어, 몸 order 기준)으로 옮긴다. 이펙트의 상대 order 는 유지.
+        void SetSorting(int sortingLayerId, int bodyOrder);
+        //# 현재 표시 높이(월드) — 등급·티어 적용 후 fit 계산용.
+        float DisplayHeightWorld { get; }
+    }
 }

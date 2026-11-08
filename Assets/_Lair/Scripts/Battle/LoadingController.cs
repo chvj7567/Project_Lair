@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using ChvjUnityInfra;
 using Lair.Data;
+using Lair.Showcase;
 using Lair.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +16,10 @@ namespace Lair.Battle
         [SerializeField] private LoadingHud _hud;
         [SerializeField] private CHButton _clickArea;
         [SerializeField] private AudioVolumeSettings _audioVolume;
+        //# 로딩 몬스터 쇼케이스 — 씬 정적 몬스터 6마리가 자리표시자, 데이터 준비 후 내 외형으로 교체(village-monster-showcase §5). null 이면 정적 그대로.
+        [SerializeField] private MonsterShowcaseStage _monsterShowcase;
 
+        private const int ShowcaseWaitMs = 5000;
         private const string ReadyText = "준비 완료 - 클릭하여 시작";
 
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
@@ -89,6 +94,9 @@ namespace Lair.Battle
             //# 4.5 챕터/스테이지/영웅 직업 JSON 로드·검증 → ChapterDatabase.Current (실패 시 LogError, 이후 영웅 스탯 폴백 경로)
             await ChapterDatabaseLoader.LoadAsync();
 
+            //# 4.6 내 외형 계산·프리팹·T 시트 로드를 5단계(진행 바)와 병렬로 시작 — 실패해도 자리표시자 유지.
+            Task showcaseTask = _monsterShowcase != null ? _monsterShowcase.PrepareAsync() : Task.CompletedTask;
+
             //# 5. Addressables 번들 워밍 + 진행률 표시
             List<string> loadedKeys = new List<string>();
             string prevKey = string.Empty;
@@ -102,6 +110,9 @@ namespace Lair.Battle
                     prevKey = key;
                 }
             });
+
+            //# 5.5 교체 완료 대기 — 최대 5초(로더 타임아웃과 동일). 몬스터는 장식이라 초과해도 시작을 막지 않는다.
+            await Task.WhenAny(showcaseTask, Task.Delay(ShowcaseWaitMs));
 
             //# 로드된 에셋 목록 일괄 출력
             System.Collections.Generic.IReadOnlyCollection<string> allKeys = CHMResource.Instance.GetRegisteredKeys();
@@ -130,12 +141,15 @@ namespace Lair.Battle
 
             _started = true;
             _disposable.Clear();
+            //# 씬 정리 — 쇼케이스 몬스터 풀 반환·T 시트 해제.
+            _monsterShowcase?.ReleaseAll();
             //# v0.2 — 시작 흐름은 마을 허브로 (Loading → Village → 출격 → Battle).
             SceneManager.LoadScene(EScene.Village.ToString());
         }
 
         private void OnDestroy()
         {
+            _monsterShowcase?.ReleaseAll();
             _disposable.Clear();
         }
     }

@@ -26,6 +26,9 @@ namespace Lair.Character
         private IMonsterGradeVisual _gradeVisual;
         private const float HpBarPad = 0.08f;
 
+        //# 마지막으로 적용된 표시 높이(월드, 등급 sizeMul·티어 시트 반영, HP바 하단 = 몸 높이 + 0.08). 쇼케이스 fit 계산 입력.
+        public float AppliedHeightWorld { get; private set; }
+
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
         private const int MaxLevel = 5;
@@ -83,18 +86,20 @@ namespace Lair.Character
 
         private void ApplyHpBarHeightValue(float height)
         {
+            AppliedHeightWorld = ScaleBySize(height);
             if (_hpBar == null)
                 return;
-            _hpBar.SetHeightAboveRoot(ScaleBySize(height));
+            _hpBar.SetHeightAboveRoot(AppliedHeightWorld);
         }
 
         private void ApplyHpBarHeight(int tier)
         {
-            if (_hpBar == null || _hpBarHeightByTier == null)
+            if (_hpBarHeightByTier == null || tier < 0 || tier >= _hpBarHeightByTier.Length)
                 return;
-            if (tier < 0 || tier >= _hpBarHeightByTier.Length)
+            AppliedHeightWorld = ScaleBySize(_hpBarHeightByTier[tier]);
+            if (_hpBar == null)
                 return;
-            _hpBar.SetHeightAboveRoot(ScaleBySize(_hpBarHeightByTier[tier]));
+            _hpBar.SetHeightAboveRoot(AppliedHeightWorld);
         }
 
         //# 발광 채널만 조작 — 키워드 토글 + _EmissionColor 주입.

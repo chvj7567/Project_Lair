@@ -41,6 +41,9 @@ namespace Lair.Character
             List<Task<MonsterTierSheetSet>> tasks = new List<Task<MonsterTierSheetSet>>();
             foreach ((EMonster, int) need in needs)
             {
+                //# 이미 로드된 (종족, 티어)는 다시 불러오지 않는다 — 마을·로딩 쇼케이스가 강화 구매 때마다 증분으로 호출.
+                if (_sets.ContainsKey(need))
+                    continue;
                 if (TryKeyOf(need.Item1, need.Item2, out EMonsterTierSheet key) == false)
                 {
                     _warn?.Invoke($"[MonsterTierSheet] 키 없음 — {need.Item1} T{need.Item2} 풋내기로 진행");
