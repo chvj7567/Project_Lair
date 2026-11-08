@@ -103,3 +103,4 @@
 - **balance_config_asset**: `Assets/_Lair/Data/BalanceConfig.asset`
 - **card_data_folder**: `Assets/_Lair/Art/Cards/`
 - **synergy_visual_config_asset**: `Assets/_Lair/Art/Synergy/SynergyVisualConfig.asset` — 시너지 4축 아이콘 SO (`EData.SynergyVisualConfig`, Addressables 주소 `SynergyVisualConfig`)
+- **monster_tier_sheet_folder**: `Assets/_Lair/Art/MonsterTiers/` — 강화(T1~T3) 전신 시트 래퍼 SO `MonsterTierSheetSet` 18개 (`EMonsterTierSheet`, 전투 시작 시 필요한 것만 온디맨드 로드)
