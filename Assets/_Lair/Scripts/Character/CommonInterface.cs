@@ -230,4 +230,12 @@ namespace Lair.Character
     {
         MonsterTierSheetSet Find(Lair.Data.EMonster baseSpecies, int tier);
     }
+
+    //# ===== 몬스터 등급 연출 =====
+
+    //# 등급 몬스터(2~5등급 Variant)의 연출 진입점 — 크기·후광·오라·기둥·후광·맥동을 사양 하나로 적용. 1등급 프리팹에는 구현체가 없다.
+    public interface IMonsterGradeVisual
+    {
+        void Configure(Lair.Data.GradeFxSpec spec);
+    }
 }

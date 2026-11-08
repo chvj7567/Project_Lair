@@ -521,6 +521,7 @@ namespace Lair.Battle
             //# 씬 전환 직전 — 이번 판에 로드한 티어 시트 번들 해제(monster-tier-sheets §7.5).
             _tierSheets?.Release();
             _tierSheets = null;
+            Lair.Character.GradeFxBudget.Reset();
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
             _traits?.Dispose();
             _traits = null;
@@ -817,6 +818,13 @@ namespace Lair.Battle
                 int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
                 visual.SetTierSheetProvider(_tierSheets);
                 visual.ApplyLevel(level, species);
+            }
+
+            //# 등급 연출(monster-grades) — 2~5등급 Variant 에만 컴포넌트가 있다. 데이터 없으면(Current==null) 연출 없이 기본 크기.
+            Lair.Character.MonsterGradeVisual gradeVisual = character.GetComponent<Lair.Character.MonsterGradeVisual>();
+            if (resetCurrent && gradeVisual != null && GradeFxDatabase.Current != null)
+            {
+                gradeVisual.Configure(GradeFxDatabase.Current.SpecOf(species, MonsterGrades.GradeOf(key)));
             }
 
             //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다. 특성은 기준 몬스터 단위.

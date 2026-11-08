@@ -20,11 +20,6 @@ namespace Lair.Character
         //# index0=Lv0(티어0) · 1=T1 · 2=T2 · 3=T3, 종별 §6.3.7 표의 월드 높이값.
         [SerializeField] private float[] _hpBarHeightByTier;
 
-        //# 등급 외형(monster-grades §3.2) — 1등급 프리팹은 기본값(하한 0, 종족 발광색)이라 현행과 같다. 등급 Variant 가 직렬화로 덮는다.
-        [SerializeField] private float _gradeEmissionFloor;      //# 등급 발광 하한 [0, 0, 1.5, 2.3, 3.2]
-        [SerializeField] private bool _useGradeGlowColor;        //# 등급 3~5 = 등급 발광색, 1·2 = SpeciesGlowColor
-        [SerializeField] private Color _gradeGlowColor = Color.white;
-
         //# 전투 컨텍스트가 주입(BattleController). null 이면 시트 치환 없이 기존 표(_hpBarHeightByTier)만 쓴다.
         private IMonsterTierSheetProvider _tierProvider;
 
@@ -47,9 +42,9 @@ namespace Lair.Character
         public void ApplyLevel(int level, EMonster species)
         {
             bool curveOn = level >= 1 && _emissionByLevel != null && level <= _emissionByLevel.Length;
-            float intensity = Mathf.Max(_gradeEmissionFloor, curveOn ? Mathf.Max(0f, _emissionByLevel[level - 1]) : 0f);
+            float intensity = curveOn ? Mathf.Max(0f, _emissionByLevel[level - 1]) : 0f;
             bool on = intensity > 0f;
-            Color glow = _useGradeGlowColor ? _gradeGlowColor : SpeciesVisual.SpeciesGlowColor(species);
+            Color glow = SpeciesVisual.SpeciesGlowColor(species);
             Color emission = on ? glow * intensity : Color.black;
             ApplyEmission(on, emission);
 
