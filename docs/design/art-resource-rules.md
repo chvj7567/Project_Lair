@@ -3,7 +3,7 @@
 > 외부 도구(코덱스 등)로 만드는 **모든 2D 리소스**의 규격 SoT.
 > **v2 = 스타일 전면 교체(A안)**: 저밀도 도트(영웅 31도트) → **고밀도 치비 도트 + 두꺼운 외곽선 + 큰 아이콘 UI**. 기준 레퍼런스는 사용자 제공 스크린샷(모바일 치비 도트 RPG 마을 화면).
 > 현행(v1) 수치는 §13 이관표에 보존한다. v1 파일의 실제 크기는 `Assets/_Lair/Art/Sprites/` 와 `*_SheetSpec.json` 이 증명한다. **v2 파일이 임포트되면 SheetSpec JSON 이 새 SoT** 이며, 어긋나면 JSON 을 따르고 이 문서를 고친다.
-> 무기 형태 고정·종족별 동작·지정 프레임만 수정하는 세부 규칙은 [monster-animation-art-rules.md](monster-animation-art-rules.md)를 함께 적용한다.
+> 무기 형태 고정·종족별 동작·지정 프레임만 수정하는 세부 규칙은 [monster-animation-art-rules.md](../../.agents/rules/monster-animation-art-rules.md)를 함께 적용한다.
 > 단계 제약(CLAUDE.md §8): 아트 교체는 허용. **신규 몬스터 종족·신규 영웅 직업·6등급 이상은 여전히 금지** — 이 문서는 기존 콘텐츠(영웅 5직업, 몬스터 6종족 x 5등급)의 *외형 교체* 규격이다.
 
 ---

@@ -4,7 +4,7 @@
 
 적용 대상: Project Lair 기존 6종(Wisp·Wraith·Reaper·Hex·Plague·Phantom)의 이미지와 애니메이션 제작 원본. 이번 Reaper 수정에서 확인한 무기 일관성·부분 수정 원칙을 다른 무기와 소품에도 적용한다.
 
-상위 스타일 기준은 [art-resource-rules.md](art-resource-rules.md)다. 이 문서는 제작 중 무기 변형과 불필요한 전체 재생성을 막기 위한 세부 규칙이다. 제작 원본과 Unity에 적용한 최종 리소스를 구별하며, 기존 클립·판정·타이밍을 이 문서만으로 변경하지 않는다.
+상위 스타일 기준은 [art-resource-rules.md](../../docs/design/art-resource-rules.md)다. 이 문서는 제작 중 무기 변형과 불필요한 전체 재생성을 막기 위한 세부 규칙이다. 제작 원본과 Unity에 적용한 최종 리소스를 구별하며, 기존 클립·판정·타이밍을 이 문서만으로 변경하지 않는다.
 
 ## 1. 기준 이미지와 수정 범위
 

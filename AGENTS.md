@@ -1,0 +1,99 @@
+# Project Lair
+
+## 1. 한 줄 컨셉
+
+**5분짜리 역방향 보스전 로그라이크.** 플레이어는 던전 주인. 모험가 영웅 한 명이 자동으로 던전을 돌파해오고, 플레이어가 배치한 몬스터 무리가 자동 전투한다. 영웅 HP 10%마다 패시브 카드(3택 1), 30초마다 액티브 카드(3택 1)를 골라 5분 안에 영웅을 처치하면 승리.
+
+- 코드네임 **Project Lair** · 코드 namespace `Lair` · 자동전투 로그라이크 + 덱빌딩 · 2.5D 탑다운 · 싱글플레이
+
+## 2. 현재 단계 — v0.3
+
+검증 가설: **"클라우드 계정·세이브·리더보드(서버 연동)가 재방문·기기이전·경쟁 동기를 강화하는가."**
+MVP 가설(5분 자동전투 + 트리거 선택지) · v0.2 가설(마을 허브 + 메타 성장) 검증 완료.
+v0.3 의 핵심 추가는 **Unity 클라이언트 ↔ Firebase 백엔드 연동** — 익명 인증→uid 로컬 캐시(자격증명은 SDK 가 영속화), 로컬 MetaProfile 클라우드 백업/복원(충돌 처리), 최단클리어 리더보드 제출/조회.
+백엔드는 **Firebase BaaS(Firebase Auth + Cloud Firestore)** 를 사용하며 이 Unity 레포에는 **연동 클라이언트 코드만** 들어온다 (§8). 아트/에셋·사운드는 실제 에셋 사용 가능.
+
+## 3. 기술 스택
+
+- **엔진**: Unity 6 (6000.0.68f1) / URP 17.0.4
+- **인프라 패키지**: `com.chvj.unityinfra` (ChvjPackage) — `Packages/com.chvj.unityinfra/`. 리소스·풀·UI·오디오. 모든 작업의 기준 인프라.
+- **에셋 로딩**: Addressables — `CHMResource`, Enum 키 기반
+- **아키텍처**: MVVM (View ↔ ViewModel ↔ Model 단방향)
+- **테스트**: Unity Test Framework (NUnit) — EditMode / PlayMode
+
+## 4. 폴더 구조
+
+```
+Assets/_Lair/                  게임 코드·에셋  (주의: _Project 가 아니라 _Lair)
+  Scripts/                     런타임 C#  (asmdef: Lair) — Battle/ Card/ Character/ Data/ UI/
+  Editor/                      에디터 툴 — 프리팹 빌더 / 테스트 러너 / 디버그 윈도우
+  Tests/EditMode/  Tests/PlayMode/   NUnit 테스트  (asmdef: Lair.Tests.EditMode / .PlayMode)
+  Art/                         Addressable 에셋 — Characters/ FX/ UI/ Cards/ Materials/ Sprites/
+  Data/                        비-Addressable 데이터 — Fonts/ , BalanceConfig.asset
+  Scenes/                      Battle.unity
+Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
+.Codex/
+  rules/                       코딩 룰 00~04  ← 단일 진실의 원천
+  agents/                      서브에이전트 정의
+docs/
+  design/                      project_lair_concept.md (컨셉) + game-designer 기능 기획서
+  superpowers/specs/           과거 기능별 의도·범위 스펙 문서 (레거시 보관)
+  superpowers/plans/           과거 단계별 구현 계획 문서 (레거시 보관)
+  qa-reports/                  qa-simulator 시뮬레이션 리포트
+```
+
+## 5. 코딩 룰
+
+룰은 `.Codex/rules/NN-*.md` 에 정의되어 있다 — Rule 00(프로젝트 메타), 01(커밋), 02(C# 스타일), 03(ChvjPackage 인프라), 04(Unity 에셋). **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
+
+룰은 도메인 비종속 reusable 정의 — 다른 프로젝트에 같은 `.Codex/rules/` 폴더가 통째로 적용된다.
+
+### 프로젝트 전용 아트 규칙 — 작업 전 필독
+
+- **몬스터 이미지·아이콘·애니메이션·스프라이트 시트·무기/소품을 제작하거나 수정하는 작업은 시작 전에 `.agents/rules/monster-animation-art-rules.md` 전문을 반드시 읽고 적용한다.** 이미지 생성 프롬프트 작성과 사용자 첨부 이미지의 부분 수정도 포함한다.
+- 위 파일은 이 프로젝트 전용 규칙이다. 메인 에이전트와 위임받은 서브에이전트 모두 같은 규칙을 적용한다. 위임 시 해당 파일 경로와 필독 의무를 전달한다.
+- 상위 스타일 규격은 `docs/design/art-resource-rules.md`를 함께 확인한다. 사용자가 지정한 원본·프레임·수정 범위를 보존하고, 무기 형태·비율을 고정한다.
+
+## 6. 멀티 에이전트 위임
+
+5개 서브에이전트가 `.Codex/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.**
+
+- 에이전트 목록 · 역할 · 호출 시점 · 보고 형식 → 각 `.Codex/agents/<name>.md` 전문
+- 단계별 위임 순서 (누구를 언제 호출할지) → `.Codex/project.md` 의 "협업 흐름 (Workflow)" 섹션
+
+에이전트 정의도 도메인 비종속 — 다른 프로젝트에 그대로 적용된다.
+
+## 7. 표준 협업 흐름
+
+표준 흐름·밸런스 조정 흐름은 **`.Codex/project.md` 의 "협업 흐름 (Workflow)" 섹션** 이 단일 진실이다. 본 AGENTS.md 는 진입점만 둔다.
+
+### Lair 특수 사항
+
+- **현 단계 제약**: §8 의 단계 범위 규칙이 모든 단계에 함께 적용됨.
+
+## 8. v0.3 단계 특수 규칙
+
+- **아트/에셋 작업 허용** — 프리미티브 도형 고정 제약 해제. 실제 스프라이트·모델 등 에셋으로 교체 가능 (이전 컨셉 §11.4 프리미티브 매핑은 더 이상 강제 아님).
+- **사운드 작업 허용** — BGM·SFX 등 실제 사운드 에셋 적용 및 hook 등록 가능.
+- **메타 진행 허용** — 마을 허브 + 상점/영주 레벨/영웅 선택/도감·기록/도전과제 (v0.2 승격분 유지).
+- **챕터 구조 허용 (2026-10-03 v0.3 승격, 2026-10-08 챕터 3 추가, 2026-10-17 챕터 4 추가, 2026-10-18 챕터 5 추가) — 단 1단계(Ch1 + Ch2)에 챕터 3·4·5 를 더한 범위에 한정** — 5챕터 x 5스테이지(최대 25) 구조로 확장하며, 허용 범위는 ① 챕터/스테이지 JSON 데이터화와 진행 저장 일반화(선형 스테이지 번호) ② 스테이지 규칙 엔진(`IStageRule`) 및 규칙 6종 ③ 챕터별 영웅 직업(궁수) 신규 영웅 아트·스킬·AI ④ 챕터 월드맵 팝업(마을 HUD 안, `HeroSelectPopup` 확장) ⑤ 챕터 3 "그림자 성채": 영웅 암살자(신규 AI `Skirmisher` + 스킬 3종 + 5단계 외형), 기존 규칙 6종 재사용(신규 규칙 없음) ⑥ 챕터 4(4-1~4-5): 신규 영웅 직업·맵 배경·스테이지 데이터·규칙 배치(세부는 game-designer 기획서에서 확정, 신규 규칙 필요 시 기획서에서 사용자 승인) ⑦ 챕터 5(5-1~5-5): 신규 영웅 직업·맵 배경·스테이지 데이터·규칙 배치(합의용 시안 `.mockups/hero-ch5-paladin.html`·`scene-bg-ch5-frost.html` 기준, 세부는 game-designer 기획서에서 확정). **★ 목표, 악몽(Heat), 던전 편성·신규 몬스터 6종, 유물, 무한 탑·데일리는 개별 승격 전까지 금지.** 별도 메인 메뉴/세팅 화면 금지는 유지(월드맵은 팝업).
+- **서버 연동 허용 (2026-06-15 v0.3 승격 · 2026-07-14 Firebase 로 피벗 · 2026-07-28 SDK 로 전환) — 단 "Unity 클라이언트 ↔ 백엔드 연동 코드"만 허용** — 익명 인증→uid 로컬 캐시, MetaProfile 클라우드 백업/복원, 최단클리어 랭킹 제출/조회 등 클라이언트 측 연동 코드. **백엔드는 Firebase BaaS(Firebase Auth + Cloud Firestore, Firebase Unity SDK)를 사용하며 운영할 자체 서버가 없다.** 자격증명은 SDK 가 영속화하며 접속 설정은 `google-services.json` 이 담당한다. 폐기된 자체 서버(`Project_Lair_Server`, ASP.NET Core+MySQL+Redis)는 아카이브하며 그 데이터는 마이그레이션하지 않는다. 서버측 검증·안티치트는 Firestore 보안 규칙이 담당하는 범위까지이며, 그 이상(Cloud Functions 등 서버리스 코드)은 이 레포 범위 밖이다.
+- **세이브** — 로컬 JSON 유지 + 클라우드 동기 추가. 전체 MetaProfile 단위로 동기하며, 충돌은 클라이언트가 감지해 기존과 동일한 충돌 UX(배지·복원 권유)로 처리한다.
+- **계정 연동(구글 로그인) 승격 예고** — 익명 인증은 기기이전을 풀지 못한다(재설치·새 기기 = 새 계정). 진짜 기기이전을 여는 구글 로그인+계정 연동은 후속 Spec 2 로 v0.3 범위에 편입 **예정**이다(본 Spec 1 에는 포함하지 않는다).
+- **메인 메뉴 / 세팅 화면 금지** — 마을 허브가 시작 화면을 겸임. 별도 메인 메뉴는 만들지 않는다.
+- 단계 범위는 컨셉 기획서 §11 + spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` (메타 허브) 이 기준이며, 서버 연동 세부(리더보드 UI 신규 화면 등)는 이후 기획/구현 단계에서 다룬다. 범위 밖 기능은 game-designer 가 명시적으로 승격하기 전까지 착수하지 않는다.
+
+## 9. 절대 금지
+
+- `git push` 직접 실행 (Rule 01) — 사용자가 명시적으로 요청할 때만. `git commit` 은 소작업 완료 시 자동 실행 대상(금지 아님)
+- `Object.Instantiate` / `GameObject.CreatePrimitive` 직접 호출 (Rule 03 §4) — `CHMPool.Pop`/`Push`
+- Legacy `UnityEngine.UI.Text` / 단일 `Button`·`Toggle` 직접 사용 (Rule 03 §3) — `CHText`/`CHButton`/`CHToggle`
+- 하드코딩 문자열로 에셋 로드 (Rule 03 §2) — Enum 키
+- `Resources/` 특수 폴더 사용 (Rule 04 §2) — Addressables
+- View 에 비즈니스 로직 (Rule 02 §6)
+- ChvjPackage → 게임 코드 역참조 (Rule 03 §1) — 의존 방향은 게임 → 패키지
+- `//` 일반 주석 (Rule 02 §1) — `//#`
+- 백엔드(Firebase 보안 규칙·Cloud Functions 등) 구현을 이 Unity 레포에서 작성 — 범위 밖(Firebase 콘솔 소관). 이 레포에는 연동 클라이언트 코드만 (§8)
+- 현 단계(v0.3) 범위 밖 작업 (§8)
+- 메인 오케스트레이터가 직접 코드 작성 — 적절한 서브에이전트에 위임
+- `.Codex/project.md` 의 필수 키 누락 또는 파일 부재 (Rule 00) — agent 가 프로젝트 메타를 못 읽어 동작 불능
