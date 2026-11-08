@@ -1,0 +1,38 @@
+using System.Collections.Generic;
+using NUnit.Framework;
+using Lair.Character;
+using Lair.Data;
+
+namespace Lair.Tests.Character
+{
+    //# 전투·쇼케이스 공유 외형 계산(village-monster-showcase §2, 게이트 T-S2) — 시드: gameplay-programmer. 정상(등급·티어 산출) + 엣지(편성 없음 → 기준 6종, 티어 0 은 로드 대상 제외).
+    public class MonsterLooksTests
+    {
+        [Test]
+        public void 등급_몬스터와_강화_레벨에서_기준_등급_티어를_계산한다()
+        {
+            EMonster[] formation = { EMonster.WispG3, EMonster.Wraith, EMonster.Reaper, EMonster.Hex, EMonster.Plague, EMonster.Phantom };
+            Dictionary<EMonster, int> levels = new Dictionary<EMonster, int> { { EMonster.Wisp, 5 }, { EMonster.Hex, 2 } };
+
+            MonsterLook[] looks = MonsterLooks.Compute(formation, levels);
+
+            Assert.AreEqual(EMonster.Wisp, looks[0].Base);
+            Assert.AreEqual(3, looks[0].Grade);
+            Assert.AreEqual(3, looks[0].Tier, "Lv5 → T3");
+            Assert.AreEqual(1, looks[3].Tier, "Lv2 → T1");
+            Assert.AreEqual(0, looks[1].Tier, "표에 없으면 Lv0");
+        }
+
+        [Test]
+        public void 편성이_없으면_기준_6종이고_티어0은_로드_대상에서_빠진다()
+        {
+            MonsterLook[] looks = MonsterLooks.Compute(null, new Dictionary<EMonster, int> { { EMonster.Reaper, 3 } });
+
+            Assert.AreEqual(6, looks.Length);
+            Assert.AreEqual(1, looks[2].Grade);
+            List<(EMonster, int)> needs = MonsterLooks.TierNeeds(looks);
+            Assert.AreEqual(1, needs.Count);
+            Assert.AreEqual((EMonster.Reaper, 2), needs[0]);
+        }
+    }
+}

@@ -814,28 +814,9 @@ namespace Lair.Battle
                 _plagueInstances[character.transform] = health;
             }
 
-            //# 등급 연출(monster-grades) — 2~5등급 Variant 만 조회(1등급은 조회 0). Configure 가 sizeMul 을 정하므로 강화 시각(HP바 높이 합성)보다 먼저.
-            Lair.Character.IMonsterGradeVisual gradeVisual = null;
-            int grade = MonsterGrades.GradeOf(key);
-            if (grade > MonsterGrades.MinGrade && GradeFxDatabase.Current != null)
-            {
-                Lair.Character.LairCharacter lair = character.GetComponent<Lair.Character.LairCharacter>();
-                gradeVisual = lair != null ? lair.Get<Lair.Character.IMonsterGradeVisual>() : null;
-                if (resetCurrent && gradeVisual != null)
-                {
-                    gradeVisual.Configure(GradeFxDatabase.Current.SpecOf(species, grade));
-                }
-            }
-
-            //# 종족 강화 시각 — 현재 레벨의 발광 적용 (Lv0 이면 off). 컴포넌트 없으면 skip (monster-species-enhancement §4.3).
-            Lair.Character.MonsterEnhancementVisual visual = character.GetComponent<Lair.Character.MonsterEnhancementVisual>();
-            if (visual != null)
-            {
-                int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
-                visual.SetTierSheetProvider(_tierSheets);
-                visual.SetGradeVisual(gradeVisual);
-                visual.ApplyLevel(level, species);
-            }
+            //# 등급 연출 → 강화 시각(티어·발광·HP바) — 마을·로딩 쇼케이스와 같은 공유 함수(순서: sizeMul 확정 후 HP바 합성).
+            int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
+            Lair.Character.MonsterLookApplier.Apply(character, key, species, level, resetCurrent, _tierSheets);
 
             //# 특성 훅 — 스폰(resetCurrent) 이면 잔상 회피도 충전한다. 특성은 기준 몬스터 단위.
             _traits?.OnMonsterConfigured(character, species, resetCurrent);
@@ -1132,14 +1113,9 @@ namespace Lair.Battle
         private void CacheSpeciesLevels(MetaProfile profile)
         {
             _speciesLevels.Clear();
-            if (_metaConfig == null)
-                return;
-            foreach (ShopItemDef item in _metaConfig.ShopItems)
+            foreach (KeyValuePair<EMonster, int> pair in Lair.Character.MonsterLooks.SpeciesLevels(profile, _metaConfig))
             {
-                if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies)
-                    continue;
-                int level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
-                _speciesLevels[item.Species] = level;
+                _speciesLevels[pair.Key] = pair.Value;
             }
         }
 
@@ -1154,29 +1130,15 @@ namespace Lair.Battle
                 return;
 
             CacheSpeciesLevels(MetaSession.GetOrLoad());
-            IReadOnlyList<EMonster> placed = _formation != null ? _formation : MonsterGrades.BaseMonsters;
-            List<(EMonster, int)> needs = new List<(EMonster, int)>();
-            HashSet<EMonster> seen = new HashSet<EMonster>();
-            foreach (EMonster monster in placed)
-            {
-                EMonster root = MonsterGrades.BaseOf(monster);
-                if (seen.Add(root) == false)
-                    continue;
-                int level = _speciesLevels.TryGetValue(root, out int lv) ? lv : 0;
-                int tier = Lair.Character.MonsterEnhancementVisual.TierOfLevel(level);
-                if (tier > 0)
-                {
-                    needs.Add((root, tier));
-                }
-            }
+            Lair.Character.MonsterLook[] looks = Lair.Character.MonsterLooks.Compute(_formation, _speciesLevels);
+            List<(EMonster, int)> needs = Lair.Character.MonsterLooks.TierNeeds(looks);
             await _tierSheets.LoadAsync(needs);
         }
 
         //# EffectiveFormation 계산 (§6.3) — 편성 데이터 미로드면 null. 프로필은 수정하지 않는다.
         private static EMonster[] ResolveFormation()
         {
-            MetaProfile profile = MetaSession.GetOrLoad();
-            return FormationSave.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, profile.GetRaceGrade, warn: Debug.LogWarning);
+            return Lair.Character.MonsterLooks.ResolveFormation(MetaSession.GetOrLoad());
         }
 
         //# 슬롯 i 의 스포너 출력 종 = 편성[i] (§6.4). 기존 Spawner.ReplaceOutput 재사용 — 제단 틴트는 OnOutputTypeChanged 로 갱신.
