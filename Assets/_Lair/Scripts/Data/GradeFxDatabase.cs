@@ -106,11 +106,14 @@ namespace Lair.Data
             }
         }
 
+        //# Grade.json 에 없는 grade 를 가리키는 관계 행은 오류(고아 행 방지).
+        private bool GradeMissing(int grade) => _sizeMul.ContainsKey(grade) == false;
+
         private void LoadGlow(Grade_GlowRow[] rows, List<string> errors)
         {
             foreach (Grade_GlowRow row in rows ?? Array.Empty<Grade_GlowRow>())
             {
-                if (row == null || row.grade < 2 || row.grade > 5 || row.widthCell > 0f == false || _glow.ContainsKey(row.grade))
+                if (row == null || GradeMissing(row.grade) || row.grade < 2 || row.grade > 5 || row.widthCell > 0f == false || _glow.ContainsKey(row.grade))
                 {
                     errors.Add($"Grade_Glow.json grade {row?.grade} 가 잘못됨(2~5, 폭>0, 중복 금지)");
                     continue;
@@ -123,7 +126,7 @@ namespace Lair.Data
         {
             foreach (Grade_AuraRow row in rows ?? Array.Empty<Grade_AuraRow>())
             {
-                if (row == null || row.grade < 2 || row.grade > 5 || row.opacity > 0f == false || row.scale > 0f == false || _aura.ContainsKey(row.grade))
+                if (row == null || GradeMissing(row.grade) || row.grade < 2 || row.grade > 5 || row.opacity > 0f == false || row.scale > 0f == false || _aura.ContainsKey(row.grade))
                 {
                     errors.Add($"Grade_Aura.json grade {row?.grade} 가 잘못됨(2~5, 불투명도·스케일>0, 중복 금지)");
                     continue;
@@ -136,7 +139,7 @@ namespace Lair.Data
         {
             foreach (Grade_PulseRow row in rows ?? Array.Empty<Grade_PulseRow>())
             {
-                if (row == null || row.grade < 2 || row.grade > 5 || row.periodSec > 0f == false || row.brightnessMax < row.brightnessMin
+                if (row == null || GradeMissing(row.grade) || row.grade < 2 || row.grade > 5 || row.periodSec > 0f == false || row.brightnessMax < row.brightnessMin
                     || row.saturationMax < row.saturationMin || _pulse.ContainsKey(row.grade))
                 {
                     errors.Add($"Grade_Pulse.json grade {row?.grade} 가 잘못됨(주기>0, 최소<=최대, 중복 금지)");
@@ -152,10 +155,10 @@ namespace Lair.Data
             foreach (Grade_FxRow row in rows ?? Array.Empty<Grade_FxRow>())
             {
                 bool kindOk = row != null && (row.kind == KindTornado || row.kind == KindSunburst);
-                if (row == null || row.grade < 2 || row.grade > 5 || row.index < 0 || kindOk == false || row.scale > 0f == false
+                if (row == null || GradeMissing(row.grade) || row.grade < 2 || row.grade > 5 || row.index < 0 || row.frameOffset < 0 || kindOk == false || row.scale > 0f == false
                     || keys.Add((row.grade, row.index)) == false)
                 {
-                    errors.Add($"Grade_Fx.json (grade {row?.grade}, index {row?.index}) 가 잘못됨(kind Tornado|Sunburst, 스케일>0, 복합키 중복 금지)");
+                    errors.Add($"Grade_Fx.json (grade {row?.grade}, index {row?.index}) 가 잘못됨(kind Tornado|Sunburst, 스케일>0, frameOffset>=0, 복합키 중복 금지)");
                     continue;
                 }
                 if (_fx.TryGetValue(row.grade, out List<Grade_FxRow> list) == false)

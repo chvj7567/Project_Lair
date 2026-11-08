@@ -199,6 +199,10 @@ namespace Lair.Data
                     errors.Add($"Grade.json grade {row.grade} 중복");
                     continue;
                 }
+                if (row.sizeMul > 0f == false)
+                {
+                    errors.Add($"Grade.json grade {row.grade} sizeMul 은 0 보다 커야 함");
+                }
                 if (row.hpMul > 0f == false || row.atkMul > 0f == false)
                 {
                     errors.Add($"Grade.json grade {row.grade} hpMul·atkMul 은 0 보다 커야 함");

@@ -54,6 +54,24 @@ namespace Lair.Tests.Data
         }
 
         [Test]
+        public void Grade_JSON_에_없는_grade_를_가리키는_행은_검증_오류다()
+        {
+            GradeRow[] onlyOneToFour = new GradeRow[4];
+            System.Array.Copy(Grades(), onlyOneToFour, 4);
+            Assert.Throws<ChapterDataException>(() => GradeFxDatabase.Build(
+                onlyOneToFour, new[] { new Grade_GlowRow { grade = 5, widthCell = 0.075f } }, null, null, null, Colors()));
+        }
+
+        [Test]
+        public void Fx_frameOffset_이_음수이면_검증_오류다()
+        {
+            Assert.Throws<ChapterDataException>(() => GradeFxDatabase.Build(
+                Grades(), null, null, null,
+                new[] { new Grade_FxRow { grade = 4, index = 0, kind = "Tornado", scale = 1f, frameOffset = -1 } },
+                Colors()));
+        }
+
+        [Test]
         public void Fx_복합키가_중복되면_검증_오류다()
         {
             Assert.Throws<ChapterDataException>(() => GradeFxDatabase.Build(
