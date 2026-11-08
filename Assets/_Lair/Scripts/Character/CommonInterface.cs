@@ -222,4 +222,12 @@ namespace Lair.Character
         //# 0~1(순환) 위상으로 프레임을 직접 지정. 범위 밖·음수 입력은 frac 로 접는다.
         void SetLoopPhase(float normalized);
     }
+
+    //# ===== 몬스터 강화 전신 시트 =====
+
+    //# 전투 범위의 티어 시트 조회 — (기준 몬스터, 티어 1~3) → 세트. 없거나 로드 실패면 null(풋내기로 폴백).
+    public interface IMonsterTierSheetProvider
+    {
+        MonsterTierSheetSet Find(Lair.Data.EMonster baseSpecies, int tier);
+    }
 }

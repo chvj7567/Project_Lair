@@ -15,6 +15,8 @@ namespace Lair.Character
         [SerializeField] private MonsterTierOverlay _tierOverlay;
         [SerializeField] private MonsterEnhanceSigil _sigil;
         [SerializeField] private MonsterHpBar _hpBar;
+        //# 티어 전신 시트 치환 대상(monster-tier-sheets §6) — null 허용(2D 전환 전 프리팹·테스트).
+        [SerializeField] private MonsterVisual2D _visual2D;
         //# index0=Lv0(티어0) · 1=T1 · 2=T2 · 3=T3, 종별 §6.3.7 표의 월드 높이값.
         [SerializeField] private float[] _hpBarHeightByTier;
 
@@ -22,6 +24,9 @@ namespace Lair.Character
         [SerializeField] private float _gradeEmissionFloor;      //# 등급 발광 하한 [0, 0, 1.5, 2.3, 3.2]
         [SerializeField] private bool _useGradeGlowColor;        //# 등급 3~5 = 등급 발광색, 1·2 = SpeciesGlowColor
         [SerializeField] private Color _gradeGlowColor = Color.white;
+
+        //# 전투 컨텍스트가 주입(BattleController). null 이면 시트 치환 없이 기존 표(_hpBarHeightByTier)만 쓴다.
+        private IMonsterTierSheetProvider _tierProvider;
 
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
@@ -31,6 +36,11 @@ namespace Lair.Character
         private static readonly int[] TierByLevel = { 0, 1, 1, 2, 2, 3 };
         //# 레벨(0~5)→바닥 문장 단계(0=숨김·1=링1·2=링2·3=링2+파편) — Lv2·Lv4·Lv5 에서 갱신(§6.3.1).
         private static readonly int[] SigilStageByLevel = { 0, 0, 1, 1, 2, 3 };
+
+        public void SetTierSheetProvider(IMonsterTierSheetProvider provider) => _tierProvider = provider;
+
+        //# 레벨(0~5)→외형 티어(0~3). 로더가 필요 목록을 만들 때도 같은 표를 쓴다.
+        public static int TierOfLevel(int level) => TierByLevel[Mathf.Clamp(level, 0, MaxLevel)];
 
         //# level: 0 = 미강화, 1~N = _emissionByLevel[level-1] 세기. 세기 = max(등급 하한, 강화 곡선)(monster-grades §3.2), 0 이면 발광 off.
         //# 색 = 등급 발광색(등급 3~5) 또는 SpeciesGlowColor(species). 티어/문장/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
@@ -50,7 +60,24 @@ namespace Lair.Character
             int sigilStage = SigilStageByLevel[clampedLevel];
             _sigil?.SetStage(sigilStage, SpeciesVisual.SpeciesGlowColor(species));
 
-            ApplyHpBarHeight(tier);
+            //# 티어 시트가 로드돼 있으면 치환·시트 HP바 높이, 주입자는 있는데 세트가 없으면(로드 실패) 풋내기 값으로 폴백(§7.3).
+            MonsterTierSheetSet sheet = tier > 0 && _tierProvider != null ? _tierProvider.Find(MonsterGrades.BaseOf(species), tier) : null;
+            _visual2D?.SetTierSheet(sheet);
+            if (sheet != null && sheet.HpBarHeightWorld > 0f)
+            {
+                ApplyHpBarHeightValue(sheet.HpBarHeightWorld);
+            }
+            else
+            {
+                ApplyHpBarHeight(_tierProvider != null ? 0 : tier);
+            }
+        }
+
+        private void ApplyHpBarHeightValue(float height)
+        {
+            if (_hpBar == null)
+                return;
+            _hpBar.SetHeightAboveRoot(height);
         }
 
         private void ApplyHpBarHeight(int tier)
@@ -95,6 +122,7 @@ namespace Lair.Character
         {
             ApplyEmission(false, Color.black);
             _tierOverlay?.SetTier(0);
+            _visual2D?.SetTierSheet(null);
             _sigil?.SetStage(0, Color.white);
             ApplyHpBarHeight(0);
         }

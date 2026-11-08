@@ -118,6 +118,17 @@
         DailyPopup,            //# 데일리(일일 도전) — 마을 HUD 데일리 타일이 여는 팝업 (daily-challenge §9.2). 값명 = 프리팹 파일명.
     }
 
+    //# 몬스터 강화 전신 시트 세트(monster-tier-sheets §7.2) — 값명 = MonsterTierSheetSet SO 파일명 = Addressables 주소. <기준몬스터>T<티어>.
+    public enum EMonsterTierSheet
+    {
+        WispT1, WispT2, WispT3,
+        WraithT1, WraithT2, WraithT3,
+        ReaperT1, ReaperT2, ReaperT3,
+        HexT1, HexT2, HexT3,
+        PlagueT1, PlagueT2, PlagueT3,
+        PhantomT1, PhantomT2, PhantomT3,
+    }
+
     //# B1 신규 — 데이터 SO 로드 키 (예: CardPool)
     public enum EData
     {

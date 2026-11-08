@@ -55,6 +55,8 @@ namespace Lair.Battle
 
         //# 종족 강화 레벨 캐시 — ApplyMetaBonuses 에서 1회 채움, 스폰 시 발광 적용에 사용 (monster-species-enhancement §4.3).
         private readonly Dictionary<EMonster, int> _speciesLevels = new();
+        //# 이번 판의 강화 티어 전신 시트 로더 — 전투 시작 로딩 구간에서 만들고 OnDestroy 에서 해제(monster-tier-sheets §7).
+        private Lair.Character.MonsterTierSheetLoader _tierSheets;
 
         //# 스포너 상태 UI — 종별 적용된 강화 카드 픽 누적 (툴팁 본문 + 셀 상단 아이콘 row 의 source).
         //# Source 추적은 ApplyCardEffect(card) 가 _currentCardScope 에 카드를 저장한 동안
@@ -187,6 +189,7 @@ namespace Lair.Battle
             _effectiveDifficulty = _spec.EffectiveDifficulty;
             await ApplyChapterBackdrop();
             _formation = ResolveFormation();
+            await LoadMonsterTierSheets();
 
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
@@ -515,6 +518,9 @@ namespace Lair.Battle
         //# 스포너 상태 UI — VM 이 Spawner / 본 컨트롤러 이벤트를 구독했으므로 함께 해제.
         private void OnDestroy()
         {
+            //# 씬 전환 직전 — 이번 판에 로드한 티어 시트 번들 해제(monster-tier-sheets §7.5).
+            _tierSheets?.Release();
+            _tierSheets = null;
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
             _traits?.Dispose();
             _traits = null;
@@ -809,6 +815,7 @@ namespace Lair.Battle
             if (visual != null)
             {
                 int level = _speciesLevels.TryGetValue(species, out int lv) ? lv : 0;
+                visual.SetTierSheetProvider(_tierSheets);
                 visual.ApplyLevel(level, species);
             }
 
@@ -1101,6 +1108,42 @@ namespace Lair.Battle
                     ai.enabled = true;
                 }
             }
+        }
+
+        //# 편성 6둥지의 기준 몬스터 x 상점 강화 Lv → 티어(>0)인 종족만 병렬 로드. 모든 전투 모드 공통(챕터·탑·데일리), 실패는 풋내기 폴백.
+        private async Task LoadMonsterTierSheets()
+        {
+            _tierSheets = new Lair.Character.MonsterTierSheetLoader(
+                key => CHMResource.Instance.LoadAsync<Lair.Character.MonsterTierSheetSet>(key),
+                key => CHMResource.Instance.Unload(key),
+                Debug.LogWarning);
+            if (_metaConfig == null)
+                return;
+
+            MetaProfile profile = MetaSession.GetOrLoad();
+            IReadOnlyList<EMonster> placed = _formation != null ? _formation : MonsterGrades.BaseMonsters;
+            List<(EMonster, int)> needs = new List<(EMonster, int)>();
+            HashSet<EMonster> seen = new HashSet<EMonster>();
+            foreach (EMonster monster in placed)
+            {
+                EMonster root = MonsterGrades.BaseOf(monster);
+                if (seen.Add(root) == false)
+                    continue;
+                int level = 0;
+                foreach (ShopItemDef item in _metaConfig.ShopItems)
+                {
+                    if (item == null || item.EffectKind != EShopEffectKind.MonsterSpecies || item.Species != root)
+                        continue;
+                    level = Mathf.Clamp(profile.GetShopLevel(item.Id), 0, item.MaxLevel);
+                    break;
+                }
+                int tier = Lair.Character.MonsterEnhancementVisual.TierOfLevel(level);
+                if (tier > 0)
+                {
+                    needs.Add((root, tier));
+                }
+            }
+            await _tierSheets.LoadAsync(needs);
         }
 
         //# EffectiveFormation 계산 (§6.3) — 편성 데이터 미로드면 null. 프로필은 수정하지 않는다.
