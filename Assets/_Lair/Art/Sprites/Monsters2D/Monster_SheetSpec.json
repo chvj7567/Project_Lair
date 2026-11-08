@@ -1,0 +1,638 @@
+{
+  "doc": "monster-sheet-v4 art manifest (one-off tool + tests only, not runtime)",
+  "cols": 6,
+  "rowsBody": 6,
+  "rowsOverlay": 5,
+  "cell": 192,
+  "indexRule": "row*6+col",
+  "pivot": {
+    "x": 0.5,
+    "y": 0.0
+  },
+  "outRowOrder": [
+    "idle",
+    "move",
+    "attack",
+    "hit",
+    "death",
+    "spawn"
+  ],
+  "source": {
+    "fileSuffix": "_ver4",
+    "cols": 6,
+    "rows": 6,
+    "cell": 229,
+    "srcRowOrder": [
+      "idle",
+      "attack",
+      "death",
+      "spawn",
+      "move",
+      "hit"
+    ]
+  },
+  "process": {
+    "resample": "lanczos3",
+    "scale": 0.8384,
+    "haloAlphaCut": 24,
+    "fringeRepair": true,
+    "edgeMarginPx": 8
+  },
+  "texture": {
+    "mipmaps": true,
+    "filter": "bilinear",
+    "maxSize": 2048,
+    "compressionMobile": "astc6x6",
+    "compressionMaskMobile": "astc8x8"
+  },
+  "monsters": [
+    {
+      "base": "Wisp",
+      "bodyPx": 29,
+      "srcBodyHeight": 161,
+      "ppu": 266.483,
+      "ppuOverlay": 0.0,
+      "floatPx": 11,
+      "floatPxOverlay": 0,
+      "offset": [
+        -8,
+        -7
+      ],
+      "cellWorld": 0.7205,
+      "anchorMode": "all",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 8,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 0,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 14,
+        "rise": 11,
+        "maskRatioIdle": 0.0631,
+        "minEdgeMargin": 8,
+        "lostPx": 0,
+        "fitShiftFrames": 0
+      }
+    },
+    {
+      "base": "Wraith",
+      "bodyPx": 62,
+      "srcBodyHeight": 161,
+      "ppu": 124.645,
+      "ppuOverlay": 0.0,
+      "floatPx": 5,
+      "floatPxOverlay": 0,
+      "offset": [
+        -10,
+        11
+      ],
+      "cellWorld": 1.5404,
+      "anchorMode": "all",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 6,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 8,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 1,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 4,
+        "rise": 2,
+        "maskRatioIdle": 0.0574,
+        "minEdgeMargin": 0,
+        "lostPx": 11,
+        "fitShiftFrames": 10
+      }
+    },
+    {
+      "base": "Reaper",
+      "bodyPx": 43,
+      "srcBodyHeight": 154,
+      "ppu": 171.907,
+      "ppuOverlay": 0.0,
+      "floatPx": 7,
+      "floatPxOverlay": 0,
+      "offset": [
+        0,
+        12
+      ],
+      "cellWorld": 1.1169,
+      "anchorMode": "all",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 8,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 0,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 7,
+        "rise": 15,
+        "maskRatioIdle": 0.0756,
+        "minEdgeMargin": 8,
+        "lostPx": 0,
+        "fitShiftFrames": 1
+      }
+    },
+    {
+      "base": "Hex",
+      "bodyPx": 38,
+      "srcBodyHeight": 163,
+      "ppu": 205.895,
+      "ppuOverlay": 0.0,
+      "floatPx": 9,
+      "floatPxOverlay": 0,
+      "offset": [
+        2,
+        6
+      ],
+      "cellWorld": 0.9325,
+      "anchorMode": "largestComponent",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 8,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 0,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 12,
+        "rise": 4,
+        "maskRatioIdle": 0.0743,
+        "minEdgeMargin": 5,
+        "lostPx": 0,
+        "fitShiftFrames": 3
+      }
+    },
+    {
+      "base": "Plague",
+      "bodyPx": 24,
+      "srcBodyHeight": 141,
+      "ppu": 282.0,
+      "ppuOverlay": 0.0,
+      "floatPx": 12,
+      "floatPxOverlay": 0,
+      "offset": [
+        -3,
+        -8
+      ],
+      "cellWorld": 0.6809,
+      "anchorMode": "largestComponent",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 8,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 0,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 1,
+        "rise": 1,
+        "maskRatioIdle": 0.052,
+        "minEdgeMargin": 8,
+        "lostPx": 0,
+        "fitShiftFrames": 0
+      }
+    },
+    {
+      "base": "Phantom",
+      "bodyPx": 19,
+      "srcBodyHeight": 123,
+      "ppu": 310.737,
+      "ppuOverlay": 0.0,
+      "floatPx": 13,
+      "floatPxOverlay": 0,
+      "offset": [
+        -10,
+        9
+      ],
+      "cellWorld": 0.6179,
+      "anchorMode": "all",
+      "anim": {
+        "idle": {
+          "frames": 6,
+          "sampleRate": 15,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "move": {
+          "frames": 6,
+          "sampleRate": 18,
+          "loop": true,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "attack": {
+          "frames": 6,
+          "sampleRate": 30,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "hit": {
+          "frames": 6,
+          "sampleRate": 24,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "death": {
+          "frames": 6,
+          "sampleRate": 12,
+          "loop": false,
+          "keyTimes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      },
+      "measured": {
+        "edgeCrossFrames": 0,
+        "removedSpecks": 0,
+        "rowJitterIdle": 0,
+        "rowJitterMove": 3,
+        "rise": 5,
+        "maskRatioIdle": 0.0448,
+        "minEdgeMargin": 8,
+        "lostPx": 0,
+        "fitShiftFrames": 0
+      }
+    }
+  ]
+}
