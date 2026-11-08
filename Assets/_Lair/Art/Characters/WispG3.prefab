@@ -231,6 +231,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 339099470589442311, guid: dabfd090c7368904cadc81cddd0cf296, type: 3}
+      propertyPath: _renderers.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 339099470589442311, guid: dabfd090c7368904cadc81cddd0cf296, type: 3}
+      propertyPath: '_renderers.Array.data[2]'
+      value: 
+      objectReference: {fileID: 4960955726701383244}
     - target: {fileID: 2757506939628045199, guid: dabfd090c7368904cadc81cddd0cf296, type: 3}
       propertyPath: m_Name
       value: WispG3

@@ -26,6 +26,7 @@ GameObject:
   - component: {fileID: 1075002273630455223}
   - component: {fileID: 1700321658755884652}
   - component: {fileID: 8368412272666824359}
+  - component: {fileID: 339099470589442311}
   m_Layer: 0
   m_Name: Wisp
   m_TagString: Untagged
@@ -302,9 +303,6 @@ MonoBehaviour:
   - 0.809
   - 0.872
   - 0.934
-  _gradeEmissionFloor: 0
-  _useGradeGlowColor: 0
-  _gradeGlowColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &1700321658755884652
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -334,6 +332,40 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+--- !u!114 &339099470589442311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2757506939628045199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df51126c85a142b4e85700f35dfb6515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _battleBehaviours:
+  - {fileID: 4714778337006952125}
+  - {fileID: 6272970442183615847}
+  - {fileID: 5302949115863384781}
+  - {fileID: 1787621627839111827}
+  - {fileID: 1700321658755884652}
+  - {fileID: 5943683239150279958}
+  - {fileID: 1489885472083321565}
+  - {fileID: 3418358130653599916}
+  - {fileID: 3756835013959405899}
+  _colliders:
+  - {fileID: 6714322885456586837}
+  _hiddenObjects:
+  - {fileID: 2936127519744827137}
+  - {fileID: 4345913829685606722}
+  - {fileID: 3297573778156159313}
+  _animator: {fileID: 1717132506601345308}
+  _visualRoot: {fileID: 1059512929500552601}
+  _renderers:
+  - {fileID: 7971359205970214814}
+  - {fileID: 3408618972735795303}
+  _enhancement: {fileID: 1075002273630455223}
 --- !u!1 &2936127519744827137
 GameObject:
   m_ObjectHideFlags: 0

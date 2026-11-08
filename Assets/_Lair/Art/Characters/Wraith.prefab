@@ -418,6 +418,7 @@ GameObject:
   - component: {fileID: 133207673890385847}
   - component: {fileID: 7496696248116699211}
   - component: {fileID: 5456594912345928652}
+  - component: {fileID: 4097930938810013907}
   m_Layer: 0
   m_Name: Wraith
   m_TagString: Untagged
@@ -694,9 +695,6 @@ MonoBehaviour:
   - 1.559
   - 1.663
   - 1.726
-  _gradeEmissionFloor: 0
-  _useGradeGlowColor: 0
-  _gradeGlowColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &7496696248116699211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -726,6 +724,40 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+--- !u!114 &4097930938810013907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5128659971640815157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df51126c85a142b4e85700f35dfb6515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _battleBehaviours:
+  - {fileID: 8043710810638408703}
+  - {fileID: 2163776825709380276}
+  - {fileID: 1041349729539843032}
+  - {fileID: 6396354519837762514}
+  - {fileID: 7496696248116699211}
+  - {fileID: 5974855633169413346}
+  - {fileID: 6287633906747732235}
+  - {fileID: 1260455406174791708}
+  - {fileID: 8541667941915958666}
+  _colliders:
+  - {fileID: 489738928553086412}
+  _hiddenObjects:
+  - {fileID: 5018497147085285040}
+  - {fileID: 3170081878274228771}
+  - {fileID: 2460667971394367309}
+  _animator: {fileID: 5834189814624507700}
+  _visualRoot: {fileID: 4609968136622614420}
+  _renderers:
+  - {fileID: 9134038427045642270}
+  - {fileID: 6497975325570978333}
+  _enhancement: {fileID: 133207673890385847}
 --- !u!1001 &5742229614982760781
 PrefabInstance:
   m_ObjectHideFlags: 0

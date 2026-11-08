@@ -218,6 +218,7 @@ GameObject:
   - component: {fileID: 5269038587208959756}
   - component: {fileID: 8260649890324103424}
   - component: {fileID: 4100790666411733693}
+  - component: {fileID: 2824450079407874627}
   m_Layer: 0
   m_Name: Phantom
   m_TagString: Untagged
@@ -494,9 +495,6 @@ MonoBehaviour:
   - 0.622
   - 0.684
   - 0.747
-  _gradeEmissionFloor: 0
-  _useGradeGlowColor: 0
-  _gradeGlowColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &8260649890324103424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -526,6 +524,40 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+--- !u!114 &2824450079407874627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7498979116898781069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df51126c85a142b4e85700f35dfb6515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _battleBehaviours:
+  - {fileID: 3851194162118952814}
+  - {fileID: 9097798292099828456}
+  - {fileID: 123686775371245543}
+  - {fileID: 4287563899151158166}
+  - {fileID: 8260649890324103424}
+  - {fileID: 6779239346388688159}
+  - {fileID: 5917769705499257557}
+  - {fileID: 1736536197016519419}
+  - {fileID: 1530711250421419195}
+  _colliders:
+  - {fileID: 597223652944215550}
+  _hiddenObjects:
+  - {fileID: 7936445732414093724}
+  - {fileID: 2125141715487958054}
+  - {fileID: 2861574375513722220}
+  _animator: {fileID: 4326269687933447503}
+  _visualRoot: {fileID: 7282515548327860141}
+  _renderers:
+  - {fileID: 7375604632241028957}
+  - {fileID: 6003973109676068067}
+  _enhancement: {fileID: 5269038587208959756}
 --- !u!1 &7936445732414093724
 GameObject:
   m_ObjectHideFlags: 0

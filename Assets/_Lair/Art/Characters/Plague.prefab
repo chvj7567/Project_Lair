@@ -27,6 +27,7 @@ GameObject:
   - component: {fileID: 6241712245956280871}
   - component: {fileID: 2797737285733329720}
   - component: {fileID: 5288645470665764120}
+  - component: {fileID: 3542520878308977699}
   m_Layer: 0
   m_Name: Plague
   m_TagString: Untagged
@@ -318,9 +319,6 @@ MonoBehaviour:
   - 0.747
   - 0.747
   - 0.788
-  _gradeEmissionFloor: 0
-  _useGradeGlowColor: 0
-  _gradeGlowColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &2797737285733329720
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,6 +348,41 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+--- !u!114 &3542520878308977699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822707464687008870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df51126c85a142b4e85700f35dfb6515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _battleBehaviours:
+  - {fileID: 1877269100153388680}
+  - {fileID: 349319096798411844}
+  - {fileID: 6740240992150390399}
+  - {fileID: 2127163741606966246}
+  - {fileID: 2797737285733329720}
+  - {fileID: 8350369458281781709}
+  - {fileID: 8986900312174817008}
+  - {fileID: 4246813839298309230}
+  - {fileID: 1016650578273259992}
+  - {fileID: 195576159759142874}
+  _colliders:
+  - {fileID: 3010152349515848460}
+  _hiddenObjects:
+  - {fileID: 2064074585128764601}
+  - {fileID: 4124923535290329483}
+  - {fileID: 5234924116864823485}
+  _animator: {fileID: 3066138984414094462}
+  _visualRoot: {fileID: 64763904244167842}
+  _renderers:
+  - {fileID: 1653285420519662967}
+  - {fileID: 5386590073667213123}
+  _enhancement: {fileID: 6241712245956280871}
 --- !u!1 &2064074585128764601
 GameObject:
   m_ObjectHideFlags: 0

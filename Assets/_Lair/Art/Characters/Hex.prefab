@@ -26,6 +26,7 @@ GameObject:
   - component: {fileID: 5735830089872495940}
   - component: {fileID: 8979745637072283330}
   - component: {fileID: 2383508471572082702}
+  - component: {fileID: 1875700466028547280}
   m_Layer: 0
   m_Name: Hex
   m_TagString: Untagged
@@ -302,9 +303,6 @@ MonoBehaviour:
   - 1.018
   - 1.08
   - 1.143
-  _gradeEmissionFloor: 0
-  _useGradeGlowColor: 0
-  _gradeGlowColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &8979745637072283330
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -334,6 +332,40 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_SortAtRoot: 0
+--- !u!114 &1875700466028547280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1881501178030039518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df51126c85a142b4e85700f35dfb6515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _battleBehaviours:
+  - {fileID: 2379309649973636739}
+  - {fileID: 416209244278027665}
+  - {fileID: 3735962353000057848}
+  - {fileID: 8044433619619691698}
+  - {fileID: 8979745637072283330}
+  - {fileID: 5150372332399329347}
+  - {fileID: 3430791624020384494}
+  - {fileID: 2820145903056844090}
+  - {fileID: 3900995249776928894}
+  _colliders:
+  - {fileID: 8715895203252023507}
+  _hiddenObjects:
+  - {fileID: 2554397842026582751}
+  - {fileID: 3864363527646761442}
+  - {fileID: 9044489320964503258}
+  _animator: {fileID: 4229398490361742844}
+  _visualRoot: {fileID: 8787734157045193954}
+  _renderers:
+  - {fileID: 8836250250801008399}
+  - {fileID: 8836216378733434381}
+  _enhancement: {fileID: 5735830089872495940}
 --- !u!1 &2554397842026582751
 GameObject:
   m_ObjectHideFlags: 0
