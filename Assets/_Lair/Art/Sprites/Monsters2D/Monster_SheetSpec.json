@@ -1,8 +1,6 @@
 {
   "doc": "monster-sheet-v4 art manifest (one-off tool + tests only, not runtime)",
   "cols": 6,
-  "rowsBody": 6,
-  "rowsOverlay": 5,
   "cell": 192,
   "indexRule": "row*6+col",
   "pivot": {
@@ -14,8 +12,7 @@
     "move",
     "attack",
     "hit",
-    "death",
-    "spawn"
+    "death"
   ],
   "source": {
     "fileSuffix": "_ver4",
@@ -29,6 +26,9 @@
       "spawn",
       "move",
       "hit"
+    ],
+    "discardRows": [
+      "spawn"
     ]
   },
   "process": {
@@ -51,9 +51,7 @@
       "bodyPx": 29,
       "srcBodyHeight": 161,
       "ppu": 266.483,
-      "ppuOverlay": 0.0,
       "floatPx": 11,
-      "floatPxOverlay": 0,
       "offset": [
         -8,
         -7
@@ -142,16 +140,109 @@
         "minEdgeMargin": 8,
         "lostPx": 0,
         "fitShiftFrames": 0
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Wisp_Sheet_T1",
+          "ppuTier": 249.872,
+          "sFit": 0.94,
+          "offset": [
+            -35,
+            -27
+          ],
+          "eyeDistHD": 37.93,
+          "eyeMidHD": [
+            135.0,
+            154.2
+          ],
+          "hpBarHeight": 0.7804,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.106,
+            "worldWidthRatio": 1.199,
+            "silhouetteGain": 0.223,
+            "protrusion": 2.7,
+            "minEdgeMargin": 8,
+            "removedSpecks": 10,
+            "neonPixels": 8421,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0869
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Wisp_Sheet_T2",
+          "ppuTier": 251.538,
+          "sFit": 0.92,
+          "offset": [
+            -32,
+            -26
+          ],
+          "eyeDistHD": 39.02,
+          "eyeMidHD": [
+            135.1,
+            152.7
+          ],
+          "hpBarHeight": 0.7797,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.079,
+            "worldWidthRatio": 1.144,
+            "silhouetteGain": 0.159,
+            "protrusion": 2.5,
+            "minEdgeMargin": 8,
+            "removedSpecks": 3,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0638
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Wisp_Sheet_T3",
+          "ppuTier": 217.019,
+          "sFit": 0.85,
+          "offset": [
+            -19,
+            -15
+          ],
+          "eyeDistHD": 36.43,
+          "eyeMidHD": [
+            134.1,
+            150.3
+          ],
+          "hpBarHeight": 0.8173,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.136,
+            "worldWidthRatio": 1.402,
+            "silhouetteGain": 0.382,
+            "protrusion": 7.0,
+            "minEdgeMargin": 6,
+            "removedSpecks": 10,
+            "neonPixels": 6980,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0707
+          }
+        }
+      ]
     },
     {
       "base": "Wraith",
       "bodyPx": 62,
       "srcBodyHeight": 161,
       "ppu": 124.645,
-      "ppuOverlay": 0.0,
       "floatPx": 5,
-      "floatPxOverlay": 0,
       "offset": [
         -10,
         11
@@ -240,16 +331,109 @@
         "minEdgeMargin": 0,
         "lostPx": 11,
         "fitShiftFrames": 10
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Wraith_Sheet_T1",
+          "ppuTier": 113.446,
+          "sFit": 0.85,
+          "offset": [
+            -39,
+            -12
+          ],
+          "eyeDistHD": 36.47,
+          "eyeMidHD": [
+            144.8,
+            103.8
+          ],
+          "hpBarHeight": 1.4551,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge",
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.03,
+            "worldWidthRatio": 0.973,
+            "silhouetteGain": 0.13,
+            "protrusion": 1.9,
+            "minEdgeMargin": 6,
+            "removedSpecks": 2,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0824
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Wraith_Sheet_T2",
+          "ppuTier": 115.229,
+          "sFit": 0.85,
+          "offset": [
+            -40,
+            -13
+          ],
+          "eyeDistHD": 37.05,
+          "eyeMidHD": [
+            145.0,
+            103.0
+          ],
+          "hpBarHeight": 1.4512,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge",
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.015,
+            "worldWidthRatio": 0.966,
+            "silhouetteGain": 0.176,
+            "protrusion": 1.9,
+            "minEdgeMargin": 4,
+            "removedSpecks": 4,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0906
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Wraith_Sheet_T3",
+          "ppuTier": 113.781,
+          "sFit": 0.88,
+          "offset": [
+            -30,
+            -9
+          ],
+          "eyeDistHD": 35.34,
+          "eyeMidHD": [
+            147.4,
+            102.4
+          ],
+          "hpBarHeight": 1.4511,
+          "regenNeeded": false,
+          "regenReasons": [],
+          "measured": {
+            "worldHeightRatio": 0.939,
+            "worldWidthRatio": 1.346,
+            "silhouetteGain": 0.383,
+            "protrusion": 8.9,
+            "minEdgeMargin": 8,
+            "removedSpecks": 7,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.094
+          }
+        }
+      ]
     },
     {
       "base": "Reaper",
       "bodyPx": 43,
       "srcBodyHeight": 154,
       "ppu": 171.907,
-      "ppuOverlay": 0.0,
       "floatPx": 7,
-      "floatPxOverlay": 0,
       "offset": [
         0,
         12
@@ -338,16 +522,109 @@
         "minEdgeMargin": 8,
         "lostPx": 0,
         "fitShiftFrames": 1
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Reaper_Sheet_T1",
+          "ppuTier": 144.539,
+          "sFit": 0.85,
+          "offset": [
+            -26,
+            -13
+          ],
+          "eyeDistHD": 18.88,
+          "eyeMidHD": [
+            132.5,
+            116.3
+          ],
+          "hpBarHeight": 1.1247,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.043,
+            "worldWidthRatio": 1.237,
+            "silhouetteGain": 0.353,
+            "protrusion": 7.3,
+            "minEdgeMargin": 0,
+            "removedSpecks": 0,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1092
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Reaper_Sheet_T2",
+          "ppuTier": 149.815,
+          "sFit": 0.85,
+          "offset": [
+            -27,
+            -13
+          ],
+          "eyeDistHD": 19.56,
+          "eyeMidHD": [
+            132.6,
+            113.9
+          ],
+          "hpBarHeight": 1.0879,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.013,
+            "worldWidthRatio": 1.349,
+            "silhouetteGain": 0.29,
+            "protrusion": 6.4,
+            "minEdgeMargin": 0,
+            "removedSpecks": 0,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1018
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Reaper_Sheet_T3",
+          "ppuTier": 147.173,
+          "sFit": 0.85,
+          "offset": [
+            -27,
+            -12
+          ],
+          "eyeDistHD": 19.22,
+          "eyeMidHD": [
+            132.5,
+            114.2
+          ],
+          "hpBarHeight": 1.1468,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T5 edge"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.085,
+            "worldWidthRatio": 1.392,
+            "silhouetteGain": 0.512,
+            "protrusion": 7.3,
+            "minEdgeMargin": 0,
+            "removedSpecks": 0,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1492
+          }
+        }
+      ]
     },
     {
       "base": "Hex",
       "bodyPx": 38,
       "srcBodyHeight": 163,
       "ppu": 205.895,
-      "ppuOverlay": 0.0,
       "floatPx": 9,
-      "floatPxOverlay": 0,
       "offset": [
         2,
         6
@@ -436,16 +713,107 @@
         "minEdgeMargin": 5,
         "lostPx": 0,
         "fitShiftFrames": 3
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Hex_Sheet_T1",
+          "ppuTier": 194.904,
+          "sFit": 0.93,
+          "offset": [
+            -28,
+            -17
+          ],
+          "eyeDistHD": 30.93,
+          "eyeMidHD": [
+            126.9,
+            134.5
+          ],
+          "hpBarHeight": 0.9317,
+          "regenNeeded": false,
+          "regenReasons": [],
+          "measured": {
+            "worldHeightRatio": 1.011,
+            "worldWidthRatio": 1.096,
+            "silhouetteGain": 0.149,
+            "protrusion": 3.7,
+            "minEdgeMargin": 8,
+            "removedSpecks": 6,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0566
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Hex_Sheet_T2",
+          "ppuTier": 195.632,
+          "sFit": 0.93,
+          "offset": [
+            -28,
+            -17
+          ],
+          "eyeDistHD": 31.04,
+          "eyeMidHD": [
+            126.8,
+            134.2
+          ],
+          "hpBarHeight": 0.949,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.04,
+            "worldWidthRatio": 1.1,
+            "silhouetteGain": 0.174,
+            "protrusion": 4.0,
+            "minEdgeMargin": 8,
+            "removedSpecks": 22,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0923
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Hex_Sheet_T3",
+          "ppuTier": 170.322,
+          "sFit": 0.86,
+          "offset": [
+            -21,
+            -7
+          ],
+          "eyeDistHD": 29.23,
+          "eyeMidHD": [
+            130.1,
+            135.3
+          ],
+          "hpBarHeight": 1.0018,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.112,
+            "worldWidthRatio": 1.4,
+            "silhouetteGain": 0.597,
+            "protrusion": 7.0,
+            "minEdgeMargin": 8,
+            "removedSpecks": 24,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0941
+          }
+        }
+      ]
     },
     {
       "base": "Plague",
       "bodyPx": 24,
       "srcBodyHeight": 141,
       "ppu": 282.0,
-      "ppuOverlay": 0.0,
       "floatPx": 12,
-      "floatPxOverlay": 0,
       "offset": [
         -3,
         -8
@@ -534,16 +902,109 @@
         "minEdgeMargin": 8,
         "lostPx": 0,
         "fitShiftFrames": 0
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Plague_Sheet_T1",
+          "ppuTier": 284.804,
+          "sFit": 1.0,
+          "offset": [
+            -33,
+            -37
+          ],
+          "eyeDistHD": 40.27,
+          "eyeMidHD": [
+            131.6,
+            142.7
+          ],
+          "hpBarHeight": 0.6558,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.053,
+            "worldWidthRatio": 1.06,
+            "silhouetteGain": 0.141,
+            "protrusion": 1.5,
+            "minEdgeMargin": 8,
+            "removedSpecks": 4,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1287
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Plague_Sheet_T2",
+          "ppuTier": 281.51,
+          "sFit": 1.0,
+          "offset": [
+            -31,
+            -42
+          ],
+          "eyeDistHD": 39.8,
+          "eyeMidHD": [
+            131.4,
+            142.8
+          ],
+          "hpBarHeight": 0.6519,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.087,
+            "worldWidthRatio": 0.995,
+            "silhouetteGain": 0.199,
+            "protrusion": 1.4,
+            "minEdgeMargin": 8,
+            "removedSpecks": 2,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1061
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Plague_Sheet_T3",
+          "ppuTier": 264.75,
+          "sFit": 0.96,
+          "offset": [
+            -29,
+            -32
+          ],
+          "eyeDistHD": 38.99,
+          "eyeMidHD": [
+            130.4,
+            141.0
+          ],
+          "hpBarHeight": 0.7032,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.209,
+            "worldWidthRatio": 1.161,
+            "silhouetteGain": 0.347,
+            "protrusion": 3.9,
+            "minEdgeMargin": 8,
+            "removedSpecks": 1,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.1828
+          }
+        }
+      ]
     },
     {
       "base": "Phantom",
       "bodyPx": 19,
       "srcBodyHeight": 123,
       "ppu": 310.737,
-      "ppuOverlay": 0.0,
       "floatPx": 13,
-      "floatPxOverlay": 0,
       "offset": [
         -10,
         9
@@ -632,7 +1093,103 @@
         "minEdgeMargin": 8,
         "lostPx": 0,
         "fitShiftFrames": 0
-      }
+      },
+      "tiers": [
+        {
+          "tier": 1,
+          "sheet": "Phantom_Sheet_T1",
+          "ppuTier": 306.04,
+          "sFit": 0.98,
+          "offset": [
+            -35,
+            -22
+          ],
+          "eyeDistHD": 27.04,
+          "eyeMidHD": [
+            141.0,
+            134.0
+          ],
+          "hpBarHeight": 0.5669,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.106,
+            "worldWidthRatio": 1.058,
+            "silhouetteGain": 0.161,
+            "protrusion": 2.3,
+            "minEdgeMargin": 8,
+            "removedSpecks": 1,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0698
+          }
+        },
+        {
+          "tier": 2,
+          "sheet": "Phantom_Sheet_T2",
+          "ppuTier": 310.88,
+          "sFit": 0.99,
+          "offset": [
+            -34,
+            -23
+          ],
+          "eyeDistHD": 27.19,
+          "eyeMidHD": [
+            141.4,
+            134.4
+          ],
+          "hpBarHeight": 0.5722,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.13,
+            "worldWidthRatio": 1.029,
+            "silhouetteGain": 0.241,
+            "protrusion": 2.6,
+            "minEdgeMargin": 8,
+            "removedSpecks": 0,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.0629
+          }
+        },
+        {
+          "tier": 3,
+          "sheet": "Phantom_Sheet_T3",
+          "ppuTier": 311.946,
+          "sFit": 0.98,
+          "offset": [
+            -34,
+            -23
+          ],
+          "eyeDistHD": 27.56,
+          "eyeMidHD": [
+            141.4,
+            133.0
+          ],
+          "hpBarHeight": 0.5993,
+          "regenNeeded": true,
+          "regenReasons": [
+            "X-T3 distinct"
+          ],
+          "measured": {
+            "worldHeightRatio": 1.231,
+            "worldWidthRatio": 1.014,
+            "silhouetteGain": 0.323,
+            "protrusion": 3.9,
+            "minEdgeMargin": 8,
+            "removedSpecks": 1,
+            "neonPixels": 0,
+            "manualEdits": 0,
+            "maskRatioIdle": 0.057
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "rows": 5
 }
