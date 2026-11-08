@@ -61,6 +61,7 @@ namespace Lair.Battle
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
                 await LoadGradeFxAsync();
+                await LoadShowcaseAsync();
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
                 await LoadGrowthAsync();
@@ -168,6 +169,32 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 등급 연출 비활성");
                 GradeFxDatabase.Current = null;
+            }
+        }
+
+        //# 마을·로딩 몬스터 쇼케이스 JSON 3종 — 실패해도 챕터 로드는 성공. Current=null → 쇼케이스 비활성(씬의 정적 몬스터 유지).
+        private static async Task LoadShowcaseAsync()
+        {
+            ShowcaseDatabase.Current = null;
+            string sceneJson = await LoadTextAsync(EData.Showcase_Scene);
+            string actorJson = await LoadTextAsync(EData.Showcase_Actor);
+            string waypointJson = await LoadTextAsync(EData.Showcase_Actor_Waypoint);
+            if (sceneJson == null || actorJson == null || waypointJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 쇼케이스 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 쇼케이스 비활성");
+                return;
+            }
+            try
+            {
+                ShowcaseDatabase.Current = ShowcaseDatabase.Build(
+                    JsonArrayUtility.FromJsonArray<Showcase_SceneRow>(sceneJson),
+                    JsonArrayUtility.FromJsonArray<Showcase_ActorRow>(actorJson),
+                    JsonArrayUtility.FromJsonArray<Showcase_Actor_WaypointRow>(waypointJson));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 쇼케이스 비활성");
+                ShowcaseDatabase.Current = null;
             }
         }
 
