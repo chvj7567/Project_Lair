@@ -4,6 +4,7 @@
 > 입력: 새 시트 `C:\Users\Tae\Desktop\Art\Monster\v4\{Hex,Phantom,Plague,Reaper,Wisp,Wraith}_ver4.png`(각 1374x1374) · `monster-2d-conversion.md` §3.3·§5·§6·§7 · `monster-grades.md` §7·§9 · `hero-2d-conversion.md` §4.2·§8 · `MonsterGrade_SheetSpec.json` · `MonsterGradeAssetBuilder.cs` · `HitFlash.cs` · `MonsterTierOverlay.cs` · `.art-incoming/monster-revisions-2026-11-08/README.md` · `Mobile_RPAsset.asset`(렌더 스케일 0.8) · `Battle.unity`(카메라·`m_PixelPerfect: 0`)
 > **UI 목업**: `.mockups/monster-sheet-v4.html` (UI 화면은 아니고 시각 확인용. 필요 에셋 목록은 §7.3)
 > **사용자용 가이드**: `docs/design/monster-sheet-v4.html`
+> **개정 2(2026-11-08)**: 강화 T1~T3 는 덧그림 파츠가 아니라 **전신 T 시트 교체**로 바뀌었다 -> §5.3·§7.1(덧그림 36장)·§8(`ppuOverlay`/`topY`)·§10.3 의 덧그림 관련 내용은 `monster-tier-sheets.md` 로 대체됨(§1 의 `덧그림 PPU_T` 열도 폐기). 등급 외형은 시트를 만들지 않는 연출이 되어 §9 의 "G2~G5 화풍 불일치" 위험은 `monster-grades.md` 개정 2 로 해소됨. 풋내기 몸 시트·발광 마스크·클립·PPU 규격은 그대로 유효.
 > 본 문서는 `monster-2d-conversion.md` §3.1(픽셀아트 확정)·§3.2(PPU 48 6종 공통)·§5.2(프레임 수)·§7.3(Point·비압축)·§8(아트 소스 = 절차 생성)을 **1등급 6종에 한해 대체**한다. 충돌하면 본 문서가 우선이다(메인에게 전달: 해당 문서 개정 필요). 초안(6~8배 축소 + 48색 도트화)은 폐기됐다.
 
 ---

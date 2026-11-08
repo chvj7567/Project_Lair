@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>몬스터 강화 외형(전신 그림 교체) - 플레이어 가이드</title>
+<style>
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.6; }
+  .wrap { max-width:900px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p { margin:6px 0; }
+  .sub, .note { color:var(--dim); } .note { font-size:13px; }
+  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card h3 { margin:0 0 6px; font-size:15px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; margin-right:4px; background:#1e293b; color:var(--dim); }
+  .ok { background:#14351f; color:#86efac; } .no { background:#3b1a1a; color:#fca5a5; } .warn { background:#3a2e10; color:#fcd34d; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#18233a; }
+  .strip { display:flex; gap:6px; margin:10px 0; flex-wrap:wrap; }
+  .strip span { flex:1; min-width:110px; text-align:center; padding:12px 6px; border-radius:8px; background:#1b2740; border:1px solid var(--line); }
+  .decide { margin-top:34px; background:#1a1730; border:2px solid #a78bfa; border-radius:12px; padding:16px 18px; }
+  .decide h2 { border:0; margin:0 0 8px; color:#ddd6fe; }
+  .decide ol { margin:0; padding-left:20px; } .decide li { margin:12px 0; }
+  .rec { display:block; margin-top:2px; color:#86efac; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>몬스터 강화 외형, 전신 그림 교체</h1>
+<p class="sub">상점에서 몬스터를 강화하면 겉모습이 변합니다. 지금까지는 기본 몸 위에 뿔·왕관 같은 장식을 덧그렸는데, 앞으로는 <b>강화 단계마다 몸 전체를 새로 그린 그림</b>으로 통째로 바꿉니다.</p>
+
+<h2>어떻게 바뀌나요</h2>
+<div class="strip"><span>기본(풋내기)</span><span>강화 1~2<br>1단계 그림</span><span>강화 3~4<br>2단계 그림</span><span>강화 5<br>3단계 그림</span></div>
+<ul>
+  <li>몬스터마다 그림이 4벌입니다: 기본 + 강화 1단계 · 2단계 · 3단계.</li>
+  <li>강화 레벨 1~2는 1단계, 3~4는 2단계, 5는 3단계 그림을 씁니다(지금과 같은 기준).</li>
+  <li>바닥에 생기는 강화 링, 빛나는 정도, 상점의 강화 레벨은 지금과 같습니다.</li>
+</ul>
+
+<h2>얼굴은 그대로, 장식만 커집니다</h2>
+<p>단계가 바뀔 때 몬스터가 갑자기 커지거나 위치가 튀지 않도록, <b>눈 사이 거리와 얼굴 위치</b>를 기본 그림과 똑같이 맞춥니다. 모자·왕관·망토·날개 같은 장식만 얼굴 밖으로 더 크게 뻗습니다. 전체 크기는 기본의 1.55배(키)·1.6배(폭)를 넘지 않게 제한하고, 넘으면 그림을 다시 만듭니다.</p>
+
+<h2>그림 품질 점검 결과</h2>
+<table>
+  <tr><th>몬스터</th><th>찾은 문제</th><th>정리 방법</th></tr>
+  <tr><td>도깨비불 1·3단계</td><td>쓰러지는 장면에 잔 점, 튀는 연두색 번짐</td><td>색이 튀는 가장자리와 잔 점 자동 제거</td></tr>
+  <tr><td>망령 3단계</td><td>망토가 그림 칸 가장자리에 닿아 잘림</td><td>그림 전체를 살짝 줄여 여백을 확보하고 화면에서 보이는 크기는 같게 보정</td></tr>
+  <tr><td>저주술사 2·3단계</td><td>쓰러지는 장면의 붉은·노란 잡티</td><td>붉은 잡티 전부 삭제, 반짝이는 노란 입자는 큰 것만 유지</td></tr>
+  <tr><td>환령 3단계</td><td>쓰러지는 장면의 흰 잡티</td><td>떨어져 있는 흰 점 삭제(푸른 입자는 유지)</td></tr>
+  <tr><td>사신 1단계</td><td>기본 모습과 구분이 약함</td><td>구분 기준에 못 미치면 다시 그리기를 요청</td></tr>
+  <tr><td>2·3단계 전체</td><td>모자·왕관·망토 때문에 몸이 커 보임</td><td>눈 기준으로 크기를 맞추고 상한 초과 시 다시 그리기</td></tr>
+  <tr><td>전체</td><td>프레임 흔들림</td><td>거의 없음. 이 방식으로 쓸 수 있습니다.</td></tr>
+</table>
+
+<h2>빛나는 부분</h2>
+<p>눈, 구슬, 룬, 왕관 보석처럼 원래 빛나던 곳을 새 그림에서 자동으로 찾아 빛나게 합니다. 금색 왕관·갑옷 같은 장식 자체는 빛나지 않고 보석만 빛납니다(강화 레벨이 높을 때 장식이 번져 보이지 않도록).</p>
+
+<h2>달라지지 않는 것</h2>
+<div class="grid">
+  <div class="card"><span class="tag ok">그대로</span><p>체력, 공격력, 사거리, 이동 속도, 카드 효과, 시너지, 강화 레벨 효과.</p></div>
+  <div class="card"><span class="tag ok">그대로</span><p>공격·맞는·쓰러지는 동작의 길이, 맞을 때 색 번쩍임, 체력바(높이만 새 그림에 맞게 조정).</p></div>
+  <div class="card"><span class="tag warn">참고</span><p>게임 용량이 약 4MB 늘어납니다(휴대폰용 압축 기준, 6종 합계 약 29MB). 강화 그림 4벌은 전투 시작 때 모두 불러옵니다.</p></div>
+</div>
+
+<div class="decide">
+  <h2>결정해 주세요</h2>
+  <ol>
+    <li>사신 1단계처럼 기본 모습과 구분이 약한 그림은 다시 그려 받을까요, 그대로 쓸까요?<span class="rec">추천: 구분 기준에 못 미치면 다시 그립니다.</span></li>
+    <li>강화 그림에도 "나타나는 장면" 줄을 남길까요? (남기면 용량이 약 17% 더 듭니다)<span class="rec">추천: 남깁니다. 휴대폰 용량이 빠듯하면 뺍니다.</span></li>
+    <li>자동 정리로 못 지우는 잡티를 손으로 지우는 것을 허용할까요?<span class="rec">추천: 허용합니다.</span></li>
+    <li>전투 시작 때 필요한 강화 그림만 불러와 메모리를 줄이는 작업을 이번에 같이 할까요?<span class="rec">추천: 이번엔 안 합니다(4벌 모두 불러오기). 휴대폰 메모리가 넘치면 다음에 합니다.</span></li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>

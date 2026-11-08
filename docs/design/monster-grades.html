@@ -1,141 +1,105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>몬스터 등급 가이드 - 풋내기에서 군주까지</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>몬스터 등급 - 플레이어 가이드</title>
 <style>
-:root{--ink:#07090e;--s0:#0d1119;--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;
---soul:#5ef0b4;--aw:#ff9f43;--ms:#d8e4ff;--ac:#2ec4c4}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 60%) fixed;color:var(--txt);
-font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
-.wrap{max-width:980px;margin:0 auto;padding:20px 14px 60px}
-h1{font-size:28px;color:var(--bone);margin:8px 0 4px;text-shadow:2px 2px 0 #000}
-.lead{color:var(--sub);margin:0 0 24px}
-h2{font-size:20px;color:var(--bone);margin:36px 0 12px;display:flex;align-items:center;gap:10px}
-h2::before{content:"";width:6px;height:20px;background:var(--gold)}
-.pnl{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764,inset 0 0 0 4px var(--ink),0 6px 0 #0006;padding:14px}
-.sub{color:var(--sub);font-size:13px}
-/*# 등급 사다리 */
-.ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.gr{background:#111622;border:2px solid #232c42;padding:8px 4px 10px;text-align:center;min-width:0}
-.gr .stage{height:96px;display:flex;align-items:flex-end;justify-content:center;position:relative;background:radial-gradient(ellipse at 50% 92%,#34405c 0%,#1d2536 60%,#131927 100%)}
-.gr .aura{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,var(--gc),transparent)}
-.gr .body{position:relative;margin-bottom:8px;border-radius:50% 50% 46% 46%;background:var(--bc);border:2px solid var(--rim);box-shadow:0 0 0 2px #0a0d14,0 0 var(--glow) var(--gc)}
-.gr .body::before,.gr .body::after{content:"";position:absolute;top:38%;width:16%;height:16%;background:#0a0d14;border-radius:2px}
-.gr .body::before{left:26%}.gr .body::after{right:26%}
-.gr .nm{font-size:14px;margin-top:6px;color:var(--c)}
-.gr .d{font-size:12px;color:var(--sub);line-height:1.45}
-/*# 종족 */
-.races{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.rc{border-left:5px solid var(--sc);background:#111622;padding:8px 10px}
-.rc b{color:var(--sc)}
-.rc .m{font-size:13px;color:var(--sub)}
-/*# 상점 행 */
-.srow{display:flex;gap:4px;background:linear-gradient(90deg,#222c44,#171d2e);border:3px solid var(--ink);padding:4px;flex-wrap:wrap}
-.shead{width:84px;flex:none;text-align:center;font-size:12px;color:#22C55E}
-.shead .face{width:48px;height:48px;margin:2px auto;border:3px solid #22C55E;background:#0b0f18;border-radius:50%}
-.slot{flex:1 1 90px;min-width:0;background:#111622;border:2px solid #232c42;padding:4px 6px}
-.slot .a{font-size:13px;color:var(--bone)}
-.slot .d2{font-size:11px;color:var(--sub);min-height:30px}
-.slot .p{font-size:12px;color:var(--c)}
-.slot.up{border-color:var(--gold);box-shadow:0 0 8px #f7c64a66}
-.slot.up .a{color:var(--gold)}
-/*# 흐름 */
-.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.step{background:#111622;border:2px solid #232c42;padding:10px}
-.step .n{display:inline-block;width:24px;height:24px;text-align:center;background:var(--gold);color:#111;font-weight:700;margin-right:6px}
-.bub{position:relative;background:#f4efe0;color:#1b1f2a;border:3px solid var(--ink);padding:8px 10px;font-size:13px;margin-top:12px}
-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-td,th{border:1px solid #2c3750;padding:5px 6px;text-align:left;overflow-wrap:anywhere}
-th{background:#1c2232;color:var(--bone)}
-.decide{border:3px solid var(--gold);background:#1a1710;padding:14px;margin-top:36px}
-.decide h2{margin-top:0}
-.q{background:#12151c;border:1px solid #2c3750;padding:8px 10px;margin:6px 0;font-size:14px}
-.q .ok{color:#4ade80;font-weight:700;margin-right:6px}
-.q .rec{display:block;font-size:12.5px;color:#FDE68A;margin-top:2px}
-@media (max-width:620px){.ladder{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:380px){.ladder{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.6; }
+  .wrap { max-width:900px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p { margin:6px 0; }
+  .sub, .note { color:var(--dim); }
+  .note { font-size:13px; }
+  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card h3 { margin:0 0 6px; font-size:15px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; margin-right:4px; background:#1e293b; color:var(--dim); }
+  .ok { background:#14351f; color:#86efac; } .no { background:#3b1a1a; color:#fca5a5; } .warn { background:#3a2e10; color:#fcd34d; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#18233a; }
+  .ladder { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin:10px 0; }
+  .step { text-align:center; flex:1; min-width:110px; }
+  .stage { position:relative; height:150px; background:#101826; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .ring { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); border-radius:50%; border:2px solid #6ee7b7; }
+  .body { position:absolute; left:50%; bottom:20px; transform:translateX(-50%); background:#3fcf86; border:2px solid #0a0d14; border-radius:50% 50% 12% 12%; }
+  .col { position:absolute; bottom:20px; width:14px; background:linear-gradient(#ffb84d,#ff5a1f); border-radius:8px 8px 2px 2px; opacity:.9; }
+  .sun { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(255,240,170,.6),rgba(255,240,170,0) 70%); }
+  .decide { margin-top:34px; background:#1a1730; border:2px solid #a78bfa; border-radius:12px; padding:16px 18px; }
+  .decide h2 { border:0; margin:0 0 8px; color:#ddd6fe; }
+  .decide ol { margin:0; padding-left:20px; } .decide li { margin:12px 0; }
+  .rec { display:block; margin-top:2px; color:#86efac; font-size:14px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>몬스터 등급 가이드</h1>
-  <p class="lead">지금 던전에 있는 몬스터 6마리는 모두 1등급 "풋내기"예요. 상점에서 승급하면 같은 종족의 더 강하고 화려한 몬스터가 둥지를 지켜요.</p>
 
-  <h2>다섯 등급 한눈에</h2>
-  <div class="pnl">
-    <div class="ladder">
-      <div class="gr" style="--c:#9CA3AF;--bc:#22C55E;--rim:#0a0d14;--gc:transparent;--glow:0px">
-        <div class="stage"><div class="body" style="width:40px;height:40px"></div></div>
-        <div class="nm">1 풋내기</div><div class="d">지금 모습 그대로</div></div>
-      <div class="gr" style="--c:#4ADE80;--bc:#25CF63;--rim:#DCFCE7;--gc:transparent;--glow:0px">
-        <div class="stage"><div class="body" style="width:42px;height:42px"></div></div>
-        <div class="nm">2 견습</div><div class="d">밝은 테두리 · 종족 장식 하나</div></div>
-      <div class="gr" style="--c:#60A5FA;--bc:#16D968;--rim:#0a0d14;--gc:#28E66E;--glow:10px">
-        <div class="stage"><div class="body" style="width:44px;height:44px"></div></div>
-        <div class="nm">3 숙련</div><div class="d">빛나기 시작 · 반짝이 입자</div></div>
-      <div class="gr" style="--c:#C084FC;--bc:#12D49B;--rim:#5EEAD4;--gc:#2DD4BF;--glow:14px">
-        <div class="stage"><div class="aura" style="width:64px;height:16px;opacity:.5"></div><div class="body" style="width:47px;height:47px"></div></div>
-        <div class="nm">4 정예</div><div class="d">색이 바뀜 · 발밑에 빛</div></div>
-      <div class="gr" style="--c:#FBBF24;--bc:#00E0A4;--rim:#FDE047;--gc:#7CFFD8;--glow:20px">
-        <div class="stage"><div class="aura" style="width:78px;height:20px"></div><div class="body" style="width:52px;height:52px"></div></div>
-        <div class="nm">5 군주</div><div class="d">금빛 테두리 · 가장 큼 · 강한 빛</div></div>
-    </div>
-    <p class="sub" style="margin-top:10px">그림은 도깨비불로 예를 든 간단한 표시예요. 실제 도트 그림은 몬스터 등급 목업 화면에서 6종 모두 볼 수 있어요. 군주는 풋내기보다 1.3배 커 보이지만, 맞는 범위나 사거리는 그대로예요.</p>
-  </div>
+<h1>몬스터 등급 (견습 ~ 군주)</h1>
+<p class="sub">같은 몬스터를 상점에서 승급시키면 5단계까지 올라갑니다. 이번 개편으로 <b>등급마다 새 그림을 그리지 않고</b>, 크기와 빛과 효과로 "강해졌다"는 느낌을 냅니다.</p>
 
-  <h2>종족마다 다르게 자라요</h2>
-  <div class="races">
-    <div class="rc" style="--sc:#22C55E"><b>이그니스 · 도깨비불</b><div class="m">불꼬리가 늘어나고, 군주는 머리 위에 불꽃 고리</div></div>
-    <div class="rc" style="--sc:#9CA3AF"><b>레무르 · 망령</b><div class="m">영혼불이 하나둘 늘어 군주는 영혼불 고리를 두름</div></div>
-    <div class="rc" style="--sc:#EF4444"><b>눅스 · 사신</b><div class="m">가슴의 초승달이 등 뒤 큰 달로 자람</div></div>
-    <div class="rc" style="--sc:#EAB308"><b>헥시아 · 저주술사</b><div class="m">부적과 등 뒤 저주 고리가 두 겹까지</div></div>
-    <div class="rc" style="--sc:#A855F7"><b>미아르 · 역병귀</b><div class="m">발밑 독 웅덩이 → 독기 줄기 → 독구름 관</div></div>
-    <div class="rc" style="--sc:#82ABE6"><b>판타스 · 환령</b><div class="m">몸 뒤 잔상이 한 겹씩 늘어 세 겹까지</div></div>
-  </div>
-  <div class="bub">상점에서 하던 몬스터 강화(뿔·망토·바닥 링)도 그대로 보여요. 군주 + 강화 최대면 둘 다 함께 보여요.</div>
+<h2>한눈에 보는 등급</h2>
+<div class="ladder">
+  <div class="step"><div class="stage"><div class="body" style="width:44px;height:48px"></div></div><b>1 풋내기</b><div class="note">효과 없음(지금과 같음)</div></div>
+  <div class="step"><div class="stage"><div class="ring" style="width:60px;height:22px;opacity:.45"></div><div class="body" style="width:47px;height:52px;box-shadow:0 0 4px #3fcf86"></div></div><b>2 견습</b><div class="note">조금 커지고, 약하게 빛나고, 발밑에 희미한 마법진</div></div>
+  <div class="step"><div class="stage"><div class="ring" style="width:76px;height:28px;opacity:.65"></div><div class="body" style="width:50px;height:55px;box-shadow:0 0 8px #3fcf86"></div></div><b>3 숙련</b><div class="note">더 크고, 더 빛나고, 마법진이 진해짐</div></div>
+  <div class="step"><div class="stage"><div class="ring" style="width:92px;height:34px;opacity:.85"></div><div class="col" style="left:22%;height:70px"></div><div class="col" style="right:22%;height:70px"></div><div class="body" style="width:54px;height:59px;box-shadow:0 0 14px #3fcf86"></div></div><b>4 정예</b><div class="note">양옆에 소용돌이 불꽃 기둥 2개</div></div>
+  <div class="step"><div class="stage"><div class="sun"></div><div class="ring" style="width:108px;height:40px;opacity:1"></div><div class="col" style="left:12%;height:90px"></div><div class="col" style="left:30%;height:62px"></div><div class="col" style="right:30%;height:62px"></div><div class="col" style="right:12%;height:90px"></div><div class="body" style="width:58px;height:63px;box-shadow:0 0 22px #3fcf86"></div></div><b>5 군주</b><div class="note">뒤에 햇살 후광, 불꽃 기둥 4개, 몸이 숨 쉬듯 번쩍</div></div>
+</div>
+<p class="note">위 그림은 느낌을 보여 주는 단순한 모형입니다. 실제 모습은 승인된 시안(몬스터 등급 이펙트 시안)을 기준으로 합니다.</p>
 
-  <h2>어떻게 승급하나요?</h2>
-  <div class="pnl">
-    <p class="sub" style="margin-top:0">상점 「몬스터 강화」의 종족 줄 맨 끝에 <b style="color:var(--gold)">승급</b> 칸이 생겨요.</p>
-    <div class="srow">
-      <div class="shead"><div class="face"></div>견습 도깨비불</div>
-      <div class="slot" style="--c:var(--soul)"><div class="a">체급</div><div class="d2">HP·공격력</div><div class="p">소울</div></div>
-      <div class="slot" style="--c:var(--aw)"><div class="a">각성</div><div class="d2">역할 능력</div><div class="p">각성석</div></div>
-      <div class="slot" style="--c:var(--ms)"><div class="a">둥지</div><div class="d2">스폰 숙련</div><div class="p">달빛 인장</div></div>
-      <div class="slot" style="--c:var(--ac)"><div class="a">특성</div><div class="d2">고유 특성</div><div class="p">심연 결정</div></div>
-      <div class="slot up" style="--c:var(--aw)"><div class="a">승급</div><div class="d2">숙련으로 승급</div><div class="p">소울 1500 · 각성석 30</div></div>
-    </div>
-    <table style="margin-top:12px">
-      <tr><th>승급</th><th>필요한 것</th><th>모으는 곳</th></tr>
-      <tr><td>견습으로</td><td>소울</td><td>모든 전투</td></tr>
-      <tr><td>숙련으로</td><td>소울 + 각성석</td><td>Normal / Hard 승리</td></tr>
-      <tr><td>정예로</td><td>소울 + 달빛 인장</td><td>데일리</td></tr>
-      <tr><td>군주로</td><td>소울 + 심연 결정</td><td>무한의 탑</td></tr>
-    </table>
-    <p class="sub">종족마다 따로, 한 단계씩 올라가요. 그동안 키운 체급·각성·둥지·특성은 승급해도 그대로 남아요. 승급한 몬스터는 체력과 공격력이 조금 더 높아요. 비용과 강해지는 정도는 시험 플레이를 해 보고 정해요.</p>
-  </div>
+<h2>등급별 정리</h2>
+<table>
+  <tr><th>등급</th><th>크기</th><th>몸 빛</th><th>발밑 마법진</th><th>이펙트</th></tr>
+  <tr><td>1 풋내기</td><td>기본</td><td>없음</td><td>없음</td><td>없음</td></tr>
+  <tr><td>2 견습</td><td>x1.075</td><td>약함</td><td>45% 선명도</td><td>없음</td></tr>
+  <tr><td>3 숙련</td><td>x1.15</td><td>보통</td><td>65%</td><td>없음</td></tr>
+  <tr><td>4 정예</td><td>x1.225</td><td>강함</td><td>85%</td><td>소용돌이 불꽃 기둥 2개</td></tr>
+  <tr><td>5 군주</td><td>x1.30</td><td>가장 강함</td><td>100%, 가장 큼</td><td>햇살 후광 + 불꽃 기둥 4개 + 몸 번쩍임(숨쉬기)</td></tr>
+</table>
+<p class="note">몬스터의 그림 자체(몸)는 등급마다 같습니다. 강화 단계(상점에서 올리는 레벨)에 따라 바뀌는 몸 그림은 별개이며, 등급과 강화는 서로 독립입니다.</p>
 
-  <h2>편성 화면이 다시 열려요</h2>
-  <div class="flow">
-    <div class="step"><span class="n">1</span>지금은 종족마다 몬스터가 하나뿐이라 "방어하기"를 누르면 바로 출격해요.</div>
-    <div class="step"><span class="n">2</span>처음으로 한 종족을 견습으로 올리면, 그 종족에 고를 몬스터가 둘이 돼요.</div>
-    <div class="step"><span class="n">3</span>새 등급 몬스터는 자동으로 그 둥지에 들어가요. 편성 화면을 안 열어도 다음 판부터 싸워요.</div>
-    <div class="step"><span class="n">4</span>이제 "방어하기"에서 편성 화면이 열리고, 원하면 아래 등급으로 되돌릴 수도 있어요.</div>
-  </div>
+<h2>승급 방법 (지금과 같음)</h2>
+<table>
+  <tr><th>승급</th><th>필요한 것</th></tr>
+  <tr><td>견습</td><td>소울</td></tr>
+  <tr><td>숙련</td><td>소울 + 각성석 (챕터 Normal/Hard 승리)</td></tr>
+  <tr><td>정예</td><td>소울 + 달빛 인장 (데일리)</td></tr>
+  <tr><td>군주</td><td>소울 + 심연 결정 (무한의 탑)</td></tr>
+</table>
+<p>상점 「몬스터 강화」 줄의 다섯 번째 칸에서 한 단계씩 올립니다. 올린 등급은 그 종족 둥지에 자동으로 나가고, 편성 창에서 낮은 등급으로 되돌릴 수도 있습니다. 같은 종족에 몬스터가 둘 이상이 되면 편성 창이 열립니다.</p>
 
-  <div class="decide">
-    <h2>결정해 주세요</h2>
-    <p class="sub" style="margin-top:0">아래는 모두 추천안으로 확정해 두었어요. 바꾸고 싶은 것만 말해 주세요.</p>
-    <div class="q"><span class="ok">확정</span>크기는 등급마다 조금씩(1.00 → 1.30), 풋내기는 지금 그대로, 강화 장식도 함께 보여요. 군주는 금 왕관 대신 금빛 테두리예요.</div>
-    <div class="q"><span class="ok">확정</span>승급하면 체력과 공격력만 올라가요. <span class="rec">얼마나 오를지(시작 기준 군주 1.5배)는 시험 플레이 후 정해요.</span></div>
-    <div class="q"><span class="ok">확정</span>승급은 상점에서, 소울과 각 콘텐츠 재화로 해요. <span class="rec">비용 숫자는 시험 플레이 후 정해요(목표: 첫 견습은 4~8판 안에).</span></div>
-    <div class="q"><span class="ok">확정</span>새 등급은 자동 배치, 편성 화면에서 아래 등급으로 되돌릴 수 있어요.</div>
-    <div class="q"><span class="ok">확정</span>상점·편성의 몬스터 얼굴 아이콘은 지금 것을 그대로 써요.</div>
-    <div class="q"><b>아래 등급을 고를 이유가 거의 없어요.</b> 등급이 오르면 순수하게 강해지기 때문이에요. 등급마다 장단점을 주려면 몬스터마다 따로 조율해야 해서 이번에는 넣지 않았어요. <span class="rec">추천: 이번엔 이대로 가고, 플레이해 본 뒤 필요하면 따로 정해요.</span></div>
-  </div>
+<h2>달라지는 점</h2>
+<div class="grid">
+  <div class="card"><span class="tag ok">그대로</span><p>승급 방법과 비용, 등급이 올라가면 체력·공격력이 오르는 구조, 편성 방식, 저장.</p></div>
+  <div class="card"><span class="tag ok">그대로</span><p>몬스터의 기본 크기(월드 높이), 카드·시너지 문구, 상점·편성의 작은 그림(아이콘).</p></div>
+  <div class="card"><span class="tag no">없어짐</span><p>등급별 새 몸 그림, 등급별 몸 색·테두리·종족 장식. 대신 효과로 표현합니다.</p></div>
+  <div class="card"><span class="tag warn">참고</span><p>상점·편성 화면의 작은 그림에는 빛·이펙트가 나오지 않습니다. 전투 중에만 보입니다.</p></div>
+</div>
+
+<h2>알아두면 좋은 점</h2>
+<div class="grid">
+  <div class="card"><h3>불꽃 기둥은 임시 시안이에요</h3><p>6종 모두 같은 모양의 효과를 색만 바꿔 썼습니다. 불꽃이라서 유령 같은 몬스터와 잘 안 어울릴 수 있습니다. 종족마다 다른 효과로 바꾸는 일은 나중으로 미뤄 두었습니다.</p></div>
+  <div class="card"><h3>몬스터가 많아도 괜찮을까요?</h3><p>4~5등급이 여러 마리 나오면 화면에 효과가 많아집니다. 성능을 위해 한꺼번에 보이는 효과 수에 상한을 두고, 넘으면 새로 나온 몬스터는 효과 일부 없이(크기와 빛은 유지) 나옵니다.</p></div>
+  <div class="card"><h3>용량</h3><p>효과 그림 18장이 추가되며 휴대폰용으로 압축하면 최대 약 17MB(군주 6종이 모두 나올 때)입니다. 승급 전에는 거의 늘지 않습니다.</p></div>
+  <div class="card"><h3>쓰러질 때·나타날 때</h3><p>쓰러지면 효과가 바로 사라지고, 나타날 때는 몸이 나타나는 시간에 맞춰 서서히 나타납니다.</p></div>
+</div>
+
+<div class="decide">
+  <h2>결정해 주세요</h2>
+  <ol>
+    <li>등급이 올라갈 때 체력·공격력도 지금 계획대로(견습 +10%, 군주 +52%) 올릴까요, 아니면 외형만 바꿀까요?<span class="rec">추천: 올립니다(지금 계획 유지). 외형이 확 달라지는 만큼 강해진 느낌도 같이 와야 승급이 의미 있습니다. 정확한 수치는 시뮬레이션 후 정합니다.</span></li>
+    <li>5등급(군주) 해금 조건을 지금 그대로(소울 4000 + 심연 결정 40, 무한의 탑 필요) 둘까요?<span class="rec">추천: 그대로. 가장 화려한 최종 보상이라 탑과 묶는 게 맞습니다.</span></li>
+    <li>4등급 불꽃 기둥을 종족마다 다르게 바꾸는 일은 언제 할까요?<span class="rec">추천: 이번엔 임시안으로 가고, 실제 화면을 본 뒤 다음 작업에서 바꿉니다.</span></li>
+    <li>5등급의 몸 번쩍임 세기를 시안대로 할까요, 약하게 할까요?<span class="rec">추천: 시안대로 시작하고, 몬스터가 많이 모였을 때 눈이 피로하면 낮춥니다.</span></li>
+    <li>AI가 만들어 둔 2등급 몸 그림 6장은 이제 안 쓰는데 버려도 될까요?<span class="rec">추천: 버립니다(파일은 따로 보관만).</span></li>
+    <li>4·5등급이 많이 나올 때 불꽃·후광 효과 일부를 생략해도 될까요? (크기와 빛은 그대로)<span class="rec">추천: 허용. 숫자는 실제 기기에서 재 보고 정합니다.</span></li>
+  </ol>
+</div>
+
 </div>
 </body>
 </html>
