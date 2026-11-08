@@ -1,12 +1,30 @@
 fileFormatVersion: 2
 guid: 80467c63ff536e448aee786d73f45147
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -6593965538659437520
+    second: Hex_Sheet_30
+  - first:
+      213: -3446984534311079394
+    second: Hex_Sheet_31
+  - first:
+      213: 571335635334481755
+    second: Hex_Sheet_32
+  - first:
+      213: -4761145638036832248
+    second: Hex_Sheet_33
+  - first:
+      213: -6558079387768996916
+    second: Hex_Sheet_34
+  - first:
+      213: -8600532738092580277
+    second: Hex_Sheet_35
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
-    mipMapMode: 0
-    enableMipMap: 0
+    mipMapMode: 1
+    enableMipMap: 1
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -34,8 +52,8 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
-    aniso: 1
+    filterMode: 1
+    aniso: 0
     mipBias: 0
     wrapU: 1
     wrapV: 1
@@ -45,10 +63,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 205.895
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -69,7 +87,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -97,12 +115,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,12 +128,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -127,9 +145,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 224
-        width: 56
-        height: 56
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -148,10 +166,10 @@ TextureImporter:
       name: Hex_Sheet_1
       rect:
         serializedVersion: 2
-        x: 56
-        y: 224
-        width: 56
-        height: 56
+        x: 192
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -170,10 +188,10 @@ TextureImporter:
       name: Hex_Sheet_2
       rect:
         serializedVersion: 2
-        x: 112
-        y: 224
-        width: 56
-        height: 56
+        x: 384
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -192,10 +210,10 @@ TextureImporter:
       name: Hex_Sheet_3
       rect:
         serializedVersion: 2
-        x: 168
-        y: 224
-        width: 56
-        height: 56
+        x: 576
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -214,10 +232,10 @@ TextureImporter:
       name: Hex_Sheet_4
       rect:
         serializedVersion: 2
-        x: 224
-        y: 224
-        width: 56
-        height: 56
+        x: 768
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -236,10 +254,10 @@ TextureImporter:
       name: Hex_Sheet_5
       rect:
         serializedVersion: 2
-        x: 280
-        y: 224
-        width: 56
-        height: 56
+        x: 960
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -259,9 +277,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 168
-        width: 56
-        height: 56
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -280,10 +298,10 @@ TextureImporter:
       name: Hex_Sheet_7
       rect:
         serializedVersion: 2
-        x: 56
-        y: 168
-        width: 56
-        height: 56
+        x: 192
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -302,10 +320,10 @@ TextureImporter:
       name: Hex_Sheet_8
       rect:
         serializedVersion: 2
-        x: 112
-        y: 168
-        width: 56
-        height: 56
+        x: 384
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -324,10 +342,10 @@ TextureImporter:
       name: Hex_Sheet_9
       rect:
         serializedVersion: 2
-        x: 168
-        y: 168
-        width: 56
-        height: 56
+        x: 576
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -346,10 +364,10 @@ TextureImporter:
       name: Hex_Sheet_10
       rect:
         serializedVersion: 2
-        x: 224
-        y: 168
-        width: 56
-        height: 56
+        x: 768
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -368,10 +386,10 @@ TextureImporter:
       name: Hex_Sheet_11
       rect:
         serializedVersion: 2
-        x: 280
-        y: 168
-        width: 56
-        height: 56
+        x: 960
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -391,9 +409,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 112
-        width: 56
-        height: 56
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -412,10 +430,10 @@ TextureImporter:
       name: Hex_Sheet_13
       rect:
         serializedVersion: 2
-        x: 56
-        y: 112
-        width: 56
-        height: 56
+        x: 192
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -434,10 +452,10 @@ TextureImporter:
       name: Hex_Sheet_14
       rect:
         serializedVersion: 2
-        x: 112
-        y: 112
-        width: 56
-        height: 56
+        x: 384
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -456,10 +474,10 @@ TextureImporter:
       name: Hex_Sheet_15
       rect:
         serializedVersion: 2
-        x: 168
-        y: 112
-        width: 56
-        height: 56
+        x: 576
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -478,10 +496,10 @@ TextureImporter:
       name: Hex_Sheet_16
       rect:
         serializedVersion: 2
-        x: 224
-        y: 112
-        width: 56
-        height: 56
+        x: 768
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -500,10 +518,10 @@ TextureImporter:
       name: Hex_Sheet_17
       rect:
         serializedVersion: 2
-        x: 280
-        y: 112
-        width: 56
-        height: 56
+        x: 960
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -523,9 +541,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 56
-        width: 56
-        height: 56
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -544,10 +562,10 @@ TextureImporter:
       name: Hex_Sheet_19
       rect:
         serializedVersion: 2
-        x: 56
-        y: 56
-        width: 56
-        height: 56
+        x: 192
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -566,10 +584,10 @@ TextureImporter:
       name: Hex_Sheet_20
       rect:
         serializedVersion: 2
-        x: 112
-        y: 56
-        width: 56
-        height: 56
+        x: 384
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -588,10 +606,10 @@ TextureImporter:
       name: Hex_Sheet_21
       rect:
         serializedVersion: 2
-        x: 168
-        y: 56
-        width: 56
-        height: 56
+        x: 576
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -610,10 +628,10 @@ TextureImporter:
       name: Hex_Sheet_22
       rect:
         serializedVersion: 2
-        x: 224
-        y: 56
-        width: 56
-        height: 56
+        x: 768
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -632,10 +650,10 @@ TextureImporter:
       name: Hex_Sheet_23
       rect:
         serializedVersion: 2
-        x: 280
-        y: 56
-        width: 56
-        height: 56
+        x: 960
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -655,9 +673,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 56
-        height: 56
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -676,10 +694,10 @@ TextureImporter:
       name: Hex_Sheet_25
       rect:
         serializedVersion: 2
-        x: 56
-        y: 0
-        width: 56
-        height: 56
+        x: 192
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -698,10 +716,10 @@ TextureImporter:
       name: Hex_Sheet_26
       rect:
         serializedVersion: 2
-        x: 112
-        y: 0
-        width: 56
-        height: 56
+        x: 384
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -720,10 +738,10 @@ TextureImporter:
       name: Hex_Sheet_27
       rect:
         serializedVersion: 2
-        x: 168
-        y: 0
-        width: 56
-        height: 56
+        x: 576
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -742,10 +760,10 @@ TextureImporter:
       name: Hex_Sheet_28
       rect:
         serializedVersion: 2
-        x: 224
-        y: 0
-        width: 56
-        height: 56
+        x: 768
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -764,10 +782,10 @@ TextureImporter:
       name: Hex_Sheet_29
       rect:
         serializedVersion: 2
-        x: 280
-        y: 0
-        width: 56
-        height: 56
+        x: 960
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -778,6 +796,138 @@ TextureImporter:
       bones: []
       spriteID: bfda8fb9154aee200800000000000000
       internalID: 211286902949064187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 034790767478d74a0800000000000000
+      internalID: -6593965538659437520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e127f1634d9d920d0800000000000000
+      internalID: -3446984534311079394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5742a7bbbacde700800000000000000
+      internalID: 571335635334481755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8000ae094430dedb0800000000000000
+      internalID: -4761145638036832248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccbb7330b850df4a0800000000000000
+      internalID: -6558079387768996916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b42cfd2da05c4a880800000000000000
+      internalID: -8600532738092580277
       vertices: []
       indices: 
       edges: []
@@ -822,6 +972,12 @@ TextureImporter:
       Hex_Sheet_28: -2760364638730452307
       Hex_Sheet_29: 211286902949064187
       Hex_Sheet_3: 5670806175840114382
+      Hex_Sheet_30: -6593965538659437520
+      Hex_Sheet_31: -3446984534311079394
+      Hex_Sheet_32: 571335635334481755
+      Hex_Sheet_33: -4761145638036832248
+      Hex_Sheet_34: -6558079387768996916
+      Hex_Sheet_35: -8600532738092580277
       Hex_Sheet_4: -1716835118266659995
       Hex_Sheet_5: -7611444316997118802
       Hex_Sheet_6: 4340843827544239075

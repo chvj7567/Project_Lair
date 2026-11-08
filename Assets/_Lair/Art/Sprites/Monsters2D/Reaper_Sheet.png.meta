@@ -1,12 +1,30 @@
 fileFormatVersion: 2
 guid: ce7a0fa780fa1224295061ea49cd1141
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -7825863701204982848
+    second: Reaper_Sheet_30
+  - first:
+      213: 1700128904029250555
+    second: Reaper_Sheet_31
+  - first:
+      213: 8653167423643589347
+    second: Reaper_Sheet_32
+  - first:
+      213: 1642655211518892579
+    second: Reaper_Sheet_33
+  - first:
+      213: 6913560644649281472
+    second: Reaper_Sheet_34
+  - first:
+      213: 141091388575342494
+    second: Reaper_Sheet_35
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
-    mipMapMode: 0
-    enableMipMap: 0
+    mipMapMode: 1
+    enableMipMap: 1
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -34,8 +52,8 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
-    aniso: 1
+    filterMode: 1
+    aniso: 0
     mipBias: 0
     wrapU: 1
     wrapV: 1
@@ -45,10 +63,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 171.907
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -69,7 +87,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -97,12 +115,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,12 +128,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -127,9 +145,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 288
-        width: 72
-        height: 72
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -148,10 +166,10 @@ TextureImporter:
       name: Reaper_Sheet_1
       rect:
         serializedVersion: 2
-        x: 72
-        y: 288
-        width: 72
-        height: 72
+        x: 192
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -170,10 +188,10 @@ TextureImporter:
       name: Reaper_Sheet_2
       rect:
         serializedVersion: 2
-        x: 144
-        y: 288
-        width: 72
-        height: 72
+        x: 384
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -192,10 +210,10 @@ TextureImporter:
       name: Reaper_Sheet_3
       rect:
         serializedVersion: 2
-        x: 216
-        y: 288
-        width: 72
-        height: 72
+        x: 576
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -214,10 +232,10 @@ TextureImporter:
       name: Reaper_Sheet_4
       rect:
         serializedVersion: 2
-        x: 288
-        y: 288
-        width: 72
-        height: 72
+        x: 768
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -236,10 +254,10 @@ TextureImporter:
       name: Reaper_Sheet_5
       rect:
         serializedVersion: 2
-        x: 360
-        y: 288
-        width: 72
-        height: 72
+        x: 960
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -259,9 +277,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 216
-        width: 72
-        height: 72
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -280,10 +298,10 @@ TextureImporter:
       name: Reaper_Sheet_7
       rect:
         serializedVersion: 2
-        x: 72
-        y: 216
-        width: 72
-        height: 72
+        x: 192
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -302,10 +320,10 @@ TextureImporter:
       name: Reaper_Sheet_8
       rect:
         serializedVersion: 2
-        x: 144
-        y: 216
-        width: 72
-        height: 72
+        x: 384
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -324,10 +342,10 @@ TextureImporter:
       name: Reaper_Sheet_9
       rect:
         serializedVersion: 2
-        x: 216
-        y: 216
-        width: 72
-        height: 72
+        x: 576
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -346,10 +364,10 @@ TextureImporter:
       name: Reaper_Sheet_10
       rect:
         serializedVersion: 2
-        x: 288
-        y: 216
-        width: 72
-        height: 72
+        x: 768
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -368,10 +386,10 @@ TextureImporter:
       name: Reaper_Sheet_11
       rect:
         serializedVersion: 2
-        x: 360
-        y: 216
-        width: 72
-        height: 72
+        x: 960
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -391,9 +409,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 144
-        width: 72
-        height: 72
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -412,10 +430,10 @@ TextureImporter:
       name: Reaper_Sheet_13
       rect:
         serializedVersion: 2
-        x: 72
-        y: 144
-        width: 72
-        height: 72
+        x: 192
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -434,10 +452,10 @@ TextureImporter:
       name: Reaper_Sheet_14
       rect:
         serializedVersion: 2
-        x: 144
-        y: 144
-        width: 72
-        height: 72
+        x: 384
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -456,10 +474,10 @@ TextureImporter:
       name: Reaper_Sheet_15
       rect:
         serializedVersion: 2
-        x: 216
-        y: 144
-        width: 72
-        height: 72
+        x: 576
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -478,10 +496,10 @@ TextureImporter:
       name: Reaper_Sheet_16
       rect:
         serializedVersion: 2
-        x: 288
-        y: 144
-        width: 72
-        height: 72
+        x: 768
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -500,10 +518,10 @@ TextureImporter:
       name: Reaper_Sheet_17
       rect:
         serializedVersion: 2
-        x: 360
-        y: 144
-        width: 72
-        height: 72
+        x: 960
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -523,9 +541,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 72
-        width: 72
-        height: 72
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -544,10 +562,10 @@ TextureImporter:
       name: Reaper_Sheet_19
       rect:
         serializedVersion: 2
-        x: 72
-        y: 72
-        width: 72
-        height: 72
+        x: 192
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -566,10 +584,10 @@ TextureImporter:
       name: Reaper_Sheet_20
       rect:
         serializedVersion: 2
-        x: 144
-        y: 72
-        width: 72
-        height: 72
+        x: 384
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -588,10 +606,10 @@ TextureImporter:
       name: Reaper_Sheet_21
       rect:
         serializedVersion: 2
-        x: 216
-        y: 72
-        width: 72
-        height: 72
+        x: 576
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -610,10 +628,10 @@ TextureImporter:
       name: Reaper_Sheet_22
       rect:
         serializedVersion: 2
-        x: 288
-        y: 72
-        width: 72
-        height: 72
+        x: 768
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -632,10 +650,10 @@ TextureImporter:
       name: Reaper_Sheet_23
       rect:
         serializedVersion: 2
-        x: 360
-        y: 72
-        width: 72
-        height: 72
+        x: 960
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -655,9 +673,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 72
-        height: 72
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -676,10 +694,10 @@ TextureImporter:
       name: Reaper_Sheet_25
       rect:
         serializedVersion: 2
-        x: 72
-        y: 0
-        width: 72
-        height: 72
+        x: 192
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -698,10 +716,10 @@ TextureImporter:
       name: Reaper_Sheet_26
       rect:
         serializedVersion: 2
-        x: 144
-        y: 0
-        width: 72
-        height: 72
+        x: 384
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -720,10 +738,10 @@ TextureImporter:
       name: Reaper_Sheet_27
       rect:
         serializedVersion: 2
-        x: 216
-        y: 0
-        width: 72
-        height: 72
+        x: 576
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -742,10 +760,10 @@ TextureImporter:
       name: Reaper_Sheet_28
       rect:
         serializedVersion: 2
-        x: 288
-        y: 0
-        width: 72
-        height: 72
+        x: 768
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -764,10 +782,10 @@ TextureImporter:
       name: Reaper_Sheet_29
       rect:
         serializedVersion: 2
-        x: 360
-        y: 0
-        width: 72
-        height: 72
+        x: 960
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -778,6 +796,138 @@ TextureImporter:
       bones: []
       spriteID: 497a83274cf85d1a0800000000000000
       internalID: -6785359189671106668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c3ad0d4d62f46390800000000000000
+      internalID: -7825863701204982848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf3a9050b32189710800000000000000
+      internalID: 1700128904029250555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ea1244ece9361870800000000000000
+      internalID: 8653167423643589347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32a17033632ebc610800000000000000
+      internalID: 1642655211518892579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c7e075d6c6e1ff50800000000000000
+      internalID: 6913560644649281472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Reaper_Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9f56e0ded145f100800000000000000
+      internalID: 141091388575342494
       vertices: []
       indices: 
       edges: []
@@ -822,6 +972,12 @@ TextureImporter:
       Reaper_Sheet_28: -5045091100971785057
       Reaper_Sheet_29: -6785359189671106668
       Reaper_Sheet_3: -1988069929429359032
+      Reaper_Sheet_30: -7825863701204982848
+      Reaper_Sheet_31: 1700128904029250555
+      Reaper_Sheet_32: 8653167423643589347
+      Reaper_Sheet_33: 1642655211518892579
+      Reaper_Sheet_34: 6913560644649281472
+      Reaper_Sheet_35: 141091388575342494
       Reaper_Sheet_4: 9141536185431157127
       Reaper_Sheet_5: -6440472540914628053
       Reaper_Sheet_6: -6897458576369468799

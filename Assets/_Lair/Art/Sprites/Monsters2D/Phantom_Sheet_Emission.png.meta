@@ -1,12 +1,30 @@
 fileFormatVersion: 2
 guid: 046321ab8d86a654f835396ec1538ee8
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -7203605569361284332
+    second: Phantom_Sheet_Emission_30
+  - first:
+      213: -9150930601780551075
+    second: Phantom_Sheet_Emission_31
+  - first:
+      213: -5949510458699874212
+    second: Phantom_Sheet_Emission_32
+  - first:
+      213: -5259569050995175027
+    second: Phantom_Sheet_Emission_33
+  - first:
+      213: -4513996774659565878
+    second: Phantom_Sheet_Emission_34
+  - first:
+      213: 6885375876296005096
+    second: Phantom_Sheet_Emission_35
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
-    mipMapMode: 0
-    enableMipMap: 0
+    mipMapMode: 1
+    enableMipMap: 1
     sRGBTexture: 0
     linearTexture: 0
     fadeOut: 0
@@ -34,8 +52,8 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
-    aniso: 1
+    filterMode: 1
+    aniso: 0
     mipBias: 0
     wrapU: 1
     wrapV: 1
@@ -45,10 +63,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 310.737
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -69,7 +87,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -97,12 +115,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 51
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,12 +128,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 51
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -127,9 +145,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 160
-        width: 40
-        height: 40
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -148,10 +166,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_1
       rect:
         serializedVersion: 2
-        x: 40
-        y: 160
-        width: 40
-        height: 40
+        x: 192
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -170,10 +188,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_2
       rect:
         serializedVersion: 2
-        x: 80
-        y: 160
-        width: 40
-        height: 40
+        x: 384
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -192,10 +210,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_3
       rect:
         serializedVersion: 2
-        x: 120
-        y: 160
-        width: 40
-        height: 40
+        x: 576
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -214,10 +232,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_4
       rect:
         serializedVersion: 2
-        x: 160
-        y: 160
-        width: 40
-        height: 40
+        x: 768
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -236,10 +254,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_5
       rect:
         serializedVersion: 2
-        x: 200
-        y: 160
-        width: 40
-        height: 40
+        x: 960
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -259,9 +277,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 120
-        width: 40
-        height: 40
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -280,10 +298,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_7
       rect:
         serializedVersion: 2
-        x: 40
-        y: 120
-        width: 40
-        height: 40
+        x: 192
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -302,10 +320,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_8
       rect:
         serializedVersion: 2
-        x: 80
-        y: 120
-        width: 40
-        height: 40
+        x: 384
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -324,10 +342,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_9
       rect:
         serializedVersion: 2
-        x: 120
-        y: 120
-        width: 40
-        height: 40
+        x: 576
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -346,10 +364,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_10
       rect:
         serializedVersion: 2
-        x: 160
-        y: 120
-        width: 40
-        height: 40
+        x: 768
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -368,10 +386,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_11
       rect:
         serializedVersion: 2
-        x: 200
-        y: 120
-        width: 40
-        height: 40
+        x: 960
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -391,9 +409,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 80
-        width: 40
-        height: 40
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -412,10 +430,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_13
       rect:
         serializedVersion: 2
-        x: 40
-        y: 80
-        width: 40
-        height: 40
+        x: 192
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -434,10 +452,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_14
       rect:
         serializedVersion: 2
-        x: 80
-        y: 80
-        width: 40
-        height: 40
+        x: 384
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -456,10 +474,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_15
       rect:
         serializedVersion: 2
-        x: 120
-        y: 80
-        width: 40
-        height: 40
+        x: 576
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -478,10 +496,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_16
       rect:
         serializedVersion: 2
-        x: 160
-        y: 80
-        width: 40
-        height: 40
+        x: 768
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -500,10 +518,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_17
       rect:
         serializedVersion: 2
-        x: 200
-        y: 80
-        width: 40
-        height: 40
+        x: 960
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -523,9 +541,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 40
-        width: 40
-        height: 40
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -544,10 +562,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_19
       rect:
         serializedVersion: 2
-        x: 40
-        y: 40
-        width: 40
-        height: 40
+        x: 192
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -566,10 +584,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_20
       rect:
         serializedVersion: 2
-        x: 80
-        y: 40
-        width: 40
-        height: 40
+        x: 384
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -588,10 +606,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_21
       rect:
         serializedVersion: 2
-        x: 120
-        y: 40
-        width: 40
-        height: 40
+        x: 576
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -610,10 +628,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_22
       rect:
         serializedVersion: 2
-        x: 160
-        y: 40
-        width: 40
-        height: 40
+        x: 768
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -632,10 +650,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_23
       rect:
         serializedVersion: 2
-        x: 200
-        y: 40
-        width: 40
-        height: 40
+        x: 960
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -655,9 +673,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 40
-        height: 40
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -676,10 +694,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_25
       rect:
         serializedVersion: 2
-        x: 40
-        y: 0
-        width: 40
-        height: 40
+        x: 192
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -698,10 +716,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_26
       rect:
         serializedVersion: 2
-        x: 80
-        y: 0
-        width: 40
-        height: 40
+        x: 384
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -720,10 +738,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_27
       rect:
         serializedVersion: 2
-        x: 120
-        y: 0
-        width: 40
-        height: 40
+        x: 576
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -742,10 +760,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_28
       rect:
         serializedVersion: 2
-        x: 160
-        y: 0
-        width: 40
-        height: 40
+        x: 768
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -764,10 +782,10 @@ TextureImporter:
       name: Phantom_Sheet_Emission_29
       rect:
         serializedVersion: 2
-        x: 200
-        y: 0
-        width: 40
-        height: 40
+        x: 960
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -778,6 +796,138 @@ TextureImporter:
       bones: []
       spriteID: a5c819b7c8b625660800000000000000
       internalID: 7373073791071652954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_30
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 413f138a6e6a70c90800000000000000
+      internalID: -7203605569361284332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_31
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d526e94f91d510180800000000000000
+      internalID: -9150930601780551075
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_32
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5009b972c71f6da0800000000000000
+      internalID: -5949510458699874212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_33
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d815bc380d14207b0800000000000000
+      internalID: -5259569050995175027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_34
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac6582189df0b51c0800000000000000
+      internalID: -4513996774659565878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Phantom_Sheet_Emission_35
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e5daa311e4cd8f50800000000000000
+      internalID: 6885375876296005096
       vertices: []
       indices: 
       edges: []
@@ -820,6 +970,12 @@ TextureImporter:
       Phantom_Sheet_Emission_28: -8134055951293755203
       Phantom_Sheet_Emission_29: 7373073791071652954
       Phantom_Sheet_Emission_3: 8628812622517297727
+      Phantom_Sheet_Emission_30: -7203605569361284332
+      Phantom_Sheet_Emission_31: -9150930601780551075
+      Phantom_Sheet_Emission_32: -5949510458699874212
+      Phantom_Sheet_Emission_33: -5259569050995175027
+      Phantom_Sheet_Emission_34: -4513996774659565878
+      Phantom_Sheet_Emission_35: 6885375876296005096
       Phantom_Sheet_Emission_4: 4735931420197776447
       Phantom_Sheet_Emission_5: -204554116567323109
       Phantom_Sheet_Emission_6: -4006115795947945717

@@ -1,12 +1,30 @@
 fileFormatVersion: 2
 guid: 964ae22b259c3ca4ba8a5df2cfdb5602
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: 2987954335894486334
+    second: Hex_Sheet_Emission_30
+  - first:
+      213: 2736612628895023029
+    second: Hex_Sheet_Emission_31
+  - first:
+      213: 330621387721112347
+    second: Hex_Sheet_Emission_32
+  - first:
+      213: -3265882694589114239
+    second: Hex_Sheet_Emission_33
+  - first:
+      213: 5586706667506048068
+    second: Hex_Sheet_Emission_34
+  - first:
+      213: 2386007784395855326
+    second: Hex_Sheet_Emission_35
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
-    mipMapMode: 0
-    enableMipMap: 0
+    mipMapMode: 1
+    enableMipMap: 1
     sRGBTexture: 0
     linearTexture: 0
     fadeOut: 0
@@ -34,8 +52,8 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
-    aniso: 1
+    filterMode: 1
+    aniso: 0
     mipBias: 0
     wrapU: 1
     wrapV: 1
@@ -45,10 +63,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 205.895
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -69,7 +87,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -97,12 +115,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 51
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,12 +128,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 51
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -127,9 +145,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 224
-        width: 56
-        height: 56
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -148,10 +166,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_1
       rect:
         serializedVersion: 2
-        x: 56
-        y: 224
-        width: 56
-        height: 56
+        x: 192
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -170,10 +188,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_2
       rect:
         serializedVersion: 2
-        x: 112
-        y: 224
-        width: 56
-        height: 56
+        x: 384
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -192,10 +210,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_3
       rect:
         serializedVersion: 2
-        x: 168
-        y: 224
-        width: 56
-        height: 56
+        x: 576
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -214,10 +232,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_4
       rect:
         serializedVersion: 2
-        x: 224
-        y: 224
-        width: 56
-        height: 56
+        x: 768
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -236,10 +254,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_5
       rect:
         serializedVersion: 2
-        x: 280
-        y: 224
-        width: 56
-        height: 56
+        x: 960
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -259,9 +277,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 168
-        width: 56
-        height: 56
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -280,10 +298,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_7
       rect:
         serializedVersion: 2
-        x: 56
-        y: 168
-        width: 56
-        height: 56
+        x: 192
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -302,10 +320,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_8
       rect:
         serializedVersion: 2
-        x: 112
-        y: 168
-        width: 56
-        height: 56
+        x: 384
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -324,10 +342,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_9
       rect:
         serializedVersion: 2
-        x: 168
-        y: 168
-        width: 56
-        height: 56
+        x: 576
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -346,10 +364,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_10
       rect:
         serializedVersion: 2
-        x: 224
-        y: 168
-        width: 56
-        height: 56
+        x: 768
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -368,10 +386,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_11
       rect:
         serializedVersion: 2
-        x: 280
-        y: 168
-        width: 56
-        height: 56
+        x: 960
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -391,9 +409,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 112
-        width: 56
-        height: 56
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -412,10 +430,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_13
       rect:
         serializedVersion: 2
-        x: 56
-        y: 112
-        width: 56
-        height: 56
+        x: 192
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -434,10 +452,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_14
       rect:
         serializedVersion: 2
-        x: 112
-        y: 112
-        width: 56
-        height: 56
+        x: 384
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -456,10 +474,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_15
       rect:
         serializedVersion: 2
-        x: 168
-        y: 112
-        width: 56
-        height: 56
+        x: 576
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -478,10 +496,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_16
       rect:
         serializedVersion: 2
-        x: 224
-        y: 112
-        width: 56
-        height: 56
+        x: 768
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -500,10 +518,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_17
       rect:
         serializedVersion: 2
-        x: 280
-        y: 112
-        width: 56
-        height: 56
+        x: 960
+        y: 576
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -523,9 +541,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 56
-        width: 56
-        height: 56
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -544,10 +562,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_19
       rect:
         serializedVersion: 2
-        x: 56
-        y: 56
-        width: 56
-        height: 56
+        x: 192
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -566,10 +584,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_20
       rect:
         serializedVersion: 2
-        x: 112
-        y: 56
-        width: 56
-        height: 56
+        x: 384
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -588,10 +606,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_21
       rect:
         serializedVersion: 2
-        x: 168
-        y: 56
-        width: 56
-        height: 56
+        x: 576
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -610,10 +628,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_22
       rect:
         serializedVersion: 2
-        x: 224
-        y: 56
-        width: 56
-        height: 56
+        x: 768
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -632,10 +650,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_23
       rect:
         serializedVersion: 2
-        x: 280
-        y: 56
-        width: 56
-        height: 56
+        x: 960
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -655,9 +673,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 56
-        height: 56
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -676,10 +694,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_25
       rect:
         serializedVersion: 2
-        x: 56
-        y: 0
-        width: 56
-        height: 56
+        x: 192
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -698,10 +716,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_26
       rect:
         serializedVersion: 2
-        x: 112
-        y: 0
-        width: 56
-        height: 56
+        x: 384
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -720,10 +738,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_27
       rect:
         serializedVersion: 2
-        x: 168
-        y: 0
-        width: 56
-        height: 56
+        x: 576
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -742,10 +760,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_28
       rect:
         serializedVersion: 2
-        x: 224
-        y: 0
-        width: 56
-        height: 56
+        x: 768
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -764,10 +782,10 @@ TextureImporter:
       name: Hex_Sheet_Emission_29
       rect:
         serializedVersion: 2
-        x: 280
-        y: 0
-        width: 56
-        height: 56
+        x: 960
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -778,6 +796,138 @@ TextureImporter:
       bones: []
       spriteID: 60d66fbb747308890800000000000000
       internalID: -7457900201689846522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_30
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3d341c33a8577920800000000000000
+      internalID: 2987954335894486334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_31
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bfb221dfa66af520800000000000000
+      internalID: 2736612628895023029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_32
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1b7342866a969400800000000000000
+      internalID: 330621387721112347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_33
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1889bee1ef04da2d0800000000000000
+      internalID: -3265882694589114239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_34
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44c110d4d18f78d40800000000000000
+      internalID: 5586706667506048068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hex_Sheet_Emission_35
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 0
+        width: 192
+        height: 192
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed55b34307dcc1120800000000000000
+      internalID: 2386007784395855326
       vertices: []
       indices: 
       edges: []
@@ -820,6 +970,12 @@ TextureImporter:
       Hex_Sheet_Emission_28: 849840170571087724
       Hex_Sheet_Emission_29: -7457900201689846522
       Hex_Sheet_Emission_3: 8093634510087380491
+      Hex_Sheet_Emission_30: 2987954335894486334
+      Hex_Sheet_Emission_31: 2736612628895023029
+      Hex_Sheet_Emission_32: 330621387721112347
+      Hex_Sheet_Emission_33: -3265882694589114239
+      Hex_Sheet_Emission_34: 5586706667506048068
+      Hex_Sheet_Emission_35: 2386007784395855326
       Hex_Sheet_Emission_4: -1031397235160003841
       Hex_Sheet_Emission_5: 538998841380476981
       Hex_Sheet_Emission_6: -482259502392479893
