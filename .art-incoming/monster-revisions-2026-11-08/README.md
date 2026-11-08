@@ -33,3 +33,7 @@
 - 이미지 생성 수정 후보는 요청 조건을 충족하지 않아 채택하지 않았다. 최종본은 원본을 기준으로 부분 정리·색상 변환·좌표 정렬·고정 무기 합성을 적용했다. 후보용 지시는 `PROMPTS.md`에 기록했다.
 
 `alignment-report.json`, `reaper-report.json`, `hex-wraith-report.json`에 원본 해시·처리 방식·수치 검수 결과가 있다. PNG 전체를 눈으로 확인했고 GIF 파일의 프레임 구조를 검사했다. Unity 임포트·게임 내 재생은 수행하지 않았다.
+
+## Reaper 방향 기준 정정
+
+사용자가 위쪽 공격 GIF의 방향을 기준으로 지정했다. 기준은 낫이 몸 바깥쪽인 화면 오른쪽으로 나가고 날이 아래쪽으로 휘어진 기존 공격 미리보기다. 전체 시트와 GIF를 동일한 공격 프레임에서 만들어 방향을 일치시킨다. 버전 구분용 전체 시트는 `Reaper_Outward.png`, 공격 미리보기는 `Reaper_Attack_Outward.gif`다. 실제 반영·검수 결과는 `reaper-report.json`에 기록한다.
