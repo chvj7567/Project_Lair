@@ -76,6 +76,9 @@ namespace Lair.Village
                 MetaSession.Store?.Save(profile);
             }
 
+            //# 도감 NEW 스냅샷 — 앱 실행 후 마을 첫 로드 때 한 번만(전투 복귀 시 재캡처 안 함, monster-codex §6.2).
+            CodexSession.EnsureCaptured(profile, FormationDatabase.Current);
+
             ChapterDatabaseLoader.ValidateGrowthShop(_metaConfig);
             SettleRetroactiveCurrencies(profile);
 

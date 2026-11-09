@@ -204,6 +204,9 @@
         Showcase_Scene,
         Showcase_Actor,
         Showcase_Actor_Waypoint,
+        //# 몬스터 도감 개편 연출(monster-codex §11). append-only.
+        CodexConfig,
+        Grade_CodexUnlock,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.

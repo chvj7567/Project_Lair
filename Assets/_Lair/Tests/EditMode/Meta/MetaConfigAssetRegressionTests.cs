@@ -176,11 +176,5 @@ namespace Lair.Tests.EditMode
             }
             Assert.AreEqual(880, sum);
         }
-
-        [Test]
-        public void 도감_잠금슬롯_수가_기획서_6_2절과_일치한다()
-        {
-            Assert.AreEqual(2, _cfg.CodexLockedSlots);
-        }
     }
 }

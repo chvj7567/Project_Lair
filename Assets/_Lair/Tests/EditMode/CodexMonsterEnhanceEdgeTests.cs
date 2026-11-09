@@ -12,118 +12,18 @@ using UnityEngine.UI;
 
 namespace Lair.Tests.EditMode
 {
-    //# 도감 몬스터 강화 — 엣지·회귀 보강. 기존 CodexMonsterEnhanceLevelTests(기본 4건)와 중복 없이:
-    //#  1) BuildMonsterCellData 6종 전수·계약, 카드/더미 필드 격리, 가드
-    //#  2) 레벨→시각 매핑 배열 구조 불변식(단조·Lv0 항등·Lv5 상한) — 기존 "정확값 핀"과 다른 실패모드
-    //#  3) 뷰 클램프(CodexCell) — 변조 레벨(99/음수)에서 배열 인덱싱 안전(§9)
-    //# 실제 픽셀/발광 렌더는 프리팹·육안(§7.2) 소관 — 본 스위트는 데이터·매핑 상수·계약만.
+    //# 도감 카드 셀 데이터 계약 — 몬스터 탭은 monster-codex 개편(CodexViewModel)으로 이관돼 여기선 카드 셀 격리만 본다.
+    //# 레벨→시각 매핑·뷰 클램프(CodexCell)는 아래 클래스들이 계속 담당.
     public class CodexBuildMonsterCellDataTests
     {
-        //# 다른 클래스의 Cfg()는 private — 본 파일 전용 헬퍼를 둔다(격리·이식성).
-        private static MetaConfig Cfg(int lockedSlots = 0)
+        private static MetaConfig Cfg()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
-            cfg.CodexLockedSlots = lockedSlots;
-            return cfg;
+            return ScriptableObject.CreateInstance<MetaConfig>();
         }
 
-        private static MetaProfile AllSeen()
-        {
-            MetaProfile p = new MetaProfile();
-            foreach (EMonster type in MonsterGrades.BaseMonsters)
-            {
-                p.SeenMonsters.Add(type.ToString());
-            }
-            return p;
-        }
-
-        //# 전수 — 몬스터 셀은 enum 순서대로 6개, 각 Species 가 정확히 매핑.
+        //# 격리 — 카드 셀에는 몬스터 필드가 새지 않는다(Species null, EnhanceLevel 0). 잠금 더미는 더 이상 붙지 않는다(D7).
         [Test]
-        public void 몬스터셀은_enum순서대로_6종_전수_매핑된다()
-        {
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
-
-            EMonster[] all = System.Linq.Enumerable.ToArray(MonsterGrades.BaseMonsters);
-            Assert.AreEqual(all.Length, list.Count, "잠금 더미 0일 때 몬스터 셀 수 = 종족 수");
-            for (int i = 0; i < all.Length; ++i)
-            {
-                Assert.AreEqual(all[i], list[i].Species, $"index {i} Species 매핑·순서");
-            }
-        }
-
-        //# 회귀 — 해금 종족 DisplayName = SpeciesVisual.SpeciesName(한글 SoT). 6종 전수.
-        [Test]
-        public void 해금_종족_표시명은_SpeciesName_한글과_일치한다()
-        {
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
-
-            foreach (EMonster type in MonsterGrades.BaseMonsters)
-            {
-                CodexCellData cell = list.Find(c => c.Species == type);
-                Assert.IsNotNull(cell);
-                Assert.AreEqual(SpeciesVisual.SpeciesName(type), cell.DisplayName, $"{type} 표시명");
-            }
-        }
-
-        //# 회귀 — TintColor = SpawnerStatusCell.SpeciesColor(종 색 SoT). 6종 전수.
-        [Test]
-        public void 몬스터셀_틴트색은_SpeciesColor_SoT와_일치한다()
-        {
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), _ => null);
-
-            foreach (EMonster type in MonsterGrades.BaseMonsters)
-            {
-                CodexCellData cell = list.Find(c => c.Species == type);
-                Assert.IsNotNull(cell);
-                Assert.AreEqual(SpawnerStatusCell.SpeciesColor(type), cell.TintColor, $"{type} 틴트");
-            }
-        }
-
-        //# 회귀 — 미해금 종족은 표시명 ???·Unlocked false, 해금 종족만 true (부분 해금 혼재).
-        [Test]
-        public void 부분해금시_해금여부가_SeenMonsters를_반영한다()
-        {
-            MetaProfile p = new MetaProfile();
-            p.SeenMonsters.Add(EMonster.Wisp.ToString());
-            p.SeenMonsters.Add(EMonster.Reaper.ToString());
-
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(p, Cfg(), _ => null);
-
-            Assert.IsTrue(list.Find(c => c.Species == EMonster.Wisp).Unlocked);
-            Assert.IsTrue(list.Find(c => c.Species == EMonster.Reaper).Unlocked);
-            CodexCellData wraith = list.Find(c => c.Species == EMonster.Wraith);
-            Assert.IsFalse(wraith.Unlocked);
-            Assert.AreEqual("???", wraith.DisplayName);
-        }
-
-        //# 데이터 계약 — BuildMonsterCellData 는 레벨을 raw 로 저장(클램프 안 함, 뷰가 클램프). 만렙 초과.
-        [Test]
-        public void 데이터층은_만렙초과_레벨을_클램프없이_그대로_읽는다()
-        {
-            MetaProfile p = AllSeen();
-            p.SetShopLevel("Enhance_Wisp", 99);
-
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(p, Cfg(), _ => null);
-
-            Assert.AreEqual(99, list.Find(c => c.Species == EMonster.Wisp).EnhanceLevel,
-                "데이터층은 raw 저장 — 인덱싱 안전은 뷰 클램프(CodexCellClampTests) 책임");
-        }
-
-        //# 데이터 계약 — 음수 레벨도 raw 통과(변조 세이브 대비). 뷰에서 Clamp→0.
-        [Test]
-        public void 데이터층은_음수_레벨도_그대로_읽는다()
-        {
-            MetaProfile p = AllSeen();
-            p.SetShopLevel("Enhance_Hex", -3);
-
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(p, Cfg(), _ => null);
-
-            Assert.AreEqual(-3, list.Find(c => c.Species == EMonster.Hex).EnhanceLevel);
-        }
-
-        //# 격리 — 카드 셀에는 몬스터 필드가 새지 않는다(Species null, EnhanceLevel 0).
-        [Test]
-        public void 카드셀은_몬스터필드를_담지_않는다()
+        public void 카드셀은_몬스터필드를_담지_않고_더미가_붙지_않는다()
         {
             MetaProfile p = new MetaProfile();
             CardData c1 = FakeCardData.Create(ECardId.Frenzy);
@@ -138,42 +38,7 @@ namespace Lair.Tests.EditMode
             {
                 Assert.IsFalse(cell.Species.HasValue, "카드 셀 Species=null");
                 Assert.AreEqual(0, cell.EnhanceLevel, "카드 셀 EnhanceLevel=0");
-            }
-        }
-
-        //# 격리 — 잠금 더미도 몬스터 필드가 없다(Species null, EnhanceLevel 0, IsLockedDummy).
-        [Test]
-        public void 잠금더미셀은_몬스터필드없이_더미플래그만_든다()
-        {
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(lockedSlots: 2), _ => null);
-
-            List<CodexCellData> dummies = list.FindAll(c => c.IsLockedDummy);
-            Assert.AreEqual(2, dummies.Count, "CodexLockedSlots=2 → 더미 2개 append");
-            foreach (CodexCellData d in dummies)
-            {
-                Assert.IsFalse(d.Species.HasValue, "더미 Species=null");
-                Assert.AreEqual(0, d.EnhanceLevel, "더미 EnhanceLevel=0");
-            }
-        }
-
-        //# 가드 — null profile / null cfg 는 빈 리스트(NRE 없음).
-        [Test]
-        public void null_profile나_config면_빈_리스트를_반환한다()
-        {
-            Assert.AreEqual(0, CodexPopup.BuildMonsterCellData(null, Cfg(), _ => null).Count);
-            Assert.AreEqual(0, CodexPopup.BuildMonsterCellData(AllSeen(), null, _ => null).Count);
-        }
-
-        //# 가드 — iconResolver null 이어도 NRE 없이 Icon=null (resolver 미배선 대비).
-        [Test]
-        public void iconResolver_null이면_Icon은_null이고_NRE_없다()
-        {
-            List<CodexCellData> list = CodexPopup.BuildMonsterCellData(AllSeen(), Cfg(), null);
-
-            Assert.AreEqual(6, list.Count);
-            foreach (CodexCellData cell in list)
-            {
-                Assert.IsNull(cell.Icon);
+                Assert.IsFalse(cell.IsLockedDummy);
             }
         }
     }

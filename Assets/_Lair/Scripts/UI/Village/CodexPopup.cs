@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Card;
+using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
+using Lair.Village;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +19,7 @@ namespace Lair.UI
         public List<CardData> AllCards = new List<CardData>();   //# 패시브+액티브 28장 — VillageController 가 로드
     }
 
-    //# 셀 표시 데이터 — 해금(컬러+이름) / 미조우(실루엣+???) / 잠금 더미(??? — 추후 해금).
+    //# 카드 탭 셀 표시 데이터 — 해금(일러스트+이름) / 미해금(실루엣+???). 몬스터 탭은 CodexMonsterCellData(monster-codex).
     public class CodexCellData
     {
         public string DisplayName;
@@ -29,37 +31,38 @@ namespace Lair.UI
         public int EnhanceLevel;     //# Enhance_<종족> 상점 레벨 0~5 (카드/더미는 기본값 0)
     }
 
-    //# 도감 — 몬스터/카드 탭 + 각 탭 말미 잠금 더미 (기획서 §6).
-    //# 탭별 그리드 열 수가 달라(몬스터 4열 / 카드 6열) 스크롤뷰 2개를 토글 — CHPoolingScrollView 열 수는 직렬화 고정.
+    //# 도감 — 몬스터 탭(CodexMonsterPanel: 6종족 x 등급 x 티어 매트릭스, monster-codex) / 카드 탭(6열 풀링 스크롤뷰).
     public class CodexPopup : UIBase
     {
         [SerializeField] private CHButton _dimButton;
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private Toggle _monsterTab;       //# CHToggle 동행 (Rule 03 §3)
         [SerializeField] private Toggle _cardTab;
-        [SerializeField] private CodexPoolingScrollView _monsterScrollView;   //# 4열 (기획서 §6)
+        [SerializeField] private CodexMonsterPanel _monsterPanel;
         [SerializeField] private CodexPoolingScrollView _cardScrollView;      //# 6열
-        [SerializeField] private CHText _collectedText;   //# 탭 옆 "수집 5 / 6" — 위젯 연결은 프리팹 단계
-
-        //# 종 → 도감 아이콘 — 인스펙터 직접 참조 (SpawnerStatusCell 관례, Addressables 키 아님 — 캐릭터 프리팹과 주소 충돌 방지).
-        [SerializeField] private Sprite _wispIcon;
-        [SerializeField] private Sprite _wraithIcon;
-        [SerializeField] private Sprite _reaperIcon;
-        [SerializeField] private Sprite _hexIcon;
-        [SerializeField] private Sprite _plagueIcon;
-        [SerializeField] private Sprite _phantomIcon;
+        [SerializeField] private CHText _collectedText;   //# 탭 옆 "수집 n / 120" (카드 탭은 "수집 n / 28")
 
         private CodexPopupArg _arg;
         private bool _showCards;
+        private CodexViewModel _monsterVm;   //# 팝업 수명 — 탭을 오가도 NEW 배지 유지
 
         public override void InitUI(UIArg arg)
         {
             _arg = arg as CodexPopupArg;
             if (_arg != null)
             {
-                closeDisposable.Add(() => _arg = null);
+                closeDisposable.Add(() =>
+                {
+                    if (_monsterPanel != null)
+                    {
+                        _monsterPanel.Hide();
+                    }
+                    _monsterVm = null;
+                    _arg = null;
+                });
             }
             _showCards = false;
+            _monsterVm = null;
 
             if (_dimButton != null)
             {
@@ -115,15 +118,26 @@ namespace Lair.UI
             Rebuild();
         }
 
+        //# 슬롯·미리보기·시트 해제 — 비활성(재사용 닫힘)에서도 점유를 남기지 않는다.
+        private void OnDisable()
+        {
+            if (_monsterPanel != null)
+            {
+                _monsterPanel.Hide();
+            }
+        }
+
+        private static string LookupText(int id) => CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+
         private void Rebuild()
         {
             if (_arg == null)
                 return;
 
             //# 활성 토글 — SetItemList 는 Awake(origin 비활성/ScrollRect 캐싱) 이후여야 하므로 활성화 먼저.
-            if (_monsterScrollView != null)
+            if (_monsterPanel != null)
             {
-                _monsterScrollView.gameObject.SetActive(_showCards == false);
+                _monsterPanel.gameObject.SetActive(_showCards == false);
             }
             if (_cardScrollView != null)
             {
@@ -136,32 +150,62 @@ namespace Lair.UI
                 LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
             }
 
-            List<CodexCellData> cells = _showCards
-                ? BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards)
-                : BuildMonsterCellData(_arg.Profile, _arg.Config, SpeciesIcon, FormationDatabase.Current,
-                    id => CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty);
-            if (_collectedText != null)
-            {
-                _collectedText.SetText(BuildCollectedText(cells));
-            }
-
             if (_showCards)
             {
+                if (_monsterPanel != null)
+                {
+                    _monsterPanel.Hide();
+                }
+                List<CodexCellData> cells = BuildCardCellData(_arg.Profile, _arg.Config, _arg.AllCards);
+                if (_collectedText != null)
+                {
+                    _collectedText.SetText(BuildCollectedText(cells));
+                }
                 if (_cardScrollView != null)
                 {
                     _cardScrollView.SetItemList(cells);
                 }
+                return;
             }
-            else
+
+            if (_monsterVm == null)
             {
-                if (_monsterScrollView != null)
-                {
-                    _monsterScrollView.SetItemList(cells);
-                }
+                _monsterVm = new CodexViewModel(_arg.Profile, FormationDatabase.Current, LookupText);
+            }
+            if (_collectedText != null)
+            {
+                _collectedText.SetText(_monsterVm.CollectedText);
+            }
+            if (_monsterPanel != null)
+            {
+                _monsterPanel.Show(_monsterVm, CodexDatabase.Current, CreateTierLoader(_arg.Profile));
             }
         }
 
-        //# "수집 5 / 6" — 잠금 더미는 분모에서 제외, 해금(Unlocked)만 분자.
+        //# 도감 전용 티어 시트 로더 — 현재 티어 키는 마을 쇼케이스가 쥐고 있어 해제하지 않는다(CHMResource.Unload 는 참조 카운트가 없다).
+        private static MonsterTierSheetLoader CreateTierLoader(MetaProfile profile)
+        {
+            HashSet<EMonsterTierSheet> keep = new HashSet<EMonsterTierSheet>();
+            foreach (EMonster race in MonsterGrades.BaseMonsters)
+            {
+                int tier = CodexRules.TierOf(profile != null ? profile.GetShopLevel("Enhance_" + race) : 0);
+                if (tier > 0 && MonsterTierSheetLoader.TryKeyOf(race, tier, out EMonsterTierSheet key))
+                {
+                    keep.Add(key);
+                }
+            }
+            return new MonsterTierSheetLoader(
+                key => CHMResource.Instance.LoadAsync<MonsterTierSheetSet>(key),
+                key =>
+                {
+                    if (keep.Contains(key))
+                        return;
+                    CHMResource.Instance.Unload(key);
+                },
+                Debug.LogWarning);
+        }
+
+        //# "수집 n / 28" — 해금(Unlocked)만 분자(IsLockedDummy 는 분모 제외 유지).
         public static string BuildCollectedText(List<CodexCellData> cells)
         {
             int total = 0;
@@ -182,57 +226,7 @@ namespace Lair.UI
             return $"수집 {collected} / {total}";
         }
 
-        //# 종 → 도감 아이콘 매핑 (인스펙터 직접 참조). 미할당이면 null → 색칩 fallback.
-        //# 종족 보유 최고 등급 몬스터 — 편성 데이터가 없으면 기준 몬스터.
-        private static EMonster OwnedTopOf(EMonster baseMonster, MetaProfile profile, FormationDatabase formation)
-        {
-            if (formation == null || formation.TryGetRace(baseMonster, out ERace race) == false)
-                return baseMonster;
-            return formation.HighestOwned(race, profile.GetRaceGrade(race));
-        }
-
-        private Sprite SpeciesIcon(EMonster type) => MonsterGrades.BaseOf(type) switch
-        {
-            EMonster.Wisp    => _wispIcon,
-            EMonster.Wraith  => _wraithIcon,
-            EMonster.Reaper  => _reaperIcon,
-            EMonster.Hex     => _hexIcon,
-            EMonster.Plague  => _plagueIcon,
-            EMonster.Phantom => _phantomIcon,
-            _                => null,
-        };
-
-        //# 몬스터 탭 — 6종 + 잠금 더미 (해금 = SeenMonsters 포함, 기획서 §6).
-        //# 미조우도 아이콘은 싣는다 — CodexCell 이 SilhouetteColor 틴트로 실루엣 처리.
-        //# 도감은 기준 몬스터 6칸(등급 몬스터는 기준 항목에 합산, monster-grades §6). 이름 = 그 종족 보유 최고 등급 접두어 + 기존 이름.
-        public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg, Func<EMonster, Sprite> iconResolver)
-            => BuildMonsterCellData(profile, cfg, iconResolver, null, null);
-
-        public static List<CodexCellData> BuildMonsterCellData(MetaProfile profile, MetaConfig cfg, Func<EMonster, Sprite> iconResolver,
-            FormationDatabase formation, Func<int, string> text)
-        {
-            List<CodexCellData> list = new List<CodexCellData>();
-            if (profile == null || cfg == null)
-                return list;
-
-            foreach (EMonster type in MonsterGrades.BaseMonsters)
-            {
-                bool seen = profile.SeenMonsters.Contains(type.ToString());
-                list.Add(new CodexCellData
-                {
-                    DisplayName = seen ? SpeciesVisual.MonsterName(OwnedTopOf(type, profile, formation), formation, text) : "???",
-                    Unlocked = seen,
-                    Icon = iconResolver != null ? iconResolver(type) : null,
-                    TintColor = SpawnerStatusCell.SpeciesColor(type),
-                    Species = type,
-                    EnhanceLevel = profile.GetShopLevel("Enhance_" + type),
-                });
-            }
-            AddLockedDummies(list, cfg.CodexLockedSlots);
-            return list;
-        }
-
-        //# 카드 탭 — 28장 + 잠금 더미 (해금 = PickedCards 포함).
+        //# 카드 탭 — 28장 (해금 = PickedCards 포함). 잠금 더미는 제거(monster-codex D7).
         public static List<CodexCellData> BuildCardCellData(MetaProfile profile, MetaConfig cfg, List<CardData> allCards)
         {
             List<CodexCellData> list = new List<CodexCellData>();
@@ -251,20 +245,7 @@ namespace Lair.UI
                     Icon = card.CardImage != null ? card.CardImage : card.Icon,
                 });
             }
-            AddLockedDummies(list, cfg.CodexLockedSlots);
             return list;
-        }
-
-        private static void AddLockedDummies(List<CodexCellData> list, int count)
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                list.Add(new CodexCellData
-                {
-                    DisplayName = "??? — 추후 해금",
-                    IsLockedDummy = true,
-                });
-            }
         }
     }
 }

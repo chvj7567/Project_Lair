@@ -419,16 +419,16 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void CodexPopup_origin_2개가_CodexCell_프리팹의_서로_다른_인스턴스다()
+        public void CodexPopup_origin_2개가_각_셀_프리팹의_서로_다른_인스턴스다()
         {
             CodexPopup popup = Comp<CodexPopup>(LoadPrefabAsset(CodexPopupPath));
 
-            GameObject monster = OriginOf(popup, "_monsterScrollView");
+            GameObject monster = OriginOf(Required<Component>(popup, "_monsterPanel"), "_scrollView");
             GameObject card = OriginOf(popup, "_cardScrollView");
 
-            Assert.IsTrue(monster.GetComponent<CodexCell>() != null, "몬스터 origin 에 CodexCell");
+            Assert.IsTrue(monster.GetComponent<CodexMonsterCell>() != null, "몬스터 origin 에 CodexMonsterCell");
             Assert.IsTrue(card.GetComponent<CodexCell>() != null, "카드 origin 에 CodexCell");
-            Assert.AreEqual(CodexCellPath, SourcePrefabPath(monster), "몬스터 origin 원본");
+            Assert.AreEqual(UiDir + "CodexMonsterCell.prefab", SourcePrefabPath(monster), "몬스터 origin 원본");
             Assert.AreEqual(CodexCellPath, SourcePrefabPath(card), "카드 origin 원본");
             Assert.AreNotSame(monster, card, "두 origin 은 서로 다른 인스턴스");
             Assert.AreNotSame(monster.transform.parent, card.transform.parent, "서로 다른 Content 아래");

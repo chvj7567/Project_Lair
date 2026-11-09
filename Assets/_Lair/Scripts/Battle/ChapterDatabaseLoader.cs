@@ -61,6 +61,7 @@ namespace Lair.Battle
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
                 await LoadGradeFxAsync();
+                await LoadCodexAsync();
                 await LoadShowcaseAsync();
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
@@ -169,6 +170,30 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 등급 연출 비활성");
                 GradeFxDatabase.Current = null;
+            }
+        }
+
+        //# 도감 연출 JSON 2종(monster-codex §11) — 실패해도 챕터 로드는 성공. Current=null → 도감 이펙트·해금 연출만 꺼짐.
+        private static async Task LoadCodexAsync()
+        {
+            CodexDatabase.Current = null;
+            string configJson = await LoadTextAsync(EData.CodexConfig);
+            string unlockJson = await LoadTextAsync(EData.Grade_CodexUnlock);
+            if (configJson == null || unlockJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 도감 연출 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요. 도감 이펙트 비활성");
+                return;
+            }
+            try
+            {
+                CodexDatabase.Current = CodexDatabase.Build(
+                    JsonUtility.FromJson<CodexConfigRow>(configJson),
+                    JsonArrayUtility.FromJsonArray<Grade_CodexUnlockRow>(unlockJson));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message} — 도감 이펙트 비활성");
+                CodexDatabase.Current = null;
             }
         }
 

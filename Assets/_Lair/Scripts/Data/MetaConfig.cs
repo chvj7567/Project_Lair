@@ -25,9 +25,6 @@ namespace Lair.Data
         public List<LordRewardDef> LordRewards = new List<LordRewardDef>();
         public List<AchievementDef> Achievements = new List<AchievementDef>();
 
-        [Header("잠금 더미 슬롯 수 (기획서 §6)")]
-        public int CodexLockedSlots = 2;           //# 도감 — 각 탭 말미 2개씩
-
         public ShopItemDef FindShopItem(string id)
         {
             foreach (ShopItemDef item in ShopItems)
