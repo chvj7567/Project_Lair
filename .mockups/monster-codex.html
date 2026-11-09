@@ -184,10 +184,10 @@ function renderCur(){
   const c=el('cell'+(p.seen?'':' lk'),x,y,124,108,'',p.seen?'--rc:#2c3750':'');
   const lv=p.seen?p.L:0;
   c.innerHTML='<div class="spw" style="left:34px;top:8px;width:56px;height:56px;'+(lv?'box-shadow:0 0 '+(6+lv*4)+'px '+rr[3]+'88':'')+'"><div class="spr'+(p.seen?'':' sil')+'" style="background-image:url('+url(r,0)+')"></div></div>'
-   +'<div class="nm" style="top:70px">'+(p.seen?nameOf(r,p.G):'???')+'</div>'
+   +'<div class="nm" style="top:70px">'+nameOf(r,p.seen?p.G:1)+'</div>'
    +(p.seen&&lv?'<div class="abs" style="right:4px;top:4px;font-size:11px;color:var(--gold)">Lv '+lv+'</div>':'');
  });
- for(let i=0;i<2;i++)el('dummy',88+((6+i)%4)*132,120+Math.floor((6+i)/4)*116,124,108,'??? - 추후 해금');
+ for(let i=0;i<2;i++)el('dummy',88+((6+i)%4)*132,120+Math.floor((6+i)/4)*116,124,108,'추후 해금');
  el('pnl',840,120,352,472,'');
  el('t gold',856,132,320,22,'현행 화면 요약','font-size:15px;line-height:22px');
  el('abs',856,162,320,400,'- 몬스터 탭: 기준 몬스터 6칸(4열) + 잠금 더미 2칸<br>- 해금 = "조우(SeenMonsters)" 1비트. 6칸 모두 같은 풋내기 아이콘에 강화 Lv 발광/배지만 변함<br>- 이름은 보유 최고 등급 접두어 1개만 표시<br>- 등급 1~5 / 티어 T1~T3 를 개별로 볼 방법이 없음 (승급해도 칸 수 불변, "수집 5 / 6")<br>- 칸을 눌러도 아무 일 없음 (상세 없음)<br>- 잠금 더미는 의미 없는 빈칸','white-space:normal;font-size:14px;line-height:22px;color:var(--txt)');
