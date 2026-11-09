@@ -53,6 +53,19 @@ const UIDOT_NAMES = new Set([
 const HEROICON_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'HeroIcons');
 const HEROICON_NAMES = new Set(['Berserker.png', 'Berserker_S2.png', 'Berserker_S3.png', 'Berserker_S4.png', 'Berserker_S5.png',
   'Paladin.png', 'Paladin_S2.png', 'Paladin_S3.png', 'Paladin_S4.png', 'Paladin_S5.png']);
+//# POST /export/<Name> — 몬스터 등급 2~5 시트(monster-grades.html?export=1, 기획서 monster-grades §7.2). Art/Sprites/Monsters2D 로만 저장.
+//# 허용 = <기준>G<2~5>_Sheet(_T1~3)(_Emission).png 192장 + 오라 + 규격 JSON. 1등급 시트(<기준>_Sheet*.png)는 이름이 없어 덮어쓸 수 없다.
+const MONSTER_GRADE_DIR = path.join(ROOT, '..', 'Assets', '_Lair', 'Art', 'Sprites', 'Monsters2D');
+const MONSTER_GRADE_NAMES = new Set(['MonsterGradeAura.png', 'MonsterGrade_SheetSpec.json']);
+['Wisp', 'Wraith', 'Reaper', 'Hex', 'Plague', 'Phantom'].forEach((base) => {
+  [2, 3, 4, 5].forEach((grade) => {
+    const sheet = base + 'G' + grade + '_Sheet';
+    ['', '_T1', '_T2', '_T3'].forEach((tier) => {
+      MONSTER_GRADE_NAMES.add(sheet + tier + '.png');
+      MONSTER_GRADE_NAMES.add(sheet + tier + '_Emission.png');
+    });
+  });
+});
 const EXPORT_MAX_BYTES = 20 * 1024 * 1024;
 
 function exportDirOf(name) {
@@ -61,6 +74,7 @@ function exportDirOf(name) {
   if (BACKDROP_NAMES.has(name)) return BACKDROP_DIR;
   if (UIDOT_NAMES.has(name)) return UIDOT_DIR;
   if (HEROICON_NAMES.has(name)) return HEROICON_DIR;
+  if (MONSTER_GRADE_NAMES.has(name)) return MONSTER_GRADE_DIR;
   return null;
 }
 
@@ -152,6 +166,18 @@ const server = http.createServer((req, res) => {
       return;
     }
     send(res, path.join(CARD_DIR, name));
+    return;
+  }
+
+  //# /herosrc/<Class>_S<n>_ver2.png — hero-sheets 시안용 영웅 원본 시트 읽기 전용 서빙(복사본 없음). HERO_SRC 환경변수로 폴더 변경.
+  if (reqPath.startsWith('/herosrc/')) {
+    const name = reqPath.slice('/herosrc/'.length);
+    if (/^(Knight|Archer|Assassin|Berserker|Paladin)_S[1-5]_ver2\.png$/.test(name) === false) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    send(res, path.join(process.env.HERO_SRC || 'C:\\Users\\Tae\\Desktop\\Art\\Hero\\v2', name));
     return;
   }
 

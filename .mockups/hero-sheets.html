@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영웅 25종 전신 시트 - 전투 시안 (hero-sheets 목업)</title>
+<style>
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; --acc:#a78bfa; --gold:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.5; }
+  .wrap { max-width:1100px; margin:0 auto; padding:20px 16px 64px; }
+  h1 { font-size:24px; margin:0 0 4px; }
+  h2 { font-size:18px; margin:30px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .sub, .note { color:var(--dim); } .note { font-size:13px; }
+  .row { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; align-items:center; }
+  button { background:#1b2740; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:6px 12px; font:inherit; cursor:pointer; }
+  button.on { background:#3b2f6b; border-color:var(--acc); color:#fff; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .grid2 { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+  .stage { position:relative; height:300px; background:linear-gradient(#10182a,#0d1322); border-radius:8px; overflow:hidden; }
+  .ground { position:absolute; left:0; right:0; height:1px; background:#3b4a6b; }
+  .ruler { position:absolute; width:14px; border:1px solid var(--gold); border-right:none; color:var(--gold); font-size:11px; }
+  .spr { position:absolute; background-repeat:no-repeat; image-rendering:auto; }
+  .tl { position:relative; height:26px; background:#0d1322; border:1px solid var(--line); border-radius:6px; margin-top:8px; }
+  .tl i { position:absolute; top:0; bottom:0; width:2px; background:#475569; }
+  .tl b { position:absolute; top:0; bottom:0; width:3px; background:#f87171; }
+  .tl u { position:absolute; top:0; bottom:0; width:2px; background:var(--acc); text-decoration:none; }
+  .cmp { display:grid; gap:6px; grid-template-columns:repeat(5,1fr); }
+  .cmp > div { position:relative; height:240px; background:linear-gradient(#10182a,#0d1322); border-radius:8px; overflow:hidden; }
+  .cmp .lab { position:absolute; left:6px; top:4px; font-size:12px; color:var(--dim); z-index:2; }
+  .cmp .num { position:absolute; left:6px; bottom:4px; font-size:11px; color:#cbd5e1; z-index:2; line-height:1.3; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border:1px solid var(--line); padding:5px 8px; text-align:left; }
+  th { background:#18233a; }
+  .sheetbox { overflow:auto; max-height:420px; background:#0d1322; border:1px solid var(--line); border-radius:8px; }
+  .sheetbox img { display:block; image-rendering:auto; }
+  @media (max-width:760px){ .cmp { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>영웅 25종 전신 시트 - 전투 시안</h1>
+<p class="sub">직업 5 x 단계 5 의 새 일러스트 시트를 게임 규칙(타격 시각·크기 정규화)대로 재생해 보는 합의용 프리뷰입니다. 원본 시트는 서버의 읽기 전용 경로 <code>/herosrc/</code> 에서 불러옵니다(복사본 없음). 기획서: <code>docs/design/hero-sheets.md</code></p>
+
+<div class="row" id="classBtns"></div>
+<div class="row" id="stageBtns"></div>
+
+<h2>1. 동작 미리보기 (게임 클립 시각표 그대로)</h2>
+<div class="row" id="stateBtns"></div>
+<div class="grid2">
+  <div class="panel">
+    <div class="stage" id="playStage"></div>
+    <div class="tl" id="timeline"></div>
+    <p class="note" id="clipInfo"></p>
+  </div>
+  <div class="panel">
+    <b>시트 전체 (6열 x 6행, 게임 행 순서가 아닌 원본 순서: Idle / Attack / Death / Spawn / Move / Hit)</b>
+    <div class="sheetbox"><img id="sheetImg" alt="sheet" width="627"></div>
+    <p class="note">행 -> 게임 상태: 1행 Idle, 2행 Attack(F3 = 타격 프레임), 3행 Death, 4행 Spawn, 5행 Move(걷기·달리기 공용), 6행 Hit.</p>
+  </div>
+</div>
+
+<h2>2. 같은 직업 5단계 비교 (대기 F0, 높이 정규화)</h2>
+<p class="note">단계마다 대기 그림의 높이를 그 직업 1단계의 월드 높이(1.00u)에 맞춥니다. 5단계는 현행과 같이 크기 배수(Knight x1.4 / Archer x1.25 / Assassin x1.2 / Berserker x1.35 / Paladin x1.3)가 곱해집니다. 아래 수치는 브라우저가 원본 이미지에서 직접 잰 값입니다(192 셀 환산).</p>
+<div class="row"><button id="multBtn" class="on">5단계 배수 적용</button></div>
+<div class="cmp" id="cmp"></div>
+
+<h2>3. 25종 한눈에 (대기 F0)</h2>
+<div id="all"></div>
+
+<h2>4. 타격 시각 (변경 없음)</h2>
+<table>
+  <tr><th>직업</th><th>타격 프레임</th><th>타격 실시간</th><th>공격 락</th><th>스폰 게이트</th></tr>
+  <tr><td>Knight 베기1·2 / 찌르기</td><td>F3</td><td>0.500s / 0.800s</td><td>1.8s</td><td>1.8s</td></tr>
+  <tr><td>Archer</td><td>F3</td><td>0.300s</td><td>0.58s (OnAttackEnd)</td><td>1.8s</td></tr>
+  <tr><td>Assassin · Berserker · Paladin</td><td>F3</td><td>0.200s</td><td>0.58s (OnAttackEnd)</td><td>1.8s</td></tr>
+</table>
+<p class="note">빨간 선 = 타격 순간(이벤트), 보라 선 = 프레임이 바뀌는 시각. 타임라인 위의 모양이 직업마다 달라도 빨간 선의 실시간 위치는 현행과 같습니다.</p>
+</div>
+
+<script>
+const SRC = '/herosrc/';
+const CELL = 209, N = 6, SCALE192 = 192 / 209;
+const U = 130; //# 목업 1월드 유닛 = 130px
+const CLASSES = [
+  { id:'Knight',   ko:'기사',   H:1.0000, mult:1.40, strike:[0.5,0.5,0.8163], speed:[1,1,1.0204], L:[1.1333,1.1333,1.6667] },
+  { id:'Archer',   ko:'궁수',   H:1.0000, mult:1.25, strike:[0.3,0.3,0.3],    speed:[1,1,1],      L:[0.6,0.6,0.6] },
+  { id:'Assassin', ko:'암살자', H:1.0000, mult:1.20, strike:[0.2,0.2,0.2],    speed:[1,1,1],      L:[0.6,0.6,0.6] },
+  { id:'Berserker',ko:'광전사', H:33/31,  mult:1.35, strike:[0.2,0.2,0.2],    speed:[1,1,1],      L:[0.6,0.6,0.6] },
+  { id:'Paladin',  ko:'성기사', H:30/31,  mult:1.30, strike:[0.2,0.2,0.2],    speed:[1,1,1],      L:[0.6,0.6,0.6] }
+];
+//# 상태: srcRow = 소스 시트 행, fps(반복 클립), loop
+const STATES = [
+  { id:'idle',  ko:'대기',   row:0, loop:true,  dur:1.0 },
+  { id:'walk',  ko:'걷기',   row:4, loop:true,  dur:0.8 },
+  { id:'run',   ko:'달리기', row:4, loop:true,  dur:6/10.5 },
+  { id:'atk0',  ko:'베기1',  row:1, attack:0 },
+  { id:'atk1',  ko:'베기2',  row:1, attack:1 },
+  { id:'atk2',  ko:'찌르기', row:1, attack:2 },
+  { id:'hit',   ko:'피격',   row:5, loop:false, dur:0.5 },
+  { id:'death', ko:'사망',   row:2, loop:false, dur:0.8 },
+  { id:'spawn', ko:'등장',   row:3, loop:false, dur:6/4.5 }
+];
+let cur = { c:0, s:0, st:0, mult:true };
+const meas = {}; //# key -> {hPx,wPx,footX,bottom}
+const imgs = {};
+
+function file(ci, s) { return CLASSES[ci].id + '_S' + (s + 1) + '_ver2.png'; }
+function load(ci, s) {
+  const key = file(ci, s);
+  if (imgs[key]) return imgs[key];
+  imgs[key] = new Promise((resolve) => {
+    const im = new Image();
+    im.onload = () => {
+      const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height;
+      const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0);
+      const d = cx.getImageData(0, 0, CELL, CELL).data; //# 대기 F0 = 좌상단 셀
+      let x0 = CELL, x1 = -1, y0 = CELL, y1 = -1;
+      for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++) {
+        if (d[(y * CELL + x) * 4 + 3] >= 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      }
+      let sum = 0, cnt = 0;
+      for (let y = Math.max(y0, y1 - 5); y <= y1; y++) for (let x = 0; x < CELL; x++) {
+        if (d[(y * CELL + x) * 4 + 3] >= 24) { sum += x; cnt++; }
+      }
+      meas[key] = { hPx: y1 - y0 + 1, wPx: x1 - x0 + 1, footX: cnt ? sum / cnt : CELL / 2, bottom: y1 + 1, w: im.width };
+      resolve(im);
+    };
+    im.onerror = () => resolve(null);
+    im.src = SRC + key;
+  });
+  return imgs[key];
+}
+
+//# 셀 하나를 발 중심이 (cx, groundY) 에 오도록 배치. pxPerSrcPx = 화면 px / 원본 px
+function place(el, key, row, col, cx, groundY, k) {
+  const m = meas[key];
+  el.style.width = (CELL * k) + 'px'; el.style.height = (CELL * k) + 'px';
+  el.style.backgroundImage = 'url(' + SRC + key + ')';
+  el.style.backgroundSize = (CELL * N * k) + 'px ' + (CELL * N * k) + 'px';
+  el.style.backgroundPosition = (-col * CELL * k) + 'px ' + (-row * CELL * k) + 'px';
+  el.style.left = (cx - m.footX * k) + 'px';
+  el.style.top = (groundY - m.bottom * k) + 'px';
+}
+
+function kScale(ci, s, withMult) {
+  const key = file(ci, s), m = meas[key], c = CLASSES[ci];
+  const base = (c.H * U) / m.hPx; //# 높이 정규화
+  return base * ((s === 4 && withMult) ? c.mult : 1);
+}
+
+function buildButtons() {
+  const cb = document.getElementById('classBtns'); cb.innerHTML = '';
+  CLASSES.forEach((c, i) => { const b = document.createElement('button'); b.textContent = '챕터' + (i + 1) + ' ' + c.ko + ' (' + c.id + ')'; b.className = i === cur.c ? 'on' : ''; b.onclick = () => { cur.c = i; refresh(); }; cb.appendChild(b); });
+  const sb = document.getElementById('stageBtns'); sb.innerHTML = '';
+  for (let s = 0; s < 5; s++) { const b = document.createElement('button'); b.textContent = (s + 1) + '단계 (x-' + (s + 1) + ')'; b.className = s === cur.s ? 'on' : ''; b.onclick = () => { cur.s = s; refresh(); }; sb.appendChild(b); }
+  const tb = document.getElementById('stateBtns'); tb.innerHTML = '';
+  STATES.forEach((st, i) => { const b = document.createElement('button'); b.textContent = st.ko; b.className = i === cur.st ? 'on' : ''; b.onclick = () => { cur.st = i; refresh(); }; tb.appendChild(b); });
+}
+
+//# 클립 시각표: [키 시작 시각 x6], 길이(로컬 초), 속도, 루프, 타격 시각
+function clipOf(ci, stIdx) {
+  const st = STATES[stIdx], c = CLASSES[ci];
+  if (st.attack !== undefined) {
+    const T = c.strike[st.attack], L = c.L[st.attack];
+    return { keys: [0, T / 3, 2 * T / 3, T, T + 1 / 12, T + 1 / 6], len: L, speed: c.speed[st.attack], loop: false, strike: T, hold: true };
+  }
+  const per = st.dur / N, keys = []; for (let i = 0; i < N; i++) keys.push(i * per);
+  return { keys: keys, len: st.dur, speed: 1, loop: st.loop, strike: -1, hold: true };
+}
+
+let raf = 0, t0 = 0;
+function startPlayer() {
+  cancelAnimationFrame(raf);
+  const ci = cur.c, s = cur.s, key = file(ci, s);
+  const stage = document.getElementById('playStage'); stage.innerHTML = '';
+  const clip = clipOf(ci, cur.st), st = STATES[cur.st];
+  const gy = 270, cx = stage.clientWidth / 2;
+  const g = document.createElement('div'); g.className = 'ground'; g.style.top = gy + 'px'; stage.appendChild(g);
+  const r = document.createElement('div'); r.className = 'ruler'; r.style.left = '6px'; r.style.top = (gy - U) + 'px'; r.style.height = U + 'px'; r.textContent = '1u'; stage.appendChild(r);
+  const sp = document.createElement('div'); sp.className = 'spr'; stage.appendChild(sp);
+  const k = kScale(ci, s, cur.mult);
+  const tl = document.getElementById('timeline'); tl.innerHTML = '';
+  const realLen = clip.len / clip.speed;
+  clip.keys.forEach((kt) => { const i = document.createElement('u'); i.style.left = (kt / clip.len * 100) + '%'; tl.appendChild(i); });
+  if (clip.strike >= 0) { const b = document.createElement('b'); b.style.left = (clip.strike / clip.len * 100) + '%'; tl.appendChild(b); }
+  document.getElementById('clipInfo').textContent =
+    st.ko + ' - 길이 ' + realLen.toFixed(3) + '초(실시간)' + (clip.strike >= 0 ? ', 타격 ' + (clip.strike / clip.speed).toFixed(3) + '초(프레임 F3)' : '') +
+    ', 표시 배율 x' + k.toFixed(3) + (s === 4 && cur.mult ? ' (5단계 크기 배수 포함)' : '');
+  t0 = performance.now();
+  const tick = (now) => {
+    let t = ((now - t0) / 1000) * clip.speed;
+    if (clip.loop) { t = t % clip.len; }
+    else if (t > clip.len + 0.6 * clip.speed) { t0 = now; t = 0; } //# 끝난 뒤 0.6초 유지 후 다시 재생
+    else if (t > clip.len) { t = clip.len; }
+    let f = 0; for (let i = 0; i < N; i++) { if (t >= clip.keys[i]) { f = i; } }
+    place(sp, key, st.row, f, cx, gy, k);
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+
+function buildCompare() {
+  const cmp = document.getElementById('cmp'); cmp.innerHTML = '';
+  const ci = cur.c, c = CLASSES[ci];
+  const s1 = meas[file(ci, 0)];
+  for (let s = 0; s < 5; s++) {
+    const key = file(ci, s), m = meas[key];
+    const box = document.createElement('div'); cmp.appendChild(box);
+    const gy = 225, cx = 70;
+    const g = document.createElement('div'); g.className = 'ground'; g.style.top = gy + 'px'; box.appendChild(g);
+    const sp = document.createElement('div'); sp.className = 'spr'; box.appendChild(sp);
+    const k = kScale(ci, s, cur.mult); place(sp, key, 0, 0, box.clientWidth / 2 || cx, gy, k);
+    const lab = document.createElement('div'); lab.className = 'lab'; lab.textContent = (s + 1) + '단계'; box.appendChild(lab);
+    const h192 = m.hPx * SCALE192, ppu = h192 / c.H;
+    const num = document.createElement('div'); num.className = 'num';
+    num.innerHTML = '높이 ' + h192.toFixed(0) + 'px(192)<br>폭 비 ' + (m.wPx / s1.wPx).toFixed(2) + ' x (1단계 대비)<br>PPU ' + ppu.toFixed(0) + '<br>월드 높이 ' + (c.H * ((s === 4 && cur.mult) ? c.mult : 1)).toFixed(2) + 'u';
+    box.appendChild(num);
+  }
+}
+
+function buildAll() {
+  const all = document.getElementById('all'); all.innerHTML = '';
+  CLASSES.forEach((c, ci) => {
+    const row = document.createElement('div'); row.className = 'cmp'; row.style.marginBottom = '6px';
+    for (let s = 0; s < 5; s++) {
+      const key = file(ci, s);
+      const box = document.createElement('div'); box.style.height = '170px'; box.style.position = 'relative'; box.style.background = 'linear-gradient(#10182a,#0d1322)'; box.style.borderRadius = '8px'; box.style.overflow = 'hidden'; row.appendChild(box);
+      const sp = document.createElement('div'); sp.className = 'spr'; box.appendChild(sp);
+      place(sp, key, 0, 0, (box.clientWidth || 150) / 2, 160, 0.7 * kScale(ci, s, true) / (U / 130));
+      const lab = document.createElement('div'); lab.className = 'lab'; lab.textContent = c.ko + ' ' + (s + 1); box.appendChild(lab);
+    }
+    all.appendChild(row);
+  });
+}
+
+async function refresh() {
+  buildButtons();
+  await Promise.all([0, 1, 2, 3, 4].map((s) => load(cur.c, s)));
+  document.getElementById('sheetImg').src = SRC + file(cur.c, cur.s);
+  startPlayer(); buildCompare();
+}
+document.getElementById('multBtn').onclick = (e) => { cur.mult = !cur.mult; e.target.className = cur.mult ? 'on' : ''; startPlayer(); buildCompare(); buildAll(); };
+(async () => {
+  for (let ci = 0; ci < 5; ci++) for (let s = 0; s < 5; s++) await load(ci, s);
+  await refresh(); buildAll();
+})();
+</script>
+</body>
+</html>
