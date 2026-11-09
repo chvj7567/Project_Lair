@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영웅 새 그림 적용 - 플레이어 가이드</title>
+<style>
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.6; }
+  .wrap { max-width:900px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p { margin:6px 0; }
+  .sub, .note { color:var(--dim); } .note { font-size:13px; }
+  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card h3 { margin:0 0 6px; font-size:15px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; margin-right:4px; background:#1e293b; color:var(--dim); }
+  .ok { background:#14351f; color:#86efac; } .no { background:#3b1a1a; color:#fca5a5; } .warn { background:#3a2e10; color:#fcd34d; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#18233a; }
+  .strip { display:flex; gap:6px; margin:10px 0; flex-wrap:wrap; }
+  .strip span { flex:1; min-width:110px; text-align:center; padding:12px 6px; border-radius:8px; background:#1b2740; border:1px solid var(--line); }
+  .film { display:flex; gap:4px; margin:10px 0; }
+  .film span { flex:1; text-align:center; padding:10px 2px; background:#1b2740; border:1px solid var(--line); border-radius:6px; font-size:13px; }
+  .film .hit { background:#4a1f1f; border-color:#f87171; color:#fecaca; font-weight:bold; }
+  .decide { margin-top:34px; background:#1a1730; border:2px solid #a78bfa; border-radius:12px; padding:16px 18px; }
+  .decide h2 { border:0; margin:0 0 8px; color:#ddd6fe; }
+  .decide ol { margin:0; padding-left:20px; } .decide li { margin:12px 0; }
+  .rec { display:block; margin-top:2px; color:#86efac; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>영웅 새 그림 적용</h1>
+<p class="sub">기사·궁수·암살자·광전사·성기사 5직업의 영웅이 <b>새로 그린 굵은 외곽선의 귀여운 해골 그림</b>으로 바뀝니다. 직업마다 5단계(스테이지 x-1 ~ x-5)가 있어 모두 25가지입니다. 몬스터와 같은 화풍이라 한 화면에서 어울립니다. <b>싸우는 방식은 바뀌지 않고 겉모습만 바뀝니다.</b></p>
+<p class="note">실제 그림은 <code>.mockups/hero-sheets.html</code> 시안에서 직업·단계·동작을 골라 움직여 볼 수 있습니다.</p>
+
+<h2>어떻게 보이나요</h2>
+<div class="strip"><span>1단계<br>기본 차림</span><span>2단계<br>장비 추가</span><span>3단계<br>더 화려하게</span><span>4단계<br>강력한 차림</span><span>5단계<br>왕관·망토·날개 등<br>최종 모습</span></div>
+<ul>
+  <li>스테이지 x-1 에서 x-5 로 갈수록 영웅의 차림이 화려해지고, 5단계는 지금처럼 가장 크게 나옵니다.</li>
+  <li>같은 직업의 단계끼리는 키를 똑같이 맞춰서 단계가 바뀔 때 갑자기 커지거나 작아 보이지 않습니다. (5단계의 "크게 나오는 정도"는 지금과 같습니다.)</li>
+  <li>대기 · 걷기 · 달리기 · 공격 · 피격 · 쓰러짐 · 등장 모든 동작이 새 그림으로 나옵니다. 등장 때는 땅에서 솟아오르는 모습입니다.</li>
+  <li>마을의 영웅 선택·기록·월드맵에 나오는 얼굴 그림도 새 그림으로 바뀝니다.</li>
+</ul>
+
+<h2>공격은 이렇게 보입니다</h2>
+<p>새 그림은 공격 동작이 한 가지(6장면)입니다. 그래서 기사의 "베기 두 번 + 찌르기" 같은 모양 차이는 없어지고, <b>소리와 타이밍 차이만</b> 남습니다.</p>
+<div class="film"><span>1<br>준비</span><span>2<br>들어올림</span><span>3<br>최고점</span><span class="hit">4<br>타격!</span><span>5<br>휘두름</span><span>6<br>복귀</span></div>
+<p><b>데미지가 들어가는 순간은 지금과 똑같습니다.</b> 그림이 바뀌어도 4번째 장면이 정확히 지금의 타격 시각에 나오도록 장면 간격을 맞춥니다.</p>
+<table>
+  <tr><th>영웅</th><th>타격 순간(공격 시작 후)</th><th>다음 공격까지</th></tr>
+  <tr><td>기사</td><td>0.5초 (찌르기 차례는 0.8초)</td><td>1.8초 (지금과 같음)</td></tr>
+  <tr><td>궁수</td><td>0.3초</td><td>1.8초</td></tr>
+  <tr><td>암살자·광전사·성기사</td><td>0.2초</td><td>1.8초</td></tr>
+</table>
+
+<h2>달라지는 것 / 그대로인 것</h2>
+<div class="grid">
+  <div class="card"><span class="tag warn">달라짐</span><p>영웅 겉모습 25가지, 마을의 영웅 얼굴 그림, 등장 모션(땅에서 솟음), 공격 모양이 한 가지로 통일.</p></div>
+  <div class="card"><span class="tag warn">달라짐</span><p>3~5단계에서 몸이 번쩍이던 빛 효과가 없어집니다. 새 그림의 금빛·보석·날개가 단계를 구분해 줍니다.</p></div>
+  <div class="card"><span class="tag ok">그대로</span><p>영웅 체력·공격력, 스킬, 움직임(AI), 공격 타이밍, 5단계 크기, 피격 판정 크기, 등장 후 1.8초 대기.</p></div>
+  <div class="card"><span class="tag ok">그대로</span><p>스테이지·챕터·카드·몬스터·상점·랭킹 전부.</p></div>
+  <div class="card"><span class="tag ok">좋아짐</span><p>영웅 그림 메모리는 직업당 3.75MB 입니다(압축 사용, 지금 설정보다 작거나 같음). 25장 전체가 한꺼번에 올라가지는 않고, 쓰는 직업의 5장만 올라갑니다.</p></div>
+</div>
+
+<h2>그림 품질 점검 결과</h2>
+<table>
+  <tr><th>찾은 문제</th><th>정리 방법</th></tr>
+  <tr><td>광전사 공격 장면에서 도끼가 그림 칸 위쪽에 닿음, 기사 칼끝도 가장자리에 가까움</td><td>그림 전체를 살짝 줄여 여백을 확보(화면 크기는 같게 보정). 많이 줄여야 하면 다시 그려 달라고 요청</td></tr>
+  <tr><td>기사·성기사 5단계 가장자리에 붉은 번짐</td><td>외곽선 색으로 정리, 떨어진 붉은 점 삭제</td></tr>
+  <tr><td>성기사 5단계는 날개 때문에 가로로 매우 넓음</td><td>너무 넓으면(1단계의 1.6배 초과) 다시 그리거나 그대로 쓸지 보고</td></tr>
+  <tr><td>대기 모습이 6장 모두 거의 같아 멈춰 보임</td><td>일단 그대로 쓰고, 게임에서 보고 필요하면 숨쉬기 움직임을 추가</td></tr>
+  <tr><td>쓰러짐 마지막과 등장 첫 장면이 작은 점·파편뿐</td><td>연출이라 유지(완전히 빈 칸만 아니게 점검)</td></tr>
+</table>
+
+<div class="decide">
+  <h2>결정해 주세요</h2>
+  <ol>
+    <li>그림 크기(해상도)를 몬스터와 같은 크기로 줄여서 쓸까요? (원본 그대로 쓰면 선명함이 조금 더 좋지만 메모리가 24% 더 듭니다)<span class="rec">추천: 몬스터와 같게 줄여서 씁니다.</span></li>
+    <li>영웅이 등장할 때 "땅에서 솟아오르는 모습"을 쓸까요? (빼면 등장 때 1.8초 동안 그냥 서 있게 됩니다)<span class="rec">추천: 씁니다(메모리 차이는 직업당 0.6MB 뿐).</span></li>
+    <li>3~5단계 몸이 번쩍이는 빛 효과를 없앨까요, 새 그림에 맞춰 다시 만들까요? (다시 만들면 그림 15장 작업이 더 듭니다)<span class="rec">추천: 이번엔 없앱니다. 게임에서 5단계 구분이 부족하면 그때 추가합니다.</span></li>
+    <li>5단계 영웅의 "크게 나오는 정도"(기사 1.4배 등)를 지금 그대로 둘까요? (바꾸면 맞는 범위도 바뀝니다)<span class="rec">추천: 그대로 둡니다.</span></li>
+    <li>영웅 그림을 직업당 5단계 모두 한 번에 불러올까요, 지금 단계 하나만 불러올까요? (하나만 하면 메모리를 3MB 더 아끼지만 마을에서 영웅을 넘길 때 잠깐 로딩이 생길 수 있습니다)<span class="rec">추천: 5단계 모두 한 번에 불러옵니다.</span></li>
+    <li>기사의 베기·찌르기 모양 차이가 없어지는 것을 받아들일까요? (소리와 타이밍 차이는 남습니다)<span class="rec">추천: 받아들입니다. 모양을 따로 원하면 공격 그림을 더 그려 받아야 합니다.</span></li>
+    <li>대기 모습이 멈춰 보이는데 숨쉬기 움직임을 지금 넣을까요?<span class="rec">추천: 이번엔 넣지 않고 게임에서 보고 정합니다.</span></li>
+    <li>자동 정리로 못 지우는 잡티를 손으로 지우고, 너무 넓거나 칸을 넘치는 그림은 다시 그려 달라고 요청해도 될까요?<span class="rec">추천: 허용합니다. 25장이 다 통과할 때까지 한꺼번에 교체하고, 일부만 먼저 바꾸지는 않습니다.</span></li>
+    <li>마을의 영웅 얼굴 그림 25장도 새 그림에서 잘라 교체할까요?<span class="rec">추천: 교체합니다(안 하면 옛 영웅이 얼굴 그림에 남아 둘로 보입니다).</span></li>
+  </ol>
+</div>
+
+</div>
+</body>
+</html>
