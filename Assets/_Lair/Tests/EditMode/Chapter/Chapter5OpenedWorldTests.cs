@@ -412,17 +412,14 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 성기사_외형은_기획서_3_5_발광_스케일_값이다()
+        public void 성기사_외형은_발광_없음_스케일_값이다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
-            bool[] expectedEmission = { false, false, true, true, true };
-            float[] expectedIntensity = { 0f, 0f, 1.5f, 2.2f, 3.2f };
-
+            //# hero-sheets H7 — 25단계 발광 제거(UseEmission=false).
             for (int i = 0; i < 5; ++i)
             {
                 HeroStageVariant v = config.GetStage(5, i + 1);
-                Assert.AreEqual(expectedEmission[i], v.UseEmission, $"5-{i + 1} UseEmission");
-                Assert.AreEqual(expectedIntensity[i], v.EmissionIntensity, 0.0001f, $"5-{i + 1} EmissionIntensity");
+                Assert.IsFalse(v.UseEmission, $"5-{i + 1} UseEmission");
                 Assert.AreEqual(i == 4 ? 1.3f : 1f, v.ScaleMultiplier, 0.0001f, $"5-{i + 1} ScaleMultiplier");
             }
         }

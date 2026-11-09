@@ -86,25 +86,27 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 클립_샘플레이트는_SheetSpec_fps와_같다()
+        public void 클립_샘플레이트는_SheetSpec_sampleRate와_같다()
         {
             JObject clips = (JObject)Spec()["clips"];
 
             foreach (string row in ClipRows)
             {
-                Assert.AreEqual((float)clips[row]["fps"], LoadClip(row).frameRate, 0.001f, row);
+                //# 공격 3클립은 sampleRate 필드가 없고 keyTimes 로 정의된다(키프레임 시각 테스트가 검증).
+                if (clips[row]["sampleRate"] == null)
+                    continue;
+                Assert.AreEqual((float)clips[row]["sampleRate"], LoadClip(row).frameRate, 0.001f, row);
             }
         }
 
         [Test]
-        public void 클립_길이는_프레임_수_나누기_fps다()
+        public void 클립_길이는_SheetSpec_length와_같다()
         {
             JObject clips = (JObject)Spec()["clips"];
 
             foreach (string row in ClipRows)
             {
-                float expected = (float)clips[row]["frames"] / (float)clips[row]["fps"];
-                Assert.AreEqual(expected, LoadClip(row).length, 0.01f, row);
+                Assert.AreEqual((float)clips[row]["length"], LoadClip(row).length, 1e-5f, row);
             }
         }
 
@@ -120,7 +122,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 스프라이트_키프레임_수는_프레임_수와_같고_모두_암살자_기본_시트_스프라이트다()
+        public void 클립_키프레임은_SheetSpec_keyTimes와_행_기준_스프라이트_인덱스와_일치한다()
         {
             JObject clips = (JObject)Spec()["clips"];
 
@@ -130,12 +132,16 @@ namespace Lair.Tests.EditMode
                 EditorCurveBinding[] bindings = AnimationUtility.GetObjectReferenceCurveBindings(clip);
                 Assert.AreEqual(1, bindings.Length, $"{row} 스프라이트 커브 1개");
                 ObjectReferenceKeyframe[] keys = AnimationUtility.GetObjectReferenceCurve(clip, bindings[0]);
+                JArray keyTimes = (JArray)clips[row]["keyTimes"];
+                int spriteRow = (int)clips[row]["row"];
 
                 Assert.AreEqual((int)clips[row]["frames"], keys.Length, $"{row} 키프레임 수");
-                foreach (ObjectReferenceKeyframe key in keys)
+                for (int i = 0; i < keys.Length; ++i)
                 {
-                    Assert.IsNotNull(key.value, $"{row} 키프레임 스프라이트 null");
-                    Assert.AreEqual(SheetDir + "Assassin_Sheet.png", AssetDatabase.GetAssetPath(key.value), row);
+                    Assert.IsNotNull(keys[i].value, $"{row}[{i}] 스프라이트 null");
+                    Assert.AreEqual(SheetDir + "Assassin_Sheet.png", AssetDatabase.GetAssetPath(keys[i].value), row);
+                    Assert.AreEqual("Assassin_Sheet_" + (spriteRow * 6 + i), keys[i].value.name, $"{row}[{i}]");
+                    Assert.AreEqual((float)keyTimes[i], keys[i].time, 0.0006f, $"{row}[{i}] 시각");
                 }
             }
         }
@@ -156,23 +162,26 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0.580f, events[1].time, 0.0005f);
         }
 
-        [Test]
-        public void 공격_클립_이벤트는_SheetSpec_clipEvents와_일치한다()
+        [TestCase("slash01")]
+        [TestCase("slash02")]
+        [TestCase("stab")]
+        public void 공격_클립의_OnAttackStrike_시각은_SheetSpec_strikeClipLocalSec와_같다(string row)
         {
-            JObject clipEvents = (JObject)Spec()["clipEvents"];
+            JToken clipSpec = Spec()["clips"][row];
+            AnimationEvent[] events = LoadClip(row).events;
+            AnimationEvent strike = null;
+            int count = 0;
 
-            foreach (KeyValuePair<string, JToken> pair in clipEvents)
+            foreach (AnimationEvent e in events)
             {
-                AnimationEvent[] events = LoadClip(pair.Key).events;
-                JArray expected = (JArray)pair.Value;
-
-                Assert.AreEqual(expected.Count, events.Length, pair.Key);
-                for (int i = 0; i < expected.Count; ++i)
+                if (e.functionName == "OnAttackStrike")
                 {
-                    Assert.AreEqual((string)expected[i]["functionName"], events[i].functionName, $"{pair.Key}[{i}]");
-                    Assert.AreEqual((float)expected[i]["clipLocalSec"], events[i].time, 0.0005f, $"{pair.Key}[{i}]");
+                    strike = e;
+                    ++count;
                 }
             }
+            Assert.AreEqual(1, count, row);
+            Assert.AreEqual((float)clipSpec["strikeClipLocalSec"], strike.time, 0.0006f, row);
         }
 
         [TestCase("Idle")]
@@ -208,52 +217,56 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void SheetSpec_기본값은_셀_72_20열_9행_PPU_31_시트_1440x648이다()
+        public void SheetSpec_기본값은_셀_192_6x6_시트_1152x1152_피벗_0_5_0_0833이다()
         {
             JObject spec = Spec();
 
-            Assert.AreEqual(72, (int)spec["cellSize"]);
-            Assert.AreEqual(20, (int)spec["cols"]);
-            Assert.AreEqual(9, (int)spec["rows"]);
-            Assert.AreEqual(31, (int)spec["pixelsPerUnit"]);
-            Assert.AreEqual(1440, (int)spec["sheetSize"][0]);
-            Assert.AreEqual(648, (int)spec["sheetSize"][1]);
-            Assert.AreEqual(9, ((JArray)spec["rowOrder"]).Count);
-            Assert.AreEqual(5, ((JObject)spec["tiers"]).Count);
+            Assert.AreEqual(192, (int)spec["cell"]);
+            Assert.AreEqual(6, (int)spec["cols"]);
+            Assert.AreEqual(6, (int)spec["rows"]);
+            Assert.AreEqual(1152, (int)spec["sheetSize"][0]);
+            Assert.AreEqual(1152, (int)spec["sheetSize"][1]);
+            Assert.AreEqual(0.5f, (float)spec["pivot"]["x"], 1e-4f);
+            Assert.AreEqual(0.0833f, (float)spec["pivot"]["y"], 1e-4f);
+            Assert.AreEqual(6, ((JArray)spec["rowOrder"]).Count);
+            Assert.AreEqual(5, ((JArray)spec["stages"]).Count);
+            Assert.AreEqual(9, ((JObject)spec["clips"]).Count);
         }
 
         //# ===== 시트 임포트 =====
 
         [Test]
-        public void 시트_5단계_이미지는_스펙_크기와_Point_무압축_밉맵_없음_PPU_31이다()
+        public void 시트_5단계_이미지는_1152x1152_Multiple_스펙_PPU이고_보조_텍스처가_없다()
         {
-            foreach (string name in SheetNames)
+            JArray stages = (JArray)Spec()["stages"];
+
+            for (int i = 0; i < SheetNames.Length; ++i)
             {
+                string name = SheetNames[i];
                 TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(SheetDir + name + ".png");
                 Assert.IsNotNull(importer, name);
                 importer.GetSourceTextureWidthAndHeight(out int w, out int h);
 
-                Assert.AreEqual(1440, w, name);
-                Assert.AreEqual(648, h, name);
-                Assert.AreEqual(FilterMode.Point, importer.filterMode, name);
-                Assert.AreEqual(TextureImporterCompression.Uncompressed, importer.textureCompression, name);
-                Assert.IsFalse(importer.mipmapEnabled, name);
-                Assert.AreEqual(31f, importer.spritePixelsPerUnit, 1e-4f, name);
+                Assert.AreEqual(name, (string)stages[i]["sheet"]);
+                Assert.AreEqual(1152, w, name);
+                Assert.AreEqual(1152, h, name);
                 Assert.AreEqual(SpriteImportMode.Multiple, importer.spriteImportMode, name);
+                Assert.AreEqual((float)stages[i]["ppu"], importer.spritePixelsPerUnit, 1e-3f, name);
+                Assert.AreEqual(0, importer.secondarySpriteTextures.Length, name + " _EmissionMask 보조 텍스처 없음");
             }
         }
 
         [Test]
-        public void 시트_5단계마다_발광_시트가_짝으로_존재한다()
+        public void 발광_마스크_시트는_5단계_모두_존재하지_않는다()
         {
             foreach (string name in SheetNames)
             {
-                Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Texture2D>(SheetDir + name + "_Emission.png"), name + "_Emission");
+                Assert.IsFalse(File.Exists(SheetDir + name + "_Emission.png"), name + "_Emission");
             }
         }
 
         [Test]
-        public void 시트는_180개_스프라이트로_슬라이스되고_피벗이_스펙_공통값이다()
+        public void 시트는_36개_스프라이트로_슬라이스되고_피벗이_스펙_공통값이다()
         {
             JObject pivot = (JObject)Spec()["pivot"];
             float px = (float)pivot["x"];
@@ -272,7 +285,7 @@ namespace Lair.Tests.EditMode
                     Assert.AreEqual(px, sprite.pivot.x / sprite.rect.width, 0.01f, $"{sprite.name} pivot.x");
                     Assert.AreEqual(py, sprite.pivot.y / sprite.rect.height, 0.01f, $"{sprite.name} pivot.y");
                 }
-                Assert.AreEqual(180, sprites, name);
+                Assert.AreEqual(36, sprites, name);
             }
         }
 
