@@ -33,7 +33,7 @@ body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Gal
 .cell.sel{outline:3px solid var(--gold);outline-offset:2px;z-index:2}
 .cell.lk{border-color:#232834;background:#10151f}
 .cell .nm{position:absolute;left:2px;right:2px;text-align:center;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--bone)}
-.cell.lk .nm{color:#59617a}
+.cell.lk .nm{color:#7d879f}
 .spw{position:absolute;border-radius:50%;background:radial-gradient(circle,#34406188 0,#10151f00 72%)}
 .spr{width:100%;height:100%;background-repeat:no-repeat;background-size:600% 600%;background-position:0 0;image-rendering:auto}
 .spr.sil{filter:brightness(0) drop-shadow(0 0 1px #6a7aa0aa)}
@@ -81,7 +81,7 @@ body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Gal
   <ul>
     <li><b>화면 A 매트릭스 (확정)</b> - 왼쪽 종족 6개 -> 가운데 등급(5행) x 티어(4열) 매트릭스 20칸 -> 오른쪽 상세. 티어와 등급이 모두 눈에 보입니다. (B안 종족x등급 표는 사용자 결정으로 제거)</li>
     <li><b>해금 규칙(저장 데이터 변경 없음)</b> - 칸(등급 g, 티어 t)은 <code>종족을 전투에서 만났고</code> AND <code>그 종족 보유 최고 등급 &gt;= g</code>(승급) AND <code>강화 티어 &gt;= t</code>(상점 강화 Lv1~2=T1, Lv3~4=T2, Lv5=T3)일 때 열립니다. 승급·강화는 되돌릴 수 없으므로 한 번 열린 칸은 닫히지 않고, 건너뛴 아래 등급·티어도 같이 열립니다. 티어는 종족 공통이라 등급이 달라도 같은 티어 몸 시트를 씁니다.</li>
-    <li><b>미해금</b> - 검은 실루엣 + 이름 "???" + 수치 비공개. 칸을 누르면 해금 조건(만났는가 / 승급 / 강화 Lv)을 충족 여부와 함께 보여 줍니다(추천).</li>
+    <li><b>미해금</b> - 몬스터 그림만 검은 실루엣(이펙트 없음), <b>이름은 실제 이름 그대로</b>(예: 군주 도깨비불) 보이고 능력치만 비공개. 이름 노출로 인한 스포일러는 수용(사용자 결정). 해금 연출은 이름은 그대로 두고 그림만 실루엣 -> 컬러로 바뀝니다. 칸을 누르면 해금 조건(만났는가 / 승급 / 강화 Lv)을 충족 여부와 함께 보여 줍니다(추천).</li>
     <li><b>해금 직후 연출 후보</b> - 도감을 열었을 때 새로 열린 칸을 실루엣 -> 컬러로 페이드하며 <b>그 칸의 등급색</b>(풋내기 회색 / 견습 파랑 / 숙련 보라 / 정예 금색 / 군주 주황)으로 테두리 펄스·퍼지는 링·스파클을 낸다. 등급이 높을수록 펄스 횟수 1->4, 링 0->3, 스파클 0->18 로 커진다(상세의 "해금 연출 재생" / "등급별 연출 한눈에"). <b>§8: 승격 확정(상세 패널 + 매트릭스 칸)에 포함</b> - 칸의 등급 이펙트가 확정됐으므로 이 해금 연출도 같은 승격 범위입니다. 칸의 등급 이펙트와 겹치면 시끄러우니 칸에서는 펄스 최대 2·링 1·스파클 8로 줄이고, 해금 연출 중인 칸은 등급 이펙트 레이어가 1.4초 뒤 서서히 켜집니다(상세는 전체 강도). 영구 "NEW" 배지는 "본 칸" 저장 필드(MetaProfile 버전 올림)가 필요해 이번 목업에서는 뺐습니다(열린 질문).</li>
     <li><b>CLAUDE.md §8 - 승격 확정(상세 패널 + 매트릭스 칸)</b> - 사용자 승인으로 도감 <b>상세 큰 미리보기와 매트릭스 칸</b>에 해당 등급의 전투 연출을 표시합니다(칸은 크기 배율을 40~52px 로 축소해 칸 안에서 상대 비교): 1등급 효과 없음 / 2~3등급 크기 + 몸 외곽 발광 + 바닥 오라 / 4등급 여기에 몸 양옆 소용돌이 불꽃 기둥 2개 / 5등급 뒤 햇살 후광 + 불꽃 기둥 4개 + 몸 밝기 맥동. 크기 x1.000 / 1.075 / 1.150 / 1.225 / 1.300 으로 등급끼리 상대 비교되고, 티어(T1~T3) 시트 전환과 함께 동작합니다. 잠긴 칸·상세는 검은 실루엣만, 이펙트 없음. 현행 화면의 칸은 비교용이라 이펙트 없음. 위 바 "끔(비교용)" 은 이펙트 없는 모습과 비교하는 용도입니다. 도감 카드 탭·상점·편성 아이콘은 계속 금지입니다.</li>
     <li><b>칸 이펙트 비용 메모(제안)</b> - 선택 종족 1개의 해금 칸은 최대 20개가 동시에 이펙트를 돌릴 수 있습니다. 칸은 RenderTexture 를 쓰지 않고 칸용 UI 스프라이트 애니(기존 등급 이펙트 시트를 UI Image 로, 몸은 티어 시트 대기 프레임 1장 + 크기 배율)로 처리합니다. 동시 애니 상한 <b>8칸</b>(제안, 쇼케이스와 같은 이펙트 동시 상한 카운터 공유 - 상세 1칸 우선, 이어서 높은 등급 칸 순) 초과 칸은 정지 프레임(발광·오라·기둥은 보이되 움직이지 않음). 목업은 이 규칙을 그대로 구현했고(상한 초과 칸 = 정지), 풋내기 칸은 효과가 없어 카운터를 쓰지 않습니다. 상한 수치는 모바일 실기기 프레임 측정 후 확정(결정 메트릭: 도감 오픈 시 프레임 시간).</li>
@@ -213,11 +213,11 @@ function renderDetail(){
  if(st.anim){pv.classList.add('unlbox');pv.style.cssText+=gv(g,0);pv.insertAdjacentHTML('beforeend',fxParts(g));}
  if(ok&&g>=2&&st.f===1)el('tag',856,270,0,20,'승격 확정(상세 패널 + 매트릭스 칸)','left:856px;top:268px;width:auto;color:var(--soul);border-color:var(--soul);background:#0b2a1f');
  //# 이름/태그
- el('t',1024,136,160,30,ok?nameOf(r,g):'???','font-size:19px;line-height:30px;color:'+(ok?'var(--bone)':'#59617a'));
- el('t',1024,170,70,22,ok?GN[g]:'?','line-height:22px;font-size:13px;text-align:center;border:2px solid '+(ok?GC[g]:'#232834')+';color:'+(ok?GC[g]:'#59617a'));
- el('t',1100,170,80,22,ok?(t?'강화 '+TN[t]:'기본 시트'):'?','line-height:22px;font-size:13px;text-align:center;border:2px solid #44506c;color:'+(ok?'var(--bone)':'#59617a'));
- el('t lbl',1024,200,160,20,ok?rr[2]+' 종족':'종족 ???','font-size:13px');
- el('t gold',1024,224,160,20,ok?('★'.repeat(g)):'','font-size:15px');
+ el('t',1024,136,160,30,nameOf(r,g),'font-size:19px;line-height:30px;color:'+(ok?'var(--bone)':'#7d879f'));
+ el('t',1024,170,70,22,GN[g],'line-height:22px;font-size:13px;text-align:center;border:2px solid '+(ok?GC[g]:'#232834')+';color:'+(ok?GC[g]:'#7d879f'));
+ el('t',1100,170,80,22,t?'강화 '+TN[t]:'기본 시트','line-height:22px;font-size:13px;text-align:center;border:2px solid #44506c;color:'+(ok?'var(--bone)':'#7d879f'));
+ el('t lbl',1024,200,160,20,rr[2]+' 종족','font-size:13px');
+ el('t gold',1024,224,160,20,'★'.repeat(g),'font-size:15px;color:'+(ok?'var(--gold)':'#59617a'));
  el('t lbl',1024,248,160,32,'이 종족 '+cnt(r)+' / 20','font-size:13px');
  //# 티어 선택 4칸
  for(let k=0;k<4;k++){
@@ -244,7 +244,7 @@ function renderDetail(){
   if(g>1)conds.push([p.G>=g,GN[g]+' 승급 (상점 몬스터 강화, 지금 '+GN[p.G]+')']);
   if(t>0)conds.push([T_OF[p.L]>=t,'강화 Lv'+TNEED[t]+' 도달 -> '+TN[t]+' (지금 Lv'+p.L+')']);
   conds.forEach((c,i)=>el('abs',864,420+i*40,312,36,'<span style="color:'+(c[0]?'var(--soul)':'var(--blood)')+'">'+(c[0]?'[충족] ':'[미충족] ')+'</span>'+c[1],'white-space:normal;font-size:14px;line-height:18px;color:var(--txt)'));
-  el('abs',864,420+conds.length*40+8,312,40,'이름·능력치는 해금하면 공개됩니다','white-space:normal;font-size:13px;color:var(--sub)');
+  el('abs',864,420+conds.length*40+8,312,40,'능력치는 해금하면 공개됩니다','white-space:normal;font-size:13px;color:var(--sub)');
  }
 }
 /* ---------- A 매트릭스 ---------- */
@@ -284,7 +284,7 @@ function renderA(){
     +'<div class="lay'+(playing?' late':'')+'">'+layers(g,e)+'</div>'
     +'<div class="'+(playing?'unl':'')+'" style="'+(playing?gv(g,0):'')+'position:absolute;inset:0;transform:scale('+sc+');transform-origin:50% 90%;'+(glow?'filter:'+glow+';':'')+bright+'"><div class="spr'+(ok?'':' sil')+'" style="background-image:url('+url(r,t)+')"></div></div></div>'
     +(playing?fxPartsCell(g):'')
-    +'<div class="nm" style="top:58px">'+(ok?nameOf(r,g):'???')+'</div>';
+    +'<div class="nm" style="top:58px">'+nameOf(r,g)+'</div>';
    c.onclick=()=>{st.g=g;st.t=t;render();};
   }
  }
