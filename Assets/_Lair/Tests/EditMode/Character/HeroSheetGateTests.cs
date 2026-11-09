@@ -62,13 +62,14 @@ namespace Lair.Tests.EditMode
             }
         }
 
-        //# 클립 길이 - float32 로 구워진 값(1.1333334 등). 4자리 반올림 값(1.1333)은 허용 오차 1e-6 밖이라 걸린다.
+        //# 클립 길이 - .anim m_StopTime 에 float32 로 구워진 값(1.1333334 등).
+        //# clip.length 는 샘플 격자로 ±1e-4 양자화되므로 런타임은 1e-3, 정밀 회귀는 파일 텍스트로 본다.
         private static float ExpectedLength(string cls, string row)
         {
             switch (row)
             {
                 case "idle": return 1.0f;
-                case "walk": return 0.8000333f;
+                case "walk": return 0.8f;
                 case "run": return 0.5714286f;
                 case "hit": return 0.5f;
                 case "death": return 0.8f;
@@ -239,7 +240,10 @@ namespace Lair.Tests.EditMode
                     Assert.AreEqual($"{cls}_Sheet_{SpriteRow(row) * 6 + i}", keys[i].value.name, $"{label}[{i}]");
                     Assert.AreEqual((float)keyTimes[i], keys[i].time, 0.0006f, $"{label}[{i}] 시각");
                 }
-                Assert.AreEqual(ExpectedLength(cls, row), clip.length, 1e-6f, label + " 길이(float32)");
+                Assert.AreEqual(ExpectedLength(cls, row), clip.length, 1e-3f, label + " 길이");
+                Match stop = Regex.Match(File.ReadAllText(AnimDir + ClipName(cls, row) + ".anim"), "m_StopTime: ([0-9.eE+-]+)");
+                Assert.IsTrue(stop.Success, label + " m_StopTime");
+                Assert.AreEqual(ExpectedLength(cls, row), float.Parse(stop.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), 1e-7f, label + " m_StopTime(float32)");
                 Assert.AreEqual((bool)clips[row]["loop"], AnimationUtility.GetAnimationClipSettings(clip).loopTime, label + " 루프");
             }
         }

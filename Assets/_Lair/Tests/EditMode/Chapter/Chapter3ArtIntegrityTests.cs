@@ -106,7 +106,8 @@ namespace Lair.Tests.EditMode
 
             foreach (string row in ClipRows)
             {
-                Assert.AreEqual((float)clips[row]["length"], LoadClip(row).length, 1e-5f, row);
+                //# clip.length 는 샘플 격자로 ±1e-4 양자화된다 - 1프레임(0.0167s) 오류를 잡는 1e-3 허용.
+                Assert.AreEqual((float)clips[row]["length"], LoadClip(row).length, 1e-3f, row);
             }
         }
 
