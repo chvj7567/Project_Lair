@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공통 UI 아트 교체 - 변경 전/후 비교 목업 (시안 생성 전 구조 확인)</title>
+<style>
+:root{--bg:#0b0d12;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--soul:#5ef0b4;--blood:#e5484d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Noto Sans KR","Malgun Gothic",sans-serif;padding:12px}
+h1{font-size:18px;margin:0 0 4px;color:#e8e1cf} h2{font-size:15px;margin:20px 0 6px;color:var(--gold)}
+.note{font-size:13px;color:var(--sub);line-height:1.7;max-width:960px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.bar button{background:#2c3750;color:var(--txt);border:2px solid #07090e;padding:6px 12px;font:inherit;cursor:pointer}
+.bar button.on{outline:2px solid var(--gold)}
+/* 현재 팔레트(기본) / 시안 팔레트(모드 new) */
+.scr{--ink:#07090e;--hi:#6a7aa0;--bev:#3a4764;--p1:#1a2132;--p2:#121827;--p3:#1a2132;--g1:#f7c64a;--g2:#8a6a2c;--g3:#8a6a2c}
+.new .scr{--ink:#0a0810;--hi:#4a5a80;--bev:#0e1320;--p1:#2a3552;--p2:#1a2132;--p3:#121827;--g1:#f7c64a;--g2:#c8962a;--g3:#8a6a2c}
+.scr{position:relative;width:640px;height:360px;background:radial-gradient(ellipse at 50% 0,#232b40,#0a0c12 75%);border:2px solid #262b36;overflow:hidden}
+.slot{position:absolute;outline:2px dashed #5aa9ff88;outline-offset:1px}
+.new .slot{outline-color:#f7c64acc}
+.slot::after{content:attr(data-n);position:absolute;left:0;top:-14px;font-size:10px;color:#9cc8ff;white-space:nowrap;background:#0b0d12cc;padding:0 3px}
+.new .slot::after{color:var(--gold)}
+.panel{position:absolute;background:linear-gradient(180deg,var(--p1),var(--p3));border:3px solid var(--ink);box-shadow:inset 0 0 0 2px var(--hi),inset 0 0 0 4px var(--ink)}
+.new .panel{background:linear-gradient(180deg,var(--p1) 0 30%,var(--p2) 30% 70%,var(--p3) 70%);box-shadow:inset 2px 2px 0 var(--hi),inset -2px -2px 0 var(--bev),inset 0 0 0 4px var(--ink)}
+.btn{position:absolute;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;color:#e8e1cf;background:linear-gradient(180deg,#3a4664,#2a3350);box-shadow:inset 0 2px 0 var(--hi),inset 0 -3px 0 #141a2a}
+.new .btn{background:linear-gradient(180deg,#4a5a80 0 40%,#3a4664 40% 75%,#2a3350 75%);box-shadow:inset 2px 2px 0 #6a7aa0,inset -2px -2px 0 var(--bev)}
+.btn.gold{background:linear-gradient(180deg,#e0b240,#a87a1c);color:#10141d}
+.new .btn.gold{background:linear-gradient(180deg,#f7c64a 0 40%,#c8962a 40% 75%,#8a6a2c 75%);box-shadow:inset 2px 2px 0 #ffe9a8,inset -2px -2px 0 #6a4a14}
+.bar2{position:absolute;height:14px;background:#0d1119;border:2px solid var(--ink)}
+.bar2 i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c8962a,var(--gold))}
+.new .bar2 i{background:linear-gradient(180deg,#ffe9a8 0 25%,#f7c64a 25% 65%,#c8962a 65%)}
+.badge{position:absolute;padding:0 6px;font-size:11px;border:2px solid var(--ink);background:var(--gold);color:#10141d}
+.new .badge{box-shadow:inset 1px 1px 0 #ffe9a8,inset -1px -1px 0 #8a6a2c}
+.txt{position:absolute;font-size:12px;color:#eef1f6;white-space:nowrap}
+.ph{position:absolute;display:none;inset:0;background:#f7c64a14;border:2px dashed #f7c64a;color:var(--gold);font-size:11px;align-items:center;justify-content:center}
+.new .ph{display:flex}
+.pilot{display:flex;gap:10px;flex-wrap:wrap}
+.pilot div.c{width:200px;border:1px solid #262b36;background:#0e121a;padding:8px;font-size:12px;color:var(--sub)}
+.pilot .a{height:70px;margin:6px 0;position:relative}
+.cap{font-size:12px;color:var(--sub);margin-top:4px;max-width:960px}
+</style>
+</head>
+<body>
+<h1>공통 UI 아트 교체 - 변경 전/후 비교 (구조 확인용)</h1>
+<div class="note">
+  실제 시안은 아직 생성 전입니다. <b>현재</b> 모드는 지금 화면의 구조·색을 CSS 로 재현한 것이고, <b>시안(자리)</b> 모드는 기획서 §4 의 새 화풍 기준(면 3톤 + 위·왼쪽 밝은 베벨 + 금 3톤)을 CSS 로 근사해 <b>어디가 교체되는지</b> 점선 칸(스프라이트 파일명)으로 보여 줍니다. 최종 그림은 GPT 생성물이며 이 CSS 와 다릅니다.
+  현재 실제 PNG 를 나란히 보려면 Phase 0 에서 복사한 이미지를 <code>.mockups/assets/ui/&lt;파일명&gt;.png</code> 에 두세요(없으면 CSS 재현만 보임).
+</div>
+<div class="bar" id="bar">
+  <button data-m="cur" class="on">현재</button><button data-m="new">시안(자리)</button>
+  <span class="note" style="margin-left:8px">교체 원칙: 같은 파일명 · 같은 GUID · 같은 크기/9-slice/PPU - 프리팹·코드 변경 없음</span>
+</div>
+<div id="root">
+
+<h2>1. 마을 HUD (좌 메뉴 + 출격 + 재화)</h2>
+<div class="scr">
+  <div class="panel slot" data-n="Px_PanelDark 9-slice" style="left:12px;top:12px;width:210px;height:34px"></div>
+  <div class="txt" style="left:22px;top:22px">Lv 7  영주</div>
+  <div class="bar2 slot" data-n="Px_BarBg / VillageHudXpFill" style="left:100px;top:22px;width:110px"><i style="width:60%"></i></div>
+  <div class="panel slot" data-n="Px_Panel 9-slice (메뉴 타일)" style="left:12px;top:60px;width:64px;height:64px"></div>
+  <div class="panel" style="left:84px;top:60px;width:64px;height:64px"></div>
+  <div class="panel" style="left:12px;top:132px;width:64px;height:64px"></div>
+  <div class="txt" style="left:22px;top:96px;font-size:10px">도감</div>
+  <div class="slot" data-n="VillageIcons/Icon_Codex" style="left:28px;top:70px;width:32px;height:24px"><div class="ph">아이콘</div></div>
+  <div class="btn go gold slot" data-n="VillageHudCta 9-slice (6,8,6,6)" style="left:230px;top:290px;width:180px;height:48px;font-size:16px">방어하기</div>
+  <div class="badge slot" data-n="Px_Badge_Gold" style="left:100px;top:100px">NEW</div>
+  <div class="slot" data-n="VillageHudGem / Px_SoulCoin" style="left:520px;top:14px;width:100px;height:26px;background:#0d1119;border:2px solid var(--ink)"><span class="txt" style="left:8px;top:5px">12,480</span></div>
+</div>
+<div class="cap">타일·바·CTA·배지·재화 알약이 모두 제자리 교체 대상. 메뉴 아이콘(VillageIcons)은 풀컬러/글리프 교체.</div>
+
+<h2>2. 모달 팝업 (상점·도감 등 공통 프레임 + 셀 + 버튼 + 바)</h2>
+<div class="scr">
+  <div class="panel slot" data-n="WorldMapFrame 금테 9-slice(9)" style="left:60px;top:20px;width:520px;height:320px;border-color:var(--g2)"></div>
+  <div class="slot" data-n="WorldMapCornerGold 28x28 x4(반전)" style="left:62px;top:22px;width:20px;height:20px;border-left:3px solid var(--g1);border-top:3px solid var(--g1)"></div>
+  <div class="slot" data-n="" style="left:558px;top:22px;width:20px;height:20px;border-right:3px solid var(--g1);border-top:3px solid var(--g1)"></div>
+  <div class="slot" data-n="" style="left:62px;top:318px;width:20px;height:20px;border-left:3px solid var(--g1);border-bottom:3px solid var(--g1)"></div>
+  <div class="slot" data-n="" style="left:558px;top:318px;width:20px;height:20px;border-right:3px solid var(--g1);border-bottom:3px solid var(--g1)"></div>
+  <div class="panel slot" data-n="Px_Plaque 가로 9-slice(8,0,8,0)" style="left:230px;top:32px;width:180px;height:30px"></div>
+  <div class="txt" style="left:292px;top:40px;font-size:15px">상점</div>
+  <div class="btn slot" data-n="Px_CloseX" style="left:540px;top:30px;width:30px;height:30px">X</div>
+  <div class="panel slot" data-n="Px_PanelSunk / Px_PanelDark (셀)" style="left:84px;top:80px;width:220px;height:70px"></div>
+  <div class="panel" style="left:316px;top:80px;width:220px;height:70px"></div>
+  <div class="panel" style="left:84px;top:160px;width:220px;height:70px"></div>
+  <div class="slot" data-n="Px_Ring 틴트(종족색)" style="left:94px;top:92px;width:40px;height:40px;border:3px solid #22C55E;border-radius:50%"></div>
+  <div class="bar2 slot" data-n="Px_BarBg / Px_BarFill 틴트·Filled" style="left:150px;top:120px;width:140px"><i style="width:45%"></i></div>
+  <div class="btn gold slot" data-n="Px_BtnGold (2,3,2,2)" style="left:430px;top:292px;width:110px;height:34px">구매</div>
+  <div class="btn slot" data-n="Px_Btn" style="left:310px;top:292px;width:110px;height:34px">닫기</div>
+  <div class="slot" data-n="Px_Solid 틴트 바탕 = 교체 제외 권장" style="left:84px;top:250px;width:220px;height:6px;background:#8a6a2c"></div>
+</div>
+<div class="cap">거의 모든 팝업이 같은 프레임·모서리·플라크·버튼을 공유하므로 이 묶음(B1·B2)이 화면 영향이 가장 큽니다. Px_Solid 는 색을 코드로 칠하는 순백 사각형이라 교체 제외를 추천합니다.</div>
+
+<h2>3. 파일럿 6장 (시안 승인 게이트 대상) - 크기·보더는 Phase 0 덤프로 확정</h2>
+<div class="pilot">
+  <div class="c">Px_PanelDark<br><span>패널 9-slice 3,3,3,3 / PPU 25</span><div class="a"><div class="panel" style="inset:0"></div><div class="ph">시안 자리</div></div></div>
+  <div class="c">Px_Btn<br><span>버튼 2,3,2,2 / PPU 25</span><div class="a"><div class="btn" style="inset:10px 30px">버튼</div><div class="ph">시안 자리</div></div></div>
+  <div class="c">Px_BtnGold<br><span>금 버튼 2,3,2,2 / PPU 25</span><div class="a"><div class="btn gold" style="inset:10px 30px">금 버튼</div><div class="ph">시안 자리</div></div></div>
+  <div class="c">Px_BarBg<br><span>바 9-slice 2,2,2,2 / PPU 25</span><div class="a"><div class="bar2" style="left:10px;right:10px;top:26px"><i style="width:55%"></i></div><div class="ph">시안 자리</div></div></div>
+  <div class="c">WorldMapFrame<br><span>금테 9-slice 9,9,9,9 / PPU 100</span><div class="a"><div class="panel" style="inset:0;border-color:var(--g2)"></div><div class="ph">시안 자리</div></div></div>
+  <div class="c">Px_Badge_Gold<br><span>배지 9-slice 2,2,2,2 / PPU 25</span><div class="a"><div class="badge" style="left:70px;top:24px">NEW</div><div class="ph">시안 자리</div></div></div>
+</div>
+<div class="cap">시안이 생성되면 점선 자리에 PNG 를 넣어 "현재 / 시안 / 몬스터 시트 옆" 3열로 비교합니다. 승인 전에는 Assets 의 PNG 를 덮어쓰지 않습니다.</div>
+</div>
+<script>
+document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('root').classList.toggle('new',b.dataset.m==='new');
+});
+</script>
+</body>
+</html>
