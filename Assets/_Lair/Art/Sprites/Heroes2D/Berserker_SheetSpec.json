@@ -1,186 +1,319 @@
 {
-  "doc": "docs/design/chapter-4.md §3.4·§3.5 (D-C4-6)",
-  "palette": "A",
-  "cellSize": 72,
-  "cols": 20,
-  "rows": 9,
+  "doc": "docs/design/hero-sheets.md section 10 (art manifest, editor/test only)",
+  "class": "Berserker",
+  "cell": 192,
+  "cols": 6,
+  "rows": 6,
+  "sheetSize": [
+    1152,
+    1152
+  ],
+  "indexRule": "row*6+col",
   "rowOrder": [
     "idle",
-    "walk",
-    "run",
-    "slash01",
-    "slash02",
-    "stab",
+    "move",
+    "attack",
     "hit",
     "death",
     "spawn"
   ],
-  "sheetSize": [
-    1440,
-    648
-  ],
-  "indexRule": "row*20+col",
-  "pixelsPerUnit": 31,
-  "bodyHeightDots": 33,
+  "source": {
+    "fileSuffix": "_ver2",
+    "cell": 209,
+    "srcRowOrder": [
+      "idle",
+      "attack",
+      "death",
+      "spawn",
+      "move",
+      "hit"
+    ]
+  },
+  "heightWorld": 1.0645,
   "pivot": {
-    "x": 0.4236,
-    "y": 0.2917,
-    "note": "Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot"
+    "x": 0.5,
+    "y": 0.0833
   },
-  "tiers": {
-    "Berserker_Sheet": 0,
-    "Berserker_Sheet_S2": 1,
-    "Berserker_Sheet_S3": 2,
-    "Berserker_Sheet_S4": 3,
-    "Berserker_Sheet_S5": 4
-  },
+  "stages": [
+    {
+      "stage": 1,
+      "sheet": "Berserker_Sheet",
+      "s_fit": 0.9144,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        186.54,
+        282
+      ],
+      "ppu": 154.061,
+      "hPx": 164,
+      "measured": {
+        "idleWorldHeight": 1.0645,
+        "idleWorldWidth": 0.7854,
+        "widthRatioToS1": 1.0,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 2,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 2,
+      "sheet": "Berserker_Sheet_S2",
+      "s_fit": 0.9031,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        181.93,
+        281
+      ],
+      "ppu": 149.364,
+      "hPx": 159,
+      "measured": {
+        "idleWorldHeight": 1.0645,
+        "idleWorldWidth": 0.8837,
+        "widthRatioToS1": 1.125,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 2,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 3,
+      "sheet": "Berserker_Sheet_S3",
+      "s_fit": 0.88,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        174.62,
+        273
+      ],
+      "ppu": 139.97,
+      "hPx": 149,
+      "measured": {
+        "idleWorldHeight": 1.0645,
+        "idleWorldWidth": 0.9288,
+        "widthRatioToS1": 1.183,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 2,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 4,
+      "sheet": "Berserker_Sheet_S4",
+      "s_fit": 0.9042,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        180.06,
+        276
+      ],
+      "ppu": 137.152,
+      "hPx": 146,
+      "measured": {
+        "idleWorldHeight": 1.0645,
+        "idleWorldWidth": 0.9551,
+        "widthRatioToS1": 1.216,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 0,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 5,
+      "sheet": "Berserker_Sheet_S5",
+      "s_fit": 0.9374,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        186.81,
+        275
+      ],
+      "ppu": 147.485,
+      "hPx": 157,
+      "measured": {
+        "idleWorldHeight": 1.0645,
+        "idleWorldWidth": 1.0306,
+        "widthRatioToS1": 1.312,
+        "minEdgeMargin": 8,
+        "removedSpecks": 3,
+        "redFringePixels": 0,
+        "fitShiftFrames": 1,
+        "manualEdits": 0
+      }
+    }
+  ],
   "clips": {
     "idle": {
-      "frames": 8,
-      "fps": 8,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 0,
       "loop": true,
-      "copyOf": null,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 6.0,
+      "keyTimes": [
+        0.0,
+        0.1667,
+        0.3333,
+        0.5,
+        0.6667,
+        0.8333
+      ],
+      "length": 1.0
     },
     "walk": {
-      "frames": 8,
-      "fps": 10,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 1,
       "loop": true,
-      "copyOf": null,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 7.5,
+      "keyTimes": [
+        0.0,
+        0.1333,
+        0.2667,
+        0.4,
+        0.5333,
+        0.6667
+      ],
+      "length": 0.8
     },
     "run": {
-      "frames": 8,
-      "fps": 14,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 1,
       "loop": true,
-      "copyOf": null,
-      "bakeEvents": []
-    },
-    "slash01": {
-      "frames": 9,
-      "fps": 15,
-      "animatorSpeed": 1,
-      "loop": false,
-      "copyOf": "stab",
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.2
-        },
-        {
-          "functionName": "OnAttackEnd",
-          "clipLocalSec": 0.58
-        }
+      "animatorSpeed": 1.0,
+      "sampleRate": 10.5,
+      "keyTimes": [
+        0.0,
+        0.0952,
+        0.1905,
+        0.2857,
+        0.381,
+        0.4762
       ],
-      "strikeFrame": 3,
-      "strikeClipLocalSec": 0.2,
-      "strikeRealSec": 0.2,
-      "endFrame": 8
-    },
-    "slash02": {
-      "frames": 9,
-      "fps": 15,
-      "animatorSpeed": 1,
-      "loop": false,
-      "copyOf": "stab",
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.2
-        },
-        {
-          "functionName": "OnAttackEnd",
-          "clipLocalSec": 0.58
-        }
-      ],
-      "strikeFrame": 3,
-      "strikeClipLocalSec": 0.2,
-      "strikeRealSec": 0.2,
-      "endFrame": 8
-    },
-    "stab": {
-      "frames": 9,
-      "fps": 15,
-      "animatorSpeed": 1,
-      "loop": false,
-      "copyOf": null,
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.2
-        },
-        {
-          "functionName": "OnAttackEnd",
-          "clipLocalSec": 0.58
-        }
-      ],
-      "strikeFrame": 3,
-      "strikeClipLocalSec": 0.2,
-      "strikeRealSec": 0.2,
-      "endFrame": 8
+      "length": 0.5714285714285714
     },
     "hit": {
       "frames": 6,
-      "fps": 12,
-      "animatorSpeed": 1,
+      "row": 3,
       "loop": false,
-      "copyOf": null,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 12.0,
+      "keyTimes": [
+        0.0,
+        0.0833,
+        0.1667,
+        0.25,
+        0.3333,
+        0.4167
+      ],
+      "length": 0.5
     },
     "death": {
-      "frames": 8,
-      "fps": 10,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 4,
       "loop": false,
-      "copyOf": null,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 7.5,
+      "keyTimes": [
+        0.0,
+        0.1333,
+        0.2667,
+        0.4,
+        0.5333,
+        0.6667
+      ],
+      "length": 0.8
     },
     "spawn": {
-      "frames": 16,
-      "fps": 12,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 5,
       "loop": false,
-      "copyOf": null,
-      "bakeEvents": [],
-      "lockReleaseRealSec": 1.8,
-      "lockReleaseBy": "HeroEntryDriver/AutoCombatAI._spawnGateFallback"
+      "animatorSpeed": 1.0,
+      "sampleRate": 4.5,
+      "keyTimes": [
+        0.0,
+        0.2222,
+        0.4444,
+        0.6667,
+        0.8889,
+        1.1111
+      ],
+      "length": 1.3333333333333333
+    },
+    "slash01": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0,
+      "keyTimes": [
+        0,
+        0.0667,
+        0.1333,
+        0.2,
+        0.2833,
+        0.3667
+      ],
+      "length": 0.6,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.2,
+      "strikeRealSec": 0.2,
+      "lockReleaseRealSec": 1.8
+    },
+    "slash02": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0,
+      "keyTimes": [
+        0,
+        0.0667,
+        0.1333,
+        0.2,
+        0.2833,
+        0.3667
+      ],
+      "length": 0.6,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.2,
+      "strikeRealSec": 0.2,
+      "lockReleaseRealSec": 1.8
+    },
+    "stab": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0,
+      "keyTimes": [
+        0,
+        0.0667,
+        0.1333,
+        0.2,
+        0.2833,
+        0.3667
+      ],
+      "length": 0.6,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.2,
+      "strikeRealSec": 0.2,
+      "lockReleaseRealSec": 1.8
     }
-  },
-  "clipEvents": {
-    "slash01": [
-      {
-        "functionName": "OnAttackStrike",
-        "clipLocalSec": 0.2
-      },
-      {
-        "functionName": "OnAttackEnd",
-        "clipLocalSec": 0.58
-      }
-    ],
-    "slash02": [
-      {
-        "functionName": "OnAttackStrike",
-        "clipLocalSec": 0.2
-      },
-      {
-        "functionName": "OnAttackEnd",
-        "clipLocalSec": 0.58
-      }
-    ],
-    "stab": [
-      {
-        "functionName": "OnAttackStrike",
-        "clipLocalSec": 0.2
-      },
-      {
-        "functionName": "OnAttackEnd",
-        "clipLocalSec": 0.58
-      }
-    ]
-  },
-  "edgeClipFrames": [],
-  "note": "pixelsPerUnit 는 기존 영웅과 같은 31 로 고정 — 실측 몸 높이 33 은 상투(+2도트) 때문이며 같은 도트 크기를 유지하려고 PPU 를 올리지 않는다."
+  }
 }

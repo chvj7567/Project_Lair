@@ -1,138 +1,319 @@
 {
-  "doc": "docs/design/hero-2d-conversion.md §7",
-  "cellSize": 72,
-  "cols": 20,
-  "rows": 9,
+  "doc": "docs/design/hero-sheets.md section 10 (art manifest, editor/test only)",
+  "class": "Knight",
+  "cell": 192,
+  "cols": 6,
+  "rows": 6,
+  "sheetSize": [
+    1152,
+    1152
+  ],
+  "indexRule": "row*6+col",
   "rowOrder": [
     "idle",
-    "walk",
-    "run",
-    "slash01",
-    "slash02",
-    "stab",
+    "move",
+    "attack",
     "hit",
     "death",
     "spawn"
   ],
-  "sheetSize": [
-    1440,
-    648
-  ],
-  "indexRule": "row*20+col",
-  "pixelsPerUnit": 31,
-  "bodyHeightDots": 31,
+  "source": {
+    "fileSuffix": "_ver2",
+    "cell": 209,
+    "srcRowOrder": [
+      "idle",
+      "attack",
+      "death",
+      "spawn",
+      "move",
+      "hit"
+    ]
+  },
+  "heightWorld": 1.0,
   "pivot": {
-    "x": 0.4236,
-    "y": 0.2917,
-    "note": "Unity 정규화(좌하단 원점) — 모든 슬라이스 공통 Custom Pivot"
+    "x": 0.5,
+    "y": 0.0833
   },
-  "tiers": {
-    "Knight_Sheet": 0,
-    "Knight_Sheet_S2": 1,
-    "Knight_Sheet_S3": 2,
-    "Knight_Sheet_S4": 3,
-    "Knight_Sheet_S5": 4
-  },
+  "stages": [
+    {
+      "stage": 1,
+      "sheet": "Knight_Sheet",
+      "s_fit": 0.9554,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        182.74,
+        279
+      ],
+      "ppu": 165.0,
+      "hPx": 165,
+      "measured": {
+        "idleWorldHeight": 1.0,
+        "idleWorldWidth": 0.7091,
+        "widthRatioToS1": 1.0,
+        "minEdgeMargin": 8,
+        "removedSpecks": 1,
+        "redFringePixels": 0,
+        "fitShiftFrames": 4,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 2,
+      "sheet": "Knight_Sheet_S2",
+      "s_fit": 0.9525,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        181.98,
+        278
+      ],
+      "ppu": 163.0,
+      "hPx": 163,
+      "measured": {
+        "idleWorldHeight": 1.0,
+        "idleWorldWidth": 0.7546,
+        "widthRatioToS1": 1.064,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 3,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 3,
+      "sheet": "Knight_Sheet_S3",
+      "s_fit": 0.9598,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        189.81,
+        279
+      ],
+      "ppu": 162.0,
+      "hPx": 162,
+      "measured": {
+        "idleWorldHeight": 1.0,
+        "idleWorldWidth": 0.8395,
+        "widthRatioToS1": 1.184,
+        "minEdgeMargin": 8,
+        "removedSpecks": 4,
+        "redFringePixels": 0,
+        "fitShiftFrames": 6,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 4,
+      "sheet": "Knight_Sheet_S4",
+      "s_fit": 0.9625,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        193.94,
+        273
+      ],
+      "ppu": 157.0,
+      "hPx": 157,
+      "measured": {
+        "idleWorldHeight": 1.0,
+        "idleWorldWidth": 0.7962,
+        "widthRatioToS1": 1.123,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 4,
+        "manualEdits": 0
+      }
+    },
+    {
+      "stage": 5,
+      "sheet": "Knight_Sheet_S5",
+      "s_fit": 0.8966,
+      "offset": [
+        0,
+        0
+      ],
+      "anchorSrc": [
+        192.83,
+        277
+      ],
+      "ppu": 146.0,
+      "hPx": 146,
+      "measured": {
+        "idleWorldHeight": 1.0,
+        "idleWorldWidth": 0.9315,
+        "widthRatioToS1": 1.314,
+        "minEdgeMargin": 8,
+        "removedSpecks": 0,
+        "redFringePixels": 0,
+        "fitShiftFrames": 6,
+        "manualEdits": 0
+      }
+    }
+  ],
   "clips": {
     "idle": {
-      "frames": 8,
-      "fps": 8,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 0,
       "loop": true,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 6.0,
+      "keyTimes": [
+        0.0,
+        0.1667,
+        0.3333,
+        0.5,
+        0.6667,
+        0.8333
+      ],
+      "length": 1.0
     },
     "walk": {
-      "frames": 8,
-      "fps": 10,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 1,
       "loop": true,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 7.5,
+      "keyTimes": [
+        0.0,
+        0.1333,
+        0.2667,
+        0.4,
+        0.5333,
+        0.6667
+      ],
+      "length": 0.8
     },
     "run": {
-      "frames": 8,
-      "fps": 14,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 1,
       "loop": true,
-      "bakeEvents": []
-    },
-    "slash01": {
-      "frames": 17,
-      "fps": 15,
-      "animatorSpeed": 1,
-      "loop": false,
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.5
-        }
+      "animatorSpeed": 1.0,
+      "sampleRate": 10.5,
+      "keyTimes": [
+        0.0,
+        0.0952,
+        0.1905,
+        0.2857,
+        0.381,
+        0.4762
       ],
-      "strikeFrame": 7,
-      "strikeClipLocalSec": 0.5,
-      "strikeRealSec": 0.5,
-      "lockReleaseRealSec": 1.8,
-      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
-    },
-    "slash02": {
-      "frames": 17,
-      "fps": 15,
-      "animatorSpeed": 1,
-      "loop": false,
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.5
-        }
-      ],
-      "strikeFrame": 7,
-      "strikeClipLocalSec": 0.5,
-      "strikeRealSec": 0.5,
-      "lockReleaseRealSec": 1.8,
-      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
-    },
-    "stab": {
-      "frames": 20,
-      "fps": 12,
-      "animatorSpeed": 1.0204,
-      "loop": false,
-      "bakeEvents": [
-        {
-          "functionName": "OnAttackStrike",
-          "clipLocalSec": 0.8163
-        }
-      ],
-      "strikeFrame": 9,
-      "strikeClipLocalSec": 0.8163,
-      "strikeRealSec": 0.8,
-      "lockReleaseRealSec": 1.8,
-      "lockReleaseBy": "HeroAttackGate._attackEndFallback"
+      "length": 0.5714285714285714
     },
     "hit": {
       "frames": 6,
-      "fps": 12,
-      "animatorSpeed": 1,
+      "row": 3,
       "loop": false,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 12.0,
+      "keyTimes": [
+        0.0,
+        0.0833,
+        0.1667,
+        0.25,
+        0.3333,
+        0.4167
+      ],
+      "length": 0.5
     },
     "death": {
-      "frames": 8,
-      "fps": 10,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 4,
       "loop": false,
-      "bakeEvents": []
+      "animatorSpeed": 1.0,
+      "sampleRate": 7.5,
+      "keyTimes": [
+        0.0,
+        0.1333,
+        0.2667,
+        0.4,
+        0.5333,
+        0.6667
+      ],
+      "length": 0.8
     },
     "spawn": {
-      "frames": 16,
-      "fps": 12,
-      "animatorSpeed": 1,
+      "frames": 6,
+      "row": 5,
       "loop": false,
-      "bakeEvents": [],
-      "lockReleaseRealSec": 1.8,
-      "lockReleaseBy": "HeroEntryDriver/AutoCombatAI._spawnGateFallback"
+      "animatorSpeed": 1.0,
+      "sampleRate": 4.5,
+      "keyTimes": [
+        0.0,
+        0.2222,
+        0.4444,
+        0.6667,
+        0.8889,
+        1.1111
+      ],
+      "length": 1.3333333333333333
+    },
+    "slash01": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0,
+      "keyTimes": [
+        0,
+        0.1667,
+        0.3333,
+        0.5,
+        0.5833,
+        0.6667
+      ],
+      "length": 1.1333334,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.5,
+      "strikeRealSec": 0.5,
+      "lockReleaseRealSec": 1.8
+    },
+    "slash02": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0,
+      "keyTimes": [
+        0,
+        0.1667,
+        0.3333,
+        0.5,
+        0.5833,
+        0.6667
+      ],
+      "length": 1.1333334,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.5,
+      "strikeRealSec": 0.5,
+      "lockReleaseRealSec": 1.8
+    },
+    "stab": {
+      "frames": 6,
+      "row": 2,
+      "loop": false,
+      "animatorSpeed": 1.0204,
+      "keyTimes": [
+        0,
+        0.2721,
+        0.5442,
+        0.8163,
+        0.8996,
+        0.983
+      ],
+      "length": 1.6666667,
+      "strikeFrame": 3,
+      "strikeClipLocalSec": 0.8163,
+      "strikeRealSec": 0.8,
+      "lockReleaseRealSec": 1.8
     }
-  },
-  "edgeClipFrames": [],
-  "anchors": {
-    "eyeDetected": true,
-    "bladeDetected": true
   }
 }

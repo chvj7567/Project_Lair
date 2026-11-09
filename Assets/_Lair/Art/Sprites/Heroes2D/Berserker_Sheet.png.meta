@@ -1,12 +1,120 @@
 fileFormatVersion: 2
 guid: f330f619b14ec004dacef9f403cd365e
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: 1902182383303038370
+    second: Berserker_Sheet_0
+  - first:
+      213: 5033251657293249745
+    second: Berserker_Sheet_1
+  - first:
+      213: -1294463999462642869
+    second: Berserker_Sheet_10
+  - first:
+      213: 719815788447541075
+    second: Berserker_Sheet_11
+  - first:
+      213: 3046855004337016739
+    second: Berserker_Sheet_12
+  - first:
+      213: 3436952787363397981
+    second: Berserker_Sheet_13
+  - first:
+      213: 1967758460681879645
+    second: Berserker_Sheet_14
+  - first:
+      213: -7303461194495806853
+    second: Berserker_Sheet_15
+  - first:
+      213: -5725114342044584205
+    second: Berserker_Sheet_16
+  - first:
+      213: 1045305682582506573
+    second: Berserker_Sheet_17
+  - first:
+      213: -5189428112746062154
+    second: Berserker_Sheet_18
+  - first:
+      213: 8279581621187669612
+    second: Berserker_Sheet_19
+  - first:
+      213: 4673241622144094440
+    second: Berserker_Sheet_2
+  - first:
+      213: -1918458198025412023
+    second: Berserker_Sheet_20
+  - first:
+      213: 8637846056414150707
+    second: Berserker_Sheet_21
+  - first:
+      213: -5491531058252246852
+    second: Berserker_Sheet_22
+  - first:
+      213: -1547008205521657987
+    second: Berserker_Sheet_23
+  - first:
+      213: -6566999222255377872
+    second: Berserker_Sheet_24
+  - first:
+      213: 4291412830456859379
+    second: Berserker_Sheet_25
+  - first:
+      213: -2212568953276729935
+    second: Berserker_Sheet_26
+  - first:
+      213: 2290978682223447529
+    second: Berserker_Sheet_27
+  - first:
+      213: 1443218342993292871
+    second: Berserker_Sheet_28
+  - first:
+      213: 8877677904697673712
+    second: Berserker_Sheet_29
+  - first:
+      213: 550531874169950696
+    second: Berserker_Sheet_3
+  - first:
+      213: 4501828892635960588
+    second: Berserker_Sheet_30
+  - first:
+      213: 6032301949936216073
+    second: Berserker_Sheet_31
+  - first:
+      213: -6412494124439365488
+    second: Berserker_Sheet_32
+  - first:
+      213: -3889323884266588368
+    second: Berserker_Sheet_33
+  - first:
+      213: 279061698893053468
+    second: Berserker_Sheet_34
+  - first:
+      213: -71286229561924767
+    second: Berserker_Sheet_35
+  - first:
+      213: -3933125843686104955
+    second: Berserker_Sheet_4
+  - first:
+      213: -5461017226066243511
+    second: Berserker_Sheet_5
+  - first:
+      213: 1079271800415364267
+    second: Berserker_Sheet_6
+  - first:
+      213: -6156124017725310888
+    second: Berserker_Sheet_7
+  - first:
+      213: -1482328230952813963
+    second: Berserker_Sheet_8
+  - first:
+      213: 1214004946541985023
+    second: Berserker_Sheet_9
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
-    mipMapMode: 0
-    enableMipMap: 0
+    mipMapMode: 1
+    enableMipMap: 1
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -34,8 +142,8 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
-    aniso: 1
+    filterMode: 1
+    aniso: 0
     mipBias: 0
     wrapU: 1
     wrapV: 1
@@ -45,10 +153,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 31
+  spritePixelsToUnits: 154.061
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -97,12 +205,12 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -110,12 +218,12 @@ TextureImporter:
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 50
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
-    overridden: 0
+    overridden: 1
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
@@ -127,11 +235,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 576
-        width: 72
-        height: 72
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -148,12 +256,12 @@ TextureImporter:
       name: Berserker_Sheet_1
       rect:
         serializedVersion: 2
-        x: 72
-        y: 576
-        width: 72
-        height: 72
+        x: 192
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -170,12 +278,12 @@ TextureImporter:
       name: Berserker_Sheet_2
       rect:
         serializedVersion: 2
-        x: 144
-        y: 576
-        width: 72
-        height: 72
+        x: 384
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -192,12 +300,12 @@ TextureImporter:
       name: Berserker_Sheet_3
       rect:
         serializedVersion: 2
-        x: 216
-        y: 576
-        width: 72
-        height: 72
+        x: 576
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -214,12 +322,12 @@ TextureImporter:
       name: Berserker_Sheet_4
       rect:
         serializedVersion: 2
-        x: 288
-        y: 576
-        width: 72
-        height: 72
+        x: 768
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -236,12 +344,12 @@ TextureImporter:
       name: Berserker_Sheet_5
       rect:
         serializedVersion: 2
-        x: 360
-        y: 576
-        width: 72
-        height: 72
+        x: 960
+        y: 960
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -258,12 +366,12 @@ TextureImporter:
       name: Berserker_Sheet_6
       rect:
         serializedVersion: 2
-        x: 432
-        y: 576
-        width: 72
-        height: 72
+        x: 0
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -280,12 +388,12 @@ TextureImporter:
       name: Berserker_Sheet_7
       rect:
         serializedVersion: 2
-        x: 504
-        y: 576
-        width: 72
-        height: 72
+        x: 192
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -302,12 +410,12 @@ TextureImporter:
       name: Berserker_Sheet_8
       rect:
         serializedVersion: 2
-        x: 576
-        y: 576
-        width: 72
-        height: 72
+        x: 384
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -324,12 +432,12 @@ TextureImporter:
       name: Berserker_Sheet_9
       rect:
         serializedVersion: 2
-        x: 648
-        y: 576
-        width: 72
-        height: 72
+        x: 576
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -346,12 +454,12 @@ TextureImporter:
       name: Berserker_Sheet_10
       rect:
         serializedVersion: 2
-        x: 720
-        y: 576
-        width: 72
-        height: 72
+        x: 768
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -368,12 +476,12 @@ TextureImporter:
       name: Berserker_Sheet_11
       rect:
         serializedVersion: 2
-        x: 792
-        y: 576
-        width: 72
-        height: 72
+        x: 960
+        y: 768
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -390,12 +498,12 @@ TextureImporter:
       name: Berserker_Sheet_12
       rect:
         serializedVersion: 2
-        x: 864
+        x: 0
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -412,12 +520,12 @@ TextureImporter:
       name: Berserker_Sheet_13
       rect:
         serializedVersion: 2
-        x: 936
+        x: 192
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -434,12 +542,12 @@ TextureImporter:
       name: Berserker_Sheet_14
       rect:
         serializedVersion: 2
-        x: 1008
+        x: 384
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -456,12 +564,12 @@ TextureImporter:
       name: Berserker_Sheet_15
       rect:
         serializedVersion: 2
-        x: 1080
+        x: 576
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -478,12 +586,12 @@ TextureImporter:
       name: Berserker_Sheet_16
       rect:
         serializedVersion: 2
-        x: 1152
+        x: 768
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -500,12 +608,12 @@ TextureImporter:
       name: Berserker_Sheet_17
       rect:
         serializedVersion: 2
-        x: 1224
+        x: 960
         y: 576
-        width: 72
-        height: 72
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -522,12 +630,12 @@ TextureImporter:
       name: Berserker_Sheet_18
       rect:
         serializedVersion: 2
-        x: 1296
-        y: 576
-        width: 72
-        height: 72
+        x: 0
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -544,12 +652,12 @@ TextureImporter:
       name: Berserker_Sheet_19
       rect:
         serializedVersion: 2
-        x: 1368
-        y: 576
-        width: 72
-        height: 72
+        x: 192
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -566,12 +674,12 @@ TextureImporter:
       name: Berserker_Sheet_20
       rect:
         serializedVersion: 2
-        x: 0
-        y: 504
-        width: 72
-        height: 72
+        x: 384
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -588,12 +696,12 @@ TextureImporter:
       name: Berserker_Sheet_21
       rect:
         serializedVersion: 2
-        x: 72
-        y: 504
-        width: 72
-        height: 72
+        x: 576
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -610,12 +718,12 @@ TextureImporter:
       name: Berserker_Sheet_22
       rect:
         serializedVersion: 2
-        x: 144
-        y: 504
-        width: 72
-        height: 72
+        x: 768
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -632,12 +740,12 @@ TextureImporter:
       name: Berserker_Sheet_23
       rect:
         serializedVersion: 2
-        x: 216
-        y: 504
-        width: 72
-        height: 72
+        x: 960
+        y: 384
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -654,12 +762,12 @@ TextureImporter:
       name: Berserker_Sheet_24
       rect:
         serializedVersion: 2
-        x: 288
-        y: 504
-        width: 72
-        height: 72
+        x: 0
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -676,12 +784,12 @@ TextureImporter:
       name: Berserker_Sheet_25
       rect:
         serializedVersion: 2
-        x: 360
-        y: 504
-        width: 72
-        height: 72
+        x: 192
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -698,12 +806,12 @@ TextureImporter:
       name: Berserker_Sheet_26
       rect:
         serializedVersion: 2
-        x: 432
-        y: 504
-        width: 72
-        height: 72
+        x: 384
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -720,12 +828,12 @@ TextureImporter:
       name: Berserker_Sheet_27
       rect:
         serializedVersion: 2
-        x: 504
-        y: 504
-        width: 72
-        height: 72
+        x: 576
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -742,12 +850,12 @@ TextureImporter:
       name: Berserker_Sheet_28
       rect:
         serializedVersion: 2
-        x: 576
-        y: 504
-        width: 72
-        height: 72
+        x: 768
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -764,12 +872,12 @@ TextureImporter:
       name: Berserker_Sheet_29
       rect:
         serializedVersion: 2
-        x: 648
-        y: 504
-        width: 72
-        height: 72
+        x: 960
+        y: 192
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -786,12 +894,12 @@ TextureImporter:
       name: Berserker_Sheet_30
       rect:
         serializedVersion: 2
-        x: 720
-        y: 504
-        width: 72
-        height: 72
+        x: 0
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -808,12 +916,12 @@ TextureImporter:
       name: Berserker_Sheet_31
       rect:
         serializedVersion: 2
-        x: 792
-        y: 504
-        width: 72
-        height: 72
+        x: 192
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -830,12 +938,12 @@ TextureImporter:
       name: Berserker_Sheet_32
       rect:
         serializedVersion: 2
-        x: 864
-        y: 504
-        width: 72
-        height: 72
+        x: 384
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -852,12 +960,12 @@ TextureImporter:
       name: Berserker_Sheet_33
       rect:
         serializedVersion: 2
-        x: 936
-        y: 504
-        width: 72
-        height: 72
+        x: 576
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -874,12 +982,12 @@ TextureImporter:
       name: Berserker_Sheet_34
       rect:
         serializedVersion: 2
-        x: 1008
-        y: 504
-        width: 72
-        height: 72
+        x: 768
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -896,12 +1004,12 @@ TextureImporter:
       name: Berserker_Sheet_35
       rect:
         serializedVersion: 2
-        x: 1080
-        y: 504
-        width: 72
-        height: 72
+        x: 960
+        y: 0
+        width: 192
+        height: 192
       alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
+      pivot: {x: 0.5, y: 0.0833}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -910,3174 +1018,6 @@ TextureImporter:
       bones: []
       spriteID: 163a5994d8db20ff0800000000000000
       internalID: -71286229561924767
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_36
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 504
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e3f37d2da62748b90800000000000000
-      internalID: -7240536497775493314
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_37
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 504
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 967dafe4f5a3d5ff0800000000000000
-      internalID: -45816240182470807
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_38
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 504
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c99be2e84cebebc10800000000000000
-      internalID: 2071302630045301148
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_39
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 504
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0967402e22bff9590800000000000000
-      internalID: -7665131913521891696
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_40
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 22b25b98cff85e630800000000000000
-      internalID: 3955726162519730978
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_41
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cd5eba31011229b50800000000000000
-      internalID: 6598372756984423900
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_42
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3247b1ab81dbebe60800000000000000
-      internalID: 7980023503646323747
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_43
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b0af7442029ebafc0800000000000000
-      internalID: -3482433562584024565
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_44
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8deded81ff7caced0800000000000000
-      internalID: -2392880353546150184
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_45
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6985648609aada930800000000000000
-      internalID: 4156165568334289046
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_46
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 135d7a7bf4b7e16d0800000000000000
-      internalID: -3017839117977791183
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_47
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f16dfaf3362c98b80800000000000000
-      internalID: -8391962699102169569
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_48
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bab3b5df44b1fde10800000000000000
-      internalID: 2224526724066655147
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_49
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b87c228ceaded9e90800000000000000
-      internalID: -7017191309435549813
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_50
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 00b0d039295f27f50800000000000000
-      internalID: 6877829590829304576
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_51
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7e9c1cd3054bed650800000000000000
-      internalID: 6259638788818061799
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_52
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f6e431e714eb701e0800000000000000
-      internalID: -2231605901841445265
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_53
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 686dbe073fff095a0800000000000000
-      internalID: -6516427239768467834
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_54
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6722238bc6b7d6aa0800000000000000
-      internalID: -6166136607923363210
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_55
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 269eacc8f201c9760800000000000000
-      internalID: 7465860078685055330
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_56
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 956f68b13829ab510800000000000000
-      internalID: 1565724912264869465
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_57
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4a429546104dabe00800000000000000
-      internalID: 1061393764642792612
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_58
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 32a2b96c5c2ed9260800000000000000
-      internalID: 7106085126129003043
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_59
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 432
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 58ca71297e41f87e0800000000000000
-      internalID: -1761165944457548667
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_60
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 11452e50376349f60800000000000000
-      internalID: 8040111102411035665
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_61
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 65fe0a568249f07a0800000000000000
-      internalID: -6408740843500277930
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_62
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: df365800bac4f8fb0800000000000000
-      internalID: -4643408393463831555
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_63
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8a462222e6c847460800000000000000
-      internalID: 7238564905738200232
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_64
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e3bff13e6ab400680800000000000000
-      internalID: -8790943292480029890
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_65
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 15ea9abb70d55f360800000000000000
-      internalID: 7202765466843590225
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_66
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4827c743d2b908260800000000000000
-      internalID: 7097843631192306308
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_67
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e006d09cb0f5c0050800000000000000
-      internalID: 5768089726977138702
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_68
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ded926f03c961cee0800000000000000
-      internalID: -1242595735679885843
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_69
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8c7818cf60c70b660800000000000000
-      internalID: 7399550557217720264
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_70
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 73a7e02f0accf03e0800000000000000
-      internalID: -2085223110821381577
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_71
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 655743242973df010800000000000000
-      internalID: 1224195775030130006
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_72
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f3faf978f63752490800000000000000
-      internalID: -7771678659103969473
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_73
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1ac426ac33267c4b0800000000000000
-      internalID: -5420255651938808671
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_74
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4d54547d7f3e731d0800000000000000
-      internalID: -3370975142455458348
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_75
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 14d4e2428c40f81d0800000000000000
-      internalID: -3346450740466004671
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_76
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f23504813fd71aa40800000000000000
-      internalID: 5377717913094476591
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_77
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b01dbcb2db82023d0800000000000000
-      internalID: -3233539739503308533
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_78
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6af13f6c9aa1c4860800000000000000
-      internalID: 7515411194664132518
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_79
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 360
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d81690219bd995070800000000000000
-      internalID: 8095675223372292493
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_80
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b85da5e05e7cbaad0800000000000000
-      internalID: -2689836565821467253
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_81
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 32ce2a4833a807810800000000000000
-      internalID: 1761059408175098915
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_82
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 212f0e25fc6a37d30800000000000000
-      internalID: 4428066268014244370
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_83
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 694c47f1a20e4c750800000000000000
-      internalID: 6324426248256013462
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_84
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8b8895ea774f644c0800000000000000
-      internalID: -4303483599042541384
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_85
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c4d2617bd0b8e4400800000000000000
-      internalID: 310338315357662540
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_86
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c72aff1e06261d290800000000000000
-      internalID: -7867398905791536516
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_87
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a80af4824947afd70800000000000000
-      internalID: 9077696178598944906
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_88
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cbcb52a8d19e41b80800000000000000
-      internalID: -8424852689822303044
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_89
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 792d9110486069ad0800000000000000
-      internalID: -2695960162910743913
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_90
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e35747b3db45ab510800000000000000
-      internalID: 1565656992187708734
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_91
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d559fe2869c14a1a0800000000000000
-      internalID: -6799278104655194787
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_92
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a2f2a991541ccc390800000000000000
-      internalID: -7796644352358731990
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_93
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e5489c86e404df890800000000000000
-      internalID: -7422705905327045538
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_94
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 387a746b40d67c2f0800000000000000
-      internalID: -952672929160124541
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_95
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 817a14273d6bfa750800000000000000
-      internalID: 6318469821495355160
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_96
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3b192871b32a106a0800000000000000
-      internalID: -6484723613755600461
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_97
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 02122cd48181df110800000000000000
-      internalID: 1296218760415420704
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_98
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6859e4262bee03c00800000000000000
-      internalID: 878464377258153350
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_99
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 288
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e6dca91705289ccb0800000000000000
-      internalID: -4843196642245292690
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_100
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 647b7ba8c5ed0a330800000000000000
-      internalID: 3720217781253683014
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_101
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5076b090e0be54c00800000000000000
-      internalID: 884371347361982213
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_102
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 73e7a5fc7277e17a0800000000000000
-      internalID: -6404550607208022473
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_103
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 977f192970c67e0f0800000000000000
-      internalID: -1087782005207074951
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_104
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 90b9f35d98261f040800000000000000
-      internalID: 4679629831942413065
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_105
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 95588129ff1983210800000000000000
-      internalID: 1312959818232268121
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_106
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a9aadaaf088176470800000000000000
-      internalID: 8387699773241404058
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_107
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6dadf9d0be76fe320800000000000000
-      internalID: 2589402570004880086
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_108
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b71fbf0a59b0dd9d0800000000000000
-      internalID: -2748027460347235973
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_109
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3a076839e22927ae0800000000000000
-      internalID: -1553018192748187485
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_110
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6ebd3da1686eae5f0800000000000000
-      internalID: -726514926216815642
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_111
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9b301d761036ebc60800000000000000
-      internalID: 7835809259359110073
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_112
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cc26c5650c04a4d70800000000000000
-      internalID: 9028099597844374220
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_113
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4d74d98e665cb1520800000000000000
-      internalID: 2673947849554479060
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_114
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e420c106a09b2ab80800000000000000
-      internalID: -8384936101997182386
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_115
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ddcfc369e98d5df10800000000000000
-      internalID: 2293977760852147421
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_116
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c1ea6c7d48d4b89b0800000000000000
-      internalID: -5076878921978958308
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_117
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3fc33b772bc9415a0800000000000000
-      internalID: -6551439267590882061
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_118
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: aaecb37e8bf037b00800000000000000
-      internalID: 825020443566788266
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_119
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 216
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: fb97a65147a6f47c0800000000000000
-      internalID: -4084929290193700417
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_120
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e3b1598e61156b020800000000000000
-      internalID: 2357160613808249662
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_121
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 765779b25164549c0800000000000000
-      internalID: -3943668841953397401
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_122
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1698fb0d9b59b4270800000000000000
-      internalID: 8235840968880785761
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_123
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3c73bcc7a613ae8c0800000000000000
-      internalID: -3969305788143683645
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_124
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 021df9df7079d3930800000000000000
-      internalID: 4124618894316917024
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_125
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b16afb112f91a4990800000000000000
-      internalID: -7401074510159436261
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_126
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e8c94bf502dacc3e0800000000000000
-      internalID: -2032058977294705522
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_127
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 406a819a2077a9140800000000000000
-      internalID: 4727221612189361668
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_128
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 48c336ce19f87a2c0800000000000000
-      internalID: -4420406652341896060
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_129
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2d71d8c9385b25ac0800000000000000
-      internalID: -3867829553085999150
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_130
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 82438a9e2e7d38470800000000000000
-      internalID: 8395791499931431976
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_131
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2db7eae3df0041000800000000000000
-      internalID: 5630587212561362
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_132
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e9b3b19fdb26986c0800000000000000
-      internalID: -4140669814322807906
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_133
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 30140dee0305176c0800000000000000
-      internalID: -4147445610736238333
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_134
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 84980835bf1117040800000000000000
-      internalID: 4643512461931088200
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_135
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c44907c2b62458320800000000000000
-      internalID: 2559524991304504396
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_136
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4ae9f0552d77d7920800000000000000
-      internalID: 2989677472897801892
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_137
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f6bde80377dea0c40800000000000000
-      internalID: 5479452992821189487
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_138
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3500fd58aa36e9fa0800000000000000
-      internalID: -5792082486710304685
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_139
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 144
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 67b7958b959b05da0800000000000000
-      internalID: -5958058512015066250
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_140
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 17ad4a707942c4f10800000000000000
-      internalID: 2255217744492681841
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_141
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 917b7687a5ba272b0800000000000000
-      internalID: -5588215782557894887
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_142
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6cb688160a3438080800000000000000
-      internalID: -9186424458795521082
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_143
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 654eee19846ca6b80800000000000000
-      internalID: -8400684139917941674
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_144
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 994bf262f050b02c0800000000000000
-      internalID: -4464469042984405863
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_145
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 35c3469350cd4ce40800000000000000
-      internalID: 5675903345389485139
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_146
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5e41a2e7e9b8604c0800000000000000
-      internalID: -4321613279577631515
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_147
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c2ace6a42591ef930800000000000000
-      internalID: 4178805345473186348
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_148
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 786eb38d297bce590800000000000000
-      internalID: -7643532626233661817
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_149
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d29e3f35a1f13d390800000000000000
-      internalID: -7794852332110091987
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_150
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0b3851750258056b0800000000000000
-      internalID: -5309597586723339344
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_151
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a95e60b748d785a00800000000000000
-      internalID: 745483746283021722
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_152
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 51ff7127ee51d7dc0800000000000000
-      internalID: -3639728809984917739
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_153
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d1cb1b93e72d11fd0800000000000000
-      internalID: -2372884089071879139
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_154
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 537ebbc6c600aec00800000000000000
-      internalID: 930556738686150453
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_155
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 105ae7114f757c890800000000000000
-      internalID: -7437879553801935615
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_156
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3c582724417928790800000000000000
-      internalID: -7529289513740106301
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_157
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 593f52a3f604e9c20800000000000000
-      internalID: 3215078030450226069
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_158
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 40602dd34f6807300800000000000000
-      internalID: 247846363072693764
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_159
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 72
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3f694fac0d9cca3b0800000000000000
-      internalID: -5499799146330810637
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_160
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6db48d6188f327370800000000000000
-      internalID: 8318781315438103510
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_161
-      rect:
-        serializedVersion: 2
-        x: 72
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cc228ff25091a9a60800000000000000
-      internalID: 7681479624504124108
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_162
-      rect:
-        serializedVersion: 2
-        x: 144
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bdc2a5cd7944eb0e0800000000000000
-      internalID: -2252287344611021605
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_163
-      rect:
-        serializedVersion: 2
-        x: 216
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a140b40e150a43650800000000000000
-      internalID: 6211766059566564378
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_164
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d4eb5ffd72691a3a0800000000000000
-      internalID: -6655873676271567283
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_165
-      rect:
-        serializedVersion: 2
-        x: 360
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f309c1be795575b70800000000000000
-      internalID: 8887666500611903551
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_166
-      rect:
-        serializedVersion: 2
-        x: 432
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d38f1596ca32efc60800000000000000
-      internalID: 7853754023589050429
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_167
-      rect:
-        serializedVersion: 2
-        x: 504
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 551c9625b8c75dfd0800000000000000
-      internalID: -2317809495387291307
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_168
-      rect:
-        serializedVersion: 2
-        x: 576
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9b69943f8a55831b0800000000000000
-      internalID: -5676693146175957319
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_169
-      rect:
-        serializedVersion: 2
-        x: 648
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 27cf91dc4fd93c6d0800000000000000
-      internalID: -2971357654395782030
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_170
-      rect:
-        serializedVersion: 2
-        x: 720
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a53905649d4baabf0800000000000000
-      internalID: -312238378868239526
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_171
-      rect:
-        serializedVersion: 2
-        x: 792
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4f733ca8db44a4550800000000000000
-      internalID: 6145800222368020468
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_172
-      rect:
-        serializedVersion: 2
-        x: 864
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 830f4be2cdf96a8b0800000000000000
-      internalID: -5141246156571611080
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_173
-      rect:
-        serializedVersion: 2
-        x: 936
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 75a8407f70d26efd0800000000000000
-      internalID: -2313111846375880105
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_174
-      rect:
-        serializedVersion: 2
-        x: 1008
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 83dfc3d442f0e7220800000000000000
-      internalID: 2485440692944174392
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_175
-      rect:
-        serializedVersion: 2
-        x: 1080
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c4680345a4fb42170800000000000000
-      internalID: 8152851551408391756
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_176
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 968012cb91e360e20800000000000000
-      internalID: 3316406455856334953
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_177
-      rect:
-        serializedVersion: 2
-        x: 1224
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4bdd6bab2d8e5cdc0800000000000000
-      internalID: -3619230733749002828
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_178
-      rect:
-        serializedVersion: 2
-        x: 1296
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3774d5b4f357905c0800000000000000
-      internalID: -4248735858739558541
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Berserker_Sheet_179
-      rect:
-        serializedVersion: 2
-        x: 1368
-        y: 0
-        width: 72
-        height: 72
-      alignment: 9
-      pivot: {x: 0.4236, y: 0.2917}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 31b3acc8087c1dea0800000000000000
-      internalID: -5849675086045758701
       vertices: []
       indices: 
       edges: []
@@ -4092,102 +1032,20 @@ TextureImporter:
     indices: 
     edges: []
     weights: []
-    secondaryTextures:
-    - texture: {fileID: 2800000, guid: 918fa359bf0871a4ba0e8a9a717b046f, type: 3}
-      name: _EmissionMask
+    secondaryTextures: []
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
       Berserker_Sheet_0: 1902182383303038370
       Berserker_Sheet_1: 5033251657293249745
       Berserker_Sheet_10: -1294463999462642869
-      Berserker_Sheet_100: 3720217781253683014
-      Berserker_Sheet_101: 884371347361982213
-      Berserker_Sheet_102: -6404550607208022473
-      Berserker_Sheet_103: -1087782005207074951
-      Berserker_Sheet_104: 4679629831942413065
-      Berserker_Sheet_105: 1312959818232268121
-      Berserker_Sheet_106: 8387699773241404058
-      Berserker_Sheet_107: 2589402570004880086
-      Berserker_Sheet_108: -2748027460347235973
-      Berserker_Sheet_109: -1553018192748187485
       Berserker_Sheet_11: 719815788447541075
-      Berserker_Sheet_110: -726514926216815642
-      Berserker_Sheet_111: 7835809259359110073
-      Berserker_Sheet_112: 9028099597844374220
-      Berserker_Sheet_113: 2673947849554479060
-      Berserker_Sheet_114: -8384936101997182386
-      Berserker_Sheet_115: 2293977760852147421
-      Berserker_Sheet_116: -5076878921978958308
-      Berserker_Sheet_117: -6551439267590882061
-      Berserker_Sheet_118: 825020443566788266
-      Berserker_Sheet_119: -4084929290193700417
       Berserker_Sheet_12: 3046855004337016739
-      Berserker_Sheet_120: 2357160613808249662
-      Berserker_Sheet_121: -3943668841953397401
-      Berserker_Sheet_122: 8235840968880785761
-      Berserker_Sheet_123: -3969305788143683645
-      Berserker_Sheet_124: 4124618894316917024
-      Berserker_Sheet_125: -7401074510159436261
-      Berserker_Sheet_126: -2032058977294705522
-      Berserker_Sheet_127: 4727221612189361668
-      Berserker_Sheet_128: -4420406652341896060
-      Berserker_Sheet_129: -3867829553085999150
       Berserker_Sheet_13: 3436952787363397981
-      Berserker_Sheet_130: 8395791499931431976
-      Berserker_Sheet_131: 5630587212561362
-      Berserker_Sheet_132: -4140669814322807906
-      Berserker_Sheet_133: -4147445610736238333
-      Berserker_Sheet_134: 4643512461931088200
-      Berserker_Sheet_135: 2559524991304504396
-      Berserker_Sheet_136: 2989677472897801892
-      Berserker_Sheet_137: 5479452992821189487
-      Berserker_Sheet_138: -5792082486710304685
-      Berserker_Sheet_139: -5958058512015066250
       Berserker_Sheet_14: 1967758460681879645
-      Berserker_Sheet_140: 2255217744492681841
-      Berserker_Sheet_141: -5588215782557894887
-      Berserker_Sheet_142: -9186424458795521082
-      Berserker_Sheet_143: -8400684139917941674
-      Berserker_Sheet_144: -4464469042984405863
-      Berserker_Sheet_145: 5675903345389485139
-      Berserker_Sheet_146: -4321613279577631515
-      Berserker_Sheet_147: 4178805345473186348
-      Berserker_Sheet_148: -7643532626233661817
-      Berserker_Sheet_149: -7794852332110091987
       Berserker_Sheet_15: -7303461194495806853
-      Berserker_Sheet_150: -5309597586723339344
-      Berserker_Sheet_151: 745483746283021722
-      Berserker_Sheet_152: -3639728809984917739
-      Berserker_Sheet_153: -2372884089071879139
-      Berserker_Sheet_154: 930556738686150453
-      Berserker_Sheet_155: -7437879553801935615
-      Berserker_Sheet_156: -7529289513740106301
-      Berserker_Sheet_157: 3215078030450226069
-      Berserker_Sheet_158: 247846363072693764
-      Berserker_Sheet_159: -5499799146330810637
       Berserker_Sheet_16: -5725114342044584205
-      Berserker_Sheet_160: 8318781315438103510
-      Berserker_Sheet_161: 7681479624504124108
-      Berserker_Sheet_162: -2252287344611021605
-      Berserker_Sheet_163: 6211766059566564378
-      Berserker_Sheet_164: -6655873676271567283
-      Berserker_Sheet_165: 8887666500611903551
-      Berserker_Sheet_166: 7853754023589050429
-      Berserker_Sheet_167: -2317809495387291307
-      Berserker_Sheet_168: -5676693146175957319
-      Berserker_Sheet_169: -2971357654395782030
       Berserker_Sheet_17: 1045305682582506573
-      Berserker_Sheet_170: -312238378868239526
-      Berserker_Sheet_171: 6145800222368020468
-      Berserker_Sheet_172: -5141246156571611080
-      Berserker_Sheet_173: -2313111846375880105
-      Berserker_Sheet_174: 2485440692944174392
-      Berserker_Sheet_175: 8152851551408391756
-      Berserker_Sheet_176: 3316406455856334953
-      Berserker_Sheet_177: -3619230733749002828
-      Berserker_Sheet_178: -4248735858739558541
-      Berserker_Sheet_179: -5849675086045758701
       Berserker_Sheet_18: -5189428112746062154
       Berserker_Sheet_19: 8279581621187669612
       Berserker_Sheet_2: 4673241622144094440
@@ -4208,76 +1066,12 @@ TextureImporter:
       Berserker_Sheet_33: -3889323884266588368
       Berserker_Sheet_34: 279061698893053468
       Berserker_Sheet_35: -71286229561924767
-      Berserker_Sheet_36: -7240536497775493314
-      Berserker_Sheet_37: -45816240182470807
-      Berserker_Sheet_38: 2071302630045301148
-      Berserker_Sheet_39: -7665131913521891696
       Berserker_Sheet_4: -3933125843686104955
-      Berserker_Sheet_40: 3955726162519730978
-      Berserker_Sheet_41: 6598372756984423900
-      Berserker_Sheet_42: 7980023503646323747
-      Berserker_Sheet_43: -3482433562584024565
-      Berserker_Sheet_44: -2392880353546150184
-      Berserker_Sheet_45: 4156165568334289046
-      Berserker_Sheet_46: -3017839117977791183
-      Berserker_Sheet_47: -8391962699102169569
-      Berserker_Sheet_48: 2224526724066655147
-      Berserker_Sheet_49: -7017191309435549813
       Berserker_Sheet_5: -5461017226066243511
-      Berserker_Sheet_50: 6877829590829304576
-      Berserker_Sheet_51: 6259638788818061799
-      Berserker_Sheet_52: -2231605901841445265
-      Berserker_Sheet_53: -6516427239768467834
-      Berserker_Sheet_54: -6166136607923363210
-      Berserker_Sheet_55: 7465860078685055330
-      Berserker_Sheet_56: 1565724912264869465
-      Berserker_Sheet_57: 1061393764642792612
-      Berserker_Sheet_58: 7106085126129003043
-      Berserker_Sheet_59: -1761165944457548667
       Berserker_Sheet_6: 1079271800415364267
-      Berserker_Sheet_60: 8040111102411035665
-      Berserker_Sheet_61: -6408740843500277930
-      Berserker_Sheet_62: -4643408393463831555
-      Berserker_Sheet_63: 7238564905738200232
-      Berserker_Sheet_64: -8790943292480029890
-      Berserker_Sheet_65: 7202765466843590225
-      Berserker_Sheet_66: 7097843631192306308
-      Berserker_Sheet_67: 5768089726977138702
-      Berserker_Sheet_68: -1242595735679885843
-      Berserker_Sheet_69: 7399550557217720264
       Berserker_Sheet_7: -6156124017725310888
-      Berserker_Sheet_70: -2085223110821381577
-      Berserker_Sheet_71: 1224195775030130006
-      Berserker_Sheet_72: -7771678659103969473
-      Berserker_Sheet_73: -5420255651938808671
-      Berserker_Sheet_74: -3370975142455458348
-      Berserker_Sheet_75: -3346450740466004671
-      Berserker_Sheet_76: 5377717913094476591
-      Berserker_Sheet_77: -3233539739503308533
-      Berserker_Sheet_78: 7515411194664132518
-      Berserker_Sheet_79: 8095675223372292493
       Berserker_Sheet_8: -1482328230952813963
-      Berserker_Sheet_80: -2689836565821467253
-      Berserker_Sheet_81: 1761059408175098915
-      Berserker_Sheet_82: 4428066268014244370
-      Berserker_Sheet_83: 6324426248256013462
-      Berserker_Sheet_84: -4303483599042541384
-      Berserker_Sheet_85: 310338315357662540
-      Berserker_Sheet_86: -7867398905791536516
-      Berserker_Sheet_87: 9077696178598944906
-      Berserker_Sheet_88: -8424852689822303044
-      Berserker_Sheet_89: -2695960162910743913
       Berserker_Sheet_9: 1214004946541985023
-      Berserker_Sheet_90: 1565656992187708734
-      Berserker_Sheet_91: -6799278104655194787
-      Berserker_Sheet_92: -7796644352358731990
-      Berserker_Sheet_93: -7422705905327045538
-      Berserker_Sheet_94: -952672929160124541
-      Berserker_Sheet_95: 6318469821495355160
-      Berserker_Sheet_96: -6484723613755600461
-      Berserker_Sheet_97: 1296218760415420704
-      Berserker_Sheet_98: 878464377258153350
-      Berserker_Sheet_99: -4843196642245292690
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
