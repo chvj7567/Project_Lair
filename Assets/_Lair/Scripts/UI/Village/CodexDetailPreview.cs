@@ -29,6 +29,14 @@ namespace Lair.UI
         private CHPoolable _instance;
         private IMonsterShowcase _showcase;
         private readonly List<(Transform, int)> _layers = new List<(Transform, int)>();
+        //# 풀 인스턴스별 1회 캐싱(Rule 02 §5) — 같은 인스턴스를 다시 Pop 해도 GetComponent* 를 반복하지 않는다.
+        private readonly Dictionary<CHPoolable, Cached> _cache = new Dictionary<CHPoolable, Cached>();
+
+        private sealed class Cached
+        {
+            public IMonsterShowcase Showcase;
+            public Transform[] Transforms;
+        }
         private int _version;
 
         public void Open()
@@ -93,10 +101,9 @@ namespace Lair.UI
             _instance = poolable;
             poolable.transform.localPosition = Vector3.zero;
             poolable.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
-            SetLayers(poolable.transform);
-
-            LairCharacter lair = poolable.GetComponent<LairCharacter>();
-            _showcase = lair != null ? lair.Get<IMonsterShowcase>() : null;
+            Cached cached = CacheOf(poolable);
+            SetLayers(cached.Transforms);
+            _showcase = cached.Showcase;
             if (_showcase != null)
             {
                 _showcase.SetShowcaseMode(true);
@@ -126,10 +133,23 @@ namespace Lair.UI
             camTransform.position = _holder.position - camTransform.forward * CameraDistance + camTransform.up * (height * 0.5f);
         }
 
-        private void SetLayers(Transform root)
+        private Cached CacheOf(CHPoolable poolable)
+        {
+            if (_cache.TryGetValue(poolable, out Cached cached))
+                return cached;
+            LairCharacter lair = poolable.GetComponent<LairCharacter>();
+            cached = new Cached
+            {
+                Showcase = lair != null ? lair.Get<IMonsterShowcase>() : null,
+                Transforms = poolable.GetComponentsInChildren<Transform>(true),
+            };
+            _cache[poolable] = cached;
+            return cached;
+        }
+
+        private void SetLayers(Transform[] all)
         {
             _layers.Clear();
-            Transform[] all = root.GetComponentsInChildren<Transform>(true);
             foreach (Transform t in all)
             {
                 _layers.Add((t, t.gameObject.layer));

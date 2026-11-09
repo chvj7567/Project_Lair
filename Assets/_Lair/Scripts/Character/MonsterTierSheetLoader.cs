@@ -18,6 +18,8 @@ namespace Lair.Character
         private readonly Action<string> _warn;
         private readonly Dictionary<(EMonster, int), MonsterTierSheetSet> _sets = new Dictionary<(EMonster, int), MonsterTierSheetSet>();
         private readonly List<EMonsterTierSheet> _loadedKeys = new List<EMonsterTierSheet>();
+        //# Release 마다 증가 — Release 이후 도착한 로드 결과는 등록하지 않고 즉시 해제한다(도감 종족 전환·닫힘 중 진행 Task 처리).
+        private int _generation;
 
         public MonsterTierSheetLoader(Func<EMonsterTierSheet, Task<MonsterTierSheetSet>> load, Action<EMonsterTierSheet> unload, Action<string> warn)
         {
@@ -56,8 +58,14 @@ namespace Lair.Character
             if (tasks.Count == 0)
                 return;
 
+            int generation = _generation;
             Task all = Task.WhenAll(tasks);
             await Task.WhenAny(all, Task.Delay(timeoutMs));
+            if (generation != _generation)
+            {
+                UnloadStale(keys, tasks);
+                return;
+            }
 
             for (int i = 0; i < tasks.Count; i++)
             {
@@ -84,9 +92,35 @@ namespace Lair.Character
             }
         }
 
+        //# Release 로 무효가 된 요청 — 이미 도착한 결과는 즉시 해제, 아직 오는 중인 결과는 도착 시 해제.
+        private void UnloadStale(List<EMonsterTierSheet> keys, List<Task<MonsterTierSheetSet>> tasks)
+        {
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                EMonsterTierSheet key = keys[i];
+                Task<MonsterTierSheetSet> task = tasks[i];
+                if (task.IsCompleted)
+                {
+                    if (task.IsFaulted == false && task.Result != null)
+                    {
+                        _unload?.Invoke(key);
+                    }
+                    continue;
+                }
+                task.ContinueWith(t =>
+                {
+                    if (t.IsFaulted == false && t.Result != null)
+                    {
+                        _unload?.Invoke(key);
+                    }
+                }, SynchronizationContext.Current != null ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default);
+            }
+        }
+
         //# 전투 종료 → 몬스터 풀 정리 뒤 호출. 이번 판에 로드한 키 전부 해제.
         public void Release()
         {
+            _generation++;
             foreach (EMonsterTierSheet key in _loadedKeys)
             {
                 _unload?.Invoke(key);

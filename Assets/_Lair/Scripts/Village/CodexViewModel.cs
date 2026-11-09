@@ -16,7 +16,8 @@ namespace Lair.Village
         public int Tier;
         public bool Open;
         public bool IsNew;          //# 세션 신규 칸 — 팝업이 닫힐 때까지 NEW 배지
-        public bool PlayUnlock;     //# 이번 종족 표시에서 해금 연출을 재생할 칸
+        public bool PlayUnlock;     //# 이번 종족 표시에서 칸 해금 연출을 재생할 칸(View 는 VM.ConsumeUnlock 으로 소비)
+        public bool PlayDetailUnlock;   //# 이 칸이 선택됐을 때 상세 미리보기 해금 연출을 재생할 칸(VM.ConsumeDetailUnlock)
         public string Name;
         public float SizeMul = 1f;
         public float HpMul = 1f;
@@ -193,6 +194,7 @@ namespace Lair.Village
             foreach (CodexCellModel cell in state.Cells)
             {
                 cell.PlayUnlock = false;
+                cell.PlayDetailUnlock = false;
                 if (cell.Open == false)
                     continue;
                 open.Add(cell.Index);
@@ -200,10 +202,29 @@ namespace Lair.Village
                 {
                     cell.IsNew = true;
                     cell.PlayUnlock = true;
+                    cell.PlayDetailUnlock = true;
                 }
             }
             CodexSession.Set(race, open);
             SelectedIndex = BestOpenIndex(state.Cells);
+            return true;
+        }
+
+        //# 칸 해금 연출 재생권 소비 — 풀 재바인딩에서 다시 재생되지 않게 한 번만 true.
+        public bool ConsumeUnlock(CodexCellModel cell)
+        {
+            if (cell == null || cell.PlayUnlock == false)
+                return false;
+            cell.PlayUnlock = false;
+            return true;
+        }
+
+        //# 상세 미리보기 해금 연출 재생권 소비(선택 칸이 신규일 때만).
+        public bool ConsumeDetailUnlock(CodexCellModel cell)
+        {
+            if (cell == null || cell.PlayDetailUnlock == false)
+                return false;
+            cell.PlayDetailUnlock = false;
             return true;
         }
 
@@ -242,7 +263,7 @@ namespace Lair.Village
             }
             else
             {
-                detail.StatsText = Fmt(StrStats, cell.HpMul.ToString("0.00"));
+                detail.StatsText = Fmt(StrStats, cell.HpMul.ToString("0.00"), cell.AtkMul.ToString("0.00"));
             }
             for (int tier = 0; tier < TierCount; ++tier)
             {

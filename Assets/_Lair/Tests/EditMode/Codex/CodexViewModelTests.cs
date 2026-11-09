@@ -100,7 +100,7 @@ namespace Lair.Tests.EditMode
             public int Free = 3;
             public int Held;
 
-            public bool TryAcquire(int grade)
+            public bool TryAcquire(EMonster race, int grade)
             {
                 if (Free <= 0)
                     return false;
@@ -109,7 +109,7 @@ namespace Lair.Tests.EditMode
                 return true;
             }
 
-            public void Release(int grade)
+            public void Release(EMonster race, int grade)
             {
                 Free++;
                 Held--;
@@ -123,10 +123,10 @@ namespace Lair.Tests.EditMode
             CodexFxAllocator allocator = new CodexFxAllocator(slots, 2);
             List<CodexFxAllocator.Candidate> list = new List<CodexFxAllocator.Candidate>
             {
-                new CodexFxAllocator.Candidate(0, 1, 0),
-                new CodexFxAllocator.Candidate(1, 3, 2),
-                new CodexFxAllocator.Candidate(2, 5, 3),
-                new CodexFxAllocator.Candidate(3, 5, 1),
+                new CodexFxAllocator.Candidate(0, EMonster.Wisp, 1, 0),
+                new CodexFxAllocator.Candidate(1, EMonster.Wisp, 3, 2),
+                new CodexFxAllocator.Candidate(2, EMonster.Wisp, 5, 3),
+                new CodexFxAllocator.Candidate(3, EMonster.Wisp, 5, 1),
             };
 
             HashSet<int> live = allocator.Rebalance(list);
@@ -137,6 +137,21 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 높은_등급이_실패하면_낮은_등급도_배분되지_않는다()
+        {
+            FakeSlots slots = new FakeSlots { Free = 0 };
+            CodexFxAllocator allocator = new CodexFxAllocator(slots, 8);
+
+            HashSet<int> live = allocator.Rebalance(new List<CodexFxAllocator.Candidate>
+            {
+                new CodexFxAllocator.Candidate(0, EMonster.Wisp, 5, 0),
+                new CodexFxAllocator.Candidate(1, EMonster.Wisp, 2, 0),
+            });
+
+            Assert.AreEqual(0, live.Count);
+        }
+
+        [Test]
         public void 슬롯_확보가_실패한_칸은_건너뛰고_정지_프레임으로_남는다()
         {
             FakeSlots slots = new FakeSlots { Free = 1 };
@@ -144,8 +159,8 @@ namespace Lair.Tests.EditMode
 
             HashSet<int> live = allocator.Rebalance(new List<CodexFxAllocator.Candidate>
             {
-                new CodexFxAllocator.Candidate(0, 4, 0),
-                new CodexFxAllocator.Candidate(1, 3, 0),
+                new CodexFxAllocator.Candidate(0, EMonster.Wisp, 4, 0),
+                new CodexFxAllocator.Candidate(1, EMonster.Wisp, 3, 0),
             });
 
             Assert.AreEqual(1, live.Count);

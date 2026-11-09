@@ -178,7 +178,8 @@ namespace Lair.UI
             }
             if (_monsterPanel != null)
             {
-                _monsterPanel.Show(_monsterVm, CodexDatabase.Current, CreateTierLoader(_arg.Profile));
+                MetaProfile profile = _arg.Profile;
+                _monsterPanel.Show(_monsterVm, CodexDatabase.Current, () => CreateTierLoader(profile));
             }
         }
 

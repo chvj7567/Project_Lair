@@ -7,8 +7,8 @@ namespace Lair.Village
     //# 등급 이펙트 슬롯 한 세트 확보/반환 경계(monster-codex §5.4) — 테스트 더블 교체용. 구현 = GradeFxBudgetSlots.
     public interface ICodexFxSlots
     {
-        bool TryAcquire(int grade);
-        void Release(int grade);
+        bool TryAcquire(EMonster race, int grade);
+        void Release(EMonster race, int grade);
     }
 
     //# 칸 이펙트 애니 상한 배분기 — 등급 높은 칸 → 같으면 티어 낮은 칸 순으로 liveCap 칸까지 슬롯을 준다. 상세 미리보기는 여기 포함하지 않는다(프리팹이 먼저 자기 슬롯을 확보).
@@ -17,12 +17,14 @@ namespace Lair.Village
         public readonly struct Candidate
         {
             public readonly int Key;
+            public readonly EMonster Race;
             public readonly int Grade;
             public readonly int Tier;
 
-            public Candidate(int key, int grade, int tier)
+            public Candidate(int key, EMonster race, int grade, int tier)
             {
                 Key = key;
+                Race = race;
                 Grade = grade;
                 Tier = tier;
             }
@@ -30,7 +32,7 @@ namespace Lair.Village
 
         private readonly ICodexFxSlots _slots;
         private readonly int _liveCap;
-        private readonly List<int> _heldGrades = new List<int>();
+        private readonly List<(EMonster, int)> _held = new List<(EMonster, int)>();
 
         public CodexFxAllocator(ICodexFxSlots slots, int liveCap)
         {
@@ -38,7 +40,7 @@ namespace Lair.Village
             _liveCap = liveCap;
         }
 
-        public int LiveCount => _heldGrades.Count;
+        public int LiveCount => _held.Count;
 
         //# 후보(눈에 보이는 칸만)로 슬롯을 다시 배분 — 이전 슬롯을 전부 반환하고 우선순위대로 재확보. 반환값 = 애니 칸 key 집합. 2등급 미만은 후보 아님.
         public HashSet<int> Rebalance(IReadOnlyList<Candidate> candidates)
@@ -67,11 +69,11 @@ namespace Lair.Village
             {
                 if (live.Count >= _liveCap)
                     break;
-                if (_slots.TryAcquire(candidate.Grade))
-                {
-                    live.Add(candidate.Key);
-                    _heldGrades.Add(candidate.Grade);
-                }
+                //# 우선순위 역전 방지 — 높은 쪽이 실패하면 이후(더 낮은) 칸도 중단.
+                if (_slots.TryAcquire(candidate.Race, candidate.Grade) == false)
+                    break;
+                live.Add(candidate.Key);
+                _held.Add((candidate.Race, candidate.Grade));
             }
             return live;
         }
@@ -79,18 +81,18 @@ namespace Lair.Village
         //# 팝업 닫힘·탭 전환·종족 전환 — 전부 반환(GradeFxBudget 잔량이 열기 전으로 복귀).
         public void ReleaseAll()
         {
-            foreach (int grade in _heldGrades)
+            foreach ((EMonster race, int grade) in _held)
             {
-                _slots?.Release(grade);
+                _slots?.Release(race, grade);
             }
-            _heldGrades.Clear();
+            _held.Clear();
         }
     }
 
     //# GradeFxBudget 어댑터 — 그 등급 몬스터 한 마리가 쓰는 만큼(오라 1 + 불꽃 기둥 n + 후광 m)을 전부 얻거나 전부 못 얻는다. 쇼케이스와 같은 정적 카운터를 공유한다.
     public sealed class GradeFxBudgetSlots : ICodexFxSlots
     {
-        private static void CostOf(int grade, out int aura, out int tornado, out int sunburst)
+        private static void CostOf(EMonster race, int grade, out int aura, out int tornado, out int sunburst)
         {
             aura = 0;
             tornado = 0;
@@ -98,7 +100,7 @@ namespace Lair.Village
             GradeFxDatabase db = GradeFxDatabase.Current;
             if (db == null)
                 return;
-            GradeFxSpec spec = db.SpecOf(EMonster.Wisp, grade);
+            GradeFxSpec spec = db.SpecOf(race, grade);
             aura = spec.HasAura ? 1 : 0;
             foreach (Grade_FxRow row in spec.Fx)
             {
@@ -113,9 +115,9 @@ namespace Lair.Village
             }
         }
 
-        public bool TryAcquire(int grade)
+        public bool TryAcquire(EMonster race, int grade)
         {
-            CostOf(grade, out int aura, out int tornado, out int sunburst);
+            CostOf(race, grade, out int aura, out int tornado, out int sunburst);
             if (aura + tornado + sunburst == 0)
                 return false;
             int gotAura = 0;
@@ -157,9 +159,9 @@ namespace Lair.Village
             return false;
         }
 
-        public void Release(int grade)
+        public void Release(EMonster race, int grade)
         {
-            CostOf(grade, out int aura, out int tornado, out int sunburst);
+            CostOf(race, grade, out int aura, out int tornado, out int sunburst);
             for (int i = 0; i < aura; ++i)
             {
                 GradeFxBudget.ReleaseAura();

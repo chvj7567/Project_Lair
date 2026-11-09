@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using ChvjUnityInfra;
 using Lair.Character;
 using Lair.Data;
@@ -11,14 +10,14 @@ using UnityEngine.UI;
 namespace Lair.UI
 {
     //# 도감 몬스터 탭 패널(monster-codex §2~§6, Rule 03 §3 Panel) — 종족 칩 / 풀링 매트릭스(6종족 공유 1개) / 상세를 묶는다. 로직은 CodexViewModel, 여기는 표시·배선만.
-    //# 칸 수·행/열은 VM 의 등급 수 x 티어 수에서 나온다(스크롤뷰 열 수는 프리팹 _columnCount = 티어 수). 칸 이펙트 슬롯은 배분기가 소유(보이는 칸만, 상한 fxLiveCap).
+    //# 목록 = 등급 수 x (티어 수 + 1) 항목(행마다 머리글 1 + 티어 칸), 열 수 = 티어 수 + 1 (프리팹 _columnCount). 머리글은 행과 함께 스크롤된다.
+    //# 칸 이펙트 슬롯은 배분기가 소유(보이는 칸만, 상한 fxLiveCap).
     public class CodexMonsterPanel : MonoBehaviour
     {
         [SerializeField] private CodexMatrixPoolingScrollView _scrollView;
         [SerializeField] private ScrollRect _scrollRect;                 //# _scrollView 와 같은 오브젝트의 ScrollRect — viewport 가시 판정·스크롤 통지
         [SerializeField] private CodexRaceChip[] _chips;
-        [SerializeField] private CHText[] _gradeHeaderTexts;             //# 등급 행 머리글(등급 1부터)
-        [SerializeField] private CHText[] _tierHeaderTexts;              //# 티어 열 머리글(티어 0부터)
+        [SerializeField] private CHText[] _tierHeaderTexts;              //# 티어 열 머리글(티어 0부터) — 스크롤 밖 고정, 열 1~4 위에 정렬
         [SerializeField] private CHText[] _tierLevelTexts;               //# 티어 열 Lv 범위
         [SerializeField] private CHText _progressText;                   //# 진척 패널 "수집 n / 120"
         [SerializeField] private Image _progressFill;                    //# fillAmount = 열린 칸 / 전체
@@ -28,7 +27,9 @@ namespace Lair.UI
         private CodexViewModel _vm;
         private CodexConfigRow _config;
         private CodexDatabase _codex;
-        private MonsterTierSheetLoader _loader;
+        private MonsterTierSheetLoader _loader;            //# 현재 표시 중인 종족의 시트
+        private MonsterTierSheetLoader _pendingLoader;     //# 종족 전환 중 로드 중인 새 시트
+        private Func<MonsterTierSheetLoader> _loaderFactory;
         private CodexFxAllocator _allocator;
         private int _version;
         private bool _shown;
@@ -36,8 +37,8 @@ namespace Lair.UI
         private bool _fxHold;
         private readonly Vector3[] _corners = new Vector3[4];
 
-        //# 탭 진입 — 팝업이 VM·로더를 만들어 넘긴다(로더 unload 는 쇼케이스가 쥔 키를 건드리지 않게 팝업이 주입).
-        public void Show(CodexViewModel vm, CodexDatabase codex, MonsterTierSheetLoader loader)
+        //# 탭 진입 — 팝업이 VM·로더 공장을 넘긴다(로더 unload 는 쇼케이스가 쥔 키를 건드리지 않게 팝업이 주입).
+        public void Show(CodexViewModel vm, CodexDatabase codex, Func<MonsterTierSheetLoader> loaderFactory)
         {
             if (vm == null)
                 return;
@@ -45,7 +46,7 @@ namespace Lair.UI
             _vm = vm;
             _codex = codex;
             _config = codex != null ? codex.Config : null;
-            _loader = loader;
+            _loaderFactory = loaderFactory;
             _allocator = new CodexFxAllocator(new GradeFxBudgetSlots(), _config != null ? _config.fxLiveCap : 0);
             _shown = true;
             if (_scrollRect != null)
@@ -58,7 +59,7 @@ namespace Lair.UI
             }
             RefreshHeaders();
             RefreshChips();
-            ShowRace(false);
+            ShowRace();
         }
 
         //# 닫힘·탭 전환 — 슬롯 전부 반납, 상세 미리보기·티어 시트 해제. 멱등.
@@ -76,9 +77,18 @@ namespace Lair.UI
             {
                 _detail.ClosePreview();
             }
+            //# 진행 중인 로드(Release 세대 값으로 늦게 오는 결과도 해제)와 표시 중인 시트를 전부 해제.
+            _pendingLoader?.Release();
+            _pendingLoader = null;
             _loader?.Release();
             _loader = null;
+            _loaderFactory = null;
             _vm = null;
+        }
+
+        private void OnEnable()
+        {
+            _fxDirty = true;
         }
 
         private void OnDisable()
@@ -108,11 +118,11 @@ namespace Lair.UI
         {
             if (_shown == false || _vm == null || race == _vm.SelectedRace)
                 return;
-            _allocator?.ReleaseAll();
+            StopAllFx();
             if (_vm.SelectRace(race) == false)
                 return;
             RefreshChips();
-            ShowRace(true);
+            ShowRace();
         }
 
         private void OnCellSelected(int index)
@@ -131,23 +141,33 @@ namespace Lair.UI
             OnCellSelected(CodexRules.CellIndex(selected.Grade, tier));
         }
 
-        //# 종족 표시 — 그 종족 T(race) 이하 티어 시트를 로드(이전 종족 것은 해제)한 뒤 매트릭스·상세를 채운다.
-        private async void ShowRace(bool releaseLoaded)
+        //# 종족 표시 — 새 시트를 먼저 끝까지 로드하고, 목록 교체 직전에 옛 시트를 해제한다(대기 중 옛 칸은 이펙트 정지).
+        private async void ShowRace()
         {
             int version = ++_version;
             try
             {
-                if (_loader != null)
+                MonsterTierSheetLoader next = _loaderFactory != null ? _loaderFactory() : null;
+                _pendingLoader = next;
+                if (next != null)
                 {
-                    if (releaseLoaded)
-                    {
-                        _loader.Release();
-                    }
-                    await _loader.LoadAsync(TierNeeds(_vm.SelectedRace, _vm.OwnedTier(_vm.SelectedRace)));
+                    await next.LoadAsync(TierNeeds(_vm.SelectedRace, _vm.OwnedTier(_vm.SelectedRace)));
                 }
                 if (version != _version || _shown == false)
+                {
+                    next?.Release();
                     return;
-                RebuildMatrix();
+                }
+                MonsterTierSheetLoader old = _loader;
+                _loader = next;
+                _pendingLoader = null;
+                List<CodexMonsterCellData> items = BuildItems();
+                old?.Release();
+                if (_scrollView != null)
+                {
+                    _scrollView.SetItemList(items);
+                }
+                _fxDirty = true;
                 if (_progressText != null)
                 {
                     _progressText.SetText(_vm.CollectedText);
@@ -164,6 +184,21 @@ namespace Lair.UI
             }
         }
 
+        //# 종족 전환 대기 구간 — 슬롯 반납 + 보이는 옛 칸 정지 프레임.
+        private void StopAllFx()
+        {
+            _allocator?.ReleaseAll();
+            if (_scrollView == null)
+                return;
+            foreach (CodexMonsterCell cell in _scrollView.ItemList)
+            {
+                if (cell != null && cell.IsRowHeader == false)
+                {
+                    cell.SetFxLive(false);
+                }
+            }
+        }
+
         private static List<(EMonster, int)> TierNeeds(EMonster race, int ownedTier)
         {
             List<(EMonster, int)> needs = new List<(EMonster, int)>();
@@ -176,7 +211,6 @@ namespace Lair.UI
 
         private void RefreshHeaders()
         {
-            SetHeaders(_gradeHeaderTexts, _vm.GradeCount, i => _vm.GradeName(i + MonsterGrades.MinGrade));
             SetHeaders(_tierHeaderTexts, _vm.TierCount, i => _vm.TierHeader(i));
             SetHeaders(_tierLevelTexts, _vm.TierCount, i => _vm.TierLevelRange(i));
         }
@@ -216,40 +250,51 @@ namespace Lair.UI
             }
         }
 
-        private void RebuildMatrix()
+        //# 행마다 [등급 머리글, 티어0..N-1 칸] — 항목 수 = 등급 수 x (티어 수 + 1).
+        private List<CodexMonsterCellData> BuildItems()
         {
-            if (_scrollView == null)
-                return;
+            List<CodexMonsterCellData> items = new List<CodexMonsterCellData>();
             EMonster race = _vm.SelectedRace;
             CodexRaceArt art = ArtOf(race);
             Color raceColor = SpeciesVisual.SpeciesGlowColor(race);
-            List<CodexMonsterCellData> data = new List<CodexMonsterCellData>();
             int playOrder = 0;
-            foreach (CodexCellModel model in _vm.Cells)
+            for (int grade = MonsterGrades.MinGrade; grade < MonsterGrades.MinGrade + _vm.GradeCount; ++grade)
             {
-                float stagger = 0f;
-                if (model.PlayUnlock && _config != null)
+                Color gradeColor = _codex != null ? _codex.ColorOf(grade) : Color.white;
+                items.Add(new CodexMonsterCellData
                 {
-                    stagger = playOrder * _config.newCellStaggerSec;
-                    playOrder++;
-                }
-                data.Add(new CodexMonsterCellData
-                {
-                    Model = model,
-                    Body = BodyOf(model, art),
-                    Art = art,
-                    RaceColor = raceColor,
-                    GradeColor = _codex != null ? _codex.ColorOf(model.Grade) : Color.white,
-                    Config = _config,
-                    Unlock = _codex != null ? _codex.UnlockOf(model.Grade) : null,
-                    Selected = model.Index == _vm.SelectedIndex,
-                    StaggerDelaySec = stagger,
-                    NewLabel = _vm.NewLabel,
-                    OnSelect = OnCellSelected,
+                    IsRowHeader = true,
+                    HeaderName = _vm.GradeName(grade),
+                    HeaderGrade = grade,
+                    GradeColor = gradeColor,
                 });
+                for (int tier = 0; tier < _vm.TierCount; ++tier)
+                {
+                    CodexCellModel model = _vm.Cells[CodexRules.CellIndex(grade, tier)];
+                    float stagger = 0f;
+                    if (model.PlayUnlock && _config != null)
+                    {
+                        stagger = playOrder * _config.newCellStaggerSec;
+                        playOrder++;
+                    }
+                    items.Add(new CodexMonsterCellData
+                    {
+                        Model = model,
+                        Body = BodyOf(model, art),
+                        Art = art,
+                        RaceColor = raceColor,
+                        GradeColor = gradeColor,
+                        Config = _config,
+                        Unlock = _codex != null ? _codex.UnlockOf(grade) : null,
+                        Selected = model.Index == _vm.SelectedIndex,
+                        StaggerDelaySec = stagger,
+                        NewLabel = _vm.NewLabel,
+                        OnSelect = OnCellSelected,
+                        ConsumeUnlock = _vm.ConsumeUnlock,
+                    });
+                }
             }
-            _scrollView.SetItemList(data);
-            _fxDirty = true;
+            return items;
         }
 
         private Sprite BodyOf(CodexCellModel model, CodexRaceArt art)
@@ -276,20 +321,25 @@ namespace Lair.UI
             return null;
         }
 
+        //# 선택 표시 — 데이터 전체(스크롤 밖 포함)의 Selected 를 갱신하고 화면에 있는 풀 셀만 다시 그린다.
         private void ApplySelectionMarks()
         {
             if (_scrollView == null)
                 return;
+            foreach (CodexMonsterCellData data in _scrollView.DataList)
+            {
+                data.Selected = data.IsRowHeader == false && data.Model != null && data.Model.Index == _vm.SelectedIndex;
+            }
             foreach (CodexMonsterCell cell in _scrollView.ItemList)
             {
-                if (cell != null && cell.Data != null)
+                if (cell != null)
                 {
-                    cell.SetSelected(cell.Index == _vm.SelectedIndex);
+                    cell.RefreshSelection();
                 }
             }
         }
 
-        //# 상세 갱신 — 미리보기를 먼저 확보(슬롯 우선)한 뒤 칸 이펙트 배분을 재개한다.
+        //# 상세 갱신 — 미리보기를 먼저 확보(슬롯 우선)한 뒤 칸 이펙트 배분을 재개하고, 신규 칸이면 상세 해금 연출을 재생한다.
         private async void RefreshDetail()
         {
             if (_detail == null || _vm == null)
@@ -314,9 +364,12 @@ namespace Lair.UI
             {
                 _fxHold = false;
             }
-            if (version == _version && _shown)
+            if (version != _version || _shown == false)
+                return;
+            _fxDirty = true;
+            if (_codex != null && _vm.ConsumeDetailUnlock(model.Cell))
             {
-                _fxDirty = true;
+                _detail.PlayUnlock(_config, _codex.UnlockOf(model.Cell.Grade), _codex.ColorOf(model.Cell.Grade));
             }
         }
 
@@ -333,13 +386,13 @@ namespace Lair.UI
             {
                 if (cell != null && cell.IsFxCandidate && cell.IsVisibleIn(viewport))
                 {
-                    candidates.Add(new CodexFxAllocator.Candidate(cell.Index, cell.Grade, cell.Tier));
+                    candidates.Add(new CodexFxAllocator.Candidate(cell.Index, cell.Race, cell.Grade, cell.Tier));
                 }
             }
             HashSet<int> live = _allocator.Rebalance(candidates);
             foreach (CodexMonsterCell cell in cells)
             {
-                if (cell != null)
+                if (cell != null && cell.IsRowHeader == false)
                 {
                     cell.SetFxLive(live.Contains(cell.Index));
                 }

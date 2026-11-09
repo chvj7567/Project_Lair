@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
-using Lair.UI;
 
 namespace Lair.Village
 {
     //# 도감 해금 규칙 순수 함수 (monster-codex §3). 저장 필드 없이 기존 프로필 값에서 파생한다.
     public static class CodexRules
     {
-        public const int MaxLevel = EnhanceLevelVisual.MaxLevel;
+        //# 상점 강화 최대 Lv — EnhanceLevelVisual/MonsterEnhancementVisual 의 5 와 같은 값(표 길이 6).
+        public const int MaxLevel = 5;
 
         public static int GradeCount => MonsterGrades.MaxGrade - MonsterGrades.MinGrade + 1;
 

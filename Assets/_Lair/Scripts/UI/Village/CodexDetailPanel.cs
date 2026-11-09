@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using ChvjUnityInfra;
 using Lair.Character;
+using Lair.Data;
 using Lair.Village;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,6 +26,9 @@ namespace Lair.UI
         [SerializeField] private CHText[] _conditionTexts;
         [SerializeField] private CHText _hiddenStatsText;
         [SerializeField] private CHText _appearanceText;
+        [SerializeField] private CodexUnlockFx _unlockFx;        //# 미리보기 위 해금 연출(전체 강도) 위젯 — 링 최대 3·스파클 최대 18
+
+        private const float DetailSparkScale = 2f;
 
         private static readonly Color LockedBorder = new Color32(0x23, 0x28, 0x34, 0xFF);
         private static readonly Color LockedText = new Color32(0x7D, 0x87, 0x9F, 0xFF);
@@ -32,6 +36,14 @@ namespace Lair.UI
         private static readonly Color Gold = new Color32(0xF7, 0xC6, 0x4A, 0xFF);
         private static readonly Color Met = new Color32(0x5E, 0xF0, 0xB4, 0xFF);
         private static readonly Color Unmet = new Color32(0xE5, 0x48, 0x4D, 0xFF);
+
+        //# 선택 칸이 신규일 때 — 펄스·링·스파클을 등급 값 그대로(칸 축소 상한 없음) 재생. 스파클 거리는 칸 값의 DetailSparkScale 배.
+        public void PlayUnlock(CodexConfigRow cfg, Grade_CodexUnlockRow row, Color gradeColor)
+        {
+            if (_unlockFx == null || cfg == null || row == null)
+                return;
+            _unlockFx.Play(cfg, row, gradeColor, 0f, int.MaxValue, int.MaxValue, int.MaxValue, cfg.cellSparkRadiusPx * DetailSparkScale);
+        }
 
         public void OpenPreview()
         {
@@ -43,6 +55,10 @@ namespace Lair.UI
 
         public void ClosePreview()
         {
+            if (_unlockFx != null)
+            {
+                _unlockFx.Stop();
+            }
             if (_preview != null)
             {
                 _preview.Close();
