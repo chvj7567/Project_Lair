@@ -3,7 +3,7 @@
 > 작성: game-designer · 2026-11-09 · 단계: v0.3 · 승격: **불필요**(CLAUDE.md §8 "아트/에셋 작업 허용" + "챕터 구조 허용"의 챕터별 영웅 아트 범위. 신규 영웅 직업·신규 몬스터·신규 UI 화면 0, 전투 수치·타이밍 변화 0)
 > 입력: `C:\Users\Tae\Desktop\Art\Hero\v2\{Knight,Archer,Assassin,Berserker,Paladin}_S{1..5}_ver2.png` 25장(각 1254x1254 투명 PNG, 6열 x 6행, 셀 209, 행 순서 Idle / Attack / Death / Spawn / Move / Hit, 행당 6프레임) · `hero-2d-conversion.md`(§5.3 라이브 타이밍·§5.3.1 락/게이트·§6.4 오버레이·§7 에셋 규격) · `monster-tier-sheets.md`·`monster-sheet-v4.md`(선례) · `HeroStageVariantConfig`·`HeroStageVariantApplier`·`MonsterTierOverlay`·`AnimatorSink`·`HeroAttackGate`·`HeroEntryDriver`·`CharacterAttackStrikeRelay`·`Heroes2D/*_SheetSpec.json`
 > **사용자용 가이드**: `docs/design/hero-sheets.html` · **UI 목업**: `.mockups/hero-sheets.html`(메인이 로컬 서버로 제공, 영웅 원본 이미지는 서버의 읽기 전용 경로 `/herosrc/` 로 서빙)
-> **대체 관계**: `hero-2d-conversion.md` §5.2·§5.3(프레임 수·fps)·§7.1~7.3(72px 도트 규격)·§4(도트 규격)는 본 문서가 **대체**한다. §5.3.1(락·게이트 1.8s 고정)·§6.4(오버레이 합성 구조)·§9 불변식은 **그대로 유효**하다.
+> **대체 관계**: `hero-2d-conversion.md` §5.2·§5.3(프레임 수·fps)·§7.1~7.3(72px 도트 규격)·§4(도트 규격)는 본 문서가 **대체**한다. §6.4(오버레이 합성 구조)는 **그대로 유효**하다. §5.3.1·§9 의 "공격 락 1.8s 고정, `OnAttackEnd` 미베이크"는 **Knight 에만 현행과 맞고** 나머지 4직업은 후속 튜닝으로 달라졌다(본 문서 §5.3·§5.4 가 현행 실측 기준 정본).
 
 ---
 
@@ -24,7 +24,7 @@
 |---|---|---|
 | D1 | 소스 | 25장, 1254x1254, 6x6, 셀 209, 행 Idle / Attack / Death / Spawn / Move / Hit, 모두 **오른쪽을 본다**(flipX 규칙 불변) |
 | D2 | 직업 ↔ 챕터 | 1 Knight · 2 Archer · 3 Assassin · 4 Berserker · 5 Paladin. 단계 S1~S5 = 스테이지 x-1~x-5 (`HeroStageVariant.Tier` 0~4 와 1:1, 불변) |
-| D3 | 불변식 | strike 0.5/0.8/0.3/0.2 초 · 공격 락 1.8 초 · 스폰 게이트 1.8 초 · 루트 스케일 곱(콜라이더 포함) · 이벤트 이름 `OnAttackStrike` · 컨트롤러 파라미터(Speed/Attack/AttackVariant/Hit/Dead/Spawn) |
+| D3 | 불변식 | strike 0.5/0.8/0.3/0.2 초 · 공격 락(Knight 1.8 초 / 나머지 4직업 `OnAttackEnd` 0.58 초, §5.3) · 스폰 게이트 1.8 초 · 루트 스케일 곱(콜라이더 포함) · 이벤트 이름 `OnAttackStrike` · 컨트롤러 파라미터(Speed/Attack/AttackVariant/Hit/Dead/Spawn) |
 
 ### 0.2 설계 결정 (모두 근거 있는 추천안. 사용자 확인이 필요한 H1·H2·H7·H9(배수)·H8·H6·H11·E1·H10 은 HTML "결정해 주세요" 1~9 번에 같은 순서로 제시)
 
@@ -181,7 +181,7 @@
 | Archer 3클립 | 0.3000 | 1.0000 | **0.300s** | 0.6000 | 0.6s | 0.1000 | 0.2000 | 0.3000 | 0.3833 | 0.4667 |
 | Assassin · Berserker · Paladin 각 3클립 | 0.2000 | 1.0000 | **0.200s** | 0.6000 | 0.6s | 0.0667 | 0.1333 | 0.2000 | 0.2833 | 0.3667 |
 
-- 현행 클립 길이 L 과 Speed 는 값 그대로다(Knight 17f@15 = 1.1333, Stab 20f@12 = 1.6667 / Speed 1.0204, Archer·Assassin·Berserker·Paladin 9f@15 = 0.6). 클립이 끝난 뒤 락 해제(1.8s)까지 대기 자세로 서 있는 현행 동작도 같다(`hero-2d-conversion.md` §5.3.1 안 A).
+- 현행 클립 길이 L 과 Speed 는 값 그대로다(Knight 17f@15 = 1.1333, Stab 20f@12 = 1.6667 / Speed 1.0204, Archer·Assassin·Berserker·Paladin 9f@15 = 0.6). Knight 는 클립이 끝난 뒤 락 해제(1.8s)까지 대기 자세로 서 있는 현행 동작이 같다. 나머지 4직업은 **공격 클립 3개(Slash01·Slash02·Stab)마다 `OnAttackEnd` 가 클립 로컬 0.58s 에 이미 구워져 있다**(12개 클립) — 이 이벤트를 **현행 그대로 유지**한다(§5.3·§5.4). 새 키프레임 F5 시각(0.3667/0.4667)이 0.58 보다 앞이라 순서가 바뀌지 않는다.
 - 데이터 단일 진실 = 각 `{Class}_SheetSpec.json` 의 `clips.<state>.keyTimes`·`strikeClipLocalSec`·`animatorSpeed`. 에디터 툴이 이를 읽어 클립을 만든다(숫자 하드코딩 금지).
 
 ### 5.3 전투 타이밍 불변 선언
@@ -189,13 +189,31 @@
 | 항목 | 현행 | 변경 후 |
 |---|---|---|
 | strike 실시간 | Knight 0.5 / 0.5 / 0.8s · Archer 0.3s · 나머지 0.2s | **동일**(§5.2 실시간 열) |
-| 공격 락 | 1.8s (`HeroAttackGate._attackEndFallback`) | **동일**(코드·값 변경 0) |
+| 공격 락 | Knight 1.8s (이벤트 없음, `_attackEndFallback` 1.8) · 나머지 4직업 0.58s (클립 `OnAttackEnd`@0.58, 프리팹 `_attackEndFallback` 0.65 override 는 이벤트 유실 안전망) | **동일**(코드·프리팹 값·클립 이벤트 변경 0, 직업별 실측값은 §5.4) |
 | 스폰 게이트 | 1.8s (`HeroEntryDriver`/`AutoCombatAI._spawnGateFallback`) | **동일** |
 | 스윙음 | variant 0/1/2 순환 -> `Slash01`/`Slash02`/`Stab` | **동일**(세 상태가 같은 그림을 쓸 뿐, `AttackVariant` 파라미터·소리 불변) |
 | 루트 스케일·콜라이더 | 5단계 x1.4 / 1.25 / 1.2 / 1.35 / 1.3 | **동일**(H9) |
 | 영웅 능력치·스킬·AI | - | **동일** |
 
 위 표 중 하나라도 깨지면 이 기획은 밸런스 변경이 되며 qa-simulator 시뮬을 거친다(게이트 T-H1~T-H4).
+
+### 5.4 공격 락과 직업별 실효 공격 주기 (현행 코드·클립·프리팹 실측, 정정 사항)
+
+동작(코드): `AutoCombatAI` 는 영웅 `IsAttacking` 이 true 인 동안 새 공격을 시작하지 않는다. `HeroAttackGate.BeginAttack` 이 락을 걸고, 클립의 `OnAttackEnd` 가 `CharacterAttackStrikeRelay` -> `HeroAttackGate.EndAttack` 으로 락을 풀며, 이벤트가 없거나 유실되면 `_attackEndFallback` 초 뒤 `Update` 가 강제로 푼다. 공격 시작 자체는 `MeleeAttacker` 의 쿨다운(`HeroArchetype.cooldown` x `CooldownScale`)도 통과해야 하므로 **실효 공격 주기 = max(락 해제 시각, 쿨다운 x CooldownScale)** 다.
+
+| 직업 | `OnAttackEnd` 베이크 | 프리팹 `_attackEndFallback` | 락 해제 | 쿨다운(`HeroArchetype.json`) | 실효 공격 주기(CooldownScale 1.0) | 주기를 정하는 것 |
+|---|---|---|---|---|---|---|
+| Knight | 없음 (클립 3개에 이벤트 `OnAttackStrike` 1개뿐) | 1.8 (프리팹 직접값) | 1.8s | 1.0 | **1.8s** | 락 |
+| Archer | 3클립 모두 @0.58 | 0.65 override | 0.58s | 1.0 | **1.0s** | 쿨다운 |
+| Assassin | 3클립 모두 @0.58 | 0.65 override | 0.58s | 0.7 | **0.7s** | 쿨다운 |
+| Berserker | 3클립 모두 @0.58 | 0.65 override | 0.58s | 1.2 | **1.2s** | 쿨다운 |
+| Paladin | 3클립 모두 @0.58 | 0.65 override | 0.58s | 1.1 | **1.1s** | 쿨다운 |
+
+- 스폰 게이트는 5직업 모두 1.8s(`HeroEntryDriver`·`AutoCombatAI` 의 `_spawnGateFallback` 1.8, 이벤트 미베이크) 로 사실과 일치한다.
+- 4직업은 락(0.58s)이 쿨다운보다 짧아 평소엔 쿨다운이 주기를 정한다. 다만 카드로 `CooldownScale` 이 내려가 `쿨다운 x CooldownScale` 이 0.58s 보다 작아지면 **락이 공격 속도 하한**이 되므로 `OnAttackEnd` 시각은 DPS 를 정하는 게임플레이 값이다.
+- 문서 불일치 경위: `hero-2d-conversion.md` §5.3·§5.3.1·§9 는 Knight 실측(개정 8) 기준이며, 4직업 락 튜닝(0.58)은 그 이후 반영되어 기존 기획서에 기록이 없었다. 이번 기획서 초안이 그 서술을 모든 직업에 일반화한 것이 오류였다.
+
+**판정**: 이번 시트 교체는 타이밍 불변 원칙이므로 **현행 값 유지가 기본이자 추천**이다. 근거: (a) 4직업 `OnAttackEnd`@0.58 + fallback 0.65 는 의도된 튜닝값이며 시트 교체와 무관하다. (b) 새 공격 클립 길이 L(0.6)과 F5 시각(0.3667/0.4667)이 0.58 보다 길거나 앞이라 이벤트를 같은 시각에 그대로 두어도 시각 충돌이 없다. (c) 이벤트를 지우면 락이 fallback 0.65 로 늦춰져(0.58 -> 0.65, +0.07s) 쿨다운이 0.65 이하로 내려가는 구간(카드 쿨다운 감소)에서 공격 속도가 최대 10.8% 내려가고, Knight 처럼 1.8 로 통일하면 4직업 DPS 가 쿨다운 구간 기준 Archer -44%(1.0 -> 1.8s)·Assassin -61%·Berserker -33%·Paladin -39% 로 급락해 밸런스 변경이 된다. 변경이 필요하다고 보지 않는다. 변경을 원하면 이 기획서가 아니라 밸런스 조정 흐름(qa-simulator 데이터 -> 승인)으로 따로 다룬다.
 
 ---
 
@@ -277,7 +295,7 @@
        |-- frames 6, row (소스 게임 행), loop, animatorSpeed
        |-- keyTimes [6]   (로컬 초, 각 프레임 시작 시각)
        |-- length         (로컬 초, 클립 끝 L)
-       +-- strikeFrame 3, strikeClipLocalSec, strikeRealSec, lockReleaseRealSec 1.8   (공격 클립만)
+       +-- strikeFrame 3, strikeClipLocalSec, strikeRealSec, lockReleaseRealSec (Knight 1.8 / 나머지 4직업 0.58, §5.4), attackEndEventLocalSec (4직업 0.58, Knight 없음)   (공격 클립만)
 ```
 
 | 필드 | 값(예) |
@@ -328,8 +346,8 @@
 | U-H1 | 슬라이스·참조 | 시트 25장 36 스프라이트, 프리팹 5·클립 45·컨트롤러 5 Missing 0, 이전 인덱스 36 이상 참조 0 |
 | U-H2 | 오버레이 동기 | 영웅 5직업 x 단계 2~5 에서 모든 클립 프레임의 오버레이 스프라이트 이름 끝 숫자 = 몸 인덱스, flipX 동기(`MonsterTierOverlaySyncTests` 계열 유지·통과) |
 | U-H3 | 클립 키프레임 | 45클립 전부 §5.1·§5.2 키프레임 시각·프레임 인덱스·길이와 일치(`HeroClip2DEventBakeTests` 갱신) |
-| U-H4 | 이벤트 | 공격 클립 15개에 `OnAttackStrike` 1개(시각 = T)·그 외 클립 이벤트 0. `OnAttackEnd`·`OnSpawnAnimEnd` 베이크 0 |
-| U-H5 | 설정 값 고정 | `_attackEndFallback == 1.8`, `_spawnGateFallback == 1.8`(HeroEntryDriver·AutoCombatAI), 컨트롤러 파라미터 6종 이름·상태 이름 불변, State Speed(Knight Stab 1.0204, 그 외 1.0) |
+| U-H4 | 이벤트 | 공격 클립 15개에 `OnAttackStrike` 1개(시각 = T). **Knight 3클립: 그 외 이벤트 0. Archer·Assassin·Berserker·Paladin 12클립: `OnAttackEnd` 1개 @0.58(현행 값 그대로)**. 공격 클립 외 클립 이벤트 0, `OnSpawnAnimEnd` 베이크 0 |
+| U-H5 | 설정 값 고정 | 프리팹 `_attackEndFallback`: Knight 1.8 / Archer·Assassin·Berserker·Paladin 0.65. `_spawnGateFallback == 1.8`(HeroEntryDriver·AutoCombatAI, 5직업), 컨트롤러 파라미터 6종 이름·상태 이름 불변, State Speed(Knight Stab 1.0204, 그 외 1.0) |
 | U-H6 | 변형 SO | 25 엔트리 `UseEmission == false`, `ScaleMultiplier` 값 불변(0 단계 1.0 ... 5단계 1.4/1.25/1.2/1.35/1.3), `Tier` 0~4, Portrait 25개 null 아님 |
 | U-H7 | 메모리 | 영웅 프리팹 로드 시 영웅 텍스처 압축 메모리(밉맵 포함) ≤ 4.5MB(예산 3.75MB + 여유), 몬스터 포함 총량 ≤ 35MB |
 | U-H8 | 풀 리셋 | 영웅 재스폰 시 Tier 값대로 재적용, 이전 단계 외형 잔존 0 |
@@ -341,9 +359,18 @@
 | ID | 항목 | 통과 기준 |
 |---|---|---|
 | T-H1 | strike 발행 시각 | 5직업 x 3공격 상태: BeginAttack 기준 실시간 Knight 0.500 / 0.500 / 0.800s, Archer 0.300s, Assassin·Berserker·Paladin 0.200s. 허용 편차는 기존 테스트(`HeroKnight2DAttackTimingPlayTests`·`HeroAttackTimingProbePlayTests`) 기준을 **그대로** 적용 |
-| T-H2 | 공격 락 | `IsAttacking` 해제 1.800s(60fps)/1.833s(30fps) 불변 |
+| T-H2 | 공격 락 | `IsAttacking` 해제 시각 불변: Knight 1.800s(60fps)/1.833s(30fps), Archer·Assassin·Berserker·Paladin 0.58s(`OnAttackEnd`, 60fps 에서 0.583s 이하 한 프레임 이내). 4직업 이벤트 12개 시각 0.58 고정 확인 |
 | T-H3 | 스폰 게이트 | 행진 시작 1.8s 불변 |
-| T-H4 | 데미지·DPS | 같은 시드·같은 편성에서 영웅 처치 시각·받은 피해 분포가 변경 전과 동일(qa-simulator 헤드리스 소규모 N판, 통계 차이가 아니라 **동일 값**이어야 함) |
+| T-H4 | 데미지·DPS (qa-simulator) | 아래 §12.3.1 기준 |
+
+#### 12.3.1 T-H4 qa-simulator 실행 기준
+
+- **비교 대상**: 교체 전 커밋(기준)과 교체 후 커밋. 시트·클립·프리팹 외 변경 0 인 상태에서 같은 `Lair/Tests/Run PlayMode Simulation` 설정으로 각각 실행한다.
+- **직업·조건**: 5직업(Knight·Archer·Assassin·Berserker·Paladin) 각각 해당 챕터 x-3 스테이지, Easy, 기본 편성, 카드 선택 정책 고정 시드. 직업당 **200판** x 2(교체 전/후). 추가로 락이 DPS 하한이 되는 구간을 보기 위해 4직업(Archer·Assassin·Berserker·Paladin)은 `CooldownScale` 0.5 강제(시뮬 주입) 조건 **100판** x 2.
+- **지표(판 단위, 직업별)**: (1) 영웅 처치 시각(초) 평균·중앙값, (2) 영웅이 몬스터에게 준 총 피해량·초당 피해(영웅 공격 횟수 / 전투 시간 = 실제 공격 횟수율), (3) 영웅 공격 횟수 총합, (4) 승률.
+- **같은 시드 결정성**: 같은 시드에서 교체 전후 **영웅 공격 시각열(BeginAttack·strike 타임스탬프)이 프레임 양자화 한계 안에서 일치**해야 한다. 시드 고정 시뮬이 결정적이면 판별 기준은 공격 횟수 완전 일치, 결정적이지 않으면 아래 허용 오차를 쓴다.
+- **허용 오차(통과 기준)**: 직업별 영웅 공격 횟수율(회/초) 차이 ≤ 1%, 영웅 처치 시각 평균 차이 ≤ 1.0초이면서 ≤ 1%, 승률 차이 ≤ 2%p(N 200 의 이항 표준오차 기준 잡음 허용). `CooldownScale` 0.5 조건에서는 공격 횟수율 차이 ≤ 1%(락 0.58s 가 하한으로 작동하는지 확인).
+- **실패 시**: 어느 직업이든 한 지표라도 초과하면 시트 교체가 DPS 를 바꾼 것이다. 원인 후보는 이벤트 시각 이동·fallback 값·클립 길이 순이며, 기획서 불변식(§5.2~§5.4)으로 돌려 수정한다. 결과 리포트는 `docs/qa-reports/` 에 저장.
 
 영향받는 기존 테스트(갱신 대상, test-engineer): `HeroClip2DEventBakeTests`, `HeroKnight2DAttackTimingPlayTests`, `HeroAttackTimingProbePlayTests`, `Chapter3ArtIntegrityTests`(영웅 시트 규격), `CharacterAnimationController*Tests`(클립 이름 참조 시), `MonsterTierOverlaySyncTests`, `HeroStageVariantApplierTests`·`HeroStageVariantConfigTests`·`HeroStageVariantConfigEdgeTests`(발광 값), `AttackJuiceStage5ScaleRegressionTests`(배수 불변 확인), `FleeStabilizePlayTests`.
 
