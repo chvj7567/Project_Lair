@@ -101,6 +101,120 @@ h1{font-size:18px;margin:0 0 4px;color:#e8e1cf} h2{font-size:15px;margin:20px 0 
 </div>
 <div class="cap">시안이 생성되면 점선 자리에 PNG 를 넣어 "현재 / 시안 / 몬스터 시트 옆" 3열로 비교합니다. 승인 전에는 Assets 의 PNG 를 덮어쓰지 않습니다.</div>
 </div>
+<style>
+/* 화면 적용 비교: 실제 PNG 를 border-image 로 늘림. Px_* PPU 25 -> 1 sprite px = 4 화면 px (1280x720 기준), WorldMapFrame PPU 100 -> 1배 */
+.a-pd,.a-btn,.a-gold,.a-bar,.a-badge,.a-frame{position:absolute;box-sizing:border-box;border-style:solid;image-rendering:pixelated;border-image-repeat:stretch}
+.a-pd{border-width:12px;border-image-slice:3 fill;border-image-width:12px}
+.a-btn,.a-gold{border-width:8px 8px 12px 8px;border-image-slice:2 2 3 2 fill;border-image-width:8px 8px 12px 8px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#e8e1cf;cursor:pointer}
+.a-gold{color:#10141d;font-weight:bold}
+.a-bar{border-width:8px;border-image-slice:2 fill;border-image-width:8px}
+.a-bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c8962a,#f7c64a)}
+.a-badge{border-width:8px;border-image-slice:2 fill;border-image-width:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#10141d;padding:0}
+.a-frame{border-width:9px;border-image-slice:9;border-image-width:9px;pointer-events:none}
+.apc .a-pd{border-image-source:url(assets/ui/Px_PanelDark.png)} .apn .a-pd{border-image-source:url(assets/ui-pilot/Px_PanelDark.png)}
+.apc .a-btn{border-image-source:url(assets/ui/Px_Btn.png)} .apn .a-btn{border-image-source:url(assets/ui-pilot/Px_Btn.png)}
+.apc .a-gold{border-image-source:url(assets/ui/Px_BtnGold.png)} .apn .a-gold{border-image-source:url(assets/ui-pilot/Px_BtnGold.png)}
+.apc .a-bar{border-image-source:url(assets/ui/Px_BarBg.png)} .apn .a-bar{border-image-source:url(assets/ui-pilot/Px_BarBg.png)}
+.apc .a-badge{border-image-source:url(assets/ui/Px_Badge_Gold.png)} .apn .a-badge{border-image-source:url(assets/ui-pilot/Px_Badge_Gold.png)}
+.apc .a-frame{border-image-source:url(assets/ui/WorldMapFrame.png)} .apn .a-frame{border-image-source:url(assets/ui-pilot/WorldMapFrame.png)}
+.a-stage{position:relative;width:1280px;height:720px;background:radial-gradient(ellipse at 50% 0,#232b40,#0a0c12 75%);overflow:hidden;font-family:"Galmuri11","Noto Sans KR","Malgun Gothic",sans-serif;color:#eef1f6}
+.a-wrap{overflow:hidden;border:2px solid #262b36;flex:none}
+.a-t{position:absolute;white-space:nowrap;font-size:16px}
+.a-css{position:absolute;box-sizing:border-box;background:linear-gradient(180deg,#1a2132,#121827);border:3px solid #07090e;box-shadow:inset 0 0 0 2px #3a4764}
+.a-sunk{position:absolute;box-sizing:border-box;background:#0d1119;border:3px solid #07090e}
+.apcol{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.apcol>div>.lab{font-size:12px;color:#8e98ad;margin:2px 0}
+.aptest{background:#0e121a;border:1px solid #262b36;padding:10px;margin:8px 0;position:relative}
+.aptest .rowt{position:relative;margin:6px 0 14px}
+.aptest .l{font-size:12px;color:#9cc8ff;margin-bottom:4px}
+</style>
+<h2 id="apply">4. 화면 적용 비교 (실제 PNG 를 9-slice 로 늘려 적용)</h2>
+<div class="note">
+  파일럿 6장(<code>Px_PanelDark · Px_Btn · Px_BtnGold · Px_BarBg · WorldMapFrame · Px_Badge_Gold</code>)만 실제 PNG 이고, 나머지(셀 안 글자, 채움 바, 탭, 칸 등)는 현재 CSS 재현 그대로입니다.
+  보더(Unity 값 x 화면 배율): PanelDark 3 -> 12px, Btn/BtnGold L2 B3 R2 T2 -> 8/12/8/8px, BarBg 2 -> 8px, Badge 2 -> 8px (Px_* PPU 25 = 4배), WorldMapFrame 9 -> 9px (PPU 100 = 1배). 스프라이트 크기 8x8 / 8x9 / 8x9 / 6x6 / 5x5 / 32x32. 1280x720 기준 화면을 축소(0.5) 표시하며 "확대 1.0" 으로 실제 픽셀을 볼 수 있습니다.
+</div>
+<div class="bar" id="apbar">
+  <span>화면</span>
+  <button data-sc="hud" class="on">마을 HUD</button><button data-sc="shop">상점</button><button data-sc="result">결과창</button><button data-sc="codex">도감</button><button data-sc="hero">영웅 선택</button>
+  <span style="margin-left:10px">보기</span>
+  <button data-md="cur">현재</button><button data-md="new">시안</button><button data-md="both" class="on">좌우 비교</button>
+  <span style="margin-left:10px">배율</span>
+  <button data-z="0.5" class="on">0.5</button><button data-z="1">확대 1.0</button>
+</div>
+<div class="apcol" id="apscr"></div>
+
+<h2>5. 늘림 테스트 (모서리 깨짐 확인, 확대 1.0)</h2>
+<div class="note">같은 스프라이트를 큰 패널 / 작은 칸 / 긴 바 / 작은 배지 / 큰·작은 프레임으로 늘린 모습. 위 줄 = 현재, 아래 줄 = 시안. 모서리 4칸이 일그러지거나 가운데에 이음새·반복 무늬가 보이면 불합격.</div>
+<div class="aptest" id="aptest"></div>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const st={sc:'hud',md:'both',z:0.5};
+const P=(c,x,y,w,h,inner,s)=>`<div class="${c}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;${s||''}">${inner||''}</div>`;
+const T=(x,y,t,s)=>`<div class="a-t" style="left:${x}px;top:${y}px;${s||''}">${t}</div>`;
+const BAR=(x,y,w,h,pct)=>P('a-bar',x,y,w,h,`<i style="width:${pct}%"></i>`);
+const FRAME=(x,y,w,h)=>P('a-frame',x,y,w,h);
+function hud(){let h='';
+ h+=P('a-pd',16,16,330,64)+T(34,34,'Lv 7  영주',"font-size:18px")+BAR(150,34,180,24,60);
+ h+=P('a-pd',1000,16,264,48)+T(1024,28,'소울 12,480','color:#5ef0b4');
+ const names=['영주성','상점','도감','퀘스트','기록','랭킹'];
+ names.forEach((n,i)=>{const x=16+(i%2)*128,y=104+Math.floor(i/2)*128;h+=P('a-pd',x,y,112,112)+T(x+30,y+78,n,'font-size:15px')+`<div class="a-sunk" style="left:${x+36}px;top:${y+20}px;width:40px;height:40px"></div>`;});
+ h+=P('a-badge',100,100,48,32,'NEW');
+ h+=P('a-gold',500,610,280,88,'방어하기','font-size:28px');
+ h+=P('a-btn',1096,640,160,56,'계정')+P('a-btn',16,660,140,48,'지도');
+ h+=T(560,300,'(마을 월드: 몬스터 쇼케이스)','color:#59617a');
+ return h;}
+function shop(){let h=P('a-pd',72,40,1136,640)+FRAME(72,40,1136,640);
+ h+=T(560,56,'상점','font-size:26px;color:#e8e1cf')+P('a-btn',1130,56,56,40,'X');
+ const it=['체급 강화','스탯 강화','둥지 숙련','특성 개방'];
+ it.forEach((n,i)=>{const x=96+(i%2)*548,y=130+Math.floor(i/2)*150;
+  h+=P('a-pd',x,y,520,130)+T(x+24,y+22,n,'font-size:20px')+P('a-badge',x+420,y+18,72,32,'Lv '+(i+2))+BAR(x+24,y+62,330,26,[70,40,85,20][i])+P(i%2?'a-gold':'a-btn',x+380,y+80,116,40,'강화','font-size:16px');});
+ h+=P('a-pd',96,440,1088,150)+T(120,460,'소울 보유 12,480  /  각성석 2  /  달빛 인장 1','font-size:18px;color:#5ef0b4')+P('a-btn',990,610,170,44,'닫기');
+ return h;}
+function result(){let h=P('a-pd',380,120,520,480)+FRAME(380,120,520,480);
+ h+=T(560,140,'승리!','font-size:34px;color:#f7c64a');
+ [['처치 시간','3:42'],['획득 소울','+1,240'],['영주 경험치','+86']].forEach((r,i)=>{h+=P('a-sunk',404,222+i*40,472,36,'')+T(420,230+i*40,r[0],'color:#8e98ad')+T(760,230+i*40,r[1]);});
+ h+=P('a-badge',404,362,120,32,'신기록')+BAR(404,408,472,28,70);
+ h+=P('a-btn',404,528,230,48,'마을로')+P('a-gold',646,528,230,48,'다음 스테이지');
+ return h;}
+function codex(){let h=P('a-pd',72,40,1136,640)+FRAME(72,40,1136,640);
+ h+=T(96,56,'도감','font-size:24px;color:#e8e1cf')+P('a-gold',200,52,96,40,'몬스터','font-size:15px')+P('a-btn',304,52,96,40,'카드','font-size:15px')+T(430,64,'수집 28 / 120','color:#8e98ad');
+ ['이그니스','레무르','눅스','헥시아','미아르','판타스'].forEach((n,i)=>{h+=P(i?'a-btn':'a-gold',88,120+i*48,200,44,n,'font-size:15px');});
+ h+=P('a-pd',88,414,200,178)+T(104,430,'전체 진척','font-size:13px;color:#8e98ad')+T(104,452,'28 / 120','font-size:20px;color:#f7c64a')+BAR(104,486,168,22,23);
+ for(let g=0;g<5;g++)for(let t=0;t<4;t++){const x=408+t*104,y=150+g*89,ok=(g<3&&t<3);
+  h+=P('a-pd',x,y,98,83,'',ok?'':'opacity:.6')+T(x+10,y+60,ok?['풋내기','견습','숙련'][g]+' 도깨비불':'정예 도깨비불','font-size:11px;color:'+(ok?'#e8e1cf':'#7d879f'));
+  if(ok&&g==2&&t==2)h+=P('a-badge',x+66,y+2,40,24,'NEW','font-size:10px');}
+ h+=P('a-pd',840,120,352,472)+T(870,140,'숙련 도깨비불','font-size:19px;color:#e8e1cf')+P('a-sunk',860,176,160,160,'')+P('a-gold',860,540,312,40,'해금 연출','font-size:14px');
+ return h;}
+function hero(){let h=P('a-pd',72,40,1136,640)+FRAME(72,40,1136,640);
+ h+=T(96,56,'영웅 선택','font-size:24px;color:#e8e1cf')+P('a-btn',1130,52,56,40,'X');
+ ['기사','궁수','암살자','광전사','성기사'].forEach((n,i)=>{const x=96+i*212,y=130;
+  h+=P('a-pd',x,y,196,260,'',i==4?'opacity:.7':'')+T(x+60,y+210,n,'font-size:18px')+(i==4?P('a-badge',x+60,y+12,76,28,'잠김'):'')+(i==0?P('a-badge',x+12,y+12,76,28,'선택'):'')+`<div class="a-sunk" style="left:${x+48}px;top:${y+40}px;width:100px;height:140px"></div>`;});
+ ['Easy','Normal','Hard'].forEach((n,i)=>{h+=P(i==0?'a-gold':'a-btn',96+i*150,420,140,46,n,'font-size:16px');});
+ h+=T(96,490,'기사 5단계 - 체력 +20%','color:#8e98ad')+BAR(96,520,420,24,50)+P('a-gold',930,590,250,60,'출격','font-size:24px');
+ return h;}
+const SC={hud,shop,result,codex,hero};
+function wrap(cls,label){const z=st.z;return `<div><div class="lab">${label}</div><div class="a-wrap" style="width:${1280*z}px;height:${720*z}px"><div class="a-stage ${cls}" style="transform:scale(${z});transform-origin:0 0">${SC[st.sc]()}</div></div></div>`;}
+function render(){
+ let h='';
+ if(st.md!=='new')h+=wrap('apc','현재 (assets/ui)');
+ if(st.md!=='cur')h+=wrap('apn','시안 (assets/ui-pilot)');
+ $('#apscr').innerHTML=h;
+}
+function sync(a,v){document.querySelectorAll('#apbar ['+a+']').forEach(b=>b.classList.toggle('on',b.getAttribute(a)==v));}
+document.querySelectorAll('#apbar [data-sc]').forEach(b=>b.onclick=()=>{st.sc=b.dataset.sc;sync('data-sc',st.sc);render();});
+document.querySelectorAll('#apbar [data-md]').forEach(b=>b.onclick=()=>{st.md=b.dataset.md;sync('data-md',st.md);render();});
+document.querySelectorAll('#apbar [data-z]').forEach(b=>b.onclick=()=>{st.z=+b.dataset.z;sync('data-z',st.z);render();});
+render();
+//# 늘림 테스트: 같은 요소를 크기만 바꿔 현재/시안 두 줄로
+const tests=[['a-pd','PanelDark 큰 패널 560x260',560,260],['a-pd','PanelDark 작은 칸 36x36 (최소 24)',36,36],['a-btn','Btn 긴 버튼 360x48',360,48],['a-btn','Btn 작은 버튼 60x30 (최소 16x20)',60,30],['a-gold','BtnGold 200x48',200,48],['a-bar','BarBg 긴 바 800x24',800,24],['a-bar','BarBg 최소 높이 16',200,16],['a-badge','Badge 작은 24x20 (최소 16)',24,20],['a-badge','Badge 긴 120x32',120,32],['a-frame','WorldMapFrame 큰 480x200',480,200],['a-frame','WorldMapFrame 작은 40x40 (최소 18)',40,40]];
+let th='';
+['apc','apn'].forEach(c=>{th+=`<div class="${c}"><div class="l">${c==='apc'?'현재':'시안'}</div><div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">`;
+ tests.forEach(t=>{th+=`<div><div class="l">${t[1]}</div><div style="position:relative;width:${t[2]}px;height:${t[3]}px;background:#10151f"><div class="${t[0]}" style="left:0;top:0;width:${t[2]}px;height:${t[3]}px;font-size:12px">${t[0]==='a-bar'?'<i style="width:60%"></i>':(t[0]==='a-badge'?'NEW':'')}</div></div></div>`;});
+ th+='</div></div><hr style="border-color:#262b36">';});
+$('#aptest').innerHTML=th;
+})();
+</script>
 <script>
 document.querySelectorAll('#bar button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#bar button').forEach(x=>x.classList.toggle('on',x===b));
