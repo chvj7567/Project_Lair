@@ -68,7 +68,7 @@ namespace Lair.Tests.EditMode
             switch (row)
             {
                 case "idle": return 1.0f;
-                case "walk": return 0.8f;
+                case "walk": return 0.8000333f;
                 case "run": return 0.5714286f;
                 case "hit": return 0.5f;
                 case "death": return 0.8f;
