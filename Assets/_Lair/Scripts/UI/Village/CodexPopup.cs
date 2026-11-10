@@ -19,7 +19,7 @@ namespace Lair.UI
         public List<CardData> AllCards = new List<CardData>();   //# 패시브+액티브 28장 — VillageController 가 로드
     }
 
-    //# 카드 탭 셀 표시 데이터 — 해금(일러스트+이름) / 미해금(실루엣+???). 몬스터 탭은 CodexMonsterCellData(monster-codex).
+    //# 카드 탭 셀 표시 데이터 — 해금(일러스트+이름) / 미해금(실루엣+이름). 몬스터 탭은 CodexMonsterCellData(monster-codex).
     public class CodexCellData
     {
         public string DisplayName;
@@ -241,7 +241,7 @@ namespace Lair.UI
                 bool picked = profile.PickedCards.Contains(card.Id.ToString());
                 list.Add(new CodexCellData
                 {
-                    DisplayName = picked ? card.DisplayName : "???",
+                    DisplayName = card.DisplayName,   //# 미획득도 실제 이름 표시(그림만 실루엣) - 몬스터 탭과 같은 규칙
                     Unlocked = picked,
                     Icon = card.CardImage != null ? card.CardImage : card.Icon,
                 });

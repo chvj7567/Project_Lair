@@ -27,6 +27,55 @@ public enum PoolingScrollViewScrollingDirection
     DownOrRight,
 }
 
+/// <summary>
+/// 뷰포트 폭 맞춤 그리드 산식 (순수 함수 - 테스트 가능). 남는 폭을 아이템 폭에 균등 분배해 좌우 여백이 0 이 되게 한다.
+/// </summary>
+public static class PoolingGridFit
+{
+    /// <param name="viewportWidth">뷰포트 폭</param>
+    /// <param name="paddingHorizontal">좌우 패딩 합</param>
+    /// <param name="gapX">열 사이 간격</param>
+    /// <param name="minItemWidth">아이템 최소 폭(origin 폭)</param>
+    /// <param name="maxItemWidth">아이템 최대 폭 (0 이하이면 제한 없음). 넘으면 열을 하나 늘린다</param>
+    /// <param name="minColumns">열 수 하한 (1 미만은 1)</param>
+    /// <param name="maxColumns">열 수 상한 (0 이하이면 제한 없음)</param>
+    /// <param name="fixedColumns">0 보다 크면 그 열 수 고정(위 규칙 무시), 0 이하이면 자동 계산</param>
+    public static void Calc(float viewportWidth, float paddingHorizontal, float gapX, float minItemWidth, float maxItemWidth,
+        int minColumns, int maxColumns, int fixedColumns, out int columns, out float itemWidth)
+    {
+        float available = Mathf.Max(0f, viewportWidth - paddingHorizontal);
+        float minWidth = Mathf.Max(1f, minItemWidth);
+        if (fixedColumns > 0)
+        {
+            columns = fixedColumns;
+        }
+        else
+        {
+            //# 최소 폭 기준 최대 열 수 -> 폭이 최대 폭을 넘으면 열 하나 추가 -> 하한/상한 적용
+            columns = Mathf.Max(1, Mathf.FloorToInt((available + gapX) / (minWidth + gapX)));
+            if (maxItemWidth > 0f && WidthOf(available, gapX, columns) > maxItemWidth)
+            {
+                columns++;
+            }
+            columns = Mathf.Max(columns, Mathf.Max(1, minColumns));
+            if (maxColumns > 0)
+            {
+                columns = Mathf.Min(columns, Mathf.Max(maxColumns, Mathf.Max(1, minColumns)));
+            }
+        }
+        itemWidth = WidthOf(available, gapX, columns);
+        if (itemWidth <= 0f)
+        {
+            itemWidth = minWidth;
+        }
+    }
+
+    private static float WidthOf(float available, float gapX, int columns)
+    {
+        return (available - gapX * (columns - 1)) / columns;
+    }
+}
+
 public class PoolingScrollViewItem<TItem>
 {
     public int index;
@@ -86,6 +135,21 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
     [SerializeField, Header("스크롤뷰 사이즈 변경 시 새로고침 여부")]
     private bool _refresh = false;
 
+    [SerializeField, Header("세로 스크롤 한정: 뷰포트 폭에 맞춰 아이템 폭을 늘려 좌우 여백 제거 (열 수 > 0 이면 고정 열, 0 이면 origin 폭을 최소 폭으로 열 수 계산)")]
+    private bool _fitWidth = false;
+
+    [SerializeField, Header("폭 맞춤 시 높이도 origin 비율대로 늘릴지 (끄면 높이 고정)")]
+    private bool _fitKeepAspect = false;
+
+    [SerializeField, Header("폭 맞춤 최대 아이템 폭 (0 이하이면 제한 없음, 넘으면 열 추가). 최소 폭 = origin 폭")]
+    private float _fitMaxItemWidth = 0f;
+
+    [SerializeField, Header("폭 맞춤 자동 열 수 하한 / 상한 (상한 0 이하이면 제한 없음)")]
+    private int _fitMinColumns = 1;
+
+    [SerializeField]
+    private int _fitMaxColumns = 0;
+
     [Space]
 
     private Vector2 _prevScrollPosition = Vector2.zero;
@@ -97,6 +161,7 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
     private int _calcRowCount = 0;
     private int _calcColumnCount = 0;
+    private int _poolItemCountInit = 0;
 
     public int LineCount
     {
@@ -191,6 +256,8 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
     private void Awake()
     {
+        _poolItemCountInit = _poolItemCount;
+
         if (_scrollRect == null)
             _scrollRect = GetComponent<ScrollRect>();
 
@@ -224,7 +291,8 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
     /// </summary>
     private void OnRectTransformDimensionsChange()
     {
-        if (_refresh)
+        //# Awake 이전(참조 미캐싱)·데이터 없음 상태의 호출은 무시 - 팝업이 열린 채 크기가 바뀔 때만 재계산.
+        if (_refresh && _scrollRect != null && _viewPortRectTransform != null && _contentRectTransform != null && _origin != null && liData.Count > 0)
         {
             Refresh();
         }
@@ -277,6 +345,13 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
         //# 열 개수 설정
         SetColumnCount();
+
+        //# 폭 맞춤(옵션) - 열 수·아이템 폭을 뷰포트 기준으로 재계산. 풀 개수도 새 열 수 기준으로 다시 잡는다.
+        if (UseFitWidth)
+        {
+            ApplyFitWidth();
+            _poolItemCount = _poolItemCountInit;
+        }
 
         //# 아이템 풀 개수 설정
         SetPoolItemCount();
@@ -379,6 +454,22 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
         _itemSize.x = rectTransform.rect.width * rectTransform.localScale.x;
         _itemSize.y = rectTransform.rect.height * rectTransform.localScale.y;
+    }
+
+    private bool UseFitWidth => _fitWidth && _scrollDirection == PoolingScrollViewDirection.Vertical;
+
+    private void ApplyFitWidth()
+    {
+        float originWidth = _itemSize.x;
+        float originHeight = _itemSize.y;
+        PoolingGridFit.Calc(_viewPortRectTransform.rect.width, _padding.left + _padding.right, _itemGap.x, originWidth, _fitMaxItemWidth,
+            _fitMinColumns, _fitMaxColumns, _columnCount, out int columns, out float itemWidth);
+        _calcColumnCount = columns;
+        _itemSize.x = itemWidth;
+        if (_fitKeepAspect && originWidth > 0f)
+        {
+            _itemSize.y = originHeight * itemWidth / originWidth;
+        }
     }
 
     private void SetColumnCount()
@@ -753,6 +844,11 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
         rectTransform.anchorMax = new Vector2(0, 1);
         rectTransform.anchorMin = new Vector2(0, 1);
         rectTransform.pivot = new Vector2(0, 1);
+
+        if (UseFitWidth)
+        {
+            rectTransform.sizeDelta = new Vector2(_itemSize.x, _itemSize.y);
+        }
 
         rectTransform.anchoredPosition = GetItemPosition(index);
         rectTransform.SetSiblingIndex(index);
