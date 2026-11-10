@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ChvjUnityInfra;
 using Lair.Character;
 using Lair.Data;
@@ -35,6 +36,9 @@ namespace Lair.UI
         private bool _shown;
         private bool _fxDirty;
         private bool _fxHold;
+        private bool _previewBusy;
+        private CodexDetailModel _pendingPreview;     //# 연타 코얼레싱 - 마지막 요청만 처리
+        private const int PreviewTimeoutMs = 8000;
         private readonly Vector3[] _corners = new Vector3[4];
 
         //# 탭 진입 — 팝업이 VM·로더 공장을 넘긴다(로더 unload 는 쇼케이스가 쥔 키를 건드리지 않게 팝업이 주입).
@@ -78,6 +82,7 @@ namespace Lair.UI
                 _detail.ClosePreview();
             }
             //# 진행 중인 로드(Release 세대 값으로 늦게 오는 결과도 해제)와 표시 중인 시트를 전부 해제.
+            _pendingPreview = null;
             _pendingLoader?.Release();
             _pendingLoader = null;
             _loader?.Release();
@@ -180,7 +185,7 @@ namespace Lair.UI
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogError($"[CodexPanel] 종족 표시 실패 - {e}");
             }
         }
 
@@ -339,37 +344,72 @@ namespace Lair.UI
             }
         }
 
-        //# 상세 갱신 — 미리보기를 먼저 확보(슬롯 우선)한 뒤 칸 이펙트 배분을 재개하고, 신규 칸이면 상세 해금 연출을 재생한다.
-        private async void RefreshDetail()
+        //# 상세 갱신 - 문구·칸 표시는 즉시, 미리보기(비동기)는 마지막 요청만 하나씩 처리한다(연타 시 풀 Pop/Push·로드가 겹치지 않게).
+        private void RefreshDetail()
         {
             if (_detail == null || _vm == null)
                 return;
-            CodexDetailModel model = _vm.BuildDetail();
-            if (model == null)
-                return;
-            int version = _version;
-            CodexRaceArt art = ArtOf(model.Cell.Race);
-            _detail.Bind(model, _codex != null ? _codex.ColorOf(model.Cell.Grade) : Color.white,
-                cell => BodyOf(cell, art), _vm.TierHeader, _vm.TierLevelRange, OnTierSelected);
-            _fxHold = true;
             try
             {
-                await _detail.ShowPreviewAsync(model, _loader);
+                CodexDetailModel model = _vm.BuildDetail();
+                if (model == null)
+                    return;
+                CodexRaceArt art = ArtOf(model.Cell.Race);
+                _detail.Bind(model, _codex != null ? _codex.ColorOf(model.Cell.Grade) : Color.white,
+                    cell => BodyOf(cell, art), _vm.TierHeader, _vm.TierLevelRange, OnTierSelected);
+                _pendingPreview = model;
+                if (_previewBusy == false)
+                {
+                    RunPreviewLoop();
+                }
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogError($"[CodexPanel] 상세 갱신 실패 - {e}");
+            }
+        }
+
+        //# 진행 중인 미리보기가 끝나면 그 사이 쌓인 마지막 요청 하나를 이어서 처리. 각 단계는 타임아웃이 있어 영영 대기하지 않는다.
+        private async void RunPreviewLoop()
+        {
+            _previewBusy = true;
+            _fxHold = true;
+            try
+            {
+                while (_pendingPreview != null && _shown && _vm != null)
+                {
+                    CodexDetailModel model = _pendingPreview;
+                    _pendingPreview = null;
+                    Task preview = _detail.ShowPreviewAsync(model, _loader);
+                    Task finished = await Task.WhenAny(preview, Task.Delay(PreviewTimeoutMs));
+                    if (finished != preview)
+                    {
+                        Debug.LogError($"[CodexPanel] 미리보기 시간 초과({PreviewTimeoutMs}ms) - 다음 요청으로 넘어감");
+                        continue;
+                    }
+                    await preview;
+                    if (_shown == false || _vm == null)
+                        break;
+                    //# 더 새로운 요청이 없을 때만 칸 이펙트 재배분·상세 해금 연출을 재생한다.
+                    if (_pendingPreview == null)
+                    {
+                        _fxDirty = true;
+                        if (_codex != null && _vm.ConsumeDetailUnlock(model.Cell))
+                        {
+                            _detail.PlayUnlock(_config, _codex.UnlockOf(model.Cell.Grade), _codex.ColorOf(model.Cell.Grade));
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CodexPanel] 미리보기 처리 실패 - {e}");
             }
             finally
             {
+                _previewBusy = false;
                 _fxHold = false;
-            }
-            if (version != _version || _shown == false)
-                return;
-            _fxDirty = true;
-            if (_codex != null && _vm.ConsumeDetailUnlock(model.Cell))
-            {
-                _detail.PlayUnlock(_config, _codex.UnlockOf(model.Cell.Grade), _codex.ColorOf(model.Cell.Grade));
+                _fxDirty = true;
             }
         }
 

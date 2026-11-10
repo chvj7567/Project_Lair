@@ -283,6 +283,8 @@ namespace Lair.UI
             if (_body != null)
             {
                 _body.sprite = data.Body;
+                //# 스프라이트가 없으면 Image 가 흰 사각형으로 그려지므로 끈다.
+                _body.enabled = data.Body != null;
                 _body.color = open ? Color.white : Color.black;   //# 잠금 = 검은 실루엣
             }
             if (_bodyGlow == null)
@@ -307,6 +309,7 @@ namespace Lair.UI
                 ? GradeFxDatabase.Current.SpecOf(data.Model.Race, data.Model.Grade)
                 : null;
             bool fx = spec != null && data.Art != null;
+            bool hasAura = fx && spec.HasAura && HasFrames(data.Art.Aura);
             int pillars = 0;
             bool halo = false;
             if (fx)
@@ -323,8 +326,13 @@ namespace Lair.UI
                     }
                 }
             }
-            SetActive(_aura, fx && spec.HasAura);
-            SetActive(_halo, fx && halo);
+            //# 프레임 배열이 비어 있으면 스프라이트 없는 Image(흰 사각형)가 되므로 켜지 않는다.
+            SetActive(_aura, hasAura);
+            SetActive(_halo, fx && halo && HasFrames(data.Art.Halo));
+            if (fx && HasFrames(data.Art.Pillar) == false)
+            {
+                pillars = 0;
+            }
             if (_pillars != null)
             {
                 for (int i = 0; i < _pillars.Length; ++i)
@@ -337,6 +345,8 @@ namespace Lair.UI
                 ShowFxFrame(0);
             }
         }
+
+        private static bool HasFrames(Sprite[] frames) => frames != null && frames.Length > 0;
 
         private void ShowFxFrame(int frame)
         {

@@ -36,6 +36,7 @@ namespace Lair.UI
             if (_body != null)
             {
                 _body.sprite = body;
+                _body.enabled = body != null;   //# 스프라이트 없는 Image 는 흰 사각형
                 _body.color = model.Open ? Color.white : Color.black;
             }
             if (_selectedFrame != null)

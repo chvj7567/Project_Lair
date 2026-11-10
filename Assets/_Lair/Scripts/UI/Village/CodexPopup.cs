@@ -183,6 +183,25 @@ namespace Lair.UI
             }
         }
 
+        private static readonly Dictionary<EMonsterTierSheet, int> SheetRefs = new Dictionary<EMonsterTierSheet, int>();
+
+        //# 마지막 참조가 사라질 때만 실제 Unload.
+        private static void ReleaseRef(EMonsterTierSheet key, bool unload)
+        {
+            SheetRefs.TryGetValue(key, out int count);
+            count = count > 0 ? count - 1 : 0;
+            if (count == 0)
+            {
+                SheetRefs.Remove(key);
+                if (unload)
+                {
+                    CHMResource.Instance.Unload(key);
+                }
+                return;
+            }
+            SheetRefs[key] = count;
+        }
+
         //# 도감 전용 티어 시트 로더 — 현재 티어 키는 마을 쇼케이스가 쥐고 있어 해제하지 않는다(CHMResource.Unload 는 참조 카운트가 없다).
         private static MonsterTierSheetLoader CreateTierLoader(MetaProfile profile)
         {
@@ -196,12 +215,26 @@ namespace Lair.UI
                 }
             }
             return new MonsterTierSheetLoader(
-                key => CHMResource.Instance.LoadAsync<MonsterTierSheetSet>(key),
+                async key =>
+                {
+                    //# CHMResource.Unload 는 참조 카운트가 없어(같은 키 중복 로드는 핸들을 덮어씀) 도감 안에서 직접 센다.
+                    SheetRefs.TryGetValue(key, out int count);
+                    SheetRefs[key] = count + 1;
+                    MonsterTierSheetSet set = await CHMResource.Instance.LoadAsync<MonsterTierSheetSet>(key);
+                    if (set == null)
+                    {
+                        ReleaseRef(key, unload: false);
+                    }
+                    return set;
+                },
                 key =>
                 {
                     if (keep.Contains(key))
+                    {
+                        ReleaseRef(key, unload: false);
                         return;
-                    CHMResource.Instance.Unload(key);
+                    }
+                    ReleaseRef(key, unload: true);
                 },
                 Debug.LogWarning);
         }

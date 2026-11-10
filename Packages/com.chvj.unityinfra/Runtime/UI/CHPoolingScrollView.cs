@@ -162,6 +162,9 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
     private int _calcRowCount = 0;
     private int _calcColumnCount = 0;
     private int _poolItemCountInit = 0;
+    private bool _refreshPending;
+    private bool _refreshing;
+    private Vector2 _lastViewportSize = Vector2.zero;
 
     public int LineCount
     {
@@ -291,10 +294,37 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
     /// </summary>
     private void OnRectTransformDimensionsChange()
     {
-        //# Awake 이전(참조 미캐싱)·데이터 없음 상태의 호출은 무시 - 팝업이 열린 채 크기가 바뀔 때만 재계산.
-        if (_refresh && _scrollRect != null && _viewPortRectTransform != null && _contentRectTransform != null && _origin != null && liData.Count > 0)
+        //# 이 콜백은 캔버스 레이아웃 패스 안에서 불린다 - 여기서 SetItemList(Instantiate·크기 변경)를 돌리면 재진입·예외가 레이아웃 갱신을 멈춰 UI 전체가 먹통이 될 수 있다.
+        //# 그래서 표시만 하고 실제 재계산은 LateUpdate 에서 한다.
+        if (_refresh && _refreshing == false)
+        {
+            _refreshPending = true;
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (_refreshPending == false)
+            return;
+        _refreshPending = false;
+        if (_refreshing || _scrollRect == null || _viewPortRectTransform == null || _contentRectTransform == null || _origin == null || liData.Count == 0)
+            return;
+        //# 뷰포트 크기가 실제로 달라졌을 때만(자기 변경이 만든 콜백으로 매 프레임 재계산되는 루프 방지).
+        Rect viewport = _viewPortRectTransform.rect;
+        if (Mathf.Abs(viewport.width - _lastViewportSize.x) < 0.5f && Mathf.Abs(viewport.height - _lastViewportSize.y) < 0.5f)
+            return;
+        _refreshing = true;
+        try
         {
             Refresh();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[CHPoolingScrollView] Refresh 실패 ({name}): {e}");
+        }
+        finally
+        {
+            _refreshing = false;
         }
     }
 
@@ -336,6 +366,8 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
                 }
                 break;
         }
+
+        _lastViewportSize = _viewPortRectTransform != null ? _viewPortRectTransform.rect.size : Vector2.zero;
 
         //# 아이템 크기 설정
         SetItemSize();
@@ -460,6 +492,9 @@ public abstract class CHPoolingScrollView<TItem, TData> : MonoBehaviour where TI
 
     private void ApplyFitWidth()
     {
+        //# 뷰포트 폭이 아직 0(레이아웃 전)이면 맞춤을 건너뛰고 기본 계산을 유지한다 - 음수 폭·열 수 폭주 방지.
+        if (_viewPortRectTransform.rect.width <= 0f)
+            return;
         float originWidth = _itemSize.x;
         float originHeight = _itemSize.y;
         PoolingGridFit.Calc(_viewPortRectTransform.rect.width, _padding.left + _padding.right, _itemGap.x, originWidth, _fitMaxItemWidth,
