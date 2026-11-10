@@ -132,7 +132,8 @@ namespace Lair.UI
 
         private void OnCellSelected(int index)
         {
-            if (_shown == false || _vm == null || _vm.SelectCell(index) == false)
+            //# 이미 선택된 칸을 다시 눌러도 아무 일도 하지 않는다(선택·미리보기·이펙트 재배분·해금 연출 없음).
+            if (_shown == false || _vm == null || index == _vm.SelectedIndex || _vm.SelectCell(index) == false)
                 return;
             ApplySelectionMarks();
             RefreshDetail();

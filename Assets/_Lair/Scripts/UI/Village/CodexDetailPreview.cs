@@ -12,6 +12,8 @@ namespace Lair.UI
     //# 상세 큰 미리보기(monster-codex §5.2·§8) — 쇼케이스 모드 몬스터 프리팹을 도감 전용 카메라로 찍어 RenderTexture(256x256) → RawImage.
     //# 팝업 오픈에 Open, 닫힘/탭 전환에 Close. 프리팹은 CHMPool 로 Pop/Push(공유 풀 — Push 전에 쇼케이스 모드·레이어를 원복한다).
     //# 잠금 칸은 1등급 기준 프리팹을 같은 방식으로 찍고 RawImage 를 검게 칠해 실루엣(이펙트 없음)으로 보인다.
+    //# 실행 순서를 앞으로 - LateUpdate 의 방향·위치 고정이 MonsterVisual2D(좌우 판정)·이펙트 빌보드보다 먼저 돌아 항상 같은 방향으로 판정되게 한다.
+    [DefaultExecutionOrder(-1000)]
     public class CodexDetailPreview : MonoBehaviour
     {
         [SerializeField] private RawImage _image;
@@ -24,6 +26,9 @@ namespace Lair.UI
         private const float CameraDistance = 10f;
         private const float MinHeightWorld = 0.5f;
         private const int LoadTimeoutMs = 5000;
+        private const float FitMargin = 0.10f;        //# 자동 프레이밍 여백(반경 기준 +10%)
+        private const float MinFitHalf = 0.25f;       //# 너무 작은 몸이 과도하게 확대되지 않게 하는 하한(월드)
+        private const float FitWindowSec = 1.5f;      //# Idle 애니·이펙트 프레임 변화를 모으는 시간(이 동안의 bounds 합집합)
         private static readonly Color Silhouette = Color.black;
 
         private RenderTexture _rt;
@@ -37,9 +42,16 @@ namespace Lair.UI
         {
             public IMonsterShowcase Showcase;
             public Transform[] Transforms;
+            public SpriteRenderer[] Renderers;
         }
         private int _version;
         private Transform _stageRoot;
+        private SpriteRenderer[] _renderers = System.Array.Empty<SpriteRenderer>();
+        private bool _fitActive;
+        private float _fitUntil;
+        private bool _fitHasData;
+        private Vector2 _fitMin;
+        private Vector2 _fitMax;
         private Camera _mainCamera;
         private int _mainMask;
 
@@ -199,6 +211,8 @@ namespace Lair.UI
                     _image.color = silhouette ? Silhouette : Color.white;
                 }
                 Fit();
+                _renderers = cached.Renderers;
+                BeginAutoFrame();
                 if (_camera != null)
                 {
                     _camera.enabled = true;
@@ -236,6 +250,65 @@ namespace Lair.UI
             Transform t = _instance.transform;
             t.localPosition = Vector3.zero;
             t.rotation = Quaternion.Euler(0f, 90f, 0f);
+            if (_fitActive)
+            {
+                AccumulateBounds();
+                ApplyAutoFrame();
+                if (Time.unscaledTime >= _fitUntil)
+                {
+                    _fitActive = false;
+                }
+            }
+        }
+
+        //# 자동 프레이밍 시작 - 몸+이펙트 SpriteRenderer 의 bounds 합집합(카메라 기준 좌표)을 FitWindowSec 동안 모아 직교 크기·위치를 정한다.
+        private void BeginAutoFrame()
+        {
+            _fitHasData = false;
+            _fitActive = true;
+            _fitUntil = Time.unscaledTime + FitWindowSec;
+        }
+
+        //# 화면에 그려지는 렌더러(활성 + 스프라이트 있음)의 월드 bounds 8개 모서리를 카메라 회전 기준(holder 원점)으로 바꿔 x/y 최소·최대를 넓힌다.
+        private void AccumulateBounds()
+        {
+            if (_camera == null || _holder == null)
+                return;
+            Quaternion inverse = Quaternion.Inverse(_camera.transform.rotation);
+            Vector3 origin = _holder.position;
+            foreach (SpriteRenderer sr in _renderers)
+            {
+                if (sr == null || sr.enabled == false || sr.sprite == null || sr.gameObject.activeInHierarchy == false)
+                    continue;
+                Bounds b = sr.bounds;
+                for (int i = 0; i < 8; ++i)
+                {
+                    Vector3 corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                    Vector3 local = inverse * (corner - origin);
+                    if (_fitHasData == false)
+                    {
+                        _fitMin = new Vector2(local.x, local.y);
+                        _fitMax = _fitMin;
+                        _fitHasData = true;
+                        continue;
+                    }
+                    _fitMin = Vector2.Min(_fitMin, new Vector2(local.x, local.y));
+                    _fitMax = Vector2.Max(_fitMax, new Vector2(local.x, local.y));
+                }
+            }
+        }
+
+        //# 합집합이 정사각 화면에 들어가도록 반경 = max(가로, 세로 반폭) x (1 + 여백), 중심은 합집합 중심. 종족 시트 크기·등급 배율·이펙트가 달라도 항상 같은 비율로 채운다.
+        private void ApplyAutoFrame()
+        {
+            if (_fitHasData == false || _camera == null || _holder == null)
+                return;
+            float half = Mathf.Max(MinFitHalf, Mathf.Max((_fitMax.x - _fitMin.x) * 0.5f, (_fitMax.y - _fitMin.y) * 0.5f)) * (1f + FitMargin);
+            Vector2 center = (_fitMin + _fitMax) * 0.5f;
+            _camera.orthographic = true;
+            _camera.orthographicSize = half;
+            Transform cam = _camera.transform;
+            cam.position = _holder.position - cam.forward * CameraDistance + cam.right * center.x + cam.up * center.y;
         }
 
         //# 표시 높이에 맞춰 직교 카메라 크기·위치를 정한다(등급 sizeMul 반영된 DisplayHeightWorld).
@@ -265,6 +338,7 @@ namespace Lair.UI
             {
                 Showcase = lair != null ? lair.Get<IMonsterShowcase>() : null,
                 Transforms = poolable.GetComponentsInChildren<Transform>(true),
+                Renderers = poolable.GetComponentsInChildren<SpriteRenderer>(true),
             };
             _cache[poolable] = cached;
             return cached;
@@ -302,6 +376,8 @@ namespace Lair.UI
             CHMPool.Instance.Push(_instance);
             _instance = null;
             _showcase = null;
+            _fitActive = false;
+            _renderers = System.Array.Empty<SpriteRenderer>();
         }
 
         private void OnDestroy()
