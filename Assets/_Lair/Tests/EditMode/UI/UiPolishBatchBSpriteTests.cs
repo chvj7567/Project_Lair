@@ -100,10 +100,10 @@ namespace Lair.Tests.EditMode
 
         //# --- 닫기 버튼 몸체 = VillageHudCta (3곳) ---
 
-        [TestCase(ShopPopupPath)]
-        [TestCase(CodexPopupPath)]
-        [TestCase(RecordsPopupPath)]
-        public void 닫기_버튼_Image_스프라이트는_VillageHudCta다(string path)
+        [TestCase(ShopPopupPath, "VillageHudCta")]
+        [TestCase(CodexPopupPath, "CodexCloseBtn")]   //# 도감 전용 GPT 아트 세트(monster-codex-ui-art §8.1)로 교체
+        [TestCase(RecordsPopupPath, "VillageHudCta")]
+        public void 닫기_버튼_Image_스프라이트는_팝업별_기대값이다(string path, string expected)
         {
             int closes = 0;
             foreach (Image image in LoadPrefabAsset(path).GetComponentsInChildren<Image>(true))
@@ -112,7 +112,7 @@ namespace Lair.Tests.EditMode
                     continue;
 
                 ++closes;
-                Assert.AreEqual("VillageHudCta", SpriteName(image, path + " CloseButton"), path + " CloseButton 스프라이트");
+                Assert.AreEqual(expected, SpriteName(image, path + " CloseButton"), path + " CloseButton 스프라이트");
             }
             Assert.AreEqual(1, closes, path + " CloseButton Image 수");
         }

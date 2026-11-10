@@ -53,6 +53,11 @@ namespace Lair.UI
         [SerializeField] private Image _background;
         [SerializeField] private Image _border;            //# 등급색 테두리 (잠금은 #232834)
         [SerializeField] private Image _selectedFrame;     //# 선택 금색 외곽선
+        [Header("칸 아트 스왑 (미할당이면 색 방식)")]
+        [SerializeField] private Sprite _bgOpen;           //# CodexCellBg — 해금 칸 바탕
+        [SerializeField] private Sprite _bgLocked;         //# CodexCellBgLocked — 미해금 칸 바탕
+        [SerializeField] private Sprite[] _gradeFrames;    //# CodexCellFrameG1..G5 (등급 1부터)
+        [SerializeField] private Sprite _lockedFrame;      //# CodexCellFrameLocked
         [SerializeField] private RectTransform _bodyRoot;  //# 크기 배율 대상 (피벗 50% 90%)
         [SerializeField] private Image _bodyGlow;          //# 몸 뒤 종족색 가산 틴트 복제 — 가산 머티리얼은 프리팹에서
         [SerializeField] private Image _body;
@@ -196,14 +201,7 @@ namespace Lair.UI
                 _clickWired = true;
                 _button.OnClick(HandleClick);
             }
-            if (_background != null)
-            {
-                _background.color = open ? OpenBg : LockedBg;
-            }
-            if (_border != null)
-            {
-                _border.color = open ? data.GradeColor : LockedBorder;
-            }
+            ApplySkin(model, open, data.GradeColor);
             if (_selectedFrame != null)
             {
                 _selectedFrame.color = Gold;
@@ -234,6 +232,35 @@ namespace Lair.UI
             {
                 BeginUnlock(data);
             }
+        }
+
+        //# 바탕·프레임 — 스프라이트 슬롯이 배선돼 있으면 해금/등급에 따라 교체(색 곱 없음), 없으면 기존 색 방식.
+        private void ApplySkin(CodexCellModel model, bool open, Color gradeColor)
+        {
+            Sprite bg = open ? _bgOpen : _bgLocked;
+            if (_background != null)
+            {
+                _background.sprite = bg != null ? bg : _background.sprite;
+                _background.color = bg != null ? Color.white : (open ? OpenBg : LockedBg);
+            }
+            if (_border == null)
+                return;
+            Sprite frame = FrameOf(model, open);
+            if (frame != null)
+            {
+                _border.sprite = frame;
+                _border.color = Color.white;
+                return;
+            }
+            _border.color = open ? gradeColor : LockedBorder;
+        }
+
+        private Sprite FrameOf(CodexCellModel model, bool open)
+        {
+            if (open == false)
+                return _lockedFrame;
+            int index = model.Grade - MonsterGrades.MinGrade;
+            return _gradeFrames != null && index >= 0 && index < _gradeFrames.Length ? _gradeFrames[index] : null;
         }
 
         private void HandleClick()

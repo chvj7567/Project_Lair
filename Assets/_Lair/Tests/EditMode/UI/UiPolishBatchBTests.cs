@@ -542,7 +542,7 @@ namespace Lair.Tests.EditMode
 
         [TestCase("_monsterTab")]
         [TestCase("_cardTab")]
-        public void 도감_탭의_Checkmark는_금색_CardSelectFrame_링이다(string tabField)
+        public void 도감_탭의_Checkmark는_CodexTabOn_9슬라이스다(string tabField)
         {
             CodexPopup popup = Comp<CodexPopup>(LoadPrefabAsset(CodexPopupPath));
             Toggle tab = Required<Toggle>(popup, tabField);
@@ -551,11 +551,12 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(checkmark != null, tabField + " Toggle.graphic 이 Image 가 아니거나 비어 있음");
             Assert.AreEqual("Checkmark", checkmark.name, "graphic 오브젝트 이름");
             Assert.IsTrue(checkmark.sprite != null, "Checkmark 스프라이트 비어 있음");
-            Assert.AreEqual("CardSelectFrame", checkmark.sprite.name, "Checkmark 스프라이트");
+            //# 도감 전용 GPT 아트 세트(monster-codex-ui-art §8.1) — 선택 탭 = CodexTabOn, 탭 배경 = CodexTabOff.
+            Assert.AreEqual("CodexTabOn", checkmark.sprite.name, "Checkmark 스프라이트");
             Assert.AreEqual(Image.Type.Sliced, checkmark.type, "Checkmark 9-slice");
-            Assert.IsFalse(checkmark.fillCenter, "링이므로 fillCenter 꺼짐");
-            AssertRgb(new Color32(0xF7, 0xC6, 0x4A, 0xFF), checkmark.color, "Checkmark 금색 #f7c64a");
             Assert.IsTrue(checkmark.transform.IsChildOf(tab.transform), "Checkmark 는 탭의 자식");
+            Image face = tab.targetGraphic as Image;
+            Assert.IsTrue(face != null && face.sprite != null && face.sprite.name == "CodexTabOff", tabField + " 탭 배경 = CodexTabOff");
         }
 
         [Test]
