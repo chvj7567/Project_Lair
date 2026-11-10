@@ -3,6 +3,8 @@
 > 입력: 사용자 결정("공통 UI 전체를 GPT 이미지 생성으로 새로 교체, 몬스터·영웅을 새 시트로 바꾼 것처럼") · `Assets/_Lair/Art/Sprites/`(루트 UI 스프라이트·`UiDot/`·`VillageIcons/`) 메타·프리팹 GUID 참조 조사 · `docs/design/build-modal-visual-polish.md`·`battle-hud-visual-polish.md`(Px_Solid 틴트·프레임 레시피) · `docs/design/monster-codex-ui-art.md` · `.mockups/monster-tier-v5.html`(몬스터 v5 화풍)
 > **사용자용 가이드**: `docs/design/ui-art-refresh.html` · **비교 목업**: `.mockups/ui-art-refresh.html`
 > 이 문서는 도감 개편(`monster-codex.md`)과 **별개의 새 작업**이다.
+>
+> **메모(2026-11-10, 후속 개정 대상 - 지금은 본문을 고치지 않는다)**: 사용자 방침이 "소형 도트 제자리 덮어쓰기"에서 "Claude 가 도트로 그린 UI 는 전부 GPT 고해상도 아트로 교체, 도감부터"로 바뀌었다. 도감 전용 세트(`docs/design/monster-codex-ui-art.md`, `Codex*` 36장, 화면 크기 x 3, PPU 300)가 확정되면 그것이 공통 UI 세트의 **스타일 기준**이 된다. 이 문서의 "같은 파일명·같은 크기·같은 9-slice/PPU 제자리 덮어쓰기", "소형 도트(PPU 25) 유지", 인벤토리의 크기·보더 고정 전제, 파일럿 6장(`ui-art-refresh-pilot.md`)은 도감 세트 승인 후 방침에 맞게 개정한다(화면 단위 신규 세트로 순차 교체 방향).
 
 ## 0. 헤더
 
