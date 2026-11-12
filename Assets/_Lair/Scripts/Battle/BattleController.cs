@@ -1597,7 +1597,9 @@ namespace Lair.Battle
             _toxinMaxStackBonus += bonus;
             //# 등록된 역병귀 인스턴스 중 지금 필드에 살아 있는 것만 소급 (태그 탐색 없음).
             //# 사망 연출 중(비활성 전)인 역병귀는 IsAlive 로 제외한다.
-            foreach (KeyValuePair<Transform, Health> plague in _plagueInstances)
+            //# ApplyMonsterStatsCore 가 _plagueInstances 를 재기록하므로 복사본을 순회한다.
+            List<KeyValuePair<Transform, Health>> snapshot = new List<KeyValuePair<Transform, Health>>(_plagueInstances);
+            foreach (KeyValuePair<Transform, Health> plague in snapshot)
             {
                 if (plague.Key == null || plague.Key.gameObject.activeInHierarchy == false || plague.Value == null || plague.Value.IsAlive == false)
                     continue;
