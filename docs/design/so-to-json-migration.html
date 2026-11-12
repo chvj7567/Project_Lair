@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수치·문구 데이터 이사 안내 (에셋 → JSON 표)</title>
+<style>
+:root{
+  --bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2a2f3a;--text:#e6e8ee;--muted:#9aa3b2;
+  --json:#5ef0b4;--so:#ffb74d;--fk:#ffd54f;--cfg:#80cbc4;--warn:#ff7043;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 "Pretendard","Noto Sans KR",system-ui,sans-serif;padding:0 14px 64px;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{max-width:1040px;margin:0 auto}
+h1{font-size:24px;margin:26px 0 6px}
+h2{font-size:19px;margin:38px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:15px;margin:0 0 6px}
+p{margin:6px 0}
+p.lead{color:var(--muted);margin:0 0 14px}
+code{font:12.5px/1.4 ui-monospace,Consolas,monospace;background:#0b0d11;padding:1px 5px;border-radius:4px;color:#dfe3ea}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;border:1px solid var(--line);background:var(--panel2);margin:0 4px 4px 0}
+.tag.j{color:var(--json);border-color:#1f5a45} .tag.s{color:var(--so);border-color:#6b4a17} .tag.c{color:var(--cfg);border-color:#2c5753}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;border-top:4px solid var(--line)}
+.box.j{border-top-color:var(--json)} .box.s{border-top-color:var(--so)} .box.c{border-top-color:var(--cfg)} .box.w{border-top-color:var(--warn)}
+.box ul{margin:6px 0 0;padding-left:18px}
+.box li{margin:3px 0}
+.sub{color:var(--muted);font-size:12.5px}
+.keep{background:#15201b;border:1px solid #23463a;border-left:4px solid var(--json);border-radius:10px;padding:12px 16px;margin:14px 0}
+.keep b{color:var(--json)}
+.note{background:#241c17;border:1px solid #3b2a22;border-left:4px solid var(--warn);border-radius:10px;padding:10px 14px;margin:14px 0;font-size:13px}
+.move{display:grid;grid-template-columns:1fr;gap:12px}
+.mv{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.mv header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.mv header .step{font-weight:800;color:var(--json);font-size:13px}
+.mv header .ttl{font-weight:700}
+.mv .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.mv .col{padding:12px 14px;border-top:1px solid #20242d}
+.mv .col h4{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.mv .col ul{margin:0;padding-left:17px;font-size:13px}
+.mv .col li{margin:2px 0}
+.mv .col.from h4{color:var(--so)} .mv .col.to h4{color:var(--json)} .mv .col.stay h4{color:var(--fk)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--panel2);font-size:12.5px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.tree{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;overflow-x:auto}
+.tree pre{margin:0;font:12.5px/1.6 ui-monospace,Consolas,monospace;color:#d6dbe6;white-space:pre}
+.tree .e{color:var(--json);font-weight:700} .tree .r{color:var(--fk)} .tree .c{color:var(--cfg);font-weight:700} .tree .m{color:var(--muted)} .tree .s{color:var(--so)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}
+.st{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.st .no{font-weight:800;color:var(--json);font-size:13px}
+.st .nm{font-weight:700;margin:2px 0 4px}
+.st.opt{border-style:dashed} .st.opt .no{color:var(--fk)}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.bubble{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px}
+.bubble b{display:block;margin-bottom:4px}
+ol.plain{margin:6px 0 0;padding-left:20px} ol.plain li{margin:3px 0}
+.decide{background:#1a1d27;border:2px solid var(--fk);border-radius:14px;padding:16px 18px;margin-top:14px}
+.decide h2{border:0;margin:0 0 4px;padding:0;color:var(--fk)}
+.q{border-top:1px solid var(--line);padding:11px 0}
+.q:first-of-type{border-top:0}
+.q .qn{font-weight:700}
+.q .rec{margin-top:4px;font-size:13px}
+.q .rec b{color:var(--json)}
+.q .why{color:var(--muted);font-size:12.5px;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>수치·문구 데이터 이사 안내</h1>
+<p class="lead">에셋 파일 안에 들어 있던 밸런스 수치와 화면 문구를 <b>JSON 표</b>로 옮깁니다. 게임은 그대로이고, 수치를 보관하는 서랍만 바뀝니다. (상세 수치·규칙은 같은 이름의 구현용 문서가 기준입니다.)</p>
+
+<div class="keep">
+  <b>플레이어에게는 아무것도 달라지지 않습니다.</b><br>
+  몬스터·영웅 능력치, 상점 가격, 카드 효과, 스킬 수치, 모든 이름과 설명 문구, 세이브 파일이 전부 지금과 똑같습니다. 세이브 버전도 올리지 않습니다.
+</div>
+
+<!-- 1 -->
+<h2>1. 왜 옮기나요</h2>
+<div class="grid">
+  <div class="box s">
+    <h3>지금 - 에셋 파일(ScriptableObject) 안</h3>
+    <div class="sub">유니티 인스펙터에서만 고칠 수 있음</div>
+    <ul>
+      <li>몬스터 6종 기본 능력치, 영웅 기준 능력치</li>
+      <li>상점 31항목, 영주 보상, 도전과제 13개</li>
+      <li>영웅 스킬 15개 수치</li>
+      <li>카드 28장의 이름·설명·효과 수치</li>
+    </ul>
+  </div>
+  <div class="box j">
+    <h3>옮긴 뒤 - JSON 표 16개</h3>
+    <div class="sub">텍스트로 열어 고치고, 바뀐 줄이 그대로 기록에 남음</div>
+    <ul>
+      <li>다른 데이터(챕터·유물·육성 등 57개 표)와 같은 방식</li>
+      <li>이름·설명은 문구 표(<code>Strings_Ko</code>)에 모임</li>
+      <li>에셋 파일에는 <b>그림만</b> 남음</li>
+    </ul>
+  </div>
+  <div class="box c">
+    <h3>프로젝트 규칙</h3>
+    <div class="sub">이번 작업의 근거</div>
+    <ul>
+      <li>자주 고치는 수치·문구는 JSON</li>
+      <li>에셋 파일은 그림·프리팹처럼 유니티 에셋을 가리켜야 할 때만</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 2 -->
+<h2>2. 무엇이 어디로 가나요</h2>
+<div class="move">
+
+  <div class="mv">
+    <header><span class="step">1단계</span><span class="ttl">전투 기본 수치</span></header>
+    <div class="cols">
+      <div class="col from"><h4>지금 있는 곳</h4><ul><li>전투 밸런스 에셋 1개</li></ul></div>
+      <div class="col to"><h4>옮겨 가는 표</h4><ul>
+        <li><code>BalanceConfig</code> - 영웅 기준 HP 4000·공격력 50, 한 판 300초, 카드가 열리는 시점</li>
+        <li><code>MonsterStat</code> - 몬스터 6종의 HP·공격력·사거리·공격 간격·이동속도·스폰 주기</li>
+      </ul></div>
+      <div class="col stay"><h4>에셋에 남는 것</h4><ul><li>없음 (에셋 삭제)</li></ul></div>
+    </div>
+  </div>
+
+  <div class="mv">
+    <header><span class="step">2단계</span><span class="ttl">마을 성장 수치 - 상점·영주·도전과제</span></header>
+    <div class="cols">
+      <div class="col from"><h4>지금 있는 곳</h4><ul><li>마을 성장 에셋 1개</li></ul></div>
+      <div class="col to"><h4>옮겨 가는 표</h4><ul>
+        <li><code>MetaConfig</code> - 소울·영주 경험치 기본값 7개</li>
+        <li><code>ShopItem</code> + 딸린 표 4개 - 상점 31항목의 가격·최대 레벨·결제 재화·효과</li>
+        <li><code>LordLevel</code>, <code>LordLevel_Reward</code> - 영주 보상 트랙 Lv2~10, 보상 5개</li>
+        <li><code>Achievement</code> - 도전과제 13개의 조건·보상</li>
+      </ul></div>
+      <div class="col stay"><h4>에셋에 남는 것</h4><ul><li>없음 (에셋 삭제)</li></ul></div>
+    </div>
+  </div>
+
+  <div class="mv">
+    <header><span class="step">3단계</span><span class="ttl">영웅 스킬</span></header>
+    <div class="cols">
+      <div class="col from"><h4>지금 있는 곳</h4><ul><li>스킬 에셋 15개</li><li>영웅별 스킬 구성 에셋 5개</li></ul></div>
+      <div class="col to"><h4>옮겨 가는 표</h4><ul>
+        <li><code>HeroSkill</code> - 스킬 15개와 이름</li>
+        <li><code>HeroSkill_Param</code> - 스킬 수치 97개 (피해·쿨다운·범위 등)</li>
+        <li><code>HeroArchetype_Skill</code> - 영웅 5명이 HP 85%·65%·45% 에서 여는 스킬</li>
+      </ul></div>
+      <div class="col stay"><h4>에셋에 남는 것</h4><ul><li>없음 (에셋 20개 삭제) - 스킬 에셋에는 그림이 없고 숫자와 이름뿐이라서</li></ul></div>
+    </div>
+  </div>
+
+  <div class="mv">
+    <header><span class="step">4단계</span><span class="ttl">카드</span></header>
+    <div class="cols">
+      <div class="col from"><h4>지금 있는 곳</h4><ul><li>카드 에셋 28개</li></ul></div>
+      <div class="col to"><h4>옮겨 가는 표</h4><ul>
+        <li><code>Card</code> - 카드 28장의 빌드 축·이름·설명·효과 종류</li>
+        <li><code>Card_Param</code> - 효과 수치 26개 (지속 시간·배율 등)</li>
+      </ul></div>
+      <div class="col stay"><h4>에셋에 남는 것</h4><ul>
+        <li>카드 아이콘, 카드 일러스트 (그림 2장)</li>
+        <li>패시브 16장 / 액티브 12장 묶음 (그대로)</li>
+      </ul></div>
+    </div>
+  </div>
+
+  <div class="mv">
+    <header><span class="step" style="color:var(--fk)">5단계 (선택)</span><span class="ttl">스테이지별 영웅 외형 수치</span></header>
+    <div class="cols">
+      <div class="col from"><h4>지금 있는 곳</h4><ul><li>영웅 외형 에셋 1개 (초상 그림 옆에 숫자가 같이 있음)</li></ul></div>
+      <div class="col to"><h4>옮겨 가는 표</h4><ul><li>기존 <code>Stage</code> 표에 칸 2개 추가 - 영웅 크기 배율, 강화 외형 단계</li></ul></div>
+      <div class="col stay"><h4>에셋에 남는 것</h4><ul><li>스테이지별 영웅 초상 그림 25장</li></ul></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 3 -->
+<h2>3. 새로 생기는 표 16개</h2>
+<div class="scroll">
+<table>
+<tr><th>표 이름</th><th>한 줄 설명</th><th>줄 수</th><th>단계</th></tr>
+<tr><td><code>BalanceConfig</code></td><td>전투 전체에 쓰는 기본값 묶음</td><td class="n">묶음 1개</td><td>1</td></tr>
+<tr><td><code>MonsterStat</code></td><td>몬스터 한 종의 기본 능력치</td><td class="n">6</td><td>1</td></tr>
+<tr><td><code>MetaConfig</code></td><td>소울·영주 경험치 기본값 묶음</td><td class="n">묶음 1개</td><td>2</td></tr>
+<tr><td><code>ShopItem</code></td><td>상점 항목 하나 (가격·최대 레벨·재화)</td><td class="n">31</td><td>2</td></tr>
+<tr><td><code>ShopItem_Stat</code></td><td>"전체 몬스터 강화" 항목이 올리는 능력치</td><td class="n">6</td><td>2</td></tr>
+<tr><td><code>ShopItem_Species</code></td><td>"종족 강화" 항목이 대상으로 하는 몬스터</td><td class="n">24</td><td>2</td></tr>
+<tr><td><code>ShopItem_Mul</code></td><td>레벨마다 곱해지는 배율이 있는 항목의 배율</td><td class="n">13</td><td>2</td></tr>
+<tr><td><code>ShopItem_Desc</code></td><td>설명 문구가 있는 항목의 설명</td><td class="n">19</td><td>2</td></tr>
+<tr><td><code>LordLevel</code></td><td>영주 보상 트랙의 레벨 칸</td><td class="n">9</td><td>2</td></tr>
+<tr><td><code>LordLevel_Reward</code></td><td>보상이 있는 칸의 이름과 소울</td><td class="n">5</td><td>2</td></tr>
+<tr><td><code>Achievement</code></td><td>도전과제 하나</td><td class="n">13</td><td>2</td></tr>
+<tr><td><code>HeroSkill</code></td><td>영웅 스킬 하나</td><td class="n">15</td><td>3</td></tr>
+<tr><td><code>HeroSkill_Param</code></td><td>스킬 수치 하나</td><td class="n">97</td><td>3</td></tr>
+<tr><td><code>HeroArchetype_Skill</code></td><td>어느 영웅이 HP 몇 % 에서 어떤 스킬을 여는지</td><td class="n">15</td><td>3</td></tr>
+<tr><td><code>Card</code></td><td>카드 하나</td><td class="n">28</td><td>4</td></tr>
+<tr><td><code>Card_Param</code></td><td>카드 효과 수치 하나</td><td class="n">26</td><td>4</td></tr>
+</table>
+</div>
+<p class="sub" style="margin-top:8px">문구 표(<code>Strings_Ko</code>)에는 이름·설명 147줄이 새 번호(1541~1687)로 추가됩니다. 글자는 지금 화면에 나오는 것과 똑같습니다.</p>
+
+<h3 style="margin-top:20px">표끼리의 관계</h3>
+<div class="tree"><pre>
+<span class="c">BalanceConfig</span>      <span class="m">전투 기본값 묶음</span>
+<span class="e">MonsterStat</span>        <span class="m">몬스터 6종</span>
+
+<span class="c">MetaConfig</span>         <span class="m">소울·경험치 기본값 묶음</span>
+<span class="e">ShopItem</span>           <span class="m">상점 항목 31개</span>
+ ├ <span class="r">ShopItem_Stat</span>      <span class="m">해당하는 항목에만 줄이 있음</span>
+ ├ <span class="r">ShopItem_Species</span>   <span class="m">해당하는 항목에만 줄이 있음</span>
+ ├ <span class="r">ShopItem_Mul</span>       <span class="m">해당하는 항목에만 줄이 있음</span>
+ └ <span class="r">ShopItem_Desc</span>      <span class="m">해당하는 항목에만 줄이 있음</span>
+<span class="e">LordLevel</span>          <span class="m">레벨 칸 9개 (Lv2~10)</span>
+ └ <span class="r">LordLevel_Reward</span>   <span class="m">보상이 있는 5칸만 - 줄이 없는 칸은 잠금 칸</span>
+<span class="e">Achievement</span>        <span class="m">도전과제 13개</span>
+
+<span class="e">HeroSkill</span>          <span class="m">스킬 15개</span>
+ └ <span class="r">HeroSkill_Param</span>    <span class="m">스킬마다 수치 3~9개</span>
+<span class="r">HeroArchetype_Skill</span> <span class="m">영웅 5명 x 구간 3개 → 스킬</span>
+
+<span class="e">Card</span>               <span class="m">카드 28장</span>  <span class="s">← 카드 에셋(그림 2장)이 카드 이름표로 연결</span>
+ └ <span class="r">Card_Param</span>         <span class="m">수치가 있는 카드 21장의 수치</span>
+</pre></div>
+<p class="sub" style="margin-top:8px"><span class="tag j">초록</span>하나하나가 독립된 대상인 표 &nbsp;<span class="tag" style="color:var(--fk)">노랑</span>위 표에 딸린 표 (해당하는 줄에만 값이 있음) &nbsp;<span class="tag c">청록</span>값 묶음 하나짜리</p>
+
+<div class="note">"해당하는 것만 딸린 표에 적는다"가 이번 구조의 핵심입니다. 지금은 쓰지 않는 칸을 0 이나 빈 글자로 채워 두고 있는데, 옮긴 뒤에는 그런 가짜 값이 없어집니다. 예: 상점의 둥지·특성 항목은 설명 칸이 비어 있었습니다 → 설명 표에 줄 자체가 없습니다.</div>
+
+<!-- 4 -->
+<h2>4. 달라지는 점 / 안 달라지는 점</h2>
+<div class="scroll">
+<table>
+<tr><th>항목</th><th>지금</th><th>옮긴 뒤</th></tr>
+<tr><td>게임 수치·문구</td><td colspan="2">같음 - 한 숫자, 한 글자도 바뀌지 않음</td></tr>
+<tr><td>세이브 파일</td><td colspan="2">같음 - 상점 레벨·달성한 도전과제 기록이 그대로 이어짐</td></tr>
+<tr><td>카드 등장 순서·데일리 카드</td><td colspan="2">같음 - 카드 묶음과 그 순서를 건드리지 않음</td></tr>
+<tr><td>수치 고치는 곳</td><td>유니티 인스펙터, 전용 편집 창</td><td>JSON 텍스트 파일</td></tr>
+<tr><td>문구 고치는 곳</td><td>각 에셋 안</td><td>문구 표 한 곳</td></tr>
+<tr><td>수치 변경 기록</td><td>에셋 파일이라 바뀐 내용을 읽기 어려움</td><td>바뀐 줄이 그대로 보임</td></tr>
+<tr><td>에디터 도구</td><td>JSON 동기 창, 마을 수치 편집 창, 카드 편집 창</td><td>동기 창·마을 수치 편집 창은 없어짐. 카드 편집 창은 그림 배정·카드 만들기·묶음 소속만 남음</td></tr>
+<tr><td>에셋 파일 수</td><td>밸런스 1 · 마을 성장 1 · 스킬 20 · 카드 28</td><td>카드 28 (그림만)</td></tr>
+<tr><td>동기용 사본 JSON 4개</td><td>에셋 내용을 베껴 둔 사본 (게임은 안 읽음)</td><td>삭제 - JSON 이 원본이 되므로 사본이 필요 없음</td></tr>
+<tr><td>데이터를 못 읽었을 때</td><td>해당 없음 (에셋은 씬에 붙어 있었음)</td><td>전투에 들어가지 않고 마을로 돌아옴 (틀린 수치로 싸우지 않게)</td></tr>
+</table>
+</div>
+
+<h3 style="margin-top:20px">옮긴 뒤 수치를 고치는 흐름</h3>
+<div class="flow">
+  <div class="bubble"><b>몬스터가 너무 약해요</b><code>MonsterStat</code> 표에서 그 몬스터 줄의 HP 숫자를 고칩니다.</div>
+  <div class="bubble"><b>상점 가격을 올리고 싶어요</b><code>ShopItem</code> 표에서 그 항목의 시작 가격을 고칩니다.</div>
+  <div class="bubble"><b>카드 설명 문구를 다듬고 싶어요</b>문구 표에서 그 카드 설명 번호의 글자를 고칩니다.</div>
+  <div class="bubble"><b>오타를 냈어요</b>게임을 켜기 전에 자동 점검이 "어느 표 어느 줄이 틀렸는지" 알려 줍니다.</div>
+</div>
+
+<!-- 5 -->
+<h2>5. 진행 순서</h2>
+<div class="steps">
+  <div class="st"><div class="no">1단계</div><div class="nm">전투 기본 수치</div><div class="sub">표 2개</div></div>
+  <div class="st"><div class="no">2단계</div><div class="nm">마을 성장 수치</div><div class="sub">표 9개 · 문구 76줄</div></div>
+  <div class="st"><div class="no">3단계</div><div class="nm">영웅 스킬</div><div class="sub">표 3개 · 문구 15줄</div></div>
+  <div class="st"><div class="no">4단계</div><div class="nm">카드</div><div class="sub">표 2개 · 문구 56줄</div></div>
+  <div class="st opt"><div class="no">5단계 (선택)</div><div class="nm">영웅 외형 수치</div><div class="sub">기존 표에 칸 2개</div></div>
+</div>
+<p style="margin-top:12px">각 단계는 따로 끝낼 수 있고, 단계 사이에도 게임은 항상 실행됩니다. 단계마다 이렇게 확인합니다.</p>
+<ol class="plain">
+  <li><b>똑같은지 대조</b> - 에셋을 지우기 전에, 에셋의 값과 새 표의 값을 전부 하나씩 비교합니다. 하나라도 다르면 넘어가지 않습니다.</li>
+  <li><b>바꿔 끼우기</b> - 게임이 새 표를 읽게 바꾸고 에셋과 낡은 도구를 지웁니다.</li>
+  <li><b>전체 점검</b> - 기존 자동 테스트를 전부 다시 돌리고, 표에 빠진 줄·중복·잘못 가리키는 값이 없는지 검사합니다.</li>
+</ol>
+
+<!-- 6 -->
+<h2>6. 조사하면서 바로잡은 것</h2>
+<div class="grid">
+  <div class="box w"><h3>도전과제는 13개</h3><div class="sub">처음 조사에는 9개로 적혀 있었지만 실제 에셋에는 13개가 있습니다.</div></div>
+  <div class="box w"><h3>스킬 에셋에는 그림이 없음</h3><div class="sub">숫자와 이름뿐이라 에셋으로 남길 이유가 없습니다 → 20개 전부 표로 옮깁니다.</div></div>
+  <div class="box w"><h3>종족 이름은 겹치지 않음</h3><div class="sub">종족 표에는 "이그니스", 코드에는 "도깨비불"이 적혀 있습니다. 서로 다른 이름이라 중복이 아닙니다.</div></div>
+  <div class="box w"><h3>안 쓰이는 값 2종</h3><div class="sub">영웅 외형의 발광 색·세기(25칸 전부 꺼짐), 카드 "던전의 점성"의 몬스터 배율 칸. 뒤쪽은 그대로 옮기고, 앞쪽은 아래에서 여쭙니다.</div></div>
+</div>
+
+<!-- 7 -->
+<div class="decide">
+  <h2>결정해 주세요</h2>
+  <p class="sub">항목마다 추천안을 적었습니다. 별말씀 없으시면 추천안대로 진행합니다.</p>
+
+  <div class="q"><div class="qn">1. 영웅 스킬 에셋 20개를 완전히 없앨까요?</div>
+    <div class="rec"><b>추천: 없앱니다.</b></div><div class="why">그림이 하나도 없는 에셋이라, 숫자를 빼면 빈 껍데기만 남습니다.</div></div>
+
+  <div class="q"><div class="qn">2. 카드는 "어떤 효과인지"까지 표로 옮기고, 에셋에는 그림 2장만 남길까요?</div>
+    <div class="rec"><b>추천: 그렇게 합니다.</b></div><div class="why">카드 한 장의 설계(축·이름·효과·수치)를 한 곳에서 볼 수 있습니다.</div></div>
+
+  <div class="q"><div class="qn">3. 패시브/액티브 카드 묶음은 지금처럼 에셋에 둘까요?</div>
+    <div class="rec"><b>추천: 그대로 둡니다.</b></div><div class="why">카드 에셋을 모아 둔 목록이라 규칙에 맞고, 데일리 카드가 이 순서에 기대고 있어 건드리지 않는 편이 안전합니다.</div></div>
+
+  <div class="q"><div class="qn">4. 스테이지별 영웅 크기·외형 단계 숫자도 이번에 옮길까요? 옮긴다면 한 번도 켜진 적 없는 발광 색·세기 값은 지울까요?</div>
+    <div class="rec"><b>추천: 옮깁니다(마지막 5단계). 발광 값은 지웁니다.</b></div><div class="why">표에 칸 2개만 더하면 되는 작은 일입니다. 발광 값은 25칸 모두 꺼져 있어 게임에 나온 적이 없습니다(변경 기록에는 남습니다).</div></div>
+
+  <div class="q"><div class="qn">5. 코드에 적혀 있는 몬스터 이름·종족 색·빌드 축도 이번에 표로 옮길까요?</div>
+    <div class="rec"><b>추천: 이번에는 하지 않습니다.</b></div><div class="why">쓰는 곳이 26군데라 손댈 범위가 크고, 거의 바뀌지 않는 값입니다. 필요해지면 따로 기획합니다.</div></div>
+
+  <div class="q"><div class="qn">6. 유니티 안의 편집 창(JSON 동기 창, 마을 수치 편집 창)을 없애도 될까요?</div>
+    <div class="rec"><b>추천: 없앱니다.</b></div><div class="why">다른 표 57개처럼 텍스트로 고치면 됩니다. 카드 편집 창은 그림 배정·카드 만들기 용도로 남깁니다.</div></div>
+
+  <div class="q"><div class="qn">7. 새 표를 못 읽었을 때 전투에 못 들어가게 막을까요?</div>
+    <div class="rec"><b>추천: 막고 마을로 돌려보냅니다.</b></div><div class="why">틀린 능력치나 보상 없는 판이 랭킹에 올라가는 것을 막습니다. 배포 실수일 때만 생기고, 출시 전 자동 점검이 먼저 잡습니다.</div></div>
+
+  <div class="q"><div class="qn">8. 새 문구 147줄의 번호를 지금 마지막 번호 바로 뒤(1541~1687)에 이어 붙일까요?</div>
+    <div class="rec"><b>추천: 이어 붙입니다.</b></div><div class="why">지금까지 해 온 방식입니다. 그 사이 다른 기능이 번호를 먼저 쓰면 통째로 뒤로 밉니다.</div></div>
+
+  <div class="q"><div class="qn">9. 에셋이 아니라 코드 안에 직접 적힌 수치(예: 광폭화의 공격속도 증가폭)도 이번에 다룰까요?</div>
+    <div class="rec"><b>추천: 이번에는 하지 않습니다.</b></div><div class="why">이번 목표는 "에셋에 있던 값"의 이사입니다. 코드 속 수치는 어디에 얼마나 있는지부터 따로 조사해야 합니다.</div></div>
+
+  <div class="q"><div class="qn">10. 프로젝트 안내 문서에 적힌 옛 밸런스 에셋 경로를 새 위치로 고쳐도 될까요?</div>
+    <div class="rec"><b>추천: 고칩니다.</b></div><div class="why">문서와 실제 위치를 맞추는 수정입니다.</div></div>
+</div>
+
+</div>
+</body>
+</html>
