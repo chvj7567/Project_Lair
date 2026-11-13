@@ -38,6 +38,15 @@ namespace Lair.Tests.EditMode
                 Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"));
         }
 
+        //# shipped BalanceConfig.json + MonsterStat.json 조립 (so-to-json-migration §7.5).
+        //# 커밋 ① 동안은 결과가 SO 인스턴스라 호출자가 DestroyImmediate 한다.
+        public static BalanceConfig ShippedBalance()
+        {
+            return BalanceConfig.Build(
+                UnityEngine.JsonUtility.FromJson<BalanceConfigRow>(File.ReadAllText(JsonDir + "BalanceConfig.json")),
+                Load<MonsterStatRow>("MonsterStat"));
+        }
+
         public static IReadOnlyDictionary<int, string> Strings()
         {
             if (_strings == null)

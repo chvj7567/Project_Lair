@@ -20,6 +20,13 @@ namespace Lair.Battle
 
         public static async Task<ChapterDatabase> LoadAsync()
         {
+            //# 필수 묶음 1번(so-to-json-migration §6.2·§6.4) — 실패하면 챕터 로드 전체를 실패시킨다.
+            if (await LoadBalanceAsync() == false)
+            {
+                ChapterDatabase.Current = null;
+                return null;
+            }
+
             string chapterJson = await LoadTextAsync(EData.Chapter);
             string stageJson = await LoadTextAsync(EData.Stage);
             string ruleJson = await LoadTextAsync(EData.Stage_Rule);
@@ -72,6 +79,31 @@ namespace Lair.Battle
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
                 return null;
+            }
+        }
+
+        //# 밸런스 JSON 2종 → BalanceConfig.Current. 로드·파싱·검증 실패는 위반 전부를 LogError 하고 false (조용한 폴백 금지).
+        private static async Task<bool> LoadBalanceAsync()
+        {
+            BalanceConfig.Current = null;
+            string configJson = await LoadTextAsync(EData.BalanceConfig);
+            string monsterJson = await LoadTextAsync(EData.MonsterStat);
+            if (configJson == null || monsterJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 밸런스 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
+                return false;
+            }
+            try
+            {
+                BalanceConfig.Current = BalanceConfig.Build(
+                    JsonUtility.FromJson<BalanceConfigRow>(configJson),
+                    JsonArrayUtility.FromJsonArray<MonsterStatRow>(monsterJson));
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                return false;
             }
         }
 
