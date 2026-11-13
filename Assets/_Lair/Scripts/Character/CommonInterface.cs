@@ -183,7 +183,7 @@ namespace Lair.Character
     //# 풀 재사용 시 SnapToDirection 으로 초기 방향 즉시 적용.
     public interface IRotator
     {
-        //# deg/s. 인스펙터 또는 BalanceConfig 로 설정.
+        //# deg/s. 인스펙터 또는 밸런스 데이터(BalanceConfig.json)로 설정.
         float TurnSpeedDegPerSec { get; set; }
 
         //# 목표 방향 설정 — 매 Update 호출 가능. magnitude < 0.001f 면 no-op.

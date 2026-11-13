@@ -23,8 +23,8 @@ namespace Lair.Battle
         [SerializeField] private Transform _heroSpawn;
         //# 지속 스폰 — 씬에 배치된 Spawner 들. Rule 03 — FindObjectsOfType 대신 인스펙터 직렬 할당.
         [SerializeField] private Spawner[] _spawners;
-        //# Slice C — 캐릭터 스탯 + 전투 상수의 단일 진실. 씬에서 직접 할당.
-        [SerializeField] private BalanceConfig _balance;
+        //# 전투 밸런스(BalanceConfig.json·MonsterStat.json 조립 결과) — Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
+        private BalanceConfig _balance;
 
         //# v0.2 메타 — 상점 보너스/보상 정산 수치 (씬 인스펙터 할당). null 이면 메타 로직 전부 skip (기존 테스트/씬 무영향).
         [SerializeField] private MetaConfig _metaConfig;
@@ -173,6 +173,14 @@ namespace Lair.Battle
 
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
+            //# 밸런스 JSON 은 필수 묶음(so-to-json-migration §6.4) — 없으면 기본 스탯으로 진행하지 않고 마을로 돌아간다.
+            _balance = BalanceConfig.Current;
+            if (_balance == null)
+            {
+                Debug.LogError("[BattleController] 밸런스 데이터(BalanceConfig.json·MonsterStat.json) 미로드 — 전투 진입 중단, 마을로 복귀");
+                AbortToVillage();
+                return;
+            }
             _spec = BattleSpecResolver.Resolve(MetaSession.BattleMode, MetaSession.GetOrLoad(), _chapters, TowerDatabase.Current, MetaSession.DailyContext);
             if (_spec == null)
             {
@@ -199,16 +207,9 @@ namespace Lair.Battle
             //# 2. MVVM
             _model = new BattleStateModel();
             //# Slice C — BalanceConfig 의 런 길이 적용
-            if (_balance == null)
-            {
-                Debug.LogError("[BattleController] BalanceConfig(_balance) 미할당 — 프리팹 기본 스탯으로 진행");
-            }
-            else
-            {
-                _model.TotalSeconds = _balance.RunDuration;
-            }
+            _model.TotalSeconds = _balance.RunDuration;
             _vm = new BattleViewModel(_model);
-            _vm.BindTriggerThresholds(_balance?.ActiveThresholds, _balance?.PassiveThresholds);
+            _vm.BindTriggerThresholds(_balance.ActiveThresholds, _balance.PassiveThresholds);
             _hudLayout = new HudLayoutViewModel(new PlayerPrefsHudLayoutPrefs());
             MetaProfile heroProfile = MetaSession.GetOrLoad();
             _vm.SetHeroTitle(ComposeBattleTitle(heroProfile));
@@ -245,14 +246,14 @@ namespace Lair.Battle
             //# 둥지 숙련 Lv1 — 서두르는 둥지(SpawnPrelude)와 같은 지점·같은 방식(0 하한, 봉인 해제 처리도 동일).
             ApplyNestFirstSpawnAdvance();
 
-            //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링·툴팁 base 스탯 표시에 필요한 Spawners·Balance 함께 주입.
+            //# 4. HUD 표시 — 스포너 상태 UI 가 진행 바 폴링에 필요한 Spawners 함께 주입.
             //#    프리팹 로드 실패 시 ShowUIAsync 는 null 을 반환하므로(부트 정지 방지), 명확히 로그하고 부팅은 계속한다.
             if (_hudRoot != null)
             {
                 CHMUI.Instance.SetRoot(_hudRoot);
             }
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
-                new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, Balance = _balance, CardIcons = _cardIconById });
+                new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, CardIcons = _cardIconById });
             //# HUD 이후 모든 팝업/배너/토스트는 PopupRoot — await 이후라 다른 UI 가 먼저 뜨지 않는다.
             if (_popupRoot != null)
             {
@@ -276,7 +277,7 @@ namespace Lair.Battle
             SetupSkillUnlockCutscene();
             if (_heroHealth != null)
             {
-                _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance?.PassiveThresholds);
+                _passiveTriggers = new PassiveTriggerService(_heroHealth, _balance.PassiveThresholds);
                 _passiveTriggers.OnTriggered += idx =>
                 {
                     _vm?.MarkPassiveTriggered(idx);
@@ -349,7 +350,7 @@ namespace Lair.Battle
             }
 
             //# B2 — 30초 액티브 트리거 (BattleClock.OnTick 구독)
-            _activeTriggers = new ActiveTriggerService(_clock, _balance?.ActiveThresholds);
+            _activeTriggers = new ActiveTriggerService(_clock, _balance.ActiveThresholds);
             _activeTriggers.OnTriggered += idx =>
             {
                 _queue.Enqueue(TriggerQueue.Source.Active, idx);
@@ -1726,10 +1727,6 @@ namespace Lair.Battle
             => _typeModifierPicks.TryGetValue(MonsterGrades.BaseOf(type), out List<BattleViewModel.AppliedBuff> list)
                 ? (IReadOnlyList<BattleViewModel.AppliedBuff>)list
                 : System.Array.Empty<BattleViewModel.AppliedBuff>();
-
-        //# 스포너 상태 UI — 툴팁이 base 스탯(Hp/Power/Range/Cooldown/MoveSpeed)을 읽기 위해 노출.
-        //# 역병귀 독 baseline 은 코드 상수 Lair.Character.PlagueToxinOnHit.BaseDuration/BaseMaxStack (monster-growth-currencies §15.1).
-        public BalanceConfig Balance => _balance;
 
         //# 지속 스폰 — 추가소환 카드. 해당 종을 출력 중인 모든 Spawner 동시 출력 +1.
         //# v1.0 — _currentCardScope non-null (= ApplyCardEffect 진입 중) 이면 Spawn 픽 추적 + 셀 IconRow 갱신 이벤트 발행.

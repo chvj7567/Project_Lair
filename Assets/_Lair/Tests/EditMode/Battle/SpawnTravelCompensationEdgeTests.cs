@@ -125,8 +125,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 실제_밸런스_설정으로_계산한_여섯_지연이_기획서_표와_같다()
         {
-            BalanceConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<BalanceConfig>("Assets/_Lair/Data/BalanceConfig.asset");
-            Assert.IsNotNull(cfg, "BalanceConfig.asset");
+            BalanceConfig cfg = Lair.Tests.EditMode.WorldMapTestSupport.ShippedBalance();
             EMonster[] types = { EMonster.Wisp, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom };
             for (int i = 0; i < 6; i++)
             {

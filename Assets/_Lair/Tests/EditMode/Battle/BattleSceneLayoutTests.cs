@@ -226,7 +226,7 @@ namespace Lair.Tests.Battle
         [Test]
         public void 씬_값으로_계산한_첫_스폰_지연이_기획서_표와_같다()
         {
-            BalanceConfig cfg = AssetDatabase.LoadAssetAtPath<BalanceConfig>("Assets/_Lair/Data/BalanceConfig.asset");
+            BalanceConfig cfg = WorldMapTestSupport.ShippedBalance();
             BattleZone zone = DotSceneTestUtil.Find<BattleZone>(_scene);
             Vector3 center = zone.transform.position;
             foreach (Spawner s in _spawners)

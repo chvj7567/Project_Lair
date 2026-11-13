@@ -29,7 +29,7 @@ Assets/_Lair/                  게임 코드·에셋  (주의: _Project 가 아�
   Editor/                      에디터 툴 — 프리팹 빌더 / 테스트 러너 / 디버그 윈도우
   Tests/EditMode/  Tests/PlayMode/   NUnit 테스트  (asmdef: Lair.Tests.EditMode / .PlayMode)
   Art/                         Addressable 에셋 — Characters/ FX/ UI/ Cards/ Materials/ Sprites/
-  Data/                        비-Addressable 데이터 — Fonts/ , BalanceConfig.asset
+  Data/                        Fonts/ (비-Addressable) , Json/ (런타임 JSON 데이터, Addressable)
   Scenes/                      Battle.unity
 Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
 .Codex/

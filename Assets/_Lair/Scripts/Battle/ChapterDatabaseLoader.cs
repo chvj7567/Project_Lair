@@ -10,10 +10,10 @@ namespace Lair.Battle
     //# Loading 씬이 선행 로드하고, Battle 직행(에디터)은 EnsureLoadedAsync 로 보충한다. 실패 시 Current 는 null 유지 + LogError.
     public static class ChapterDatabaseLoader
     {
-        //# 이미 로드됐으면 즉시 반환, 아니면 로드. 실패 시 null.
+        //# 챕터·밸런스가 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
         public static async Task<ChapterDatabase> EnsureLoadedAsync()
         {
-            if (ChapterDatabase.Current != null)
+            if (ChapterDatabase.Current != null && BalanceConfig.Current != null)
                 return ChapterDatabase.Current;
             return await LoadAsync();
         }
@@ -61,7 +61,8 @@ namespace Lair.Battle
                     JsonArrayUtility.FromJsonArray<HeroArchetype_ChargeRow>(chargeJson),
                     JsonArrayUtility.FromJsonArray<HeroArchetype_CleaveRow>(cleaveJson),
                     JsonArrayUtility.FromJsonArray<HeroArchetype_GuardRow>(guardJson),
-                    JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(debuffResistJson));
+                    JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(debuffResistJson),
+                    BalanceConfig.Current.PassiveThresholds);
                 ChapterDatabase.Current = db;
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
                 await LoadDifficultyAsync();

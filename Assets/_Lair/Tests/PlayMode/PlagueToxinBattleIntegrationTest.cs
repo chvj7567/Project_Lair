@@ -147,15 +147,9 @@ namespace Lair.Tests.PlayMode
         [UnityTest]
         public IEnumerator 전투_스탯_적용을_거친_역병귀는_각성_독_지속과_받는_피해를_한_번만_반영해_독을_건다()
         {
-            BalanceConfig balance = ScriptableObject.CreateInstance<BalanceConfig>();
-            _spawned.Add(balance);
-            SetPrivate(balance, "_monsters", new[]
+            BalanceConfig balance = new BalanceConfig(new BalanceConfigRow(), new[]
             {
-                new BalanceConfig.MonsterStatRow
-                {
-                    Key = EMonster.Plague,
-                    Stat = new BalanceConfig.CharacterStat { Hp = 40, Power = 5, Range = 2f, Cooldown = 1f, MoveSpeed = 3f },
-                },
+                new MonsterStatRow { monster = "Plague", hp = 40, power = 5, range = 2f, cooldown = 1f, moveSpeed = 3f },
             });
             GameObject bcGo = new GameObject("BattleControllerUT");
             bcGo.SetActive(false);

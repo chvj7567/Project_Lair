@@ -93,14 +93,16 @@
 2. **qa-simulator** → N판 시뮬 후 데이터 리포트
 3. **game-designer** → 데이터 기반 조정안 작성 (기존 기획서 갱신 또는 짧은 patch note)
 4. **사용자 승인**
-5. **gameplay-programmer** → SO/수치 수정
+5. **gameplay-programmer** → JSON 수치 수정
 6. **code-reviewer** → 수정 검토
 7. **test-engineer** → 회귀 테스트 통과 확인
 8. **qa-simulator** → 조정 후 재시뮬로 검증
 
 ## 도메인 데이터 (선택)
 
-- **balance_config_asset**: `Assets/_Lair/Data/BalanceConfig.asset`
+- **balance_config_asset**: `Assets/_Lair/Data/Json/BalanceConfig.json` — 전투 전역 상수(영웅 앵커·런 길이·카드 트리거 시점). SO 가 아니라 JSON (`EData.BalanceConfig`)
+- **monster_stat_json**: `Assets/_Lair/Data/Json/MonsterStat.json` — 기준 몬스터 6종 기본 능력치·스폰 주기 (`EData.MonsterStat`)
+- **json_data_folder**: `Assets/_Lair/Data/Json/` — 런타임 JSON 데이터 (파일명 = `EData` 값명)
 - **card_data_folder**: `Assets/_Lair/Art/Cards/`
 - **synergy_visual_config_asset**: `Assets/_Lair/Art/Synergy/SynergyVisualConfig.asset` — 시너지 4축 아이콘 SO (`EData.SynergyVisualConfig`, Addressables 주소 `SynergyVisualConfig`)
 - **monster_tier_sheet_folder**: `Assets/_Lair/Art/MonsterTiers/` — 강화(T1~T3) 전신 시트 래퍼 SO `MonsterTierSheetSet` 18개 (`EMonsterTierSheet`, 전투 시작 시 필요한 것만 온디맨드 로드)

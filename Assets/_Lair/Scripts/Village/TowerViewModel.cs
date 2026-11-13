@@ -67,7 +67,7 @@ namespace Lair.Village
 
         public event Action OnChanged;
 
-        //# anchorHp/anchorPower: BalanceConfig 영웅 앵커 (0 이하면 능력치 줄 숨김). relics 는 null 허용(보상 줄 숨김).
+        //# anchorHp/anchorPower: BalanceConfig.json 영웅 앵커 (0 이하면 능력치 줄 숨김). relics 는 null 허용(보상 줄 숨김).
         public TowerViewModel(TowerDatabase tower, ChapterDatabase chapters, MetaProfile profile, Func<int, string> text,
             RelicDatabase relics, int anchorHp, int anchorPower)
         {

@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-//# 커밋 ② 에서 중첩 MonsterStatRow 를 지우면 이 별칭도 지운다 (so-to-json-migration §6.1).
-using MonsterStatJsonRow = Lair.Data.MonsterStatRow;
 
 namespace Lair.Data
 {
-    //# 캐릭터 스탯 + 전투 상수의 단일 진실. BattleController 가 씬에서 참조해 런타임 적용.
-    [CreateAssetMenu(fileName = "BalanceConfig", menuName = "Lair/BalanceConfig")]
-    public class BalanceConfig : ScriptableObject
+    //# 전투 밸런스 런타임 모델 — BalanceConfig.json + MonsterStat.json 조립 결과 (so-to-json-migration §6.1).
+    //# ChapterDatabaseLoader 가 Current 에 올리고 전투·마을이 조회한다.
+    public class BalanceConfig
     {
         //# 한 캐릭터의 튜닝 가능한 스탯.
         [Serializable]
@@ -30,40 +28,50 @@ namespace Lair.Data
             public int Power;
         }
 
-        //# EMonster 키 ↔ 스탯 매핑 행.
-        [Serializable]
-        public class MonsterStatRow
+        //# 로드·검증 성공 시에만 채워진다. null 이면 밸런스 미로드 — 전투 진입 불가(§6.4).
+        public static BalanceConfig Current { get; set; }
+
+        //# 키 = 기준 몬스터(EMonster 기준 6종).
+        private readonly Dictionary<EMonster, CharacterStat> _stats = new Dictionary<EMonster, CharacterStat>();
+        private readonly Dictionary<EMonster, float> _spawnPeriods = new Dictionary<EMonster, float>();
+
+        public HeroAnchor Hero { get; }
+        public float RunDuration { get; }
+        public float[] PassiveThresholds { get; }
+        public float[] ActiveThresholds { get; }
+
+        //# 검증 없는 조립 — 로더는 Build 를 쓴다. 값명이 EMonster 에 없는 행은 건너뛴다.
+        //# 테스트가 일부 행만으로 미발견 폴백 경로를 재현할 때 직접 부른다.
+        public BalanceConfig(BalanceConfigRow config, MonsterStatRow[] monsters)
         {
-            public EMonster Key;
-            public CharacterStat Stat;
-            //# 이 종을 출력하는 스포너의 base 스폰 주기(초). Stat 이 아닌 스포너 생산 설정 (기획서 §1).
-            public float SpawnPeriod;
+            Hero = new HeroAnchor { Hp = config.heroHp, Power = config.heroPower };
+            RunDuration = config.runDuration;
+            PassiveThresholds = config.passiveThresholds;
+            ActiveThresholds = config.activeThresholds;
+            if (monsters == null)
+                return;
+
+            foreach (MonsterStatRow row in monsters)
+            {
+                if (row == null || FormationDatabase.TryParseMonster(row.monster, out EMonster key) == false)
+                    continue;
+                _stats[key] = new CharacterStat
+                {
+                    Hp = row.hp,
+                    Power = row.power,
+                    Range = row.range,
+                    Cooldown = row.cooldown,
+                    MoveSpeed = row.moveSpeed,
+                };
+                _spawnPeriods[key] = row.spawnPeriod;
+            }
         }
-
-        [SerializeField] private HeroAnchor _hero;
-        [SerializeField] private MonsterStatRow[] _monsters;
-
-        [SerializeField] private float _runDuration = 300f;
-        [SerializeField] private float[] _passiveThresholds =
-            { 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.2f, 0.1f };
-        [SerializeField] private float[] _activeThresholds =
-            { 30f, 90f, 150f, 210f, 270f };
-
-        public HeroAnchor Hero => _hero;
-        public float RunDuration => _runDuration;
-        public float[] PassiveThresholds => _passiveThresholds;
-        public float[] ActiveThresholds => _activeThresholds;
 
         //# EMonster 키로 스탯 행 조회 — 등급 몬스터는 기준 몬스터 행(monster-grades §6). 미발견 시 null + 경고.
         public CharacterStat GetMonster(EMonster key)
         {
-            if (_monsters != null)
-            {
-                foreach (MonsterStatRow row in _monsters)
-                {
-                    if (row != null && row.Key == MonsterGrades.BaseOf(key)) return row.Stat;
-                }
-            }
+            if (_stats.TryGetValue(MonsterGrades.BaseOf(key), out CharacterStat stat))
+                return stat;
             Debug.LogWarning($"[BalanceConfig] 몬스터 스탯 미발견: {key}");
             return null;
         }
@@ -71,41 +79,24 @@ namespace Lair.Data
         //# EMonster 키로 base 스폰 주기 조회. 미발견 시 fallback 9f + 경고 (GetMonster 패턴 일치).
         public float GetSpawnPeriod(EMonster key)
         {
-            if (_monsters != null)
-            {
-                foreach (MonsterStatRow row in _monsters)
-                {
-                    if (row != null && row.Key == MonsterGrades.BaseOf(key)) return row.SpawnPeriod;
-                }
-            }
+            if (_spawnPeriods.TryGetValue(MonsterGrades.BaseOf(key), out float period))
+                return period;
             Debug.LogWarning($"[BalanceConfig] 스폰 주기 미발견: {key}");
             return 9f;
         }
 
-        //# BalanceConfig.json + MonsterStat.json 조립 결과 (so-to-json-migration §6.2 1번). null = 미로드.
-        //# 커밋 ① 동안 게임은 씬의 SO 를 읽고, 이 값은 패리티 비교에만 쓴다.
-        public static BalanceConfig Current { get; set; }
-
         //# JSON row → 런타임 모델. 위반(§10 SJ3~SJ5)은 전부 모아 ChapterDataException 으로 던진다.
-        public static BalanceConfig Build(BalanceConfigRow config, MonsterStatJsonRow[] monsters)
+        public static BalanceConfig Build(BalanceConfigRow config, MonsterStatRow[] monsters)
         {
             if (config == null)
                 throw new ChapterDataException("BalanceConfig.json 이 비어 있음");
 
             List<string> errors = new List<string>();
             ValidateConfig(config, errors);
-            MonsterStatRow[] rows = BuildMonsters(monsters, errors);
+            ValidateMonsters(monsters, errors);
             if (errors.Count > 0)
                 throw new ChapterDataException("밸런스 데이터 검증 실패:\n - " + string.Join("\n - ", errors));
-
-            //# 커밋 ② 에서 SO 상속을 떼면 new BalanceConfig() 로 바뀐다.
-            BalanceConfig result = CreateInstance<BalanceConfig>();
-            result._hero = new HeroAnchor { Hp = config.heroHp, Power = config.heroPower };
-            result._monsters = rows;
-            result._runDuration = config.runDuration;
-            result._passiveThresholds = config.passiveThresholds;
-            result._activeThresholds = config.activeThresholds;
-            return result;
+            return new BalanceConfig(config, monsters);
         }
 
         private static void ValidateConfig(BalanceConfigRow config, List<string> errors)
@@ -143,61 +134,42 @@ namespace Lair.Data
             }
         }
 
-        //# PK 중복 0 · monster 는 기준 6종 값명 · 기준 6종 전부 존재. 결과 순서는 기준 6종 순(JSON 행 순서 무관).
-        private static MonsterStatRow[] BuildMonsters(MonsterStatJsonRow[] monsters, List<string> errors)
+        //# PK 중복 0 · monster 는 기준 6종 값명 · 기준 6종 전부 존재 · 값 범위.
+        private static void ValidateMonsters(MonsterStatRow[] monsters, List<string> errors)
         {
-            Dictionary<EMonster, MonsterStatRow> byKey = new Dictionary<EMonster, MonsterStatRow>();
+            HashSet<EMonster> seen = new HashSet<EMonster>();
             if (monsters != null)
             {
-                foreach (MonsterStatJsonRow row in monsters)
+                foreach (MonsterStatRow row in monsters)
                 {
                     if (row == null || FormationDatabase.TryParseMonster(row.monster, out EMonster key) == false || MonsterGrades.IsBase(key) == false)
                     {
                         errors.Add($"MonsterStat.json monster '{row?.monster}' 는 EMonster 기준 6종 값명이어야 함");
                         continue;
                     }
-                    if (byKey.ContainsKey(key))
+                    if (seen.Add(key) == false)
                     {
                         errors.Add($"MonsterStat.json monster {key} 중복");
                         continue;
                     }
-                    if (row.hp < 1)
+                    if (row.hp < 1 || row.power < 1)
                     {
-                        errors.Add($"MonsterStat.json {key} hp 는 1 이상이어야 함");
+                        errors.Add($"MonsterStat.json {key} hp·power 는 1 이상이어야 함");
                     }
                     if (row.range <= 0f || row.cooldown <= 0f || row.moveSpeed <= 0f || row.spawnPeriod <= 0f)
                     {
                         errors.Add($"MonsterStat.json {key} range·cooldown·moveSpeed·spawnPeriod 는 0 보다 커야 함");
                     }
-                    byKey[key] = new MonsterStatRow
-                    {
-                        Key = key,
-                        Stat = new CharacterStat
-                        {
-                            Hp = row.hp,
-                            Power = row.power,
-                            Range = row.range,
-                            Cooldown = row.cooldown,
-                            MoveSpeed = row.moveSpeed,
-                        },
-                        SpawnPeriod = row.spawnPeriod,
-                    };
                 }
             }
 
-            List<MonsterStatRow> ordered = new List<MonsterStatRow>();
             foreach (EMonster monster in MonsterGrades.BaseMonsters)
             {
-                if (byKey.TryGetValue(monster, out MonsterStatRow built))
-                {
-                    ordered.Add(built);
-                }
-                else
+                if (seen.Contains(monster) == false)
                 {
                     errors.Add($"MonsterStat.json 에 {monster} 행이 없음");
                 }
             }
-            return ordered.ToArray();
         }
     }
 }

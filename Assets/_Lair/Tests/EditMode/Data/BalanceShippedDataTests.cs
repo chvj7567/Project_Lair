@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using Lair.Data;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
@@ -17,16 +16,10 @@ namespace Lair.Tests.EditMode
         public void 출하_밸런스_JSON은_검증을_통과하고_기준_6종을_모두_가진다()
         {
             BalanceConfig balance = WorldMapTestSupport.ShippedBalance();
-            try
+
+            foreach (EMonster monster in MonsterGrades.BaseMonsters)
             {
-                foreach (EMonster monster in MonsterGrades.BaseMonsters)
-                {
-                    Assert.IsNotNull(balance.GetMonster(monster), monster.ToString());
-                }
-            }
-            finally
-            {
-                Object.DestroyImmediate(balance);
+                Assert.IsNotNull(balance.GetMonster(monster), monster.ToString());
             }
         }
 

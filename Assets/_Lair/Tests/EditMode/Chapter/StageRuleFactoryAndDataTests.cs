@@ -28,7 +28,8 @@ namespace Lair.Tests.EditMode
                 Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
                 Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
                 Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"), Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"),
-                Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"));
+                Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"),
+                WorldMapTestSupport.ShippedBalance().PassiveThresholds);
         }
 
         //# --- StageRuleParams ---

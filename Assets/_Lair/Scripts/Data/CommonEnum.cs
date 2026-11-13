@@ -47,7 +47,7 @@
     }
 
     //# CHMResource 로 몬스터 프리팹 로드. LittleGhost 비주얼 테마(영혼/유령) 이름.
-    //# 순서 절대 변경 금지 — BalanceConfig.MonsterStatRow.Key (int 직렬화) 와 1:1 대응.
+    //# 순서 절대 변경 금지 — 씬·프리팹의 int 직렬화와 MonsterGrades 의 산술 해석이 이 순서에 의존한다.
     public enum EMonster
     {
         Wisp,      //# 도깨비불 — 기본 잡몹 (구 Slime, 0)

@@ -17,8 +17,6 @@ namespace Lair.UI
         public HudLayoutViewModel HudLayout;
         //# 스포너 상태 UI — 진행 바 폴링용 ISpawnerProgress 6개.
         public IReadOnlyList<Spawner> Spawners;
-        //# 스포너 상태 UI — 툴팁이 base 스탯을 읽기 위한 단일 진실.
-        public BalanceConfig Balance;
         //# 상태 아이콘 — ECardId→Sprite 해석 dict. BattleController 가 카드 풀 1회 스캔으로 채워 주입.
         public IReadOnlyDictionary<ECardId, Sprite> CardIcons;
     }

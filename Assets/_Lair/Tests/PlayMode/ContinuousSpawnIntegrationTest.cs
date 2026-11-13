@@ -25,9 +25,8 @@ namespace Lair.Tests.PlayMode
             //# CharacterRegistry 는 정적 — 테스트 간 잔존 방지 위해 비운다.
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
-            //# 런타임 BalanceConfig SO — 위스프 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
-            _balance = ScriptableObject.CreateInstance<BalanceConfig>();
-            SetPrivate(_balance, "_monsters", new[]
+            //# 테스트용 BalanceConfig — 위스프 raw HP 200 / Power 10 등 (§6.2 스타터 수치).
+            _balance = new BalanceConfig(new BalanceConfigRow(), new[]
             {
                 MakeRow(EMonster.Wisp,  hp: 200, power: 10, range: 1.5f, cooldown: 1.0f, move: 2.0f),
                 MakeRow(EMonster.Wraith,  hp: 500, power: 20, range: 1.5f, cooldown: 2.0f, move: 1.0f),
@@ -43,26 +42,18 @@ namespace Lair.Tests.PlayMode
             _spawned.Clear();
             CharacterRegistry.Monsters.Clear();
             CharacterRegistry.Heroes.Clear();
-            if (_balance != null)
-            {
-                Object.Destroy(_balance);
-            }
             //# 캡18 테스트가 timeScale 가속을 쓰므로 원복 — 후속 테스트 영향 차단.
             Time.timeScale = 1f;
         }
 
         //# ===== 유틸 =====
 
-        private static BalanceConfig.MonsterStatRow MakeRow(
+        private static MonsterStatRow MakeRow(
             EMonster key, int hp, int power, float range, float cooldown, float move)
         {
-            return new BalanceConfig.MonsterStatRow
+            return new MonsterStatRow
             {
-                Key = key,
-                Stat = new BalanceConfig.CharacterStat
-                {
-                    Hp = hp, Power = power, Range = range, Cooldown = cooldown, MoveSpeed = move
-                }
+                monster = key.ToString(), hp = hp, power = power, range = range, cooldown = cooldown, moveSpeed = move
             };
         }
 

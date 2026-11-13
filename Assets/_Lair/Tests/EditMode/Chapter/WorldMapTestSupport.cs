@@ -35,11 +35,11 @@ namespace Lair.Tests.EditMode
                 Load<HeroArchetypeRow>("HeroArchetype"), Load<HeroArchetype_KiteRow>("HeroArchetype_Kite"),
                 Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
                 Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"), Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"),
-                Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"));
+                Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"),
+                ShippedBalance().PassiveThresholds);
         }
 
-        //# shipped BalanceConfig.json + MonsterStat.json 조립 (so-to-json-migration §7.5).
-        //# 커밋 ① 동안은 결과가 SO 인스턴스라 호출자가 DestroyImmediate 한다.
+        //# shipped BalanceConfig.json + MonsterStat.json 조립 — 로더와 같은 검증을 거친다 (so-to-json-migration §7.5).
         public static BalanceConfig ShippedBalance()
         {
             return BalanceConfig.Build(

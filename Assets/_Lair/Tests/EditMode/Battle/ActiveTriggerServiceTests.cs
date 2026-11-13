@@ -160,7 +160,7 @@ namespace Lair.Tests.Battle
         {
             BattleClock clock = new BattleClock(300f);
             clock.Start();
-            //# 명시적으로 null 주입 — BattleController 가 _balance?.ActiveThresholds(null 가능)를 넘기는 경로 재현.
+            //# 명시적으로 null 주입 — 임계 배열을 받지 못한 호출 경로 재현.
             ActiveTriggerService svc = new ActiveTriggerService(clock, null);
             int count = 0;
             svc.OnTriggered += _ => count++;
@@ -171,27 +171,19 @@ namespace Lair.Tests.Battle
             Assert.AreEqual(5, count, "thresholds=null → DefaultThresholds(5개) fallback");
         }
 
-        //# fallback 정합 — BalanceConfig.ActiveThresholds 기본 직렬화값이 신 집합(5개)과 일치.
-        //# 런타임 진실원(BalanceConfig.asset)과 코드 기본값이 desync 되지 않았는지 박제 (spec §2.B 진실원 동기화).
+        //# fallback 정합 — 출하 BalanceConfig.json 의 activeThresholds 가 신 집합(5개)과 일치.
+        //# 런타임 진실원(BalanceConfig.json)과 서비스 기본값이 desync 되지 않았는지 박제 (spec §2.B 진실원 동기화).
         [Test]
-        public void BalanceConfig_기본_ActiveThresholds_가_신_집합_5개와_일치()
+        public void BalanceConfig_json_ActiveThresholds_가_신_집합_5개와_일치()
         {
-            BalanceConfig cfg = ScriptableObject.CreateInstance<BalanceConfig>();
-            try
-            {
-                float[] thresholds = cfg.ActiveThresholds;
-                Assert.IsNotNull(thresholds, "ActiveThresholds null 아님");
-                CollectionAssert.AreEqual(ExpectedThresholds, thresholds,
-                    "BalanceConfig 기본 _activeThresholds 가 {30,90,150,210,270} 와 일치");
-                //# 제거된 분단위가 코드 기본값에 잔존하지 않는지 명시 박제.
-                foreach (float removed in RemovedMinuteThresholds)
-                    CollectionAssert.DoesNotContain(thresholds, removed,
-                        $"분단위 {removed} 가 코드 기본값에 잔존 (회귀)");
-            }
-            finally
-            {
-                Object.DestroyImmediate(cfg);
-            }
+            float[] thresholds = Lair.Tests.EditMode.WorldMapTestSupport.ShippedBalance().ActiveThresholds;
+            Assert.IsNotNull(thresholds, "ActiveThresholds null 아님");
+            CollectionAssert.AreEqual(ExpectedThresholds, thresholds,
+                "BalanceConfig.json activeThresholds 가 {30,90,150,210,270} 와 일치");
+            //# 제거된 분단위가 출하 데이터에 잔존하지 않는지 명시 박제.
+            foreach (float removed in RemovedMinuteThresholds)
+                CollectionAssert.DoesNotContain(thresholds, removed,
+                    $"분단위 {removed} 가 출하 데이터에 잔존 (회귀)");
         }
 
         //# 엣지 — 주입 thresholds 가 우선한다 (튜닝/디버그용 커스텀 배열 경로).

@@ -19,8 +19,6 @@ namespace Lair.Village
     public class VillageController : MonoBehaviour
     {
         [SerializeField] private MetaConfig _metaConfig;
-        //# 탑 팝업 능력치 줄용 영웅 앵커(HP/Power) — 미할당이면 능력치 줄만 숨긴다.
-        [SerializeField] private BalanceConfig _balance;
         [SerializeField] private Transform _heroAnchor;    //# 중앙 해골 배치 지점 (씬 정적 배치)
         //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
@@ -434,12 +432,13 @@ namespace Lair.Village
                 MetaSession.Store?.Save(profile);
             }
 
+            //# 탑 팝업 능력치 줄용 영웅 앵커(HP/Power) — 밸런스 미로드면 능력치 줄만 숨긴다.
             int anchorHp = 0;
             int anchorPower = 0;
-            if (_balance != null && _balance.Hero != null)
+            if (BalanceConfig.Current != null && BalanceConfig.Current.Hero != null)
             {
-                anchorHp = _balance.Hero.Hp;
-                anchorPower = _balance.Hero.Power;
+                anchorHp = BalanceConfig.Current.Hero.Hp;
+                anchorPower = BalanceConfig.Current.Hero.Power;
             }
             TowerViewModel towerVm = new TowerViewModel(tower, chapters, profile, LookupString, RelicDatabase.Current, anchorHp, anchorPower);
             await CHMUI.Instance.ShowUIAsync(EUI.TowerPopup, new TowerPopupArg

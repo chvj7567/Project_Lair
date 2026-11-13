@@ -199,41 +199,31 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void BalanceConfig_에셋의_영웅_앵커는_4000_50이다()
+        public void BalanceConfig_json의_영웅_앵커는_4000_50이다()
         {
-            BalanceConfig config = AssetDatabase.LoadAssetAtPath<BalanceConfig>("Assets/_Lair/Data/BalanceConfig.asset");
+            BalanceConfig config = WorldMapTestSupport.ShippedBalance();
 
-            Assert.IsNotNull(config, "BalanceConfig.asset 로드 실패");
             Assert.AreEqual(AnchorHp, config.Hero.Hp);
             Assert.AreEqual(AnchorPower, config.Hero.Power);
         }
 
         [Test]
-        public void balance_config_json의_hero는_hp_power만_가진다()
+        public void BalanceConfig_json의_영웅_키는_heroHp_heroPower만_가진다()
         {
-            JObject root = JObject.Parse(File.ReadAllText(JsonDir + "balance_config.json"));
-            JObject hero = root["hero"] as JObject;
+            JObject root = JObject.Parse(File.ReadAllText(JsonDir + "BalanceConfig.json"));
 
-            Assert.IsNotNull(hero);
             List<string> keys = new List<string>();
-            foreach (JProperty property in hero.Properties())
+            foreach (JProperty property in root.Properties())
             {
-                keys.Add(property.Name);
+                if (property.Name.StartsWith("hero"))
+                {
+                    keys.Add(property.Name);
+                }
             }
             keys.Sort();
-            CollectionAssert.AreEqual(new[] { "hp", "power" }, keys);
-            Assert.AreEqual(AnchorHp, hero["hp"].Value<int>());
-            Assert.AreEqual(AnchorPower, hero["power"].Value<int>());
-        }
-
-        [Test]
-        public void balance_config_json_앵커와_BalanceConfig_에셋_앵커가_일치한다()
-        {
-            JObject hero = JObject.Parse(File.ReadAllText(JsonDir + "balance_config.json"))["hero"] as JObject;
-            BalanceConfig config = AssetDatabase.LoadAssetAtPath<BalanceConfig>("Assets/_Lair/Data/BalanceConfig.asset");
-
-            Assert.AreEqual(hero["hp"].Value<int>(), config.Hero.Hp);
-            Assert.AreEqual(hero["power"].Value<int>(), config.Hero.Power);
+            CollectionAssert.AreEqual(new[] { "heroHp", "heroPower" }, keys);
+            Assert.AreEqual(AnchorHp, root["heroHp"].Value<int>());
+            Assert.AreEqual(AnchorPower, root["heroPower"].Value<int>());
         }
 
         [Test]

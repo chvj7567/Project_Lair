@@ -58,7 +58,7 @@ namespace Lair.Data
         public float hpFraction;
     }
 
-    //# HeroArchetype.json — 영웅 직업 하나. hp/power 앵커는 balance_config 에 유지, 직업은 배율만 가진다.
+    //# HeroArchetype.json — 영웅 직업 하나. hp/power 앵커는 BalanceConfig.json 에 유지, 직업은 배율만 가진다.
     [Serializable]
     public class HeroArchetypeRow
     {

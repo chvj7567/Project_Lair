@@ -43,6 +43,8 @@ namespace Lair.Tests.EditMode
         public List<HeroArchetype_CleaveRow> Cleaves = new List<HeroArchetype_CleaveRow>();
         public List<HeroArchetype_GuardRow> Guards = new List<HeroArchetype_GuardRow>();
         public List<HeroArchetype_DebuffResistRow> DebuffResists = new List<HeroArchetype_DebuffResistRow>();
+        //# 패시브 카드 임계 픽스처 — 운영에서는 BalanceConfig.json passiveThresholds 가 넘어온다.
+        public float[] PassiveThresholds = { 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.2f, 0.1f };
 
         //# 기획서 §3.4 규칙별 필수 파라미터 키 (production 의 표와 독립으로 다시 적어 둔 기대값).
         public static string[] RequiredKeys(string ruleId)
@@ -118,7 +120,7 @@ namespace Lair.Tests.EditMode
             return ChapterDatabase.Build(
                 Chapters.ToArray(), Stages.ToArray(), Rules.ToArray(), Params.ToArray(),
                 Triggers.ToArray(), Heroes.ToArray(), Kites.ToArray(), Skirmishes.ToArray(),
-                Charges.ToArray(), Cleaves.ToArray(), Guards.ToArray(), DebuffResists.ToArray());
+                Charges.ToArray(), Cleaves.ToArray(), Guards.ToArray(), DebuffResists.ToArray(), PassiveThresholds);
         }
     }
 }
