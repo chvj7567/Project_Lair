@@ -25,6 +25,8 @@ namespace Lair.Battle
         [SerializeField] private Spawner[] _spawners;
         //# 전투 밸런스(BalanceConfig.json·MonsterStat.json 조립 결과) — Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
         private BalanceConfig _balance;
+        //# 영웅 스킬(HeroSkill·HeroSkill_Param·HeroArchetype_Skill 조립 결과) — Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
+        private HeroSkillDatabase _heroSkills;
 
         //# v0.2 메타 — 상점 보너스/보상 정산 수치(MetaConfig.json 외 8종 조립 결과). Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
         //# Start 를 거치지 않는 격리 컨트롤러(테스트)에서는 null 이라 메타 로직 전부 skip.
@@ -177,12 +179,13 @@ namespace Lair.Battle
             //# await 재개 시 이미 파괴된 컨트롤러(씬 재로드로 교체)는 아무것도 하지 않는다 — Start 의 모든 await 뒤에 같은 가드.
             if (this == null)
                 return;
-            //# 밸런스·메타 JSON 은 필수 묶음(so-to-json-migration §6.4) — 하나라도 없으면 기본 스탯·무보상으로 진행하지 않고 마을로 돌아간다.
+            //# 밸런스·영웅 스킬·메타 JSON 은 필수 묶음(so-to-json-migration §6.4) — 하나라도 없으면 기본 스탯·스킬 없음·무보상으로 진행하지 않고 마을로 돌아간다.
             _balance = BalanceConfig.Current;
+            _heroSkills = HeroSkillDatabase.Current;
             _metaConfig = MetaConfig.Current;
-            if (_balance == null || _metaConfig == null)
+            if (_balance == null || _heroSkills == null || _metaConfig == null)
             {
-                Debug.LogError("[BattleController] 필수 데이터 미로드(밸런스·메타 JSON) — 전투 진입 중단, 마을로 복귀");
+                Debug.LogError("[BattleController] 필수 데이터 미로드(밸런스·영웅 스킬·메타 JSON) — 전투 진입 중단, 마을로 복귀");
                 AbortToVillage();
                 return;
             }
@@ -1006,22 +1009,20 @@ namespace Lair.Battle
                 _vm.UpdateHeroHp(_heroHealth.Current, _heroHealth.Max);
             }
 
-            //# 영웅 스킬 — 로드아웃 로드 후 러너에 주입(런타임 Bind, 풀 reference 안전).
+            //# 영웅 스킬 — HeroArchetype_Skill 구간을 스킬 인스턴스로 풀어 러너에 주입(런타임 Bind, 풀 reference 안전).
             //# 컷인 구독은 여기서 하지 않는다 — _cutscene 은 SpawnHero await 종료 후(Start L115 이후) 생성됨.
             //# 러너만 필드에 캐싱하고, 컨트롤러 생성 직후 Start 에서 구독한다(이중구독 가드 포함).
             HeroSkillRunner skillRunner = p.GetComponent<HeroSkillRunner>();
             if (skillRunner != null)
             {
                 _skillRunner = skillRunner;
-                HeroSkillLoadout loadout = await CHMResource.Instance.LoadAsync<HeroSkillLoadout>(LoadoutKeyOf(heroKey));
-                if (loadout != null)
+                IReadOnlyList<HeroSkillPhaseEntry> entries = SkillPhasesOf(_heroSkills, heroKey);
+                List<HeroSkillPhase> phases = new List<HeroSkillPhase>(entries.Count);
+                foreach (HeroSkillPhaseEntry entry in entries)
                 {
-                    skillRunner.Bind(loadout);
+                    phases.Add(new HeroSkillPhase(entry.HpFraction, HeroSkillData.Create(_heroSkills.GetSkill(entry.Skill))));
                 }
-                else
-                {
-                    Debug.LogError($"[BattleController] {heroKey} 스킬 로드아웃({LoadoutKeyOf(heroKey)}) 로드 실패 — Addressables 등록 확인, 영웅 스킬 비활성");
-                }
+                skillRunner.Bind(phases);
             }
             else
             {
@@ -1065,23 +1066,14 @@ namespace Lair.Battle
             return true;
         }
 
-        //# 영웅별 스킬 로드아웃 SO 키 — 기사는 기존 HeroSkillLoadout, 그 외는 HeroSkillLoadout_<영웅> (chapter-system §1.4).
-        //# 매핑에 없는 영웅은 기사 로드아웃으로 폴백한다(영웅 추가 시 이 표에 한 줄).
-        private static readonly System.Collections.Generic.Dictionary<EHero, EData> LoadoutKeys = new System.Collections.Generic.Dictionary<EHero, EData>
+        //# 영웅의 스킬 구간 — HeroArchetype_Skill 의 heroId 행(chapter-system §1.4). 행이 없는 영웅은 기사 구성으로 폴백한다(영웅 추가 시 그 JSON 에 행 추가).
+        private static IReadOnlyList<HeroSkillPhaseEntry> SkillPhasesOf(HeroSkillDatabase skills, EHero hero)
         {
-            { EHero.Knight, EData.HeroSkillLoadout },
-            { EHero.Archer, EData.HeroSkillLoadout_Archer },
-            { EHero.Assassin, EData.HeroSkillLoadout_Assassin },
-            { EHero.Berserker, EData.HeroSkillLoadout_Berserker },
-            { EHero.Paladin, EData.HeroSkillLoadout_Paladin },
-        };
-
-        private static EData LoadoutKeyOf(EHero hero)
-        {
-            if (LoadoutKeys.TryGetValue(hero, out EData key))
-                return key;
-            Debug.LogError($"[BattleController] {hero} 스킬 로드아웃 매핑 없음 — 기사 로드아웃으로 폴백(LoadoutKeys 에 등록 필요)");
-            return EData.HeroSkillLoadout;
+            IReadOnlyList<HeroSkillPhaseEntry> phases = skills.GetPhases(hero.ToString());
+            if (phases.Count > 0)
+                return phases;
+            Debug.LogError($"[BattleController] {hero} 스킬 구간 없음 — 기사 구성으로 폴백(HeroArchetype_Skill.json 에 등록 필요)");
+            return skills.GetPhases(EHero.Knight.ToString());
         }
 
         //# BattleZone.OnHeroReachedCenter 핸들러 — 영웅이 zone 중심 도달 시 clock 시작 + 영웅 AI 활성화.

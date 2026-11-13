@@ -4,16 +4,15 @@ namespace Lair.Character
 {
     //# 암살자 그림자 습격 (HP 85%, chapter-3-hero §4) — 위협 점수 최상위 몬스터가 minBlinkDistance 보다 멀고 blinkRange 안이면
     //# 표적 arriveOffset 앞으로 순간이동하며 damage 피해. 처치하면 남은 쿨다운의 killRefundFraction 만큼 환급. 순간이동 후 invulnerableSec 무적.
-    [CreateAssetMenu(fileName = "HeroSkill_ShadowStrike", menuName = "Lair/Hero Skills/Shadow Strike")]
     public class ShadowStrikeSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 120;
-        [SerializeField] private float _cooldown = 6f;
-        [SerializeField] private float _blinkRange = 9f;
-        [SerializeField] private float _minBlinkDistance = 2.5f;
-        [SerializeField] private float _arriveOffset = 1.2f;
-        [SerializeField] private float _invulnerableSec = 0.3f;
-        [SerializeField] private float _killRefundFraction = 0.5f;
+        private int _damage;
+        private float _cooldown;
+        private float _blinkRange;
+        private float _minBlinkDistance;
+        private float _arriveOffset;
+        private float _invulnerableSec;
+        private float _killRefundFraction;
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -22,6 +21,17 @@ namespace Lair.Character
         public float ArriveOffset => _arriveOffset;
         public float InvulnerableSec => _invulnerableSec;
         public float KillRefundFraction => _killRefundFraction;
+
+        public ShadowStrikeSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _blinkRange = p.Get("blinkRange");
+            _minBlinkDistance = p.Get("minBlinkDistance");
+            _arriveOffset = p.Get("arriveOffset");
+            _invulnerableSec = p.Get("invulnerableSec");
+            _killRefundFraction = p.Get("killRefundFraction");
+        }
 
         //# 동시 조건 시 우선순위 — 연막 탄(2) > 그림자 습격(1) > 칼날 선풍(0).
         public override int CastPriority => 1;

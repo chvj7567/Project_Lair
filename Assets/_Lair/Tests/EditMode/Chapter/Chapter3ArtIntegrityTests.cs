@@ -464,10 +464,10 @@ namespace Lair.Tests.EditMode
         //# ===== Addressables / 배경 =====
 
         [Test]
-        public void 암살자_프리팹_FX_5종_로드아웃_배경이_Addressables에_주소로_등록돼_있다()
+        public void 암살자_프리팹_FX_5종_배경이_Addressables에_주소로_등록돼_있다()
         {
             string groups = File.ReadAllText(AddressGroupPath);
-            List<string> addresses = new List<string> { "Assassin", "HeroSkillLoadout_Assassin", "Battle_Backdrop_ShadowCitadel" };
+            List<string> addresses = new List<string> { "Assassin", "Battle_Backdrop_ShadowCitadel" };
             addresses.AddRange(FxNames);
 
             foreach (string address in addresses)

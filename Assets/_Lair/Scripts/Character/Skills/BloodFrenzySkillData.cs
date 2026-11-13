@@ -5,15 +5,14 @@ namespace Lair.Character
 {
     //# 광전사 피의 광란 (HP 45%, chapter-4 §4) — triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면 durationSec 동안
     //# 영웅 공격 쿨다운 x attackCooldownMul · 받는 피해 x damageTakenMul. 쿨다운은 시전 시점부터 흐른다.
-    [CreateAssetMenu(fileName = "HeroSkill_BloodFrenzy", menuName = "Lair/Hero Skills/Blood Frenzy")]
     public class BloodFrenzySkillData : HeroSkillData
     {
-        [SerializeField] private float _durationSec = 6f;
-        [SerializeField] private float _attackCooldownMul = 0.6f;
-        [SerializeField] private float _damageTakenMul = 1.2f;
-        [SerializeField] private float _cooldown = 18f;
-        [SerializeField] private int _triggerMonsterCount = 3;
-        [SerializeField] private float _triggerRadius = 2.2f;
+        private float _durationSec;
+        private float _attackCooldownMul;
+        private float _damageTakenMul;
+        private float _cooldown;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public float DurationSec => _durationSec;
         public float AttackCooldownMul => _attackCooldownMul;
@@ -21,6 +20,16 @@ namespace Lair.Character
         public float Cooldown => _cooldown;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public BloodFrenzySkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _durationSec = p.Get("durationSec");
+            _attackCooldownMul = p.Get("attackCooldownMul");
+            _damageTakenMul = p.Get("damageTakenMul");
+            _cooldown = p.Get("cooldown");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         //# 동시 조건 시 우선순위 — 사슬 갈고리(2) > 피의 광란(1) > 분쇄 도약(0).
         public override int CastPriority => 1;

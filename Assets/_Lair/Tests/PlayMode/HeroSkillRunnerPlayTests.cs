@@ -21,13 +21,13 @@ namespace Lair.Tests.PlayMode
 
             //# 로드아웃 — Dash 1페이즈(90%). 쿨다운 0 → 활성 직후 첫 Tick 에서 결정적 발동
             //# (wall-clock 프레임 dt 합에 의존하지 않음). DashStrikeRuntime: _cooldownRemain=0 → 첫 Tick -=dt <0.
-            DashStrikeSkillData dash = ScriptableObject.CreateInstance<DashStrikeSkillData>();
+            DashStrikeSkillData dash = HeroSkillPlayKit.MakeDash();
             SetField(dash, "_damage", 50);
             SetField(dash, "_cooldown", 0f);
             SetField(dash, "_dashLength", 10f);
             SetField(dash, "_coneHalfAngle", 45f);
             SetField(dash, "_centroidRadius", 20f);
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+            List<HeroSkillPhase> loadout = new List<HeroSkillPhase>();
             AddPhase(loadout, 0.9f, dash);
             runner.Bind(loadout);
 
@@ -57,20 +57,9 @@ namespace Lair.Tests.PlayMode
         private static void SetField(object t, string f, object v)
             => t.GetType().GetField(f, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(t, v);
 
-        //# PlayMode asmdef 는 UnityEditor 미참조 → SerializedObject 사용 불가.
-        //# 비공개 _phases(List<Phase>) 에 reflection 으로 Phase 인스턴스를 직접 add.
-        private static void AddPhase(HeroSkillLoadout loadout, float frac, HeroSkillData skill)
+        private static void AddPhase(List<HeroSkillPhase> loadout, float frac, HeroSkillData skill)
         {
-            FieldInfo phasesField = typeof(HeroSkillLoadout)
-                .GetField("_phases", BindingFlags.NonPublic | BindingFlags.Instance);
-            IList list = (IList)phasesField.GetValue(loadout);
-
-            HeroSkillLoadout.Phase phase = new HeroSkillLoadout.Phase
-            {
-                HpFraction = frac,
-                Skill = skill
-            };
-            list.Add(phase);
+            loadout.Add(new HeroSkillPhase(frac, skill));
         }
     }
 }

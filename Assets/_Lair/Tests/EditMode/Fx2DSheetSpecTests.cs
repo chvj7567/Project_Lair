@@ -17,8 +17,6 @@ namespace Lair.Tests.EditMode
         private const string MatFx2D = "Assets/_Lair/Art/Materials/Mat_FX2D.mat";
         private const string MatMonster2D = "Assets/_Lair/Art/Materials/Mat_Monster2D.mat";
         private const string Shader2D = "Assets/_Lair/Art/Shaders/Monster2DSprite.shader";
-        private const string OrbitSkillAsset = "Assets/_Lair/Art/Skills/HeroSkill_OrbitingBlade.asset";
-        private const string DashSkillAsset = "Assets/_Lair/Art/Skills/HeroSkill_DashStrike.asset";
 
         private static readonly string[] SheetFxNames =
         {
@@ -116,16 +114,14 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 궤도_블레이드_SO는_3개로_고정이다()
         {
-            OrbitingBladeSkillData so = AssetDatabase.LoadAssetAtPath<OrbitingBladeSkillData>(OrbitSkillAsset);
-            Assert.IsNotNull(so, $"에셋 누락: {OrbitSkillAsset}");
+            OrbitingBladeSkillData so = WorldMapTestSupport.ShippedSkill<OrbitingBladeSkillData>();
             Assert.AreEqual(3, so.BladeCount, "시트는 블레이드 3개 고정 — 시각·판정 개수 정합");
         }
 
         [Test]
         public void 대시_판정은_전방위_반각180이고_FX는_반경3_원형_시트이다()
         {
-            DashStrikeSkillData so = AssetDatabase.LoadAssetAtPath<DashStrikeSkillData>(DashSkillAsset);
-            Assert.IsNotNull(so, $"에셋 누락: {DashSkillAsset}");
+            DashStrikeSkillData so = WorldMapTestSupport.ShippedSkill<DashStrikeSkillData>();
             Assert.AreEqual(180f, so.ConeHalfAngle, 1e-4f, "돌진 반각이 바뀜 — FX 시트·크기 재검토 필요");
             Assert.AreEqual(3f, so.DashLength, 1e-4f, "돌진 반경이 바뀜 — FX 크기(루트 스케일 3, PPU 52) 재검토 필요");
         }

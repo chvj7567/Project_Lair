@@ -22,17 +22,14 @@ namespace Lair.Tests.EditMode
         {
             ArcherFxLogGuard.Suppress();
             _ctx = new RecordingAssassinContext();
-            _shadow = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
-            _whirl = ScriptableObject.CreateInstance<BladeWhirlSkillData>();
-            _smoke = ScriptableObject.CreateInstance<SmokeBombSkillData>();
+            _shadow = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
+            _whirl = HeroSkillTestKit.Make<BladeWhirlSkillData>();
+            _smoke = HeroSkillTestKit.Make<SmokeBombSkillData>();
         }
 
         [TearDown]
         public void 스킬_데이터를_정리한다()
         {
-            Object.DestroyImmediate(_shadow);
-            Object.DestroyImmediate(_whirl);
-            Object.DestroyImmediate(_smoke);
             foreach (GameObject go in _spawned)
             {
                 if (go != null)
@@ -100,16 +97,15 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0, _whirl.CastPriority);
             foreach (HeroSkillData legacy in new HeroSkillData[]
                      {
-                         ScriptableObject.CreateInstance<DashStrikeSkillData>(),
-                         ScriptableObject.CreateInstance<AoeNovaSkillData>(),
-                         ScriptableObject.CreateInstance<OrbitingBladeSkillData>(),
-                         ScriptableObject.CreateInstance<PiercingShotSkillData>(),
-                         ScriptableObject.CreateInstance<ArrowVolleySkillData>(),
-                         ScriptableObject.CreateInstance<EvadeSkillData>(),
+                         HeroSkillTestKit.Make<DashStrikeSkillData>(),
+                         HeroSkillTestKit.Make<AoeNovaSkillData>(),
+                         HeroSkillTestKit.Make<OrbitingBladeSkillData>(),
+                         HeroSkillTestKit.Make<PiercingShotSkillData>(),
+                         HeroSkillTestKit.Make<ArrowVolleySkillData>(),
+                         HeroSkillTestKit.Make<EvadeSkillData>(),
                      })
             {
                 Assert.AreEqual(0, legacy.CastPriority, legacy.GetType().Name);
-                Object.DestroyImmediate(legacy);
             }
         }
 
@@ -534,9 +530,7 @@ namespace Lair.Tests.EditMode
             Health health = hero.GetComponent<Health>();
             health.SetMax(100, true);
             InvokeNonPublic(runner, "Awake");
-            HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>("Assets/_Lair/Art/Skills/HeroSkillLoadout_Assassin.asset");
-            Assert.IsNotNull(loadout);
-            runner.Bind(loadout);
+            runner.Bind(WorldMapTestSupport.ShippedSkillPhases("Assassin"));
             List<string> unlocked = new List<string>();
             runner.OnSkillUnlocked += data => unlocked.Add(data.GetType().Name);
             health.TakeDamage(70);
@@ -560,7 +554,7 @@ namespace Lair.Tests.EditMode
             Health health = hero.GetComponent<Health>();
             health.SetMax(100, true);
             InvokeNonPublic(runner, "Awake");
-            HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>("Assets/_Lair/Art/Skills/HeroSkillLoadout.asset");
+            List<HeroSkillPhase> loadout = WorldMapTestSupport.ShippedSkillPhases("Knight");
             runner.Bind(loadout);
             health.TakeDamage(70);
 
@@ -570,7 +564,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(3, active.Count);
             for (int i = 0; i < 3; ++i)
             {
-                Assert.AreEqual(loadout.Phases[i].Skill.CreateRuntime().GetType(), active[i].GetType(), $"phase {i}");
+                Assert.AreEqual(loadout[i].Skill.CreateRuntime().GetType(), active[i].GetType(), $"phase {i}");
             }
         }
 

@@ -5,15 +5,14 @@ namespace Lair.Character
 {
     //# 궁수 화살 소나기 (HP 65%, chapter-system §5.4) — 영웅 중심 searchRadius 안 가장 밀집한 지점에 tickCount 연속 타격(한 몬스터 1틱 1회).
     //# 보스 규칙 ArrowRain(화살비)과는 별개 — 표시명도 "화살 소나기".
-    [CreateAssetMenu(fileName = "HeroSkill_ArrowVolley", menuName = "Lair/Hero Skills/Arrow Volley")]
     public class ArrowVolleySkillData : HeroSkillData
     {
-        [SerializeField] private int _damagePerTick = 40;
-        [SerializeField] private int _tickCount = 3;
-        [SerializeField] private float _tickIntervalSec = 0.5f;
-        [SerializeField] private float _radius = 2.8f;
-        [SerializeField] private float _cooldown = 8f;
-        [SerializeField] private float _targetSearchRadius = 7f;
+        private int _damagePerTick;
+        private int _tickCount;
+        private float _tickIntervalSec;
+        private float _radius;
+        private float _cooldown;
+        private float _targetSearchRadius;
 
         public int DamagePerTick => _damagePerTick;
         public int TickCount => _tickCount;
@@ -21,6 +20,16 @@ namespace Lair.Character
         public float Radius => _radius;
         public float Cooldown => _cooldown;
         public float TargetSearchRadius => _targetSearchRadius;
+
+        public ArrowVolleySkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damagePerTick = p.GetInt("damagePerTick");
+            _tickCount = p.GetInt("tickCount");
+            _tickIntervalSec = p.Get("tickIntervalSec");
+            _radius = p.Get("radius");
+            _cooldown = p.Get("cooldown");
+            _targetSearchRadius = p.Get("targetSearchRadius");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new ArrowVolleyRuntime(this);
     }

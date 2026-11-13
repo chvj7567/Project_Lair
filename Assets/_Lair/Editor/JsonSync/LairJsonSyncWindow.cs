@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Lair.EditorTools
 {
-    //# Lair > JSON Sync 에디터 창 — CardData · CardPool · HeroSkill 양방향 동기화 트리거.
+    //# Lair > JSON Sync 에디터 창 — CardData · CardPool 양방향 동기화 트리거.
     public class LairJsonSyncWindow : EditorWindow
     {
         private const string JsonDir = "Assets/_Lair/Data/Json";
@@ -30,7 +30,6 @@ namespace Lair.EditorTools
             EditorGUILayout.Space(12);
             DrawSection("Cards",          "cards.json",          CardDataSyncer.Export,       CardDataSyncer.Import);
             DrawSection("Card Pools",     "card_pools.json",     CardPoolSyncer.Export,       CardPoolSyncer.Import);
-            DrawSection("Hero Skills",    "hero_skills.json",    HeroSkillSyncer.Export,      HeroSkillSyncer.Import);
         }
 
         private static void DrawSection(string label, string fileName, Action export, Action import)
@@ -65,7 +64,6 @@ namespace Lair.EditorTools
         {
             CardDataSyncer.Export();
             CardPoolSyncer.Export();
-            HeroSkillSyncer.Export();
         }
 
         private static void ImportAll()
@@ -77,10 +75,6 @@ namespace Lair.EditorTools
             if (File.Exists(Path.Combine(JsonDir, "card_pools.json")))
             {
                 CardPoolSyncer.Import();
-            }
-            if (File.Exists(Path.Combine(JsonDir, "hero_skills.json")))
-            {
-                HeroSkillSyncer.Import();
             }
         }
     }

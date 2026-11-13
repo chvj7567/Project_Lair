@@ -4,15 +4,14 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# P2 (HP 60%) — 영웅 주위를 공전하는 3D 구(sphere) N개. 각 구 반경 안 몬스터에 인터벌마다 지속 데미지(per-sphere overlap, union dedup).
-    [CreateAssetMenu(fileName = "HeroSkill_OrbitingBlade", menuName = "Lair/Hero Skills/Orbiting Blade")]
     public class OrbitingBladeSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 15;
-        [SerializeField] private float _hitInterval = 0.3f;
-        [SerializeField] private float _orbitRadius = 1.4f;
-        [SerializeField] private float _bladeSphereRadius = 0.9f;   //# 각 공전 구 반경 = 히트 반경 = 비주얼 반경
-        [SerializeField] private int _bladeCount = 3;
-        [SerializeField] private float _rotationSpeedDeg = 180f;
+        private int _damage;
+        private float _hitInterval;
+        private float _orbitRadius;
+        private float _bladeSphereRadius;   //# 각 공전 구 반경 = 히트 반경 = 비주얼 반경
+        private int _bladeCount;
+        private float _rotationSpeedDeg;
 
         public int Damage => _damage;
         public float HitInterval => _hitInterval;
@@ -20,6 +19,16 @@ namespace Lair.Character
         public float BladeSphereRadius => _bladeSphereRadius;
         public int BladeCount => _bladeCount;
         public float RotationSpeedDeg => _rotationSpeedDeg;
+
+        public OrbitingBladeSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _hitInterval = p.Get("hitInterval");
+            _orbitRadius = p.Get("orbitRadius");
+            _bladeSphereRadius = p.Get("bladeSphereRadius");
+            _bladeCount = p.GetInt("bladeCount");
+            _rotationSpeedDeg = p.Get("rotationSpeedDeg");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new OrbitingBladeRuntime(this);
     }

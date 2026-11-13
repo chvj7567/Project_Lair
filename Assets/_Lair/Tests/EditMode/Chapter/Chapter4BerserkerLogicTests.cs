@@ -12,7 +12,6 @@ namespace Lair.Tests.EditMode
     public class Chapter4BerserkerLogicTests
     {
         private readonly List<GameObject> _spawned = new List<GameObject>();
-        private readonly List<ScriptableObject> _assets = new List<ScriptableObject>();
 
         [SetUp]
         public void FX_로그를_격리한다()
@@ -31,19 +30,12 @@ namespace Lair.Tests.EditMode
                 }
             }
             _spawned.Clear();
-            foreach (ScriptableObject asset in _assets)
-            {
-                Object.DestroyImmediate(asset);
-            }
-            _assets.Clear();
             ArcherFxLogGuard.Restore();
         }
 
-        private T NewAsset<T>() where T : ScriptableObject
+        private T NewAsset<T>() where T : HeroSkillData
         {
-            T asset = ScriptableObject.CreateInstance<T>();
-            _assets.Add(asset);
-            return asset;
+            return HeroSkillTestKit.Make<T>();
         }
 
         //# ===== 설정 변환 =====

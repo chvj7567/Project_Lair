@@ -3,15 +3,14 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# P1 (HP 90%) — 영웅이 몬스터 무게중심 방향으로 부채꼴(cone) 관통 데미지(+넉백).
-    [CreateAssetMenu(fileName = "HeroSkill_DashStrike", menuName = "Lair/Hero Skills/Dash Strike")]
     public class DashStrikeSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 80;
-        [SerializeField] private float _cooldown = 3f;
-        [SerializeField] private float _dashLength = 7f;
-        [SerializeField] private float _coneHalfAngle = 35f;   //# 부채꼴 반각(도) — 전체각 = 2×
-        [SerializeField] private float _knockbackStrength = 2f;
-        [SerializeField] private float _centroidRadius = 8f;   //# 방향 결정용 무게중심 수집 반경
+        private int _damage;
+        private float _cooldown;
+        private float _dashLength;
+        private float _coneHalfAngle;   //# 부채꼴 반각(도) — 전체각 = 2×
+        private float _knockbackStrength;
+        private float _centroidRadius;   //# 방향 결정용 무게중심 수집 반경
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -19,6 +18,16 @@ namespace Lair.Character
         public float ConeHalfAngle => _coneHalfAngle;
         public float KnockbackStrength => _knockbackStrength;
         public float CentroidRadius => _centroidRadius;
+
+        public DashStrikeSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _dashLength = p.Get("dashLength");
+            _coneHalfAngle = p.Get("coneHalfAngle");
+            _knockbackStrength = p.Get("knockbackStrength");
+            _centroidRadius = p.Get("centroidRadius");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new DashStrikeRuntime(this);
     }

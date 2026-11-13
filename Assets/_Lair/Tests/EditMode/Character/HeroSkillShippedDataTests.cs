@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Lair.Data;
 using NUnit.Framework;
@@ -48,8 +47,8 @@ namespace Lair.Tests.EditMode
             }
         }
 
-        //# 구간 HP 비율의 종류는 보스 규칙 트리거가 피해야 하는 스킬 게이트(ChapterDatabase.SkillGateFractions)와 같다 —
-        //# 커밋 ② 에서 그 하드코딩 사본을 이 집합으로 대체해도 검증 결과가 달라지지 않는다는 근거.
+        //# 구간 HP 비율의 종류는 보스 규칙 트리거가 피해야 하는 스킬 게이트의 이전 하드코딩 값(0.85·0.65·0.45)과 같다 —
+        //# 그 하드코딩 사본을 HeroArchetype_Skill 집합(GateFractionsOf)으로 대체해도 챕터 검증 결과가 달라지지 않는다는 근거.
         [Test]
         public void 구간_HP_비율의_종류는_스킬_게이트_세_값과_같다()
         {
@@ -63,9 +62,9 @@ namespace Lair.Tests.EditMode
                 }
             }
 
-            FieldInfo gate = typeof(ChapterDatabase).GetField("SkillGateFractions", BindingFlags.NonPublic | BindingFlags.Static);
-            Assert.IsNotNull(gate, "ChapterDatabase.SkillGateFractions");
-            CollectionAssert.AreEquivalent((float[])gate.GetValue(null), distinct);
+            float[] former = { 0.85f, 0.65f, 0.45f };
+            CollectionAssert.AreEquivalent(former, distinct);
+            CollectionAssert.AreEquivalent(former, HeroSkillDatabase.GateFractionsOf(WorldMapTestSupport.ShippedHeroSkillData()));
         }
 
         //# JsonUtility 가 오타·누락 필드를 0 으로 채우는 경우(nameKey·hpFraction)와 수치 키 누락·초과·정수 위반을 한 번에 모아 던진다.

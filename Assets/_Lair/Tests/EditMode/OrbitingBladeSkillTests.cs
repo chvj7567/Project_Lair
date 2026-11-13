@@ -8,7 +8,7 @@ namespace Lair.Tests.EditMode
     {
         private static IHeroSkillRuntime MakeRuntime()
         {
-            OrbitingBladeSkillData data = ScriptableObject.CreateInstance<OrbitingBladeSkillData>();
+            OrbitingBladeSkillData data = HeroSkillTestKit.Make<OrbitingBladeSkillData>();
             TestReflection.SetField(data, "_damage", 20);
             TestReflection.SetField(data, "_hitInterval", 0.3f);
             TestReflection.SetField(data, "_orbitRadius", 1.4f);

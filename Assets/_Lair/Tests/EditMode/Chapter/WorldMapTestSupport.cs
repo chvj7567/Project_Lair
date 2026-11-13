@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using ChvjUnityInfra;
 using Lair.Battle;
+using Lair.Character;
 using Lair.Data;
 
 namespace Lair.Tests.EditMode
@@ -36,7 +37,8 @@ namespace Lair.Tests.EditMode
                 Load<HeroArchetype_SkirmishRow>("HeroArchetype_Skirmish"),
                 Load<HeroArchetype_ChargeRow>("HeroArchetype_Charge"), Load<HeroArchetype_CleaveRow>("HeroArchetype_Cleave"),
                 Load<HeroArchetype_GuardRow>("HeroArchetype_Guard"), Load<HeroArchetype_DebuffResistRow>("HeroArchetype_DebuffResist"),
-                ShippedBalance().PassiveThresholds);
+                ShippedBalance().PassiveThresholds,
+                HeroSkillDatabase.GateFractionsOf(ShippedHeroSkillData()));
         }
 
         //# shipped BalanceConfig.json + MonsterStat.json 조립 — 로더와 같은 검증을 거친다 (so-to-json-migration §7.5).
@@ -101,6 +103,26 @@ namespace Lair.Tests.EditMode
         public static HeroSkillDatabase ShippedHeroSkills()
         {
             return BuildHeroSkills(ShippedHeroSkillData());
+        }
+
+        //# shipped 영웅 스킬 한 종 — 클래스 이름(XxxSkillData)에서 스킬을 정해 출하 JSON 값으로 만든다.
+        public static T ShippedSkill<T>() where T : HeroSkillData
+        {
+            HeroSkillDatabase db = ShippedHeroSkills();
+            EHeroSkill id = (EHeroSkill)System.Enum.Parse(typeof(EHeroSkill), typeof(T).Name.Replace("SkillData", string.Empty));
+            return (T)HeroSkillData.Create(db.GetSkill(id));
+        }
+
+        //# shipped 영웅 스킬 구간 — HeroSkillRunner.Bind 입력(구간 HP 비율 + 출하 값 스킬).
+        public static List<HeroSkillPhase> ShippedSkillPhases(string heroId)
+        {
+            HeroSkillDatabase db = ShippedHeroSkills();
+            List<HeroSkillPhase> phases = new List<HeroSkillPhase>();
+            foreach (HeroSkillPhaseEntry entry in db.GetPhases(heroId))
+            {
+                phases.Add(new HeroSkillPhase(entry.HpFraction, HeroSkillData.Create(db.GetSkill(entry.Skill))));
+            }
+            return phases;
         }
 
         public static IReadOnlyDictionary<int, string> Strings()

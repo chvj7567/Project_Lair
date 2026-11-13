@@ -4,17 +4,16 @@ namespace Lair.Character
 {
     //# 암살자 연막 탄 (HP 45%, chapter-3-hero §4) — triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면 현재 위치에 durationSec 연막 지대.
     //# 지대 안 몬스터 이동속도 x monsterSpeedMul, 공격 사거리 x monsterRangeMul(하한 max(monsterMinRange, 충돌 거리 + 0.1)). 시전 직후 슬립을 쿨다운 무시로 1회 요청.
-    [CreateAssetMenu(fileName = "HeroSkill_SmokeBomb", menuName = "Lair/Hero Skills/Smoke Bomb")]
     public class SmokeBombSkillData : HeroSkillData
     {
-        [SerializeField] private float _radius = 3f;
-        [SerializeField] private float _durationSec = 3f;
-        [SerializeField] private float _monsterSpeedMul = 0.6f;
-        [SerializeField] private float _monsterRangeMul = 0.5f;
-        [SerializeField] private float _monsterMinRange = 0.8f;
-        [SerializeField] private float _cooldown = 12f;
-        [SerializeField] private int _triggerMonsterCount = 4;
-        [SerializeField] private float _triggerRadius = 2.4f;
+        private float _radius;
+        private float _durationSec;
+        private float _monsterSpeedMul;
+        private float _monsterRangeMul;
+        private float _monsterMinRange;
+        private float _cooldown;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public float Radius => _radius;
         public float DurationSec => _durationSec;
@@ -24,6 +23,18 @@ namespace Lair.Character
         public float Cooldown => _cooldown;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public SmokeBombSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _radius = p.Get("radius");
+            _durationSec = p.Get("durationSec");
+            _monsterSpeedMul = p.Get("monsterSpeedMul");
+            _monsterRangeMul = p.Get("monsterRangeMul");
+            _monsterMinRange = p.Get("monsterMinRange");
+            _cooldown = p.Get("cooldown");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         //# 동시 조건 시 우선순위 — 군중 탈출이 가장 위급: 연막 탄(2) > 그림자 습격(1) > 칼날 선풍(0).
         public override int CastPriority => 2;

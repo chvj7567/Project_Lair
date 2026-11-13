@@ -4,17 +4,16 @@ namespace Lair.Character
 {
     //# 암살자 칼날 선풍 (HP 65%, chapter-3-hero §4) — triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면 시전.
     //# tickIntervalSec 간격으로 tickCount 번 반경 radius 안 전원에 damagePerTick(1틱 1회). 시전 중 영웅 받는 피해 x damageTakenMul.
-    [CreateAssetMenu(fileName = "HeroSkill_BladeWhirl", menuName = "Lair/Hero Skills/Blade Whirl")]
     public class BladeWhirlSkillData : HeroSkillData
     {
-        [SerializeField] private int _damagePerTick = 35;
-        [SerializeField] private int _tickCount = 4;
-        [SerializeField] private float _tickIntervalSec = 0.3f;
-        [SerializeField] private float _radius = 2.4f;
-        [SerializeField] private float _cooldown = 9f;
-        [SerializeField] private float _damageTakenMul = 0.7f;
-        [SerializeField] private int _triggerMonsterCount = 2;
-        [SerializeField] private float _triggerRadius = 2.4f;
+        private int _damagePerTick;
+        private int _tickCount;
+        private float _tickIntervalSec;
+        private float _radius;
+        private float _cooldown;
+        private float _damageTakenMul;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public int DamagePerTick => _damagePerTick;
         public int TickCount => _tickCount;
@@ -24,6 +23,18 @@ namespace Lair.Character
         public float DamageTakenMul => _damageTakenMul;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public BladeWhirlSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damagePerTick = p.GetInt("damagePerTick");
+            _tickCount = p.GetInt("tickCount");
+            _tickIntervalSec = p.Get("tickIntervalSec");
+            _radius = p.Get("radius");
+            _cooldown = p.Get("cooldown");
+            _damageTakenMul = p.Get("damageTakenMul");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new BladeWhirlRuntime(this);
     }

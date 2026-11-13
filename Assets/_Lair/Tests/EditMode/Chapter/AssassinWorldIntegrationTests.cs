@@ -737,62 +737,31 @@ namespace Lair.Tests.EditMode
 
         //# ===== 로드아웃 매핑 / 에디터 동기 =====
 
-        private static EData LoadoutKeyOf(EHero hero)
+        private static IReadOnlyList<HeroSkillPhaseEntry> SkillPhasesOf(EHero hero)
         {
-            MethodInfo mi = typeof(BattleController).GetMethod("LoadoutKeyOf", BindingFlags.NonPublic | BindingFlags.Static);
-            Assert.IsNotNull(mi, "BattleController.LoadoutKeyOf 존재 - 시그니처 변경 감지");
-            return (EData)mi.Invoke(null, new object[] { hero });
+            MethodInfo mi = typeof(BattleController).GetMethod("SkillPhasesOf", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(mi, "BattleController.SkillPhasesOf 존재 - 시그니처 변경 감지");
+            return (IReadOnlyList<HeroSkillPhaseEntry>)mi.Invoke(null, new object[] { WorldMapTestSupport.ShippedHeroSkills(), hero });
         }
 
         [Test]
-        public void 영웅별_스킬_로드아웃_키는_영웅_이름을_따른다()
+        public void 영웅별_스킬_구간은_영웅_이름의_HeroArchetype_Skill_행을_따른다()
         {
-            Assert.AreEqual(EData.HeroSkillLoadout, LoadoutKeyOf(EHero.Knight));
-            Assert.AreEqual(EData.HeroSkillLoadout_Archer, LoadoutKeyOf(EHero.Archer));
-            Assert.AreEqual(EData.HeroSkillLoadout_Assassin, LoadoutKeyOf(EHero.Assassin));
+            Assert.AreEqual(EHeroSkill.DashStrike, SkillPhasesOf(EHero.Knight)[0].Skill);
+            Assert.AreEqual(EHeroSkill.PiercingShot, SkillPhasesOf(EHero.Archer)[0].Skill);
+            Assert.AreEqual(EHeroSkill.ShadowStrike, SkillPhasesOf(EHero.Assassin)[0].Skill);
         }
 
         [Test]
-        public void 매핑에_없는_영웅은_기사_로드아웃으로_폴백한다()
+        public void 행이_없는_영웅은_기사_구성으로_폴백한다()
         {
-            //# 매핑 누락은 조용히 넘어가지 않고 오류 로그를 남긴 뒤 기사 로드아웃으로 폴백한다(의도된 오류).
-            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("스킬 로드아웃 매핑 없음.*기사 로드아웃으로 폴백"));
+            //# 행 누락은 조용히 넘어가지 않고 오류 로그를 남긴 뒤 기사 구성으로 폴백한다(의도된 오류).
+            UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("스킬 구간 없음.*기사 구성으로 폴백"));
 
-            Assert.AreEqual(EData.HeroSkillLoadout, LoadoutKeyOf((EHero)99));
-        }
+            IReadOnlyList<HeroSkillPhaseEntry> phases = SkillPhasesOf((EHero)99);
 
-        [Test]
-        public void 로드아웃_키_값명은_asset_파일명과_Addressables_주소가_일치한다()
-        {
-            string groups = File.ReadAllText("Assets/AddressableAssetsData/AssetGroups/Resource.asset");
-
-            foreach (EHero hero in new[] { EHero.Archer, EHero.Assassin })
-            {
-                string key = LoadoutKeyOf(hero).ToString();
-                Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>($"Assets/_Lair/Art/Skills/{key}.asset"), key);
-                StringAssert.Contains($"m_Address: {key}", groups);
-            }
-        }
-
-        [Test]
-        public void JsonSync의_영웅별_로드아웃_경로에_암살자가_포함되고_모든_경로의_asset이_존재한다()
-        {
-            FieldInfo field = typeof(HeroSkillSyncer).GetField("LoadoutPaths", BindingFlags.NonPublic | BindingFlags.Static);
-            Assert.IsNotNull(field, "HeroSkillSyncer.LoadoutPaths 존재 - 시그니처 변경 감지");
-            KeyValuePair<string, string>[] paths = (KeyValuePair<string, string>[])field.GetValue(null);
-            Dictionary<string, string> byHero = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> pair in paths)
-            {
-                byHero[pair.Key] = pair.Value;
-                Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(pair.Value), pair.Value);
-            }
-
-            Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Assassin.asset", byHero["Assassin"]);
-            Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Berserker.asset", byHero["Berserker"]);
-            Assert.AreEqual("Assets/_Lair/Art/Skills/HeroSkillLoadout_Paladin.asset", byHero["Paladin"]);
-            Assert.AreEqual(5, byHero.Count);
-            Assert.IsTrue(byHero.ContainsKey("Knight"));
-            Assert.IsTrue(byHero.ContainsKey("Archer"));
+            Assert.AreEqual(3, phases.Count);
+            Assert.AreEqual(EHeroSkill.DashStrike, phases[0].Skill);
         }
 
         //# ===== 기사 / 궁수 경로 불변 =====

@@ -4,18 +4,17 @@ namespace Lair.Character
 {
     //# 광전사 분쇄 도약 (HP 85%, chapter-4 §4) — 최대 군집 무게중심이 minLeapDistance 보다 멀고 leapRange 안이면 그 지점으로 leapDurationSec 도약(무적),
     //# 착지 시 반경 slamRadius 에 damage + 넉백. 목적지는 전장 안으로 클램프.
-    [CreateAssetMenu(fileName = "HeroSkill_CrushingLeap", menuName = "Lair/Hero Skills/Crushing Leap")]
     public class CrushingLeapSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 90;
-        [SerializeField] private float _cooldown = 7f;
-        [SerializeField] private float _leapRange = 8f;
-        [SerializeField] private float _minLeapDistance = 3f;
-        [SerializeField] private float _leapDurationSec = 0.3f;
-        [SerializeField] private float _invulnerableSec = 0.3f;
-        [SerializeField] private float _slamRadius = 2.6f;
-        [SerializeField] private float _knockbackStrength = 1.5f;
-        [SerializeField] private float _clusterRadius = 2.2f;
+        private int _damage;
+        private float _cooldown;
+        private float _leapRange;
+        private float _minLeapDistance;
+        private float _leapDurationSec;
+        private float _invulnerableSec;
+        private float _slamRadius;
+        private float _knockbackStrength;
+        private float _clusterRadius;
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -26,6 +25,19 @@ namespace Lair.Character
         public float SlamRadius => _slamRadius;
         public float KnockbackStrength => _knockbackStrength;
         public float ClusterRadius => _clusterRadius;
+
+        public CrushingLeapSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _leapRange = p.Get("leapRange");
+            _minLeapDistance = p.Get("minLeapDistance");
+            _leapDurationSec = p.Get("leapDurationSec");
+            _invulnerableSec = p.Get("invulnerableSec");
+            _slamRadius = p.Get("slamRadius");
+            _knockbackStrength = p.Get("knockbackStrength");
+            _clusterRadius = p.Get("clusterRadius");
+        }
 
         //# 동시 조건 시 우선순위 — 사슬 갈고리(2) > 피의 광란(1) > 분쇄 도약(0).
         public override int CastPriority => 0;

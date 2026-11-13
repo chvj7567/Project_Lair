@@ -13,8 +13,6 @@ namespace Lair.Tests.EditMode
     //# 암살자(Skirmisher) AI 상태기계·표적 점수·스킬 3종·데이터 자체 스모크 (chapter-3-hero §3.3·§4). 본격 스위트는 test-engineer.
     public class AssassinTests
     {
-        private const string SkillDir = "Assets/_Lair/Art/Skills/";
-        private const string JsonPath = "Assets/_Lair/Data/Json/hero_skills.json";
 
         //# 암살자 FX 프리팹은 아트 슬라이스 소관 - 에셋 부재 LogError(키별 1회 정적 캐시)가 실행 순서에 따라 새지 않게 격리한다.
         [SetUp]
@@ -522,7 +520,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 그림자_습격은_첫_쿨다운_뒤_표적_앞으로_순간이동하고_120_피해_0_3초_무적이다()
         {
-            ShadowStrikeSkillData data = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
+            ShadowStrikeSkillData data = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx();
 
@@ -538,13 +536,12 @@ namespace Lair.Tests.EditMode
 
             runtime.Tick(ctx, 3f);
             Assert.AreEqual(1, ctx.Teleports.Count, "시전 후 쿨다운 6초");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 그림자_습격은_처치하면_쿨다운이_절반_환급되어_3초_뒤_다시_발동한다()
         {
-            ShadowStrikeSkillData data = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
+            ShadowStrikeSkillData data = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { KillOnDamage = true };
             runtime.Tick(ctx, 6.1f);
@@ -553,13 +550,12 @@ namespace Lair.Tests.EditMode
             ctx.HeroPosition = Vector3.zero;
             runtime.Tick(ctx, 3.1f);
             Assert.AreEqual(2, ctx.Teleports.Count, "환급 — 6.0 → 3.0");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 그림자_습격은_표적이_2_5보다_가깝거나_없거나_정지_중이면_보류한다()
         {
-            ShadowStrikeSkillData data = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
+            ShadowStrikeSkillData data = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { ThreatPosition = new Vector3(2f, 0f, 0f) };
 
@@ -579,7 +575,6 @@ namespace Lair.Tests.EditMode
             ctx.HasThreat = true;
             runtime.Tick(ctx, 0.3f);
             Assert.AreEqual(1, ctx.Teleports.Count, "조건 충족 즉시 발동(쿨다운은 소진된 상태)");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
@@ -597,7 +592,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 칼날_선풍은_몬스터_2마리_이상일_때만_시전하고_4틱_피해_배율_0_7을_걸었다_푼다()
         {
-            BladeWhirlSkillData data = ScriptableObject.CreateInstance<BladeWhirlSkillData>();
+            BladeWhirlSkillData data = HeroSkillTestKit.Make<BladeWhirlSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { Nearby = 1 };
 
@@ -619,13 +614,12 @@ namespace Lair.Tests.EditMode
 
             runtime.Tick(ctx, 5f);
             Assert.AreEqual(4, ctx.RingTicks, "쿨다운 9초 — 재시전 없음");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 칼날_선풍은_중간에_비활성되면_피해_배율을_원복하고_정지_중엔_진행하지_않는다()
         {
-            BladeWhirlSkillData data = ScriptableObject.CreateInstance<BladeWhirlSkillData>();
+            BladeWhirlSkillData data = HeroSkillTestKit.Make<BladeWhirlSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { Nearby = 3 };
             runtime.Tick(ctx, 9.5f);
@@ -639,13 +633,12 @@ namespace Lair.Tests.EditMode
             runtime.OnDeactivate();
             Assert.AreEqual(2, ctx.TakenMuls.Count, "원복 1회만(중복 안전)");
             Assert.AreEqual(1f / 0.7f, ctx.TakenMuls[1], 0.0001f);
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 연막_탄은_4마리_이상일_때_지대를_만들고_슬립을_요청하며_3초_뒤_해제한다()
         {
-            SmokeBombSkillData data = ScriptableObject.CreateInstance<SmokeBombSkillData>();
+            SmokeBombSkillData data = HeroSkillTestKit.Make<SmokeBombSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { Nearby = 3 };
 
@@ -669,13 +662,12 @@ namespace Lair.Tests.EditMode
 
             runtime.Tick(ctx, 5f);
             Assert.AreEqual(1, ctx.SlipRequests, "쿨다운 12초");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 연막_탄은_지대_중_비활성되면_원복하고_영웅_정지_중엔_시전하지_않는다()
         {
-            SmokeBombSkillData data = ScriptableObject.CreateInstance<SmokeBombSkillData>();
+            SmokeBombSkillData data = HeroSkillTestKit.Make<SmokeBombSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeAssassinCtx ctx = new FakeAssassinCtx { Nearby = 5, IsHeroActive = false };
 
@@ -689,115 +681,80 @@ namespace Lair.Tests.EditMode
             runtime.OnDeactivate();
             runtime.OnDeactivate();
             Assert.AreEqual(1, ctx.ZoneClears, "원복 1회만(중복 안전)");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 스킬_컨텍스트가_암살자용이_아니면_보류한다()
         {
-            ShadowStrikeSkillData data = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
+            ShadowStrikeSkillData data = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("IAssassinSkillContext"));
 
             Assert.DoesNotThrow(() => runtime.Tick(new PlainHeroSkillContext(), 7f));
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 동시_조건_우선순위는_연막_탄_그림자_습격_칼날_선풍_순이다()
         {
-            ShadowStrikeSkillData shadow = ScriptableObject.CreateInstance<ShadowStrikeSkillData>();
-            BladeWhirlSkillData whirl = ScriptableObject.CreateInstance<BladeWhirlSkillData>();
-            SmokeBombSkillData smoke = ScriptableObject.CreateInstance<SmokeBombSkillData>();
+            ShadowStrikeSkillData shadow = HeroSkillTestKit.Make<ShadowStrikeSkillData>();
+            BladeWhirlSkillData whirl = HeroSkillTestKit.Make<BladeWhirlSkillData>();
+            SmokeBombSkillData smoke = HeroSkillTestKit.Make<SmokeBombSkillData>();
 
             Assert.Greater(smoke.CastPriority, shadow.CastPriority);
             Assert.Greater(shadow.CastPriority, whirl.CastPriority);
-            Assert.AreEqual(0, ScriptableObject.CreateInstance<DashStrikeSkillData>().CastPriority, "기존 스킬은 기본 우선순위");
-            Object.DestroyImmediate(shadow);
-            Object.DestroyImmediate(whirl);
-            Object.DestroyImmediate(smoke);
+            Assert.AreEqual(0, HeroSkillTestKit.Make<DashStrikeSkillData>().CastPriority, "기존 스킬은 기본 우선순위");
         }
 
         //# ===== 데이터 일관성 =====
 
-        private static JObject SkillJson(string fileName)
+        [Test]
+        public void 암살자_스킬_수치와_이름은_기획서_표와_같다()
         {
-            foreach (JToken token in (JArray)JObject.Parse(File.ReadAllText(JsonPath))["skills"])
-            {
-                if ((string)token["fileName"] == fileName)
-                    return (JObject)token;
-            }
-            Assert.Fail($"hero_skills.json 에 {fileName} 없음");
-            return null;
+            ShadowStrikeSkillData shadow = WorldMapTestSupport.ShippedSkill<ShadowStrikeSkillData>();
+            Assert.AreEqual(120, shadow.Damage);
+            Assert.AreEqual(6f, shadow.Cooldown, 0.0001f);
+            Assert.AreEqual(9f, shadow.BlinkRange, 0.0001f);
+            Assert.AreEqual(2.5f, shadow.MinBlinkDistance, 0.0001f);
+            Assert.AreEqual(1.2f, shadow.ArriveOffset, 0.0001f);
+            Assert.AreEqual(0.3f, shadow.InvulnerableSec, 0.0001f);
+            Assert.AreEqual(0.5f, shadow.KillRefundFraction, 0.0001f);
+            Assert.AreEqual("그림자 습격", shadow.DisplayName);
+
+            BladeWhirlSkillData whirl = WorldMapTestSupport.ShippedSkill<BladeWhirlSkillData>();
+            Assert.AreEqual(35, whirl.DamagePerTick);
+            Assert.AreEqual(4, whirl.TickCount);
+            Assert.AreEqual(0.3f, whirl.TickIntervalSec, 0.0001f);
+            Assert.AreEqual(2.4f, whirl.Radius, 0.0001f);
+            Assert.AreEqual(9f, whirl.Cooldown, 0.0001f);
+            Assert.AreEqual(0.7f, whirl.DamageTakenMul, 0.0001f);
+            Assert.AreEqual(2, whirl.TriggerMonsterCount);
+            Assert.AreEqual(2.4f, whirl.TriggerRadius, 0.0001f);
+            Assert.AreEqual("칼날 선풍", whirl.DisplayName);
+
+            SmokeBombSkillData smoke = WorldMapTestSupport.ShippedSkill<SmokeBombSkillData>();
+            Assert.AreEqual(3f, smoke.Radius, 0.0001f);
+            Assert.AreEqual(3f, smoke.DurationSec, 0.0001f);
+            Assert.AreEqual(0.6f, smoke.MonsterSpeedMul, 0.0001f);
+            Assert.AreEqual(0.5f, smoke.MonsterRangeMul, 0.0001f);
+            Assert.AreEqual(0.8f, smoke.MonsterMinRange, 0.0001f);
+            Assert.AreEqual(12f, smoke.Cooldown, 0.0001f);
+            Assert.AreEqual(4, smoke.TriggerMonsterCount);
+            Assert.AreEqual(2.4f, smoke.TriggerRadius, 0.0001f);
+            Assert.AreEqual("연막 탄", smoke.DisplayName);
         }
 
         [Test]
-        public void 암살자_스킬_asset은_JSON_수치와_일치한다()
+        public void 암살자_스킬_구간은_85_65_45_그림자_선풍_연막_순서다()
         {
-            ShadowStrikeSkillData shadow = AssetDatabase.LoadAssetAtPath<ShadowStrikeSkillData>(SkillDir + "HeroSkill_ShadowStrike.asset");
-            JObject j = SkillJson("HeroSkill_ShadowStrike");
-            Assert.IsNotNull(shadow);
-            Assert.AreEqual((int)j["damage"], shadow.Damage);
-            Assert.AreEqual((float)j["cooldown"], shadow.Cooldown, 0.0001f);
-            Assert.AreEqual((float)j["blinkRange"], shadow.BlinkRange, 0.0001f);
-            Assert.AreEqual((float)j["minBlinkDistance"], shadow.MinBlinkDistance, 0.0001f);
-            Assert.AreEqual((float)j["arriveOffset"], shadow.ArriveOffset, 0.0001f);
-            Assert.AreEqual((float)j["invulnerableSec"], shadow.InvulnerableSec, 0.0001f);
-            Assert.AreEqual((float)j["killRefundFraction"], shadow.KillRefundFraction, 0.0001f);
-            Assert.AreEqual((string)j["displayName"], shadow.DisplayName);
+            List<HeroSkillPhase> phases = WorldMapTestSupport.ShippedSkillPhases("Assassin");
 
-            BladeWhirlSkillData whirl = AssetDatabase.LoadAssetAtPath<BladeWhirlSkillData>(SkillDir + "HeroSkill_BladeWhirl.asset");
-            j = SkillJson("HeroSkill_BladeWhirl");
-            Assert.IsNotNull(whirl);
-            Assert.AreEqual((int)j["damagePerTick"], whirl.DamagePerTick);
-            Assert.AreEqual((int)j["tickCount"], whirl.TickCount);
-            Assert.AreEqual((float)j["tickIntervalSec"], whirl.TickIntervalSec, 0.0001f);
-            Assert.AreEqual((float)j["radius"], whirl.Radius, 0.0001f);
-            Assert.AreEqual((float)j["cooldown"], whirl.Cooldown, 0.0001f);
-            Assert.AreEqual((float)j["damageTakenMul"], whirl.DamageTakenMul, 0.0001f);
-            Assert.AreEqual((int)j["triggerMonsterCount"], whirl.TriggerMonsterCount);
-            Assert.AreEqual((float)j["triggerRadius"], whirl.TriggerRadius, 0.0001f);
-            Assert.AreEqual((string)j["displayName"], whirl.DisplayName);
-
-            SmokeBombSkillData smoke = AssetDatabase.LoadAssetAtPath<SmokeBombSkillData>(SkillDir + "HeroSkill_SmokeBomb.asset");
-            j = SkillJson("HeroSkill_SmokeBomb");
-            Assert.IsNotNull(smoke);
-            Assert.AreEqual((float)j["radius"], smoke.Radius, 0.0001f);
-            Assert.AreEqual((float)j["durationSec"], smoke.DurationSec, 0.0001f);
-            Assert.AreEqual((float)j["monsterSpeedMul"], smoke.MonsterSpeedMul, 0.0001f);
-            Assert.AreEqual((float)j["monsterRangeMul"], smoke.MonsterRangeMul, 0.0001f);
-            Assert.AreEqual((float)j["monsterMinRange"], smoke.MonsterMinRange, 0.0001f);
-            Assert.AreEqual((float)j["cooldown"], smoke.Cooldown, 0.0001f);
-            Assert.AreEqual((int)j["triggerMonsterCount"], smoke.TriggerMonsterCount);
-            Assert.AreEqual((float)j["triggerRadius"], smoke.TriggerRadius, 0.0001f);
-            Assert.AreEqual((string)j["displayName"], smoke.DisplayName);
-        }
-
-        [Test]
-        public void 암살자_로드아웃_asset은_85_65_45_스킬_순서이고_JSON과_일치한다()
-        {
-            HeroSkillLoadout asset = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(SkillDir + "HeroSkillLoadout_Assassin.asset");
-            Assert.IsNotNull(asset);
-
-            List<JToken> json = new List<JToken>();
-            foreach (JToken token in (JArray)JObject.Parse(File.ReadAllText(JsonPath))["loadout"])
-            {
-                if ((string)token["heroId"] == "Assassin")
-                {
-                    json.Add(token);
-                }
-            }
-
-            string[] skills = { "HeroSkill_ShadowStrike", "HeroSkill_BladeWhirl", "HeroSkill_SmokeBomb" };
             float[] gates = { 0.85f, 0.65f, 0.45f };
-            Assert.AreEqual(3, asset.Phases.Count);
-            Assert.AreEqual(3, json.Count);
+            System.Type[] skills = { typeof(ShadowStrikeSkillData), typeof(BladeWhirlSkillData), typeof(SmokeBombSkillData) };
+            Assert.AreEqual(3, phases.Count);
             for (int i = 0; i < 3; ++i)
             {
-                Assert.AreEqual(gates[i], asset.Phases[i].HpFraction, 0.0001f);
-                Assert.AreEqual(skills[i], asset.Phases[i].Skill.name);
-                Assert.AreEqual(gates[i], (float)json[i]["hpFraction"], 0.0001f);
-                Assert.AreEqual(skills[i], (string)json[i]["skill"]);
+                Assert.AreEqual(gates[i], phases[i].HpFraction, 0.0001f);
+                Assert.IsInstanceOf(skills[i], phases[i].Skill);
             }
         }
 
@@ -810,7 +767,7 @@ namespace Lair.Tests.EditMode
             }
             Assert.IsTrue(System.Enum.IsDefined(typeof(EHero), "Assassin"));
             Assert.IsTrue(System.Enum.IsDefined(typeof(EHeroAi), "Skirmisher"));
-            Assert.IsTrue(System.Enum.IsDefined(typeof(EData), "HeroSkillLoadout_Assassin"));
+            Assert.IsTrue(System.Enum.IsDefined(typeof(EHeroSkill), "ShadowStrike"));
         }
     }
 }

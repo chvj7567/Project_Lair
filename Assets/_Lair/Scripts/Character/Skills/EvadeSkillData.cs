@@ -4,17 +4,16 @@ namespace Lair.Character
 {
     //# 궁수 회피 도약 (HP 45%, chapter-system §5.4) — 반경 triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면(checkIntervalSec 마다 검사)
     //# 위협 중심 반대로 leapDistance 도약하며 출발 지점에 피해+넉백. 갇힘 탈출 수단. 도약 동안 AI 이동 명령은 잠긴다(이동 소유권은 AutoCombatAI.BeginLeap).
-    [CreateAssetMenu(fileName = "HeroSkill_Evade", menuName = "Lair/Hero Skills/Evade")]
     public class EvadeSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 30;
-        [SerializeField] private float _cooldown = 10f;
-        [SerializeField] private float _leapDistance = 4.5f;
-        [SerializeField] private float _leapDurationSec = 0.25f;
-        [SerializeField] private float _blastRadius = 2f;
-        [SerializeField] private float _knockbackStrength = 2.5f;
-        [SerializeField] private int _triggerMonsterCount = 3;
-        [SerializeField] private float _triggerRadius = 2f;
+        private int _damage;
+        private float _cooldown;
+        private float _leapDistance;
+        private float _leapDurationSec;
+        private float _blastRadius;
+        private float _knockbackStrength;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -24,6 +23,18 @@ namespace Lair.Character
         public float KnockbackStrength => _knockbackStrength;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public EvadeSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _leapDistance = p.Get("leapDistance");
+            _leapDurationSec = p.Get("leapDurationSec");
+            _blastRadius = p.Get("blastRadius");
+            _knockbackStrength = p.Get("knockbackStrength");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new EvadeRuntime(this);
     }

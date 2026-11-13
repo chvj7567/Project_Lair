@@ -3,15 +3,14 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# 궁수 관통 사격 (HP 85%, chapter-system §5.4) — 몬스터 무게중심 방향으로 직선 관통 데미지(+약한 넉백). 접근하는 몬스터 줄을 꿴다.
-    [CreateAssetMenu(fileName = "HeroSkill_PiercingShot", menuName = "Lair/Hero Skills/Piercing Shot")]
     public class PiercingShotSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 70;
-        [SerializeField] private float _cooldown = 4f;
-        [SerializeField] private float _lineLength = 9f;
-        [SerializeField] private float _lineHalfWidth = 0.6f;
-        [SerializeField] private float _knockbackStrength = 0.5f;
-        [SerializeField] private float _centroidRadius = 8f;   //# 방향 결정용 무게중심 수집 반경
+        private int _damage;
+        private float _cooldown;
+        private float _lineLength;
+        private float _lineHalfWidth;
+        private float _knockbackStrength;
+        private float _centroidRadius;   //# 방향 결정용 무게중심 수집 반경
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -19,6 +18,16 @@ namespace Lair.Character
         public float LineHalfWidth => _lineHalfWidth;
         public float KnockbackStrength => _knockbackStrength;
         public float CentroidRadius => _centroidRadius;
+
+        public PiercingShotSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _lineLength = p.Get("lineLength");
+            _lineHalfWidth = p.Get("lineHalfWidth");
+            _knockbackStrength = p.Get("knockbackStrength");
+            _centroidRadius = p.Get("centroidRadius");
+        }
 
         public override IHeroSkillRuntime CreateRuntime() => new PiercingShotRuntime(this);
     }

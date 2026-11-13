@@ -27,6 +27,8 @@ namespace Lair.Tests.Character
         //# HeroSkillData 추상 구현 — CreateRuntime 만. 발행 인자 동일성 단언용 참조.
         private class FakeSkillData : HeroSkillData
         {
+            public FakeSkillData() : base(string.Empty) { }
+
             public override IHeroSkillRuntime CreateRuntime() => new FakeRuntime();
         }
 
@@ -65,7 +67,7 @@ namespace Lair.Tests.Character
         }
 
         private static FakeSkillData MakeSkill()
-            => ScriptableObject.CreateInstance<FakeSkillData>();
+            => new FakeSkillData();
 
         //# EditMode 는 Update 가 안 돌므로 private Update 를 reflection 으로 직접 호출.
         private void TickUpdate() => InvokePrivate(_runner, "Update");
@@ -78,15 +80,12 @@ namespace Lair.Tests.Character
             m.Invoke(runner, null);
         }
 
-        private HeroSkillLoadout MakeLoadout(params (float frac, HeroSkillData skill)[] phases)
+        private IReadOnlyList<HeroSkillPhase> MakeLoadout(params (float frac, HeroSkillData skill)[] phases)
         {
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
-            FieldInfo phasesField = typeof(HeroSkillLoadout)
-                .GetField("_phases", BindingFlags.NonPublic | BindingFlags.Instance);
-            System.Collections.IList list = (System.Collections.IList)phasesField.GetValue(loadout);
+            List<HeroSkillPhase> list = new List<HeroSkillPhase>();
             foreach ((float frac, HeroSkillData skill) p in phases)
-                list.Add(new HeroSkillLoadout.Phase { HpFraction = p.frac, Skill = p.skill });
-            return loadout;
+                list.Add(new HeroSkillPhase(p.frac, p.skill));
+            return list;
         }
 
         [Test]

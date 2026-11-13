@@ -8,7 +8,7 @@ namespace Lair.Tests.EditMode
     {
         private static IHeroSkillRuntime MakeRuntime()
         {
-            AoeNovaSkillData data = ScriptableObject.CreateInstance<AoeNovaSkillData>();
+            AoeNovaSkillData data = HeroSkillTestKit.Make<AoeNovaSkillData>();
             TestReflection.SetField(data, "_damage", 80);
             TestReflection.SetField(data, "_cooldown", 4f);
             TestReflection.SetField(data, "_radius", 3f);

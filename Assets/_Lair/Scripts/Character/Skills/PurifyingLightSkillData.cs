@@ -4,16 +4,22 @@ namespace Lair.Character
 {
     //# 성기사 정화의 빛 (HP 65%, chapter-5 §4) - 영웅의 시한 디버프 슬롯이 triggerDebuffCount 종 이상이면 전부 해제하고 최대 HP healPercent 회복.
     //# 영구 디버프(HeroAttackDown·EternalBleed)는 해제하지 않는다. SlowAura 슬롯은 출처와 무관하게 1종으로 센다.
-    [CreateAssetMenu(fileName = "HeroSkill_PurifyingLight", menuName = "Lair/Hero Skills/Purifying Light")]
     public class PurifyingLightSkillData : HeroSkillData
     {
-        [SerializeField] private int _triggerDebuffCount = 2;
-        [SerializeField] private float _healPercent = 0.08f;
-        [SerializeField] private float _cooldown = 12f;
+        private int _triggerDebuffCount;
+        private float _healPercent;
+        private float _cooldown;
 
         public int TriggerDebuffCount => _triggerDebuffCount;
         public float HealPercent => _healPercent;
         public float Cooldown => _cooldown;
+
+        public PurifyingLightSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _triggerDebuffCount = p.GetInt("triggerDebuffCount");
+            _healPercent = p.Get("healPercent");
+            _cooldown = p.Get("cooldown");
+        }
 
         //# 조건이 드물게 맞으므로 맞을 때 놓치지 않게 최우선 - 정화의 빛(2) > 성역(1) > 심판의 망치(0).
         public override int CastPriority => 2;

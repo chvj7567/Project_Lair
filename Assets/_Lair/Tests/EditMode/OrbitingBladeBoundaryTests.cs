@@ -12,7 +12,7 @@ namespace Lair.Tests.EditMode
         //# 인터벌 0.4 — 누적 틱 경계 회귀용 임의값(파라미터 정합은 OrbitingBladeSkillTests 커버). 데미지 적용 횟수만 검증.
         private static IHeroSkillRuntime MakeRuntime()
         {
-            OrbitingBladeSkillData data = ScriptableObject.CreateInstance<OrbitingBladeSkillData>();
+            OrbitingBladeSkillData data = HeroSkillTestKit.Make<OrbitingBladeSkillData>();
             TestReflection.SetField(data, "_damage", 15);
             TestReflection.SetField(data, "_hitInterval", 0.4f);
             TestReflection.SetField(data, "_orbitRadius", 1.4f);

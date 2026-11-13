@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace Lair.Character
 {
-    //# 영웅 부착 — 로드아웃 페이즈를 HP% 게이트로 활성화하고 활성 스킬을 매 프레임 Tick.
+    //# 영웅 부착 — 스킬 구간(HP 비율 + 스킬)을 HP% 게이트로 활성화하고 활성 스킬을 매 프레임 Tick.
     //# 영웅은 풀 객체(count 1) → OnEnable/OnDisable 에서 활성 상태 리셋(HeroAuraRunner 패턴).
     [RequireComponent(typeof(LairCharacter))]
     [RequireComponent(typeof(Health))]
     public class HeroSkillRunner : MonoBehaviour
     {
         private IHealth _health;
-        private HeroSkillLoadout _loadout;
+        private IReadOnlyList<HeroSkillPhase> _phases;
         private HeroSkillPhaseGate _gate;
         private IHeroSkillContext _ctx;
 
@@ -31,17 +31,17 @@ namespace Lair.Character
             _ctx = new HeroSkillContext(transform);
         }
 
-        //# BattleController 가 로드아웃 로드 후 주입. 게이트를 페이즈 HP비율로 구성.
-        public void Bind(HeroSkillLoadout loadout)
+        //# BattleController 가 영웅 스킬 구간(HeroArchetype_Skill 조립 결과)을 주입. 게이트를 구간 HP비율로 구성.
+        public void Bind(IReadOnlyList<HeroSkillPhase> phases)
         {
-            _loadout = loadout;
-            if (loadout == null)
+            _phases = phases;
+            if (phases == null)
             {
                 _gate = null;
                 return;
             }
-            List<float> fractions = new List<float>(loadout.Phases.Count);
-            foreach (HeroSkillLoadout.Phase p in loadout.Phases)
+            List<float> fractions = new List<float>(phases.Count);
+            foreach (HeroSkillPhase p in phases)
                 fractions.Add(p.HpFraction);
             _gate = new HeroSkillPhaseGate(fractions);
             ResetActive();
@@ -53,13 +53,13 @@ namespace Lair.Character
 
         private void Update()
         {
-            if (_loadout == null || _gate == null || _health == null || _health.IsAlive == false)
+            if (_phases == null || _gate == null || _health == null || _health.IsAlive == false)
                 return;
 
             _gate.Poll(_health.Ratio, _newly);
             for (int i = 0; i < _newly.Count; ++i)
             {
-                HeroSkillData data = _loadout.Phases[_newly[i]].Skill;
+                HeroSkillData data = _phases[_newly[i]].Skill;
                 if (data != null)
                 {
                     int insertAt = _active.Count;

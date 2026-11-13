@@ -251,7 +251,8 @@ namespace Lair.Tests.EditMode
                 JsonArrayUtility.FromJsonArray<HeroArchetype_CleaveRow>(File.ReadAllText(JsonDir + "HeroArchetype_Cleave.json")),
                 JsonArrayUtility.FromJsonArray<HeroArchetype_GuardRow>(File.ReadAllText(JsonDir + "HeroArchetype_Guard.json")),
                 JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(File.ReadAllText(JsonDir + "HeroArchetype_DebuffResist.json")),
-                WorldMapTestSupport.ShippedBalance().PassiveThresholds);
+                WorldMapTestSupport.ShippedBalance().PassiveThresholds,
+                HeroSkillDatabase.GateFractionsOf(WorldMapTestSupport.ShippedHeroSkillData()));
 
             int created = 0;
             for (int chapter = 1; chapter <= db.ChapterCount; ++chapter)

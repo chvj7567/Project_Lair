@@ -146,7 +146,7 @@
         CardPool_Active,    //# B2 신규
         Strings_Ko,         //# 게임 전체 CHText 문자열 — Data/Json/Strings_Ko.json
         LoadingStrings_Ko,  //# 로딩 설명 텍스트 — Data/Json/LoadingStrings_Ko.json
-        HeroSkillLoadout,   //# 영웅 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout.asset (2026-06-04)
+        HeroSkillLoadout,   //# 폐기(영웅 스킬 JSON 이전, so-to-json-migration §8.1) — 에셋·로드 삭제, 정수 직렬화 안전을 위해 자리만 보존
         SynergyVisualConfig, //# 시너지 축 아이콘 SO — Art/Synergy/SynergyVisualConfig.asset
         //# 챕터 시스템 JSON 7종 (chapter-system §1·§7.3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
         Chapter,
@@ -156,15 +156,15 @@
         Stage_Rule_Trigger,
         HeroArchetype,
         HeroArchetype_Kite,
-        HeroSkillLoadout_Archer,   //# 궁수 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Archer.asset (chapter-system §1.4)
+        HeroSkillLoadout_Archer,   //# 폐기(위와 같음) — 자리만 보존
         HeroArchetype_Skirmish,    //# 암살자 습격-이탈 AI 튜닝 JSON — Data/Json/HeroArchetype_Skirmish.json (chapter-3-hero §2)
-        HeroSkillLoadout_Assassin, //# 암살자 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Assassin.asset (에셋은 슬라이스 (b))
+        HeroSkillLoadout_Assassin, //# 폐기(위와 같음) — 자리만 보존
         HeroArchetype_Charge,      //# 광전사 군집 돌진 AI 튜닝 JSON — Data/Json/HeroArchetype_Charge.json (chapter-4 §2)
         HeroArchetype_Cleave,      //# 광전사 범위 베기 설정 JSON — Data/Json/HeroArchetype_Cleave.json (chapter-4 §2)
-        HeroSkillLoadout_Berserker, //# 광전사 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Berserker.asset (에셋은 슬라이스 (b))
+        HeroSkillLoadout_Berserker, //# 폐기(위와 같음) — 자리만 보존
         HeroArchetype_Guard,        //# 성기사 응징 표적 AI 튜닝 JSON — Data/Json/HeroArchetype_Guard.json (chapter-5 §2)
         HeroArchetype_DebuffResist, //# 성기사 디버프 저항 패시브 JSON — Data/Json/HeroArchetype_DebuffResist.json (chapter-5 §2)
-        HeroSkillLoadout_Paladin,   //# 성기사 스킬 로드아웃 SO — Art/Skills/HeroSkillLoadout_Paladin.asset (에셋은 슬라이스 (b))
+        HeroSkillLoadout_Paladin,   //# 폐기(위와 같음) — 자리만 보존
         Difficulty,                 //# 난이도 배율표 JSON — Data/Json/Difficulty.json (difficulty-select §2)
         //# 유물 2차 JSON 10종 (relics §3) — 값명 = Data/Json/<값명>.json 파일명. append-only.
         Relic,

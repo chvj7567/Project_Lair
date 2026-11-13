@@ -9,7 +9,7 @@ namespace Lair.Tests.EditMode
         //# 테스트용 SO + 런타임 생성 (필드는 reflection 으로 주입).
         private static IHeroSkillRuntime MakeRuntime(out DashStrikeSkillData data)
         {
-            data = ScriptableObject.CreateInstance<DashStrikeSkillData>();
+            data = HeroSkillTestKit.Make<DashStrikeSkillData>();
             TestReflection.SetField(data, "_damage", 100);
             TestReflection.SetField(data, "_cooldown", 2f);
             TestReflection.SetField(data, "_dashLength", 6f);

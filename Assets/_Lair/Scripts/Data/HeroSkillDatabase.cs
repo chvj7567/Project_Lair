@@ -87,6 +87,21 @@ namespace Lair.Data
             return Array.Empty<HeroSkillPhaseEntry>();
         }
 
+        //# 영웅 스킬 해금 HP 비율의 종류(중복 제거) — 보스 규칙 트리거가 피해야 하는 스킬 게이트(§6.3).
+        //# 원본 행에서 바로 구해, 영웅 직업이 확정되기 전(챕터 검증, §6.2 3번)에도 쓸 수 있다.
+        public static float[] GateFractionsOf(HeroSkillDataSet data)
+        {
+            List<float> result = new List<float>();
+            foreach (HeroArchetype_SkillRow row in data?.Phases ?? Array.Empty<HeroArchetype_SkillRow>())
+            {
+                if (row != null && result.Contains(row.hpFraction) == false)
+                {
+                    result.Add(row.hpFraction);
+                }
+            }
+            return result.ToArray();
+        }
+
         //# chapters 는 heroId FK 와 영웅별 커버리지의 출처 — 챕터 데이터 확정 뒤(§6.2 4번)에 부른다.
         //# nameKeyExists·text 는 Strings_Ko 조회 (Data 가 로더에 기대지 않게 주입).
         public static HeroSkillDatabase Build(HeroSkillDataSet data, ChapterDatabase chapters, Func<int, bool> nameKeyExists, Func<int, string> text)

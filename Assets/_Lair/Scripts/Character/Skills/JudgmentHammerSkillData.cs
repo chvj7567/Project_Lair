@@ -3,20 +3,28 @@ using UnityEngine;
 namespace Lair.Character
 {
     //# 성기사 심판의 망치 (HP 85%, chapter-5 §4) - 현재 표적이 영웅에게서 castRange 이내이면 그 위치에 radius 반경 damage + stunSec 기절.
-    [CreateAssetMenu(fileName = "HeroSkill_JudgmentHammer", menuName = "Lair/Hero Skills/Judgment Hammer")]
     public class JudgmentHammerSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 110;
-        [SerializeField] private float _cooldown = 6f;
-        [SerializeField] private float _radius = 2.4f;
-        [SerializeField] private float _stunSec = 0.6f;
-        [SerializeField] private float _castRange = 5f;
+        private int _damage;
+        private float _cooldown;
+        private float _radius;
+        private float _stunSec;
+        private float _castRange;
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
         public float Radius => _radius;
         public float StunSec => _stunSec;
         public float CastRange => _castRange;
+
+        public JudgmentHammerSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _radius = p.Get("radius");
+            _stunSec = p.Get("stunSec");
+            _castRange = p.Get("castRange");
+        }
 
         //# 동시 조건 시 우선순위 - 정화의 빛(2) > 성역(1) > 심판의 망치(0).
         public override int CastPriority => 0;

@@ -9,7 +9,6 @@ namespace Lair.Tests.EditMode
     //# 궁수 스킬 3종 런타임·SO 데이터 자체 스모크 (chapter-system §5.4). 본격 스위트는 test-engineer.
     public class ArcherSkillTests
     {
-        private const string SkillDir = "Assets/_Lair/Art/Skills/";
 
         //# FX 프리팹은 (d2) 소관 — 에셋 부재 LogError(키별 1회 정적 캐시)가 실행 순서에 따라 새지 않도록 테스트 동안 격리한다.
         [SetUp]
@@ -54,7 +53,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 관통_사격은_첫_쿨다운_뒤_무게중심_방향_직선으로_발동하고_몬스터가_없으면_보류한다()
         {
-            PiercingShotSkillData data = ScriptableObject.CreateInstance<PiercingShotSkillData>();
+            PiercingShotSkillData data = HeroSkillTestKit.Make<PiercingShotSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeArcherCtx ctx = new FakeArcherCtx();
 
@@ -72,13 +71,12 @@ namespace Lair.Tests.EditMode
 
             runtime.Tick(ctx, 1f);
             Assert.AreEqual(1, ctx.LineHits, "발동 후 쿨다운 4초");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 화살_소나기는_발동_즉시_첫_타격하고_이후_간격마다_총_3타를_친다()
         {
-            ArrowVolleySkillData data = ScriptableObject.CreateInstance<ArrowVolleySkillData>();
+            ArrowVolleySkillData data = HeroSkillTestKit.Make<ArrowVolleySkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeArcherCtx ctx = new FakeArcherCtx();
 
@@ -91,13 +89,12 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(3, ctx.VolleyTicks);
             runtime.Tick(ctx, 0.5f);
             Assert.AreEqual(3, ctx.VolleyTicks, "3타 뒤엔 쿨다운(8초) 동안 추가 타격 없음");
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 회피_도약은_몬스터가_3마리_이상일_때만_위협_반대로_도약하고_목적지는_아레나_안으로_클램프된다()
         {
-            EvadeSkillData data = ScriptableObject.CreateInstance<EvadeSkillData>();
+            EvadeSkillData data = HeroSkillTestKit.Make<EvadeSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
             FakeArcherCtx ctx = new FakeArcherCtx { HeroPosition = new Vector3(4f, 0f, 0f), Centroid = new Vector3(3f, 0f, 0f), NearbyCount = 2 };
 
@@ -111,18 +108,16 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0.25f, ctx.LeapDuration, 0.0001f);
             //# 위협은 -X 쪽(4,0,0) → 도약은 +X, 5+4.5=9.5 → 소프트 반경 7 로 클램프(E-9).
             Assert.AreEqual(7f, ctx.LeapDestination.x, 0.001f);
-            Object.DestroyImmediate(data);
         }
 
         [Test]
         public void 궁수_스킬은_궁수_컨텍스트가_아니면_발동하지_않는다()
         {
-            PiercingShotSkillData data = ScriptableObject.CreateInstance<PiercingShotSkillData>();
+            PiercingShotSkillData data = HeroSkillTestKit.Make<PiercingShotSkillData>();
             IHeroSkillRuntime runtime = data.CreateRuntime();
 
             UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("IArcherSkillContext"));
             Assert.DoesNotThrow(() => runtime.Tick(new PlainCtx(), 10f));
-            Object.DestroyImmediate(data);
         }
 
         private class PlainCtx : IHeroSkillContext
@@ -135,25 +130,25 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 실제_궁수_로드아웃_asset은_85_65_45_순서로_관통_소나기_도약을_가리킨다()
+        public void 실제_궁수_스킬_구간은_85_65_45_순서로_관통_소나기_도약을_가리킨다()
         {
-            HeroSkillLoadout loadout = AssetDatabase.LoadAssetAtPath<HeroSkillLoadout>(SkillDir + "HeroSkillLoadout_Archer.asset");
-            Assert.IsNotNull(loadout, "HeroSkillLoadout_Archer.asset 로드 실패");
-            Assert.AreEqual(3, loadout.Phases.Count);
-            Assert.AreEqual(0.85f, loadout.Phases[0].HpFraction, 0.0001f);
-            Assert.IsInstanceOf<PiercingShotSkillData>(loadout.Phases[0].Skill);
-            Assert.AreEqual(0.65f, loadout.Phases[1].HpFraction, 0.0001f);
-            Assert.IsInstanceOf<ArrowVolleySkillData>(loadout.Phases[1].Skill);
-            Assert.AreEqual(0.45f, loadout.Phases[2].HpFraction, 0.0001f);
-            Assert.IsInstanceOf<EvadeSkillData>(loadout.Phases[2].Skill);
+            List<HeroSkillPhase> phases = WorldMapTestSupport.ShippedSkillPhases("Archer");
+
+            Assert.AreEqual(3, phases.Count);
+            Assert.AreEqual(0.85f, phases[0].HpFraction, 0.0001f);
+            Assert.IsInstanceOf<PiercingShotSkillData>(phases[0].Skill);
+            Assert.AreEqual(0.65f, phases[1].HpFraction, 0.0001f);
+            Assert.IsInstanceOf<ArrowVolleySkillData>(phases[1].Skill);
+            Assert.AreEqual(0.45f, phases[2].HpFraction, 0.0001f);
+            Assert.IsInstanceOf<EvadeSkillData>(phases[2].Skill);
         }
 
         [Test]
-        public void 실제_스킬_asset의_수치는_기획서_5_4_표와_같다()
+        public void 실제_스킬의_수치는_기획서_5_4_표와_같다()
         {
-            PiercingShotSkillData pierce = AssetDatabase.LoadAssetAtPath<PiercingShotSkillData>(SkillDir + "HeroSkill_PiercingShot.asset");
-            ArrowVolleySkillData volley = AssetDatabase.LoadAssetAtPath<ArrowVolleySkillData>(SkillDir + "HeroSkill_ArrowVolley.asset");
-            EvadeSkillData evade = AssetDatabase.LoadAssetAtPath<EvadeSkillData>(SkillDir + "HeroSkill_Evade.asset");
+            PiercingShotSkillData pierce = WorldMapTestSupport.ShippedSkill<PiercingShotSkillData>();
+            ArrowVolleySkillData volley = WorldMapTestSupport.ShippedSkill<ArrowVolleySkillData>();
+            EvadeSkillData evade = WorldMapTestSupport.ShippedSkill<EvadeSkillData>();
 
             Assert.AreEqual(70, pierce.Damage);
             Assert.AreEqual(9f, pierce.LineLength, 0.0001f);

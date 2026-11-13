@@ -4,17 +4,16 @@ namespace Lair.Character
 {
     //# 광전사 사슬 갈고리 (HP 65%, chapter-4 §4) — triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면 pullRadius 안 가까운 순 최대 maxTargets 마리에
     //# damage 를 주고 영웅 pullToDistance 거리까지 pullDurationSec 에 걸쳐 당긴다. 시전 직후 군집 목표 재평가를 잠시 중단.
-    [CreateAssetMenu(fileName = "HeroSkill_ChainPull", menuName = "Lair/Hero Skills/Chain Pull")]
     public class ChainPullSkillData : HeroSkillData
     {
-        [SerializeField] private int _damage = 40;
-        [SerializeField] private float _cooldown = 10f;
-        [SerializeField] private float _pullRadius = 5f;
-        [SerializeField] private int _maxTargets = 6;
-        [SerializeField] private float _pullToDistance = 1.5f;
-        [SerializeField] private float _pullDurationSec = 0.4f;
-        [SerializeField] private int _triggerMonsterCount = 4;
-        [SerializeField] private float _triggerRadius = 5f;
+        private int _damage;
+        private float _cooldown;
+        private float _pullRadius;
+        private int _maxTargets;
+        private float _pullToDistance;
+        private float _pullDurationSec;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public int Damage => _damage;
         public float Cooldown => _cooldown;
@@ -24,6 +23,18 @@ namespace Lair.Character
         public float PullDurationSec => _pullDurationSec;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public ChainPullSkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _damage = p.GetInt("damage");
+            _cooldown = p.Get("cooldown");
+            _pullRadius = p.Get("pullRadius");
+            _maxTargets = p.GetInt("maxTargets");
+            _pullToDistance = p.Get("pullToDistance");
+            _pullDurationSec = p.Get("pullDurationSec");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         //# 동시 조건 시 우선순위 — 모으기가 베기 효율의 전제: 사슬 갈고리(2) > 피의 광란(1) > 분쇄 도약(0).
         public override int CastPriority => 2;

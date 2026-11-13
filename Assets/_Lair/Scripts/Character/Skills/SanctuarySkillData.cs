@@ -5,16 +5,15 @@ namespace Lair.Character
 {
     //# 성기사 성역 (HP 45%, chapter-5 §4) - triggerRadius 안 몬스터가 triggerMonsterCount 마리 이상이면 시전 위치에 durationSec 동안
     //# 영웅 받는 피해 x damageTakenMul + 반경 radius 안 몬스터 이동 x monsterSpeedMul. 쿨다운은 시전 시점부터 흐른다.
-    [CreateAssetMenu(fileName = "HeroSkill_Sanctuary", menuName = "Lair/Hero Skills/Sanctuary")]
     public class SanctuarySkillData : HeroSkillData
     {
-        [SerializeField] private float _durationSec = 6f;
-        [SerializeField] private float _damageTakenMul = 0.6f;
-        [SerializeField] private float _radius = 2.6f;
-        [SerializeField] private float _monsterSpeedMul = 0.7f;
-        [SerializeField] private float _cooldown = 18f;
-        [SerializeField] private int _triggerMonsterCount = 3;
-        [SerializeField] private float _triggerRadius = 2.6f;
+        private float _durationSec;
+        private float _damageTakenMul;
+        private float _radius;
+        private float _monsterSpeedMul;
+        private float _cooldown;
+        private int _triggerMonsterCount;
+        private float _triggerRadius;
 
         public float DurationSec => _durationSec;
         public float DamageTakenMul => _damageTakenMul;
@@ -23,6 +22,17 @@ namespace Lair.Character
         public float Cooldown => _cooldown;
         public int TriggerMonsterCount => _triggerMonsterCount;
         public float TriggerRadius => _triggerRadius;
+
+        public SanctuarySkillData(string displayName, Lair.Data.HeroSkillParams p) : base(displayName)
+        {
+            _durationSec = p.Get("durationSec");
+            _damageTakenMul = p.Get("damageTakenMul");
+            _radius = p.Get("radius");
+            _monsterSpeedMul = p.Get("monsterSpeedMul");
+            _cooldown = p.Get("cooldown");
+            _triggerMonsterCount = p.GetInt("triggerMonsterCount");
+            _triggerRadius = p.Get("triggerRadius");
+        }
 
         //# 동시 조건 시 우선순위 - 정화의 빛(2) > 성역(1) > 심판의 망치(0).
         public override int CastPriority => 1;

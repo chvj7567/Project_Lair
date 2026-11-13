@@ -91,7 +91,8 @@ namespace Lair.Battle
                     JsonArrayUtility.FromJsonArray<HeroArchetype_CleaveRow>(cleaveJson),
                     JsonArrayUtility.FromJsonArray<HeroArchetype_GuardRow>(guardJson),
                     JsonArrayUtility.FromJsonArray<HeroArchetype_DebuffResistRow>(debuffResistJson),
-                    BalanceConfig.Current.PassiveThresholds);
+                    BalanceConfig.Current.PassiveThresholds,
+                    HeroSkillDatabase.GateFractionsOf(skillData));
                 ChapterDatabase.Current = db;
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
                 //# 필수 묶음 4번 — 영웅 스킬 행 검증. 실패해도 뒤 선택 묶음은 계속 로드하고 마지막에 필수 묶음을 한꺼번에 되돌린다.

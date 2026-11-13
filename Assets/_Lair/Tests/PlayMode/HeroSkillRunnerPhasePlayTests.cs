@@ -46,9 +46,9 @@ namespace Lair.Tests.PlayMode
         }
 
         //# 3페이즈(90/60/30) 로드아웃 — 스킬은 Dash 3개로 충분(활성 카운트만 검증, 종류 무관).
-        private HeroSkillLoadout MakePhaseLoadout()
+        private List<HeroSkillPhase> MakePhaseLoadout()
         {
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+            List<HeroSkillPhase> loadout = new List<HeroSkillPhase>();
             AddPhase(loadout, 0.9f, MakeDash());
             AddPhase(loadout, 0.6f, MakeDash());
             AddPhase(loadout, 0.3f, MakeDash());
@@ -57,7 +57,7 @@ namespace Lair.Tests.PlayMode
 
         private DashStrikeSkillData MakeDash()
         {
-            DashStrikeSkillData dash = ScriptableObject.CreateInstance<DashStrikeSkillData>();
+            DashStrikeSkillData dash = HeroSkillPlayKit.MakeDash();
             SetField(dash, "_damage", 10);
             SetField(dash, "_cooldown", 100f);   //# 발동 안 하도록 긴 쿨 — 활성 카운트만 본다.
             SetField(dash, "_dashLength", 5f);
@@ -120,7 +120,7 @@ namespace Lair.Tests.PlayMode
         {
             DashStrikeSkillData dash = MakeDash();
             SetField(dash, "_cooldown", 0.01f);   //# 살아있을 땐 발동하도록 짧은 쿨.
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+            List<HeroSkillPhase> loadout = new List<HeroSkillPhase>();
             AddPhase(loadout, 0.9f, dash);
             _runner.Bind(loadout);
 
@@ -180,7 +180,7 @@ namespace Lair.Tests.PlayMode
         {
             DashStrikeSkillData dash = MakeDash();
             SetField(dash, "_cooldown", 0.01f);
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+            List<HeroSkillPhase> loadout = new List<HeroSkillPhase>();
             AddPhase(loadout, 0.9f, dash);
             _runner.Bind(loadout);
 
@@ -210,14 +210,14 @@ namespace Lair.Tests.PlayMode
         {
             //# 인프라(CHMPool) 미부팅 → 궤도 블레이드 비주얼 미스폰. OnDeactivate 경로가
             //# null-safe 한지 + _active 가 비워지는지만 검증. 실제 Push 검증은 보류(인프라 필요).
-            OrbitingBladeSkillData orbit = ScriptableObject.CreateInstance<OrbitingBladeSkillData>();
+            OrbitingBladeSkillData orbit = HeroSkillPlayKit.MakeOrbit();
             SetField(orbit, "_damage", 15);
             SetField(orbit, "_hitInterval", 0.1f);
             SetField(orbit, "_orbitRadius", 1.4f);
             SetField(orbit, "_bladeSphereRadius", 0.9f);
             SetField(orbit, "_bladeCount", 3);
             SetField(orbit, "_rotationSpeedDeg", 180f);
-            HeroSkillLoadout loadout = ScriptableObject.CreateInstance<HeroSkillLoadout>();
+            List<HeroSkillPhase> loadout = new List<HeroSkillPhase>();
             AddPhase(loadout, 0.9f, orbit);
             _runner.Bind(loadout);
 
@@ -247,13 +247,9 @@ namespace Lair.Tests.PlayMode
         private static void SetField(object t, string f, object v)
             => t.GetType().GetField(f, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(t, v);
 
-        //# PlayMode asmdef 는 UnityEditor 미참조 → SerializedObject 불가. _phases 에 직접 add.
-        private static void AddPhase(HeroSkillLoadout loadout, float frac, HeroSkillData skill)
+        private static void AddPhase(List<HeroSkillPhase> loadout, float frac, HeroSkillData skill)
         {
-            FieldInfo phasesField = typeof(HeroSkillLoadout)
-                .GetField("_phases", BindingFlags.NonPublic | BindingFlags.Instance);
-            IList list = (IList)phasesField.GetValue(loadout);
-            list.Add(new HeroSkillLoadout.Phase { HpFraction = frac, Skill = skill });
+            loadout.Add(new HeroSkillPhase(frac, skill));
         }
     }
 }

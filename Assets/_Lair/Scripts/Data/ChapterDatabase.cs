@@ -26,9 +26,6 @@ namespace Lair.Data
     {
         private const float FractionEpsilon = 0.0001f;
 
-        //# 영웅 스킬 게이트 — 보스 페이즈 트리거가 피해야 할 값(chapter-system §3.2). hero_skills.json loadout 과 같은 값.
-        private static readonly float[] SkillGateFractions = { 0.85f, 0.65f, 0.45f };
-
         //# 규칙별 필수 파라미터 키 집합 (chapter-system §3.4) — 누락/추가 모두 오류.
         private static readonly Dictionary<EStageRule, string[]> RequiredParams = new Dictionary<EStageRule, string[]>
         {
@@ -60,7 +57,7 @@ namespace Lair.Data
         public IReadOnlyList<ChapterRow> Chapters => _chapters;
 
         //# 검증 후 구축 — 위반이 하나라도 있으면 전부 모아 ChapterDataException.
-        //# passiveThresholds = BalanceConfig.json 패시브 카드 임계(so-to-json-migration §6.3). null 이면 그 대조만 생략한다.
+        //# passiveThresholds·skillGateFractions = 보스 트리거가 피해야 할 패시브 임계(BalanceConfig)·스킬 해금 HP 비율(HeroArchetype_Skill, §6.3). null 이면 그 대조만 생략.
         public static ChapterDatabase Build(
             ChapterRow[] chapters,
             StageRow[] stages,
@@ -74,7 +71,8 @@ namespace Lair.Data
             HeroArchetype_CleaveRow[] cleaves = null,
             HeroArchetype_GuardRow[] guards = null,
             HeroArchetype_DebuffResistRow[] debuffResists = null,
-            float[] passiveThresholds = null)
+            float[] passiveThresholds = null,
+            float[] skillGateFractions = null)
         {
             ChapterDatabase db = new ChapterDatabase();
             List<string> errors = new List<string>();
@@ -93,6 +91,7 @@ namespace Lair.Data
                 ruleParams ?? Array.Empty<Stage_Rule_ParamRow>(),
                 triggers ?? Array.Empty<Stage_Rule_TriggerRow>(),
                 passiveThresholds ?? Array.Empty<float>(),
+                skillGateFractions ?? Array.Empty<float>(),
                 errors);
 
             if (errors.Count > 0)
@@ -480,7 +479,7 @@ namespace Lair.Data
             }
         }
 
-        private void AddRules(Stage_RuleRow[] rules, Stage_Rule_ParamRow[] ruleParams, Stage_Rule_TriggerRow[] triggers, float[] passiveThresholds, List<string> errors)
+        private void AddRules(Stage_RuleRow[] rules, Stage_Rule_ParamRow[] ruleParams, Stage_Rule_TriggerRow[] triggers, float[] passiveThresholds, float[] skillGateFractions, List<string> errors)
         {
             Dictionary<long, Stage_RuleRow> ruleRows = new Dictionary<long, Stage_RuleRow>();
             Dictionary<long, Dictionary<string, float>> paramMap = new Dictionary<long, Dictionary<string, float>>();
@@ -538,7 +537,7 @@ namespace Lair.Data
                     errors.Add($"Stage_Rule_Trigger 복합키 중복: {label}");
                     continue;
                 }
-                if (MatchesAny(row.hpFraction, SkillGateFractions) || MatchesAny(row.hpFraction, passiveThresholds))
+                if (MatchesAny(row.hpFraction, skillGateFractions) || MatchesAny(row.hpFraction, passiveThresholds))
                 {
                     errors.Add($"Stage_Rule_Trigger[{label}].hpFraction {row.hpFraction} 가 스킬 게이트/패시브 임계와 일치 (0.05 이격 필요)");
                 }

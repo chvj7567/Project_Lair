@@ -20,17 +20,14 @@ namespace Lair.Tests.EditMode
         {
             ArcherFxLogGuard.Suppress();
             _ctx = new RecordingArcherContext();
-            _pierce = ScriptableObject.CreateInstance<PiercingShotSkillData>();
-            _volley = ScriptableObject.CreateInstance<ArrowVolleySkillData>();
-            _evade = ScriptableObject.CreateInstance<EvadeSkillData>();
+            _pierce = HeroSkillTestKit.Make<PiercingShotSkillData>();
+            _volley = HeroSkillTestKit.Make<ArrowVolleySkillData>();
+            _evade = HeroSkillTestKit.Make<EvadeSkillData>();
         }
 
         [TearDown]
         public void 스킬_데이터를_정리한다()
         {
-            Object.DestroyImmediate(_pierce);
-            Object.DestroyImmediate(_volley);
-            Object.DestroyImmediate(_evade);
             ArcherFxLogGuard.Restore();
         }
 
