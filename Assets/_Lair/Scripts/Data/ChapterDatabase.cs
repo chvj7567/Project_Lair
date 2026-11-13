@@ -130,6 +130,9 @@ namespace Lair.Data
             return GetStage(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear));
         }
 
+        //# 영웅 직업 전체 heroId — 영웅별 데이터 커버리지 검증용(영웅 스킬 구간 등).
+        public IReadOnlyCollection<string> HeroIds => _heroes.Keys;
+
         public HeroArchetypeRow GetHero(string heroId)
         {
             return heroId != null && _heroes.TryGetValue(heroId, out HeroArchetypeRow row) ? row : null;

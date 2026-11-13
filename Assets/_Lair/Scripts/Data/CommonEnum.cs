@@ -15,6 +15,16 @@
         Paladin,   //# 챕터 5 영웅 직업 (chapter-5 §3) — 값명 = HeroArchetype.json heroId
     }
 
+    //# 영웅 스킬 종류 (so-to-json-migration §12.1) — 값명 = HeroSkill.json skillId = 스킬 SO 클래스 이름에서 접미사 SkillData 를 뗀 것.
+    public enum EHeroSkill
+    {
+        DashStrike, AoeNova, OrbitingBlade,
+        PiercingShot, ArrowVolley, Evade,
+        ShadowStrike, BladeWhirl, SmokeBomb,
+        CrushingLeap, ChainPull, BloodFrenzy,
+        JudgmentHammer, PurifyingLight, Sanctuary,
+    }
+
     //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
     public enum EHeroAi
     {
@@ -219,6 +229,9 @@
         LordLevel,
         LordLevel_Reward,
         Achievement,
+        HeroSkill,
+        HeroSkill_Param,
+        HeroArchetype_Skill,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.

@@ -81,6 +81,28 @@ namespace Lair.Tests.EditMode
             return BuildMeta(ShippedMetaData());
         }
 
+        //# shipped 영웅 스킬 JSON 3종 묶음 — 엣지 테스트가 행을 바꿔 BuildHeroSkills 로 다시 조립할 수 있게 조립 전 단계도 노출한다.
+        public static HeroSkillDataSet ShippedHeroSkillData()
+        {
+            return new HeroSkillDataSet
+            {
+                Skills = Load<HeroSkillRow>("HeroSkill"),
+                Params = Load<HeroSkill_ParamRow>("HeroSkill_Param"),
+                Phases = Load<HeroArchetype_SkillRow>("HeroArchetype_Skill"),
+            };
+        }
+
+        //# 엄격 조립 — Strings_Ko 에 없는 id 는 오류, heroId FK·영웅 커버리지는 shipped 챕터 DB 로 판정한다.
+        public static HeroSkillDatabase BuildHeroSkills(HeroSkillDataSet data)
+        {
+            return HeroSkillDatabase.Build(data, FullDb(), id => Strings().ContainsKey(id), Text);
+        }
+
+        public static HeroSkillDatabase ShippedHeroSkills()
+        {
+            return BuildHeroSkills(ShippedHeroSkillData());
+        }
+
         public static IReadOnlyDictionary<int, string> Strings()
         {
             if (_strings == null)

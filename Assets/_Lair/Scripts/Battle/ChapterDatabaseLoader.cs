@@ -13,10 +13,10 @@ namespace Lair.Battle
         //# 진행 중인 EnsureLoadedAsync 로드 — 동시 호출이 각자 LoadAsync 를 돌려 서로의 Current 를 비우지 않게 공유한다.
         private static Task<ChapterDatabase> _loading;
 
-        //# 챕터·필수 묶음(밸런스·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
+        //# 챕터·필수 묶음(밸런스·영웅 스킬·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
         public static async Task<ChapterDatabase> EnsureLoadedAsync()
         {
-            if (ChapterDatabase.Current != null && BalanceConfig.Current != null && MetaConfig.Current != null)
+            if (ChapterDatabase.Current != null && BalanceConfig.Current != null && HeroSkillDatabase.Current != null && MetaConfig.Current != null)
                 return ChapterDatabase.Current;
             if (_loading == null)
             {
@@ -41,6 +41,15 @@ namespace Lair.Battle
         {
             //# 필수 묶음 1번(so-to-json-migration §6.2·§6.4) — 실패하면 챕터 로드 전체를 실패시킨다.
             if (await LoadBalanceAsync() == false)
+            {
+                ResetRequiredBundles();
+                ChapterDatabase.Current = null;
+                return null;
+            }
+
+            //# 필수 묶음 2번 — 영웅 스킬 JSON 3종 파싱(행만 보관). 검증은 영웅 직업이 확정되는 챕터 로드 뒤(4번)에 한다.
+            HeroSkillDataSet skillData = await LoadHeroSkillDataAsync();
+            if (skillData == null)
             {
                 ResetRequiredBundles();
                 ChapterDatabase.Current = null;
@@ -85,6 +94,8 @@ namespace Lair.Battle
                     BalanceConfig.Current.PassiveThresholds);
                 ChapterDatabase.Current = db;
                 StageProgress.ConfigureChapterCount(db.ChapterCount);
+                //# 필수 묶음 4번 — 영웅 스킬 행 검증. 실패해도 뒤 선택 묶음은 계속 로드하고 마지막에 필수 묶음을 한꺼번에 되돌린다.
+                bool skillsOk = BuildHeroSkills(skillData, db);
                 await LoadDifficultyAsync();
                 await LoadRelicsAsync(db);
                 await LoadFormationAsync(db);
@@ -95,7 +106,8 @@ namespace Lair.Battle
                 await LoadDailyAsync(db);
                 await LoadGrowthAsync();
                 //# 필수 묶음 7번 — 실패하면 필수 묶음 Current 를 전부 되돌려 전투 진입 가드가 막게 한다(챕터 DB 는 마을이 쓰므로 유지, §6.4).
-                if (await LoadMetaAsync() == false)
+                bool metaOk = await LoadMetaAsync();
+                if (skillsOk == false || metaOk == false)
                 {
                     ResetRequiredBundles();
                     return null;
@@ -181,10 +193,55 @@ namespace Lair.Battle
             return true;
         }
 
-        //# 필수 묶음(밸런스·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
+        //# 영웅 스킬 JSON 3종 로드·파싱 — 하나라도 없거나 파싱에 실패하면 null (필수 묶음, 조용한 폴백 금지).
+        private static async Task<HeroSkillDataSet> LoadHeroSkillDataAsync()
+        {
+            HeroSkillDatabase.Current = null;
+            string skillJson = await LoadTextAsync(EData.HeroSkill);
+            string paramJson = await LoadTextAsync(EData.HeroSkill_Param);
+            string phaseJson = await LoadTextAsync(EData.HeroArchetype_Skill);
+            if (skillJson == null || paramJson == null || phaseJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 영웅 스킬 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
+                return null;
+            }
+            try
+            {
+                return new HeroSkillDataSet
+                {
+                    Skills = JsonArrayUtility.FromJsonArray<HeroSkillRow>(skillJson),
+                    Params = JsonArrayUtility.FromJsonArray<HeroSkill_ParamRow>(paramJson),
+                    Phases = JsonArrayUtility.FromJsonArray<HeroArchetype_SkillRow>(phaseJson),
+                };
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                return null;
+            }
+        }
+
+        //# 영웅 스킬 검증·조립 → HeroSkillDatabase.Current. 위반은 전부 LogError 하고 false.
+        private static bool BuildHeroSkills(HeroSkillDataSet data, ChapterDatabase chapters)
+        {
+            try
+            {
+                HeroSkillDatabase.Current = HeroSkillDatabase.Build(data, chapters, NameKeyExists, LookupString);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                HeroSkillDatabase.Current = null;
+                return false;
+            }
+        }
+
+        //# 필수 묶음(밸런스·영웅 스킬·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
         private static void ResetRequiredBundles()
         {
             BalanceConfig.Current = null;
+            HeroSkillDatabase.Current = null;
             MetaConfig.Current = null;
         }
 
