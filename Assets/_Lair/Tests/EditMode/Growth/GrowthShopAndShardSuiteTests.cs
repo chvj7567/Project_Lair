@@ -15,7 +15,6 @@ namespace Lair.Tests.EditMode
     //# 상점 결제 재화 · 해금 · 출하 상점 무결성 + 유물 잔해 변환 · 교환 본격 스위트 (monster-growth-currencies §2.4·§3.5·§6.3-7·§8.3).
     public class GrowthShopAndShardSuiteTests : RelicStaticStateTestBase
     {
-        private const string MetaConfigPath = "Assets/_Lair/Data/MetaConfig.asset";
         private static readonly EMonster[] Species = System.Linq.Enumerable.ToArray(MonsterGrades.BaseMonsters);
 
         private GrowthDatabase _prevGrowth;
@@ -44,9 +43,7 @@ namespace Lair.Tests.EditMode
 
         private static MetaConfig ShippedConfig()
         {
-            MetaConfig cfg = AssetDatabase.LoadAssetAtPath<MetaConfig>(MetaConfigPath);
-            Assert.IsNotNull(cfg, MetaConfigPath);
-            return cfg;
+            return WorldMapTestSupport.ShippedMeta();
         }
 
         private static int[] Prices(ShopItemDef def)
@@ -114,7 +111,7 @@ namespace Lair.Tests.EditMode
         public void 상점_검증_위반이면_오류_로그_후_육성_기능을_끈다()
         {
             GrowthDatabase.Current = GrowthTestKit.Shipped();
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "Awaken_Wisp", EffectKind = EShopEffectKind.MonsterAwaken, Species = EMonster.Wisp, Currency = ECurrency.Soul, MaxLevel = 5 },
@@ -124,13 +121,12 @@ namespace Lair.Tests.EditMode
             ChapterDatabaseLoader.ValidateGrowthShop(cfg);
 
             Assert.IsNull(GrowthDatabase.Current, "§6.3-8 로드 실패 = 육성 비활성");
-            UnityEngine.Object.DestroyImmediate(cfg);
         }
 
         [Test]
         public void 상점_검증은_소울_결제_만렙_불일치를_각각_오류로_모으고_기존_소울_항목은_건너뛴다()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "Awaken_Wisp", EffectKind = EShopEffectKind.MonsterAwaken, Species = EMonster.Wisp, Currency = ECurrency.Soul, MaxLevel = 5 },
@@ -146,14 +142,13 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(errors.Exists(e => e.Contains("Awaken_Wisp") && e.Contains("Soul")));
             Assert.IsTrue(errors.Exists(e => e.Contains("Nest_Hex") && e.Contains("MaxLevel")));
             Assert.IsTrue(errors.Exists(e => e.Contains("Trait_Plague") && e.Contains("MaxLevel")));
-            UnityEngine.Object.DestroyImmediate(cfg);
         }
 
         //# ===== 결제 재화 분기 =====
 
         private static MetaConfig MixedConfig()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "Enhance_Wisp", EffectKind = EShopEffectKind.MonsterSpecies, Species = EMonster.Wisp, Currency = ECurrency.Soul, MaxLevel = 5, BasePrice = 150, PriceGrowth = 1.6f, PerLevelMul = 1.18f },
@@ -179,7 +174,6 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(50, p.Souls);
             Assert.AreEqual(5, p.GetCurrency(ECurrency.MoonSeal));
             Assert.AreEqual(0, p.GetCurrency(ECurrency.AbyssCrystal));
-            UnityEngine.Object.DestroyImmediate(cfg);
         }
 
         [Test]
@@ -232,7 +226,6 @@ namespace Lair.Tests.EditMode
             Assert.IsFalse(shop.IsLocked("Enhance_Wisp"));
             Assert.IsTrue(shop.CanBuy("Enhance_Wisp"));
             Assert.AreEqual(999, p.GetCurrency(ECurrency.MoonSeal), "잠겨도 보유 재화는 보존 (E-3)");
-            UnityEngine.Object.DestroyImmediate(cfg);
         }
 
         //# ===== 재화 해금 (§1) =====

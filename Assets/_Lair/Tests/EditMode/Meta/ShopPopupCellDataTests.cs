@@ -15,7 +15,7 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems.Add(new ShopItemDef
             {
                 Id = "MonsterHpUp",
@@ -25,12 +25,6 @@ namespace Lair.Tests.EditMode
                 PriceGrowth = 1.6f,
                 MaxLevel = 5,
             });
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test]

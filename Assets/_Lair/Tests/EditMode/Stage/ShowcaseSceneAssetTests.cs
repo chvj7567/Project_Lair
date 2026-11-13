@@ -55,12 +55,12 @@ namespace Lair.Tests.EditMode
         public void Close() => DotSceneTestUtil.Close(_scene);
 
         [Test]
-        public void 쇼케이스_무대는_Village_씬용이고_메타_설정과_컨트롤러가_연결돼_있다()
+        public void 쇼케이스_무대는_Village_씬용이고_컨트롤러가_연결돼_있고_메타_수치는_씬에_직렬화되지_않는다()
         {
             MonsterShowcaseStage stage = DotSceneTestUtil.Find<MonsterShowcaseStage>(_scene);
             SerializedObject so = new SerializedObject(stage);
             Assert.AreEqual((int)EScene.Village, so.FindProperty("_scene").intValue);
-            Assert.IsNotNull(so.FindProperty("_metaConfig").objectReferenceValue, "강화 Lv 계산에 MetaConfig 필요");
+            Assert.IsNull(so.FindProperty("_metaConfig"), "강화 Lv 계산용 MetaConfig 는 MetaConfig.Current 로 받는다(씬 직렬화 없음)");
 
             VillageController controller = DotSceneTestUtil.Find<VillageController>(_scene);
             Assert.IsNotNull(controller);

@@ -10,12 +10,31 @@ namespace Lair.Battle
     //# Loading 씬이 선행 로드하고, Battle 직행(에디터)은 EnsureLoadedAsync 로 보충한다. 실패 시 Current 는 null 유지 + LogError.
     public static class ChapterDatabaseLoader
     {
+        //# 진행 중인 EnsureLoadedAsync 로드 — 동시 호출이 각자 LoadAsync 를 돌려 서로의 Current 를 비우지 않게 공유한다.
+        private static Task<ChapterDatabase> _loading;
+
         //# 챕터·필수 묶음(밸런스·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
         public static async Task<ChapterDatabase> EnsureLoadedAsync()
         {
             if (ChapterDatabase.Current != null && BalanceConfig.Current != null && MetaConfig.Current != null)
                 return ChapterDatabase.Current;
-            return await LoadAsync();
+            if (_loading == null)
+            {
+                _loading = LoadAsync();
+            }
+            Task<ChapterDatabase> task = _loading;
+            try
+            {
+                return await task;
+            }
+            finally
+            {
+                //# 끝나면(성공·실패·예외) 비운다 — 같은 Task 일 때만, 그 사이 시작된 새 로드를 지우지 않게.
+                if (ReferenceEquals(_loading, task))
+                {
+                    _loading = null;
+                }
+            }
         }
 
         public static async Task<ChapterDatabase> LoadAsync()
@@ -116,7 +135,7 @@ namespace Lair.Battle
         }
 
         //# 메타 JSON 9종 → MetaConfig.Current. 로드·파싱·검증 실패는 위반 전부를 LogError 하고 false (조용한 폴백 금지).
-        //# 커밋 ① 동안 게임은 씬의 SO 를 읽으므로 이 값은 패리티 비교에만 쓰인다. 육성 상점 무결성 호출은 커밋 ② 에서 이 뒤로 옮긴다.
+        //# 성공하면 육성 상점 항목 무결성을 1회 검증한다(§6.2) — 위반은 필수 묶음 실패가 아니라 육성 재화 기능만 끈다.
         private static async Task<bool> LoadMetaAsync()
         {
             MetaConfig.Current = null;
@@ -151,13 +170,15 @@ namespace Lair.Battle
                         Achievements = JsonArrayUtility.FromJsonArray<AchievementRow>(achievementJson),
                     },
                     NameKeyExists, LookupString, CurrencyExists);
-                return true;
             }
             catch (System.Exception e)
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
                 return false;
             }
+            //# try 밖 — 무결성 검사의 문제가 필수 묶음 실패(전투 진입 차단)로 번지지 않게 한다.
+            ValidateGrowthShop(MetaConfig.Current);
+            return true;
         }
 
         //# 필수 묶음(밸런스·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
@@ -492,7 +513,7 @@ namespace Lair.Battle
             return GrowthDatabase.Current == null || GrowthDatabase.Current.GetCurrency(currency) != null;
         }
 
-        //# 상점 항목 무결성(§6.3-7)은 MetaConfig 를 가진 진입점(마을·전투)이 1회 호출 — 위반이면 LogError + 육성 재화 기능 비활성(§6.3-8, 보유 재화·레벨 보존).
+        //# 상점 항목 무결성(§6.3-7)은 메타 로드 직후 로더가 1회 호출 — 위반이면 LogError + 육성 재화 기능 비활성(§6.3-8, 보유 재화·레벨 보존).
         private static MetaConfig _growthShopValidatedFor;
 
         public static void ValidateGrowthShop(MetaConfig config)

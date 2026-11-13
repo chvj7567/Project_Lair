@@ -13,16 +13,10 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.XpPerLevelBase = 100;
             _cfg.XpGrowth = 1.25f;
             //# 필요 XP: Lv1→2 = 100, Lv2→3 = 125, Lv3→4 = 156(floor)
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test] public void XP_0은_레벨1이다()      => Assert.AreEqual(1, LordLevelService.LevelFromXp(0, _cfg));

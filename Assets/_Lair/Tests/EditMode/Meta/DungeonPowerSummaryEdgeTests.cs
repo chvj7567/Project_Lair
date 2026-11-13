@@ -16,7 +16,7 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterHpUp",        EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Hp,        PerLevelMul = 1.02f,  MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterPowerUp",     EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Power,     PerLevelMul = 1.015f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterAtkSpeedUp",  EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Cooldown,  PerLevelMul = 0.99f,  MaxLevel = 5 });
@@ -24,12 +24,6 @@ namespace Lair.Tests.EditMode
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterRangeUp",     EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.Range,     PerLevelMul = 1.015f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "PlagueVenomUp",      EffectKind = EShopEffectKind.MonsterStat,   StatKind = EMonsterStatKind.PoisonDamage, PerLevelMul = 1.04f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "SpawnerHasteUp",     EffectKind = EShopEffectKind.SpawnerPeriod, PerLevelMul = 0.985f, MaxLevel = 5 });
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         private MetaProfile 만렙프로필()

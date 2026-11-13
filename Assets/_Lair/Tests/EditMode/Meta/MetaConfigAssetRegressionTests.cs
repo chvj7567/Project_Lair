@@ -6,20 +6,17 @@ using UnityEditor;
 
 namespace Lair.Tests.EditMode
 {
-    //# MetaConfig.asset 실에셋 회귀 가드 — 기획서 village-meta-hub.md §2.1/§3.2/§4/§5.2/§6 수치 박제 (Gate G4).
-    //# 에셋 변조/빌더 재실행 시 기획서와 어긋나면 본 스위트가 잡는다. 수치 변경은 기획서 갱신과 동행해야 한다.
+    //# 출하 MetaConfig.json 조립 결과 회귀 가드 — 기획서 village-meta-hub.md §2.1/§3.2/§4/§5.2/§6 수치 박제 (Gate G4).
+    //# JSON 변조 시 기획서와 어긋나면 본 스위트가 잡는다. 수치 변경은 기획서 갱신과 동행해야 한다.
     public class MetaConfigAssetRegressionTests
     {
-        private const string AssetPath = "Assets/_Lair/Data/MetaConfig.asset";
-
         private MetaConfig _cfg;
 
         [SetUp]
         public void 준비()
         {
-            //# 영속 에셋 — DestroyImmediate 금지 (TearDown 없음).
-            _cfg = AssetDatabase.LoadAssetAtPath<MetaConfig>(AssetPath);
-            Assert.IsNotNull(_cfg, $"MetaConfig.asset 이 {AssetPath} 에 있어야 함");
+            //# 테스트마다 출하 JSON 에서 새로 조립한다(공유 상태 없음).
+            _cfg = WorldMapTestSupport.ShippedMeta();
         }
 
         [Test]

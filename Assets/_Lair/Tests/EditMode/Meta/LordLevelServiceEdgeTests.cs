@@ -13,15 +13,9 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.XpPerLevelBase = 100;
             _cfg.XpGrowth = 1.25f;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test]

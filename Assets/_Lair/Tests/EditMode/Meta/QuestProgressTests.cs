@@ -15,17 +15,11 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.Achievements.Add(new AchievementDef { Id = "Wins25", Condition = EAchievementCondition.TotalWins, Threshold = 25f, DisplayName = "영웅 학살자", RewardSouls = 100 });
             _cfg.Achievements.Add(new AchievementDef { Id = "Runs10", Condition = EAchievementCondition.TotalRuns, Threshold = 10f, DisplayName = "성실한 영주", RewardSouls = 50 });
             _cfg.Achievements.Add(new AchievementDef { Id = "FirstWin", Condition = EAchievementCondition.FirstWin, Threshold = 1f, DisplayName = "첫 사냥감", RewardSouls = 30 });
             _cfg.Achievements.Add(new AchievementDef { Id = "FirstRun", Condition = EAchievementCondition.TotalRuns, Threshold = 1f, DisplayName = "첫 출격", RewardSouls = 20 });
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         private QuestCellData 셀(MetaProfile p, string id)

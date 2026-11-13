@@ -43,7 +43,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 망령_각성_Lv5_는_넉백_0점85의_5제곱과_받는_피해_0점97의_5제곱을_준다()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems.Add(new ShopItemDef { Id = "Awaken_Wraith", EffectKind = EShopEffectKind.MonsterAwaken, Species = EMonster.Wraith, Currency = ECurrency.AwakenStone, MaxLevel = 5 });
             MetaProfile p = new MetaProfile();
             p.SetShopLevel("Awaken_Wraith", 5);
@@ -54,7 +54,6 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(Mathf.Pow(0.97f, 5), bonus.GetAwakenMul(EMonster.Wraith, EMonsterStatKind.DamageTaken), 0.0001f);
             Assert.AreEqual(1f, bonus.GetAwakenMul(EMonster.Wisp, EMonsterStatKind.DamageTaken), 0.0001f, "다른 종족 무영향");
             Assert.AreEqual(1f, bonus.GetStatMul(EMonsterStatKind.DamageTaken), 0.0001f, "전종 축에 새지 않음");
-            Object.DestroyImmediate(cfg);
         }
 
         [Test]

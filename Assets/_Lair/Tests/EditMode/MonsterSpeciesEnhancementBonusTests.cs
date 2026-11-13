@@ -12,7 +12,7 @@ namespace Lair.Tests.EditMode
     {
         private static MetaConfig MakeConfig(params ShopItemDef[] items)
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>(items);
             return cfg;
         }

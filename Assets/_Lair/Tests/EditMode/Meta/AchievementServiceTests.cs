@@ -14,16 +14,10 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.Achievements.Add(new AchievementDef { Id = "FirstWin", DisplayName = "첫 사냥감", Condition = EAchievementCondition.FirstWin, RewardSouls = 30 });
             _cfg.Achievements.Add(new AchievementDef { Id = "Win120", DisplayName = "신속한 처형", Condition = EAchievementCondition.WinUnderSeconds, Threshold = 120f, RewardSouls = 40 });
             _profile = new MetaProfile();
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         private RunSummary 승리런(float deathTime)

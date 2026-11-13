@@ -11,25 +11,12 @@ namespace Lair.Tests.EditMode
     //# 구 ShopPopupTabFilterEdgeTests(2탭 필터)를 통합 리스트 검증으로 재작성. 정상 케이스는 ShopSectionListTests.
     public class ShopSectionListEdgeTests
     {
-        private readonly List<MetaConfig> _configs = new List<MetaConfig>();
 
         private MetaConfig Make(params ShopItemDef[] items)
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>(items);
-            _configs.Add(cfg);
             return cfg;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            foreach (MetaConfig cfg in _configs)
-            {
-                if (cfg != null)
-                    Object.DestroyImmediate(cfg);
-            }
-            _configs.Clear();
         }
 
         private static ShopItemDef Stat(string id)

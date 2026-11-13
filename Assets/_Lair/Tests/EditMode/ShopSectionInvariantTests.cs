@@ -12,7 +12,6 @@ namespace Lair.Tests.EditMode
     //# 여기서는 임의 both-sections config 에서 헤더 위치·섹션 멤버십·헤더/항목 경계의 일반 불변식을 검증 (중복 회피).
     public class ShopSectionInvariantTests
     {
-        private readonly List<MetaConfig> _configs = new List<MetaConfig>();
 
         private static ShopItemDef Stat(string id)
             => new ShopItemDef { Id = id, DisplayName = id, EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, MaxLevel = 5 };
@@ -26,7 +25,7 @@ namespace Lair.Tests.EditMode
         //# 두 섹션이 모두 채워진 넉넉한 config (스탯 3 + 종족 3).
         private MetaConfig BothSections()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 Stat("MonsterHpUp"),
@@ -36,19 +35,7 @@ namespace Lair.Tests.EditMode
                 Species("Enhance_Reaper", EMonster.Reaper),
                 Species("Enhance_Phantom", EMonster.Phantom),
             };
-            _configs.Add(cfg);
             return cfg;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            foreach (MetaConfig cfg in _configs)
-            {
-                if (cfg != null)
-                    Object.DestroyImmediate(cfg);
-            }
-            _configs.Clear();
         }
 
         //# 헤더 문구 → 그 섹션 항목이 가져야 할 Species 유무 규약. 스탯="스탯 강화"(Species null), 몬스터="몬스터 강화"(Species 있음).

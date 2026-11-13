@@ -11,8 +11,6 @@ namespace Lair.Tests.EditMode
     //# BattleController.EndBattle 의 Meta 코어 호출 순서를 그대로 시뮬레이트 (씬 구동 불요, MetaSession 미사용).
     public class MetaSettlementOrderTests
     {
-        private const string AssetPath = "Assets/_Lair/Data/MetaConfig.asset";
-
         private struct SettleResult
         {
             public int SoulsGained;
@@ -65,9 +63,7 @@ namespace Lair.Tests.EditMode
 
         private static MetaConfig 실에셋()
         {
-            MetaConfig cfg = AssetDatabase.LoadAssetAtPath<MetaConfig>(AssetPath);
-            Assert.IsNotNull(cfg, $"MetaConfig.asset 이 {AssetPath} 에 있어야 함");
-            return cfg;
+            return WorldMapTestSupport.ShippedMeta();
         }
 
         [Test]
@@ -96,7 +92,7 @@ namespace Lair.Tests.EditMode
         public void 도전과제_TotalWins는_이번_런_가산_후_판정된다()
         {
             //# 순서 계약 핵심 — Evaluate 가 TotalWins++ 전에 불리면 FirstWin 이 첫 승리에 미달성된다.
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.WinBaseSouls = 100;
             cfg.WinXp = 100;
             cfg.XpPerLevelBase = 100;
@@ -108,8 +104,6 @@ namespace Lair.Tests.EditMode
 
             Assert.AreEqual(1, r.NewlyAchieved.Count);
             Assert.AreEqual("FirstWin", r.NewlyAchieved[0].Id);
-
-            Object.DestroyImmediate(cfg);
         }
 
         [Test]
@@ -156,7 +150,7 @@ namespace Lair.Tests.EditMode
         public void 한_정산에서_2레벨_점프는_구간보상을_합산_지급한다()
         {
             //# 기획서 §4.4 — Lv1→Lv3 점프 시 Lv2(50) + Lv3(80) 합산, ResultPopup 은 최종 레벨 1줄.
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.WinBaseSouls = 0;
             cfg.WinTimeBonusPerSec = 0f;
             cfg.WinXp = 225;   //# 한 런에 Lv3 경계 정확 도달.
@@ -172,8 +166,6 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(130, r.LordRewardSouls);
             Assert.AreEqual(130, p.Souls);
             Assert.AreEqual(3, p.LordRewardGrantedLevel);
-
-            Object.DestroyImmediate(cfg);
         }
     }
 }

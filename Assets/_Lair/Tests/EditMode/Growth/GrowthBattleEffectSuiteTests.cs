@@ -735,7 +735,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 출하_데이터_각성_Lv5_는_종족별_역할_스탯에만_기획서_배율을_준다()
         {
-            MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
+            MetaConfig cfg = WorldMapTestSupport.ShippedMeta();
             MetaProfile p = new MetaProfile();
             foreach (EMonster m in MonsterGrades.BaseMonsters)
             {
@@ -760,7 +760,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 세이브_레벨이_MaxLevel_을_넘으면_각성_둥지_특성_모두_만렙으로_자른다()
         {
-            MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
+            MetaConfig cfg = WorldMapTestSupport.ShippedMeta();
             MetaProfile p = new MetaProfile();
             p.SetShopLevel("Awaken_Wisp", 9);
             p.SetShopLevel("Nest_Wisp", 9);
@@ -776,7 +776,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 육성_데이터가_없으면_레벨이_있어도_각성_둥지_특성이_적용되지_않는다()
         {
-            MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
+            MetaConfig cfg = WorldMapTestSupport.ShippedMeta();
             MetaProfile p = new MetaProfile();
             p.SetShopLevel("Awaken_Plague", 3);
             p.SetShopLevel("Nest_Plague", 2);

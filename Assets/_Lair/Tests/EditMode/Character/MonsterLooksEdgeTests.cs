@@ -194,7 +194,7 @@ namespace Lair.Tests.Character
 
         private static MetaConfig ConfigWithSpecies(params int[] maxLevels)
         {
-            MetaConfig config = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig config = new MetaConfig();
             config.ShopItems = new List<ShopItemDef>();
             for (int i = 0; i < 6; i++)
             {
@@ -225,7 +225,6 @@ namespace Lair.Tests.Character
             Assert.AreEqual(0, levels[EMonster.Hex], "음수는 0");
             Assert.AreEqual(0, levels[EMonster.Plague], "저장값 없음 → 0");
             Assert.AreEqual(6, levels.Count);
-            Object.DestroyImmediate(config);
         }
 
         [Test]
@@ -240,7 +239,6 @@ namespace Lair.Tests.Character
             Dictionary<EMonster, int> levels = MonsterLooks.SpeciesLevels(profile, config);
 
             Assert.AreEqual(6, levels.Count);
-            Object.DestroyImmediate(config);
         }
 
         [Test]
@@ -250,7 +248,6 @@ namespace Lair.Tests.Character
 
             Assert.AreEqual(0, MonsterLooks.SpeciesLevels(new MetaProfile(), null).Count);
             Assert.AreEqual(0, MonsterLooks.SpeciesLevels(null, config).Count);
-            Object.DestroyImmediate(config);
         }
     }
 }

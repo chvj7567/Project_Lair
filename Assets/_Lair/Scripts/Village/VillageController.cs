@@ -18,7 +18,8 @@ namespace Lair.Village
     //# Loading 을 거쳐 진입하므로 CHMResource/CHMUI/CHMPool Init 은 완료 상태 (Battle 씬과 동일 정책).
     public class VillageController : MonoBehaviour
     {
-        [SerializeField] private MetaConfig _metaConfig;
+        //# 메타 수치(MetaConfig.json 외 8종 조립 결과) — Start 가 로더 결과를 1회 받아 서비스·팝업에 인자로 넘긴다. 직렬화하지 않는다.
+        private MetaConfig _metaConfig;
         [SerializeField] private Transform _heroAnchor;    //# 중앙 해골 배치 지점 (씬 정적 배치)
         //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
@@ -59,6 +60,7 @@ namespace Lair.Village
             //# 데일리 컨텍스트도 마을에서 끝난다 — 다음 데일리는 팝업에서 다시 판정·확정한다(§10.1). 세션 서버 시각(DailyClock)은 유지.
             MetaSession.DailyContext = null;
             MetaProfile profile = MetaSession.GetOrLoad();
+            _metaConfig = MetaConfig.Current;
             _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
 
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
@@ -77,7 +79,6 @@ namespace Lair.Village
             //# 도감 NEW 스냅샷 — 앱 실행 후 마을 첫 로드 때 한 번만(전투 복귀 시 재캡처 안 함, monster-codex §6.2).
             CodexSession.EnsureCaptured(profile, FormationDatabase.Current);
 
-            ChapterDatabaseLoader.ValidateGrowthShop(_metaConfig);
             SettleRetroactiveCurrencies(profile);
 
             //# 클라우드 연동 보장(best-effort) — 실패해도 마을은 정상 동작(기획서 §6 무음).
@@ -318,7 +319,7 @@ namespace Lair.Village
         {
             if (_metaConfig == null)
             {
-                Debug.LogError("[VillageController] MetaConfig 미할당 — 메뉴 열기 불가");
+                Debug.LogError("[VillageController] MetaConfig 미로드 — 메뉴 열기 불가");
                 return;
             }
 

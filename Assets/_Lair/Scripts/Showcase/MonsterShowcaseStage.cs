@@ -28,7 +28,6 @@ namespace Lair.Showcase
     public class MonsterShowcaseStage : MonoBehaviour
     {
         [SerializeField] private EScene _scene = EScene.Village;
-        [SerializeField] private MetaConfig _metaConfig;
         [SerializeField] private ShowcaseSlot[] _slots;
 
         private const float HpBarPad = 0.08f;
@@ -62,6 +61,8 @@ namespace Lair.Showcase
         private bool _dirty;
         private bool _released;
         private bool _begun;
+        //# 강화 Lv 계산용 메타 수치 — PrepareAsync 가 로더 결과를 1회 받아 둔다(직렬화하지 않는다). null 이면 강화 Lv 0 으로 본다.
+        private MetaConfig _metaConfig;
 
         //# 로딩 컨트롤러가 5단계(진행 바)와 병렬로 시작하고 5.5 에서 기다린다. 실패해도 예외를 밖으로 내지 않는다(자리표시자 유지).
         public async Task PrepareAsync()
@@ -69,6 +70,7 @@ namespace Lair.Showcase
             if (_begun)
                 return;
             _begun = true;
+            _metaConfig = MetaConfig.Current;
             await RefreshAsync();
         }
 

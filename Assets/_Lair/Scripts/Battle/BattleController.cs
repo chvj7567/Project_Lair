@@ -26,8 +26,9 @@ namespace Lair.Battle
         //# 전투 밸런스(BalanceConfig.json·MonsterStat.json 조립 결과) — Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
         private BalanceConfig _balance;
 
-        //# v0.2 메타 — 상점 보너스/보상 정산 수치 (씬 인스펙터 할당). null 이면 메타 로직 전부 skip (기존 테스트/씬 무영향).
-        [SerializeField] private MetaConfig _metaConfig;
+        //# v0.2 메타 — 상점 보너스/보상 정산 수치(MetaConfig.json 외 8종 조립 결과). Start 가 로더 결과를 1회 받아 둔다. 직렬화하지 않는다.
+        //# Start 를 거치지 않는 격리 컨트롤러(테스트)에서는 null 이라 메타 로직 전부 skip.
+        private MetaConfig _metaConfig;
 
         //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
@@ -173,11 +174,15 @@ namespace Lair.Battle
 
             //# 챕터 데이터 — Loading 씬이 선행 로드했으면 즉시 반환, Battle 직행이면 여기서 로드. 실패 시 null(영웅 기본 스탯 폴백 로그).
             _chapters = await ChapterDatabaseLoader.EnsureLoadedAsync();
-            //# 밸런스 JSON 은 필수 묶음(so-to-json-migration §6.4) — 없으면 기본 스탯으로 진행하지 않고 마을로 돌아간다.
+            //# await 재개 시 이미 파괴된 컨트롤러(씬 재로드로 교체)는 아무것도 하지 않는다 — Start 의 모든 await 뒤에 같은 가드.
+            if (this == null)
+                return;
+            //# 밸런스·메타 JSON 은 필수 묶음(so-to-json-migration §6.4) — 하나라도 없으면 기본 스탯·무보상으로 진행하지 않고 마을로 돌아간다.
             _balance = BalanceConfig.Current;
-            if (_balance == null)
+            _metaConfig = MetaConfig.Current;
+            if (_balance == null || _metaConfig == null)
             {
-                Debug.LogError("[BattleController] 밸런스 데이터(BalanceConfig.json·MonsterStat.json) 미로드 — 전투 진입 중단, 마을로 복귀");
+                Debug.LogError("[BattleController] 필수 데이터 미로드(밸런스·메타 JSON) — 전투 진입 중단, 마을로 복귀");
                 AbortToVillage();
                 return;
             }
@@ -198,11 +203,17 @@ namespace Lair.Battle
             }
             _effectiveDifficulty = _spec.EffectiveDifficulty;
             await ApplyChapterBackdrop();
+            if (this == null)
+                return;
             _formation = ResolveFormation();
             await LoadMonsterTierSheets();
+            if (this == null)
+                return;
 
             //# 1.5 풀 사전 워밍 (Rule 12) — 첫 Pop spike 방지 + 카드 스폰 부담 감소
             await PrewarmPools();
+            if (this == null)
+                return;
 
             //# 2. MVVM
             _model = new BattleStateModel();
@@ -217,6 +228,8 @@ namespace Lair.Battle
             //# 3. 영웅 스폰 + Spawner 바인딩.
             //#    스포너 상태 UI — VM 의 _spawnerSnapshots 6개가 HUD 표시보다 먼저 채워져야 한다.
             bool heroSpawned = await SpawnHero();
+            if (this == null)
+                return;
             if (heroSpawned == false)
                 return;
             //# 데일리 도전 차감 — 영웅 스폰 직후 즉시 저장(앱 강제 종료로 차감을 피하지 못하게, §10.1·E-6). 뒤로가기 종료도 1회 소모.
@@ -254,6 +267,8 @@ namespace Lair.Battle
             }
             UIBase hudUI = await CHMUI.Instance.ShowUIAsync(EUI.BattleHud,
                 new BattleHudArg { ViewModel = _vm, HudLayout = _hudLayout, Spawners = _spawners, CardIcons = _cardIconById });
+            if (this == null)
+                return;
             //# HUD 이후 모든 팝업/배너/토스트는 PopupRoot — await 이후라 다른 UI 가 먼저 뜨지 않는다.
             if (_popupRoot != null)
             {
@@ -319,6 +334,8 @@ namespace Lair.Battle
             DespawnOnDeath.MonsterDied += HandleMonsterDied;
 
             CardPool pool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
+            if (this == null)
+                return;
             if (pool != null)
             {
                 //# 데일리는 날짜 시드 덱 — 같은 날 같은 선택이면 같은 카드가 제시된다(D-5). 그 외 시드 0 = 무작위.
@@ -358,6 +375,8 @@ namespace Lair.Battle
             };
 
             CardPool activePool = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
+            if (this == null)
+                return;
             if (activePool != null)
             {
                 _activeDeck = new CardDeck(activePool.Cards, _spec.IsDaily ? _spec.Daily.ActiveSeed : 0);
@@ -1223,15 +1242,14 @@ namespace Lair.Battle
         }
 
         //# v0.2 메타 — 상점 레벨 → 종 스탯 배율(_typeModifiers) + 스포너 주기 일괄 적용 (기획서 §3.2 / plan Task 3.1).
-        //# _metaConfig 미할당이면 전부 skip — 기존 씬/테스트 호환 (plan G2).
+        //# _metaConfig 가 null(Start 를 거치지 않는 격리 컨트롤러)이면 전부 skip — 기존 테스트 호환 (plan G2).
+        //# 육성 상점 항목 무결성은 로더가 메타 로드 직후 1회 검증한다(§6.2) — 위반이면 GrowthDatabase.Current 가 null 이라 육성 축 미적용.
         private void ApplyMetaBonuses()
         {
             if (_metaConfig == null)
                 return;
 
             MetaProfile profile = MetaSession.GetOrLoad();
-            //# 육성 상점 항목 무결성 1회 검증 — 위반이면 육성 축 미적용(§6.3-7·8).
-            ChapterDatabaseLoader.ValidateGrowthShop(_metaConfig);
             MetaBattleBonus bonus = MetaBattleBonus.From(profile, _metaConfig);
 
             //# 몬스터 전종 글로벌 — 카드 RegisterMonsterTypeBuff 와 동일 표면(StatMultiplier)에서 곱연산 누적.
@@ -1874,7 +1892,7 @@ namespace Lair.Battle
                 //# 재화 정산 (§11.6 순서: 기록 갱신 → 재화 → 유물 굴림 → 저장) — 모드별 배타(챕터 = 각성석, 데일리 = 인장, 탑 = 결정).
                 currencyGains = SettleBattleCurrencies(profile, result, dailyEnd, awakenPaidBefore);
 
-                //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 미할당 씬/테스트에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
+                //# 의도: 메타 정산(_metaConfig) 블록 안 — MetaConfig 없는 격리 컨트롤러(테스트)에선 보상·드랍을 모두 건너뛴다(프로필 미사용).
                 //# 유물 드랍 굴림 — 승리 정상 확률 / 패배 1/4 (relics §2.1). 데일리는 평소 굴림 없이 그날 첫 승리에만 1개 확정(§7.1, RelicMissStreak 불변).
                 if (_spec.IsDaily)
                 {

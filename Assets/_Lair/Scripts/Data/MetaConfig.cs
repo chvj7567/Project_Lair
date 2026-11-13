@@ -1,26 +1,24 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Lair.Data
 {
-    //# 메타 진행 수치 단일 진실 — 기획서 docs/design/village-meta-hub.md 값으로 채움.
-    //# 에셋은 git 관리 — 값 편집은 Lair Meta Editor 윈도우, 신규 생성은 CreateAssetMenu(Lair/MetaConfig).
-    [CreateAssetMenu(menuName = "Lair/MetaConfig", fileName = "MetaConfig")]
-    public class MetaConfig : ScriptableObject
+    //# 메타 진행 런타임 모델 — MetaConfig.json 외 8종의 조립 결과 (so-to-json-migration §6.1). 값은 JSON 이 단일 진실이다.
+    //# 로더가 Current 에 올리고, 진입점(전투·마을·쇼케이스)이 한 번 받아 서비스에 인자로 넘긴다. 필드 기본값은 테스트 조립용이다.
+    public class MetaConfig
     {
-        [Header("소울 보상 (기획서 §2.1)")]
+        //# 소울 보상 (기획서 §2.1)
         public int WinBaseSouls = 100;             //# 승리 기본 보상
         public float WinTimeBonusPerSec = 0.5f;    //# 승리 시 잔여 1초당 보너스 (floor)
         public int LoseMaxSouls = 60;              //# 패배 시 영웅 HP 깎은 비율 × 이 값 (floor)
 
-        [Header("영주 XP (기획서 §4.1)")]
+        //# 영주 XP (기획서 §4.1)
         public int WinXp = 100;
         public int LoseXp = 40;
         public int XpPerLevelBase = 100;           //# Lv1→2 필요 XP
         public float XpGrowth = 1.25f;             //# 레벨당 필요 XP 증가율
 
-        [Header("상점 / 영주 보상 / 도전과제 (기획서 §3.2 / §4.3 / §5.2)")]
+        //# 상점 / 영주 보상 / 도전과제 (기획서 §3.2 / §4.3 / §5.2)
         public List<ShopItemDef> ShopItems = new List<ShopItemDef>();
         public List<LordRewardDef> LordRewards = new List<LordRewardDef>();
         public List<AchievementDef> Achievements = new List<AchievementDef>();
@@ -35,8 +33,7 @@ namespace Lair.Data
             return null;
         }
 
-        //# MetaConfig.json 외 8종 조립 결과 (so-to-json-migration §6.2 7번). null = 미로드.
-        //# 커밋 ① 동안 게임은 씬의 SO 를 읽고, 이 값은 패리티 비교에만 쓴다.
+        //# 로드·검증 성공 시에만 채워진다 (so-to-json-migration §6.2 7번). null 이면 메타 미로드 — 전투 진입 불가(§6.4).
         public static MetaConfig Current { get; set; }
 
         //# JSON row → 런타임 모델. 위반(§10 SJ3~SJ5)은 전부 모아 ChapterDataException 으로 던진다.
@@ -54,8 +51,7 @@ namespace Lair.Data
             if (errors.Count > 0)
                 throw new ChapterDataException("메타 데이터 검증 실패:\n - " + string.Join("\n - ", errors));
 
-            //# 커밋 ② 에서 SO 상속을 떼면 new MetaConfig() 로 바뀐다.
-            MetaConfig result = CreateInstance<MetaConfig>();
+            MetaConfig result = new MetaConfig();
             result.WinBaseSouls = data.Config.winBaseSouls;
             result.WinTimeBonusPerSec = data.Config.winTimeBonusPerSec;
             result.LoseMaxSouls = data.Config.loseMaxSouls;

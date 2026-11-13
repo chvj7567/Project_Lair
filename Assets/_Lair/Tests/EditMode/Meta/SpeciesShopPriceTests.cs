@@ -28,16 +28,10 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems.Add(SpeciesDef());
             _profile = new MetaProfile { Souls = 100000 };
             _shop = new ShopService(_profile, _cfg);
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         //# §3.1 표 — Lv0~4 구매가 150 / 240 / 384 / 614 / 983.

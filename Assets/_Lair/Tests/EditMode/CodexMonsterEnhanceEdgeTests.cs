@@ -18,7 +18,7 @@ namespace Lair.Tests.EditMode
     {
         private static MetaConfig Cfg()
         {
-            return ScriptableObject.CreateInstance<MetaConfig>();
+            return new MetaConfig();
         }
 
         //# 격리 — 카드 셀에는 몬스터 필드가 새지 않는다(Species null, EnhanceLevel 0). 잠금 더미는 더 이상 붙지 않는다(D7).

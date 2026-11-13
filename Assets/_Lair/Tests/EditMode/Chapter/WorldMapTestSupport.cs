@@ -75,7 +75,7 @@ namespace Lair.Tests.EditMode
             return MetaConfig.Build(data, id => Strings().ContainsKey(id), Text, currency => currencies.Contains(currency.ToString()));
         }
 
-        //# shipped 메타 JSON 9종 조립 — 커밋 ① 동안 결과가 SO 인스턴스라 호출자가 DestroyImmediate 한다 (so-to-json-migration §7.5).
+        //# shipped 메타 JSON 9종 조립 — 호출마다 새 인스턴스라 테스트 간 공유 상태가 없다 (so-to-json-migration §7.5).
         public static MetaConfig ShippedMeta()
         {
             return BuildMeta(ShippedMetaData());

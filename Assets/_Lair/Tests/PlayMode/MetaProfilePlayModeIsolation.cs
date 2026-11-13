@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Lair.Tests.PlayMode
 {
-    //# PlayMode 스위트 전역 프로필 격리 — Battle.unity 에 MetaConfig 가 와이어돼 EndBattle 정산이
+    //# PlayMode 스위트 전역 프로필 격리 — 로더가 올린 MetaConfig.Current 로 Battle 의 EndBattle 정산이
     //# MetaSession.Store.Save 를 부른다. 주입 없이는 실제 persistentDataPath/meta_profile.json 이
     //# 테스트 런마다 오염되고(TotalRuns/소울 누적), 반대로 개발자 프로필의 상점 레벨이 시뮬 수치를 왜곡한다.
     [SetUpFixture]

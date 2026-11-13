@@ -17,7 +17,7 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.Achievements.Add(new AchievementDef { Id = "FirstRun",     Condition = EAchievementCondition.TotalRuns,         Threshold = 1f });
             _cfg.Achievements.Add(new AchievementDef { Id = "Runs10",       Condition = EAchievementCondition.TotalRuns,         Threshold = 10f });
             _cfg.Achievements.Add(new AchievementDef { Id = "Runs30",       Condition = EAchievementCondition.TotalRuns,         Threshold = 30f });
@@ -31,12 +31,6 @@ namespace Lair.Tests.EditMode
             _cfg.Achievements.Add(new AchievementDef { Id = "Win60",        Condition = EAchievementCondition.WinUnderSeconds,   Threshold = 60f });
             _cfg.Achievements.Add(new AchievementDef { Id = "SynergyTier2", Condition = EAchievementCondition.SynergyTierReached, Threshold = 2f });
             _cfg.Achievements.Add(new AchievementDef { Id = "SynergyTier3", Condition = EAchievementCondition.SynergyTierReached, Threshold = 3f });
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         private static readonly HashSet<string> 진행대상6 = new HashSet<string>

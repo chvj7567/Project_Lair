@@ -14,16 +14,10 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterHpUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, PerLevelMul = 1.02f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterAtkSpeedUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Cooldown, PerLevelMul = 0.99f, MaxLevel = 5 });
             _cfg.ShopItems.Add(new ShopItemDef { Id = "SpawnerHasteUp", EffectKind = EShopEffectKind.SpawnerPeriod, PerLevelMul = 0.985f, MaxLevel = 5 });
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test]

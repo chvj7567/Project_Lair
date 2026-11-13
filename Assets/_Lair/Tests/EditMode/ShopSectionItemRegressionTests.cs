@@ -12,7 +12,6 @@ namespace Lair.Tests.EditMode
     //# 여기서는 헤더가 섞인 다중 섹션 리스트에서 각 항목이 올바른 위치·값으로 살아남는지(carry-through)를 본다 (중복 회피).
     public class ShopSectionItemRegressionTests
     {
-        private readonly List<MetaConfig> _configs = new List<MetaConfig>();
 
         //# PriceGrowth=2, 정수 BasePrice → floor(base·2^level) 이 정확(부동소수 floor 오차 없음).
         private static ShopItemDef Stat(string id, int basePrice)
@@ -31,21 +30,9 @@ namespace Lair.Tests.EditMode
 
         private MetaConfig Make(params ShopItemDef[] items)
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>(items);
-            _configs.Add(cfg);
             return cfg;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            foreach (MetaConfig cfg in _configs)
-            {
-                if (cfg != null)
-                    Object.DestroyImmediate(cfg);
-            }
-            _configs.Clear();
         }
 
         private static ShopItemCellData FindItem(List<ShopItemCellData> list, string id)

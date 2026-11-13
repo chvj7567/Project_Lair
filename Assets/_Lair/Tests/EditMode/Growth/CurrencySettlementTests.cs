@@ -96,7 +96,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 특수_재화_항목은_재화_잔액으로_결제하고_잠기면_구매를_거부한다()
         {
-            MetaConfig cfg = UnityEngine.ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "Awaken_Wisp", EffectKind = EShopEffectKind.MonsterAwaken, Currency = ECurrency.AwakenStone, MaxLevel = 5, BasePrice = 10, PriceGrowth = 1.5f },

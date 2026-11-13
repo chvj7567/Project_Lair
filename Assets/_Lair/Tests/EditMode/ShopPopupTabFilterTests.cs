@@ -11,30 +11,17 @@ namespace Lair.Tests.EditMode
     //# 구 ShopPopupTabFilterTests(2탭 필터)를 통합 리스트 검증으로 재작성.
     public class ShopSectionListTests
     {
-        private readonly List<MetaConfig> _configs = new List<MetaConfig>();
 
         private MetaConfig Cfg()
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "MonsterHpUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, MaxLevel = 5 },
                 new ShopItemDef { Id = "SpawnFaster", EffectKind = EShopEffectKind.SpawnerPeriod, MaxLevel = 5 },
                 new ShopItemDef { Id = "Enhance_Wisp", EffectKind = EShopEffectKind.MonsterSpecies, Species = EMonster.Wisp, MaxLevel = 5 },
             };
-            _configs.Add(cfg);
             return cfg;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            foreach (MetaConfig cfg in _configs)
-            {
-                if (cfg != null)
-                    Object.DestroyImmediate(cfg);
-            }
-            _configs.Clear();
         }
 
         [Test]

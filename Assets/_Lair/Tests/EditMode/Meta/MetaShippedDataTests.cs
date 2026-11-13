@@ -5,7 +5,6 @@ using ChvjUnityInfra;
 using Lair.Data;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
@@ -35,16 +34,10 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(13, data.Achievements.Length, "Achievement");
 
             MetaConfig meta = WorldMapTestSupport.BuildMeta(data);
-            try
-            {
-                Assert.AreEqual(31, meta.ShopItems.Count);
-                Assert.AreEqual(9, meta.LordRewards.Count);
-                Assert.AreEqual(13, meta.Achievements.Count);
-            }
-            finally
-            {
-                Object.DestroyImmediate(meta);
-            }
+
+            Assert.AreEqual(31, meta.ShopItems.Count);
+            Assert.AreEqual(9, meta.LordRewards.Count);
+            Assert.AreEqual(13, meta.Achievements.Count);
         }
 
         [Test]
@@ -57,7 +50,7 @@ namespace Lair.Tests.EditMode
             }
         }
 
-        //# 육성 3축 상점 항목(각성·둥지·특성)의 결제 재화·최대 레벨·종족 데이터가 JSON 조립 결과로도 무결하다 — 로더 이관(커밋 ②) 전 동등성 확인.
+        //# 육성 3축 상점 항목(각성·둥지·특성)의 결제 재화·최대 레벨·종족 데이터가 JSON 조립 결과에서 무결하다 — 로더가 메타 로드 직후 하는 검사와 같다.
         [Test]
         public void 출하_메타_JSON_상점_항목은_육성_상점_무결성_검사를_통과한다()
         {
@@ -75,14 +68,8 @@ namespace Lair.Tests.EditMode
                 Shards = Rows<RelicRarity_ShardRow>("RelicRarity_Shard"),
             }, 2);
             MetaConfig meta = WorldMapTestSupport.ShippedMeta();
-            try
-            {
-                CollectionAssert.IsEmpty(growth.ValidateShopItems(meta));
-            }
-            finally
-            {
-                Object.DestroyImmediate(meta);
-            }
+
+            CollectionAssert.IsEmpty(growth.ValidateShopItems(meta));
         }
 
         [Test]

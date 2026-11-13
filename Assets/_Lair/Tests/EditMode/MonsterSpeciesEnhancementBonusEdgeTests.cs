@@ -10,25 +10,12 @@ namespace Lair.Tests.EditMode
     //# 기존 MonsterSpeciesEnhancementBonusTests(정상 케이스 3 + 곱연산 규약 1)와 비중복 — 실배수 1.18·복수종족·혼재·구세이브.
     public class MonsterSpeciesEnhancementBonusEdgeTests
     {
-        private readonly List<MetaConfig> _configs = new List<MetaConfig>();
 
         private MetaConfig MakeConfig(params ShopItemDef[] items)
         {
-            MetaConfig cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>(items);
-            _configs.Add(cfg);
             return cfg;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            foreach (MetaConfig cfg in _configs)
-            {
-                if (cfg != null)
-                    Object.DestroyImmediate(cfg);
-            }
-            _configs.Clear();
         }
 
         private static ShopItemDef Species(string id, EMonster species, int maxLevel = 5)

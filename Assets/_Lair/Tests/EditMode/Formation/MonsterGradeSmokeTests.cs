@@ -99,7 +99,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 상점_몬스터_행은_승급_칸을_5번째로_갖고_행_머리에_보유_등급_접두어가_붙는다()
         {
-            MetaConfig cfg = UnityEditor.AssetDatabase.LoadAssetAtPath<MetaConfig>("Assets/_Lair/Data/MetaConfig.asset");
+            MetaConfig cfg = WorldMapTestSupport.ShippedMeta();
             MetaProfile p = new MetaProfile { Souls = 500 };
             p.SetRaceGrade(ERace.Ignis, 5);
 

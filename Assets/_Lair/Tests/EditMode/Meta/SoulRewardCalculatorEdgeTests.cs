@@ -13,18 +13,12 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.WinBaseSouls = 100;
             _cfg.WinTimeBonusPerSec = 0.5f;
             _cfg.LoseMaxSouls = 60;
             _cfg.WinXp = 100;
             _cfg.LoseXp = 40;
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test]

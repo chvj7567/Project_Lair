@@ -16,14 +16,6 @@ namespace Lair.Tests.EditMode
     {
         private MetaConfig _cfg;
 
-        [TearDown]
-        public void 정리()
-        {
-            if (_cfg != null)
-                UnityEngine.Object.DestroyImmediate(_cfg);
-            _cfg = null;
-        }
-
         //# ApplyMetaBonuses 폴딩 규약 재현 — 글로벌 스탯(전종 동일 배수) + 종족(Hp·Power 동일 단일배수)을 _typeModifiers 에 곱연산 접기.
         private static Dictionary<EMonster, StatMultiplier> FoldLikeApplyMetaBonuses(MetaBattleBonus bonus)
         {
@@ -70,7 +62,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 글로벌Hp와_종족강화가_대상종족_Hp에서_곱으로_맞물린다()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "MonsterHpUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, PerLevelMul = 1.1f, MaxLevel = 5 },
@@ -92,7 +84,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 비대상_종족은_글로벌만_받고_종족배수는_안_받는다()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "MonsterHpUp", EffectKind = EShopEffectKind.MonsterStat, StatKind = EMonsterStatKind.Hp, PerLevelMul = 1.1f, MaxLevel = 5 },
@@ -113,7 +105,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 종족강화는_Hp와_Power를_같은_배수로_함께_키운다()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems = new List<ShopItemDef>
             {
                 new ShopItemDef { Id = "Enhance_Reaper", EffectKind = EShopEffectKind.MonsterSpecies, Species = EMonster.Reaper, PerLevelMul = 1.18f, MaxLevel = 5 },
@@ -134,7 +126,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 만렙_3축_곱이_기획서_파워상한_2_52에_근사한다()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems = new List<ShopItemDef>
             {
                 //# 글로벌 Hp 만렙 총배 ≈ 1.10 을 PerLevelMul 로 근사(1.10^1). §8.1 은 글로벌 만렙 HP ×1.10.

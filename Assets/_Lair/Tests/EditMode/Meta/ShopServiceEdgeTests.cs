@@ -15,16 +15,10 @@ namespace Lair.Tests.EditMode
         [SetUp]
         public void 준비()
         {
-            _cfg = ScriptableObject.CreateInstance<MetaConfig>();
+            _cfg = new MetaConfig();
             _cfg.ShopItems.Add(new ShopItemDef { Id = "MonsterHpUp", BasePrice = 80, PriceGrowth = 1.6f, MaxLevel = 5 });
             _profile = new MetaProfile { Souls = 100 };
             _shop = new ShopService(_profile, _cfg);
-        }
-
-        [TearDown]
-        public void 정리()
-        {
-            Object.DestroyImmediate(_cfg);
         }
 
         [Test]
