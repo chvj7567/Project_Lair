@@ -210,6 +210,15 @@
         //# SO→JSON 이전 (so-to-json-migration §12.1) — 값명 = Data/Json/<값명>.json 파일명. append-only.
         BalanceConfig,
         MonsterStat,
+        MetaConfig,
+        ShopItem,
+        ShopItem_Stat,
+        ShopItem_Species,
+        ShopItem_Mul,
+        ShopItem_Desc,
+        LordLevel,
+        LordLevel_Reward,
+        Achievement,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.

@@ -10,10 +10,10 @@ namespace Lair.Battle
     //# Loading 씬이 선행 로드하고, Battle 직행(에디터)은 EnsureLoadedAsync 로 보충한다. 실패 시 Current 는 null 유지 + LogError.
     public static class ChapterDatabaseLoader
     {
-        //# 챕터·밸런스가 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
+        //# 챕터·필수 묶음(밸런스·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
         public static async Task<ChapterDatabase> EnsureLoadedAsync()
         {
-            if (ChapterDatabase.Current != null && BalanceConfig.Current != null)
+            if (ChapterDatabase.Current != null && BalanceConfig.Current != null && MetaConfig.Current != null)
                 return ChapterDatabase.Current;
             return await LoadAsync();
         }
@@ -23,6 +23,7 @@ namespace Lair.Battle
             //# 필수 묶음 1번(so-to-json-migration §6.2·§6.4) — 실패하면 챕터 로드 전체를 실패시킨다.
             if (await LoadBalanceAsync() == false)
             {
+                ResetRequiredBundles();
                 ChapterDatabase.Current = null;
                 return null;
             }
@@ -74,6 +75,12 @@ namespace Lair.Battle
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
                 await LoadGrowthAsync();
+                //# 필수 묶음 7번 — 실패하면 필수 묶음 Current 를 전부 되돌려 전투 진입 가드가 막게 한다(챕터 DB 는 마을이 쓰므로 유지, §6.4).
+                if (await LoadMetaAsync() == false)
+                {
+                    ResetRequiredBundles();
+                    return null;
+                }
                 return db;
             }
             catch (ChapterDataException e)
@@ -106,6 +113,58 @@ namespace Lair.Battle
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
                 return false;
             }
+        }
+
+        //# 메타 JSON 9종 → MetaConfig.Current. 로드·파싱·검증 실패는 위반 전부를 LogError 하고 false (조용한 폴백 금지).
+        //# 커밋 ① 동안 게임은 씬의 SO 를 읽으므로 이 값은 패리티 비교에만 쓰인다. 육성 상점 무결성 호출은 커밋 ② 에서 이 뒤로 옮긴다.
+        private static async Task<bool> LoadMetaAsync()
+        {
+            MetaConfig.Current = null;
+            string configJson = await LoadTextAsync(EData.MetaConfig);
+            string itemJson = await LoadTextAsync(EData.ShopItem);
+            string statJson = await LoadTextAsync(EData.ShopItem_Stat);
+            string speciesJson = await LoadTextAsync(EData.ShopItem_Species);
+            string mulJson = await LoadTextAsync(EData.ShopItem_Mul);
+            string descJson = await LoadTextAsync(EData.ShopItem_Desc);
+            string levelJson = await LoadTextAsync(EData.LordLevel);
+            string rewardJson = await LoadTextAsync(EData.LordLevel_Reward);
+            string achievementJson = await LoadTextAsync(EData.Achievement);
+            if (configJson == null || itemJson == null || statJson == null || speciesJson == null || mulJson == null
+                || descJson == null || levelJson == null || rewardJson == null || achievementJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 메타 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
+                return false;
+            }
+            try
+            {
+                MetaConfig.Current = MetaConfig.Build(
+                    new MetaDataSet
+                    {
+                        Config = JsonUtility.FromJson<MetaConfigRow>(configJson),
+                        ShopItems = JsonArrayUtility.FromJsonArray<ShopItemRow>(itemJson),
+                        Stats = JsonArrayUtility.FromJsonArray<ShopItem_StatRow>(statJson),
+                        Species = JsonArrayUtility.FromJsonArray<ShopItem_SpeciesRow>(speciesJson),
+                        Muls = JsonArrayUtility.FromJsonArray<ShopItem_MulRow>(mulJson),
+                        Descs = JsonArrayUtility.FromJsonArray<ShopItem_DescRow>(descJson),
+                        LordLevels = JsonArrayUtility.FromJsonArray<LordLevelRow>(levelJson),
+                        LordRewards = JsonArrayUtility.FromJsonArray<LordLevel_RewardRow>(rewardJson),
+                        Achievements = JsonArrayUtility.FromJsonArray<AchievementRow>(achievementJson),
+                    },
+                    NameKeyExists, LookupString, CurrencyExists);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                return false;
+            }
+        }
+
+        //# 필수 묶음(밸런스·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
+        private static void ResetRequiredBundles()
+        {
+            BalanceConfig.Current = null;
+            MetaConfig.Current = null;
         }
 
         //# 난이도 배율표 — 실패(로드/검증)해도 챕터 로드는 성공시킨다. Current=null → "Easy 만 존재"로 동작(difficulty-select E-3·E-4).
@@ -419,6 +478,18 @@ namespace Lair.Battle
         private static bool NameKeyExists(int id)
         {
             return CHText.StringProvider == null || string.IsNullOrEmpty(CHText.StringProvider.GetString(id)) == false;
+        }
+
+        //# Strings_Ko 미로드면 빈 문자열 — 표시 문구만 비고 검증은 NameKeyExists 규칙을 따른다(so-to-json-migration §9 E3).
+        private static string LookupString(int id)
+        {
+            return CHText.StringProvider != null ? CHText.StringProvider.GetString(id) : string.Empty;
+        }
+
+        //# 육성 재화 DB 가 없으면(비필수 묶음 실패) 재화 존재 검사만 건너뛴다 — 값명 검사는 Build 가 한다.
+        private static bool CurrencyExists(ECurrency currency)
+        {
+            return GrowthDatabase.Current == null || GrowthDatabase.Current.GetCurrency(currency) != null;
         }
 
         //# 상점 항목 무결성(§6.3-7)은 MetaConfig 를 가진 진입점(마을·전투)이 1회 호출 — 위반이면 LogError + 육성 재화 기능 비활성(§6.3-8, 보유 재화·레벨 보존).

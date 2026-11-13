@@ -47,6 +47,40 @@ namespace Lair.Tests.EditMode
                 Load<MonsterStatRow>("MonsterStat"));
         }
 
+        //# shipped 메타 JSON 9종 묶음 — 엣지 테스트가 행을 바꿔 BuildMeta 로 다시 조립할 수 있게 조립 전 단계도 노출한다.
+        public static MetaDataSet ShippedMetaData()
+        {
+            return new MetaDataSet
+            {
+                Config = UnityEngine.JsonUtility.FromJson<MetaConfigRow>(File.ReadAllText(JsonDir + "MetaConfig.json")),
+                ShopItems = Load<ShopItemRow>("ShopItem"),
+                Stats = Load<ShopItem_StatRow>("ShopItem_Stat"),
+                Species = Load<ShopItem_SpeciesRow>("ShopItem_Species"),
+                Muls = Load<ShopItem_MulRow>("ShopItem_Mul"),
+                Descs = Load<ShopItem_DescRow>("ShopItem_Desc"),
+                LordLevels = Load<LordLevelRow>("LordLevel"),
+                LordRewards = Load<LordLevel_RewardRow>("LordLevel_Reward"),
+                Achievements = Load<AchievementRow>("Achievement"),
+            };
+        }
+
+        //# 엄격 조립 — Strings_Ko 에 없는 id 는 오류(로더의 provider-null 관용 없음), 재화는 Currency.json 행으로 판정한다.
+        public static MetaConfig BuildMeta(MetaDataSet data)
+        {
+            HashSet<string> currencies = new HashSet<string>();
+            foreach (CurrencyRow row in Load<CurrencyRow>("Currency"))
+            {
+                currencies.Add(row.currencyId);
+            }
+            return MetaConfig.Build(data, id => Strings().ContainsKey(id), Text, currency => currencies.Contains(currency.ToString()));
+        }
+
+        //# shipped 메타 JSON 9종 조립 — 커밋 ① 동안 결과가 SO 인스턴스라 호출자가 DestroyImmediate 한다 (so-to-json-migration §7.5).
+        public static MetaConfig ShippedMeta()
+        {
+            return BuildMeta(ShippedMetaData());
+        }
+
         public static IReadOnlyDictionary<int, string> Strings()
         {
             if (_strings == null)
