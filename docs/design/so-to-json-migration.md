@@ -772,17 +772,23 @@ Rule 02 §11 — "콘텐츠·밸런스 데이터는 JSON, ScriptableObject 는 `
 
 ### 6.4 로드 실패 정책
 
-신설 4묶음(Balance·HeroSkill·Card·Meta)은 **필수 묶음**이다. 하나라도 로드·검증에 실패하면 `LogError` 로 위반 전부를 출력하고 `ChapterDatabase.Current` 를 null 로 되돌린 뒤 `LoadAsync` 가 null 을 돌려준다. 이후 동작은 기존 챕터 JSON 실패 경로와 같다.
+신설 4묶음(Balance·HeroSkill·Card·Meta)은 **필수 묶음**이다. 하나라도 로드·검증에 실패하면 로더는 `LogError` 로 위반 전부를 출력하고 **필수 묶음의 `Current` 4개(`BalanceConfig.Current`·`HeroSkillDatabase.Current`·`CardDatabase.Current`·`MetaConfig.Current`)를 전부 null 로 되돌린 뒤** `LoadAsync` 가 null 을 돌려준다.
+
+전투 진입 차단은 **`BattleController` 진입 시점의 명시 가드 한 곳**이 맡는다: 필수 묶음의 `Current` 가 하나라도 null 이면 `LogError` 후 마을로 복귀한다(`AbortToVillage`). 로더가 4개를 함께 null 로 되돌리므로 가드는 한 곳에서 판정한다. 단계별로는 그 단계까지 도입된 묶음만 판정한다(A1 은 Balance).
 
 | 상황 | 동작 |
 |---|---|
-| 전투 진입 | 전투 사양을 만들지 못해 진입 중단, 마을 복귀 (현행 `AbortToVillage` 경로) |
+| 전투 진입 (필수 묶음 미로드) | 명시 가드가 진입 중단, 마을 복귀 |
 | 마을 | 기존 null 가드대로 동작 (메뉴 열기 불가 + 오류 로그) |
-| 다음 전투 진입 | `EnsureLoadedAsync` 가 다시 로드를 시도 |
+| 다음 전투 진입 | `EnsureLoadedAsync` 가 다시 로드를 시도 (챕터와 필수 묶음의 `Current` 가 모두 있을 때만 즉시 반환) |
 
-근거: SO 는 씬에 직렬화돼 있어 "로드 실패"가 없었다. JSON 전환으로 생긴 새 실패 경로에서 기본 스탯·무보상으로 전투를 진행시키면 틀린 수치의 판이 랭킹에 올라간다(챕터 데이터의 "조용한 폴백 금지" 원칙과 같은 판단). 이 실패는 배포 누락(Addressables 미등록·JSON 문법 오류)에서만 나며 SJ3~SJ6 이 커밋 전에 잡는다. 사용자 확인 항목 §14 Q7.
+기존 "전투 사양 생성 실패" 경로에 기대지 않는 이유: 챕터 모드의 전투 사양은 챕터 데이터가 없어도 항상 만들어진다(`BattleSpecResolver.ResolveChapter`). 사양 생성 실패로 마을에 돌아가는 것은 탑·데일리뿐이라, 그 경로만으로는 챕터 모드 진입이 막히지 않는다. 따라서 판정 기준은 `ChapterDatabase.Current` 나 전투 사양이 아니라 필수 묶음의 `Current` 다.
 
-기존 가드 2개는 이 정책으로 대체된다: `_balance == null` 시 "프리팹 기본 스탯으로 진행", 스킬 로드아웃 로드 실패 시 "영웅 스킬 비활성".
+**범위 밖 (변경 없음)**: 챕터 JSON 만 단독으로 실패했을 때의 기존 동작(챕터 모드는 영웅 기본 스탯으로 진행, 탑·데일리는 사양 생성 실패로 마을 복귀)은 이번에 바꾸지 않는다.
+
+근거: SO 는 씬에 직렬화돼 있어 "로드 실패"가 없었다. JSON 전환으로 생긴 새 실패 경로에서 기본 스탯·무보상으로 전투를 진행시키면 틀린 수치의 판이 랭킹에 올라간다. 이 실패는 배포 누락(Addressables 미등록·JSON 문법 오류)에서만 나며 SJ3~SJ6 이 커밋 전에 잡는다. 사용자 확인 항목 §14 Q7.
+
+기존 가드 2개는 이 명시 가드로 대체된다: `_balance == null` 시 "프리팹 기본 스탯으로 진행", 스킬 로드아웃 로드 실패 시 "영웅 스킬 비활성".
 
 ---
 
@@ -792,7 +798,7 @@ Rule 02 §11 — "콘텐츠·밸런스 데이터는 JSON, ScriptableObject 는 `
 
 | 소비처 | 현재 | 전환 후 |
 |---|---|---|
-| `BattleController` | `[SerializeField] BalanceConfig _balance` (Battle.unity 7742행) | `BalanceConfig.Current` 조회. 직렬화 필드 삭제 |
+| `BattleController` | `[SerializeField] BalanceConfig _balance` (Battle.unity 7742행) | `BalanceConfig.Current` 조회. 직렬화 필드 삭제. 진입 시 필수 묶음 미로드면 마을 복귀하는 명시 가드 추가(§6.4) |
 | `VillageController` | `[SerializeField] BalanceConfig _balance` (Village.unity 11067행) — 영웅 앵커만 읽음 | `BalanceConfig.Current` 조회. 직렬화 필드 삭제 |
 | `BattleHudArg.Balance` | 대입만 있고 읽는 곳 0 | 필드 삭제 |
 | `BattleController.Balance` 프로퍼티 | 공개 getter | `BalanceConfig.Current` 로 대체 후 삭제 |
@@ -902,7 +908,7 @@ Rule 02 §11 — "콘텐츠·밸런스 데이터는 JSON, ScriptableObject 는 `
 | E1 | 에디터에서 Battle 씬 직행 | 현행처럼 `EnsureLoadedAsync` 가 전체 묶음을 로드한다. 신설 묶음도 같은 호출에 포함 |
 | E2 | 에디터에서 Village 씬 직행 (로딩 씬 미경유) | `MetaConfig.Current`·`ChapterDatabase.Current` 가 null — 기존 null 가드대로 메뉴 열기 불가. 현행도 로딩 씬이 리소스·UI 초기화를 맡으므로 동작 범위는 같다 |
 | E3 | `Strings_Ko` 가 아직 등록되지 않은 상태에서 조립 | 문구 존재 검증은 통과시키고(현행 `NameKeyExists` 규칙), 표시 문자열은 빈 문자열. 로딩 씬 경로는 `Strings_Ko` 등록이 먼저라 해당 없음 |
-| E4 | JSON 문법 오류·필수 필드 누락 | §6.4 필수 묶음 실패. 위반 전부를 한 번에 로그 |
+| E4 | JSON 문법 오류·필수 필드 누락 | §6.4 필수 묶음 실패 — 위반 전부를 한 번에 로그, 필수 묶음 `Current` 전부 null, 전투 진입은 명시 가드가 차단 |
 | E5 | `Card.json` 에 행이 있는데 `CardData` SO 가 풀에 없음 / 풀의 SO 에 맞는 행이 없음 | EditMode 테스트 SJ5 가 양방향 대조로 잡는다. 런타임에서 행 없는 SO 를 만나면 `LogError` + 그 카드를 후보에서 제외 |
 | E6 | 세이브에 있는 `ShopLevels[].ItemId` 가 `ShopItem.json` 에 없음 | 현행과 동일 — 조회 결과 없음으로 무시(레벨 보존) |
 | E7 | 세이브의 `AchievedIds` 에 있는 id 가 `Achievement.json` 에 없음 | 현행과 동일 — 무시 |
