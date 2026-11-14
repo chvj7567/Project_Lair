@@ -24,12 +24,22 @@ namespace Lair.UI
         [SerializeField] private CHText _statsText;              //# 해금: 배율 / 잠금: 숨김
         [SerializeField] private CHText _conditionTitleText;
         [SerializeField] private CHText[] _conditionTexts;
+        [Header("아트 위젯 (미배선이면 글자 방식으로 대체)")]
+        [SerializeField] private Image _gradeChipBg;             //# CodexTag - 등급색 틴트
+        [SerializeField] private Image _tierChipBg;              //# CodexTag - 중립 틴트
+        [SerializeField] private GameObject[] _conditionBgs;     //# 조건 줄 바탕(CodexTierHeader)
+        [SerializeField] private Image[] _conditionIcons;        //# 조건 충족/미충족 아이콘
+        [SerializeField] private Sprite _checkSprite;            //# CodexCheck
+        [SerializeField] private Sprite _crossSprite;            //# CodexCross
+        [SerializeField] private GameObject _lockIcon;           //# CodexLock - 잠긴 칸의 미리보기 모서리
         [SerializeField] private CHText _hiddenStatsText;
         [SerializeField] private CHText _appearanceText;
         [SerializeField] private CodexUnlockFx _unlockFx;        //# 미리보기 위 해금 연출(전체 강도) 위젯 — 링 최대 3·스파클 최대 18
 
         private const float DetailSparkScale = 2f;
 
+        private static readonly Color LockedChip = new Color32(0x3A, 0x41, 0x55, 0xFF);
+        private static readonly Color TierChip = new Color32(0x4A, 0x5A, 0x80, 0xFF);
         private static readonly Color LockedBorder = new Color32(0x23, 0x28, 0x34, 0xFF);
         private static readonly Color LockedText = new Color32(0x7D, 0x87, 0x9F, 0xFF);
         private static readonly Color LockedStar = new Color32(0x59, 0x61, 0x7A, 0xFF);
@@ -78,6 +88,18 @@ namespace Lair.UI
                 _previewBorder.color = locked ? LockedBorder : gradeColor;
             }
             SetText(_nameText, model.Name, text);
+            if (_gradeChipBg != null)
+            {
+                _gradeChipBg.color = locked ? LockedChip : gradeColor;
+            }
+            if (_tierChipBg != null)
+            {
+                _tierChipBg.color = locked ? LockedChip : TierChip;
+            }
+            if (_lockIcon != null)
+            {
+                _lockIcon.SetActive(locked);
+            }
             SetText(_gradeChipText, model.GradeName, text);
             SetText(_tierChipText, model.TierLabel, text);
             SetText(_raceText, model.RaceLabel, text);
@@ -150,10 +172,27 @@ namespace Lair.UI
                     continue;
                 bool show = locked && i < model.Conditions.Count;
                 line.gameObject.SetActive(show);
+                Image icon = _conditionIcons != null && i < _conditionIcons.Length ? _conditionIcons[i] : null;
+                if (_conditionBgs != null && i < _conditionBgs.Length && _conditionBgs[i] != null)
+                {
+                    _conditionBgs[i].SetActive(show);
+                }
+                if (icon != null)
+                {
+                    icon.gameObject.SetActive(show);
+                }
                 if (show == false)
                     continue;
                 CodexConditionLine condition = model.Conditions[i];
-                line.SetText((condition.Met ? "O " : "X ") + condition.Text);
+                if (icon != null)
+                {
+                    icon.sprite = condition.Met ? _checkSprite : _crossSprite;
+                    line.SetText(condition.Text);
+                }
+                else
+                {
+                    line.SetText((condition.Met ? "O " : "X ") + condition.Text);
+                }
                 line.SetColor(condition.Met ? Met : Unmet);
             }
         }
