@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lair 데이터 지도</title>
+<style>
+:root{
+  --bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2a2f3a;--text:#e6e8ee;--muted:#9aa3b2;
+  --json:#5ef0b4;--so:#ffb74d;--pp:#64b5f6;--file:#ba68c8;--fb:#ff7043;--mem:#90a4ae;
+  --fk:#ffd54f;--pk:#5ef0b4;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 "Pretendard","Noto Sans KR",system-ui,sans-serif;padding:0 16px 64px;overflow-wrap:anywhere}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:26px;margin:28px 0 6px}
+h2{font-size:20px;margin:40px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:15px;margin:22px 0 8px;color:var(--text)}
+p.lead{color:var(--muted);margin:0 0 18px}
+code{font:12.5px/1.4 ui-monospace,Consolas,monospace;background:#0b0d11;padding:1px 5px;border-radius:4px;color:#dfe3ea}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel)}
+.dot{width:9px;height:9px;border-radius:50%}
+.t-json .dot{background:var(--json)} .t-so .dot{background:var(--so)} .t-pp .dot{background:var(--pp)}
+.t-file .dot{background:var(--file)} .t-fb .dot{background:var(--fb)} .t-mem .dot{background:var(--mem)}
+
+/* 저장 위치 4분할 */
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;margin-top:14px}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;border-top:4px solid var(--line)}
+.tier.json{border-top-color:var(--json)} .tier.so{border-top-color:var(--so)}
+.tier.device{border-top-color:var(--pp)} .tier.cloud{border-top-color:var(--fb)} .tier.mem{border-top-color:var(--mem)}
+.tier h3{margin:0 0 6px;font-size:16px}
+.tier .sub{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+.tier ul{margin:0;padding-left:18px;font-size:13px}
+.tier li{margin:3px 0}
+
+/* 흐름도 */
+.flow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:stretch;margin:16px 0}
+.flow .box{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px}
+.flow .box b{display:block;margin-bottom:4px}
+.flow .arrow{align-self:center;color:var(--muted);font-size:12px;text-align:center;white-space:nowrap}
+@media (max-width:860px){.flow{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+
+/* 테이블 카드 */
+.group{margin-top:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.card header .name{font-weight:700;font-size:14px}
+.card header .meta{font-size:11px;color:var(--muted);white-space:nowrap}
+.card .desc{padding:8px 12px 0;color:var(--muted);font-size:12.5px}
+.card table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12.5px}
+.card td{padding:4px 12px;border-top:1px solid #20242d;vertical-align:top}
+.card td:first-child{width:46%;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.k{display:inline-block;font-size:10px;font-weight:700;padding:0 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.k.pk{background:#17392c;color:var(--pk)} .k.fk{background:#3a3214;color:var(--fk)} .k.ck{background:#17392c;color:var(--pk)}
+.ref{color:var(--fk)}
+.card .foot{padding:8px 12px;font-size:12px;color:var(--muted);border-top:1px solid #20242d;margin-top:auto}
+.card.entity header{border-left:4px solid var(--json)}
+.card.rel header{border-left:4px solid var(--fk)}
+.card.cfg header{border-left:4px solid #80cbc4}
+.card.so header{border-left:4px solid var(--so)}
+.card.pp header{border-left:4px solid var(--pp)}
+.card.file header{border-left:4px solid var(--file)}
+.card.fb header{border-left:4px solid var(--fb)}
+.card.mem header{border-left:4px solid var(--mem)}
+
+/* 관계도 */
+.erd{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.erd pre{margin:0;font:12.5px/1.5 ui-monospace,Consolas,monospace;color:#d6dbe6;white-space:pre}
+.erd .e{color:var(--json);font-weight:700} .erd .r{color:var(--fk)} .erd .s{color:var(--so)} .erd .c{color:#80cbc4} .erd .m{color:var(--muted)}
+
+/* 비교 표 */
+table.plain{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table.plain th,table.plain td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.plain th{background:var(--panel2);font-weight:700;font-size:12.5px}
+table.plain tr:last-child td{border-bottom:0}
+.note{background:#1b1f1a;border:1px solid #2d3a2a;border-left:4px solid var(--json);border-radius:8px;padding:10px 14px;font-size:13px;margin:14px 0}
+.warn{background:#241c17;border:1px solid #3b2a22;border-left:4px solid var(--fb);border-radius:8px;padding:10px 14px;font-size:13px;margin:14px 0}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
+.toc a{color:var(--text);text-decoration:none;font-size:12.5px;padding:4px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.toc a:hover{border-color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Project Lair 데이터 지도</h1>
+<p class="lead">2026-11-14 기준 코드(<code>Assets/_Lair/Scripts</code>)·데이터(<code>Assets/_Lair/Data/Json</code>)에서 추출 (SO → JSON 이전 완료 후). 정적 데이터는 <b>JSON 우선</b>, 에셋 참조가 필요한 것만 <b>ScriptableObject</b>, 플레이어 진행은 <b>로컬 JSON 파일 1개</b> + <b>Firestore 백업</b>, 랭킹만 Firestore 전용.</p>
+
+<div class="legend">
+  <span class="tag t-json"><i class="dot"></i>JSON (Addressable TextAsset, 읽기 전용)</span>
+  <span class="tag t-so"><i class="dot"></i>ScriptableObject (에셋 참조, 읽기 전용)</span>
+  <span class="tag t-file"><i class="dot"></i>기기 저장 - 파일 (persistentDataPath)</span>
+  <span class="tag t-pp"><i class="dot"></i>기기 저장 - PlayerPrefs</span>
+  <span class="tag t-fb"><i class="dot"></i>Firebase Firestore</span>
+  <span class="tag t-mem"><i class="dot"></i>임시 (메모리, 세션/판 단위)</span>
+</div>
+<div class="legend">
+  <span class="tag"><span class="k pk" style="margin:0">PK</span>&nbsp;기본키 / 복합키</span>
+  <span class="tag"><span class="k fk" style="margin:0">FK</span>&nbsp;다른 테이블·Enum 을 가리키는 값</span>
+  <span class="tag">카드 왼쪽 띠: <span style="color:var(--json)">■ 엔티티</span> <span style="color:var(--fk)">■ 관계 데이터</span> <span style="color:#80cbc4">■ 단일 설정 객체</span></span>
+</div>
+
+<div class="toc">
+  <a href="#overview">1. 한눈에</a><a href="#flow">2. 저장·로드 흐름</a><a href="#static">3. 정적 데이터 (JSON 73개)</a><a href="#so">4. ScriptableObject</a>
+  <a href="#save">5. 기기 저장</a><a href="#cloud">6. Firestore</a><a href="#mem">7. 임시 데이터</a><a href="#erd">8. 관계도</a><a href="#strings">9. 문자열 키 규약</a>
+</div>
+
+<!-- ===================== 1. 한눈에 ===================== -->
+<h2 id="overview">1. 한눈에 - 데이터는 5곳에 산다</h2>
+<div class="tiers">
+  <div class="tier json">
+    <h3>JSON 73개 (정적)</h3>
+    <div class="sub"><code>Assets/_Lair/Data/Json/*.json</code> → Addressables, 키 = <code>EData</code> 값명 = 파일명. 전부 런타임이 읽는다 (에디터 동기 사본 없음)</div>
+    <ul>
+      <li>챕터·스테이지·규칙·영웅 직업 (12)</li>
+      <li>유물 (10) · 난이도 (1) · 던전 편성 / 종족 / 등급 (8)</li>
+      <li>탑 (3) · 데일리 (1) · 육성 재화 (10)</li>
+      <li>등급 연출 (5) · 쇼케이스 (3) · 도감 연출 (2)</li>
+      <li><b>전투 밸런스 (2)</b> · <b>마을 성장 - 상점·영주·도전과제 (9)</b></li>
+      <li><b>영웅 스킬 (3)</b> · <b>카드 (2)</b></li>
+      <li>문자열 (2) - <code>Strings_Ko</code> 476행, <code>LoadingStrings_Ko</code> 27행</li>
+    </ul>
+    <div class="sub" style="margin-top:6px">검산: 12+10+1+8+3+1+10+5+3+2+2+9+3+2+2 = 73 = 이전 전 61 − 동기 사본 4 + 신설 16. 굵은 16개가 이번 이전의 신설분.</div>
+  </div>
+  <div class="tier so">
+    <h3>ScriptableObject (정적, 에셋 참조)</h3>
+    <div class="sub">Sprite·시트 등 <code>UnityEngine.Object</code> 참조가 필요할 때만 - 5종 에셋 50개</div>
+    <ul>
+      <li><code>CardData</code> x28 - <code>_id</code> + 그림 2장만 (수치·문구는 Card.json)</li>
+      <li><code>CardPool_Passive</code> / <code>_Active</code> x2 - 카드 SO 목록</li>
+      <li><code>MonsterTierSheetSet</code> x18 - 강화 티어 전신 시트</li>
+      <li><code>HeroStageVariantConfig</code> x1 - 스테이지 키 + 영웅 초상 그림</li>
+      <li><code>SynergyVisualConfig</code> x1 - 축 아이콘</li>
+    </ul>
+    <div class="sub" style="margin-top:6px"><b>규칙 위반 SO 는 없다.</b> 판단 기준 한 줄: 수치·문구·구성 데이터는 JSON, 그림·시트처럼 에셋 참조를 들고 있어야 할 때만 SO.</div>
+  </div>
+  <div class="tier device">
+    <h3>기기 저장</h3>
+    <div class="sub">플레이어 진행의 단일 진실</div>
+    <ul>
+      <li><b>파일</b> <code>persistentDataPath/meta_profile.json</code> = <code>MetaProfile</code> (Version 13, JsonUtility)</li>
+      <li><b>PlayerPrefs</b> <code>Lair.Net.DeviceId</code> · <code>Lair.Net.Uid</code> · HUD 접힘 2키</li>
+      <li>Firebase 자격증명(토큰)은 SDK 가 알아서 영속화 - 이 레포가 관리 안 함</li>
+    </ul>
+  </div>
+  <div class="tier cloud">
+    <h3>Firebase Firestore</h3>
+    <div class="sub">익명 Auth uid 기준 · 보안 규칙/인덱스는 콘솔 소관</div>
+    <ul>
+      <li><code>saves/{uid}</code> MetaProfile 통째 백업 (JSON 문자열 1필드)</li>
+      <li><code>leaderboard/{uid}</code> 전체 최단 기록</li>
+      <li><code>stageLeaderboard/{stage}_{uid}</code> 스테이지별 최단</li>
+      <li><code>dailyLeaderboard/{day}_{uid}</code> 데일리 점수</li>
+      <li><code>displayNames/{name}</code> 표시명 점유 락</li>
+    </ul>
+  </div>
+  <div class="tier mem">
+    <h3>임시 (메모리)</h3>
+    <div class="sub">저장 안 함 - 로드/계산해서 쓰고 버림</div>
+    <ul>
+      <li>정적 <code>Current</code> 15개 (JSON 파싱·검증 결과 인덱스)</li>
+      <li><code>MetaSession</code> 정적 (Profile 핸들·BattleMode·DailyContext·Cloud 상태)</li>
+      <li><code>DailyChallenge</code> 오늘 조합 (날짜 시드 순수 함수)</li>
+      <li><code>RunSummary</code> 한 판 결과 · 카드 덱 · 시너지 진행 · 유물/메타 전투 보너스</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===================== 2. 흐름 ===================== -->
+<h2 id="flow">2. 저장·로드 흐름</h2>
+<div class="flow">
+  <div class="box"><b>부팅 / 마을 진입</b>JSON 73개 → <code>CHMResource</code> Addressables 로드 → 로더 한 곳(<code>ChapterDatabaseLoader</code>)이 각 <code>Build()</code> 로 검증 후 <code>Current</code> 에 보관. SO(카드 풀 등)는 필요한 곳이 따로 로드</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>진행 데이터</b><code>MetaProfileStore.Load()</code> → <code>MetaProfileMigration</code> (Version &lt; 13 이면 승격) → <code>MetaSession.Profile</code></div>
+  <div class="arrow">→</div>
+  <div class="box"><b>전투 1판</b><code>RunSummary</code> 메모리 누적 → 결과창에서 <code>Profile</code> 갱신 → <code>Store.Save()</code> 즉시 파일 기록</div>
+</div>
+<div class="flow">
+  <div class="box"><b>클라우드 백업</b><code>CloudSaveService.BackupAsync</code> → <code>saves/{uid}</code> 트랜잭션. <code>serverVersion</code> 타임스탬프 불일치 = Conflict → 배지·복원 권유 UX</div>
+  <div class="arrow">↔</div>
+  <div class="box"><b>복원</b><code>RestoreAsync</code> → 서버 profile 을 로컬에 덮어씀. 데일리 날짜별 기록만 <code>MergeDailyFrom</code> 으로 병합</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>랭킹</b>Easy 챕터 승리 → <code>leaderboard</code> + <code>stageLeaderboard</code>. 데일리 종료 → <code>dailyLeaderboard</code>. 탑 리더보드는 승격만 되고 클라이언트 코드 미구현</div>
+</div>
+<h3>정적 데이터 로드 순서와 실패 처리 (<code>ChapterDatabaseLoader.LoadAsync</code>)</h3>
+<table class="plain">
+<tr><th style="width:8%">순서</th><th style="width:30%">묶음</th><th>설명</th></tr>
+<tr><td>1</td><td><b>필수</b> 전투 밸런스 (<code>BalanceConfig</code>·<code>MonsterStat</code>)</td><td>로드·검증 실패 시 즉시 중단 - 필수 묶음 4개 Current 와 <code>ChapterDatabase.Current</code> 까지 전부 null</td></tr>
+<tr><td>2</td><td><b>필수</b> 영웅 스킬 3종 파싱</td><td>행만 먼저 보관 (검증은 영웅 직업이 정해지는 4번에서)</td></tr>
+<tr><td>3</td><td>챕터 12종</td><td><code>ChapterDatabase.Build</code> - 카드 트리거 HP 비율·스킬 해금 HP 비율은 1·2번 JSON 에서 받아 대조 (하드코딩 사본 없음)</td></tr>
+<tr><td>4</td><td><b>필수</b> 영웅 스킬 검증</td><td><code>HeroArchetype_Skill.heroId</code> 가 <code>HeroArchetype</code> 에 있는지 등 → <code>HeroSkillDatabase.Current</code></td></tr>
+<tr><td>5</td><td>선택 묶음</td><td>난이도 → 유물 → 편성 → 등급 연출 → 도감 → 쇼케이스 → 탑 → 데일리 → 육성 재화. 실패해도 그 기능만 꺼진다 (기존 동작 그대로)</td></tr>
+<tr><td>6</td><td><b>필수</b> 카드 (<code>Card</code>·<code>Card_Param</code>)</td><td>→ <code>CardDatabase.Current</code></td></tr>
+<tr><td>7</td><td><b>필수</b> 마을 성장 9종</td><td>→ <code>MetaConfig.Current</code>. 성공하면 육성 상점 항목 무결성을 1회 검사 (위반은 육성 재화 기능만 끔)</td></tr>
+</table>
+<div class="note"><b>필수 묶음 = 밸런스·영웅 스킬·카드·마을 성장.</b> 하나라도 로드·검증에 실패하면 로더가 위반을 전부 로그로 남기고 4개의 <code>Current</code> 를 함께 null 로 되돌린다 (밸런스 실패일 때만 <code>ChapterDatabase.Current</code> 도 null - 그 외 실패에서는 마을이 쓰도록 유지). 전투 진입 시 <code>BattleController</code> 의 명시 가드가 밸런스·영웅 스킬·메타 중 null 이 있으면 기본 스탯으로 진행하지 않고 <b>마을로 복귀</b>한다 (4개가 함께 초기화되므로 이 3개 검사로 카드 실패까지 막힌다). 챕터 JSON 단독 실패 시 기존 동작은 이번에 바꾸지 않았다.<br>카드 풀 SO 와 <code>Card.json</code> 의 일치, <code>Card_Species</code> 의 카드 id 대조는 <b>런타임이 아니라 EditMode 테스트</b>가 맡는다 (런타임은 <code>Card_Species.cardId</code> 가 <code>ECardId</code> 값명인지만 본다). 카드 풀 SO 는 로더가 아니라 <code>BattleController</code>·<code>VillageController</code> 가 <code>EData.CardPool_*</code> 로 직접 로드한다.</div>
+
+<div class="warn">충돌 감지는 클라이언트가 한다. 서버 검증은 Firestore 보안 규칙 범위까지이며 Cloud Functions 는 없다. 랭킹 쓰기는 "기존보다 빠를 때만" 을 클라이언트 트랜잭션이 판정한다.</div>
+
+<!-- ===================== 3. JSON ===================== -->
+<h2 id="static">3. 정적 데이터 - JSON (Addressable)</h2>
+<div class="note">모두 <b>73개</b> (3.1~3.9). 이번 이전의 신설 16개는 3.7(전투 밸런스·마을 성장 11개), 3.8(영웅 스킬·카드 5개). 공통 규약: 파일명 = <code>EData</code> 값명 = Addressables 주소. 배열은 <code>JsonArrayUtility</code>, 단일 객체는 <code>JsonUtility</code>. 관계 데이터 이름은 <code>&lt;부모&gt;_&lt;관계&gt;</code>. 선택적 관계는 행이 있을 때만 존재(sentinel 없음). Enum 을 가리키는 문자열 필드는 그 Enum 값명 그대로.</div>
+
+<div class="group"><h3>3.1 챕터 · 스테이지 · 영웅 (ChapterDatabase)</h3>
+<div class="cards">
+  <div class="card entity"><header><span class="name">Chapter</span><span class="meta">5행</span></header>
+    <div class="desc">챕터 하나. 스테이지 5개 고정.</div>
+    <table><tr><td>chapterId <span class="k pk">PK</span></td><td>1~5</td></tr>
+    <tr><td>nameKey · themeTextKey <span class="k fk">FK</span></td><td>→ Strings_Ko.id</td></tr>
+    <tr><td>heroId <span class="k fk">FK</span></td><td>→ HeroArchetype.heroId (EHero)</td></tr>
+    <tr><td>backdropKey <span class="k fk">FK</span></td><td>→ EBackdrop (배경 Addressable)</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Stage</span><span class="meta">25행</span></header>
+    <div class="desc">챕터 안의 스테이지 하나. 선형 번호 = (chapterId-1)x5 + stageIndex.</div>
+    <table><tr><td>chapterId + stageIndex <span class="k pk">PK</span></td><td>→ Chapter</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr>
+    <tr><td>hpMultiplier · powerMultiplier</td><td>영웅 앵커 x 배율</td></tr>
+    <tr><td>targetClearSec</td><td>목표 시간</td></tr>
+    <tr><td>heroScale · heroTier <span class="k fk">신규</span></td><td>영웅 크기 배율 · 강화 외형 티어 0~4 (구 HeroStageVariantConfig SO 에서 이전, 25행 전부 값 있음). 초상 그림은 SO 에 남음</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Stage_Rule</span><span class="meta">28행</span></header>
+    <div class="desc">스테이지에 붙는 규칙 (선택적, 0~n개).</div>
+    <table><tr><td>chapterId + stageIndex + ruleIndex <span class="k pk">PK</span></td><td>→ Stage</td></tr>
+    <tr><td>ruleId <span class="k fk">FK</span></td><td>→ EStageRule (HolySpring·DenseFog·SealedNest·BossBulwark·ArrowRain·HunterTraps)</td></tr></table>
+    <div class="foot">데일리는 이 행을 "규칙 프리셋" 으로 재사용. 트리거 행 유무로 상시/페이즈 자동 분류.</div></div>
+
+  <div class="card rel"><header><span class="name">Stage_Rule_Param</span><span class="meta">104행</span></header>
+    <div class="desc">규칙 하나의 수치 (key-value).</div>
+    <table><tr><td>(Stage_Rule 키) + paramKey <span class="k pk">PK</span></td><td>→ Stage_Rule</td></tr>
+    <tr><td>value</td><td>float</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Stage_Rule_Trigger</span><span class="meta">9행</span></header>
+    <div class="desc">영웅 HP 구간에서 발동하는 규칙만 (보스 페이즈).</div>
+    <table><tr><td>(Stage_Rule 키) <span class="k pk">PK</span></td><td>→ Stage_Rule (1:0..1)</td></tr>
+    <tr><td>hpFraction</td><td>0~1</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">HeroArchetype</span><span class="meta">5행</span></header>
+    <div class="desc">영웅 직업. HP/Power 앵커는 BalanceConfig.json, 여기는 배율만. 스킬은 HeroArchetype_Skill.</div>
+    <table><tr><td>heroId <span class="k pk">PK</span></td><td>EHero 값명</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr>
+    <tr><td>hpScale · powerScale</td><td>앵커 배율</td></tr>
+    <tr><td>range · cooldown · moveSpeed</td><td>기본 공격</td></tr>
+    <tr><td>aiType <span class="k fk">FK</span></td><td>→ EHeroAi (Melee·Kiter·Skirmisher·Charger·Guardian)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">HeroArchetype_Kite / _Skirmish / _Charge / _Guard</span><span class="meta">각 1행</span></header>
+    <div class="desc">aiType 별 AI 튜닝. 해당 AI 영웅만 행 존재.</div>
+    <table><tr><td>heroId <span class="k pk">PK</span></td><td>→ HeroArchetype (1:0..1)</td></tr>
+    <tr><td>Kite</td><td>triggerDist · resumeDist · threatRadius · arenaSoftRadius · cornered* · minDwellSec</td></tr>
+    <tr><td>Skirmish</td><td>huntRadius · strikeWindowSec · crowd* · slip* · …</td></tr>
+    <tr><td>Charge</td><td>huntRadius · clusterRadius · retarget* · …</td></tr>
+    <tr><td>Guard</td><td>retributionLockSec</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">HeroArchetype_Cleave / _DebuffResist</span><span class="meta">각 1행</span></header>
+    <div class="desc">패시브 성격 관계 (범위 베기 / 디버프 저항).</div>
+    <table><tr><td>heroId <span class="k pk">PK</span></td><td>→ HeroArchetype</td></tr>
+    <tr><td>Cleave</td><td>cleaveRadius · cleaveMaxTargets · cleaveSecondaryMul</td></tr>
+    <tr><td>DebuffResist</td><td>durationMul · penaltyMul</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Difficulty</span><span class="meta">3행 (고정)</span></header>
+    <div class="desc">Easy / Normal / Hard 영웅 배율. Easy 는 1.0 강제.</div>
+    <table><tr><td>difficulty <span class="k pk">PK</span></td><td>0·1·2</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr>
+    <tr><td>hpMultiplier · powerMultiplier</td><td>단조 증가 검증</td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.2 던전 편성 · 종족 · 등급 (FormationDatabase)</h3>
+<div class="cards">
+  <div class="card cfg"><header><span class="name">FormationConfig</span><span class="meta">단일 객체</span></header>
+    <table><tr><td>unlockClearedStage</td><td>편성 해금 선형 스테이지 (1)</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Race</span><span class="meta">6행</span></header>
+    <div class="desc">종족. Ignis·Lemur·Nox·Hexia·Miar·Phantas.</div>
+    <table><tr><td>race <span class="k pk">PK</span></td><td>ERace 값명</td></tr>
+    <tr><td>nameKey · descKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Grade</span><span class="meta">5행</span></header>
+    <div class="desc">등급 1~5 (풋내기~군주).</div>
+    <table><tr><td>grade <span class="k pk">PK</span></td><td>1~5</td></tr>
+    <tr><td>prefixKey <span class="k fk">FK</span></td><td>→ Strings_Ko (이름 접두어)</td></tr>
+    <tr><td>sizeMul · hpMul · atkMul</td><td>연출 크기 · 스탯 배율</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Race_Monster</span><span class="meta">30행</span></header>
+    <div class="desc">종족 x 등급 → 몬스터. 6 x 5 전부 존재.</div>
+    <table><tr><td>race + grade <span class="k pk">PK</span></td><td>→ Race · Grade</td></tr>
+    <tr><td>monster <span class="k fk">FK</span></td><td>→ EMonster (전체 유일). MonsterGrades 산술 해석과 대조 검증</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Grade_Promotion</span><span class="meta">7행</span></header>
+    <div class="desc">그 등급으로 승급하는 비용. 2~5 등급만.</div>
+    <table><tr><td>grade + currency <span class="k pk">PK</span></td><td>→ Grade · Currency</td></tr>
+    <tr><td>amount</td><td>int</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">FormationSlot</span><span class="meta">6행</span></header>
+    <div class="desc">둥지(스포너) 하나. slot = _spawners 인덱스+1.</div>
+    <table><tr><td>slot <span class="k pk">PK</span></td><td>1~6</td></tr>
+    <tr><td>race <span class="k fk">FK</span></td><td>→ Race (필수 1:1)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Card_Species</span><span class="meta">18행</span></header>
+    <div class="desc">카드가 의존하는 몬스터 종 (any-of). 종 의존 카드만.</div>
+    <table><tr><td>cardId + monster <span class="k pk">PK</span></td><td>→ Card.cardId (ECardId) · EMonster</td></tr></table>
+    <div class="foot">편성에 없는 종 대상 카드를 3택1 후보에서 제외 (현재 휴면).</div></div>
+
+  <div class="card rel"><header><span class="name">Chapter_FormationHint</span><span class="meta">5행</span></header>
+    <table><tr><td>chapterId <span class="k pk">PK</span></td><td>→ Chapter</td></tr>
+    <tr><td>hintKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.3 유물 (RelicDatabase)</h3>
+<div class="cards">
+  <div class="card entity"><header><span class="name">Relic</span><span class="meta">16행</span></header>
+    <table><tr><td>relicId <span class="k pk">PK</span></td><td>ERelic 값명 = 아이콘 파일명</td></tr>
+    <tr><td>category <span class="k fk">FK</span></td><td>→ ERelicCategory (Stat·Combat·Convenience)</td></tr>
+    <tr><td>rarity <span class="k fk">FK</span></td><td>→ RelicRarity.rarity</td></tr>
+    <tr><td>maxStack</td><td>최대 중첩</td></tr>
+    <tr><td>nameKey · descKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Relic_Effect</span><span class="meta">17행</span></header>
+    <table><tr><td>relicId + effectIndex <span class="k pk">PK</span></td><td>→ Relic</td></tr>
+    <tr><td>effectKind <span class="k fk">FK</span></td><td>→ ERelicEffectKind</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Relic_Effect_Param</span><span class="meta">26행</span></header>
+    <table><tr><td>relicId + effectIndex + paramKey <span class="k pk">PK</span></td><td>→ Relic_Effect</td></tr>
+    <tr><td>value</td><td>중첩 1 기준</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Relic_Drop</span><span class="meta">75행</span></header>
+    <div class="desc">이 영웅(챕터)이 이 유물을 드랍한다.</div>
+    <table><tr><td>relicId + heroId <span class="k pk">PK</span></td><td>→ Relic · HeroArchetype</td></tr>
+    <tr><td>weight</td><td>등급 안 상대 가중치</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">RelicRarity</span><span class="meta">3행</span></header>
+    <table><tr><td>rarity <span class="k pk">PK</span></td><td>Common · Rare · Legendary</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr>
+    <tr><td>baseWeight · colorHex</td><td></td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">RelicStack</span><span class="meta">5행</span></header>
+    <table><tr><td>stack <span class="k pk">PK</span></td><td>1~5</td></tr><tr><td>effectScale</td><td>체감 감소 배율</td></tr></table></div>
+
+  <div class="card cfg"><header><span class="name">RelicConfig</span><span class="meta">단일 객체</span></header>
+    <table><tr><td>lossChanceMul · pityPerMiss · pityMaxBonus · maxChance</td><td>전역 드랍 규칙</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Stage_Relic</span><span class="meta">25행</span></header>
+    <table><tr><td>chapterId + stageIndex <span class="k pk">PK</span></td><td>→ Stage</td></tr><tr><td>dropChance</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Difficulty_Relic / Difficulty_Relic_Rarity</span><span class="meta">3행 / 9행</span></header>
+    <table><tr><td>difficulty <span class="k pk">PK</span></td><td>→ Difficulty · dropChanceMul</td></tr>
+    <tr><td>difficulty + rarity <span class="k pk">PK</span></td><td>→ Difficulty · RelicRarity · weightMul</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">RelicRarity_Shard</span><span class="meta">3행</span></header>
+    <div class="desc">최대 중첩이면 유물 대신 주는 잔해량.</div>
+    <table><tr><td>rarity <span class="k pk">PK</span></td><td>→ RelicRarity</td></tr><tr><td>shardAmount</td><td></td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.4 몬스터 육성 재화 (GrowthDatabase)</h3>
+<div class="cards">
+  <div class="card entity"><header><span class="name">Currency</span><span class="meta">5행</span></header>
+    <table><tr><td>currencyId <span class="k pk">PK</span></td><td>ECurrency (Soul·AwakenStone·MoonSeal·AbyssCrystal·RelicShard)</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko</td></tr><tr><td>colorHex</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Currency_Exchange</span><span class="meta">3행</span></header>
+    <div class="desc">잔해 → 3재화 교환 비율만 존재.</div>
+    <table><tr><td>fromCurrency + toCurrency <span class="k pk">PK</span></td><td>→ Currency</td></tr>
+    <tr><td>fromAmount · toAmount</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">AwakenStat</span><span class="meta">8행</span></header>
+    <div class="desc">종족(기준 몬스터)의 각성 스탯 줄.</div>
+    <table><tr><td>monster + statIndex <span class="k pk">PK</span></td><td>→ EMonster (기준 6종)</td></tr>
+    <tr><td>statKind <span class="k fk">FK</span></td><td>→ EMonsterStatKind</td></tr><tr><td>perLevelMul</td><td></td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">NestMastery / NestMastery_Param</span><span class="meta">3행 / 4행</span></header>
+    <table><tr><td>level <span class="k pk">PK</span></td><td>effectKind → ENestMasteryEffect</td></tr>
+    <tr><td>level + paramKey <span class="k pk">PK</span></td><td>value</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">MonsterTrait / MonsterTrait_Param</span><span class="meta">6행 / 42행</span></header>
+    <table><tr><td>monster <span class="k pk">PK</span></td><td>trait → EMonsterTrait · nameKey · descKey</td></tr>
+    <tr><td>monster + tier + paramKey <span class="k pk">PK</span></td><td>value (tier 1~3)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Difficulty_Awaken</span><span class="meta">2행</span></header>
+    <div class="desc">Normal·Hard 만 (Easy 행 없음).</div>
+    <table><tr><td>difficulty <span class="k pk">PK</span></td><td>→ Difficulty</td></tr><tr><td>firstClear · repeatWin</td><td>각성석</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Difficulty_TowerCrystal</span><span class="meta">3행</span></header>
+    <table><tr><td>difficulty <span class="k pk">PK</span></td><td>탑 유물 등급 단계 0/1/2</td></tr><tr><td>crystalPerFloor</td><td>심연 결정</td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.5 무한의 탑 · 데일리</h3>
+<div class="cards">
+  <div class="card cfg"><header><span class="name">TowerConfig</span><span class="meta">단일 객체</span></header>
+    <table><tr><td>seasonId · seed</td><td>층 구성 결정 시드</td></tr>
+    <tr><td>unlockClearedStage</td><td>25 (5-5)</td></tr>
+    <tr><td>hpBase · hpGrowthPerFloor · powerGrowthPerFloor · boss*Mul · multiplierCap</td><td>복리 성장</td></tr>
+    <tr><td>relicNormalFromFloor · relicHardFromFloor · previewFloors · leaderboardTop</td><td></td></tr>
+    <tr><td>crystalMilestoneEvery · crystalMilestoneBonus</td><td>심연 결정 이정표</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">HeroArchetype_Tower</span><span class="meta">5행</span></header>
+    <table><tr><td>heroId <span class="k pk">PK</span></td><td>→ HeroArchetype</td></tr><tr><td>hpMultiplier · powerMultiplier</td><td>탑 보정</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Stage_Tower</span><span class="meta">25행</span></header>
+    <div class="desc">이 스테이지 규칙 묶음을 탑 템플릿으로.</div>
+    <table><tr><td>chapterId + stageIndex <span class="k pk">PK</span></td><td>→ Stage</td></tr><tr><td>minFloor · ruleFactor</td><td></td></tr></table></div>
+
+  <div class="card cfg"><header><span class="name">DailyConfig</span><span class="meta">단일 객체</span></header>
+    <table><tr><td>utcOffsetMinutes (540) · unlockClearedStage (5) · attemptsPerDay (3)</td><td></td></tr>
+    <tr><td>baseStageIndex (2) · difficulty (1)</td><td>기준 x-2 · Normal</td></tr>
+    <tr><td>commonRelicStack · rareRelicStack · firstWinSouls · streakBonus* · leaderboardTop</td><td></td></tr>
+    <tr><td>sealPerFinish · sealFirstWin</td><td>달빛 인장</td></tr></table>
+    <div class="foot">영웅·규칙·유물 풀은 별도 JSON 없이 Chapter / Stage_Rule / Relic 에서 자동 도출.</div></div>
+</div></div>
+
+<div class="group"><h3>3.6 연출 (GradeFxDatabase · ShowcaseDatabase · CodexDatabase)</h3>
+<div class="cards">
+  <div class="card rel"><header><span class="name">Grade_Glow / Grade_Aura / Grade_Pulse</span><span class="meta">4 / 4 / 1행</span></header>
+    <div class="desc">등급별 후광·바닥 오라·맥동. 1등급 행 없음, Pulse 는 5등급만.</div>
+    <table><tr><td>grade <span class="k pk">PK</span></td><td>→ Grade</td></tr>
+    <tr><td>Glow: widthCell</td><td>Aura: opacity · scale · offsetY</td></tr>
+    <tr><td>Pulse: brightnessMin/Max · saturationMin/Max · periodSec</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Grade_Fx</span><span class="meta">7행</span></header>
+    <table><tr><td>grade + index <span class="k pk">PK</span></td><td>→ Grade</td></tr>
+    <tr><td>kind</td><td>Tornado | Sunburst</td></tr>
+    <tr><td>offsetX · offsetY · scale · opacity · frameOffset</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Monster_GradeFxColor</span><span class="meta">6행</span></header>
+    <table><tr><td>monster <span class="k pk">PK</span></td><td>→ EMonster 기준 6종</td></tr><tr><td>glowColor</td><td>#RRGGBB</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Showcase_Scene</span><span class="meta">2행</span></header>
+    <table><tr><td>scene <span class="k pk">PK</span></td><td>Village · Loading</td></tr>
+    <tr><td>fitMaxHeightDots · startWaitMaxSec · waitMinSec · waitMaxSec</td><td></td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">Showcase_Actor / _Waypoint</span><span class="meta">12 / 23행</span></header>
+    <table><tr><td>scene + monster <span class="k pk">PK</span></td><td>behavior · speedDots · flying · startFacingLeft · orderBase</td></tr>
+    <tr><td>scene + monster + index <span class="k pk">PK</span></td><td>x · y (480x270 도트 좌표)</td></tr></table></div>
+
+  <div class="card cfg"><header><span class="name">CodexConfig / Grade_CodexUnlock</span><span class="meta">단일 / 5행</span></header>
+    <table><tr><td>CodexConfig</td><td>fxLiveCap(8) · cellBodyBasePx · cell*Max · 각종 Sec</td></tr>
+    <tr><td>grade <span class="k pk">PK</span></td><td>colorHex · pulseCount · spreadPx · ringCount · sparkCount · glowPx</td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.7 전투 밸런스 · 마을 성장 (BalanceConfig · MetaConfig) <span class="tag" style="color:var(--json)">SO → JSON 이전</span></h3>
+<div class="cards">
+  <div class="card cfg"><header><span class="name">BalanceConfig</span><span class="meta">단일 객체</span></header>
+    <div class="desc">전투 한 판에 공통으로 쓰는 전역 상수. 런타임 <code>BalanceConfig.Current</code>.</div>
+    <table><tr><td>heroHp · heroPower</td><td>영웅 앵커 4000 / 50. x HeroArchetype.scale x Stage 배율 x Difficulty 로 최종</td></tr>
+    <tr><td>runDuration</td><td>300초</td></tr>
+    <tr><td>passiveThresholds[9]</td><td>0.9 … 0.1 (영웅 HP 10%마다 패시브 카드)</td></tr>
+    <tr><td>activeThresholds[5]</td><td>30·90·150·210·270초 (액티브 카드)</td></tr></table>
+    <div class="foot">ChapterDatabase 의 카드 트리거 HP 비율 대조는 이 배열을 받아 쓴다 (하드코딩 사본 제거).</div></div>
+
+  <div class="card entity"><header><span class="name">MonsterStat</span><span class="meta">6행</span></header>
+    <div class="desc">기준 몬스터 6종의 기본 능력치 + 스폰 주기. 등급 몬스터는 <code>BaseOf</code> 로 같은 행을 쓴다.</div>
+    <table><tr><td>monster <span class="k pk">PK</span></td><td>EMonster 기준 6종 값명</td></tr>
+    <tr><td>hp · power · range · cooldown · moveSpeed</td><td>기본 능력치</td></tr>
+    <tr><td>spawnPeriod</td><td>이 종 둥지의 기본 스폰 주기(초). 모든 종이 가지는 필수 1:1 이라 직접 필드</td></tr></table></div>
+
+  <div class="card cfg"><header><span class="name">MetaConfig</span><span class="meta">단일 객체</span></header>
+    <div class="desc">소울 보상·영주 XP 공식 상수. 런타임 <code>MetaConfig.Current</code> 는 이 7값 + 아래 표들을 조립한 일반 클래스.</div>
+    <table><tr><td>winBaseSouls · winTimeBonusPerSec · loseMaxSouls</td><td>100 · 0.5 · 60</td></tr>
+    <tr><td>winXp · loseXp · xpPerLevelBase · xpGrowth</td><td>100 · 40 · 100 · 1.25</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">ShopItem</span><span class="meta">31행</span></header>
+    <div class="desc">상점 항목 하나. <b>행 순서 = 상점 표시 순서</b>. 전종 7 · 체급 6 · 각성 6 · 둥지 6 · 특성 6.</div>
+    <table><tr><td>itemId <span class="k pk">PK</span></td><td>세이브 키 <code>MetaProfile.ShopLevels[].ItemId</code> - 글자 불변</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1541~1571)</td></tr>
+    <tr><td>effectKind <span class="k fk">FK</span></td><td>→ EShopEffectKind (MonsterStat·SpawnerPeriod·MonsterSpecies·MonsterAwaken·NestMastery·MonsterTrait)</td></tr>
+    <tr><td>maxLevel · basePrice · priceGrowth</td><td></td></tr>
+    <tr><td>currency <span class="k fk">FK</span></td><td>→ Currency.currencyId (필수 1:1: 소울 13 · 특수 재화 18)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">ShopItem_Stat</span><span class="meta">6행</span></header>
+    <div class="desc">전종 스탯 강화(effectKind = MonsterStat) 항목만.</div>
+    <table><tr><td>itemId <span class="k pk">PK</span></td><td>→ ShopItem</td></tr>
+    <tr><td>statKind <span class="k fk">FK</span></td><td>→ EMonsterStatKind</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">ShopItem_Species</span><span class="meta">24행</span></header>
+    <div class="desc">종족 항목(MonsterSpecies·MonsterAwaken·NestMastery·MonsterTrait)만. 4종 x 6.</div>
+    <table><tr><td>itemId <span class="k pk">PK</span></td><td>→ ShopItem</td></tr>
+    <tr><td>monster <span class="k fk">FK</span></td><td>→ EMonster 기준 6종</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">ShopItem_Mul</span><span class="meta">13행</span></header>
+    <div class="desc">레벨당 곱 배율이 있는 항목(MonsterStat·SpawnerPeriod·MonsterSpecies)만. 육성 3축은 행 없음 (수치는 AwakenStat 등).</div>
+    <table><tr><td>itemId <span class="k pk">PK</span></td><td>→ ShopItem</td></tr>
+    <tr><td>perLevelMul</td><td>예: 1.02 · 0.985 (1 미만이 강화인 항목 있음)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">ShopItem_Desc</span><span class="meta">19행</span></header>
+    <div class="desc">효과 설명 문구가 있는 항목만. 둥지·특성 12항목은 행 없음 (칸 문구는 NestMastery·MonsterTrait 데이터로 조립). 체급 6행은 문구 1개(1579)를 공유.</div>
+    <table><tr><td>itemId <span class="k pk">PK</span></td><td>→ ShopItem</td></tr>
+    <tr><td>descKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1572~1585)</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">LordLevel</span><span class="meta">9행</span></header>
+    <div class="desc">영주 보상 트랙의 레벨 칸 (Lv2~10). 트랙 만렙 = 최대 level.</div>
+    <table><tr><td>level <span class="k pk">PK</span></td><td>2~10</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">LordLevel_Reward</span><span class="meta">5행</span></header>
+    <div class="desc">보상이 있는 칸(Lv2·3·5·7·9)만. <b>행 없음 = 잠금 칸</b> (Lv4·6·8·10, 구 IsLockedDummy).</div>
+    <table><tr><td>level <span class="k pk">PK</span></td><td>→ LordLevel</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1586~1590)</td></tr>
+    <tr><td>rewardSouls</td><td>50 · 80 · 120 · 150 · 200</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">Achievement</span><span class="meta">13행</span></header>
+    <div class="desc">고정 도전과제. <b>행 순서 = 퀘스트 팝업 순서</b>.</div>
+    <table><tr><td>achievementId <span class="k pk">PK</span></td><td>세이브 키 <code>MetaProfile.AchievedIds[]</code> - 글자 불변</td></tr>
+    <tr><td>nameKey · descKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1591~1616)</td></tr>
+    <tr><td>condition <span class="k fk">FK</span></td><td>→ EAchievementCondition (FirstWin·WinUnderSeconds·TotalWins·TotalRuns·SynergyTierReached)</td></tr>
+    <tr><td>threshold · rewardSouls</td><td></td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.8 영웅 스킬 · 카드 (HeroSkillDatabase · CardDatabase) <span class="tag" style="color:var(--json)">SO → JSON 이전</span></h3>
+<div class="cards">
+  <div class="card entity"><header><span class="name">HeroSkill</span><span class="meta">15행</span></header>
+    <div class="desc">영웅 스킬 하나. skillId 가 곧 동작 종류(코드의 런타임 클래스 선택 키).</div>
+    <table><tr><td>skillId <span class="k pk">PK</span></td><td>EHeroSkill 값명 (DashStrike·AoeNova·OrbitingBlade·PiercingShot·ArrowVolley·Evade·ShadowStrike·BladeWhirl·SmokeBomb·CrushingLeap·ChainPull·BloodFrenzy·JudgmentHammer·PurifyingLight·Sanctuary)</td></tr>
+    <tr><td>nameKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1617~1631, 해금 컷인 이름)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">HeroSkill_Param</span><span class="meta">97행</span></header>
+    <div class="desc">스킬 수치 하나 (key-value, 스킬마다 3~9개). 필수 키 집합은 스킬별로 정확히 일치해야 한다.</div>
+    <table><tr><td>skillId + paramKey <span class="k pk">PK</span></td><td>→ HeroSkill</td></tr>
+    <tr><td>value</td><td>float (damage · cooldown · radius · tickCount …)</td></tr></table></div>
+
+  <div class="card rel"><header><span class="name">HeroArchetype_Skill</span><span class="meta">15행</span></header>
+    <div class="desc">이 영웅이 HP 가 이 비율 이하일 때 여는 스킬. 영웅 5 x 구간 3 (0.85 · 0.65 · 0.45).</div>
+    <table><tr><td>heroId + phaseIndex <span class="k pk">PK</span></td><td>→ HeroArchetype (phaseIndex 1부터 연속)</td></tr>
+    <tr><td>hpFraction</td><td>0 초과 1 미만</td></tr>
+    <tr><td>skillId <span class="k fk">FK</span></td><td>→ HeroSkill</td></tr></table>
+    <div class="foot">구 HeroSkillLoadout SO 5개를 대체. 영웅 → 로드아웃 코드 표도 사라짐.</div></div>
+
+  <div class="card entity"><header><span class="name">Card</span><span class="meta">28행</span></header>
+    <div class="desc">카드 하나. 행 순서 = ECardId 정수값 순. 카드 SO(<code>CardData</code>)가 <code>_id</code> 로 이 행을 찾는다. 축당 7장.</div>
+    <table><tr><td>cardId <span class="k pk">PK</span></td><td>ECardId 값명 - 세이브 문자열(<code>PickedCards</code> 등)이라 글자 불변</td></tr>
+    <tr><td>axis <span class="k fk">FK</span></td><td>→ EBuildAxis (Tank·Dps·Debuff·Swarm)</td></tr>
+    <tr><td>nameKey · descKey <span class="k fk">FK</span></td><td>→ Strings_Ko (1632~1687)</td></tr>
+    <tr><td>effectKind <span class="k fk">FK</span></td><td>→ ECardEffect (28종). cardId 와 이름이 다른 카드 6장: PlagueSlowBoost→PlagueToxinBoost · ReplaceWispsToWraith→WispWraithPowerBoost · ReplaceReapersToHex→ReaperHexPowerBoost · Multiply→FastBreeding · Berserk→GuardianRage · WallOfWisps→ToughHide</td></tr></table>
+    <div class="foot">폐기된 <code>HeroPoisonAura</code> 는 행 없음 (ECardId 자리·세이브 문자열 호환만 보존).</div></div>
+
+  <div class="card rel"><header><span class="name">Card_Param</span><span class="meta">26행</span></header>
+    <div class="desc">카드 효과 수치 하나 (key-value). 수치가 있는 카드 21장 (1개 17장 · 2개 3장 · 3개 1장). 수치 없는 7장은 행 없음.</div>
+    <table><tr><td>cardId + paramKey <span class="k pk">PK</span></td><td>→ Card</td></tr>
+    <tr><td>value</td><td>duration · hpMul · powerMul · periodMul …</td></tr></table></div>
+</div></div>
+
+<div class="group"><h3>3.9 문자열</h3>
+<div class="cards">
+  <div class="card entity"><header><span class="name">Strings_Ko</span><span class="meta">476행</span></header>
+    <div class="desc">게임 전체 CHText 문자열. 모든 <code>*Key</code> 필드의 대상.</div>
+    <table><tr><td>id <span class="k pk">PK</span></td><td>int (1001~ 챕터, 1101~ 스테이지, 1327~ 난이도, 1360~ 유물, 1465~ 재화, 1499~ 종족, 1511~ 등급 접두어 …, <b>1541~1571 상점 이름 · 1572~1585 상점 설명 · 1586~1590 영주 보상 · 1591~1616 도전과제 · 1617~1631 영웅 스킬 · 1632~1687 카드 이름·설명</b>)</td></tr>
+    <tr><td>text</td><td>1541~1687 의 147행이 이번에 추가 (329 → 476). 카드·스킬·상점·도전과제의 이름·설명은 이제 전부 여기</td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">LoadingStrings_Ko</span><span class="meta">27행</span></header>
+    <table><tr><td>key <span class="k pk">PK</span></td><td>로딩 대상 에셋 키 문자열</td></tr><tr><td>text</td><td></td></tr></table></div>
+
+  <div class="card entity"><header><span class="name">(삭제됨) 에디터 동기 사본 4종</span><span class="meta">0개</span></header>
+    <div class="desc"><code>cards.json</code> · <code>card_pools.json</code> · <code>balance_config.json</code> · <code>hero_skills.json</code> 와 <code>Editor/JsonSync/</code> 동기 창은 삭제됐다. JSON 이 단일 진실이라 SO ↔ JSON 동기가 필요 없다.</div></div>
+</div></div>
+
+<!-- ===================== 4. SO ===================== -->
+<h2 id="so">4. ScriptableObject (정적 · 에셋 참조)</h2>
+<div class="note"><b>판단 기준 한 줄:</b> 수치·문구·구성(자주 튜닝하는 콘텐츠·밸런스)은 JSON, Sprite·시트처럼 <code>UnityEngine.Object</code> 참조를 들고 있어야 하는 것만 SO (Rule 02 §11). SO → JSON 이전으로 <b>"규칙 위반 SO" 는 모두 해소</b>됐다 - 아래 5종은 전부 에셋 참조 전용이다.</div>
+<div class="note">이전으로 <b>사라진 SO</b>: <code>BalanceConfig</code>·<code>MetaConfig</code> (이제 JSON 을 조립하는 일반 클래스 + <code>Current</code> - 씬에 직렬화 참조 없음) · 영웅 스킬 SO 15 · 스킬 로드아웃 SO 5 (<code>EData.HeroSkillLoadout*</code> 5값은 정수 직렬화 호환을 위해 자리만 남김). 값 튜닝은 3장의 JSON 을 텍스트로 직접 편집한다 (Meta Editor·JSON Sync 창 삭제).</div>
+<div class="cards">
+  <div class="card so"><header><span class="name">CardData x28</span><span class="meta">Art/Cards/Items/</span></header>
+    <div class="desc">카드 한 장의 <b>이름표 + 그림</b>. 축·이름·설명·효과 수치는 Card.json / Card_Param.json 에서 처음 읽을 때 풀어 캐시한다. 행이 없는 카드는 오류 로그 후 후보에서 제외.</div>
+    <table><tr><td>_id <span class="k pk">PK</span></td><td>ECardId (= 파일명) → Card.cardId</td></tr>
+    <tr><td>_icon · _cardImage</td><td>Sprite 참조 (빌드 패널 아이콘 · 3택1 일러스트)</td></tr></table>
+    <div class="foot">삭제된 필드: _axis · _displayName · _description · _effect(SerializeReference 다형).</div></div>
+
+  <div class="card so"><header><span class="name">CardPool_Passive / _Active</span><span class="meta">Art/Cards/ · x2</span></header>
+    <table><tr><td>_cards[]</td><td>→ CardData (패시브 16 / 액티브 12). 순서도 SO 가 진실 - 데일리 카드 시드가 이 순서에 의존. 카드 대조는 EditMode 테스트가 담당</td></tr></table></div>
+
+  <div class="card so"><header><span class="name">HeroStageVariantConfig</span><span class="meta">Data/ · x1</span></header>
+    <table><tr><td>_stages[] {ChapterId + StageIndex <span class="k pk">PK</span>, Portrait(Sprite)}</td><td>스테이지별 영웅 초상 25장. 발광(UseEmission·EmissionColor·EmissionIntensity) 필드는 삭제 (25행 전부 꺼져 있던 값), ScaleMultiplier·Tier 는 Stage.json 의 heroScale·heroTier 로 이전</td></tr></table></div>
+
+  <div class="card so"><header><span class="name">SynergyVisualConfig · MonsterTierSheetSet x18</span><span class="meta">Art/Synergy · Art/MonsterTiers</span></header>
+    <table><tr><td>Synergy: _entries[] {Axis, Icon}</td><td>축당 아이콘 1</td></tr>
+    <tr><td>{Name}T{1..3}: _frames[30] · _hpBarHeightWorld</td><td>강화 티어 전신 시트. 전투 시작 시 필요한 (종족, 티어)만 로드</td></tr></table></div>
+</div>
+
+<!-- ===================== 5. 기기 저장 ===================== -->
+<h2 id="save">5. 기기 저장 데이터</h2>
+<div class="cards">
+  <div class="card file"><header><span class="name">MetaProfile</span><span class="meta">persistentDataPath/meta_profile.json · Version 13</span></header>
+    <div class="desc">플레이어 진행의 단일 진실. JsonUtility 라 Dictionary 대신 엔트리 리스트. 필드 부재 = C# 초기값 (구버전 호환). 스키마 변경 시 Version++ 와 <code>MetaProfileMigration</code> 분기.</div>
+    <table>
+    <tr><td>Version</td><td>13</td></tr>
+    <tr><td>Souls</td><td>소울 잔액 (Currencies 에는 안 들어감)</td></tr>
+    <tr><td>SelectedStage · ClearedStage</td><td>선형 스테이지 번호 1~25 / 0~25</td></tr>
+    <tr><td>LordXp · LordRewardGrantedLevel</td><td>누적 XP, 보상 지급 멱등 가드</td></tr>
+    <tr><td>ShopLevels[] {ItemId <span class="k fk">FK</span>, Level}</td><td>→ ShopItem.itemId (글자 불변)</td></tr>
+    <tr><td>StageRecords[] {Stage <span class="k pk">PK</span>, Runs, Wins, BestClearTime}</td><td>스테이지별 전적. BestClearTime -1 = 없음</td></tr>
+    <tr><td>AchievedIds[] <span class="k fk">FK</span></td><td>→ Achievement.achievementId (글자 불변)</td></tr>
+    <tr><td>SeenMonsters[] · PickedCards[]</td><td>도감. EMonster / ECardId(= Card.cardId) 값명</td></tr>
+    <tr><td>CardPickCounts[] {CardId <span class="k pk">PK</span>, Count}</td><td>v4 · → Card.cardId</td></tr>
+    <tr><td>TotalRuns · TotalWins · BestClearTime</td><td>전체 전적</td></tr>
+    <tr><td>SelectedHero · SelectedDifficulty</td><td>EHero 값명 · 0~2 (v7)</td></tr>
+    <tr><td>DifficultyClears[] {Stage <span class="k pk">PK</span>, MaxDifficulty, AwakenPaid}</td><td>v7 · 첫 클리어 각성석 지급 기록 v12</td></tr>
+    <tr><td>Relics[] {RelicId <span class="k fk">FK</span>, Stack} · RelicMissStreak</td><td>v8 → Relic.relicId · 천장 카운터</td></tr>
+    <tr><td>Formation[] {Slot <span class="k fk">FK</span>, Monster <span class="k fk">FK</span>}</td><td>v9 → FormationSlot.slot · EMonster</td></tr>
+    <tr><td>TowerSeason · TowerFloorClears[] {Floor <span class="k pk">PK</span>, ClearTime, CrystalPaid}</td><td>v10 · 시즌 바뀌면 정규화</td></tr>
+    <tr><td>DailyDays[] {Day <span class="k pk">PK</span>, AttemptsUsed} · DailyResults[] {Day <span class="k pk">PK</span>, BestScore} · DailyStreak</td><td>v11 · 복원 시 날짜별 병합, 오래된 날 Prune</td></tr>
+    <tr><td>Currencies[] {CurrencyId <span class="k pk">PK</span>, Amount, TotalEarned}</td><td>v12 → Currency (Soul 제외 4종)</td></tr>
+    <tr><td>RaceGrades[] {Race <span class="k pk">PK</span>, Grade}</td><td>v13 → Race. 보유 최고 등급 2~5 (1 은 행 없음)</td></tr>
+    <tr><td>BattleSpeedOn · DisplayName</td><td>2배속 토글 · 표시명 (서버 확정값 캐시)</td></tr>
+    </table>
+    <div class="foot">SO → JSON 이전은 <b>저장 데이터를 바꾸지 않았다</b> - Version 13 · 필드 · <code>MetaProfileMigration.CurrentVersion</code> 모두 그대로, 마이그레이션 없음. 파생값(저장 안 함): 영주 레벨 ← LordXp, 도감 해금 ← SeenMonsters x RaceGrades x ShopLevels, 강화 티어 ← ShopLevels[Enhance_*].</div></div>
+
+  <div class="card pp"><header><span class="name">PlayerPrefs</span><span class="meta">기기 전용 · 클라우드 미동기</span></header>
+    <table><tr><td>Lair.Net.DeviceId</td><td>GUID 1회 생성. 자동 표시명 "영주 #xxxx" 시드. 인증과 무관</td></tr>
+    <tr><td>Lair.Net.Uid</td><td>Firebase 익명 계정 localId 캐시. 랭킹 "내 행" 매칭 키</td></tr>
+    <tr><td>Lair.Hud.SynergyCollapsed · Lair.Hud.BuildCollapsed</td><td>전투 HUD 패널 접힘</td></tr></table>
+    <div class="foot">Firebase idToken / refreshToken 은 SDK 자체 저장소. 이 레포 코드가 읽거나 쓰지 않는다.</div></div>
+</div>
+
+<!-- ===================== 6. Firestore ===================== -->
+<h2 id="cloud">6. Firebase Firestore (서버 저장)</h2>
+<div class="note">인증 = Firebase Anonymous Auth. 모든 문서는 uid 로 소유자를 식별. 접속 설정은 <code>google-services.json</code>. 보안 규칙·복합 인덱스는 콘솔에서 관리하며 이 레포에는 클라이언트 코드(<code>FirebaseSdkApiClient</code>)만 있다.</div>
+<div class="cards">
+  <div class="card fb"><header><span class="name">saves / {uid}</span><span class="meta">클라우드 세이브</span></header>
+    <div class="desc">MetaProfile 통째 백업. 유저당 1문서.</div>
+    <table><tr><td>profile</td><td>string - JsonUtility.ToJson(MetaProfile) 그대로</td></tr>
+    <tr><td>schemaVersion</td><td>int = MetaProfile.Version</td></tr>
+    <tr><td>updatedAt</td><td>string - 클라이언트 시각</td></tr>
+    <tr><td>serverVersion</td><td>Timestamp (ServerTimestamp). 충돌 판정 baseline</td></tr></table>
+    <div class="foot">PutSave 는 트랜잭션: 마지막으로 본 serverVersion 과 다르면 Conflict. REST 시절 문서(serverVersion 없음)는 존재 여부만 비교.</div></div>
+
+  <div class="card fb"><header><span class="name">leaderboard / {uid}</span><span class="meta">전체 최단 랭킹</span></header>
+    <table><tr><td>uid</td><td>소유자</td></tr><tr><td>displayName</td><td></td></tr>
+    <tr><td>clearTimeMs</td><td>정렬 키 (오름차순)</td></tr><tr><td>hero</td><td>EHero 값명</td></tr></table>
+    <div class="foot">SetAsync 로 덮어씀. 표시명 변경 시 displayName 만 Merge. Easy 만 제출.</div></div>
+
+  <div class="card fb"><header><span class="name">stageLeaderboard / {stage}_{uid}</span><span class="meta">스테이지별 최단</span></header>
+    <table><tr><td>uid · stage(선형 1~25)</td><td>복합 인덱스 (stage, clearTimeMs)</td></tr>
+    <tr><td>displayName · clearTimeMs · hero</td><td></td></tr></table>
+    <div class="foot">트랜잭션: 기존보다 빠를 때만 Set. 동률 미갱신.</div></div>
+
+  <div class="card fb"><header><span class="name">dailyLeaderboard / {day}_{uid}</span><span class="meta">데일리 점수</span></header>
+    <table><tr><td>uid · day(dayIndex)</td><td>복합 인덱스 (day, score)</td></tr>
+    <tr><td>displayName · hero</td><td></td></tr>
+    <tr><td>score</td><td>작을수록 좋음 (1~301000)</td></tr>
+    <tr><td>comboKey</td><td>"Archer|2-4#1|3-5#2|RustyBladex3|…" 조합 지문</td></tr>
+    <tr><td>updatedAt</td><td>ServerTimestamp</td></tr></table></div>
+
+  <div class="card fb"><header><span class="name">displayNames / {normalizedName}</span><span class="meta">표시명 점유 락</span></header>
+    <table><tr><td>uid</td><td>소유자. 다른 uid 가 있으면 Taken</td></tr></table>
+    <div class="foot">leaderboard/{uid} 와 한 트랜잭션에서 갱신. 중복 체크는 서버 권위(규칙).</div></div>
+
+  <div class="card fb"><header><span class="name">(예정) towerLeaderboard</span><span class="meta">승격됨 · 코드 없음</span></header>
+    <div class="desc">§8 무한의 탑 항목에서 시즌별 최고 층 리더보드가 허용되었으나 <code>ILairApiClient</code> 에 아직 메서드가 없다.</div></div>
+</div>
+
+<h3>서버 시각</h3>
+<p style="color:var(--muted);font-size:13px;margin-top:0">데일리 날짜는 Firebase ID 토큰을 강제 갱신해 JWT <code>iat</code> 클레임(발급 시각)을 읽어 정한다. 별도 시각 문서나 Function 없음. 오프라인이면 데일리 비활성.</p>
+
+<!-- ===================== 7. 임시 ===================== -->
+<h2 id="mem">7. 임시 데이터 (메모리 전용)</h2>
+<table class="plain">
+<tr><th style="width:26%">객체</th><th style="width:16%">수명</th><th>내용 · 출처</th></tr>
+<tr><td>정적 <code>Current</code> 15개: <code>ChapterDatabase</code> 외 선택 묶음 10개 (<code>Relic·Formation·Growth·Tower·Daily·Difficulty·GradeFx·Showcase·Codex·FormationCardSpecies</code>) + <b>필수 묶음 4개 (<code>BalanceConfig·HeroSkillDatabase·CardDatabase·MetaConfig</code>)</b></td><td>앱 세션</td><td>JSON 파싱 + 검증 결과를 Dictionary 인덱스·조립 모델로. 검증 실패 시 위반을 모아 로그. 선택 묶음은 해당 기능만 비활성 (null), 필수 묶음은 4개가 함께 null → 전투 진입 차단·마을 복귀 (2장 참조).</td></tr>
+<tr><td><code>MetaSession</code> (정적)</td><td>앱 세션</td><td><code>Profile</code> 핸들 · <code>Store</code> · <code>BattleMode</code>(Chapter/Tower/Daily) · <code>DailyClock</code> · <code>DailyContext</code> · <code>Api / Cloud / Ranking</code> · <code>CloudConflictPending</code> 플래그.</td></tr>
+<tr><td><code>DailyChallenge</code></td><td>하루</td><td>날짜 시드 순수 함수 결과: 영웅 · 상시/페이즈 규칙 프리셋 · 유물 A/B · 카드 시드. 저장 안 하고 매일 재계산. <code>ComboKey</code> 만 리더보드에 올린다.</td></tr>
+<tr><td>탑 층 구성 (<code>TowerFloorGenerator</code>)</td><td>층 진입</td><td>시즌 시드 + 층 번호의 결정 함수. 저장은 깬 층 번호만.</td></tr>
+<tr><td><code>RunSummary</code></td><td>전투 1판</td><td>Result · DeathTime · HeroDamagedRatio · MaxSynergyTier · Picks[]. 결과창에서 Profile 로 접힌 뒤 폐기.</td></tr>
+<tr><td><code>CardDeck</code> · <code>CardPickCounter</code> · <code>SynergyProgress</code> · <code>StageRuleData</code></td><td>전투 1판</td><td>3택1 후보 뽑기(시드) · 픽 집계 · 축별 시너지 Tier · 규칙 런타임 파라미터.</td></tr>
+<tr><td><code>MetaBattleBonus</code> · <code>RelicBattleBonus</code></td><td>전투 1판</td><td>전투 시작 시 Profile(상점 Lv·유물 중첩·등급·육성) → 배율로 접은 스냅샷. 전투 중 Profile 을 직접 읽지 않는다.</td></tr>
+<tr><td><code>GradeFxBudget</code></td><td>씬</td><td>등급 이펙트 동시 상한 카운터. 전투·마을 쇼케이스·도감 공유.</td></tr>
+<tr><td><code>SaveSummary</code></td><td>표시용</td><td>충돌 UX 에서 "로컬 vs 서버" 비교용 (영주 Lv·소울). Profile 에서 파생.</td></tr>
+</table>
+
+<!-- ===================== 8. 관계도 ===================== -->
+<h2 id="erd">8. 관계도</h2>
+<p class="lead">초록 = 엔티티, 노랑 = 관계 데이터, 주황 = SO, 청록 = 단일 설정. 화살표 방향 = 참조 방향(자식 → 부모). 모든 <code>*Key</code> 는 Strings_Ko 로 가므로 생략.</p>
+<div class="erd"><pre>
+<span class="e">Chapter</span> (chapterId) ──heroId──▶ <span class="e">HeroArchetype</span> (heroId) ◀── <span class="r">HeroArchetype_Kite / _Skirmish / _Charge / _Cleave / _Guard / _DebuffResist / _Tower</span>
+   │                                     ▲
+   │ 1:5                                 └── <span class="r">Relic_Drop</span> (relicId+heroId) ──▶ <span class="e">Relic</span> (relicId) ──rarity──▶ <span class="e">RelicRarity</span> ◀── <span class="r">RelicRarity_Shard</span>, <span class="r">Difficulty_Relic_Rarity</span>
+   ▼                                                                   ▲
+<span class="e">Stage</span> (chapterId+stageIndex)                                           ├── <span class="r">Relic_Effect</span> (+effectIndex) ◀── <span class="r">Relic_Effect_Param</span> (+paramKey)
+   ├── <span class="r">Stage_Rule</span> (+ruleIndex) ──ruleId──▶ EStageRule                    └── <span class="s">MetaProfile.Relics[]</span> (RelicId, Stack)      <span class="e">RelicStack</span> (stack)   <span class="c">RelicConfig</span>
+   │      ├── <span class="r">Stage_Rule_Param</span> (+paramKey)
+   │      └── <span class="r">Stage_Rule_Trigger</span> (hpFraction)        <span class="m">← 데일리 "규칙 프리셋" 풀 / 탑 템플릿 Stage_Tower 가 재사용</span>
+   ├── <span class="r">Stage_Relic</span> (dropChance)
+   ├── <span class="r">Stage_Tower</span> (minFloor, ruleFactor)            <span class="c">TowerConfig</span>  <span class="c">DailyConfig</span>  <span class="c">FormationConfig</span>  <span class="c">CodexConfig</span>
+   └── <span class="r">Chapter_FormationHint</span> (chapterId)
+
+<span class="e">Difficulty</span> (0·1·2) ◀── <span class="r">Difficulty_Relic</span>, <span class="r">Difficulty_Awaken</span>(1·2만)      <span class="r">Difficulty_TowerCrystal</span> (탑 유물 단계 0·1·2 - 이름만 공유)
+
+<span class="e">Race</span> (race) ◀─┬─ <span class="r">Race_Monster</span> (race+grade) ──▶ <span class="e">Grade</span> (grade 1~5) ◀── <span class="r">Grade_Promotion</span> (+currency) ──▶ <span class="e">Currency</span> (currencyId) ◀── <span class="r">Currency_Exchange</span> (from+to)
+              │        │ monster                     ├── <span class="r">Grade_Glow / Grade_Aura / Grade_Pulse / Grade_Fx(+index) / Grade_CodexUnlock</span>
+              │        ▼                             └── <span class="s">MetaProfile.RaceGrades[]</span> (Race, Grade)          <span class="s">MetaProfile.Currencies[]</span> (CurrencyId, Amount)
+              │   EMonster (기준 6 + 등급 24)  ◀── <span class="r">Card_Species</span> (cardId+monster) ──▶ <span class="e">Card</span> (cardId = ECardId)
+              │        ├── <span class="r">AwakenStat</span> (+statIndex)  <span class="r">MonsterTrait</span> ◀── <span class="r">MonsterTrait_Param</span> (+tier+paramKey)
+              │        ├── <span class="r">Monster_GradeFxColor</span>   <span class="r">Showcase_Actor</span> (scene+monster) ◀── <span class="r">Showcase_Actor_Waypoint</span> (+index)   <span class="e">Showcase_Scene</span>
+              │        ├── <span class="e">MonsterStat</span> (monster, 기준 6종)   <span class="r">ShopItem_Species</span> (itemId → monster)   <span class="s">MonsterTierSheetSet</span> {Name}T{1..3}
+              │        └── <span class="s">MetaProfile.Formation[]</span> (Slot, Monster) · SeenMonsters[]
+              └─ <span class="e">FormationSlot</span> (slot 1~6, race)
+<span class="e">NestMastery</span> (level) ◀── <span class="r">NestMastery_Param</span> (+paramKey)
+
+<span class="m">── 전투 밸런스 ──</span>  <span class="c">BalanceConfig</span> (영웅 앵커 · runDuration · 카드 트리거)   <span class="e">MonsterStat</span> (위)   <span class="c">MetaConfig</span> (소울·XP 공식)
+
+<span class="m">── 마을 성장 ──</span>
+<span class="e">ShopItem</span> (itemId) ──currency──▶ <span class="e">Currency</span>      ◀── <span class="r">ShopItem_Stat</span> (→ EMonsterStatKind) · <span class="r">ShopItem_Species</span> (→ 기준 몬스터) · <span class="r">ShopItem_Mul</span> · <span class="r">ShopItem_Desc</span>      <span class="s">MetaProfile.ShopLevels[]</span>.ItemId ──▶ itemId
+<span class="e">LordLevel</span> (level) ◀── <span class="r">LordLevel_Reward</span> (level 있으면 보상 칸, 없으면 잠금 칸)
+<span class="e">Achievement</span> (achievementId) ◀── <span class="s">MetaProfile.AchievedIds[]</span>
+
+<span class="m">── 영웅 스킬 ──</span>
+<span class="e">HeroSkill</span> (skillId) ◀── <span class="r">HeroSkill_Param</span> (+paramKey)        <span class="e">HeroArchetype</span> ◀── <span class="r">HeroArchetype_Skill</span> (heroId+phaseIndex, hpFraction) ──skillId──▶ <span class="e">HeroSkill</span>
+
+<span class="m">── 카드 ──</span>
+<span class="e">Card</span> (cardId, axis, effectKind) ◀── <span class="r">Card_Param</span> (+paramKey)    ◀── <span class="s">CardData SO</span> (_id → cardId, 그림 2장) ◀── <span class="s">CardPool_Passive / _Active SO</span>
+          ▲                                           <span class="s">MetaProfile.PickedCards[] · CardPickCounts[]</span> (cardId)
+          └── <span class="r">Card_Species</span> (위)
+<span class="m">(전부 Strings_Ko 로 nameKey·descKey 를 가진다: ShopItem · ShopItem_Desc · LordLevel_Reward · Achievement · HeroSkill · Card)</span>
+
+<span class="s">MetaProfile</span> ══ JsonUtility ══▶ Firestore <span class="s">saves/{uid}.profile</span>   ·   PlayerPrefs Lair.Net.Uid ──▶ {uid} 문서 키 전부
+</pre></div>
+
+<!-- ===================== 9. 규약 ===================== -->
+<h2 id="strings">9. 키 규약 요약</h2>
+<table class="plain">
+<tr><th style="width:28%">키 종류</th><th>규칙</th></tr>
+<tr><td>에셋 키</td><td>Enum 값명 = 파일명 = Addressables 주소 (<code>EData</code>·<code>EMonster</code>·<code>EUI</code>·<code>ERelic</code> …). JSON 안에서 다른 Enum 을 가리킬 때는 값명 문자열.</td></tr>
+<tr><td>스테이지</td><td>JSON 은 <code>chapterId + stageIndex</code> 복합키, 세이브·리더보드는 선형 번호 <code>(chapterId-1)*5 + stageIndex</code> (1~25).</td></tr>
+<tr><td>몬스터 등급</td><td><code>EMonster</code> 정수 순서로 산술 해석 (<code>MonsterGrades.BaseOf / GradeOf</code>). <code>Race_Monster</code> 는 그 해석과 일치하는지 검증용. 스탯·육성·카드는 전부 기준 몬스터 행을 공유.</td></tr>
+<tr><td>문자열</td><td>UI 문구는 전부 <code>Strings_Ko.id</code>(int) 참조. 데이터 로드 시 nameKey 존재 여부까지 검증. 상점·도전과제·영주 보상·영웅 스킬·카드의 이름·설명도 이제 인라인 문자열이 아니라 1541~1687 id.</td></tr>
+<tr><td>세이브 키 (글자 불변)</td><td><code>ShopItem.itemId</code> (= <code>ShopLevels[].ItemId</code>) · <code>Achievement.achievementId</code> (= <code>AchievedIds[]</code>) · <code>Card.cardId</code> = <code>ECardId</code> 값명 (= <code>PickedCards[]</code>·<code>CardPickCounts[]</code>). JSON 행을 고쳐도 이 id 는 바꾸지 않는다 - 바꾸면 기존 세이브의 상점 레벨·업적·도감이 끊긴다. 카드는 id 와 효과 이름이 달라도 된다 (<code>effectKind</code> 가 따로).</td></tr>
+<tr><td>EData 와 JSON 개수</td><td><code>EData</code> 값 수 ≠ JSON 파일 수. 폐기 자리(<code>FormationMonster</code>, <code>HeroSkillLoadout*</code> x5)와 SO 키(<code>CardPool_*</code>, <code>SynergyVisualConfig</code>)가 섞여 있다. JSON 은 <code>Data/Json/</code> 73개.</td></tr>
+<tr><td>선택적 관계 (sentinel 금지)</td><td>해당하는 항목에만 관계 JSON 행이 있다 (<code>ShopItem_*</code> · <code>LordLevel_Reward</code> · <code>Card_Param</code>). 0·1.0·빈 문자열 같은 가짜 값으로 "없음"을 채우지 않는다.</td></tr>
+<tr><td>세이브 엔트리 리스트</td><td>JsonUtility 제약으로 Dictionary 대신 <code>{Key, Value}</code> 리스트. "없음" 은 행 부재로 표현 (sentinel 은 BestClearTime -1 하나만 레거시).</td></tr>
+<tr><td>Firestore 문서 ID</td><td>유저 1건: <code>{uid}</code>. 유저 x 축 1건: <code>{stage}_{uid}</code>, <code>{day}_{uid}</code>. 전역 유일성 락: <code>{normalizedName}</code>.</td></tr>
+<tr><td>버전</td><td>MetaProfile.Version 13 = 저장 스키마. Firestore <code>schemaVersion</code> 에 그대로 복사. 로드 시 <code>MetaProfileMigration</code> 이 올린다(내리지 않음).</td></tr>
+</table>
+
+</div>
+</body>
+</html>
