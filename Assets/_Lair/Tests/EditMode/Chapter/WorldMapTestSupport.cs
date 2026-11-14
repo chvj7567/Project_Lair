@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using ChvjUnityInfra;
 using Lair.Battle;
+using Lair.Card;
 using Lair.Character;
 using Lair.Data;
 
@@ -123,6 +124,47 @@ namespace Lair.Tests.EditMode
                 phases.Add(new HeroSkillPhase(entry.HpFraction, HeroSkillData.Create(db.GetSkill(entry.Skill))));
             }
             return phases;
+        }
+
+        //# shipped 카드 JSON 묶음(Card·Card_Param) — 엣지 테스트가 행을 바꿔 BuildCards 로 다시 조립할 수 있게 조립 전 단계도 노출한다.
+        public static CardDataSet ShippedCardData()
+        {
+            return new CardDataSet
+            {
+                Cards = Load<CardRow>("Card"),
+                Params = Load<Card_ParamRow>("Card_Param"),
+            };
+        }
+
+        //# shipped Card_Species 행 — Card.json 과의 FK 대조(SJ4)는 런타임이 아니라 테스트가 한다.
+        public static Card_SpeciesRow[] ShippedCardSpecies()
+        {
+            return Load<Card_SpeciesRow>("Card_Species");
+        }
+
+        //# 카드 풀 SO 두 개(패시브·액티브)가 가진 카드 id — Card.json ↔ 풀 양방향 대조(SJ5, EditMode 전용)의 입력.
+        public static List<ECardId> ShippedPoolCardIds()
+        {
+            List<ECardId> ids = new List<ECardId>();
+            foreach (string pool in new[] { "CardPool_Passive", "CardPool_Active" })
+            {
+                foreach (CardData card in UnityEditor.AssetDatabase.LoadAssetAtPath<CardPool>("Assets/_Lair/Art/Cards/" + pool + ".asset").Cards)
+                {
+                    ids.Add(card.Id);
+                }
+            }
+            return ids;
+        }
+
+        //# 엄격 조립 — Strings_Ko 에 없는 id 는 오류(로더의 provider-null 관용 없음).
+        public static CardDatabase BuildCards(CardDataSet data)
+        {
+            return CardDatabase.Build(data, id => Strings().ContainsKey(id), Text);
+        }
+
+        public static CardDatabase ShippedCards()
+        {
+            return BuildCards(ShippedCardData());
         }
 
         public static IReadOnlyDictionary<int, string> Strings()

@@ -13,10 +13,11 @@ namespace Lair.Battle
         //# 진행 중인 EnsureLoadedAsync 로드 — 동시 호출이 각자 LoadAsync 를 돌려 서로의 Current 를 비우지 않게 공유한다.
         private static Task<ChapterDatabase> _loading;
 
-        //# 챕터·필수 묶음(밸런스·영웅 스킬·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
+        //# 챕터·필수 묶음(밸런스·영웅 스킬·카드·메타)이 모두 로드됐으면 즉시 반환, 하나라도 없으면 다시 로드. 실패 시 null.
         public static async Task<ChapterDatabase> EnsureLoadedAsync()
         {
-            if (ChapterDatabase.Current != null && BalanceConfig.Current != null && HeroSkillDatabase.Current != null && MetaConfig.Current != null)
+            if (ChapterDatabase.Current != null && BalanceConfig.Current != null && HeroSkillDatabase.Current != null
+                && CardDatabase.Current != null && MetaConfig.Current != null)
                 return ChapterDatabase.Current;
             if (_loading == null)
             {
@@ -106,9 +107,10 @@ namespace Lair.Battle
                 await LoadTowerAsync(db);
                 await LoadDailyAsync(db);
                 await LoadGrowthAsync();
-                //# 필수 묶음 7번 — 실패하면 필수 묶음 Current 를 전부 되돌려 전투 진입 가드가 막게 한다(챕터 DB 는 마을이 쓰므로 유지, §6.4).
+                //# 필수 묶음 6번(카드)·7번(메타) — 하나라도 실패하면 필수 묶음 Current 를 전부 되돌려 전투 진입 가드가 막게 한다(챕터 DB 는 마을이 쓰므로 유지, §6.4).
+                bool cardsOk = await LoadCardsAsync();
                 bool metaOk = await LoadMetaAsync();
-                if (skillsOk == false || metaOk == false)
+                if (skillsOk == false || cardsOk == false || metaOk == false)
                 {
                     ResetRequiredBundles();
                     return null;
@@ -238,11 +240,42 @@ namespace Lair.Battle
             }
         }
 
-        //# 필수 묶음(밸런스·영웅 스킬·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
+        //# 카드 JSON 2종 → CardDatabase.Current. Card·Card_Param 자체의 로드·파싱·검증 실패만 필수 묶음 실패다 — 위반 전부를 LogError 하고 false.
+        //# 카드 풀 SO·Card_Species 와의 대조는 런타임에서 관용하고 EditMode 테스트(SJ5)가 한다(§6.4).
+        private static async Task<bool> LoadCardsAsync()
+        {
+            CardDatabase.Current = null;
+            string cardJson = await LoadTextAsync(EData.Card);
+            string paramJson = await LoadTextAsync(EData.Card_Param);
+            if (cardJson == null || paramJson == null)
+            {
+                Debug.LogError("[ChapterDatabaseLoader] 카드 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
+                return false;
+            }
+            try
+            {
+                CardDatabase.Current = CardDatabase.Build(
+                    new CardDataSet
+                    {
+                        Cards = JsonArrayUtility.FromJsonArray<CardRow>(cardJson),
+                        Params = JsonArrayUtility.FromJsonArray<Card_ParamRow>(paramJson),
+                    },
+                    NameKeyExists, LookupString);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                return false;
+            }
+        }
+
+        //# 필수 묶음(밸런스·영웅 스킬·카드·메타)의 Current 를 한 곳에서 되돌린다 — 이후 단계의 묶음도 여기에 더한다.
         private static void ResetRequiredBundles()
         {
             BalanceConfig.Current = null;
             HeroSkillDatabase.Current = null;
+            CardDatabase.Current = null;
             MetaConfig.Current = null;
         }
 

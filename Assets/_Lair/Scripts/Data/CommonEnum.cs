@@ -25,6 +25,16 @@
         JudgmentHammer, PurifyingLight, Sanctuary,
     }
 
+    //# 카드 효과 종류 (so-to-json-migration §12.1) — 값명 = Card.json effectKind = 효과 클래스 이름에서 접미사 Effect 를 뗀 것(카드 id 와 다를 수 있다).
+    public enum ECardEffect
+    {
+        WispHpBoost, WraithDamageBoost, ReaperAtkSpeed, HexRangeBoost, PlagueToxinBoost, PhantomMoveSpeedBoost,
+        SpawnWisps, SpawnWraith, SpawnReapers, SpawnPlagues, SpawnPhantoms,
+        WispWraithPowerBoost, ReaperHexPowerBoost, HeroAttackDown,
+        Fear, Bleed, Weaken, Slow, Frenzy, FastBreeding, BloodThirst, IronWill, TimeStop, GuardianRage, ToughHide,
+        MarkOfDeath, SpawnerHaste, LingeringCurse,
+    }
+
     //# 영웅 AI 종류 — HeroArchetype.json aiType 값명 (chapter-system §1.2).
     public enum EHeroAi
     {
@@ -232,6 +242,8 @@
         HeroSkill,
         HeroSkill_Param,
         HeroArchetype_Skill,
+        Card,
+        Card_Param,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.
