@@ -86,9 +86,9 @@ spec 의 master-detail 서술 + plan Task 4 의 좌측 폭 280px 기준으로 �
 
 ### 3.4 전 필드 편집 + 명시 [저장] (명시 저장 모델)
 - 선택 카드의 `SerializedObject` 를 생성(선택 변경 시에만 재생성)하여 다음 필드를 `EditorGUILayout.PropertyField`(자식 포함)로 렌더:
-  `_axis` · `_displayName` · `_description` · `_icon` · `_cardImage` · `_effect`.
+  `_icon` · `_cardImage`. (**2026-11-14 변경**: `_axis`·`_displayName`·`_description`·`_effect` 는 JSON 으로 이전돼 이 창에서 편집하지 않는다. 카드의 축·이름·설명·효과·수치는 `Card.json`·`Card_Param.json` 을 직접 고친다 — `docs/design/so-to-json-migration.md`.)
 - `_id` 는 **read-only LabelField** 로만 표시(편집 루프에서 제외 — §5 엣지 참조).
-- `_effect` 는 `[SerializeReference]` 폴리모픽 → Unity 6 기본 드로어가 타입 선택 드롭다운 + 구상 타입 파라미터 필드를 제공.
+- (폐기) `_effect` 폴리모픽 편집 — 효과 종류는 `Card.json` 의 `effectKind`, 수치는 `Card_Param.json`.
 - **명시 [저장] 모델**: `PropertyField` 편집은 `SerializedObject` 에만 머무르고 **[저장] 버튼 전엔 .asset 에 커밋하지 않는다**. 매 프레임 `ApplyModifiedProperties()` 호출은 제거하고, `SerializedObject.Update()` 는 재생성 시점(선택 전환)에만 1회 호출한다 — 매 프레임 `Update()` 하면 pending 키스트로크를 에셋 값으로 덮어써 편집 자체가 불가능해진다.
 - 편집 패인 하단 [저장] 버튼: 누르면 `ApplyModifiedProperties()` + 풀 소속 커밋(§3.5) + `EditorUtility.SetDirty(card)` + 변경된 풀 `SetDirty` + `AssetDatabase.SaveAssets()` 를 한 번에 수행.
 - **미저장 표시 / 가드**: 필드(`hasModifiedProperties`) 또는 풀 소속(pending ≠ 현재 실제)이 다르면 "● 저장되지 않은 변경" 표시 + [저장] 활성, 변경 없으면 [저장] 비활성. 다른 카드로 전환할 때 미저장 변경이 있으면 `DisplayDialog("저장", "버리기")` 로 묻는다(저장→커밋 후 전환 / 버리기→그냥 전환). 윈도우 닫기는 막지 않는다.

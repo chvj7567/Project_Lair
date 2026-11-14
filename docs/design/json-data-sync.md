@@ -1,5 +1,7 @@
 # JSON Data Sync — 에디터 툴 기획서
 
+> **폐기 (2026-11-14)** — 이 기획서의 JSON Sync 도구(`LairJsonSyncWindow`)와 동기 사본(`cards.json`·`card_pools.json`·`balance_config.json`·`hero_skills.json`)은 제거됐다. 카드·밸런스·영웅 스킬 데이터는 이제 JSON 이 단일 진실이며 `docs/design/so-to-json-migration.md` 가 이를 대체한다. 아래는 이력 보관용이다.
+
 ---
 
 ## § 헤더
