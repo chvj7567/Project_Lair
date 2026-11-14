@@ -164,7 +164,7 @@ namespace Lair.Tests.Card
             Assert.DoesNotThrow(() =>
             {
                 new SpawnWispsEffect().Apply(ctx);
-                new WispWraithPowerBoostEffect().Apply(ctx);
+                CardEffectTestKit.Make<WispWraithPowerBoostEffect>().Apply(ctx);
             }, "Spawner 0개 — 카드 적용이 예외 없이 no-op");
         }
     }

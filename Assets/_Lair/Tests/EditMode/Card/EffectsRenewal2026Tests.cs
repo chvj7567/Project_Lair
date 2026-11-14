@@ -56,7 +56,7 @@ namespace Lair.Tests.Card
         public void WraithDamageBoost_Apply_Wraith_Hp_1점5_등록()
         {
             FakeCtx ctx = new FakeCtx();
-            new WraithDamageBoostEffect().Apply(ctx);
+            CardEffectTestKit.Make<WraithDamageBoostEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
             Assert.AreEqual((EMonster.Wraith, EMonsterStatKind.Hp, 1.5f), ctx.Buffs[0]);
@@ -67,7 +67,7 @@ namespace Lair.Tests.Card
         public void GuardianRage_Apply_GuardianRage_buff_등록()
         {
             FakeCtx ctx = new FakeCtx();
-            new GuardianRageEffect().Apply(ctx);
+            CardEffectTestKit.Make<GuardianRageEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.MonsterBuffs.Count);
             Assert.AreEqual(EMonsterBuff.GuardianRage, ctx.MonsterBuffs[0]);
@@ -92,7 +92,7 @@ namespace Lair.Tests.Card
         {
             FakeCtx ctx = new FakeCtx();
 
-            new FastBreedingEffect().Apply(ctx);
+            CardEffectTestKit.Make<FastBreedingEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.SpawnerPeriodsByType.Count);
             Assert.AreEqual(EMonster.Phantom, ctx.SpawnerPeriodsByType[0].Item1);
@@ -104,7 +104,7 @@ namespace Lair.Tests.Card
         public void SpawnerHaste_Apply_ScaleAllSpawnerPeriods_0점8_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            new SpawnerHasteEffect().Apply(ctx);
+            CardEffectTestKit.Make<SpawnerHasteEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.SpawnerPeriods.Count);
             Assert.AreEqual(0.8f, ctx.SpawnerPeriods[0], 0.0001f);

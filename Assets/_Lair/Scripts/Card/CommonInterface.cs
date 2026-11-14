@@ -8,7 +8,7 @@ namespace Lair.Card
 {
     //# Rule 10 — Card 도메인의 공용 인터페이스 단일 파일.
 
-    //# 카드 효과 Strategy. SerializeReference 로 CardData 에 직렬화.
+    //# 카드 효과 Strategy. Card.json·Card_Param.json 조립 결과로 CardData.CreateEffect 가 만든다.
     public interface ICardEffect
     {
         void Apply(IBattleContext ctx);

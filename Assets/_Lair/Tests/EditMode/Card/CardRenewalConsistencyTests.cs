@@ -5,7 +5,7 @@ using System.Reflection;
 using Lair.Card;
 using Lair.Character;
 using Lair.Data;
-using Newtonsoft.Json.Linq;
+using Lair.Tests.EditMode;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -49,21 +49,18 @@ namespace Lair.Tests.Card
         }
 
         [Test]
-        public void cards_json_28장_정합()
+        public void Card_json_28장_정합()
         {
-            string fullPath = Path.Combine(Application.dataPath, "..", "Assets/_Lair/Data/Json/cards.json");
-            Assert.IsTrue(File.Exists(fullPath), $"cards.json 부재: {fullPath}");
-            string raw = File.ReadAllText(fullPath);
-            JArray arr = JArray.Parse(raw);
-            Assert.AreEqual(28, arr.Count, "cards.json 28장 정합");
+            Assert.AreEqual(28, WorldMapTestSupport.ShippedCards().Cards.Count, "Card.json 28장 정합");
         }
 
         //# ===== 2. 4축 색 정합 — 컨셉서·기획서·SO·json 4중 일치 (axis 키만 검증 — Hex 색은 LairCardPrefabBuilder 에서) =====
 
-        //# 모든 SO 의 _axis 값이 0~3 사이 (Tank=0/Dps=1/Debuff=2/Swarm=3) — 잘못된 값 잔존 회귀.
+        //# 모든 SO 의 cardId 행(Card.json)의 axis 값이 Tank/Dps/Debuff/Swarm 중 하나 — 잘못된 값 잔존 회귀.
         [Test]
         public void 모든_SO_axis_값_Tank_Dps_Debuff_Swarm_4개_중_하나()
         {
+            CardDatabase db = WorldMapTestSupport.ShippedCards();
             string[] guids = AssetDatabase.FindAssets("t:CardData",
                 new[] { "Assets/_Lair/Art/Cards/Items" });
 
@@ -77,26 +74,24 @@ namespace Lair.Tests.Card
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 CardData card = AssetDatabase.LoadAssetAtPath<CardData>(path);
                 Assert.IsNotNull(card, $"SO 로드 실패: {path}");
-                Assert.Contains(card.Axis, validAxes.ToList(),
-                    $"{card.Id} 의 _axis 가 4축 enum 값 외: {card.Axis} ({path})");
+                CardEntry entry = db.GetCard(card.Id);
+                Assert.IsNotNull(entry, $"{card.Id} 의 Card.json 행 없음 ({path})");
+                Assert.Contains(entry.Axis, validAxes.ToList(),
+                    $"{card.Id} 의 axis 가 4축 enum 값 외: {entry.Axis} ({path})");
             }
         }
 
-        //# cards.json 의 axis 키 값도 "Tank|Dps|Debuff|Swarm" 4개 중 하나.
+        //# Card.json 의 axis 값도 "Tank|Dps|Debuff|Swarm" 4개 중 하나.
         [Test]
-        public void cards_json_axis_값_Tank_Dps_Debuff_Swarm_4개_중_하나()
+        public void Card_json_axis_값_Tank_Dps_Debuff_Swarm_4개_중_하나()
         {
-            string fullPath = Path.Combine(Application.dataPath, "..", "Assets/_Lair/Data/Json/cards.json");
-            string raw = File.ReadAllText(fullPath);
-            JArray arr = JArray.Parse(raw);
             HashSet<string> validAxes = new HashSet<string> { "Tank", "Dps", "Debuff", "Swarm" };
 
-            foreach (JToken t in arr)
+            foreach (CardRow row in WorldMapTestSupport.ShippedCardData().Cards)
             {
-                string axis = (string)t["axis"];
-                Assert.IsNotNull(axis, $"카드 {t["id"]} 에 axis 키 누락");
-                Assert.Contains(axis, validAxes.ToList(),
-                    $"카드 {t["id"]} 의 axis 가 4축 외: {axis}");
+                Assert.IsNotNull(row.axis, $"카드 {row.cardId} 에 axis 키 누락");
+                Assert.Contains(row.axis, validAxes.ToList(),
+                    $"카드 {row.cardId} 의 axis 가 4축 외: {row.axis}");
             }
         }
 
@@ -132,10 +127,10 @@ namespace Lair.Tests.Card
             try
             {
                 Assert.DoesNotThrow(() => new ToughHideEffect().Apply(ctx), "ToughHideEffect.Apply NRE 없음");
-                Assert.DoesNotThrow(() => new MarkOfDeathEffect().Apply(ctx), "MarkOfDeathEffect.Apply NRE 없음");
-                Assert.DoesNotThrow(() => new SpawnerHasteEffect().Apply(ctx), "SpawnerHasteEffect.Apply NRE 없음");
-                Assert.DoesNotThrow(() => new FastBreedingEffect().Apply(ctx), "FastBreedingEffect.Apply NRE 없음");
-                Assert.DoesNotThrow(() => new GuardianRageEffect().Apply(ctx), "GuardianRageEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => CardEffectTestKit.Make<MarkOfDeathEffect>().Apply(ctx), "MarkOfDeathEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => CardEffectTestKit.Make<SpawnerHasteEffect>().Apply(ctx), "SpawnerHasteEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => CardEffectTestKit.Make<FastBreedingEffect>().Apply(ctx), "FastBreedingEffect.Apply NRE 없음");
+                Assert.DoesNotThrow(() => CardEffectTestKit.Make<GuardianRageEffect>().Apply(ctx), "GuardianRageEffect.Apply NRE 없음");
             }
             finally
             {
@@ -182,10 +177,11 @@ namespace Lair.Tests.Card
                 Assert.IsNotNull(c, "Active 풀 — null 엔트리 없음");
         }
 
-        //# 모든 28장 CardData 의 Effect 가 null 이 아니다 — SerializeReference 누락 회귀.
+        //# 모든 28장 CardData 의 cardId 행으로 효과가 만들어진다(null 아님) — Card.json effectKind 누락 회귀.
         [Test]
         public void 모든_CardData_Effect_null_아님()
         {
+            CardDatabase db = WorldMapTestSupport.ShippedCards();
             string[] guids = AssetDatabase.FindAssets("t:CardData",
                 new[] { "Assets/_Lair/Art/Cards/Items" });
 
@@ -193,8 +189,10 @@ namespace Lair.Tests.Card
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 CardData card = AssetDatabase.LoadAssetAtPath<CardData>(path);
-                Assert.IsNotNull(card.Effect,
-                    $"{card.Id} ({path}) — Effect 가 null (SerializeReference 누락)");
+                CardEntry entry = db.GetCard(card.Id);
+                Assert.IsNotNull(entry, $"{card.Id} ({path}) — Card.json 행 없음");
+                Assert.IsNotNull(CardData.CreateEffect(entry),
+                    $"{card.Id} ({path}) — Effect 가 null");
             }
         }
 

@@ -6,6 +6,7 @@ using Lair.Data;
 using Lair.Meta;
 using NUnit.Framework;
 using UnityEngine;
+using Lair.Card;
 
 namespace Lair.Tests.EditMode
 {
@@ -99,18 +100,20 @@ namespace Lair.Tests.EditMode
 
         public static string[] Passives()
         {
-            return Pool("passive");
+            return Pool("CardPool_Passive");
         }
 
         public static string[] Actives()
         {
-            return Pool("active");
+            return Pool("CardPool_Active");
         }
 
-        private static string[] Pool(string key)
+        //# 카드 풀 SO(순서 포함)가 출처 — 풀 JSON 은 없다(so-to-json-migration §3.10).
+        private static string[] Pool(string assetName)
         {
-            Newtonsoft.Json.Linq.JObject pools = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(WorldMapTestSupport.JsonDir + "card_pools.json"));
-            return pools[key].Select(t => (string)t).ToArray();
+            CardPool pool = UnityEditor.AssetDatabase.LoadAssetAtPath<CardPool>("Assets/_Lair/Art/Cards/" + assetName + ".asset");
+            Assert.IsNotNull(pool, assetName + " 풀 에셋 없음");
+            return pool.Cards.Select(c => c.Id.ToString()).ToArray();
         }
 
         public static ECardId Card(string name)

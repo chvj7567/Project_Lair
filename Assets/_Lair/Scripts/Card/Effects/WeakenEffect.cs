@@ -1,15 +1,20 @@
-using System;
 using Lair.Character;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Card
 {
     //# 무력화 — 영웅 공격력 _duration 초간 ×_factor.
-    [Serializable]
     public class WeakenEffect : ICardEffect
     {
-        [SerializeField] private float _factor = 0.5f;
-        [SerializeField] private float _duration = 10f;
+        private readonly float _factor;
+        private readonly float _duration;
+
+        public WeakenEffect(CardParams p)
+        {
+            _factor = p.Get("factor");
+            _duration = p.Get("duration");
+        }
 
         public void Apply(IBattleContext ctx)
         {

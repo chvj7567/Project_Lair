@@ -4,6 +4,7 @@ using Lair.Data;
 using Lair.UI;
 using NUnit.Framework;
 using UnityEditor;
+using Lair.Tests.Helpers;
 
 namespace Lair.Tests.UI
 {
@@ -18,7 +19,8 @@ namespace Lair.Tests.UI
             string path = $"{CardItemsFolder}/{fileName}.asset";
             CardData card = AssetDatabase.LoadAssetAtPath<CardData>(path);
             Assert.IsNotNull(card, $"카드 SO 로드 실패: {path}");
-            return card;
+            //# 축은 출하 Card.json 행이 출처 — SO 는 존재 확인만 하고 같은 id 의 주입본을 돌려준다.
+            return FakeCardData.FromShipped(card.Id);
         }
 
         [Test]

@@ -53,7 +53,7 @@ namespace Lair.Tests.Card
             hero.AddComponent<AutoCombatAI>();
             FakeCtx ctx = new FakeCtx { HeroTransform = hero.transform };
 
-            new FearEffect().Apply(ctx);
+            CardEffectTestKit.Make<FearEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Auras.Count);
             Assert.IsInstanceOf<FearAura>(ctx.Auras[0]);
@@ -67,7 +67,7 @@ namespace Lair.Tests.Card
         {
             FakeCtx ctx = new FakeCtx { HeroTransform = null };
 
-            new FearEffect().Apply(ctx);
+            CardEffectTestKit.Make<FearEffect>().Apply(ctx);
 
             Assert.AreEqual(0, ctx.Auras.Count);
         }

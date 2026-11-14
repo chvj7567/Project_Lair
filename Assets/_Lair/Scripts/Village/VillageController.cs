@@ -696,10 +696,10 @@ namespace Lair.Village
             List<CardData> cards = new List<CardData>();
             CardPool passive = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Passive);
             if (passive != null)
-                cards.AddRange(passive.Cards);
+                cards.AddRange(passive.PlayableCards());
             CardPool active = await CHMResource.Instance.LoadAsync<CardPool>(EData.CardPool_Active);
             if (active != null)
-                cards.AddRange(active.Cards);
+                cards.AddRange(active.PlayableCards());
             return cards;
         }
 

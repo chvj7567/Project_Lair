@@ -21,7 +21,6 @@ namespace Lair.EditorTools
         {
             public ECardId Id;
             public CardData Card;
-            public EBuildAxis Axis;
             public EPoolKind Pool;
             public Sprite Icon;
         }
@@ -70,7 +69,6 @@ namespace Lair.EditorTools
                 row.Card = card;
                 if (card != null)
                 {
-                    row.Axis = card.Axis;
                     row.Pool = GetPoolMembership(card);
                     row.Icon = card.Icon;
                 }
@@ -153,7 +151,7 @@ namespace Lair.EditorTools
                     }
                     //# 풀 뱃지 — 캐시된 Pool 값으로 그린다 (기획서 §3.1).
                     string badge = BuildPoolBadge(row.Pool);
-                    if (GUILayout.Button($"{name}  [{row.Axis}]{badge}", EditorStyles.label))
+                    if (GUILayout.Button($"{name}{badge}", EditorStyles.label))
                     {
                         _selected = row.Id;
                         _hasSelection = true;
@@ -204,7 +202,6 @@ namespace Lair.EditorTools
             CardData card = ScriptableObject.CreateInstance<CardData>();
             SerializedObject so = new SerializedObject(card);
             so.FindProperty("_id").enumValueIndex = (int)id;
-            so.FindProperty("_displayName").stringValue = id.ToString();
             so.ApplyModifiedPropertiesWithoutUndo();
 
             AssetDatabase.CreateAsset(card, AssetPath(id));
@@ -250,10 +247,11 @@ namespace Lair.EditorTools
                 }
 
                 _editScroll = EditorGUILayout.BeginScrollView(_editScroll);
-                //# _id 는 정체성(파일명=ECardId) 고정값 — 편집 불가 read-only. 변경 시 loader/list/CardDataSyncer 가 desync 됨.
+                //# _id 는 정체성(파일명=ECardId) 고정값 — 편집 불가 read-only. Card.json 의 cardId 행과 잇는 키이기도 하다.
                 EditorGUILayout.LabelField("Id", _selected.ToString());
-                foreach (string prop in new string[]
-                    { "_axis", "_displayName", "_description", "_icon", "_cardImage", "_effect" })
+                //# 축·이름·설명·효과·수치는 Card.json / Card_Param.json 소관 — 이 창은 그림과 풀 소속만 다룬다.
+                EditorGUILayout.HelpBox("이 카드가 게임에 나오려면 Card.json / Card_Param.json 에 같은 cardId 행이 필요합니다.", MessageType.Info);
+                foreach (string prop in new string[] { "_icon", "_cardImage" })
                 {
                     SerializedProperty sp = _editSo.FindProperty(prop);
                     if (sp != null)

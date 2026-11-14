@@ -18,7 +18,7 @@ namespace Lair.Tests.Card
         public void WispHpBoost_5번_Apply_RegisterMonsterTypeBuff_5회_호출_누적()
         {
             FakeCtx ctx = new FakeCtx();
-            WispHpBoostEffect effect = new WispHpBoostEffect();
+            WispHpBoostEffect effect = CardEffectTestKit.Make<WispHpBoostEffect>();
 
             for (int i = 0; i < 5; ++i) effect.Apply(ctx);
 
@@ -39,7 +39,7 @@ namespace Lair.Tests.Card
         public void SpawnerHaste_3번_Apply_ScaleAllSpawnerPeriods_3회_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            SpawnerHasteEffect effect = new SpawnerHasteEffect();
+            SpawnerHasteEffect effect = CardEffectTestKit.Make<SpawnerHasteEffect>();
 
             for (int i = 0; i < 3; ++i) effect.Apply(ctx);
 
@@ -114,7 +114,7 @@ namespace Lair.Tests.Card
             //# Fear 는 hero AutoCombatAI 가 없으면 no-op (early return).
             //# 본 케이스는 effect 의 early-return 가드가 정상 동작하는지 확인 (예외 없음).
             FakeCtx ctx = new FakeCtx();
-            FearEffect effect = new FearEffect();
+            FearEffect effect = CardEffectTestKit.Make<FearEffect>();
 
             for (int i = 0; i < 5; ++i)
                 Assert.DoesNotThrow(() => effect.Apply(ctx), $"Fear Hero 없는 컨텍스트 — 예외 없음 (i={i})");
@@ -146,7 +146,7 @@ namespace Lair.Tests.Card
         public void FastBreeding_2번_Apply_ScaleSpawnerPeriodForType_2회_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            FastBreedingEffect effect = new FastBreedingEffect();
+            FastBreedingEffect effect = CardEffectTestKit.Make<FastBreedingEffect>();
 
             effect.Apply(ctx);
             effect.Apply(ctx);
@@ -164,7 +164,7 @@ namespace Lair.Tests.Card
         public void GuardianRage_3번_Apply_AddMonsterBuff_3회_호출()
         {
             FakeCtx ctx = new FakeCtx();
-            GuardianRageEffect effect = new GuardianRageEffect();
+            GuardianRageEffect effect = CardEffectTestKit.Make<GuardianRageEffect>();
 
             for (int i = 0; i < 3; ++i) effect.Apply(ctx);
 

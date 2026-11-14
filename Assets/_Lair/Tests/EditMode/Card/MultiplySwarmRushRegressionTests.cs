@@ -1,5 +1,6 @@
 using Lair.Card;
 using Lair.Data;
+using Lair.Tests.EditMode;
 using NUnit.Framework;
 using UnityEditor;
 
@@ -29,11 +30,13 @@ namespace Lair.Tests.Card
             Assert.AreEqual(ECardId.Multiply, multiplyCard.Id,
                 "Multiply.asset 의 _id 가 ECardId.Multiply (값 20) — SO 직렬화 정합");
 
-            Assert.AreEqual(EBuildAxis.Swarm, multiplyCard.Axis,
-                "Multiply.asset 의 _axis = Swarm (4축 분배 §3.5: Swarm 액티브 3장 자리)");
+            CardEntry entry = WorldMapTestSupport.ShippedCards().GetCard(multiplyCard.Id);
+            Assert.IsNotNull(entry, "Card.json 에 Multiply 행 존재");
+            Assert.AreEqual(EBuildAxis.Swarm, entry.Axis,
+                "Multiply 행의 axis = Swarm (4축 분배 §3.5: Swarm 액티브 3장 자리)");
 
-            Assert.IsInstanceOf<FastBreedingEffect>(multiplyCard.Effect,
-                "Multiply.asset 의 효과 클래스 = FastBreedingEffect (v0.6 — Phantom 6마리 즉시 소환)");
+            Assert.IsInstanceOf<FastBreedingEffect>(CardData.CreateEffect(entry),
+                "Multiply 행의 효과 클래스 = FastBreedingEffect (v0.6 — Phantom 6마리 즉시 소환)");
         }
     }
 }

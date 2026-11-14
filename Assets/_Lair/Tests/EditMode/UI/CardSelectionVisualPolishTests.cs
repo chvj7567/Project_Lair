@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Lair.Tests.Helpers;
 
 namespace Lair.Tests.EditMode
 {
@@ -192,10 +193,7 @@ namespace Lair.Tests.EditMode
 
         private CardData MakeCard(EBuildAxis axis)
         {
-            CardData card = ScriptableObject.CreateInstance<CardData>();
-            SetField(card, "_axis", axis);
-            SetField(card, "_displayName", "테스트 카드");
-            SetField(card, "_description", "테스트 설명");
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, axis, displayName: "테스트 카드", description: "테스트 설명");
             _spawned.Add(card);
             return card;
         }

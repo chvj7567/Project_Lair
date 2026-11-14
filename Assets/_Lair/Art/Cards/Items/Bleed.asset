@@ -13,18 +13,5 @@ MonoBehaviour:
   m_Name: Bleed
   m_EditorClassIdentifier: 
   _id: 16
-  _axis: 2
-  _displayName: "\uCD9C\uD608"
-  _description: "HP \uC9C0\uC18D \uAC10\uC18C (10\uCD08)"
   _icon: {fileID: 21300000, guid: 04d4d1397a3598445a22bf5993d470d6, type: 3}
   _cardImage: {fileID: 21300000, guid: 74d770d3d7d5c764ebf0380972c0da6a, type: 3}
-  _effect:
-    rid: 2530925571701473380
-  references:
-    version: 2
-    RefIds:
-    - rid: 2530925571701473380
-      type: {class: BleedEffect, ns: Lair.Card, asm: Lair}
-      data:
-        _ratio: 0.02
-        _duration: 10

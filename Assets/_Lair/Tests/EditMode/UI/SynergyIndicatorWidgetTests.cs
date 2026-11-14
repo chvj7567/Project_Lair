@@ -9,6 +9,7 @@ using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Lair.Tests.Helpers;
 
 namespace Lair.Tests.UI
 {
@@ -497,8 +498,7 @@ namespace Lair.Tests.UI
 
         private CardData MakeCard(EBuildAxis axis)
         {
-            CardData card = ScriptableObject.CreateInstance<CardData>();
-            TestReflection.SetField(card, "_axis", axis);
+            CardData card = FakeCardData.Create(ECardId.WispHpBoost, axis);
             _garbage.Add(card);
             return card;
         }

@@ -1,5 +1,6 @@
 using Lair.Card;
 using Lair.Data;
+using Lair.Tests.EditMode;
 using NUnit.Framework;
 using UnityEditor;
 
@@ -29,11 +30,13 @@ namespace Lair.Tests.Card
             Assert.AreEqual(ECardId.Berserk, berserkCard.Id,
                 "Berserk.asset 의 _id 가 ECardId.Berserk (값 24) — SO 직렬화 정합");
 
-            Assert.AreEqual(EBuildAxis.Tank, berserkCard.Axis,
-                "Berserk.asset 의 _axis = Tank (4축 분배 §3.5: Tank 액티브 3장 자리)");
+            CardEntry entry = WorldMapTestSupport.ShippedCards().GetCard(berserkCard.Id);
+            Assert.IsNotNull(entry, "Card.json 에 Berserk 행 존재");
+            Assert.AreEqual(EBuildAxis.Tank, entry.Axis,
+                "Berserk 행의 axis = Tank (4축 분배 §3.5: Tank 액티브 3장 자리)");
 
-            Assert.IsInstanceOf<GuardianRageEffect>(berserkCard.Effect,
-                "Berserk.asset 의 효과 클래스 = GuardianRageEffect (2026-06-01 — Wisp/Wraith 받는데미지×0.5, HP×2.0 제거)");
+            Assert.IsInstanceOf<GuardianRageEffect>(CardData.CreateEffect(entry),
+                "Berserk 행의 효과 클래스 = GuardianRageEffect (2026-06-01 — Wisp/Wraith 받는데미지×0.5, HP×2.0 제거)");
         }
 
         //# DisplayName 도 "수호자의 분노" 로 리뉴얼됨 — UI 표기 desync 방지.
@@ -42,8 +45,8 @@ namespace Lair.Tests.Card
         {
             CardData berserkCard = AssetDatabase.LoadAssetAtPath<CardData>(BerserkAssetPath);
             Assert.IsNotNull(berserkCard, "Berserk.asset 존재");
-            Assert.AreEqual("수호자의 분노", berserkCard.DisplayName,
-                "Berserk.asset 의 displayName = '수호자의 분노' (v0.6 리뉴얼)");
+            Assert.AreEqual("수호자의 분노", WorldMapTestSupport.ShippedCards().GetCard(berserkCard.Id).DisplayName,
+                "Berserk 행의 표시 이름 = '수호자의 분노' (v0.6 리뉴얼)");
         }
     }
 }

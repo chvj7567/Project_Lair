@@ -1,4 +1,3 @@
-using System;
 using Lair.Character;
 using Lair.Data;
 using UnityEngine;
@@ -6,10 +5,14 @@ using UnityEngine;
 namespace Lair.Card
 {
     //# 공포 — 영웅 _duration 초간 도주.
-    [Serializable]
     public class FearEffect : ICardEffect
     {
-        [SerializeField] private float _duration = 3f;
+        private readonly float _duration;
+
+        public FearEffect(CardParams p)
+        {
+            _duration = p.Get("duration");
+        }
 
         //# 스컬 FX 로컬 Y 오프셋 — 시트 피벗이 영웅 발이라 0(해골 높이는 시트에 포함).
         private const float FxLiftY = 0f;

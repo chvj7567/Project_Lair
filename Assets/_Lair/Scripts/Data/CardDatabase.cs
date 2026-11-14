@@ -35,7 +35,7 @@ namespace Lair.Data
         //# 로드·검증 성공 시에만 채워진다. null 이면 카드 데이터 미로드 — 전투 진입 불가(§6.4).
         public static CardDatabase Current { get; set; }
 
-        //# 효과별 필수 paramKey 집합 (§3.10) — 누락·초과 모두 오류. 값은 효과 클래스의 [SerializeField] 필드명(앞 '_' 제외)과 같다.
+        //# 효과별 필수 paramKey 집합 (§3.10) — 누락·초과 모두 오류. 값은 효과 클래스 생성자가 p.Get 으로 읽는 키(= 필드명에서 앞 '_' 제외)와 같다.
         private static readonly Dictionary<ECardEffect, string[]> RequiredParams = new Dictionary<ECardEffect, string[]>
         {
             { ECardEffect.WispHpBoost, new string[] { "hpMul" } },

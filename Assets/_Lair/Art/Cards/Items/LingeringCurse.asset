@@ -13,17 +13,5 @@ MonoBehaviour:
   m_Name: LingeringCurse
   m_EditorClassIdentifier: 
   _id: 28
-  _axis: 2
-  _displayName: "\uB048\uC9C8\uAE34 \uC800\uC8FC"
-  _description: "\uC601\uC6C5 \uB514\uBC84\uD504 \uC9C0\uC18D +25%"
   _icon: {fileID: 21300000, guid: cfd3818a686011148ac8977e54b51e30, type: 3}
   _cardImage: {fileID: 21300000, guid: 9cbc3bd56ac9ac54294dee0de45e7efc, type: 3}
-  _effect:
-    rid: 2530925571701473901
-  references:
-    version: 2
-    RefIds:
-    - rid: 2530925571701473901
-      type: {class: LingeringCurseEffect, ns: Lair.Card, asm: Lair}
-      data:
-        _durationBonusPerPick: 0.25

@@ -16,8 +16,6 @@ namespace Lair.Tests.EditMode
         private const string PassivePool = "Assets/_Lair/Art/Cards/CardPool_Passive.asset";
         private const string ActivePool = "Assets/_Lair/Art/Cards/CardPool_Active.asset";
 
-        private static JArray Cards() => JArray.Parse(File.ReadAllText(Dir + "cards.json"));
-
         private static List<CardData> PoolCards()
         {
             List<CardData> all = new List<CardData>();
@@ -27,44 +25,41 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void cards_json_은_축마다_7장이고_Debuff_축은_끈질긴_저주를_포함하고_독장판이_없다()
+        public void Card_json_은_축마다_7장이고_Debuff_축은_끈질긴_저주를_포함하고_독장판이_없다()
         {
-            JArray cards = Cards();
-            Dictionary<string, List<string>> byAxis = cards
-                .GroupBy(c => (string)c["axis"])
-                .ToDictionary(g => g.Key, g => g.Select(c => (string)c["id"]).ToList());
+            CardDatabase db = WorldMapTestSupport.ShippedCards();
+            Dictionary<EBuildAxis, List<ECardId>> byAxis = db.Cards
+                .GroupBy(c => c.Axis)
+                .ToDictionary(g => g.Key, g => g.Select(c => c.Id).ToList());
 
-            foreach (string axis in new[] { "Tank", "Dps", "Debuff", "Swarm" })
+            foreach (EBuildAxis axis in new[] { EBuildAxis.Tank, EBuildAxis.Dps, EBuildAxis.Debuff, EBuildAxis.Swarm })
             {
-                Assert.AreEqual(7, byAxis[axis].Count, axis);
+                Assert.AreEqual(7, byAxis[axis].Count, axis.ToString());
             }
-            CollectionAssert.Contains(byAxis["Debuff"], "LingeringCurse");
-            CollectionAssert.DoesNotContain(cards.Select(c => (string)c["id"]).ToList(), "HeroPoisonAura");
+            CollectionAssert.Contains(byAxis[EBuildAxis.Debuff], ECardId.LingeringCurse);
+            Assert.IsNull(db.GetCard(ECardId.HeroPoisonAura));
         }
 
         [Test]
-        public void 카드_풀_JSON과_SO_풀_어디에도_독장판이_없고_끈질긴_저주는_패시브에_있다()
+        public void 카드_풀_SO_어디에도_독장판이_없고_끈질긴_저주는_패시브에_있다()
         {
-            JObject pools = JObject.Parse(File.ReadAllText(Dir + "card_pools.json"));
-            List<string> passive = pools["passive"].Select(t => (string)t).ToList();
-            List<string> active = pools["active"].Select(t => (string)t).ToList();
             CardPool passiveSo = AssetDatabase.LoadAssetAtPath<CardPool>(PassivePool);
+            CardPool activeSo = AssetDatabase.LoadAssetAtPath<CardPool>(ActivePool);
 
-            CollectionAssert.Contains(passive, "LingeringCurse");
-            CollectionAssert.DoesNotContain(passive, "HeroPoisonAura");
-            CollectionAssert.DoesNotContain(active, "HeroPoisonAura");
             Assert.IsTrue(passiveSo.Cards.Any(c => c != null && c.Id == ECardId.LingeringCurse));
+            Assert.IsFalse(activeSo.Cards.Any(c => c != null && c.Id == ECardId.LingeringCurse));
             Assert.IsFalse(PoolCards().Any(c => c != null && c.Id == ECardId.HeroPoisonAura));
         }
 
         [Test]
         public void Debuff_축_SO_카드는_7장이고_패시브_4장_액티브_3장이다()
         {
+            CardDatabase db = WorldMapTestSupport.ShippedCards();
             CardPool passive = AssetDatabase.LoadAssetAtPath<CardPool>(PassivePool);
             CardPool active = AssetDatabase.LoadAssetAtPath<CardPool>(ActivePool);
 
-            Assert.AreEqual(4, passive.Cards.Count(c => c != null && c.Axis == EBuildAxis.Debuff), "역병의 손길·역병 증식·끈질긴 저주·약화의 저주");
-            Assert.AreEqual(3, active.Cards.Count(c => c != null && c.Axis == EBuildAxis.Debuff), "공포·출혈·무력화");
+            Assert.AreEqual(4, passive.Cards.Count(c => c != null && db.GetCard(c.Id).Axis == EBuildAxis.Debuff), "역병의 손길·역병 증식·끈질긴 저주·약화의 저주");
+            Assert.AreEqual(3, active.Cards.Count(c => c != null && db.GetCard(c.Id).Axis == EBuildAxis.Debuff), "공포·출혈·무력화");
         }
 
         [Test]
@@ -105,11 +100,11 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 역병의_손길은_ID_를_유지한_채_독_피해_x1점4_효과로_바뀌었다()
         {
-            JToken card = Cards().First(c => (string)c["id"] == "PlagueSlowBoost");
+            CardEntry card = WorldMapTestSupport.ShippedCards().GetCard(ECardId.PlagueSlowBoost);
 
-            Assert.AreEqual("Debuff", (string)card["axis"]);
-            Assert.AreEqual("PlagueToxinBoostEffect", (string)card["effect"]["$type"]);
-            Assert.AreEqual(1.4f, (float)card["effect"]["toxinMul"], 0.0001f);
+            Assert.AreEqual(EBuildAxis.Debuff, card.Axis);
+            Assert.AreEqual(ECardEffect.PlagueToxinBoost, card.Effect);
+            Assert.AreEqual(1.4f, card.Params.Get("toxinMul"), 0.0001f);
         }
     }
 }

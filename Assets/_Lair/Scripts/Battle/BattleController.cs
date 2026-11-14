@@ -342,10 +342,11 @@ namespace Lair.Battle
             if (pool != null)
             {
                 //# 데일리는 날짜 시드 덱 — 같은 날 같은 선택이면 같은 카드가 제시된다(D-5). 그 외 시드 0 = 무작위.
-                _passiveDeck = new CardDeck(pool.Cards, _spec.IsDaily ? _spec.Daily.PassiveSeed : 0);
-                _allCards.AddRange(pool.Cards);
+                List<CardData> passiveCards = pool.PlayableCards();
+                _passiveDeck = new CardDeck(passiveCards, _spec.IsDaily ? _spec.Daily.PassiveSeed : 0);
+                _allCards.AddRange(passiveCards);
                 //# 상태 아이콘 — 패시브 풀도 스캔(HeroAttackDown=14 가 유일하게 여기 있음. 누락 시 silent-bug).
-                PopulateCardIcons(pool.Cards);
+                PopulateCardIcons(passiveCards);
             }
 
             //# 5. 시계
@@ -382,10 +383,11 @@ namespace Lair.Battle
                 return;
             if (activePool != null)
             {
-                _activeDeck = new CardDeck(activePool.Cards, _spec.IsDaily ? _spec.Daily.ActiveSeed : 0);
-                _allCards.AddRange(activePool.Cards);
+                List<CardData> activeCards = activePool.PlayableCards();
+                _activeDeck = new CardDeck(activeCards, _spec.IsDaily ? _spec.Daily.ActiveSeed : 0);
+                _allCards.AddRange(activeCards);
                 //# 상태 아이콘 — 액티브 풀 스캔(8종 중 7종이 여기).
-                PopulateCardIcons(activePool.Cards);
+                PopulateCardIcons(activeCards);
             }
         }
 

@@ -52,7 +52,7 @@ namespace Lair.Tests.Card
         public void WispHpBoost_위스프_Hp_배율_등록()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new WispHpBoostEffect().Apply(ctx);
+            CardEffectTestKit.Make<WispHpBoostEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
             Assert.AreEqual(EMonster.Wisp, ctx.Buffs[0].Item1);
@@ -65,8 +65,8 @@ namespace Lair.Tests.Card
         public void LingeringCurse_픽마다_디버프_지속_보너스_0점25_등록()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new LingeringCurseEffect().Apply(ctx);
-            new LingeringCurseEffect().Apply(ctx);
+            CardEffectTestKit.Make<LingeringCurseEffect>().Apply(ctx);
+            CardEffectTestKit.Make<LingeringCurseEffect>().Apply(ctx);
 
             CollectionAssert.AreEqual(new[] { 0.25f, 0.25f }, ctx.DebuffDurationBonuses);
             Assert.AreEqual(0, ctx.Buffs.Count);
@@ -77,7 +77,7 @@ namespace Lair.Tests.Card
         public void PlagueSlowBoost_역병귀_독피해_배율_1점4_등록()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new PlagueToxinBoostEffect().Apply(ctx);
+            CardEffectTestKit.Make<PlagueToxinBoostEffect>().Apply(ctx);
 
             Assert.AreEqual(1, ctx.Buffs.Count);
             Assert.AreEqual(EMonster.Plague, ctx.Buffs[0].Item1);
@@ -104,7 +104,7 @@ namespace Lair.Tests.Card
         public void WispWraithPowerBoost_Apply_RegisterMonsterTypeBuff_Wisp_Wraith_Power_2회_호출()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new WispWraithPowerBoostEffect().Apply(ctx);
+            CardEffectTestKit.Make<WispWraithPowerBoostEffect>().Apply(ctx);
 
             Assert.AreEqual(2, ctx.Buffs.Count, "위스프+레이스 2회 호출");
             Assert.IsTrue(ctx.Buffs.Contains((EMonster.Wisp,   EMonsterStatKind.Power, 1.3f)));
@@ -116,7 +116,7 @@ namespace Lair.Tests.Card
         public void ReaperHexPowerBoost_Apply_RegisterMonsterTypeBuff_Reaper_Hex_Power_2회_호출()
         {
             FakeBattleContext ctx = new FakeBattleContext();
-            new ReaperHexPowerBoostEffect().Apply(ctx);
+            CardEffectTestKit.Make<ReaperHexPowerBoostEffect>().Apply(ctx);
 
             Assert.AreEqual(2, ctx.Buffs.Count, "리퍼+헥스 2회 호출");
             Assert.IsTrue(ctx.Buffs.Contains((EMonster.Reaper, EMonsterStatKind.Power, 1.3f)));

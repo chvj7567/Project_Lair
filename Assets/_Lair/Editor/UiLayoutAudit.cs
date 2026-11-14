@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Lair.Card;
+using Lair.Data;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -124,6 +125,10 @@ namespace Lair.EditorTools
 
         private static void LoadCardSamples()
         {
+            //# 카드 이름·설명은 Card.json 이 출처 — 에디트 모드에서 로드 전이면 샘플 없음.
+            if (CardDatabase.Current == null)
+                return;
+
             string[] guids = AssetDatabase.FindAssets("t:CardData");
             for (int i = 0; i < guids.Length; ++i)
             {

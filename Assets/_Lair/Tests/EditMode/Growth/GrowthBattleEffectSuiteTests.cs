@@ -351,11 +351,13 @@ namespace Lair.Tests.EditMode
         {
             CardData card = UnityEditor.AssetDatabase.LoadAssetAtPath<CardData>("Assets/_Lair/Art/Cards/Items/LingeringCurse.asset");
             Assert.IsNotNull(card);
-            Assert.IsInstanceOf<LingeringCurseEffect>(card.Effect);
+            CardEntry entry = WorldMapTestSupport.ShippedCards().GetCard(card.Id);
+            ICardEffect effect = CardData.CreateEffect(entry);
+            Assert.IsInstanceOf<LingeringCurseEffect>(effect);
             FieldInfo f = typeof(LingeringCurseEffect).GetField("_durationBonusPerPick", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            Assert.AreEqual(0.25f, (float)f.GetValue(card.Effect), 0.0001f);
-            Assert.AreEqual(EBuildAxis.Debuff, card.Axis);
+            Assert.AreEqual(0.25f, (float)f.GetValue(effect), 0.0001f);
+            Assert.AreEqual(EBuildAxis.Debuff, entry.Axis);
         }
 
         //# ===== 특성: 가시 껍질 (Wisp) =====

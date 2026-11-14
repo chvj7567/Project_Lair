@@ -3,6 +3,7 @@ using Lair.Card;
 using Lair.Data;
 using NUnit.Framework;
 using UnityEditor;
+using Lair.Tests.EditMode;
 
 namespace Lair.Tests.Card
 {
@@ -53,7 +54,7 @@ namespace Lair.Tests.Card
                 if (c.Id == ECardId.Multiply)
                 {
                     multiplyCount++;
-                    Assert.AreEqual(EBuildAxis.Swarm, c.Axis, "Multiply (SwarmRush 효과) 는 Swarm 축");
+                    Assert.AreEqual(EBuildAxis.Swarm, WorldMapTestSupport.ShippedCards().GetCard(c.Id).Axis, "Multiply (SwarmRush 효과) 는 Swarm 축");
                 }
             }
             Assert.AreEqual(1, multiplyCount, "Multiply 는 Active 풀에 1장 포함 (SwarmRush 효과로 재사용)");
@@ -66,10 +67,11 @@ namespace Lair.Tests.Card
                 { EBuildAxis.Tank, 0 }, { EBuildAxis.Dps, 0 },
                 { EBuildAxis.Debuff, 0 }, { EBuildAxis.Swarm, 0 },
             };
+            CardDatabase db = WorldMapTestSupport.ShippedCards();
             foreach (CardData c in pool.Cards)
             {
                 if (c == null) continue;
-                dist[c.Axis]++;
+                dist[db.GetCard(c.Id).Axis]++;
             }
             return dist;
         }

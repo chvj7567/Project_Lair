@@ -1,14 +1,18 @@
-using System;
 using Lair.Character;
+using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Card
 {
     //# 시간 정지 — 영웅 이동·공격 _duration 초간 완전 정지.
-    [Serializable]
     public class TimeStopEffect : ICardEffect
     {
-        [SerializeField] private float _duration = 5f;
+        private readonly float _duration;
+
+        public TimeStopEffect(CardParams p)
+        {
+            _duration = p.Get("duration");
+        }
 
         public void Apply(IBattleContext ctx)
         {

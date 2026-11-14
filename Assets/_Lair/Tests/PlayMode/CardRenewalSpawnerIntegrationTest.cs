@@ -41,6 +41,10 @@ namespace Lair.Tests.PlayMode
             return (T)fi.GetValue(target);
         }
 
+        //# 전환 전 코드 기본값(periodMul 0.8 = 출하 Card_Param.json 값)을 명시 수치로 넘긴다. EditMode 키트는 다른 어셈블리라 쓸 수 없다.
+        private static SpawnerHasteEffect MakeSpawnerHaste()
+            => new SpawnerHasteEffect(new CardParams(new System.Collections.Generic.Dictionary<string, float> { { "periodMul", 0.8f } }));
+
         //# ===== 1. SpawnerHaste 1픽 — 모든 Spawner 의 SpawnPeriod ×0.8 =====
 
         [UnityTest]
@@ -80,7 +84,7 @@ namespace Lair.Tests.PlayMode
                 before[i] = spawners[i].SpawnPeriod;
 
             //# SpawnerHaste 1픽 — ctx.ScaleAllSpawnerPeriods(0.8) 1회 호출.
-            new SpawnerHasteEffect().Apply(ctx);
+            MakeSpawnerHaste().Apply(ctx);
 
             //# 모든 Spawner 주기 ×0.8.
             for (int i = 0; i < spawners.Length; ++i)
@@ -129,7 +133,7 @@ namespace Lair.Tests.PlayMode
                 before[i] = spawners[i].SpawnPeriod;
 
             //# SpawnerHaste 3픽 — ×0.8³ = ×0.512.
-            SpawnerHasteEffect haste = new SpawnerHasteEffect();
+            SpawnerHasteEffect haste = MakeSpawnerHaste();
             haste.Apply(ctx);
             haste.Apply(ctx);
             haste.Apply(ctx);
