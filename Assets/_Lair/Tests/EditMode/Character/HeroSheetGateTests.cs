@@ -325,11 +325,12 @@ namespace Lair.Tests.EditMode
         //# ===== U-H6 =====
 
         [Test]
-        public void U_H6_변형_SO_25엔트리는_발광이_꺼져있고_배수_Tier_초상이_유지된다()
+        public void U_H6_변형_25스테이지는_배수_Tier_초상이_유지된다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
             Assert.IsNotNull(config);
             Assert.AreEqual(25, config.Stages.Count);
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
 
             for (int i = 0; i < 25; ++i)
             {
@@ -338,9 +339,9 @@ namespace Lair.Tests.EditMode
                 int stage = i % 5;
                 string label = $"{chapter + 1}-{stage + 1}";
 
-                Assert.IsFalse(v.UseEmission, label + " UseEmission");
-                Assert.AreEqual(stage == 4 ? StageScale[chapter] : 1f, v.ScaleMultiplier, 1e-4f, label + " ScaleMultiplier");
-                Assert.AreEqual(stage, v.Tier, label + " Tier");
+                StageRow row = db.GetStage(chapter + 1, stage + 1);
+                Assert.AreEqual(stage == 4 ? StageScale[chapter] : 1f, row.heroScale, 1e-4f, label + " heroScale");
+                Assert.AreEqual(stage, row.heroTier, label + " heroTier");
                 Assert.IsNotNull(v.Portrait, label + " Portrait");
                 StringAssert.Contains("HeroIcons/" + Classes[chapter], AssetDatabase.GetAssetPath(v.Portrait), label + " Portrait 소속 직업");
             }

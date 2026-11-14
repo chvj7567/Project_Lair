@@ -1,9 +1,7 @@
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using Lair.Character;
-using Lair.Data;
 
 namespace Lair.Tests.EditMode
 {
@@ -32,7 +30,6 @@ namespace Lair.Tests.EditMode
             _applier = _go.AddComponent<HeroStageVariantApplier>();
             TestReflection.SetField(_applier, "_body", _body);
             TestReflection.SetField(_applier, "_tierOverlay", _tierOverlay);
-            TestReflection.SetField(_applier, "_emissionTargets", new[] { _body, overlayRenderer });
         }
 
         [TearDown]
@@ -41,20 +38,10 @@ namespace Lair.Tests.EditMode
             Object.DestroyImmediate(_go);
         }
 
-        //# Apply() 가 내부적으로 renderer.material(non-shared getter) 을 호출해 EditMode 전용 벤더 경고를 낸다
-        //# (몸·오버레이 렌더러 각 1회, 최초 접근 시에만 — production 코드 관점에선 올바른 호출: Mat_Monster2D 는
-        //# 영웅·몬스터 6종이 공유하므로 인스턴스화 없이 sharedMaterial 을 직접 건드리면 다른 캐릭터까지 오염된다).
-        private static void ExpectMaterialInstantiationWarnings()
-        {
-            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Instantiating material"));
-            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Instantiating material"));
-        }
-
         [Test]
-        public void Apply는_ScaleMultiplier로_root_스케일을_배수한다()
+        public void Apply는_scale로_root_스케일을_배수한다()
         {
-            ExpectMaterialInstantiationWarnings();
-            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 2f, Tier = 0 });
+            _applier.Apply(2f, 0);
 
             Assert.AreEqual(new Vector3(2f, 2f, 2f), _go.transform.localScale);
         }
@@ -63,8 +50,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void Apply는_Tier0에서_몸을_켜고_오버레이_티어는_0이다()
         {
-            ExpectMaterialInstantiationWarnings();
-            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1f, Tier = 0 });
+            _applier.Apply(1f, 0);
 
             Assert.IsTrue(_body.enabled, "Tier 0 은 몸 렌더러 활성");
             Assert.AreEqual(0, _tierOverlay.CurrentTierForTest);
@@ -74,8 +60,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void Apply는_Tier가_0보다_크면_몸을_끄고_오버레이_티어를_전달한다()
         {
-            ExpectMaterialInstantiationWarnings();
-            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1.4f, Tier = 4 });
+            _applier.Apply(1.4f, 4);
 
             Assert.IsFalse(_body.enabled, "Tier>0 은 오버레이만 보이도록 몸 비활성(§6.4.1)");
             Assert.AreEqual(4, _tierOverlay.CurrentTierForTest);
@@ -98,12 +83,10 @@ namespace Lair.Tests.EditMode
         //# 풀 재사용 — 이전 스폰(스테이지5)에서 풀 Pop 재활성화된 뒤, BattleController 가 새 스폰의
         //# variant(스테이지2)로 재 Apply 하면 잔존 없이 새 값으로 전부 갱신된다.
         //# MonsterTierOverlay.OnEnable 이 SetTier(0) 으로 먼저 리셋하고(Rule 03 §4), 그 위에 Apply 가 최종값을 덮어쓴다.
-        //# (발광 리셋은 HeroStageVariantApplierRegressionTests 가 URP 셰이더 재질로 이미 검증 — 본 테스트는 티어/스케일/배타성만.)
         [Test]
         public void 풀_재사용_OnEnable리셋_후_Apply하면_이전_스폰_값이_남지_않는다()
         {
-            ExpectMaterialInstantiationWarnings();
-            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1.4f, Tier = 4 });
+            _applier.Apply(1.4f, 4);
             Assert.IsFalse(_body.enabled, "이전 스폰(스테이지5) — 몸 비활성");
             Assert.AreEqual(4, _tierOverlay.CurrentTierForTest);
 
@@ -112,7 +95,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0, _tierOverlay.CurrentTierForTest, "OnEnable 직후(Apply 전) 오버레이는 티어0으로 리셋(§9 풀 재사용 초기화)");
 
             //# BattleController 가 새 스폰의 variant 로 재적용 — 스테이지2(Tier1), 스케일 1.25.
-            _applier.Apply(new HeroStageVariant { ScaleMultiplier = 1.25f, Tier = 1 });
+            _applier.Apply(1.25f, 1);
 
             Assert.IsFalse(_body.enabled, "새 스폰도 Tier>0 이므로 몸 비활성 유지");
             Assert.AreEqual(1, _tierOverlay.CurrentTierForTest, "오버레이 티어가 새 스폰 값(1)으로 갱신");

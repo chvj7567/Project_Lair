@@ -31,6 +31,8 @@ namespace Lair.Village
         [SerializeField] private MonsterShowcaseStage _monsterShowcase;
 
         private VillageViewModel _vm;
+        //# 진입 시 한 번 받은 챕터 데이터 — 쇼케이스 영웅 외형(heroScale·heroTier) 조회용.
+        private ChapterDatabase _chapters;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
         private HeroStageVariantApplier _showcaseApplier;
         //# 쇼케이스 영웅 인스턴스/종류 — 챕터가 바뀌면(기사↔궁수) 풀에 반환하고 새로 배치한다.
@@ -61,7 +63,8 @@ namespace Lair.Village
             MetaSession.DailyContext = null;
             MetaProfile profile = MetaSession.GetOrLoad();
             _metaConfig = MetaConfig.Current;
-            _vm = new VillageViewModel(profile, _metaConfig, ChapterDatabase.Current, LookupString);
+            _chapters = ChapterDatabase.Current;
+            _vm = new VillageViewModel(profile, _metaConfig, _chapters, LookupString);
 
             //# 진입 초기값(최대 플레이 가능)을 profile.SelectedStage 에 반영·저장 — 출격/전적(BattleController)이 읽는 값과 동기.
             //# 캐러셀 미이동 상태로 즉시 출격해도 엉뚱한 스테이지 입장 방지(HandleStageChanged 의 이동 시 저장과 동일 관례).
@@ -182,9 +185,12 @@ namespace Lair.Village
         //# 현재 VM.SelectedStage 의 variant 를 쇼케이스 영웅에 적용. config/applier 미비 시 무동작(가드).
         private void ApplyShowcaseVariant()
         {
-            if (_showcaseApplier == null || _stageVariantConfig == null || _vm == null)
+            if (_showcaseApplier == null || _chapters == null || _vm == null)
                 return;
-            _showcaseApplier.Apply(_stageVariantConfig.GetStage(_vm.SelectedStage));
+            StageRow stage = _chapters.GetStageClamped(_vm.SelectedStage);
+            if (stage == null)
+                return;
+            _showcaseApplier.Apply(stage.heroScale, stage.heroTier);
         }
 
         //# 캐러셀 스테이지 이동 — SelectedStage/SelectedHero 로컬 저장(클라우드 백업 제외, 기획서 §4.5) + 쇼케이스 재스킨.

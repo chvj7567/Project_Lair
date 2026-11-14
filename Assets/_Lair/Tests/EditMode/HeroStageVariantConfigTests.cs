@@ -5,15 +5,13 @@ using Lair.Data;
 
 namespace Lair.Tests.EditMode
 {
-    //# GetStage 클램프 정본 (hero-stage-variant plan Task 2).
+    //# GetStage 클램프 정본 (hero-stage-variant plan Task 2) + 영웅 외형 조회 클램프 동치성(so-to-json-migration §7.6).
     public class HeroStageVariantConfigTests
     {
         private const string ConfigAssetPath = "Assets/_Lair/Data/HeroStageVariantConfig.asset";
 
-        //# hero-2d-conversion §11 경고 — Tier 는 C# 기본값이 0 이라, 에셋에 명시하지 않으면 전 스테이지가
-        //# 스테이지1 표현(오버레이 off)으로 남는다. 실제 .asset 값을 실측해 회귀 감시.
         [Test]
-        public void 실제_asset의_25엔트리는_챕터키와_Tier가_챕터마다_0부터_4까지_채워져있다()
+        public void 실제_asset의_25엔트리는_챕터키가_챕터마다_1부터_5까지_채워져있다()
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(ConfigAssetPath);
             Assert.IsNotNull(config, $"asset 로드 실패: {ConfigAssetPath}");
@@ -23,23 +21,43 @@ namespace Lair.Tests.EditMode
             {
                 Assert.AreEqual(i / 5 + 1, config.Stages[i].ChapterId, $"엔트리 {i} 의 ChapterId");
                 Assert.AreEqual(i % 5 + 1, config.Stages[i].StageIndex, $"엔트리 {i} 의 StageIndex");
-                Assert.AreEqual(i % 5, config.Stages[i].Tier, $"엔트리 {i} 의 Tier == {i % 5}");
             }
         }
 
-        [Test]
-        public void 실제_asset의_챕터3_엔트리는_발광_없음_스케일_값이다()
+        //# 영웅 외형(heroScale·heroTier)은 ChapterDatabase.GetStageClamped 로 고른다 — 초상 SO 의 클램프 규칙("이하 중 최대, 없으면 최소")과 같은 스테이지를 골라야 한다.
+        [TestCase(int.MinValue)]
+        [TestCase(-5)]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(13)]
+        [TestCase(25)]
+        [TestCase(26)]
+        [TestCase(30)]
+        [TestCase(int.MaxValue)]
+        public void 영웅_외형_클램프는_초상_SO_의_클램프와_같은_스테이지를_고른다(int linear)
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(ConfigAssetPath);
-            //# hero-sheets H7 — 25단계 발광 제거(UseEmission=false). 세기 값은 비활성이라 단언하지 않는다.
-            for (int i = 0; i < 5; i++)
-            {
-                HeroStageVariant v = config.GetStage(3, i + 1);
-                Assert.AreEqual(3, v.ChapterId, $"3-{i + 1}");
-                Assert.AreEqual(i + 1, v.StageIndex, $"3-{i + 1}");
-                Assert.IsFalse(v.UseEmission, $"3-{i + 1} UseEmission");
-                Assert.AreEqual(i == 4 ? 1.2f : 1f, v.ScaleMultiplier, 0.0001f, $"3-{i + 1} ScaleMultiplier");
-            }
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
+
+            HeroStageVariant portraitEntry = config.GetStage(linear);
+            StageRow stage = db.GetStageClamped(linear);
+
+            Assert.IsNotNull(stage, $"linear {linear}");
+            Assert.AreEqual(portraitEntry.ChapterId, stage.chapterId, $"linear {linear} chapterId");
+            Assert.AreEqual(portraitEntry.StageIndex, stage.stageIndex, $"linear {linear} stageIndex");
+        }
+
+        [Test]
+        public void 영웅_외형_클램프_경계는_1_1과_5_5다()
+        {
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
+
+            Assert.AreEqual(1, db.GetStageClamped(0).chapterId);
+            Assert.AreEqual(1, db.GetStageClamped(0).stageIndex);
+            Assert.AreEqual(5, db.GetStageClamped(26).chapterId);
+            Assert.AreEqual(5, db.GetStageClamped(30).stageIndex);
+            Assert.AreEqual(1.3f, db.GetStageClamped(30).heroScale, 0f, "5-5 heroScale");
+            Assert.AreEqual(4, db.GetStageClamped(30).heroTier, "5-5 heroTier");
         }
 
         //# 프로덕션에 테스트 전용 메서드를 두지 않으려 private [SerializeField] _stages 를 reflection 주입(프로젝트 관례 TestReflection).
@@ -61,11 +79,11 @@ namespace Lair.Tests.EditMode
         {
             HeroStageVariantConfig cfg = MakeConfig(new[]
             {
-                new HeroStageVariant { ScaleMultiplier = 1f },
-                new HeroStageVariant { ScaleMultiplier = 2f },
+                new HeroStageVariant(),
+                new HeroStageVariant(),
             });
-            Assert.AreEqual(1f, cfg.GetStage(0).ScaleMultiplier);
-            Assert.AreEqual(2f, cfg.GetStage(99).ScaleMultiplier);
+            Assert.AreEqual(1, cfg.GetStage(0).StageIndex);
+            Assert.AreEqual(2, cfg.GetStage(99).StageIndex);
         }
 
         [Test]
@@ -74,7 +92,7 @@ namespace Lair.Tests.EditMode
             HeroStageVariantConfig cfg = MakeConfig(new HeroStageVariant[0]);
             HeroStageVariant v = cfg.GetStage(3);
             Assert.IsNotNull(v);
-            Assert.AreEqual(1f, v.ScaleMultiplier);
+            Assert.IsNull(v.Portrait);
         }
     }
 }

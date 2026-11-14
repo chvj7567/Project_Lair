@@ -132,6 +132,12 @@ namespace Lair.Data
             return GetStage(StageProgress.ChapterOf(linear), StageProgress.IndexOf(linear));
         }
 
+        //# 선형 번호로 조회하되 범위 밖(탑·데일리 등)은 [1, 챕터수×5] 로 클램프 — 영웅 외형(heroScale·heroTier) 조회용.
+        public StageRow GetStageClamped(int linear)
+        {
+            return GetStageByLinear(Math.Max(1, Math.Min(linear, ChapterCount * StageProgress.StagesPerChapter)));
+        }
+
         //# 영웅 직업 전체 heroId — 영웅별 데이터 커버리지 검증용(영웅 스킬 구간 등).
         public IReadOnlyCollection<string> HeroIds => _heroes.Keys;
 

@@ -397,6 +397,8 @@ namespace Lair.Tests.EditMode
         {
             HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
 
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
+
             Assert.AreEqual(25, config.Stages.Count);
             for (int linear = 1; linear <= 25; ++linear)
             {
@@ -407,20 +409,17 @@ namespace Lair.Tests.EditMode
                 HeroStageVariant variant = config.GetStage(linear);
                 Assert.AreEqual(5, variant.ChapterId, $"linear {linear}");
                 Assert.AreEqual(linear - 20, variant.StageIndex, $"linear {linear}");
-                Assert.AreEqual(linear - 21, variant.Tier, $"linear {linear} Tier");
+                Assert.AreEqual(linear - 21, db.GetStage(5, linear - 20).heroTier, $"linear {linear} heroTier");
             }
         }
 
         [Test]
-        public void 성기사_외형은_발광_없음_스케일_값이다()
+        public void 성기사_외형은_스케일_값이다()
         {
-            HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
-            //# hero-sheets H7 — 25단계 발광 제거(UseEmission=false).
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
             for (int i = 0; i < 5; ++i)
             {
-                HeroStageVariant v = config.GetStage(5, i + 1);
-                Assert.IsFalse(v.UseEmission, $"5-{i + 1} UseEmission");
-                Assert.AreEqual(i == 4 ? 1.3f : 1f, v.ScaleMultiplier, 0.0001f, $"5-{i + 1} ScaleMultiplier");
+                Assert.AreEqual(i == 4 ? 1.3f : 1f, db.GetStage(5, i + 1).heroScale, 0.0001f, $"5-{i + 1} heroScale");
             }
         }
 

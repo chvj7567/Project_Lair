@@ -33,7 +33,6 @@ namespace Lair.Battle
         private MetaConfig _metaConfig;
 
         //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
-        [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
 
         //# 전장 배경 스프라이트 렌더러(씬 'Backdrop') — 챕터 backdropKey 가 기본(Battle_Backdrop)이 아니면 시작 시 해당 스프라이트로 교체(chapter-system §7.4).
         [SerializeField] private SpriteRenderer _backdropRenderer;
@@ -766,17 +765,17 @@ namespace Lair.Battle
         //# Pop 시점 GetComponent 는 기존 SpawnHero 관례와 동일한 일회성 경로(Rule 02 §5).
         private void ApplyStageVariant(GameObject hero)
         {
-            if (hero == null || _stageVariantConfig == null)
+            if (hero == null || _chapters == null)
                 return;
 
-            HeroStageVariant variant = _stageVariantConfig.GetStage(_spec.LinearStage);
-            if (variant == null)
+            StageRow stage = _chapters.GetStageClamped(_spec.LinearStage);
+            if (stage == null)
                 return;
 
             HeroStageVariantApplier applier = hero.GetComponent<HeroStageVariantApplier>();
             if (applier != null)
             {
-                applier.Apply(variant);
+                applier.Apply(stage.heroScale, stage.heroTier);
             }
         }
 

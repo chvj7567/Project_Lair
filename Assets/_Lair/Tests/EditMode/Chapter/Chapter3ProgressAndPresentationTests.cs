@@ -434,12 +434,12 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 챕터3_보스_엔트리만_스케일_1_2이고_보스_앞_4개는_1이다()
         {
-            HeroStageVariantConfig config = AssetDatabase.LoadAssetAtPath<HeroStageVariantConfig>(VariantAssetPath);
+            ChapterDatabase db = WorldMapTestSupport.FullDb();
 
-            Assert.AreEqual(1.2f, config.GetStage(15).ScaleMultiplier, 0.0001f);
-            for (int linear = 11; linear <= 14; ++linear)
+            Assert.AreEqual(1.2f, db.GetStage(3, 5).heroScale, 0.0001f);
+            for (int index = 1; index <= 4; ++index)
             {
-                Assert.AreEqual(1f, config.GetStage(linear).ScaleMultiplier, 0.0001f, $"linear {linear}");
+                Assert.AreEqual(1f, db.GetStage(3, index).heroScale, 0.0001f, $"3-{index}");
             }
         }
 

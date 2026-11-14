@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace Lair.Data
 {
-    //# 스테이지 한 개의 외형 변형 (chapter-system §1.2 SO 변경, hero-stage-variant §1.2, hero-2d-conversion §11).
-    //# 스탯 배수(HP/Power)는 Stage.json(StageRow)로 이전 — 이 SO 는 Object 참조·외형만 가진다(이중 진실 방지).
-    //# 전투 몸 색/아웃라인은 2D 원화에 직접 베이크되어 전투 런타임 소비자가 없다 — UseOutline/OutlineColor 제거(§6.2·§6.3).
+    //# 스테이지 한 개의 영웅 초상 항목 (chapter-system §1.2, hero-stage-variant §1.2).
+    //# 스탯 배수·영웅 크기·강화 티어는 Stage.json(StageRow)이 출처 — 이 SO 는 Sprite 참조(초상)만 가진다(이중 진실 방지).
     [Serializable]
     public class HeroStageVariant
     {
@@ -17,15 +16,9 @@ namespace Lair.Data
         //# 스테이지별 2D 영웅 초상(HeroIcons/Knight*.png, 시트 idle frame 0) — HeroSelectPopup·RecordsPopup 만 소비. 틴트 재활용 없음.
         //# Sprite 참조라 JSON 이 아닌 SO 에 둔다(Rule 02 §11 예외).
         public Sprite Portrait;
-        public bool UseEmission;
-        public Color EmissionColor;
-        public float EmissionIntensity;
-        public float ScaleMultiplier = 1f;
-        //# 강화 오버레이 티어(0~4) — MonsterTierOverlay.SetTier 에 그대로 전달. 0=오버레이 off(스테이지1 몸만).
-        public int Tier;
     }
 
-    //# 챕터별 스테이지 영웅 재스킨 정본 SO (15엔트리: 1-1~1-5, 2-1~2-5, 3-1~3-5). 선형 번호 또는 (챕터, 인덱스) 로 조회, HeroStageVariantApplier 가 스폰 시 적용.
+    //# 챕터별 스테이지 영웅 초상 SO (25엔트리: 1-1~5-5). 선형 번호 또는 (챕터, 인덱스) 로 조회 — 초상 Sprite 만 소비한다.
     [CreateAssetMenu(fileName = "HeroStageVariantConfig", menuName = "Lair/HeroStageVariantConfig")]
     public class HeroStageVariantConfig : ScriptableObject
     {

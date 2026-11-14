@@ -1,21 +1,15 @@
-using Lair.Data;
 using UnityEngine;
 
 namespace Lair.Character
 {
-    //# 스폰 시 현재 스테이지 variant 를 영웅에 적용 (hero-stage-variant plan Task 5, hero-2d-conversion §6.2·§6.4·§11).
-    //# 몸 색/아웃라인은 원화 베이크(런타임 틴트 없음, §6.2·§6.3) — 여기서는 발광·스케일·오버레이 티어 전환만 담당.
+    //# 스폰 시 현재 스테이지의 영웅 외형(Stage.heroScale·heroTier)을 영웅에 적용 (hero-stage-variant plan Task 5, hero-2d-conversion §6.4·§11).
+    //# 몸 색/아웃라인은 원화 베이크(런타임 틴트 없음) — 여기서는 스케일·오버레이 티어 전환만 담당. 발광은 쓰인 적이 없어 제거(so-to-json-migration §7.6).
     public class HeroStageVariantApplier : MonoBehaviour
     {
         //# 강화 오버레이(Enhance) — 스테이지 2~5 완전 합성 원화 전환(§6.4).
         [SerializeField] private MonsterTierOverlay _tierOverlay;
         //# 몸(Visual2D) 스프라이트 렌더러 — 스테이지 1 에서만 활성(§6.4.1 부분 커버리지 회피).
         [SerializeField] private SpriteRenderer _body;
-        //# 발광(_EmissionColor) 적용 대상 — [Visual2D 몸, Visual2D/Enhance].
-        [SerializeField] private SpriteRenderer[] _emissionTargets;
-
-        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
-        private const string EmissionKeyword = "_EMISSION";
 
         private Vector3 _baseScale = Vector3.one;
         private bool _baseScaleCaptured;
@@ -34,60 +28,20 @@ namespace Lair.Character
             _baseScaleCaptured = true;
         }
 
-        public void Apply(HeroStageVariant variant)
+        //# scale: 크기 배율(Stage.heroScale), tier: 강화 외형 티어 0~4(Stage.heroTier) — 0 이면 몸만, 1 이상이면 오버레이만 보인다.
+        public void Apply(float scale, int tier)
         {
-            if (variant == null)
-                return;
-
             EnsureBaseScale();
-            ApplyEmission(variant);
-            ApplyScale(variant);
+            transform.localScale = _baseScale * scale;
 
             if (_tierOverlay != null)
             {
-                _tierOverlay.SetTier(variant.Tier);
+                _tierOverlay.SetTier(tier);
             }
             if (_body != null)
             {
-                _body.enabled = variant.Tier == 0;
+                _body.enabled = tier == 0;
             }
-        }
-
-        //# 발광 — 사용 스테이지는 색×intensity + 키워드 활성, 미사용은 검정·키워드 비활성으로 잔존 발광 차단(기획서 §1.5).
-        private void ApplyEmission(HeroStageVariant variant)
-        {
-            if (_emissionTargets == null)
-                return;
-            Color emission = variant.UseEmission
-                ? variant.EmissionColor * Mathf.Max(0f, variant.EmissionIntensity)
-                : Color.black;
-            for (int i = 0; i < _emissionTargets.Length; i++)
-            {
-                SpriteRenderer rd = _emissionTargets[i];
-                if (rd == null)
-                    continue;
-                Material mat = rd.material;
-                if (mat == null)
-                    continue;
-                if (variant.UseEmission)
-                {
-                    mat.EnableKeyword(EmissionKeyword);
-                }
-                else
-                {
-                    mat.DisableKeyword(EmissionKeyword);
-                }
-                if (mat.HasProperty(EmissionColorId))
-                {
-                    mat.SetColor(EmissionColorId, emission);
-                }
-            }
-        }
-
-        private void ApplyScale(HeroStageVariant variant)
-        {
-            float mul = variant.ScaleMultiplier <= 0f ? 1f : variant.ScaleMultiplier;
-            transform.localScale = _baseScale * mul;
         }
     }
 }
