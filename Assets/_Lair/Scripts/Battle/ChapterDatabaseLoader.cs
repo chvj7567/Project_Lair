@@ -74,6 +74,7 @@ namespace Lair.Battle
                 || chargeJson == null || cleaveJson == null || guardJson == null || debuffResistJson == null)
             {
                 Debug.LogError("[ChapterDatabaseLoader] 챕터 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
+                ResetRequiredBundles();
                 return null;
             }
 
@@ -120,6 +121,14 @@ namespace Lair.Battle
             catch (ChapterDataException e)
             {
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
+                ResetRequiredBundles();
+                return null;
+            }
+            catch (System.Exception e)
+            {
+                //# 공유 Task 로 퍼진 예외가 async void Start 로 새어 마을 복귀를 못 타는 것을 막는다 — 같은 실패 처리.
+                Debug.LogError($"[ChapterDatabaseLoader] 챕터 데이터 로드 중 예외: {e}");
+                ResetRequiredBundles();
                 return null;
             }
         }

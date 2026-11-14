@@ -32,8 +32,6 @@ namespace Lair.Battle
         //# Start 를 거치지 않는 격리 컨트롤러(테스트)에서는 null 이라 메타 로직 전부 skip.
         private MetaConfig _metaConfig;
 
-        //# hero-stage-variant — 선택 스테이지의 외형/스탯 배수 정본 SO (씬 인스펙터 할당). null 이면 스테이지 반영 skip(기존 씬 무영향).
-
         //# 전장 배경 스프라이트 렌더러(씬 'Backdrop') — 챕터 backdropKey 가 기본(Battle_Backdrop)이 아니면 시작 시 해당 스프라이트로 교체(chapter-system §7.4).
         [SerializeField] private SpriteRenderer _backdropRenderer;
 
@@ -178,13 +176,13 @@ namespace Lair.Battle
             //# await 재개 시 이미 파괴된 컨트롤러(씬 재로드로 교체)는 아무것도 하지 않는다 — Start 의 모든 await 뒤에 같은 가드.
             if (this == null)
                 return;
-            //# 밸런스·영웅 스킬·메타 JSON 은 필수 묶음(so-to-json-migration §6.4) — 하나라도 없으면 기본 스탯·스킬 없음·무보상으로 진행하지 않고 마을로 돌아간다.
+            //# 밸런스·영웅 스킬·카드·메타 JSON 은 필수 묶음(so-to-json-migration §6.4) — 하나라도 없으면 기본 스탯·스킬 없음·무보상으로 진행하지 않고 마을로 돌아간다.
             _balance = BalanceConfig.Current;
             _heroSkills = HeroSkillDatabase.Current;
             _metaConfig = MetaConfig.Current;
-            if (_balance == null || _heroSkills == null || _metaConfig == null)
+            if (_balance == null || _heroSkills == null || _metaConfig == null || CardDatabase.Current == null)
             {
-                Debug.LogError("[BattleController] 필수 데이터 미로드(밸런스·영웅 스킬·메타 JSON) — 전투 진입 중단, 마을로 복귀");
+                Debug.LogError("[BattleController] 필수 데이터 미로드(밸런스·영웅 스킬·카드·메타 JSON) — 전투 진입 중단, 마을로 복귀");
                 AbortToVillage();
                 return;
             }
@@ -730,6 +728,8 @@ namespace Lair.Battle
                 return;
 
             Sprite sprite = await CHMResource.Instance.LoadAsync<Sprite>(key);
+            if (this == null)
+                return;
             if (sprite == null)
             {
                 Debug.LogError($"[BattleController] 전장 배경 로드 실패: {key} — Addressables 등록(Art/Sprites/Backdrop2D, 라벨 Resource) 확인, 기본 배경으로 진행");
@@ -911,6 +911,8 @@ namespace Lair.Battle
             HeroArchetype_CleaveRow cleaveRow = _chapters.GetCleave(archetype.heroId);
 
             GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(heroKey);
+            if (this == null)
+                return false;
             if (prefab == null)
             {
                 Debug.LogError($"[BattleController] {heroKey} 프리팹 로드 실패 — 전투 진입 중단");
@@ -2489,11 +2491,17 @@ namespace Lair.Battle
                 await WarmVisual(EVisual.HeroBloodFrenzyFx, 1);
             }
 
+            if (this == null)
+                return;
+
             //# 유물 뇌운 조각 낙뢰 FX — 보유할 때만(동시 1발이지만 지연 겹침 여유로 count 2, relics §6.5).
             if (BuildRelicBonus().Lightnings.Count > 0)
             {
                 await WarmVisual(EVisual.RelicLightningFx, 2);
             }
+
+            if (this == null)
+                return;
 
             //# 이번 스테이지 규칙 FX — 규칙이 없는 스테이지(1-1 등)는 아무것도 추가하지 않는다.
             if (_chapters != null)
@@ -2505,6 +2513,9 @@ namespace Lair.Battle
                     await WarmVisual(ruleFx, ruleFxCount);
                 }
             }
+
+            if (this == null)
+                return;
 
             //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 편성된 6몬스터 각 10마리 비축(편성 비활성이면 기준 6종). 종족당 둥지 1곳이라 배수 없음(§0.7).
             IReadOnlyList<EMonster> warmMonsters = _formation != null ? _formation : MonsterGrades.BaseMonsters;
@@ -2559,6 +2570,9 @@ namespace Lair.Battle
             {
                 CHMPool.Instance.CreatePool(popup, count: 40);
             }
+
+            if (this == null)
+                return;
 
             //# HitFeedbackSpawner 보장 + 프리팹 핸들 주입 (DamageFeedback 가 동기 Pop).
             HitFeedbackSpawner spawner = FindOrCreateHitFeedbackSpawner();
