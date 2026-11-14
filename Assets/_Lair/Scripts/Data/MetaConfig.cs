@@ -72,11 +72,11 @@ namespace Lair.Data
             {
                 errors.Add("MetaConfig.json winBaseSouls·loseMaxSouls·winXp·loseXp·xpPerLevelBase 는 1 이상이어야 함");
             }
-            if (c.winTimeBonusPerSec <= 0f)
+            if (c.winTimeBonusPerSec <= 0f || float.IsNaN(c.winTimeBonusPerSec))
             {
                 errors.Add("MetaConfig.json winTimeBonusPerSec 는 0 보다 커야 함");
             }
-            if (c.xpGrowth < 1f)
+            if (c.xpGrowth < 1f || float.IsNaN(c.xpGrowth))
             {
                 errors.Add("MetaConfig.json xpGrowth 는 1 이상이어야 함");
             }
@@ -127,7 +127,7 @@ namespace Lair.Data
                 {
                     errors.Add($"ShopItem[{id}].nameKey {row.nameKey} 가 Strings_Ko 에 없음");
                 }
-                if (row.maxLevel < 1 || row.basePrice < 1 || row.priceGrowth < 1f)
+                if (row.maxLevel < 1 || row.basePrice < 1 || row.priceGrowth < 1f || float.IsNaN(row.priceGrowth))
                 {
                     errors.Add($"ShopItem[{id}] maxLevel·basePrice 는 1 이상, priceGrowth 는 1 이상이어야 함");
                 }
@@ -188,7 +188,7 @@ namespace Lair.Data
                 }
                 if (muls.TryGetValue(id, out ShopItem_MulRow mulRow))
                 {
-                    if (mulRow.perLevelMul <= 0f)
+                    if (mulRow.perLevelMul <= 0f || float.IsNaN(mulRow.perLevelMul))
                     {
                         errors.Add($"ShopItem_Mul[{id}].perLevelMul 은 0 보다 커야 함");
                     }
@@ -354,7 +354,7 @@ namespace Lair.Data
                     errors.Add($"Achievement[{row.achievementId}].condition '{row.condition}' 가 EAchievementCondition 에 없음");
                     continue;
                 }
-                if (row.threshold <= 0f || row.rewardSouls < 1)
+                if (row.threshold <= 0f || float.IsNaN(row.threshold) || row.rewardSouls < 1)
                 {
                     errors.Add($"Achievement[{row.achievementId}] threshold 는 0 보다 크고 rewardSouls 는 1 이상이어야 함");
                 }

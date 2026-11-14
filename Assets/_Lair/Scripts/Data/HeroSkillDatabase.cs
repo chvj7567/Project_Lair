@@ -240,7 +240,7 @@ namespace Lair.Data
                     errors.Add($"{label} phaseIndex 는 1 이상이어야 함");
                     continue;
                 }
-                if (row.hpFraction <= 0f || row.hpFraction >= 1f)
+                if (row.hpFraction <= 0f || row.hpFraction >= 1f || float.IsNaN(row.hpFraction))
                 {
                     errors.Add($"{label}.hpFraction {row.hpFraction} 는 0 초과 1 미만이어야 함");
                 }

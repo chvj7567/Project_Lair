@@ -105,7 +105,7 @@ namespace Lair.Data
             {
                 errors.Add("BalanceConfig heroHp·heroPower 는 1 이상이어야 함");
             }
-            if (config.runDuration <= 0f)
+            if (config.runDuration <= 0f || float.IsNaN(config.runDuration))
             {
                 errors.Add("BalanceConfig runDuration 은 0 보다 커야 함");
             }
@@ -123,7 +123,7 @@ namespace Lair.Data
             }
             for (int i = 0; i < values.Length; i++)
             {
-                if (values[i] <= 0f || values[i] >= upper)
+                if (values[i] <= 0f || values[i] >= upper || float.IsNaN(values[i]))
                 {
                     errors.Add($"BalanceConfig {name}[{i}] = {values[i]} 는 0 초과 {upper} 미만이어야 함");
                 }
@@ -156,7 +156,8 @@ namespace Lair.Data
                     {
                         errors.Add($"MonsterStat.json {key} hp·power 는 1 이상이어야 함");
                     }
-                    if (row.range <= 0f || row.cooldown <= 0f || row.moveSpeed <= 0f || row.spawnPeriod <= 0f)
+                    if (row.range <= 0f || row.cooldown <= 0f || row.moveSpeed <= 0f || row.spawnPeriod <= 0f
+                        || float.IsNaN(row.range) || float.IsNaN(row.cooldown) || float.IsNaN(row.moveSpeed) || float.IsNaN(row.spawnPeriod))
                     {
                         errors.Add($"MonsterStat.json {key} range·cooldown·moveSpeed·spawnPeriod 는 0 보다 커야 함");
                     }
