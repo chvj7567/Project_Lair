@@ -83,7 +83,7 @@ namespace Lair.Tests.EditMode
             Chapters.Add(new ChapterRow { chapterId = chapterId, nameKey = 1000 + chapterId, themeTextKey = 1010 + chapterId, heroId = heroId, backdropKey = backdropKey });
             for (int index = 1; index <= StageProgress.StagesPerChapter; ++index)
             {
-                Stages.Add(new StageRow { chapterId = chapterId, stageIndex = index, nameKey = 1100 + index, hpMultiplier = 1f, powerMultiplier = 1f, targetClearSec = 130f });
+                Stages.Add(new StageRow { chapterId = chapterId, stageIndex = index, nameKey = 1100 + index, hpMultiplier = 1f, powerMultiplier = 1f, targetClearSec = 130f, heroScale = 1f });
             }
         }
 

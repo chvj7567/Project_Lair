@@ -25,6 +25,9 @@ namespace Lair.Data
         public float hpMultiplier;
         public float powerMultiplier;
         public float targetClearSec;
+        //# 영웅 외형 — 크기 배율(> 0)과 강화 외형 티어(0~4). 25행 전부 값을 갖는 필수 1:1 이라 관계 데이터 없이 직접 필드.
+        public float heroScale;
+        public int heroTier;
     }
 
     //# Stage_Rule.json — 스테이지에 부착된 규칙 하나(선택적 관계). 복합키 chapterId + stageIndex + ruleIndex.

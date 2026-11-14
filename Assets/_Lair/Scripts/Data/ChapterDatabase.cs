@@ -37,6 +37,9 @@ namespace Lair.Data
             { EStageRule.HunterTraps, new[] { "trapCount", "ringDistance", "trapRadius", "lifeSec", "rearmSec", "monsterSpeedMul", "damagePerSec" } },
         };
 
+        //# 영웅 강화 외형 티어 상한(Stage.heroTier 0~4) — 0 은 오버레이 꺼짐.
+        private const int MaxHeroTier = 4;
+
         //# 현재 로드된 데이터 — 로더가 채운다. 로드 전/실패 시 null (호출부가 가드).
         public static ChapterDatabase Current { get; set; }
 
@@ -463,6 +466,15 @@ namespace Lair.Data
                 {
                     errors.Add($"Stage 복합키 중복: {row.chapterId}-{row.stageIndex}");
                     continue;
+                }
+                //# JsonUtility 는 누락 필드를 0 으로 채운다 — heroScale 0 이 누락 신호. heroTier 0 은 유효값이라 누락을 못 잡는다(출하 값은 테스트가 대조).
+                if (row.heroScale <= 0f || float.IsNaN(row.heroScale))
+                {
+                    errors.Add($"Stage[{row.chapterId}-{row.stageIndex}].heroScale {row.heroScale} 는 0 보다 커야 함");
+                }
+                if (row.heroTier < 0 || row.heroTier > MaxHeroTier)
+                {
+                    errors.Add($"Stage[{row.chapterId}-{row.stageIndex}].heroTier {row.heroTier} 는 0~{MaxHeroTier} 범위 밖");
                 }
                 _stages.Add(Key(row.chapterId, row.stageIndex), row);
             }

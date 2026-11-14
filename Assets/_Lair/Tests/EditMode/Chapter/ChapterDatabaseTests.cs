@@ -58,6 +58,24 @@ namespace Lair.Tests.EditMode
             Assert.IsNull(db.GetKite("Knight"));
         }
 
+        //# 영웅 스테이지 외형 수치(so-to-json-migration §4.10) — 챕터마다 1~4 스테이지는 크기 1·티어 0~3, 5 스테이지만 크고 티어 4.
+        [Test]
+        public void 실제_JSON_영웅_외형은_5스테이지만_크고_티어가_스테이지마다_오른다()
+        {
+            ChapterDatabase db = BuildFrom();
+
+            float[] bossScale = { 1.4f, 1.25f, 1.2f, 1.35f, 1.3f };
+            for (int chapter = 1; chapter <= 5; ++chapter)
+            {
+                for (int index = 1; index <= 5; ++index)
+                {
+                    StageRow stage = db.GetStage(chapter, index);
+                    Assert.AreEqual(index - 1, stage.heroTier, $"{chapter}-{index} heroTier");
+                    Assert.AreEqual(index == 5 ? bossScale[chapter - 1] : 1f, stage.heroScale, 0f, $"{chapter}-{index} heroScale");
+                }
+            }
+        }
+
         [Test]
         public void 실제_JSON_챕터3은_암살자_스테이지_배수가_기획서_5_3_값이다()
         {

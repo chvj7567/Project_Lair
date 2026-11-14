@@ -159,6 +159,25 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
+        public void 영웅_크기_배율이_0이하이면_로드_오류다()
+        {
+            ChapterDataSet set = ChapterDataSet.Valid();
+            set.Stages[0].heroScale = 0f;
+
+            AssertBuildFails(set, "Stage[1-1].heroScale 0 는 0 보다 커야 함");
+        }
+
+        [Test]
+        public void 영웅_외형_티어가_0에서_4_밖이면_로드_오류다()
+        {
+            ChapterDataSet set = ChapterDataSet.Valid();
+            set.Stages[0].heroTier = 5;
+            set.Stages[1].heroTier = -1;
+
+            AssertBuildFails(set, "Stage[1-1].heroTier 5 는 0~4 범위 밖", "Stage[1-2].heroTier -1 는 0~4 범위 밖");
+        }
+
+        [Test]
         public void 스테이지_복합키가_중복이면_로드_오류다()
         {
             ChapterDataSet set = ChapterDataSet.Valid();
