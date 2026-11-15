@@ -100,7 +100,7 @@ namespace Lair.Tests.EditMode
 
         //# --- 닫기 버튼 몸체 = VillageHudCta (3곳) ---
 
-        [TestCase(ShopPopupPath, "VillageHudCta")]
+        [TestCase(ShopPopupPath, "ShopCloseBtn")]   //# 상점 전용 아트 세트(ui-art-refresh)로 교체
         [TestCase(CodexPopupPath, "CodexCloseBtn")]   //# 도감 전용 GPT 아트 세트(monster-codex-ui-art §8.1)로 교체
         [TestCase(RecordsPopupPath, "VillageHudCta")]
         public void 닫기_버튼_Image_스프라이트는_팝업별_기대값이다(string path, string expected)
@@ -120,13 +120,13 @@ namespace Lair.Tests.EditMode
         //# --- 구매 버튼 스킨 슬롯 유지 + 상태별 전환 ---
 
         [Test]
-        public void 상점_셀의_구매_버튼_스킨_슬롯은_Px_BtnSoul_Off_Gold를_유지한다()
+        public void 상점_셀의_구매_버튼_스킨_슬롯은_CommonUIBtn_Soul_Off_Gold이다()
         {
             ShopItemCell cell = Comp<ShopItemCell>(LoadPrefabAsset(ShopCellPath));
 
-            Assert.AreEqual("Px_BtnSoul", SpriteName(Required<Sprite>(cell, "_buySoulSprite"), "_buySoulSprite"));
-            Assert.AreEqual("Px_BtnOff", SpriteName(Required<Sprite>(cell, "_buyOffSprite"), "_buyOffSprite"));
-            Assert.AreEqual("Px_BtnGold", SpriteName(Required<Sprite>(cell, "_buyGoldSprite"), "_buyGoldSprite"));
+            Assert.AreEqual("CommonUIBtnSoul", SpriteName(Required<Sprite>(cell, "_buySoulSprite"), "_buySoulSprite"));
+            Assert.AreEqual("CommonUIBtnOff", SpriteName(Required<Sprite>(cell, "_buyOffSprite"), "_buyOffSprite"));
+            Assert.AreEqual("CommonUIBtnGold", SpriteName(Required<Sprite>(cell, "_buyGoldSprite"), "_buyGoldSprite"));
         }
 
         [Test]
@@ -136,13 +136,13 @@ namespace Lair.Tests.EditMode
             Image buttonImage = Required<Image>(cell, "_buyButtonImage");
 
             cell.Bind(ItemData(true, false));
-            Assert.AreEqual("Px_BtnSoul", SpriteName(buttonImage, "구매 가능"));
+            Assert.AreEqual("CommonUIBtnSoul", SpriteName(buttonImage, "구매 가능"));
             cell.Bind(ItemData(false, false));
-            Assert.AreEqual("Px_BtnOff", SpriteName(buttonImage, "소울 부족"));
+            Assert.AreEqual("CommonUIBtnOff", SpriteName(buttonImage, "소울 부족"));
             cell.Bind(ItemData(false, true));
-            Assert.AreEqual("Px_BtnGold", SpriteName(buttonImage, "만렙"));
+            Assert.AreEqual("CommonUIBtnGold", SpriteName(buttonImage, "만렙"));
             cell.Bind(ItemData(true, false));
-            Assert.AreEqual("Px_BtnSoul", SpriteName(buttonImage, "재 Bind 구매 가능"));
+            Assert.AreEqual("CommonUIBtnSoul", SpriteName(buttonImage, "재 Bind 구매 가능"));
         }
 
         [Test]
