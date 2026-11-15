@@ -20,6 +20,7 @@ namespace Lair.Village
         public bool PlayDetailUnlock;   //# 이 칸이 선택됐을 때 상세 미리보기 해금 연출을 재생할 칸(VM.ConsumeDetailUnlock)
         public string Name;
         public float SizeMul = 1f;
+        public float MaxSizeMul = 1f;   //# 전 등급 중 최대 크기 배율 - 슬롯 안 몸 크기를 5등급 기준으로 정규화할 때 쓴다
         public float HpMul = 1f;
         public float AtkMul = 1f;
     }
@@ -330,6 +331,15 @@ namespace Lair.Village
                     Debug.LogError($"{LogTag} {baseMonster} 종족이 FormationDatabase 에 없음 — 잠금 칸으로 표시");
                 }
             }
+            float maxSizeMul = 1f;
+            for (int g = MonsterGrades.MinGrade; g <= MonsterGrades.MaxGrade; ++g)
+            {
+                GradeRow gradeRow = _formation != null ? _formation.GradeRowOf(g) : null;
+                if (gradeRow != null && gradeRow.sizeMul > maxSizeMul)
+                {
+                    maxSizeMul = gradeRow.sizeMul;
+                }
+            }
             for (int grade = MonsterGrades.MinGrade; grade <= MonsterGrades.MaxGrade; ++grade)
             {
                 EMonster monster = MonsterOf(state.Race, baseMonster, grade);
@@ -346,6 +356,7 @@ namespace Lair.Village
                         Open = CodexRules.IsOpen(state.Seen, state.OwnedGrade, state.Level, grade, tier),
                         Name = SpeciesVisual.MonsterName(monster, _formation, _text),
                         SizeMul = row != null ? row.sizeMul : 1f,
+                        MaxSizeMul = maxSizeMul,
                         HpMul = row != null ? row.hpMul : 1f,
                         AtkMul = row != null ? row.atkMul : 1f,
                     });

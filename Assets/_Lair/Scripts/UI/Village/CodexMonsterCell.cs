@@ -18,6 +18,18 @@ namespace Lair.UI
         public Sprite[] Halo;
     }
 
+    //# 매트릭스 칸·상세 티어 타일이 같이 쓰는 슬롯 프레임 규칙 - 등급 프레임(G1..G5)을 쓰고 미해금은 어둡게 눌러 등급 차이가 남게 한다.
+    public static class CodexSlotSkin
+    {
+        public static readonly Color LockedFrameTint = new Color(0.40f, 0.44f, 0.52f, 1f);
+
+        public static Sprite FrameOf(Sprite[] gradeFrames, int grade)
+        {
+            int index = grade - Lair.Data.MonsterGrades.MinGrade;
+            return gradeFrames != null && index >= 0 && index < gradeFrames.Length ? gradeFrames[index] : null;
+        }
+    }
+
     //# 풀 목록 한 항목 — 등급 행 머리글(IsRowHeader) 또는 몬스터 칸. 목록 = 등급 수 x (티어 수 + 1), 열 수 = 티어 수 + 1.
     public class CodexMonsterCellData
     {
@@ -57,8 +69,9 @@ namespace Lair.UI
         [SerializeField] private Sprite _bgOpen;           //# CodexCellBg — 해금 칸 바탕
         [SerializeField] private Sprite _bgLocked;         //# CodexCellBgLocked — 미해금 칸 바탕
         [SerializeField] private Sprite[] _gradeFrames;    //# CodexCellFrameG1..G5 (등급 1부터)
-        [SerializeField] private Sprite _lockedFrame;      //# CodexCellFrameLocked
-        [SerializeField] private RectTransform _bodyRoot;  //# 크기 배율 대상 (피벗 50% 90%)
+        [SerializeField] private Sprite _lockedFrame;      //# CodexCellFrameLocked - 등급 프레임이 없을 때의 대체(평소 미사용)
+        [SerializeField] private RectTransform _bodyRoot;  //# 몸 루트 - 중앙 피벗, 코드가 크기를 정한다
+        [SerializeField] private RectTransform _bodyArea;  //# 프레임 보더·이름 라벨을 뺀 몸 영역(RectMask2D) - 몸 크기 상한
         [SerializeField] private Image _bodyGlow;          //# 몸 뒤 종족색 가산 틴트 복제 — 가산 머티리얼은 프리팹에서
         [SerializeField] private Image _body;
         [SerializeField] private Image _aura;
@@ -245,22 +258,26 @@ namespace Lair.UI
             }
             if (_border == null)
                 return;
-            Sprite frame = FrameOf(model, open);
+            Sprite frame = FrameOf(model);
             if (frame != null)
             {
                 _border.sprite = frame;
+                //# 미해금도 그 칸의 등급 프레임(장식 차이 유지)을 어두운 회청색으로 눌러 쓴다. 해금은 원색.
+                _border.color = open ? Color.white : CodexSlotSkin.LockedFrameTint;
+                return;
+            }
+            if (_lockedFrame != null && open == false)
+            {
+                _border.sprite = _lockedFrame;
                 _border.color = Color.white;
                 return;
             }
             _border.color = open ? gradeColor : LockedBorder;
         }
 
-        private Sprite FrameOf(CodexCellModel model, bool open)
+        private Sprite FrameOf(CodexCellModel model)
         {
-            if (open == false)
-                return _lockedFrame;
-            int index = model.Grade - MonsterGrades.MinGrade;
-            return _gradeFrames != null && index >= 0 && index < _gradeFrames.Length ? _gradeFrames[index] : null;
+            return CodexSlotSkin.FrameOf(_gradeFrames, model.Grade);
         }
 
         private void HandleClick()
@@ -276,6 +293,11 @@ namespace Lair.UI
             CodexCellModel model = data.Model;
             float basePx = data.Config != null ? data.Config.cellBodyBasePx : BodyBasePx;
             float px = CodexRules.BodyPx(Mathf.RoundToInt(basePx), model.SizeMul);
+            //# 5등급(x1.3)도 슬롯 안쪽 영역을 넘지 않게 - 영역이 배선돼 있으면 짧은 변이 상한.
+            if (_bodyArea != null)
+            {
+                px = Mathf.Min(px, Mathf.Min(_bodyArea.rect.width, _bodyArea.rect.height));
+            }
             if (_bodyRoot != null)
             {
                 _bodyRoot.sizeDelta = new Vector2(px, px);
