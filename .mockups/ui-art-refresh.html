@@ -43,6 +43,38 @@ h1{font-size:18px;margin:0 0 4px;color:#e8e1cf} h2{font-size:15px;margin:20px 0 
 </head>
 <body>
 <h1>공통 UI 아트 교체 - 변경 전/후 비교 (구조 확인용)</h1>
+<style>
+.s0{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr));gap:14px;margin:8px 0 6px}
+.s0 figure{margin:0;border:1px solid #262b36;background:#0e121a;padding:8px}
+.s0 img{display:block;width:100%;max-width:100%;height:auto;image-rendering:pixelated;background:#06080c;min-height:60px}
+.s0 figcaption{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.6}
+.s0 figcaption b{color:var(--txt)}
+</style>
+<h2 id="s0">0. 화면별 GPT 시안 (도감 S0 화풍, 16:9, 글자 없음) - 3판 기준</h2>
+<div class="note">기획서 3판(화면 단위 전용 고해상도 GPT 세트)의 화면별 시안입니다. 화풍 기준은 도감 S0와 마을 HUD 시안이며, 모두 gpt-6-sol로 만들었습니다. 이 시안은 화풍과 배치를 확인하는 용도이고, 실제 스프라이트는 승인 후 요소 시트로 따로 만듭니다. 월드맵 일러스트, 카드 그림, 유물·몬스터·영웅 그림은 범위 밖이라 시안에서도 자리만 표시했습니다. 레이아웃 참고 표시가 없는 화면은 프리팹 구조를 글로 설명해 그린 것이라 실제 배치와 다를 수 있습니다.</div>
+<div class="s0">
+  <figure><img src="assets/codex-s0/S0_popup.png" alt="도감" onerror="this.alt='없음'"><figcaption><b>도감</b> (확정, 스타일 기준)</figcaption></figure>
+  <figure><img src="assets/village-hud-s0/VH_S0_popup.png" alt="마을 HUD" onerror="this.alt='없음'"><figcaption><b>마을 HUD</b> · 1순위 · 레이아웃 참고: village-hud-redesign</figcaption></figure>
+  <figure><img src="assets/ui-s0/Shop_S0.png" alt="상점" onerror="this.alt='생성 실패/미생성'"><figcaption><b>상점</b> · 3순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/WorldMap_S0.png" alt="월드맵" onerror="this.alt='생성 실패/미생성'"><figcaption><b>월드맵</b> · 4순위 · 레이아웃 참고: worldmap-redesign-v2 · 지도 일러스트는 범위 밖(자리만)</figcaption></figure>
+  <figure><img src="assets/ui-s0/HeroSelect_S0.png" alt="영웅 선택" onerror="this.alt='생성 실패/미생성'"><figcaption><b>영웅 선택</b> · 4순위(월드맵 묶음) · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Result_S0.png" alt="결과창" onerror="this.alt='생성 실패/미생성'"><figcaption><b>결과창(승리)</b> · 5순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Formation_S0.png" alt="편성" onerror="this.alt='생성 실패/미생성'"><figcaption><b>던전 편성</b> · 6순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/CardSelect_S0.png" alt="카드 선택" onerror="this.alt='생성 실패/미생성'"><figcaption><b>카드 선택</b> · 7순위 · 레이아웃 참고: card-selection-redesign · 카드 그림은 범위 밖(자리만)</figcaption></figure>
+  <figure><img src="assets/ui-s0/BattleHud_S0.png" alt="전투 HUD" onerror="this.alt='생성 실패/미생성'"><figcaption><b>전투 HUD</b> · 8순위 · 레이아웃 참고: battle-exit-confirm(전투 화면)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Relic_S0.png" alt="유물" onerror="this.alt='생성 실패/미생성'"><figcaption><b>유물 도감</b> · 9순위 · 레이아웃 참고 없음(프리팹 구조) · 유물 아이콘은 범위 밖(자리만)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Daily_S0.png" alt="데일리" onerror="this.alt='생성 실패/미생성'"><figcaption><b>데일리</b> · 10순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Tower_S0.png" alt="탑" onerror="this.alt='생성 실패/미생성'"><figcaption><b>무한의 탑</b> · 10순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Build_S0.png" alt="빌드" onerror="this.alt='생성 실패/미생성'"><figcaption><b>빌드 모달</b> · 11순위 · 레이아웃 참고: build-modal-redesign</figcaption></figure>
+  <figure><img src="assets/ui-s0/Synergy_S0.png" alt="시너지" onerror="this.alt='생성 실패/미생성'"><figcaption><b>시너지 모달</b> · 11순위 · 레이아웃 참고: synergy-modal-redesign</figcaption></figure>
+  <figure><img src="assets/ui-s0/Ranking_S0.png" alt="랭킹" onerror="this.alt='생성 실패/미생성'"><figcaption><b>랭킹</b> · 12순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Records_S0.png" alt="기록" onerror="this.alt='생성 실패/미생성'"><figcaption><b>기록</b> · 12순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Quest_S0.png" alt="퀘스트" onerror="this.alt='생성 실패/미생성'"><figcaption><b>퀘스트</b> · 12순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/LordLevel_S0.png" alt="영주 레벨" onerror="this.alt='생성 실패/미생성'"><figcaption><b>영주 레벨</b> · 12순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Cloud_S0.png" alt="클라우드" onerror="this.alt='생성 실패/미생성'"><figcaption><b>클라우드(계정)</b> · 12순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+  <figure><img src="assets/ui-s0/Notice_S0.png" alt="확인·토스트·배너" onerror="this.alt='생성 실패/미생성'"><figcaption><b>확인 팝업 · 토스트 · 스킬 해금 배너</b> · 13순위 · 레이아웃 참고 없음(프리팹 구조)</figcaption></figure>
+</div>
+<div class="note" style="margin:10px 0 18px;padding:8px;border:1px dashed #3a3f4c">아래 1~5절은 <b>1판(폐기)</b> 자료입니다. 같은 파일명으로 제자리 교체하던 계획의 구조 확인용이며, 기록으로만 남겨 둡니다.</div>
 <div class="note">
   실제 시안은 아직 생성 전입니다. <b>현재</b> 모드는 지금 화면의 구조·색을 CSS 로 재현한 것이고, <b>시안(자리)</b> 모드는 기획서 §4 의 새 화풍 기준(면 3톤 + 위·왼쪽 밝은 베벨 + 금 3톤)을 CSS 로 근사해 <b>어디가 교체되는지</b> 점선 칸(스프라이트 파일명)으로 보여 줍니다. 최종 그림은 GPT 생성물이며 이 CSS 와 다릅니다.
   현재 실제 PNG 를 나란히 보려면 Phase 0 에서 복사한 이미지를 <code>.mockups/assets/ui/&lt;파일명&gt;.png</code> 에 두세요(없으면 CSS 재현만 보임).
