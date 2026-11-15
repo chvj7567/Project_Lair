@@ -150,41 +150,109 @@ namespace Lair.Tests.EditMode
             Assert.AreSame(sortie, gloss.parent, "광택은 버튼의 자식");
         }
 
-        //# --- ② 보석 점 / 비활성 스프라이트 ---
+        //# --- ② 스테이지 점 / 비활성 스프라이트 ---
 
         [Test]
-        public void stageDots_5개는_모두_VillageHudGem_스프라이트를_쓴다()
+        public void stageDots_5개는_기본_StageDotOff_스프라이트에_흰색이다()
         {
             Image[] dots = (Image[])Field(LoadHud(), "_stageDots");
             for (int i = 0; i < dots.Length; ++i)
             {
                 Assert.IsNotNull(dots[i].sprite, $"_stageDots[{i}] 스프라이트");
-                Assert.AreEqual("VillageHudGem", dots[i].sprite.name, $"_stageDots[{i}]");
+                Assert.AreEqual("VillageHudStageDotOff", dots[i].sprite.name, $"_stageDots[{i}]");
+                Assert.AreEqual(Color.white, dots[i].color, $"_stageDots[{i}] 색 — 스프라이트로 구분하므로 흰색");
             }
         }
 
-        [TestCase("_sortieButton")]
-        [TestCase("_stagePrevButton")]
-        [TestCase("_stageNextButton")]
-        public void 비활성_스프라이트는_SpriteSwap과_VillageHudBtnOff다(string fieldName)
+        [Test]
+        public void 스테이지_점_스프라이트_슬롯은_StageDot과_StageDotOff다()
         {
-            Component button = (Component)Field(LoadHud(), fieldName);
-            Selectable selectable = button.GetComponent<Selectable>();
+            VillageHud hud = LoadHud();
+            Sprite on = (Sprite)Field(hud, "_stageDotOn");
+            Sprite off = (Sprite)Field(hud, "_stageDotOff");
 
-            Assert.IsNotNull(selectable, fieldName);
-            Assert.AreEqual(Selectable.Transition.SpriteSwap, selectable.transition, fieldName);
-            Assert.IsNotNull(selectable.spriteState.disabledSprite, $"{fieldName} disabledSprite");
-            Assert.AreEqual("VillageHudBtnOff", selectable.spriteState.disabledSprite.name, fieldName);
+            Assert.IsNotNull(on, "_stageDotOn");
+            Assert.IsNotNull(off, "_stageDotOff");
+            Assert.AreEqual("VillageHudStageDot", on.name);
+            Assert.AreEqual("VillageHudStageDotOff", off.name);
         }
 
         [Test]
-        public void 방어하기_버튼은_VillageHudCta_배경을_쓴다()
+        public void 스테이지_점은_클리어_수만큼_On_스프라이트로_바뀐다()
+        {
+            GameObject root;
+            VillageHud hud = MakeBareHud(out root);
+            GameObject[] dotObjects = new GameObject[5];
+            Image[] dots = new Image[5];
+            Sprite on = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+            Sprite off = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+            try
+            {
+                for (int i = 0; i < 5; ++i)
+                {
+                    dotObjects[i] = new GameObject("Dot" + i, typeof(RectTransform));
+                    dots[i] = dotObjects[i].AddComponent<Image>();
+                }
+                SetField(hud, "_stageDots", dots);
+                SetField(hud, "_stageDotOn", on);
+                SetField(hud, "_stageDotOff", off);
+
+                //# 스테이지 3 선택 → 점 3개 On, 나머지 Off
+                hud.InitUI(new VillageHudArg { Vm = MakeVm(3, 2) });
+
+                for (int i = 0; i < 5; ++i)
+                {
+                    Assert.AreSame(i < 3 ? on : off, dots[i].sprite, $"점 {i}");
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < 5; ++i)
+                {
+                    UnityEngine.Object.DestroyImmediate(dotObjects[i]);
+                }
+                UnityEngine.Object.DestroyImmediate(on.texture);
+                UnityEngine.Object.DestroyImmediate(on);
+                UnityEngine.Object.DestroyImmediate(off.texture);
+                UnityEngine.Object.DestroyImmediate(off);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void 방어하기_버튼은_SpriteSwap과_SortieBtnOff_비활성_스프라이트다()
+        {
+            Selectable selectable = ((Component)Field(LoadHud(), "_sortieButton")).GetComponent<Selectable>();
+
+            Assert.IsNotNull(selectable);
+            Assert.AreEqual(Selectable.Transition.SpriteSwap, selectable.transition);
+            Assert.IsNotNull(selectable.spriteState.disabledSprite, "disabledSprite");
+            Assert.AreEqual("VillageHudSortieBtnOff", selectable.spriteState.disabledSprite.name);
+        }
+
+        [TestCase("_stagePrevButton", "VillageHudStageArrowL")]
+        [TestCase("_stageNextButton", "VillageHudStageArrowR")]
+        public void 스테이지_화살표_버튼은_ColorTint_전환이고_비활성_스프라이트가_없다(string fieldName, string spriteName)
+        {
+            Component button = (Component)Field(LoadHud(), fieldName);
+            Selectable selectable = button.GetComponent<Selectable>();
+            Image image = button.GetComponent<Image>();
+
+            Assert.IsNotNull(selectable, fieldName);
+            Assert.AreEqual(Selectable.Transition.ColorTint, selectable.transition, fieldName);
+            Assert.IsNull(selectable.spriteState.disabledSprite, $"{fieldName} disabledSprite 없음");
+            Assert.IsNotNull(image.sprite, fieldName);
+            Assert.AreEqual(spriteName, image.sprite.name, fieldName);
+        }
+
+        [Test]
+        public void 방어하기_버튼은_VillageHudSortieBtn_배경을_쓴다()
         {
             Component button = (Component)Field(LoadHud(), "_sortieButton");
             Image image = button.GetComponent<Image>();
 
             Assert.IsNotNull(image.sprite);
-            Assert.AreEqual("VillageHudCta", image.sprite.name);
+            Assert.AreEqual("VillageHudSortieBtn", image.sprite.name);
         }
 
         //# --- ③ 장식 레이캐스트 ---

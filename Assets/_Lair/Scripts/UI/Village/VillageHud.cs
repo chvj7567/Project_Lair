@@ -57,6 +57,8 @@ namespace Lair.UI
         //# 스테이지 카드 — 침입자 초상 + 5칸 점(선택 스테이지까지 금색). 위젯 연결은 프리팹 단계.
         [SerializeField] private Image _stageHeroPortrait;
         [SerializeField] private Image[] _stageDots = new Image[0];
+        [SerializeField] private Sprite _stageDotOn;            //# 클리어 점 스프라이트 — 색 틴트 대신 스프라이트로 구분
+        [SerializeField] private Sprite _stageDotOff;           //# 미클리어 점 스프라이트
 
         [SerializeField] private CHText _recordIntruderText;    //# "기사 · 3단계"
         [SerializeField] private CHText _recordBestText;        //# "3:42.1" / "-"
@@ -181,7 +183,7 @@ namespace Lair.UI
             RefreshRecordPanel();
         }
 
-        //# 침입자 초상 + 점 5칸 — 선택 스테이지까지 금색, 그 뒤는 stone4. 표시만(Rule 02 §6).
+        //# 침입자 초상 + 점 5칸 — 선택 스테이지까지 On 스프라이트, 그 뒤는 Off. 표시만(Rule 02 §6).
         private void RefreshStageCard(int stage, int stageIndex)
         {
             if (_stageHeroPortrait != null)
@@ -194,7 +196,7 @@ namespace Lair.UI
             {
                 if (_stageDots[i] != null)
                 {
-                    _stageDots[i].color = i < stageIndex ? UiDotPalette.Gold : UiDotPalette.Stone4;
+                    _stageDots[i].sprite = i < stageIndex ? _stageDotOn : _stageDotOff;
                 }
             }
         }
