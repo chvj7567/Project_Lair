@@ -85,7 +85,8 @@ namespace Lair.UI
 
             if (_previewBorder != null)
             {
-                _previewBorder.color = locked ? LockedBorder : gradeColor;
+                //# 금 프레임(CodexCellFrameG4) 고정 - 등급색 틴트를 곱하면 색이 죽는다. 잠금만 어둡게.
+                _previewBorder.color = locked ? LockedBorder : Color.white;
             }
             SetText(_nameText, model.Name, text);
             if (_gradeChipBg != null)
