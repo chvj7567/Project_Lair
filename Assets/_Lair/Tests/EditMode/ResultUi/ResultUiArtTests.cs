@@ -14,8 +14,8 @@ namespace Lair.Tests.EditMode
         //# (이름, 화면 너비, 화면 높이, 좌, 하, 우, 상 보더).
         private static readonly object[][] Cases =
         {
-            new object[] { "ResultPanelWin", 600, 652, 63f, 63f, 63f, 63f },
-            new object[] { "ResultPanelLose", 600, 652, 63f, 63f, 63f, 63f },
+            new object[] { "ResultPanelWin", 600, 652, 126f, 126f, 126f, 126f },
+            new object[] { "ResultPanelLose", 600, 652, 126f, 126f, 126f, 126f },
             new object[] { "ResultBannerWin", 520, 92, 105f, 36f, 105f, 36f },
             new object[] { "ResultBannerLose", 520, 92, 105f, 36f, 105f, 36f },
             new object[] { "ResultSubPlate", 400, 32, 60f, 30f, 60f, 30f },
