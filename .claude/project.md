@@ -71,9 +71,21 @@
 | 3 | **사용자** | 기획서 리뷰·승인 게이트 | 승인 |
 | 4 | **gameplay-programmer** | 승인된 기획서를 참조해 `.cs` 구현 | 코드 (완료 시 자동 커밋 — Rule 01) |
 | 5 | **code-reviewer** | 코딩 룰(Rule 00~04) + 기획서 일치 검토 — BLOCKER 있으면 gameplay-programmer 재작업 (최대 3회) | 검토 보고 |
+| 5b | **ui-visual-reviewer** (프리팹·스프라이트 참조 변경이 있을 때만) | 메인이 Play 캡처를 찍어 넘기면 글자 넘침·장식 겹침·옛 장식 잔재·가독성·비율을 검토 — BLOCKER 있으면 gameplay-programmer 재작업 (최대 3회) | 시각 검토 보고 |
 | 6 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs (완료 시 자동 커밋 — Rule 01) |
 | 7 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` (완료 시 자동 커밋 — Rule 01) |
 | 8 | 메인 | 전체 변경 요약 보고 (각 단계는 이미 자동 커밋되어 있음) | 요약 |
+
+### UI 시각 검토 단계 — 캡처 절차 (메인)
+
+서브에이전트는 UnityMCP 를 쓸 수 없으므로 메인이 캡처를 찍어 ui-visual-reviewer 에 넘긴다.
+발동 조건: 이번 변경이 프리팹·스프라이트 참조를 건드렸을 때(코드만 바꾼 작업은 생략).
+
+1. `editor_refresh_assets` → `sim_play` → 로딩 화면 클릭 → `screenshot_editor` (Game 창을 16:9 로 맞춰 아래쪽까지 보이게)
+2. 캡처 경로(`Assets/.screenshots/editor_*.png`) 와 프리팹 경로를 위임 프롬프트에 넣어 ui-visual-reviewer 호출
+3. BLOCKER 는 gameplay-programmer 기존 세션에 `SendMessage` 로 수정 → 재캡처 → 재검토 (최대 3회)
+4. 끝나면 `sim_stop`. Unity 가 응답 없으면 "Prefab Has Been Modified" 같은 모달 창을 먼저 의심한다.
+5. Rule 00 "UI 작업 — 목업 승인 게이트"(배선 전)와 짝이다 — 본 단계는 배선·수정 후 실제 화면 검토.
 
 ### 스킬 미지정 요청 — 메인 후보 제시 규칙
 
@@ -81,9 +93,9 @@
 
 | 스킬 | 적합 작업 | 파이프라인 단계 |
 |---|---|---|
-| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → code-reviewer → test-engineer |
-| `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → code-reviewer → test-engineer |
-| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer → code-reviewer |
+| `/start-develop`       | 본격 기능 + 사람 검토 + 승인 게이트 | game-designer → ⛔승인 → gameplay-programmer → code-reviewer → (UI 변경 시) ui-visual-reviewer → test-engineer |
+| `/start-develop-auto`  | 본격 기능, 승인 게이트 없음 | game-designer → gameplay-programmer → code-reviewer → (UI 변경 시) ui-visual-reviewer → test-engineer |
+| `/start-develop-quick` | 사소한 수정 · 작은 버그 · 리네임 · 문구 변경 | gameplay-programmer → code-reviewer → (UI 변경 시) ui-visual-reviewer |
 
 ### 밸런스 조정 흐름 (별도 짧은 사이클)
 
