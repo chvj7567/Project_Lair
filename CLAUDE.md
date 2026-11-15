@@ -50,7 +50,7 @@ docs/
 
 ## 6. 멀티 에이전트 위임
 
-6개 서브에이전트(game-designer · gameplay-programmer · code-reviewer · test-engineer · qa-simulator · ui-visual-reviewer)가 `.claude/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.**
+7개 서브에이전트(game-designer · gameplay-programmer · ui-layout-engineer · code-reviewer · test-engineer · qa-simulator · ui-visual-reviewer)가 `.claude/agents/*.md` 에 정의되어 있다. **메인 오케스트레이터는 흐름 조율과 위임만 하며 직접 코드를 짜지 않는다.** 코드(`.cs`)는 gameplay-programmer, 프리팹 생성·UI 배치는 ui-layout-engineer 가 맡는다.
 
 - 에이전트 목록 · 역할 · 호출 시점 · 보고 형식 → 각 `.claude/agents/<name>.md` 전문
 - 단계별 위임 순서 (누구를 언제 호출할지) → `.claude/project.md` 의 "협업 흐름 (Workflow)" 섹션

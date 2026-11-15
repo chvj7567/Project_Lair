@@ -23,7 +23,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 2. **gameplay-programmer** 위임 → 기획서대로 구현. 완료 즉시 자동 커밋.
 3. **code-reviewer** 위임 → 코딩 룰(Rule 00~04) 준수 + 기획서 일치 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 멈추고 사용자에게 보고한다 (전자동이라도 풀리지 않는 결함은 강행하지 않는다).
-3-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 gameplay-programmer 에 `SendMessage` 로 수정 위임(자동 커밋) 후 재캡처·재검토, **최대 3회**. 3회 후에도 남으면 멈추고 사용자에게 보고한다. 프리팹·스프라이트 변경이 없으면 건너뛴다.
+3-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 ui-layout-engineer 에 `SendMessage` 로 수정 위임(코드 슬롯이 필요하면 gameplay-programmer)(자동 커밋) 후 재캡처·재검토, **최대 3회**. 3회 후에도 남으면 멈추고 사용자에게 보고한다. 프리팹·스프라이트 변경이 없으면 건너뛴다.
 4. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
 5. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
