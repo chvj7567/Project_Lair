@@ -50,7 +50,7 @@ namespace Lair.UI
 
         //# 텍스트 블록 왼쪽 여백 — 아이콘 슬롯이 있을 때 / 없을 때.
         private const float TextLeftWithIcon = 96f;
-        private const float TextLeftNoIcon = 20f;
+        private const float TextLeftNoIcon = 30f;
 
         //# 다음 Lv 힌트 링 알파 배수 (§5.2 — ≈0.35×).
         private const float HintRingAlpha = 0.35f;

@@ -36,7 +36,7 @@ namespace Lair.Tests.EditMode
 
         private static readonly string[] PopupSprites =
         {
-            "ShopPanel", "ShopTitlePlate", "ShopCloseBtn", "ShopBar", "ShopPill", "ShopDivider", "ShopScrollTrack", "ShopScrollThumb",
+            "ShopPanel", "ShopTitlePlate", "ShopCloseBtn", "ShopPill", "ShopDivider", "ShopScrollTrack", "ShopScrollThumb",
         };
 
         private static readonly string[] CellSprites =

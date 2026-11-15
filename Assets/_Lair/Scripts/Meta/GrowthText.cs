@@ -60,7 +60,7 @@ namespace Lair.Meta
             {
                 parts.Add(NestLevelText(lv, growth, text));
             }
-            return string.Join(" · ", parts);
+            return string.Join("\n", parts);
         }
 
         //# 특성 칸 문구 — 특성 이름 + 대표 수치 (Lv0 = 다음 값, 중간 = 현재→다음, 만렙 = 현재). 예 "가시 껍질 10→17%".
