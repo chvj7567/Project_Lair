@@ -17,7 +17,7 @@ namespace Lair.Tests.EditMode
             new object[] { "WorldMapPanel", 1136, 640, 63f, 63f, 63f, 63f },
             new object[] { "WorldMapTitlePlate", 320, 52, 120f, 60f, 120f, 60f },
             new object[] { "WorldMapCloseBtn", 48, 48, 0f, 0f, 0f, 0f },
-            new object[] { "WorldMapHeroPanel", 720, 480, 63f, 63f, 63f, 63f },
+            new object[] { "WorldMapHeroPanel", 776, 520, 63f, 63f, 63f, 63f },
             new object[] { "WorldMapCellBg", 152, 192, 45f, 45f, 45f, 45f },
             new object[] { "WorldMapCellRing", 152, 192, 36f, 36f, 36f, 36f },
             new object[] { "WorldMapPortraitSlot", 120, 120, 54f, 54f, 54f, 54f },
