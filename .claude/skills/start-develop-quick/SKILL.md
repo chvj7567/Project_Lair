@@ -24,10 +24,12 @@ description: Use ONLY when the user explicitly invokes this skill by name, or wh
 1. **gameplay-programmer** 위임 → 수정 구현.
    - "정상 케이스 + 엣지 케이스 1개" 수준의 스모크 확인을 gameplay-programmer 가 자체 수행한다 (`.claude/agents/gameplay-programmer.md` 의 self-review 정의).
    - 완료 즉시 Rule 01 에 따라 자동 커밋.
+   - **순수 UI 수정(프리팹·배치·스프라이트 참조만, `.cs` 변경 0건)** 이면 이 단계를 gameplay-programmer 대신 아래 1-1 로 시작한다.
+1-1. **(UI 변경 시) ui-layout-engineer** 위임 → 프리팹 생성·수정과 화면 배치(앵커·크기·글자 영역·스프라이트 참조 교체)를 맡긴다. 팝업은 `docs/design/ui-art-refresh.md` §4.4 크기 규격(큰·중간·결과창)을 따르며, 새 위젯·새 화면이 필요하면 Rule 00 "UI 작업 — 목업 승인 게이트" 승인 후에만 진행한다. 코드 슬롯(`[SerializeField]`)이 필요하면 gameplay-programmer 가 먼저(또는 별도로) 구현한다. 완료 즉시 자동 커밋.
 2. **code-reviewer** 위임 → 코딩 룰(`.claude/rules/00~04`) 준수 + 사용자 의도와의 부합 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 사용자에게 보고하고 중단.
    - **에셋 한정 게이트** — 1단계 변경이 순수 에셋 등록/적용(코드 변경 0건)이면 code-reviewer spawn 전에 사용자에게 "리뷰 진행 / 생략" 선택지를 먼저 제시한다. 코드 변경이 1건이라도 있으면 게이트 없이 직진.
-2-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 ui-layout-engineer 에 `SendMessage` 로 수정 위임(코드 슬롯이 필요하면 gameplay-programmer)(자동 커밋) 후 재캡처·재검토, **최대 3회**. 순수 에셋 적용(코드 변경 0건)이라 code-reviewer 를 생략하더라도 프리팹·스프라이트 참조를 바꿨다면 이 단계는 생략하지 않는다 — 에셋 한정 게이트는 code-reviewer 만 건너뛴다.
+2-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 ui-layout-engineer 에 `SendMessage` 로 수정 위임(코드 슬롯이 필요하면 gameplay-programmer, 수정본도 자동 커밋) 후 재캡처·재검토, **최대 3회**. 순수 에셋 적용(코드 변경 0건)이라 code-reviewer 를 생략하더라도 프리팹·스프라이트 참조를 바꿨다면 이 단계는 생략하지 않는다 — 에셋 한정 게이트는 code-reviewer 만 건너뛴다.
 3. **마무리** — 변경사항 요약 보고. 각 단계에서 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 사후 안전망 — 에스컬레이션 출구
