@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ChvjUnityInfra;
 using Lair.Data;
 using Lair.Village;
@@ -30,6 +31,64 @@ namespace Lair.UI
         }
     }
 
+    //# 몸 스프라이트 콘텐츠(불투명 영역) 중심 보정 - Image.preserveAspect 는 스프라이트 사각형 중심만 맞춰서 시트 프레임마다 몸이 좌우로 치우친다.
+    //# 텍스처를 읽을 수 없어 임포트가 만든 물리 모양(Generate Physics Shape) 윤곽의 bbox 중심을 콘텐츠 중심으로 쓴다. 윤곽이 없으면 보정 0(+경고 1회).
+    public static class CodexBodyCenter
+    {
+        private static readonly Dictionary<Sprite, Vector2> Cache = new Dictionary<Sprite, Vector2>();
+        private static readonly List<Vector2> Points = new List<Vector2>();
+        private static bool _warned;
+
+        //# (콘텐츠 중심 - 스프라이트 사각형 중심) / 스프라이트 긴 변. 위·오른쪽이 +.
+        public static Vector2 NormalizedOffset(Sprite sprite)
+        {
+            if (sprite == null)
+                return Vector2.zero;
+            if (Cache.TryGetValue(sprite, out Vector2 cached))
+                return cached;
+            Vector2 result = Compute(sprite);
+            Cache[sprite] = result;
+            return result;
+        }
+
+        //# 몸을 한 변 bodyPx 로 그릴 때 콘텐츠 중심을 슬롯 중앙에 놓기 위한 이동량(px) - 콘텐츠가 오른쪽이면 왼쪽으로 민다.
+        public static Vector2 ShiftPx(Sprite sprite, float bodyPx) => -NormalizedOffset(sprite) * bodyPx;
+
+        private static Vector2 Compute(Sprite sprite)
+        {
+            int count = sprite.GetPhysicsShapeCount();
+            if (count == 0)
+            {
+                if (_warned == false)
+                {
+                    _warned = true;
+                    Debug.LogWarning($"[CodexBodyCenter] {sprite.name} 물리 모양 없음 - 중심 보정 불가(임포트 Generate Physics Shape 확인)");
+                }
+                return Vector2.zero;
+            }
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
+            for (int i = 0; i < count; ++i)
+            {
+                Points.Clear();
+                sprite.GetPhysicsShape(i, Points);
+                foreach (Vector2 point in Points)
+                {
+                    min = Vector2.Min(min, point);
+                    max = Vector2.Max(max, point);
+                }
+            }
+            if (min.x > max.x)
+                return Vector2.zero;
+            Bounds rect = sprite.bounds;
+            float maxDim = Mathf.Max(rect.size.x, rect.size.y);
+            if (maxDim <= 0f)
+                return Vector2.zero;
+            Vector2 content = (min + max) * 0.5f;
+            return (content - (Vector2)rect.center) / maxDim;
+        }
+    }
+
     //# 풀 목록 한 항목 — 등급 행 머리글(IsRowHeader) 또는 몬스터 칸. 목록 = 등급 수 x (티어 수 + 1), 열 수 = 티어 수 + 1.
     public class CodexMonsterCellData
     {
@@ -57,6 +116,7 @@ namespace Lair.UI
         [Header("행 머리글")]
         [SerializeField] private GameObject _headerRoot;
         [SerializeField] private CHText _headerText;
+        [SerializeField] private Image _headerFrame;       //# 행 머리글도 매트릭스 칸과 같은 슬롯 스타일 - 그 행 등급 프레임(원색)
         [SerializeField] private Image[] _headerStars;
 
         [Header("몬스터 칸")]
@@ -192,6 +252,12 @@ namespace Lair.UI
                 _headerText.SetText(data.HeaderName ?? string.Empty);
                 _headerText.SetColor(data.GradeColor);
             }
+            Sprite headerFrame = CodexSlotSkin.FrameOf(_gradeFrames, data.HeaderGrade);
+            if (_headerFrame != null && headerFrame != null)
+            {
+                _headerFrame.sprite = headerFrame;
+                _headerFrame.color = Color.white;
+            }
             if (_headerStars == null)
                 return;
             for (int i = 0; i < _headerStars.Length; ++i)
@@ -305,6 +371,7 @@ namespace Lair.UI
             if (_body != null)
             {
                 _body.sprite = data.Body;
+                _body.rectTransform.anchoredPosition = CodexBodyCenter.ShiftPx(data.Body, px);   //# 콘텐츠 중심을 슬롯 중앙으로
                 //# 스프라이트가 없으면 Image 가 흰 사각형으로 그려지므로 끈다.
                 _body.enabled = data.Body != null;
                 _body.color = open ? Color.white : Color.black;   //# 잠금 = 검은 실루엣
@@ -317,6 +384,7 @@ namespace Lair.UI
                 return;
             //# 발광 확장 = Grade_CodexUnlock.glowPx(반경 px) / 몸 크기 — 블러 불가 근사(복제 Image 확대).
             _bodyGlow.sprite = data.Body;
+            _bodyGlow.rectTransform.anchoredPosition = CodexBodyCenter.ShiftPx(data.Body, px);
             Color color = data.RaceColor;
             color.a = GlowAlpha;
             _bodyGlow.color = color;

@@ -41,6 +41,8 @@ namespace Lair.UI
             }
         }
 
+        private Vector2 _bodyBasePos;
+        private bool _bodyBaseCaptured;
         private Action<int> _onSelect;
         private int _tier;
         private bool _wired;
@@ -62,6 +64,13 @@ namespace Lair.UI
                 float maxMul = Mathf.Max(1f, model.MaxSizeMul);
                 float side = Mathf.Min(_bodyMaxPx, _bodyMaxPx * model.SizeMul / maxMul);
                 _body.rectTransform.sizeDelta = new Vector2(side, side);   //# 중앙 앵커 - 영역 중심에 놓인다
+                if (_bodyBaseCaptured == false)
+                {
+                    _bodyBaseCaptured = true;
+                    _bodyBasePos = _body.rectTransform.anchoredPosition;
+                }
+                //# 콘텐츠(불투명) 중심을 영역 중앙으로 - 매트릭스 칸과 같은 보정.
+                _body.rectTransform.anchoredPosition = _bodyBasePos + CodexBodyCenter.ShiftPx(body, side);
                 _body.sprite = body;
                 _body.enabled = body != null;   //# 스프라이트 없는 Image 는 흰 사각형
                 _body.color = model.Open ? Color.white : Color.black;
