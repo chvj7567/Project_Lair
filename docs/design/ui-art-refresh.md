@@ -239,6 +239,7 @@
 | P-last | 도감 이관(§4.2) -> 참조 0건 구 스프라이트 일괄 삭제 | 사용자 확인 |
 
 - **진행(2026-11-15) — 결과창 `ResultUI` 13장 아트 제작·설치 완료(프리팹 미적용)**: `Assets/_Lair/Art/Sprites/ResultUI/`, Codex 8회. 적용 계획표는 `.art-incoming/rs-set/APPLY_PLAN.md`(git 미추적). 틀 링 두께가 목표 21 유닛보다 약간 두꺼운 약 28 유닛.
+- **진행(2026-11-15) — 전투 HUD `BattleHudUI` 22장 아트 제작·설치 완료(프리팹 미적용)**: `Assets/_Lair/Art/Sprites/BattleHudUI/`, Codex 5회(시트 4 + 배경 재생성 1). 적용 계획표는 `.art-incoming/bh-set/APPLY_PLAN.md`(git 미추적). 전투 오버레이라 팝업 크기 규격 미배정.
 
 ## 7. 위험·검수
 
