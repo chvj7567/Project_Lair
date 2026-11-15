@@ -21,7 +21,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 
 1. **game-designer** 위임 → `docs/design/[기능명].md`(구현용) + `.html`(사용자용 가이드) 기획서 작성 (Rule 00 "기획서 — 두 벌 작성"). 완료 즉시 Rule 01 에 따라 자동 커밋.
 2. **gameplay-programmer** 위임 → 기획서대로 구현. 완료 즉시 자동 커밋.
-2-1. **(UI 변경 시) ui-layout-engineer** 위임 → 프리팹 생성·수정과 화면 배치(앵커·크기·글자 영역·스프라이트 참조 교체)를 맡긴다. 팝업은 `docs/design/ui-art-refresh.md` §4.4 크기 규격(큰·중간·결과창)을 따르며, 새 위젯·새 화면이 필요하면 Rule 00 "UI 작업 — 목업 승인 게이트" 승인 후에만 진행한다. 코드 슬롯(`[SerializeField]`)이 필요하면 gameplay-programmer 가 먼저(또는 별도로) 구현한다. 완료 즉시 자동 커밋.
+2-1. **(UI 변경 시) ui-layout-engineer** 위임 → 프리팹 생성·수정과 화면 배치(앵커·크기·글자 영역·스프라이트 참조 교체)를 맡긴다. 팝업은 `project.md` `ui.size_classes_doc` 가 가리키는 크기 규격을 따르며, 새 위젯·새 화면이 필요하면 Rule 00 "UI 작업 — 목업 승인 게이트" 승인 후에만 진행한다. 코드 슬롯(`[SerializeField]`)이 필요하면 gameplay-programmer 가 먼저(또는 별도로) 구현한다. 완료 즉시 자동 커밋.
 3. **code-reviewer** 위임 → 코딩 룰(Rule 00~04) 준수 + 기획서 일치 검토.
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 멈추고 사용자에게 보고한다 (전자동이라도 풀리지 않는 결함은 강행하지 않는다).
 3-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 ui-layout-engineer 에 `SendMessage` 로 수정 위임(코드 슬롯이 필요하면 gameplay-programmer, 수정본도 자동 커밋) 후 재캡처·재검토, **최대 3회**. 3회 후에도 남으면 멈추고 사용자에게 보고한다. 프리팹·스프라이트 변경이 없으면 건너뛴다.

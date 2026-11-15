@@ -54,7 +54,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 스위트 실행 결과 FAIL 이 나오면 production 코드를 의심하기 전에 **테스트 자체가 잘못 짜졌을 가능성**을 먼저 검증한다. test-engineer 의 가장 흔한 오류는 production 의 의도된 동작을 잘못 추정해 테스트에 박는 것.
 
 1. **재현 확인** — 동일 시드/setup 으로 100% 재현되는가, 또는 간헐적인가 (간헐적이면 test setup 의 격리 누수 의심).
-2. **가설 2~3개** — (a) production 버그, (b) 테스트 가정이 기획서/production 의 실제 동작과 불일치, (c) test setup 누수 (CharacterRegistry 같은 정적 상태, Time.timeScale, 풀 잔존), (d) Unity 라이프사이클 (Awake/OnEnable/Start 호출 시점) 오해. 한 가설만 떠올렸으면 다른 후보를 더 짜낸다.
+2. **가설 2~3개** — (a) production 버그, (b) 테스트 가정이 기획서/production 의 실제 동작과 불일치, (c) test setup 누수 (레지스트리·싱글톤 같은 정적 상태, Time.timeScale, 풀 잔존), (d) Unity 라이프사이클 (Awake/OnEnable/Start 호출 시점) 오해. 한 가설만 떠올렸으면 다른 후보를 더 짜낸다.
 3. **실험** — 각 가설별 검증 액션: 기획서 §X 재확인 / production 코드 직접 읽기 / setup·teardown 격리 강화 / 단순 시드 테스트 추가.
 4. **증거** — root cause 1건 특정. 다른 후보는 "기각 사유" 한 줄.
 5. **수정 위치 결정**:
@@ -93,7 +93,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 테스트 스위트 작성 후 본인이 다음을 점검한다:
 
 - **커버리지 균형** — 정상/엣지/회귀/통합 4축 중 어느 하나라도 빈 축이 있으면 사유 명시 (예: "PlayMode 통합은 본 시스템이 ViewModel POCO 라 해당 없음").
-- **Setup/Teardown 격리** — 정적 상태(CharacterRegistry, Time.timeScale, 풀, Addressables 캐시) 가 다른 테스트로 leak 안 되는가. `[SetUp]` 에 reset, `[TearDown]` 에 cleanup.
+- **Setup/Teardown 격리** — 정적 상태(레지스트리·싱글톤, Time.timeScale, 풀, Addressables 캐시) 가 다른 테스트로 leak 안 되는가. `[SetUp]` 에 reset, `[TearDown]` 에 cleanup.
 - **명명 일관성** — 한 시스템의 테스트 메서드명이 같은 패턴 (예: `메서드명_조건_기대결과` 또는 프로젝트 한글 패턴) 으로 통일.
 - **Placeholder 잔존** — `// TODO add edge case` / 비어있는 케이스 / `Assert.Inconclusive` 잔존 금지.
 - **테스트 더블 vs production** — `Fake*` 더블이 production 인터페이스의 모든 멤버를 implement (부분 더블 금지). 더블의 동작이 production 의 의도된 동작과 일치.

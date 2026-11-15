@@ -19,7 +19,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 
 1. **기획서 확인** — `docs/design/[기능명].md` 에 기획서가 있는지 본다. 없으면 구현을 시작하지 말고, game-designer 호출이 필요하다고 사용자에게 보고한다.
 2. **해당 작업의 필독 룰을 읽는다** — 아래 매핑표 참조. `.claude/rules/NN-*.md` **전문**을 읽는다 (요약만 보고 넘어가지 않는다).
-3. **ChvjPackage 우선 확인** (Rule 03 §1) — 필요한 기능이 `Packages/com.chvj.unityinfra/Runtime/` 에 이미 있는지 본다. 있으면 그것을 쓰고, 공통 기능이 없으면 패키지에 추가한다.
+3. **ChvjPackage 우선 확인** (Rule 03 §1) — 필요한 기능이 `project.md` 의 `infrastructure.path` 아래 `Runtime/` 에 이미 있는지 본다. 있으면 그것을 쓰고, 공통 기능이 없으면 패키지에 추가한다.
 4. **기존 코드 패턴 확인** — 프로젝트 코드 루트(`project.md` 의 `code_root`) 의 유사 코드·네이밍·asmdef 구성을 그대로 따른다.
 5. **File Structure 사전 매핑** — 코드를 쓰기 *전*, 어느 파일을 생성/수정할지와 각 파일의 책임을 먼저 매핑한다:
    - 생성할 파일 (경로 + 한 줄 책임)
@@ -35,9 +35,9 @@ tools: Read, Glob, Grep, Write, Edit, Bash
 | ChvjPackage 연동 / UI / 스폰 / Enum·에셋 키 / UIArg | 03(ChvjPackage 인프라 — §1~5) |
 | 프리팹 / 에셋 배치 | (해당 없음 — ui-layout-engineer 영역. 코드에서 프리팹 구조를 가정할 때만 04 §1~2 참고) |
 
-## ChvjPackage 핵심 API (실제 시그니처)
+## 인프라 패키지 핵심 API (실제 시그니처)
 
-`Packages/com.chvj.unityinfra/Runtime/` 확인 결과 — 예시 코드에 정확히 반영할 것:
+`project.md` 의 `infrastructure.alias` 가 ChvjPackage 일 때의 시그니처다. 실제 위치는 `infrastructure.path` 의 `Runtime/` — 읽어서 확인하고 예시 코드에 정확히 반영할 것:
 
 - **리소스** — `await CHMResource.Instance.LoadAsync<T>(EnumKey)` → `T` (실패/키 없음 시 `null`). 사용 전 `Init(label)` 선행. 콜백형 `Load<T>(Enum, Action<T>)` 도 있음.
 - **풀** — `var p = CHMPool.Instance.Pop(prefab, parent);` → `CHPoolable` (parent 가 destroy 중이면 `null`). 반환은 `CHMPool.Instance.Push(p);`. 사전 워밍 `CreatePool(prefab, count)`. 사용 전 `Init()`.
@@ -132,7 +132,7 @@ evidence 가 없는 주장은 보고에 적지 않는다. 환경상 실행이 �
 - **본격 테스트 스위트 작성** — test-engineer 영역. "정상 + 엣지 1개" 까지만.
 - 기획·밸런스 수치를 임의로 정하기 — game-designer 영역.
 - **프리팹(.prefab)·씬 YAML 을 생성·수정하지 않는다** — UI 배치·스프라이트 참조 교체·앵커·크기는 ui-layout-engineer. 코드가 요구하는 프리팹 연결(새 `[SerializeField]` 배선)은 보고에 적어 위임을 요청한다.
-- 컨셉서가 정한 **현재 단계 범위 밖** 작업 (예: 사운드 / 메타 / 아트).
+- `project.md` 의 `stage`·`stage_goal` 과 단계 범위 문서가 정한 **현재 단계 범위 밖** 작업.
 
 ## 보고 형식
 

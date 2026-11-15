@@ -44,6 +44,7 @@ Markdown. `## 섹션 ` 으로 그룹, `- **key**: value` 로 키-값. 중첩은 
 - `test_asmdef.production` · `edit_mode` · `play_mode` — 테스트 asmdef 이름
 - `editor_menu.<name>` — 검증 게이트로 쓰는 에디터 메뉴 경로 (예: `run_edit_mode_tests`). agent 가 UnityMCP `editor_execute_menu` 로 호출
 - `test_result_json` — EditMode 테스트 결과 JSON 경로. `editor_menu.*` 와 짝. PlayMode 결과가 별도 파일이면 `test_result_json_play_mode` 를 추가
+- `ui.*` — UI 에이전트용 값: `prefab_root`(UI 프리팹 폴더) · `reference_resolution`(기준 해상도) · `scope_doc`(UI 변경 허용 범위 문서) · `size_classes_doc`(팝업 크기 규격 문서 — 규격이 몇 개든 문서가 정의) · `min_font_size` · `screenshot_dir` · `mockup_dir` · `mockup_server` · `apply_plan_glob`. 에이전트 정의에는 이 값을 직접 쓰지 않는다
 - `balance_config_asset` 등 프로젝트 도메인 데이터 경로 (도메인마다 키 이름이 다름)
 
 선택 키가 없으면 agent 는 해당 정보를 건너뛰거나 사용자에게 묻는다.

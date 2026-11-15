@@ -24,7 +24,7 @@ tools: Read, Glob, Grep, Bash
 1. **검토 대상 식별** — gameplay-programmer 는 완료 즉시 자동 커밋하므로(Rule 01) 위임 프롬프트의 커밋 해시를 `git show` 로 보거나, 없으면 `git diff` / `git log` 로 해당 `.cs` 변경을 파악한다.
 2. **기획서 확인** — 관련 `docs/design/[기능명].md` 를 읽는다. 구현이 기획 명세대로인지 판단하는 기준이다.
 3. **걸리는 룰 전문 읽기** — 변경 파일에 해당하는 `.claude/rules/NN-*.md` **전문**을 읽는다 (요약만 보고 넘어가지 않는다). 매핑은 아래 표.
-4. **ChvjPackage 확인** — 패키지 연동 코드면 `Packages/com.chvj.unityinfra/Runtime/` 의 실제 API 시그니처를 확인해 오용 여부를 본다.
+4. **ChvjPackage 확인** — 패키지 연동 코드면 `project.md` 의 `infrastructure.path` 아래 `Runtime/` 의 실제 API 시그니처를 확인해 오용 여부를 본다.
 
 ### 작업 종류별 룰 매핑
 

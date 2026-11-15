@@ -60,6 +60,21 @@
   - **specs**: `docs/superpowers/specs/` — 과거 기능별 의도·범위 스펙 문서 (레거시 보관, 신규 작성 안 함)
   - **plans**: `docs/superpowers/plans/` — 과거 단계별 구현 계획 문서 (레거시 보관, 신규 작성 안 함)
 
+## UI (선택)
+
+UI 에이전트(ui-layout-engineer · ui-visual-reviewer)와 game-designer 의 UI 목업이 읽는 프로젝트 값. 에이전트 정의에는 이 값을 넣지 않는다.
+
+- **ui**
+  - **prefab_root**: `Assets/_Lair/Art/UI/` — UI 프리팹 폴더
+  - **reference_resolution**: 1280x720 — 좌표·크기 계산의 기준 해상도
+  - **scope_doc**: `CLAUDE.md` §8 "공통 UI 아트 교체 허용" 항목 + `docs/design/ui-art-refresh.md` — UI 변경 허용 범위(허용: 스프라이트 참조 교체·위치·크기·글자 조정 / 금지: 신규 화면·신규 UI 기능·구조·데이터 변경, 범위 밖 자산 종류)
+  - **size_classes_doc**: `docs/design/ui-art-refresh.md` §4.4 — 팝업 본체 크기 규격(규격 이름·크기·배정 화면). 규격 개수는 문서가 정한다
+  - **min_font_size**: 11 — 화면 기준 글자 자동 크기 하한
+  - **screenshot_dir**: `Assets/.screenshots/` — 메인이 찍은 Play 캡처 저장 위치
+  - **mockup_dir**: `.mockups/` — HTML 목업·승인 시안 폴더(엔진 임포트 밖, 커밋 대상 아님)
+  - **mockup_server**: `node .mockups/server.js` (포트 8777) — 이 환경의 `python` 은 Microsoft Store 스텁이라 node 사용
+  - **apply_plan_glob**: `.art-incoming/*/APPLY_PLAN.md` — 화면 세트별 적용 계획표(위젯→스프라이트·안전 영역·숨길 Deco)
+
 ## 협업 흐름 (Workflow)
 
 새 기능 개발은 다음 순서를 따른다. 각 단계의 산출물이 다음 단계의 입력이 된다 — 단방향 흐름으로 desync 를 줄인다.
