@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>마을 HUD 아트 세트 목업 (도감 S0 화풍 기준, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--soul:#5ef0b4;--blood:#e5484d;--ink:#07090e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:#e8e1cf} #sum b{color:var(--gold)} #sum code{color:var(--soul)}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar button{background:#2c3750;color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar button.on{outline:2px solid var(--gold)}
+#scroll{overflow-x:auto}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#2a3350 0,#10151f 70%)}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap}
+/* 현재(기본) */
+.slab{position:absolute;box-sizing:border-box;background:linear-gradient(180deg,#1a2132,#121827);border:3px solid #07090e;box-shadow:inset 0 0 0 2px #3a4764}
+.btn{position:absolute;box-sizing:border-box;border:3px solid #07090e;background:linear-gradient(180deg,#3a4664,#2a3350);box-shadow:inset 0 2px 0 #6a7aa0,inset 0 -3px 0 #141a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.cta{background:linear-gradient(180deg,#e0525a 0%,#b8323a 50%,#8f2029 51%,#a62a33 100%);box-shadow:inset 0 2px 0 #ffa0a4,inset 0 -4px 0 #5a0f17,0 0 22px #e5484d66}
+.bar2{position:absolute;background:#0d1119;border:2px solid #07090e}
+.bar2 i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c8962a,#f7c64a)}
+/* 시안(S0 화풍 근사): 면 3톤 + 금 이중 테두리 + 노치 모서리 + 모서리 리벳 */
+.art .slab{background:linear-gradient(180deg,#2a3552 0 28%,#1a2132 28% 72%,#121827 72%);border:3px solid #0a0810;box-shadow:inset 0 0 0 2px #c8962a,inset 0 0 0 4px #0a0810,inset 3px 3px 0 4px #4a5a80}
+.art .btn{background:linear-gradient(180deg,#4a5a80 0 38%,#3a4664 38% 74%,#2a3350 74%);border-color:#0a0810;box-shadow:inset 0 0 0 2px #8a6a2c,inset 3px 3px 0 3px #6a7aa0,inset -3px -3px 0 3px #0e1320}
+.art .cta{background:linear-gradient(180deg,#ff6a6a 0 36%,#d9383f 36% 72%,#8f2029 72%);box-shadow:inset 0 0 0 3px #ffe9a8,inset 0 0 0 5px #c8962a,0 0 26px #e5484d88}
+.art .bar2{border:3px solid #0a0810;box-shadow:inset 0 0 0 2px #0e1320}
+.art .bar2 i{background:linear-gradient(180deg,#ffe9a8 0 22%,#f7c64a 22% 62%,#c8962a 62%)}
+.rivet{display:none}
+.art .rivet{display:block;position:absolute;width:6px;height:6px;background:#f7c64a;border:1px solid #0a0810}
+.slot{position:absolute;outline:2px dashed #5aa9ff88;outline-offset:2px;pointer-events:none;display:none}
+.slot::after{content:attr(data-n);position:absolute;left:0;top:-15px;font-size:10px;color:#9cc8ff;background:#0b0d12cc;padding:0 3px;white-space:nowrap}
+.showslots .slot{display:block}
+.art .slot{outline-color:#f7c64acc} .art .slot::after{color:var(--gold)}
+.lb{font-size:15px;color:#e8e1cf;margin-top:2px}
+.ic{font-size:34px;line-height:40px;filter:drop-shadow(0 0 6px #0008)}
+.dot{position:absolute;width:14px;height:14px;border-radius:50%;background:#e5484d;border:2px solid #07090e}
+.lock{position:absolute;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;font-size:30px}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#ref{margin:8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+#ref img{width:640px;max-width:96vw;border:2px solid #262b36}
+</style>
+</head>
+<body>
+<div id="sum">
+  <h1>마을 HUD 아트 세트 (<code>VillageHud*</code> 35장) - 구조 확인용 목업</h1>
+  레이아웃은 승인된 <code>village-hud-redesign</code> 규격 그대로(1280x720)이며, 현재 프리팹에 추가된 유물·탑·데일리·랭킹·계정 버튼 위치를 함께 그렸습니다. <b>시안</b> 모드는 도감 S0(맨 아래 참조 이미지)의 화풍 - 어두운 남색 석판 3톤 + 금 이중 테두리 + 굵은 외곽선 + 입체 베벨 - 을 CSS 로 근사한 것이며, 실제 그림은 GPT 생성물이라 다릅니다. 스프라이트 이름은 "슬롯 표시"로 확인하세요.
+  <br><b>범위</b>: 데이터·프리팹 구조 변경 없음, 스프라이트 참조만 교체(코드는 <code>[SerializeField] Sprite</code> 슬롯 추가 수준까지). 위치·기능·버튼 수는 현행 그대로입니다.
+</div>
+<div id="bar">
+  <button data-m="cur">현재</button><button data-m="art" class="on">시안(S0 화풍)</button>
+  <label><input type="checkbox" id="cs" checked> 스프라이트 슬롯 표시</label>
+  <label><input type="checkbox" id="cl"> 방어하기 잠금 상태</label>
+  <span id="msg" style="color:var(--sub)">타일을 눌러 보세요</span>
+</div>
+<div id="scroll"><div id="wrap"><div id="stage" class="art showslots"></div></div></div>
+<div id="chk">
+  규격 1280x720: 상단바 h88(1280x88) · 아바타 60x60 (20,14) · 경험치 바 170x16 (96,58) · 소울 알약 232x48 (900,20) · 계정 112x52 (1148,18) · 메뉴 타일 112x112 2열3행 (16,104) 피치 128 + 추가 3타일 (16,488)/(144,488)/(272,488) · 전적 256x216 (1008,104) · ◀▶ 48x68 (416,326)/(816,326) · 침입자 카드 340x324 (924,380) · 영웅 100x72 (470,632) · 방어하기 232x72 (578,632). 원본 크기 = 화면 크기 x 3(PPU 300).
+</div>
+<div id="ref">
+  <div><div style="font-size:12px;color:var(--sub)">스타일 기준: 도감 S0 팝업 시안</div><img src="assets/codex-s0/S0_popup.png" alt="S0 popup" onerror="this.alt='assets/codex-s0/S0_popup.png 없음'"></div>
+  <div><div style="font-size:12px;color:var(--sub)">스타일 기준: 도감 S0 대표 요소</div><img src="assets/codex-s0/S0_elements.png" alt="S0 elements" onerror="this.alt='assets/codex-s0/S0_elements.png 없음'"></div>
+</div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s), stg=$('#stage');
+let locked=false;
+function el(c,x,y,w,h,html,s){const d=document.createElement('div');d.className=c;d.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;'+(s||'');if(html!==undefined)d.innerHTML=html;stg.appendChild(d);return d;}
+function slot(x,y,w,h,n){return el('slot',x,y,w,h,'','').setAttribute('data-n',n);}
+function riv(x,y,w,h){[[6,6],[w-12,6],[6,h-12],[w-12,h-12]].forEach(p=>el('rivet',x+p[0],y+p[1],6,6));}
+function say(s){$('#msg').textContent=s;}
+const MENU=[['영주성','🏰','Castle'],['상점','💰','Shop'],['도감','📖','Codex'],['퀘스트','📜','Quest'],['기록','📊','Records'],['랭킹','👑','Ranking']];
+const EXTRA=[['유물','💎','Relic'],['탑','🗼','Tower'],['데일리','📅','Daily']];
+function tile(x,y,n,ic,key,off){
+  const b=el('btn',x,y,112,112,'<div class="ic">'+ic+'</div><div class="lb">'+n+'</div>',off?'opacity:.55':'');
+  b.onclick=()=>say(n+' 팝업 열기 (기존 동작 그대로)');
+  slot(x,y,112,112,'VillageHudMenuTile'+(off?'Off':''));
+  slot(x+30,y+8,52,52,'VillageHudIcon'+key);
+  riv(x,y,112,112);
+  return b;}
+function render(){
+  stg.innerHTML='';
+  //# 상단바
+  el('slab',0,0,1280,88,'','border-width:0 0 3px 0');slot(0,0,1280,88,'VillageHudTopBar');
+  el('slab',20,14,60,60,'<div style="font-size:30px;text-align:center;line-height:54px">🏰</div>','border-radius:50%');slot(20,14,60,60,'VillageHudAvatarFrame');
+  el('t',96,4,220,28,'닉네임','font-size:20px');el('t',96,32,220,18,'영주 Lv 3','font-size:14px;color:#f7c64a');
+  el('bar2',96,58,170,16,'<i style="width:62%"></i>');slot(96,58,170,16,'VillageHudXpFrame / XpFill');
+  el('t',480,8,320,40,'영주의 둥지','font-size:30px;text-align:center;color:#e8e1cf');
+  el('t',480,58,320,16,'LAIR OF THE LORD','font-size:12px;letter-spacing:4px;text-align:center;color:#8e98ad');
+  el('slab',900,20,232,48,'<div style="position:absolute;left:14px;top:12px;font-size:20px">🪙</div><div class="t" style="right:16px;top:12px;font-size:22px;color:#5ef0b4">1,234 소울</div>');slot(900,20,232,48,'VillageHudCurrencyPill');slot(912,30,28,28,'VillageHudIconSoul');
+  const ac=el('btn',1148,18,112,52,'<div class="lb" style="margin:0">계정</div>');ac.onclick=()=>say('계정 팝업 열기');slot(1148,18,112,52,'VillageHudAccountBtn');
+  el('dot',1252,10,14,14,'');
+  //# 좌 메뉴
+  MENU.forEach((m,i)=>tile(16+(i%2)*128,104+Math.floor(i/2)*128,m[0],m[1],m[2],false));
+  EXTRA.forEach((m,i)=>tile(16+i*128,488,m[0],m[1],m[2],i===1));
+  if(true){el('t',160,610,200,16,'(탑: 잠김 예시)','font-size:11px;color:#59617a');}
+  //# 전적
+  el('slab',1008,104,256,216,'');slot(1008,104,256,216,'VillageHudRecordPanel');riv(1008,104,256,216);
+  [['이번 침입자','기사 · 3단계'],['최단 방어','3:42.1'],['이 스테이지 전적','7승 · 11판']].forEach((r,i)=>{
+    el('t',1036,124+i*64,200,16,r[0],'font-size:12px;color:#8e98ad');el('t',1036,144+i*64,200,24,r[1],'font-size:19px');
+    el('abs',1022,128+i*64,8,8,'','background:#f7c64a;border:1px solid #07090e');});
+  slot(1020,126,12,12,'VillageHudRecordBullet');
+  //# ◀▶
+  el('btn',416,326,48,68,'<div class="ic" style="font-size:30px">◀</div>');slot(416,326,48,68,'VillageHudStageArrowL');
+  el('btn',816,326,48,68,'<div class="ic" style="font-size:30px">▶</div>');slot(816,326,48,68,'VillageHudStageArrowR');
+  el('abs',592,277,96,160,'<div style="font-size:11px;color:#9cc8ff;text-align:center;padding-top:60px">홀로그램<br>영웅 자리</div>','border:1px dashed #5aa9ff88');
+  //# 침입자 카드
+  const px=924,py=380;
+  el('slab',px,py,340,324,'');slot(px,py,340,324,'VillageHudIntruderCard');riv(px,py,340,324);
+  el('slab',px+36,py+14,268,31,'<div style="text-align:center;line-height:25px;font-size:19px;color:#e8e1cf">STAGE 3</div>');slot(px+36,py+14,268,31,'VillageHudStagePlate');
+  el('t',px+70,py+50,201,18,'★★★☆☆','font-size:15px;color:#f7c64a;text-align:center;width:201px');
+  slot(px+90,py+48,24,20,'CommonUIStar');
+  el('slab',px+72,py+80,196,200,'<div style="font-size:60px;text-align:center;line-height:190px">🛡</div>');slot(px+72,py+80,196,200,'VillageHudPortraitFrame');
+  [0,1,2,3,4].forEach(i=>{const on=i<3;el('abs',px+110+i*26,py+292,on?14:12,on?14:12,'',(on?'background:#f7c64a':'background:#232834')+';border:2px solid #07090e;border-radius:50%');});
+  slot(px+108,py+290,16,16,'VillageHudStageDot / DotOff / DotBoss');
+  //# 영웅/출격
+  const h=el('btn',470,632,100,72,'<div class="lb" style="margin:0">영웅</div>');h.onclick=()=>say('영웅 선택/월드맵 열기');slot(470,632,100,72,'VillageHudHeroBtn');slot(478,636,30,30,'VillageHudIconMap');
+  const so=el('btn cta',578,632,232,72,'<div style="font-size:28px;color:#fff;text-shadow:2px 2px 0 #0008;letter-spacing:3px">방어하기</div>',locked?'filter:grayscale(1) brightness(.6);box-shadow:none':'');so.onclick=()=>say(locked?'잠금: 스테이지 N-1 클리어 필요':'출격 (기존 동작 그대로)');
+  slot(578,632,232,72,'VillageHudSortieBtn'+(locked?'Off':''));slot(560,620,268,96,'VillageHudSortieGlow(알파)');slot(590,636,208,22,'VillageHudSortieGloss(알파)');
+  //# 알림/데일리
+  el('dot',1050,100,0,0,'');
+  el('abs',272,488,112,112,'','outline:3px solid #f7c64a;outline-offset:-3px;box-shadow:0 0 14px #f7c64a88;display:none');
+  say('시안 모드에서 모서리 리벳·금 이중 테두리를 확인하세요');
+}
+document.querySelectorAll('#bar [data-m]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#bar [data-m]').forEach(x=>x.classList.toggle('on',x===b));
+  stg.classList.toggle('art',b.dataset.m==='art');render();});
+$('#cs').onchange=e=>stg.classList.toggle('showslots',e.target.checked);
+$('#cl').onchange=e=>{locked=e.target.checked;render();};
+render();
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 # 공통 UI 아트 교체 - 파일럿 6장 제작 지시서
 
+> **폐기(2026-11-15)**: 5~9px 소형 도트 제자리 덮어쓰기 + 파일럿 6장 계획은 폐기됐다. 새 계획(화면 단위 전용 고해상도 GPT 아트 세트, 도감 세트가 스타일 기준)은 `docs/design/ui-art-refresh.md` 를 따른다. 이 문서는 이력 보존용이며 따르지 않는다. 관련 목업 `.mockups/ui-art-refresh.html` 도 폐기 대상이다.
+
 > 상위 기획서: `docs/design/ui-art-refresh.md` (D5 확정: 파일럿 6장 -> 사용자 승인 -> B1~B5 일괄) · 비교 목업: `.mockups/ui-art-refresh.html`
 > 이 문서는 파일럿 6장만 다룬다. **승인 전에는 `Assets` 의 PNG 를 덮어쓰지 않는다.** 시안은 `.mockups/assets/ui-pilot/` 에만 저장해 비교 목업에서 확인한다.
 

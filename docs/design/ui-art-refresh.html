@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>공통 UI 그림 교체 - 플레이어 가이드</title>
+<title>UI 그림 새로 그리기 - 플레이어 가이드</title>
 <style>
 :root{--bg:#0b0d12;--s0:#0d1119;--ink:#07090e;--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--soul:#5ef0b4}
 *{box-sizing:border-box}
@@ -11,68 +11,71 @@ body{margin:0 auto;background:var(--bg);color:var(--txt);font:15px/1.7 "Galmuri1
 h1{font-size:21px;color:var(--bone);margin:4px 0 2px} h2{font-size:17px;color:var(--gold);margin:26px 0 8px}
 .sub{color:var(--sub);margin:0 0 12px}
 .card{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764;padding:12px 14px;margin:8px 0}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.pair{flex:1 1 180px;text-align:center;font-size:13px;color:var(--sub)}
-.sw{height:56px;border:3px solid #07090e;margin:6px 0;display:flex;align-items:center;justify-content:center;color:#e8e1cf}
-.old{background:linear-gradient(180deg,#1a2132,#121827);box-shadow:inset 0 0 0 2px #6a7aa0}
-.new{background:linear-gradient(180deg,#2a3552 0 30%,#1a2132 30% 70%,#121827 70%);box-shadow:inset 2px 2px 0 #4a5a80,inset -2px -2px 0 #0e1320}
 table{border-collapse:collapse;width:100%;font-size:14px} td,th{border:1px solid #262b36;padding:5px 8px;text-align:left} th{background:var(--s0);color:var(--bone)}
-.ask{background:#1e1a0c;border:3px solid var(--gold);padding:12px 16px;margin-top:26px} .ask b{color:var(--gold)} .ask li{margin:8px 0} .rec{color:var(--soul)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.box{flex:1 1 200px;border:2px solid #2c3750;background:var(--s0);padding:8px;font-size:13px;color:var(--sub)}
+.sw{height:60px;margin:6px 0;display:flex;align-items:center;justify-content:center;color:#e8e1cf;border:3px solid #0a0810}
+.cur{background:linear-gradient(180deg,#1a2132,#121827);box-shadow:inset 0 0 0 2px #3a4764}
+.art{background:linear-gradient(180deg,#2a3552 0 28%,#1a2132 28% 72%,#121827 72%);box-shadow:inset 0 0 0 2px #c8962a,inset 0 0 0 4px #0a0810,inset 3px 3px 0 4px #4a5a80}
+.ask{background:#1e1a0c;border:3px solid var(--gold);padding:12px 16px;margin-top:26px}.ask b{color:var(--gold)}.ask li{margin:8px 0}.rec{color:var(--soul)}
 </style>
 </head>
 <body>
-<h1>게임 UI 그림을 한 번에 새로 그립니다</h1>
-<p class="sub">버튼·창·바·배지·메뉴 아이콘이 새 몬스터·영웅 그림과 같은 느낌이 되도록 바꿉니다.</p>
+<h1>게임 UI 그림을 화면별로 새로 그립니다</h1>
+<p class="sub">도감에서 먼저 확정한 그림체를 기준으로, 모든 화면을 같은 느낌으로 바꿔 갑니다.</p>
 
-<h2>무엇이 바뀌나요</h2>
+<h2>달라진 방침</h2>
 <div class="card">
-  게임 전체가 함께 쓰는 <b>UI 그림 117장</b>(창 틀, 버튼, 경험치·체력 바, 배지, 링, 메뉴 아이콘)을 새로 그립니다.
-  몬스터·영웅 그림, 글꼴, 카드 일러스트는 건드리지 않습니다. <b>화면 구성·기능은 그대로</b>이고 그림만 바뀝니다.
-  <p class="sub" style="margin:8px 0 0">이번에 <b>바꾸지 않는 것</b>: 색만 입혀 쓰는 순백 사각형 1장, 월드맵 장면 그림 10장(나중에 따로), 안 쓰는 그림 5장(체력바·로딩바·타이틀·앱 아이콘 등).</p>
+  처음에는 작은 도트 조각을 같은 크기로 덮어쓰는 계획이었지만 <b>폐기</b>했습니다. 이제는
+  <b>화면(팝업) 하나마다 전용 고해상도 그림 세트</b>를 새로 만들어 그 화면에 끼웁니다. 도감이 첫 사례로 이미 확정되었습니다(세부는 다음에 다듬음).
 </div>
 <div class="card">
   <div class="row">
-    <div class="pair">지금<div class="sw old">창 / 버튼 느낌</div>면이 매끈한 어두운 남색</div>
-    <div class="pair">바뀐 뒤(예시)<div class="sw new">창 / 버튼 느낌</div>면이 3단계 색으로 또렷, 모서리 빛과 그림자가 선명</div>
+    <div class="box">지금 느낌<div class="sw cur">창 / 버튼</div>작은 도트, 단순한 테두리</div>
+    <div class="box">새 느낌(예시)<div class="sw art">창 / 버튼</div>굵은 외곽선, 3단 음영, 금색 이중 테두리, 입체감</div>
   </div>
-  <p class="sub" style="margin:8px 0 0">색 계열(남색 + 금색)은 그대로이고, 몬스터처럼 <b>굵은 어두운 외곽선 + 또렷한 음영</b>으로 다듬습니다. 소울 초록·피 빨강 같은 의미 색은 그대로입니다.</p>
 </div>
 
-<h2>어떻게 교체하나요</h2>
+<h2>어떻게 만드나요</h2>
 <div class="card">
   <ol>
-    <li><b>시안 6장</b>을 먼저 만들어 몬스터 그림 옆에 놓고 보여 드립니다(창, 버튼, 금 버튼, 바, 금테 틀, 배지).</li>
-    <li>마음에 들면 승인해 주세요. 승인 전에는 게임 파일을 바꾸지 않습니다.</li>
-    <li>승인 후 나머지를 묶음으로 만들어 바꿉니다: 창·틀 → 버튼 → 바·배지 → 링·장식 → 아이콘.</li>
-    <li>묶음마다 화면을 하나씩 확인하고, 이상하면 그 그림만 다시 만듭니다.</li>
+    <li><b>공통 세트</b>: 탭, 닫기, 버튼, 별, 진행 바 같은 <b>여러 화면이 함께 쓰는 것</b>은 한 번만 그려서 모두가 나눠 씁니다.</li>
+    <li><b>화면 전용 세트</b>: 마을 화면 메뉴 타일·출격 버튼처럼 그 화면에만 있는 것은 화면별로 따로 그립니다.</li>
+    <li>화면의 기능·위치·버튼 개수는 <b>그대로</b>이고, 그림만 바뀝니다. 데이터도 건드리지 않습니다.</li>
+    <li>한 화면 세트마다 <b>미리보기 그림을 먼저 보여 드리고</b> 승인하면 끼워 넣습니다.</li>
   </ol>
 </div>
+
+<h2>제일 먼저: 마을 화면</h2>
 <div class="card">
-  게임 파일 이름과 크기를 그대로 두고 그림만 덮어씁니다. 그래서 <b>화면이 깨지거나 기능이 바뀔 걱정이 적고</b>, 프로그램을 고치지 않습니다.
+  게임을 켜면 제일 먼저 보이는 화면이라 첫 번째로 바꿉니다. 상단 바, 경험치 바, 재화 칸, 왼쪽 메뉴 타일과 아이콘, 침입자 카드, ◀▶ 버튼, <b>방어하기</b> 버튼까지 약 35장입니다.
+  미리보기 화면(<code>.mockups/village-hud-art.html</code>)에서 구성을 확인해 주세요.
 </div>
 
-<h2>주의할 점</h2>
+<h2>순서(예정)</h2>
 <table>
-  <tr><th>걱정</th><th>대응</th></tr>
-  <tr><td>색을 입혀 쓰는 그림(등급색, 종족색 등)이 칙칙해질 수 있음</td><td>그런 그림은 흑백으로만 그려서 게임이 색을 입힙니다</td></tr>
-  <tr><td>창 테두리·버튼이 늘어날 때 모서리가 일그러질 수 있음</td><td>원래 크기와 모서리 두께를 똑같이 맞춰 만들고 늘려 보며 확인합니다</td></tr>
-  <tr><td>AI 그림이 픽셀 모양과 안 맞을 수 있음</td><td>크게 뽑아 줄이고 색을 정리하는 후처리를 하고, 시안으로 먼저 확인합니다</td></tr>
+  <tr><th>순서</th><th>화면</th><th>이유</th></tr>
+  <tr><td>1</td><td>마을 화면</td><td>가장 눈에 띄는 메인 화면</td></tr>
+  <tr><td>2</td><td>공통 부품(버튼·배지 등)</td><td>이후 모든 팝업이 함께 사용</td></tr>
+  <tr><td>3</td><td>상점</td><td>자주 가는 화면</td></tr>
+  <tr><td>4</td><td>월드맵·영웅 선택</td><td>스테이지 입장 핵심</td></tr>
+  <tr><td>5</td><td>결과창</td><td>매 판 끝에 보임</td></tr>
+  <tr><td>6~</td><td>편성 · 카드 선택 · 전투 화면 · 유물 · 데일리/탑 · 빌드/시너지 · 나머지 팝업</td><td>노출 빈도·고유 그림 수 순</td></tr>
 </table>
+<p class="sub">전체 약 250장 규모입니다. 그림은 AI 이미지 생성으로 뽑는데, 사용량 제한에 걸린 적이 있어 한 번에 몰아서 하지 않고 <b>화면 하나씩</b> 진행합니다.</p>
 
-<h2>도감 개편과의 관계</h2>
+<h2>안 바꾸는 것</h2>
 <div class="card">
-  지금 만들고 있는 도감 개편과 <b>부딪히지 않습니다</b>. 같은 이름의 그림을 덮어쓰는 방식이라 도감 화면도 자동으로 새 그림을 씁니다.
-  도감용으로 새로 추가한 그림 3장(칸 테두리, 빛, 반짝이)은 새 화풍에 맞는지 같이 확인합니다.
+  월드맵 장면 그림(메달·달·실루엣·안개), 몬스터·영웅 그림, 글꼴, 카드 일러스트, 유물 그림은 이번 계획에 포함하지 않습니다.
+  도감 그림 중 다른 화면과 함께 쓸 만한 것은 도감 다듬기가 끝난 뒤 공통 부품으로 옮깁니다(그전에는 건드리지 않음).
 </div>
 
 <div class="ask">
-  <b>결정되었습니다</b>
+  <b>결정해 주세요</b>
   <ol>
-    <li>색만 입혀 쓰는 순백 사각형 그림은 <b>제외</b> <span class="rec">(확정)</span></li>
-    <li>월드맵 장면 그림 10장은 <b>이번에 제외</b>, 나머지 117장 먼저 <span class="rec">(확정, 월드맵은 후속)</span></li>
-    <li>시안 6장(창, 버튼, 금 버튼, 바, 금테 틀, 배지)으로 먼저 확인 <span class="rec">(확정)</span></li>
+    <li>이미지 생성 <b>하루 사용 한도</b>가 얼마인지 알려 주세요(두 번 걸렸음). <span class="rec">추천: 마을 화면(약 10회)을 이틀에 나눠 진행</span></li>
+    <li>마을 화면 미리보기에서 구성이 괜찮으면 승인해 주세요. <span class="rec">추천: 승인 후 시작</span></li>
+    <li>마을 화면 다음에 공통 부품 8장(버튼·움푹 패널·배지)을 바로 만드는 순서가 괜찮을까요? <span class="rec">추천: 그대로</span></li>
   </ol>
-  <p style="margin:8px 0 0">다음 순서: 시안 6장 생성 → 사용자 확인 → 승인되면 나머지 일괄 교체.</p>
 </div>
 </body>
 </html>
