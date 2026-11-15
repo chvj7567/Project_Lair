@@ -278,4 +278,5 @@
 - 인벤토리 참조는 GUID Grep 의 군 단위 결과(개별 스프라이트 정밀 참조는 세트 제작 착수 시 해당 화면 프리팹에서 재확인).
 - 코드 변경: 없음(마을 HUD 는 `[SerializeField] Sprite` 슬롯 추가 수준까지).
 | - | Formation\* 16장 | 편성 | **아트 제작·설치 완료(2026-11-15, Codex 4호출), 프리팹 참조 교체 미적용** - 계획표 `.art-incoming/fm-set/APPLY_PLAN.md`, 무결성 테스트 `FormationUiArtTests`(미실행) | 16(완료) | - | 적용 1 |
+| - | Relic\* 16장 | 유물 도감 | **아트 제작·설치 완료(2026-11-15, Codex 5호출: B_cells 재생성 1회), 프리팹 참조 교체 미적용** - 계획표 `.art-incoming/rl-set/APPLY_PLAN.md`, 무결성 테스트 `RelicUiArtTests`(미실행) | 16(완료) | - | 적용 1 |
 | - | CardSelect\* 13장 | 카드 선택 | **아트 제작·설치 완료(2026-11-15, Codex 5호출), 프리팹 참조 교체 미적용** - 계획표 `.art-incoming/cs-set/APPLY_PLAN.md`, 무결성 테스트 `Tests/EditMode/CardSelectUi/CardSelectUiArtTests.cs`. 예상 16장 대비 13장(선택 버튼·아트 홈·개수 배지는 CommonUI 사용, 시너지 칩 줄은 이 프리팹에 없음) |
