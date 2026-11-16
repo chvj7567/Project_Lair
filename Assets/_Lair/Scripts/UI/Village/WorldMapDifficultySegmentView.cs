@@ -19,17 +19,22 @@ namespace Lair.UI
         [SerializeField] private RectTransform _shakeTarget;
         [SerializeField] private Sprite _difficultySprite;
         [SerializeField] private Sprite _lockSprite;
+        [SerializeField] private Sprite _backgroundEasy;     //# 난이도별 배경 스프라이트(초록·주황·빨강 단색) — 0/1/2
+        [SerializeField] private Sprite _backgroundNormal;
+        [SerializeField] private Sprite _backgroundHard;
 
         private const float ShakeDuration = 0.32f;
         private const float ShakeAmplitude = 4f;
 
-        private static readonly Color AvailableBackground = new Color32(0x2a, 0x33, 0x50, 0xff);
-        private static readonly Color LockedBackground = new Color32(0x1d, 0x22, 0x2e, 0xff);
-        private static readonly Color AvailableText = new Color32(0xe8, 0xe1, 0xcf, 0xff);
-        private static readonly Color AvailableSubText = new Color32(0x8e, 0x98, 0xad, 0xff);
-        private static readonly Color LockedText = new Color32(0x6c, 0x73, 0x85, 0xff);
-        private static readonly Color LockedSubText = new Color32(0x4f, 0x56, 0x68, 0xff);
-        private static readonly Color SelectedText = new Color32(0x10, 0x14, 0x1d, 0xff);
+        //# 배경 틴트는 흰색 기준 곱 — 선택=흰색, 해금 비선택=0.55 회색, 잠금=0.3 회색.
+        private static readonly Color SelectedBackground = Color.white;
+        private static readonly Color AvailableBackground = new Color(0.55f, 0.55f, 0.55f, 1f);
+        private static readonly Color LockedBackground = new Color(0.3f, 0.3f, 0.3f, 1f);
+        private static readonly Color AvailableText = new Color32(0xf2, 0xec, 0xdc, 0xff);
+        private static readonly Color AvailableSubText = new Color32(0xc4, 0xcb, 0xd8, 0xff);
+        private static readonly Color LockedText = new Color32(0xa8, 0xae, 0xbd, 0xff);
+        private static readonly Color LockedSubText = new Color32(0x8a, 0x91, 0xa3, 0xff);
+        private static readonly Color SelectedText = new Color32(0xff, 0xfa, 0xea, 0xff);
 
         private bool _shaking;
         private float _shakeStart;
@@ -62,7 +67,12 @@ namespace Lair.UI
 
             if (_background != null)
             {
-                _background.color = selected ? difficultyColor : (locked ? LockedBackground : AvailableBackground);
+                Sprite bg = BackgroundSprite(data.Difficulty);
+                if (bg != null)
+                {
+                    _background.sprite = bg;
+                }
+                _background.color = selected ? SelectedBackground : (locked ? LockedBackground : AvailableBackground);
             }
             if (_hatch != null)
             {
@@ -92,6 +102,13 @@ namespace Lair.UI
             {
                 _button.Interactable = boxEnabled;
             }
+        }
+
+        private Sprite BackgroundSprite(int difficulty)
+        {
+            if (difficulty <= 0)
+                return _backgroundEasy;
+            return difficulty == 1 ? _backgroundNormal : _backgroundHard;
         }
 
         //# 잠긴 칸을 눌렀을 때 좌우로 짧게 흔든다(Update 기반 — 비활성/풀 재사용 시 OnDisable 이 원위치).

@@ -427,7 +427,7 @@ namespace Lair.Tests.EditMode
             {
                 Assert.IsTrue(IsAssigned(chips[i]), $"{label}._chips[{i}]");
                 Assert.IsNotNull(chips[i].sprite, $"{label}._chips[{i}] 스프라이트");
-                Assert.AreEqual("WorldMapChipGem", chips[i].sprite.name, $"{label}._chips[{i}]");
+                Assert.AreEqual("WorldMapStar", chips[i].sprite.name, $"{label}._chips[{i}]");
             }
         }
 
