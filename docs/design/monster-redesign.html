@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>몬스터 새 얼굴: 한국 설화 요괴들 - 플레이어 가이드</title>
+<style>
+  :root { --bg:#0b1018; --panel:#131b29; --line:#26334a; --text:#e5e7eb; --dim:#94a3b8; --gold:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Malgun Gothic","Noto Sans KR",sans-serif; line-height:1.6; }
+  .wrap { max-width:920px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  p { margin:6px 0; }
+  .sub, .note { color:var(--dim); } .note { font-size:13px; }
+  .obang { display:flex; height:6px; border-radius:3px; overflow:hidden; margin:10px 0 18px; }
+  .obang i { flex:1; }
+  .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; overflow:hidden; border-top:4px solid var(--c); }
+  .card h3 { margin:0; font-size:17px; }
+  .race { font-size:12px; color:var(--dim); }
+  .motif { display:inline-block; margin-top:2px; font-size:12px; padding:1px 8px; border-radius:99px; background:#2a2140; color:#e9d5ff; }
+  .head { display:flex; gap:12px; align-items:center; margin-bottom:8px; }
+  .now { width:96px; height:96px; flex:none; border-radius:10px; background-color:#0f1622; border:1px solid var(--line);
+         background-repeat:no-repeat; background-size:576px 480px; background-position:0 0; }
+  .nowcap { font-size:10px; color:var(--dim); text-align:center; }
+  .quote { background:#0f1622; border-left:4px solid var(--c); padding:6px 10px; border-radius:6px; font-weight:bold; margin:6px 0 10px; }
+  .row { display:flex; gap:6px; margin:4px 0; font-size:14px; }
+  .row b { flex:none; width:64px; color:var(--dim); font-weight:normal; }
+  .sw { display:flex; gap:4px; margin:8px 0; flex-wrap:wrap; }
+  .sw i { width:22px; height:22px; border-radius:6px; border:2px solid #0a0d14; display:inline-block; }
+  .evo { display:flex; gap:4px; margin-top:8px; }
+  .evo span { flex:1; min-width:0; font-size:12px; background:#1b2740; border:1px solid var(--line); border-radius:8px; padding:6px; }
+  .evo span em { display:block; font-style:normal; color:var(--gold); font-weight:bold; font-size:11px; }
+  .src { font-size:12px; color:var(--dim); margin-top:8px; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:99px; font-size:12px; background:#1e293b; color:var(--dim); margin-right:4px; }
+  .steps { display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
+  .step { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .step .n { display:inline-block; width:24px; height:24px; border-radius:50%; background:var(--gold); color:#1a1205; text-align:center; font-weight:bold; margin-right:6px; }
+  .step .ok { display:block; margin-top:6px; font-size:13px; color:#86efac; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#18233a; }
+  .bubble { background:#1b2740; border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0; }
+  .decide { margin-top:34px; background:#13261b; border:2px solid #4ade80; border-radius:12px; padding:16px 18px; }
+  .decide h2 { border:0; margin:0 0 8px; color:#bbf7d0; }
+  .decide ol { margin:0; padding-left:20px; } .decide li { margin:12px 0; }
+  .done { display:inline-block; font-size:12px; padding:0 8px; border-radius:99px; background:#14532d; color:#86efac; margin-left:6px; }
+  .rec { display:block; margin-top:2px; color:#86efac; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>몬스터 6종, 한국 설화 요괴로 다시 태어나요</h1>
+<p class="sub">던전을 지키는 여섯 몬스터를 <b>도깨비, 원귀, 저승차사, 애기무당, 역신, 그슨대</b>로 새로 그립니다. 귀여운 마스코트 얼굴에 단청·오방색·한지·부적 같은 한국적인 소품을 달아서, 인형이나 키링으로 갖고 싶어지게 만드는 게 목표입니다. 능력치는 하나도 바뀌지 않고 <b>겉모습만</b> 바뀝니다.</p>
+<div class="obang"><i style="background:#2E6FBF"></i><i style="background:#D9423A"></i><i style="background:#F2C230"></i><i style="background:#F4F0E6"></i><i style="background:#1A1C22"></i></div>
+
+<div class="bubble">게임 속 이름(도깨비불, 망령, 사신, 저주술사, 역병귀, 환령)은 그대로입니다. 각 몬스터의 <b>대표 색</b>도 그대로라서 카드·시너지 색, 등급 오라와 계속 어울립니다. 그림체(두꺼운 어두운 외곽선, 동글동글한 비율)도 지금과 같습니다.</div>
+
+<h2>여섯 요괴 소개</h2>
+<p class="note">왼쪽 그림은 지금 모습입니다. 새 모습은 1단계 대표 그림에서 보여 드립니다.</p>
+
+<div class="grid">
+
+  <div class="card" style="--c:#3FCF86">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Wisp_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>도깨비불</h3><div class="race">이그니스 · 버티기</div><span class="motif">꼬마 도깨비</span></div></div>
+    <div class="quote">"나랑 씨름 한 판 하고 가!"</div>
+    <div class="row"><b>성격</b>씨름과 내기를 좋아하는 막내 도깨비. 겁은 많아도 절대 안 물러서요.</div>
+    <div class="row"><b>상징</b>초록 도깨비불 머리털, 이마 외뿔, 어깨에 멘 도깨비 방망이, 호피 띠</div>
+    <div class="row"><b>표정</b>송곳니 하나 씩 → 공격 때 방망이 쿵!</div>
+    <div class="sw"><i style="background:#3FCF86"></i><i style="background:#A8F0C8"></i><i style="background:#1F8A55"></i><i style="background:#8A5A2B"></i><i style="background:#E8A33A"></i></div>
+    <div class="evo"><span><em>강화 1</em>씨름 샅바, 징 더 박힌 방망이</span><span><em>강화 2</em>금 뿔 덮개, 금 엽전 꾸러미</span><span><em>강화 3</em>도깨비 대장: 불꽃 관, 단청 금 방망이</span></div>
+    <div class="src">이야기 출처: 혹부리 영감의 도깨비 방망이, 도깨비와 씨름한 이야기</div>
+  </div>
+
+  <div class="card" style="--c:#CFD4E8">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Wraith_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>망령</h3><div class="race">레무르 · 버티기</div><span class="motif">원귀</span></div></div>
+    <div class="quote">"한 풀릴 때까지 안 비켜…"</div>
+    <div class="row"><b>성격</b>조용하고 수줍지만 끈질긴 원귀. 사연을 들어 주면 살짝 웃어요.</div>
+    <div class="row"><b>상징</b>흰 소복, 가르마 탄 긴 머리, 가슴의 붉은 옷고름 매듭, 두 손에 품은 혼불</div>
+    <div class="row"><b>표정</b>처진 눈썹에 촉촉한 눈 → 공격 때 머리카락 휘날림</div>
+    <div class="sw"><i style="background:#CFD4E8"></i><i style="background:#8A90AD"></i><i style="background:#1A1C2A"></i><i style="background:#D9423A"></i><i style="background:#9FF3FF"></i></div>
+    <div class="evo"><span><em>강화 1</em>휘날리는 옷고름, 커진 혼불</span><span><em>강화 2</em>금 비녀, 금박 소복 단</span><span><em>강화 3</em>아랑 원귀: 족두리, 날개 같은 소매, 혼불 둘</span></div>
+    <div class="src">이야기 출처: 밀양 아랑 전설, 혼불</div>
+  </div>
+
+  <div class="card" style="--c:#FF5A4A">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Reaper_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>사신</h3><div class="race">눅스 · 근접 딜러</div><span class="motif">저승차사</span></div></div>
+    <div class="quote">"이름 불렀다, 가자."</div>
+    <div class="row"><b>성격</b>할당량에 쫓기는 시크한 신입 저승차사. 칭찬받으면 갓 그늘 속 눈이 웃어요.</div>
+    <div class="row"><b>상징</b>챙 넓은 검은 갓, 붉은 철릭, 조선 칼(환도), 허리에 찬 붉은 명패</div>
+    <div class="row"><b>표정</b>갓 그늘 속 붉은 눈 → 맞으면 갓이 삐뚤</div>
+    <div class="sw"><i style="background:#FF5A4A"></i><i style="background:#B3261E"></i><i style="background:#15151C"></i><i style="background:#E9E4F0"></i><i style="background:#D9423A"></i></div>
+    <div class="evo"><span><em>강화 1</em>허리에 붉은 오랏줄</span><span><em>강화 2</em>금 갓 장식, 금박 단청 띠</span><span><em>강화 3</em>강림차사: 명패 깃발, 붉은 혼불 둘</span></div>
+    <div class="src">이야기 출처: 제주 차사본풀이(강림차사)</div>
+  </div>
+
+  <div class="card" style="--c:#FFC531">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Hex_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>저주술사</h3><div class="race">헥시아 · 원거리 딜러</div><span class="motif">애기무당</span></div></div>
+    <div class="quote">"딸랑! 부적 받아라~"</div>
+    <div class="row"><b>성격</b>자신만만한 장난꾸러기 애기무당. 방울 소리를 제일 좋아해요.</div>
+    <div class="row"><b>상징</b>노란 한지 같은 몸, 오방색 띠 두른 흰 고깔, 오색 술 방울, 이마의 부적 무늬</div>
+    <div class="row"><b>표정</b>새침한 눈 → 공격 때 윙크 + 메롱</div>
+    <div class="sw"><i style="background:#FFC531"></i><i style="background:#FFE89A"></i><i style="background:#F4F0E6"></i><i style="background:#C8312B"></i><i style="background:#B98A3E"></i></div>
+    <div class="evo"><span><em>강화 1</em>곁에 떠 있는 부적 둘</span><span><em>강화 2</em>금 방울, 금 고깔 장식</span><span><em>강화 3</em>큰무당: 등 뒤 오방기, 도는 부적 셋</span></div>
+    <div class="src">이야기 출처: 굿에 쓰는 방울·오방기, 부적 풍속</div>
+  </div>
+
+  <div class="card" style="--c:#C765FF">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Plague_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>역병귀</h3><div class="race">미아르 · 독</div><span class="motif">역신</span></div></div>
+    <div class="quote">"잔치다 잔치~! (퉤)"</div>
+    <div class="row"><b>성격</b>자기가 병 옮기는 줄 모르는 해맑은 꼬마 역신. 처용 얼굴만 보면 기겁해요.</div>
+    <div class="row"><b>상징</b>보라 젤리 몸, 작은 두 뿔, 붉은 끈 단 독 호리병(조롱박)</div>
+    <div class="row"><b>표정</b>혀 빼꼼 → 공격 때 호리병 기울여 퉤</div>
+    <div class="sw"><i style="background:#C765FF"></i><i style="background:#E7B8FF"></i><i style="background:#7A2FB0"></i><i style="background:#CFC48A"></i><i style="background:#D9423A"></i></div>
+    <div class="evo"><span><em>강화 1</em>기포·뿔 커지고 호리병 커짐</span><span><em>강화 2</em>작은 신라 금관</span><span><em>강화 3</em>역신 우두머리: 큰 금관, 호리병 셋</span></div>
+    <div class="src">이야기 출처: 삼국유사 처용설화의 역신</div>
+  </div>
+
+  <div class="card" style="--c:#4FB0FF">
+    <div class="head"><div><div class="now" style="background-image:url('../../Assets/_Lair/Art/Sprites/Monsters2D/Phantom_Sheet.png')"></div><div class="nowcap">지금</div></div>
+      <div><h3>환령</h3><div class="race">판타스 · 떼거리</div><span class="motif">꼬마 그슨대</span></div></div>
+    <div class="quote">"우리 많다~!"</div>
+    <div class="row"><b>성격</b>어둠 속에서 우르르 불어나는 수다쟁이 그림자. 모일수록 대담해져요.</div>
+    <div class="row"><b>상징</b>복을 뜻하는 박쥐 무늬 날개, 목에 건 박쥐 매듭 노리개(방울 + 오색 술)</div>
+    <div class="row"><b>표정</b>큰 파란 눈 + 송곳니 → 공격 때 몸이 부풀며 앙!</div>
+    <div class="sw"><i style="background:#232A3D"></i><i style="background:#3A4562"></i><i style="background:#4FB0FF"></i><i style="background:#BFE6FF"></i><i style="background:#D9423A"></i></div>
+    <div class="evo"><span><em>강화 1</em>그림자 꼬리, 긴 노리개 술</span><span><em>강화 2</em>금 박쥐 노리개, 금 발톱</span><span><em>강화 3</em>큰 그슨대: 그림자 날개 한 쌍 더, 노리개 셋</span></div>
+    <div class="src">이야기 출처: 어둠 속에서 점점 커지는 요괴 그슨대, 박쥐 길상 무늬</div>
+  </div>
+
+</div>
+
+<h2>강화하면 이렇게 변해요</h2>
+<table>
+  <tr><th>상점 강화</th><th>모습</th></tr>
+  <tr><td>0 (기본)</td><td>견습생 같은 귀여운 모습</td></tr>
+  <tr><td>1~2</td><td>그 요괴의 생활 소품이 늘어나요 (샅바, 오랏줄, 부적, 매듭 술)</td></tr>
+  <tr><td>3~4</td><td>격을 보여 주는 금 장신구가 생겨요 (금 비녀, 갓 장식, 신라 금관, 금 방울, 금 노리개)</td></tr>
+  <tr><td>5</td><td>설화 속 우두머리가 돼요 (도깨비 대장, 아랑 원귀, 강림차사, 큰무당, 역신 우두머리, 큰 그슨대)</td></tr>
+</table>
+<p class="note">얼굴(눈 모양·위치)은 모든 단계에서 똑같아서 강화해도 같은 친구로 보입니다. 등급(풋내기~군주)의 오라·불꽃 기둥·후광은 지금처럼 그대로 붙습니다. 그림 속 부적과 명패에는 읽을 수 있는 글자를 넣지 않고 무늬로만 그립니다.</p>
+
+<h2>그대로인 것</h2>
+<div class="grid">
+  <div class="card" style="--c:#26334a"><span class="tag">그대로</span> 체력·공격력·속도·사거리 등 모든 능력치, 게임 속 이름</div>
+  <div class="card" style="--c:#26334a"><span class="tag">그대로</span> 화면에서 보이는 키, 발 위치, 체력바 높이</div>
+  <div class="card" style="--c:#26334a"><span class="tag">그대로</span> 움직임 타이밍(공격이 맞는 순간, 쓰러지는 시간)</div>
+  <div class="card" style="--c:#26334a"><span class="tag">그대로</span> 그림체 - 영웅과 나란히 놓아도 같은 게임 그림으로 보여요</div>
+</div>
+<p class="note">전투, 마을에서 돌아다니는 몬스터, 로딩 화면, 도감이 모두 새 모습으로 함께 바뀝니다. 상점·편성 아이콘은 이번에는 그대로이고, 몸 그림을 적용한 직후 따로 바꾸자고 요청드릴 예정입니다.</p>
+
+<h2>보여 드리고, 허락받고, 적용합니다</h2>
+<div class="steps">
+  <div class="step"><span class="n">1</span><b>대표 그림</b><br>요괴마다 새 모습 한 장. 지금 모습 옆에, 실제 게임 크기로도 보여 드려요.<span class="ok">마음에 들 때까지 고쳐요</span></div>
+  <div class="step"><span class="n">2</span><b>강화 단계 그림</b><br>기본~강화 3까지 네 모습을 나란히 한 장에.<span class="ok">요괴마다 따로 승인</span></div>
+  <div class="step"><span class="n">3</span><b>움직이는 그림</b><br>걷기·공격·맞기·쓰러지기 전부를 지금 모습과 나란히 재생해서 비교.<span class="ok">여섯 요괴 모두 승인되면</span></div>
+  <div class="step"><span class="n">4</span><b>게임에 적용</b><br>한 번에 바꾸고, 전투·마을·도감 화면을 찍어 마지막으로 확인.<span class="ok">문제 있으면 바로 되돌림</span></div>
+</div>
+<p class="note">한 그림은 최대 세 번까지 다시 뽑습니다. 세 번째도 마음에 안 들면 그 요괴의 콘셉트를 함께 다시 정합니다. 승인된 대표 그림들은 나중에 굿즈를 만들 때 쓸 수 있게 따로 보관합니다.</p>
+
+<div class="decide">
+  <h2>결정 사항 (모두 확정됨)</h2>
+  <ol>
+    <li>바꾸는 방향 <span class="done">확정됨</span>
+      <span class="rec">한국 설화풍으로 새로 해석 (도깨비·원귀·저승차사·애기무당·역신·그슨대)</span></li>
+    <li>상점·편성 아이콘과 몬스터 카드 그림 <span class="done">확정됨</span>
+      <span class="rec">이번엔 몸 그림만, 적용 직후 아이콘 교체를 따로 요청</span></li>
+    <li>강화 그림이 세 번 뽑아도 체력바 높이 기준에서 조금 벗어나면 <span class="done">확정됨</span>
+      <span class="rec">그 단계 체력바 높이 숫자 하나만 맞춰 고치기</span></li>
+    <li>게임 적용 방식 <span class="done">확정됨</span>
+      <span class="rec">여섯 요괴 모두 승인된 뒤 한꺼번에</span></li>
+    <li>위 순서의 2번(강화 단계 그림)을 3번(움직이는 그림)보다 먼저 보기 <span class="done">확정됨</span>
+      <span class="rec">먼저 보기</span></li>
+  </ol>
+  <p class="note" style="margin-top:10px">남은 질문은 없습니다. 다음은 1번 대표 그림을 보여 드리는 단계입니다.</p>
+</div>
+
+</div>
+</body>
+</html>
