@@ -20,7 +20,16 @@ namespace Lair.UI
         [SerializeField] private CHText _awakenText;     //# "체급 Lv 2" (금색) — Lv 0 이면 숨김
         [SerializeField] private CHText _axisText;       //# 빌드 축 칩 글자
         [SerializeField] private Image _axisBorder;      //# 빌드 축 칩 테두리
-        [SerializeField] private GameObject _selectedOutline;   //# 지금 출전 중 — 금색 외곽선
+        [SerializeField] private GameObject _selectedOutline;   //# 지금 출전 중 — 금색 외곽선 (_selectionRing 연결 시 꺼짐)
+        [SerializeField] private GameObject _selectedStripe;    //# 왼쪽 금색 띠
+        [SerializeField] private Image _selectionRing;          //# 굵은 금 링
+        [SerializeField] private GameObject _selectedTag;       //# "출전 중" 표식
+        [SerializeField] private Image _dimOverlay;             //# 비선택 행 어둡게(검정 단색)
+        [SerializeField] private Image _gradeBadge;             //# 등급 동그라미 (BadgeColor 틴트)
+        [SerializeField] private CHText _gradeBadgeText;        //# 등급 숫자
+
+        private const float DimAlpha = 0.5f;                    //# 비선택 행 어둡기 — 튜닝 지점
+        private static readonly Color AxisTextColor = new Color32(0x14, 0x10, 0x0a, 0xff);   //# 속이 찬 축 칩 위 글자색
 
         //# 클릭 핸들러 1회 등록 — 팝업 InitUI 에서 호출. disposable.Clear() 시 해제된다.
         public void SetClickHandler(Action onClick, CompositeDisposable disposable)
@@ -64,7 +73,7 @@ namespace Lair.UI
             if (_axisText != null)
             {
                 _axisText.SetText(data.Axis.ToString());
-                _axisText.SetColor(axisColor);
+                _axisText.SetColor(AxisTextColor);
             }
             if (_axisBorder != null)
             {
@@ -72,7 +81,38 @@ namespace Lair.UI
             }
             if (_selectedOutline != null)
             {
-                _selectedOutline.SetActive(data.IsSelected);
+                _selectedOutline.SetActive(_selectionRing == null && data.IsSelected);
+            }
+            ShowEnhanced(data);
+        }
+
+        private void ShowEnhanced(FormationSpeciesData data)
+        {
+            if (_selectedStripe != null)
+            {
+                _selectedStripe.SetActive(data.IsSelected);
+            }
+            if (_selectionRing != null)
+            {
+                _selectionRing.enabled = data.IsSelected;
+            }
+            if (_selectedTag != null)
+            {
+                _selectedTag.SetActive(data.IsSelected);
+            }
+            if (_dimOverlay != null)
+            {
+                _dimOverlay.color = new Color(0f, 0f, 0f, DimAlpha);
+                _dimOverlay.enabled = data.IsSelected == false;
+            }
+            if (_gradeBadge != null)
+            {
+                _gradeBadge.color = MonsterGradeFrame.BadgeColor(data.Grade);
+            }
+            if (_gradeBadgeText != null)
+            {
+                //# 글자색은 프리팹 고정 — 원(_gradeBadge)과 같은 색이면 숫자가 안 보인다.
+                _gradeBadgeText.SetText(data.Grade.ToString());
             }
         }
 

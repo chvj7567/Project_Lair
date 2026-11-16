@@ -10,6 +10,18 @@ namespace Lair.UI
         private static readonly Color Bright = new Color32(0xf8, 0xfa, 0xfc, 0xff);
         private static readonly Color Gold = new Color32(0xfd, 0xe0, 0x47, 0xff);
 
+        private static readonly Color[] BadgeColors =
+        {
+            new Color32(0x9a, 0xa5, 0xbd, 0xff), new Color32(0x4c, 0xd9, 0x64, 0xff), new Color32(0x4a, 0xa3, 0xff, 0xff),
+            new Color32(0xb8, 0x6b, 0xff, 0xff), new Color32(0xff, 0xb0, 0x20, 0xff),
+        };
+
+        //# 등급 동그라미 배지색 — 1 회색·2 초록·3 파랑·4 보라·5 금 (formation-states 목업). 테두리색과 별개.
+        public static Color BadgeColor(int grade)
+        {
+            return BadgeColors[Mathf.Clamp(grade, 1, BadgeColors.Length) - 1];
+        }
+
         public static Color BorderColor(int grade, Color raceColor)
         {
             switch (grade)

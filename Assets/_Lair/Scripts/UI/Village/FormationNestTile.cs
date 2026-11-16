@@ -23,6 +23,18 @@ namespace Lair.UI
         [SerializeField] private GameObject _sealBadge;       //# 봉인 예정 칸 — 사슬 표식(보라)
         [SerializeField] private GameObject _sealedGlow;      //# 봉인 예정 칸 테두리 발광
         [SerializeField] private GameObject _selectedOutline; //# 선택 금색 외곽선 3px
+        //# 선택·잠금 강화 위젯 — _selectionRing 이 연결되면 위 기존 3종(_sealBadge·_sealedGlow·_selectedOutline)은 켜지지 않는다.
+        [SerializeField] private Image _selectionRing;        //# 굵은 흰색 링 — 선택 금색·봉인 보라(둘 다면 금색)
+        [SerializeField] private GameObject _selectedRibbon;  //# "출전 중" 띠
+        [SerializeField] private GameObject _sealRibbon;      //# "봉인 예정" 띠
+        [SerializeField] private Image _sealIconBig;          //# 큰 자물쇠
+        [SerializeField] private GameObject _sealHatch;       //# 사선 오버레이
+        [SerializeField] private Image _dimOverlay;           //# 비선택·비봉인 칸 어둡게(검정 단색)
+
+        private const float DimAlpha = 0.55f;                 //# 비선택 칸 어둡기 — 튜닝 지점
+        private static readonly Color RingGold = new Color32(0xf5, 0xc5, 0x42, 0xff);
+        private static readonly Color RingViolet = new Color32(0x9b, 0x4d, 0xff, 0xff);
+        private static readonly Color SealedIconTint = new Color(0.35f, 0.35f, 0.35f, 1f);
 
         //# 클릭 핸들러 1회 등록 — 팝업 InitUI 에서 호출. disposable.Clear() 시 해제된다.
         public void SetClickHandler(Action onClick, CompositeDisposable disposable)
@@ -64,11 +76,36 @@ namespace Lair.UI
             {
                 _icon.sprite = icon;
                 _icon.enabled = icon != null;
+                _icon.color = data.IsSealed ? SealedIconTint : Color.white;
             }
             SetActive(_defaultBadge, data.IsDefault);
-            SetActive(_sealBadge, data.IsSealed);
-            SetActive(_sealedGlow, data.IsSealed);
-            SetActive(_selectedOutline, data.IsSelected);
+            bool legacy = _selectionRing == null;
+            SetActive(_sealBadge, legacy && data.IsSealed);
+            SetActive(_sealedGlow, legacy && data.IsSealed);
+            SetActive(_selectedOutline, legacy && data.IsSelected);
+            ShowEnhanced(data);
+        }
+
+        private void ShowEnhanced(FormationNestData data)
+        {
+            if (_selectionRing != null)
+            {
+                _selectionRing.enabled = data.IsSelected || data.IsSealed;
+                _selectionRing.color = data.IsSelected ? RingGold : RingViolet;
+            }
+            SetActive(_selectedRibbon, data.IsSelected);
+            SetActive(_sealRibbon, data.IsSealed);
+            SetActive(_sealHatch, data.IsSealed);
+            if (_sealIconBig != null)
+            {
+                _sealIconBig.gameObject.SetActive(data.IsSealed);
+            }
+            if (_dimOverlay != null)
+            {
+                bool dim = data.IsSelected == false && data.IsSealed == false;
+                _dimOverlay.color = new Color(0f, 0f, 0f, dim ? DimAlpha : 0f);
+                _dimOverlay.enabled = dim;
+            }
         }
 
         private static void SetActive(GameObject go, bool active)

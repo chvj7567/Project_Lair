@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>편성 상태 표시 개선안</title>
+<style>
+:root{--bg:#0f1424;--panel:#1a2038;--gold:#f5c542;--gold2:#ffe38a;--violet:#9b4dff;--ink:#e8ecf7;--mute:#8a93ad}
+*{box-sizing:border-box}body{margin:0;background:#080b16;color:var(--ink);font:14px/1.5 system-ui,"Malgun Gothic",sans-serif;padding:16px}
+h1{font-size:18px;margin:0 0 4px}p.sub{color:var(--mute);margin:0 0 16px}
+.card{background:var(--bg);border:1px solid #2a3355;border-radius:10px;padding:14px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--gold2)}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.col{flex:1;min-width:300px}.lbl{font-size:12px;color:var(--mute);margin-bottom:6px}
+.tiles{display:flex;gap:10px}
+.tile{position:relative;width:104px;height:152px;background:var(--panel);border:2px solid #3a4468;border-radius:6px;text-align:center;padding-top:10px}
+.tile .ic{width:54px;height:54px;margin:14px auto 6px;border-radius:6px;background:#0c1020;border:2px solid #556;display:flex;align-items:center;justify-content:center;font-size:26px}
+.tile .nm{font-size:12px;font-weight:700}.tile .rc{font-size:10px;color:var(--mute)}.tile .no{position:absolute;top:4px;left:8px;font-size:10px;color:var(--mute)}
+/* 현재 */
+.cur .sel{border:3px solid var(--gold)}
+.cur .seal{border:2px solid var(--violet)}.cur .seal .lock{position:absolute;top:4px;right:6px;font-size:9px;color:#6a3da8}
+/* 개선 */
+.new .tile.dim{opacity:.62;filter:saturate(.7)}
+.new .tile.sel{border:4px solid var(--gold);box-shadow:0 0 0 2px #000,0 0 18px 4px rgba(245,197,66,.7);background:#252c4a;opacity:1;filter:none}
+.new .tile.sel::before{content:"출전 중";position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:#2a1d00;font-weight:800;font-size:11px;padding:1px 10px;border-radius:10px;box-shadow:0 0 0 2px #000}
+.new .tile.seal{border:3px solid var(--violet);background:repeating-linear-gradient(135deg,#1a1230 0 8px,#241846 8px 16px);opacity:1}
+.new .tile.seal .ic{filter:grayscale(.8) brightness(.6);position:relative}
+.new .tile.seal .ic::after{content:"🔒";position:absolute;font-size:30px;filter:none;text-shadow:0 0 8px #000,0 0 14px var(--violet)}
+.new .tile.seal::before{content:"봉인 예정";position:absolute;bottom:-1px;left:-1px;right:-1px;background:var(--violet);color:#fff;font-size:11px;font-weight:800;padding:2px 0;border-radius:0 0 3px 3px}
+.new .tile.seal .rc{margin-bottom:16px}
+/* 오른쪽 행 */
+.rows{display:flex;flex-direction:column;gap:8px;width:330px}
+.r{position:relative;display:flex;gap:10px;align-items:center;height:68px;background:var(--panel);border:2px solid #3a4468;border-radius:6px;padding:6px 8px 6px 10px}
+.r .ic{width:48px;height:48px;border-radius:6px;background:#0c1020;border:2px solid #556;display:flex;align-items:center;justify-content:center;font-size:24px}
+.r .tx{flex:1}.r .n{font-weight:700;font-size:13px}.r .g{font-size:11px;color:var(--mute)}
+.cur .r.sel{border:3px solid var(--gold)}.cur .r .gr{display:none}
+.new .r{opacity:.75}.new .r.sel{opacity:1;border:3px solid var(--gold);box-shadow:0 0 14px 2px rgba(245,197,66,.55);background:#252c4a}
+.new .r.sel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--gold);border-radius:3px 0 0 3px}
+.new .r .gr{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;font-weight:900;font-size:20px;line-height:1;color:#fff;border:3px solid;background:#0c1020}
+.new .r .gr small{font-size:9px;font-weight:700;margin-top:1px}
+.g1{border-color:#9aa5bd;color:#9aa5bd}.g2{border-color:#4cd964;color:#4cd964}.g3{border-color:#4aa3ff;color:#4aa3ff}.g4{border-color:#b86bff;color:#b86bff}.g5{border-color:#ffb020;color:#ffb020}
+.tag{display:inline-block;background:var(--gold);color:#2a1d00;font-weight:800;font-size:10px;padding:0 6px;border-radius:8px;margin-left:6px}
+.q{background:#1c2240;border:1px solid var(--gold);border-radius:10px;padding:14px}.q h2{margin:0 0 8px;font-size:15px;color:var(--gold2)}.q li{margin:6px 0}
+</style></head><body>
+<h1>편성 화면 — 선택·잠금·등급 표시 개선안</h1>
+<p class="sub">왼쪽이 지금 모습, 오른쪽이 개선안입니다. (실제 아트 대신 그림으로 표현한 목업)</p>
+
+<div class="card"><h2>① 지금 고른 둥지 칸 / ② 잠금(봉인 예정) 칸</h2>
+<div class="row">
+ <div class="col cur"><div class="lbl">지금</div><div class="tiles">
+  <div class="tile"><span class="no">둥지 1</span><div class="ic">👻</div><div class="nm">견습 도깨비불</div><div class="rc">이그니스</div></div>
+  <div class="tile sel"><span class="no">둥지 2</span><div class="ic">👹</div><div class="nm">풋내기 사신</div><div class="rc">눅스</div></div>
+  <div class="tile seal"><span class="no">둥지 3</span><span class="lock">🔒</span><div class="ic">🧙</div><div class="nm">저주술사</div><div class="rc">헥시아</div></div></div></div>
+ <div class="col new"><div class="lbl">개선안</div><div class="tiles" style="padding-top:12px">
+  <div class="tile dim"><span class="no">둥지 1</span><div class="ic">👻</div><div class="nm">견습 도깨비불</div><div class="rc">이그니스</div></div>
+  <div class="tile sel"><span class="no">둥지 2</span><div class="ic">👹</div><div class="nm">풋내기 사신</div><div class="rc">눅스</div></div>
+  <div class="tile seal"><span class="no">둥지 3</span><div class="ic">🧙</div><div class="nm">저주술사</div><div class="rc">헥시아</div></div></div>
+  <p style="font-size:12px;color:var(--mute);margin:10px 0 0">선택: 굵은 금테 + 빛 번짐 + 위에 "출전 중" 띠, 나머지는 살짝 어둡게<br>잠금: 사선 보라 무늬 + 큰 자물쇠 + 아래 "봉인 예정" 띠 + 아이콘 흑백</p></div>
+</div></div>
+
+<div class="card"><h2>③ 오른쪽 몬스터 목록 — 내가 고른 몬스터와 등급</h2>
+<div class="row">
+ <div class="col cur"><div class="lbl">지금</div><div class="rows">
+  <div class="r"><div class="ic">👻</div><div class="tx"><div class="n">풋내기 도깨비불</div><div class="g">1등급 · HP·공격력 ×1.00</div></div></div>
+  <div class="r sel"><div class="ic">👻</div><div class="tx"><div class="n">견습 도깨비불</div><div class="g">2등급 · HP·공격력 ×1.10 · 보유 최고</div></div></div></div></div>
+ <div class="col new"><div class="lbl">개선안</div><div class="rows">
+  <div class="r"><div class="ic">👻</div><div class="tx"><div class="n">풋내기 도깨비불</div><div class="g">HP·공격력 ×1.00</div></div><div class="gr g1">1<small>등급</small></div></div>
+  <div class="r sel"><div class="ic">👻</div><div class="tx"><div class="n">견습 도깨비불 <span class="tag">출전 중</span></div><div class="g">HP·공격력 ×1.10 · 보유 최고</div></div><div class="gr g2">2<small>등급</small></div></div></div>
+  <p style="font-size:12px;color:var(--mute);margin:10px 0 0">선택 행: 굵은 금테 + 왼쪽 금색 띠 + "출전 중" 표식, 나머지는 어둡게<br>등급: 작은 글자 대신 등급색 큰 동그라미 숫자(1 회색·2 초록·3 파랑·4 보라·5 금색)</p></div>
+</div></div>
+
+<div class="q"><h2>결정해 주세요</h2><ul>
+<li><b>선택·잠금 표시 방향</b> — 위 개선안(굵은 금테+"출전 중" 띠 / 보라 사선+큰 자물쇠+"봉인 예정" 띠)으로 갈까요? <i>추천: 그대로 진행</i></li>
+<li><b>등급 표시</b> — 큰 동그라미 숫자(등급색)로 바꿀까요? <i>추천: 예</i></li>
+<li><b>어둡게 처리</b> — 선택되지 않은 칸·행을 어둡게 해 대비를 키울까요? <i>추천: 예</i></li>
+<li><b>작업 범위</b> — 글자 띠 같은 요소는 새 그림이 필요합니다(아트 제작 → 적용, 코드 소폭 수정). 괜찮을까요?</li>
+</ul></div>
+</body></html>
