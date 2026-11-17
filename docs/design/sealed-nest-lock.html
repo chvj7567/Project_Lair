@@ -46,13 +46,13 @@ th{background:#161c28;color:var(--bone)}
 <h2>1. 이렇게 보여요</h2>
 <div class="row">
   <div class="card">
-    <b>봉인된 둥지</b><br><span class="lead">자물쇠가 걸리고 몬스터 그림이 어두워집니다. 아래 글자에 해제 조건이 계속 보입니다.</span>
+    <b>봉인된 둥지</b><br><span class="lead">자물쇠가 걸리고 몬스터 그림이 어두워집니다. 아래 글자는 "탭하여 확인"으로 바뀌고, 해제 조건은 눌렀을 때 안내창에서 자세히 알려 줍니다.</span>
     <div class="cell dark" style="--sc:#eab308;margin-top:8px">
       <div class="slot"><div class="mon">저</div>
         <svg class="lock" viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#0b0e14" d="M4 1h8v1h1v6h-1V3h-1V2H5v1H4v5H3V2h1z"/><path fill="#7d8aa6" d="M5 2h6v1h1v5h-2V4H6v4H4V3h1z"/><path fill="#0b0e14" d="M2 7h12v9H2z"/><path fill="#4b566f" d="M3 8h10v7H3z"/><path fill="#6b7896" d="M3 8h10v1H3z"/><path fill="#0b0e14" d="M7 10h2v3H7z"/><path fill="#f7c64a" d="M7 10h2v2H7z"/></svg>
       </div>
       <div class="nm">풋내기<small>저주술사</small></div>
-      <div class="txt">봉인 - 영웅 HP 50% 이하 해제</div>
+      <div class="txt">탭하여 확인</div>
     </div>
   </div>
   <div class="card">
@@ -86,7 +86,7 @@ th{background:#161c28;color:var(--bone)}
     <tr><th>무엇이</th><th>어떻게</th></tr>
     <tr><td>자물쇠</td><td>살짝 커지면서 사라집니다 (약 0.5초)</td></tr>
     <tr><td>몬스터 그림</td><td>다시 밝아집니다</td></tr>
-    <tr><td>아래 글자</td><td>"봉인 - ..." 대신 다음 소환까지 남은 초가 보입니다</td></tr>
+    <tr><td>아래 글자</td><td>"탭하여 확인" 대신 다음 소환까지 남은 초가 보입니다</td></tr>
     <tr><td>기존 연출</td><td>사슬이 풀리고, 몬스터가 한꺼번에 나오고, "봉인이 풀렸다!" 알림이 뜨는 것은 그대로입니다</td></tr>
   </table>
   <p class="lead" style="margin-top:8px">한 번 풀린 봉인은 영웅이 회복해도 다시 걸리지 않습니다.</p>
@@ -95,7 +95,7 @@ th{background:#161c28;color:var(--bone)}
 <h2>4. 달라지지 않는 것</h2>
 <div class="card">
   <ul style="margin:0;padding-left:20px">
-    <li>봉인 규칙과 해제 HP 수치, 난이도, 몬스터 능력치는 그대로입니다</li>
+    <li>봉인 규칙과 해제 HP 수치(안내창에서만 확인), 난이도, 몬스터 능력치는 그대로입니다</li>
     <li>새 화면이나 새 메뉴가 생기지 않습니다 (기존 확인창을 그대로 활용)</li>
     <li>카드로 불러낸 몬스터는 봉인과 상관없이 나옵니다</li>
     <li>챕터, 데일리, 무한의 탑 모두 같은 방식입니다</li>
@@ -103,12 +103,12 @@ th{background:#161c28;color:var(--bone)}
 </div>
 
 <div class="ask">
-  <h2>결정해 주세요</h2>
+  <h2>결정 내용 (모두 확정, 사용자 승인 2026-11-17)</h2>
   <ol>
-    <li><b>이 기능을 정식 범위에 넣을까요?</b> 지금 규칙으로는 새 UI 기능이라 허락이 있어야 만들 수 있습니다. 추천: <b>넣기</b></li>
-    <li><b>안내창 버튼은 몇 개로 할까요?</b> 1개("확인")가 깔끔하지만 공용 창을 조금 고쳐야 하고, 2개("확인/닫기")는 고칠 것이 없지만 어색합니다. 추천: <b>1개</b></li>
-    <li><b>셀 아래 글자를 그대로 둘까요?</b> 그대로 두면 안내창을 안 열어도 조건이 보이고, "탭하여 확인"으로 줄이면 깔끔하지만 조건이 숨습니다. 추천: <b>그대로</b></li>
-    <li><b>자물쇠 그림은 어떻게 할까요?</b> 새로 그리면 화면과 잘 어울리고, 기존 도트 자물쇠를 임시로 쓰면 바로 시작할 수 있지만 조금 튑니다. 추천: <b>새로 그리되, 먼저 임시 그림으로 개발 시작</b></li>
+    <li><b>정식 범위에 넣기</b> - 확정</li>
+    <li><b>안내창 버튼은 1개("확인")</b> - 확정</li>
+    <li><b>셀 아래 글자는 "탭하여 확인"</b> - 확정 (조건이 길면 글자가 너무 작아져 읽히지 않기 때문)</li>
+    <li><b>자물쇠 그림은 새로 그리되, 먼저 임시 그림으로 개발 시작</b> - 확정</li>
   </ol>
 </div>
 </body>
