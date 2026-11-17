@@ -45,6 +45,7 @@
   - **run_edit_mode_tests**: `Lair/Tests/Run EditMode Tests`
   - **run_play_mode_tests**: `Lair/Tests/Run PlayMode Tests`
   - **run_sim_batch**: `Lair/Tests/Run PlayMode Simulation`
+- **play_driver**: `Assets/_Lair/Editor/PlayDriver.cs` · `PlayDriver.Sweep.cs` — Play 모드 버튼 조작·UI 스위프 도구 (Rule 05). 클래스 `Lair.EditorTools.PlayDriver`, 리포트 `Temp/PlayDriverReport.txt`
 - **test_result_json**: `Library/lair-test-result.json` — EditMode 결과
 - **test_result_json_play_mode**: `Library/lair-test-result-playmode.json` — PlayMode 결과 (EditMode 와 별도 파일)
 - **infrastructure**
@@ -90,6 +91,7 @@ UI 에이전트(ui-layout-engineer · ui-visual-reviewer)와 game-designer 의 U
 | 5b | **ui-visual-reviewer** (프리팹·스프라이트 참조 변경이 있을 때만) | 메인이 Play 캡처를 찍어 넘기면 글자 넘침·장식 겹침·옛 장식 잔재·가독성·비율을 검토 — BLOCKER 있으면 ui-layout-engineer 재작업 (최대 3회) | 시각 검토 보고 |
 | 6 | **test-engineer** | 본격 테스트 스위트 (엣지·회귀·통합) | 테스트 .cs (완료 시 자동 커밋 — Rule 01) |
 | 7 | **qa-simulator** (게임플레이 영향 큰 경우) | 헤드리스 시뮬레이션 + 메트릭 리포트 | `docs.qa_reports/YYYY-MM-DD.md` (완료 시 자동 커밋 — Rule 01) |
+| 7b | 메인 → **qa-simulator** (UI·씬 흐름·버튼 동작을 건드렸을 때) | 메인이 Rule 05 절차로 UI 스위프를 실행(에이전트는 UnityMCP 불가)하고 `Temp/PlayDriverReport.txt` 를 넘기면 FAIL·SKIP·시각 확인 필요 화면을 분석 — FAIL 원인이 코드면 gameplay-programmer, 레이아웃이면 ui-layout-engineer 재작업 | `docs.qa_reports/YYYY-MM-DD.md` 의 `## UI 스위프` 섹션 (완료 시 자동 커밋 — Rule 01) |
 | 8 | 메인 | 전체 변경 요약 보고 (각 단계는 이미 자동 커밋되어 있음) | 요약 |
 
 ### UI 시각 검토 단계 — 캡처 절차 (메인)
@@ -97,7 +99,7 @@ UI 에이전트(ui-layout-engineer · ui-visual-reviewer)와 game-designer 의 U
 서브에이전트는 UnityMCP 를 쓸 수 없으므로 메인이 캡처를 찍어 ui-visual-reviewer 에 넘긴다.
 발동 조건: 이번 변경이 프리팹·스프라이트 참조를 건드렸을 때(코드만 바꾼 작업은 생략).
 
-1. `editor_refresh_assets` → `sim_play` → 로딩 화면 클릭 → `screenshot_editor` (Game 창을 16:9 로 맞춰 아래쪽까지 보이게)
+1. `editor_refresh_assets` → `sim_play` → PlayDriver 로 화면 진입(`Click`/`ClickArg`, 로딩은 완료 후 재시도 — Rule 05, 마우스 ctypes 클릭 쓰지 않음) → 보려는 팝업을 연 상태에서 `screenshot_editor` (Game 창을 16:9 로 맞춰 아래쪽까지 보이게)
 2. 캡처 경로(`Assets/.screenshots/editor_*.png`) 와 프리팹 경로를 위임 프롬프트에 넣어 ui-visual-reviewer 호출
 3. BLOCKER 는 ui-layout-engineer 기존 세션에 `SendMessage` 로 수정(코드 슬롯이 필요하면 gameplay-programmer) → 재캡처 → 재검토 (최대 3회)
 4. 끝나면 `sim_stop`. Unity 가 응답 없으면 "Prefab Has Been Modified" 같은 모달 창을 먼저 의심한다.
