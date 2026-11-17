@@ -265,12 +265,12 @@ namespace Lair.UI
         }
 
         //# rgb 만 칠하고 각 원소의 현재 알파는 보존. null 원소·배열은 건너뜀.
-        internal static void TintRgb(Image[] images, Color color)
+        internal static void TintRgb(Image[] images, Color color, int startIndex = 0)
         {
             if (images == null)
                 return;
 
-            for (int i = 0; i < images.Length; ++i)
+            for (int i = startIndex; i < images.Length; ++i)
             {
                 if (images[i] == null)
                     continue;

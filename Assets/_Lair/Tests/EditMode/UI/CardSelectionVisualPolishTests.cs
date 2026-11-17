@@ -35,11 +35,14 @@ namespace Lair.Tests.EditMode
         private static readonly string[] CardOrder =
         {
             "DecoHoverGlow", "Bg", "DecoFaceGradient", "DecoFaceGloss", "Border", "KindRing", "DecoFrameGold", "DecoBandGlow", "DecoBand",
-            "DecoArtRing", "ArtSlot", "CardArt", "DecoArtVignette", "Scrim", "NameText", "DecoNameLine", "DecoDescFill", "DecoDescTop",
+            "ArtSlot", "CardArt", "DecoArtVignette", "DecoArtRing", "Scrim", "DecoNameLine", "NameText", "DecoDescFill", "DecoDescTop",
             "DecoDescFrame", "DescText", "DecoCornerTL", "DecoCornerTR", "DecoCornerBL", "DecoCornerBR", "CountBadgeBg", "CountBadge",
             "DecoKindLabelGlow", "KindLabelBg", "DecoKindLabelFrame", "KindLabel", "PickButton", "DecoAxisGlow", "AxisIcon",
             "DecoAxisGem1", "DecoAxisGem2", "DecoAxisGem3", "DecoDimOverlay",
         };
+
+        //# CardSelectionPopup.UntintedLeadingCount 와 동일 — 앞 3개(제목·부제 글로우, 부제 알약)는 컬러 아트라 틴트 제외.
+        private const int PopupUntintedLeading = 3;
 
         private static readonly string[] PopupOrder =
         {
@@ -54,7 +57,7 @@ namespace Lair.Tests.EditMode
             "_pickButtonImage", "_passiveButtonSprite", "_activeButtonSprite", "_countBadgeBg", "_axisIconRoot", "_axisIconBorder", "_axisIconImage",
         };
 
-        private static readonly Color RestFrame = new Color32(0x8A, 0x6A, 0x2C, 0xFF);
+        private static readonly Color RestFrame = new Color(0.85f, 0.70f, 0.35f, 1f);
         private static readonly Color HoverFrame = new Color32(0xFF, 0xD6, 0x66, 0xFF);
         private static readonly Color PressFrame = new Color32(0xFF, 0xF0, 0xA8, 0xFF);
         private static readonly Color GemOff = new Color32(0x3A, 0x47, 0x64, 0xFF);
@@ -418,10 +421,10 @@ namespace Lair.Tests.EditMode
             {
                 Assert.AreEqual("CardSelectKindInset", Required<Image>(card, "_kindRing").sprite.name, card.name + " KindRing");
                 Assert.AreEqual("CardSelectFrame", Required<Image>(card, "_frameGold").sprite.name, card.name + " DecoFrameGold");
-                Assert.AreEqual("CardSelectPickBtnSoul", Required<Sprite>(card, "_passiveButtonSprite").name, card.name);
-                Assert.AreEqual("CardSelectPickBtnGold", Required<Sprite>(card, "_activeButtonSprite").name, card.name);
-                Assert.AreEqual("SynergyModalHalo", Required<Image>(card, "_axisIconBorder").sprite.name, card.name + " AxisIcon");
-                Assert.AreEqual("SynergyModalBadge", Child(card, "CountBadgeBg").GetComponent<Image>().sprite.name, card.name + " CountBadgeBg");
+                Assert.AreEqual("CommonUIBtnSoul", Required<Sprite>(card, "_passiveButtonSprite").name, card.name);
+                Assert.AreEqual("CommonUIBtnGold", Required<Sprite>(card, "_activeButtonSprite").name, card.name);
+                Assert.AreEqual("CardSelectAxisRing", Required<Image>(card, "_axisIconBorder").sprite.name, card.name + " AxisIcon");
+                Assert.AreEqual("CardSelectRarityChip", Child(card, "CountBadgeBg").GetComponent<Image>().sprite.name, card.name + " CountBadgeBg");
                 Assert.AreEqual("WorldMapGradientV", Child(card, "Scrim").GetComponent<Image>().sprite.name, card.name + " Scrim");
                 Assert.AreSame(Child(card, "CountBadgeBg"), Child(card, "CountBadgeBg/DecoCountGlow").parent, card.name);
             }
@@ -898,9 +901,13 @@ namespace Lair.Tests.EditMode
             CardSelectionPopup popup = OpenPopup(3, true, null, null, EBuildAxis.Tank);
             Image[] tint = Required<Image[]>(popup, "_kindTintImages");
             float[] alphas = new float[tint.Length];
+            Color[] original = new Color[tint.Length];
             for (int i = 0; i < tint.Length; ++i)
             {
                 alphas[i] = tint[i].color.a;
+                original[i] = tint[i].color;
+                if (i < PopupUntintedLeading)
+                    continue;
                 AssertRgb(UiDotPalette.CardKind(true), tint[i].color, tint[i].name + " 패시브");
             }
 
@@ -908,7 +915,10 @@ namespace Lair.Tests.EditMode
 
             for (int i = 0; i < tint.Length; ++i)
             {
-                AssertRgb(UiDotPalette.CardKind(false), tint[i].color, tint[i].name + " 액티브");
+                if (i < PopupUntintedLeading)
+                    AssertRgb(original[i], tint[i].color, tint[i].name + " 컬러 아트는 틴트 제외");
+                else
+                    AssertRgb(UiDotPalette.CardKind(false), tint[i].color, tint[i].name + " 액티브");
                 Assert.AreEqual(alphas[i], tint[i].color.a, 0.001f, tint[i].name + " 알파 보존");
             }
         }

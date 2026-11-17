@@ -34,6 +34,7 @@ namespace Lair.UI
 
         //# 부제 글로우·칩·마름모 — 종류색 rgb 로 틴트(알파 보존). 제목 글로우 포함 5개.
         [SerializeField] private Image[] _kindTintImages;
+        private const int UntintedLeadingCount = 3;
 
         //# 3택1 강제 — ESC 로 닫히면 픽 대기가 풀리지 않아 전투가 영구 정지된다.
         public override bool CanCloseByEsc => false;
@@ -59,7 +60,8 @@ namespace Lair.UI
                 _subtitleText.SetColor(UiDotPalette.CardKind(sa.IsPassive));
             }
 
-            CardView.TintRgb(_kindTintImages, UiDotPalette.CardKind(sa.IsPassive));
+            //# 앞 3개(제목 글로우·부제 글로우·부제 알약)는 이미 컬러 아트라 틴트 제외 — 프리팹 순서 고정(테스트가 보장).
+            CardView.TintRgb(_kindTintImages, UiDotPalette.CardKind(sa.IsPassive), UntintedLeadingCount);
             BindSynergyChips(sa);
 
             for (int i = 0; i < _slots.Length; ++i)
