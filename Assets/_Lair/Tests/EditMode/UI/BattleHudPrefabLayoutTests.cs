@@ -68,30 +68,30 @@ namespace Lair.Tests.UI
         }
 
         [Test]
-        public void 스포너_행은_하단중앙_1006x64다()
+        public void 스포너_행은_하단중앙_1198x102다()
         {
-            AssertRect("SpawnerStatusPanel", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(1006f, 64f));
+            AssertRect("SpawnerStatusPanel", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(1198f, 102f));
         }
 
-        //# resolution-adaptation B1: 우측 패널 2개를 32 위로 이동(-112→-80, -387→-355).
+        //# resolution-adaptation B1: 우측 패널 2개를 32 위로 이동(-112→-80→-40, -387→-355→-312).
         [Test]
         public void 시너지_패널은_우상단_펼침_165x247이다()
         {
-            AssertRect("BuildSynergyPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -80f), new Vector2(165f, 247f));
+            AssertRect("BuildSynergyPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -40f), new Vector2(165f, 247f));
         }
 
         [Test]
         public void 빌드_패널은_우상단_펼침_165x239다()
         {
-            AssertRect("BuildPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -355f), new Vector2(165f, 239f));
+            AssertRect("BuildPanel", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-13f, -312f), new Vector2(165f, 239f));
         }
 
         [Test]
         public void 오른쪽_열_세로_배치가_서로_겹치지_않고_스포너_행과도_분리된다()
         {
-            //# 시너지 끝 112+247 = 359 < 빌드 시작 387, 빌드 끝 387+239 = 626 < 스포너 행 시작 720−16−64 = 640
-            Assert.Less(112f + 247f, 387f);
-            Assert.Less(387f + 239f, 720f - 16f - 64f);
+            //# 시너지 끝 40+247 = 287 < 빌드 시작 312, 빌드 끝 312+239 = 551 < 스포너 행 시작 720−16−102 = 602
+            Assert.Less(40f + 247f, 312f);
+            Assert.Less(312f + 239f, 720f - 16f - 102f);
         }
 
         [Test]

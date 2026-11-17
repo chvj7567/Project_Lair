@@ -146,7 +146,7 @@ namespace Lair.UI
             //# 종명 한글 — SpeciesVisual 단일 SoT (인게임 표기 통일).
             if (_speciesText != null)
             {
-                _speciesText.SetText(SpeciesVisual.MonsterName(snapshot.CurrentType, FormationDatabase.Current, LookupText));
+                _speciesText.SetText(SpeciesVisual.MonsterNameTwoLine(snapshot.CurrentType, FormationDatabase.Current, LookupText));
             }
 
             //# ×N — N≥2 일 때만 노출.
