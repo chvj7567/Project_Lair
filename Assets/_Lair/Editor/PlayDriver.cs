@@ -12,7 +12,7 @@ namespace Lair.EditorTools
 {
     //# Play 모드 자동 조작 헬퍼. editor_invoke_method 는 인자를 못 넘기므로 인자는 Temp/PlayDriverArg.txt 로 전달한다.
     //# 직접 호출 가능한 오버로드: Click(string) / ClickIndex(int). MCP 용: ClickArg() / ClickIndexArg().
-    public static class PlayDriver
+    public static partial class PlayDriver
     {
         private const int MaxList = 60;
         private const string NotPlaying = "NOT PLAYING";
