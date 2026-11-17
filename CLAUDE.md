@@ -33,7 +33,7 @@ Assets/_Lair/                  게임 코드·에셋  (주의: _Project 가 아�
   Scenes/                      Battle.unity
 Packages/com.chvj.unityinfra/  인프라 패키지  (수정 시 Rule 03)
 .claude/
-  rules/                       코딩 룰 00~04  ← 단일 진실의 원천
+  rules/                       코딩 룰 00~05  ← 단일 진실의 원천
   agents/                      서브에이전트 정의
 docs/
   design/                      project_lair_concept.md (컨셉) + game-designer 기능 기획서
@@ -44,7 +44,7 @@ docs/
 
 ## 5. 코딩 룰
 
-룰은 `.claude/rules/NN-*.md` 에 정의되어 있다 — Rule 00(프로젝트 메타), 01(커밋), 02(C# 스타일), 03(ChvjPackage 인프라), 04(Unity 에셋). **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
+룰은 `.claude/rules/NN-*.md` 에 정의되어 있다 — Rule 00(프로젝트 메타), 01(커밋), 02(C# 스타일), 03(ChvjPackage 인프라), 04(Unity 에셋), 05(Play 모드 자동 조작·검증 — UI 를 Play 로 확인할 때 마우스 클릭 대신 `onClick` 호출 도구). **룰이 걸린 작업이면 해당 룰 파일 전문을 반드시 읽는다** (각 서브에이전트의 "작업 종류별 필독 룰 매핑" 표 참조).
 
 룰은 도메인 비종속 reusable 정의 — 다른 프로젝트에 같은 `.claude/rules/` 폴더가 통째로 적용된다.
 
