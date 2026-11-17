@@ -21,7 +21,7 @@ namespace Lair.UI
         [SerializeField] private GameObject[] _buttonLocks = new GameObject[0];
         [SerializeField] private CanvasGroup[] _buttonGroups = new CanvasGroup[0];
 
-        private const float OffAlpha = 0.45f;
+        private const float OffAlpha = 0.7f;
 
         private ShardExchangeRowData _data;
         private Action<ECurrency> _onExchange;

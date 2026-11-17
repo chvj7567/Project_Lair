@@ -198,6 +198,9 @@ namespace Lair.Village
         //# 오른쪽 "{현재 중첩 합} / {전체 슬롯}"
         public string StackSumText => $"{OwnedStackSum} / {TotalStackSlots}";
 
+        //# 헤더 표시용 "중첩 {합} / {전체}" — 기존 상세 패널 문구 행(StrStack)을 재사용.
+        public string StackSumLabelText => string.Format(Lookup(StrStack, "중첩 {0} / {1}"), OwnedStackSum, TotalStackSlots);
+
         public string NoResultText => Lookup(StrNoResult, "해당 조건의 유물이 없습니다");
 
         //# 필터(AND)를 통과한 유물을 JSON 순서(종류 묶음) 그대로.
