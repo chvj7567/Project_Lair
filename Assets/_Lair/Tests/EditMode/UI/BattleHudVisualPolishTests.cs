@@ -188,8 +188,8 @@ namespace Lair.Tests.EditMode
             Sprite low = (Sprite)Field(bar, "_fillLowSprite");
             Assert.IsTrue(normal != null, "_fillNormalSprite");
             Assert.IsTrue(low != null, "_fillLowSprite");
-            Assert.AreEqual("BattleHudBossFill", normal.name);
-            Assert.AreEqual("BattleHudBossFillLow", low.name);
+            Assert.AreEqual("BattleHudUIBossFill", normal.name);
+            Assert.AreEqual("BattleHudUIBossFillLow", low.name);
         }
 
         [Test]
