@@ -32,14 +32,12 @@ namespace Lair.UI
         //# 필터 칩 — 인덱스 0 = 전체, 1~ = enum 값 + 1. 각 그룹은 ToggleGroup 단일 선택, CHToggle 동행 (Rule 03 §3).
         [SerializeField] private Toggle[] _categoryChips = new Toggle[0];
         [SerializeField] private Toggle[] _rarityChips = new Toggle[0];
-        //# 칩별 Label — _categoryChips/_rarityChips 와 같은 인덱스. 선택(금색 바탕) 시 어두운 글자로 바꾼다.
+        //# 미사용(선택 시 글자색 변경 폐기) — 프리팹 직렬화 참조 보존용으로만 남긴다.
         [SerializeField] private TMP_Text[] _categoryChipLabels = new TMP_Text[0];
         [SerializeField] private TMP_Text[] _rarityChipLabels = new TMP_Text[0];
         //# 잔해 교환 줄 (monster-growth-currencies §8.3) — 미배선이면 기존 안내 문구 그대로.
         [SerializeField] private ShardExchangeView _shardExchange;
 
-        private static readonly Color ChipSelectedLabelColor = new Color(0.06f, 0.08f, 0.11f, 1f);
-        private readonly Dictionary<TMP_Text, Color> _labelBaseColors = new Dictionary<TMP_Text, Color>();
         private RelicViewModel _vm;
         private ShardExchangeViewModel _exchangeVm;
         private MetaProfile _profile;
@@ -79,12 +77,10 @@ namespace Lair.UI
                 _closeButton.OnClick(() => Close(reuse: true), closeDisposable);
             }
 
-            CacheLabelColors(_categoryChipLabels);
-            CacheLabelColors(_rarityChipLabels);
-            WireChips(_categoryChips, _categoryChipLabels, index => _vm?.SetCategoryFilter(index));
-            WireChips(_rarityChips, _rarityChipLabels, index => _vm?.SetRarityFilter(index));
-            ResetChips(_categoryChips, _categoryChipLabels);
-            ResetChips(_rarityChips, _rarityChipLabels);
+            WireChips(_categoryChips, index => _vm?.SetCategoryFilter(index));
+            WireChips(_rarityChips, index => _vm?.SetRarityFilter(index));
+            ResetChips(_categoryChips);
+            ResetChips(_rarityChips);
 
             if (isActiveAndEnabled)
             {
@@ -126,7 +122,7 @@ namespace Lair.UI
         }
 
         //# 칩 입력 → VM. Toggle.onValueChanged 는 켜질 때만 전달(ToggleGroup 이 나머지를 끈다).
-        private void WireChips(Toggle[] chips, TMP_Text[] labels, System.Action<int> onSelected)
+        private void WireChips(Toggle[] chips, System.Action<int> onSelected)
         {
             for (int i = 0; i < chips.Length; ++i)
             {
@@ -136,7 +132,6 @@ namespace Lair.UI
                 int index = i;
                 UnityAction<bool> handler = isOn =>
                 {
-                    ApplyLabelColor(labels, index, isOn);
                     if (isOn)
                     {
                         onSelected(index);
@@ -154,38 +149,15 @@ namespace Lair.UI
         }
 
         //# 열 때마다 "전체" 칩으로 초기화 — 알림 없이 켠다.
-        private void ResetChips(Toggle[] chips, TMP_Text[] labels)
+        private static void ResetChips(Toggle[] chips)
         {
             for (int i = 0; i < chips.Length; ++i)
             {
                 if (chips[i] != null)
                 {
-                    bool on = i == RelicViewModel.FilterAll;
-                    chips[i].SetIsOnWithoutNotify(on);
-                    ApplyLabelColor(labels, i, on);
+                    chips[i].SetIsOnWithoutNotify(i == RelicViewModel.FilterAll);
                 }
             }
-        }
-
-        //# 첫 바인드 시 프리팹 원래 색(기본·등급색)을 캐싱 — 재바인드 때 선택색으로 덮어쓰지 않도록 1회만.
-        private void CacheLabelColors(TMP_Text[] labels)
-        {
-            for (int i = 0; i < labels.Length; ++i)
-            {
-                if (labels[i] != null && _labelBaseColors.ContainsKey(labels[i]) == false)
-                {
-                    _labelBaseColors[labels[i]] = labels[i].color;
-                }
-            }
-        }
-
-        private void ApplyLabelColor(TMP_Text[] labels, int index, bool selected)
-        {
-            if (index >= labels.Length || labels[index] == null)
-                return;
-            if (_labelBaseColors.TryGetValue(labels[index], out Color baseColor) == false)
-                return;
-            labels[index].color = selected ? ChipSelectedLabelColor : baseColor;
         }
 
         //# 아이콘 16종을 Enum 키로 로드(Rule 03 §2) 후 한 번에 그린다. 팝업이 먼저 닫혔으면 중단.
