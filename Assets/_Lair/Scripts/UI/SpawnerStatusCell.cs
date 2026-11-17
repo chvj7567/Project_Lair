@@ -47,6 +47,8 @@ namespace Lair.UI
         [SerializeField] private RectTransform _iconRect; //# 스케일 대상 = 중앙 Icon 의 RectTransform (기획서 §5)
         //# UI 리디자인 — 최대 레벨(Lv5) 금테. 미할당이면 건너뛴다.
         [SerializeField] private Image _maxLevelRing;
+        //# 봉인 중에만 켜지는 자물쇠 아이콘(기본 비활성). 미할당이면 건너뛴다.
+        [SerializeField] private Image _sealLockIcon;
 
         //# 종 → 중앙 아이콘 스프라이트. 인스펙터 직접 참조 (CardData._icon·시너지축 관례, Addressables 키 아님).
         [SerializeField] private Sprite _wispIcon;
@@ -56,8 +58,16 @@ namespace Lair.UI
         [SerializeField] private Sprite _plagueIcon;
         [SerializeField] private Sprite _phantomIcon;
 
-        //# 봉인 표기 문구 id — "봉인 - 영웅 HP {0}% 이하 해제" (Strings_Ko 1319).
-        private const int SealTextStringId = 1319;
+        //# 봉인 중 셀 하단 문구 id — "탭하여 확인" (Strings_Ko 1691). 해제 조건 상세는 팝업이 보여 준다.
+        private const int SealTextStringId = 1691;
+
+        //# 봉인 표현(sealed-nest-lock §2.1·§2.2).
+        public static readonly Color SealTintColor = new Color(0.40f, 0.40f, 0.44f, 1f);   //# #666670
+        public static readonly Color SealTextColor = new Color(0.969f, 0.776f, 0.290f, 1f); //# #F7C64A
+        //# 하단 문구 평상시 색 — 프리팹 txtSpawnTime 의 글자색과 같다.
+        private static readonly Color NormalPeriodColor = new Color(0.8f, 0.86f, 0.95f, 1f);
+        private const float UnlockAnimSeconds = 0.45f;
+        private const float UnlockLockScale = 1.35f;
 
         //# 클릭 리스너 수명 관리 (BuildIconCell 선례 패턴).
         private readonly CompositeDisposable _disposable = new CompositeDisposable();
@@ -68,6 +78,10 @@ namespace Lair.UI
         private ISpawnerLockState _lockSource;
         //# 현재 표시 스냅샷 캐시 (이벤트 갱신 시 RebindSnapshot 만 호출).
         private BattleViewModel.SpawnerSnapshot _snapshot;
+        //# 마지막으로 반영한 봉인 상태 / 하단 문구 금색 적용 여부 / 해제 연출 경과(<0 = 비재생).
+        private bool _sealApplied;
+        private bool _periodSealColor;
+        private float _unlockElapsed = -1f;
 
         //# 풀 재사용 시 리스너 누적 / 이전 상태 잔존 방지 (Rule 12).
         private void OnEnable()
@@ -102,6 +116,15 @@ namespace Lair.UI
             {
                 _iconRect.localScale = Vector3.one;
             }
+
+            //# 봉인 상태 리셋 — 자물쇠 숨김·버튼 끔·문구색 복귀·연출 중단(Rule 03 §4).
+            _sealApplied = false;
+            _periodSealColor = false;
+            _unlockElapsed = -1f;
+            _lockSource = null;
+            if (_sealLockIcon != null) _sealLockIcon.gameObject.SetActive(false);
+            if (_button != null) _button.Interactable = false;
+            if (_periodText != null) _periodText.SetColor(NormalPeriodColor);
         }
 
         //# Panel 이 셀 생성·바인딩 시 호출 — snapshot + progress + onClick 3 인자 (기획서 §4.6).
@@ -111,6 +134,7 @@ namespace Lair.UI
             _progressSource = progress;
             _lockSource = progress as ISpawnerLockState;
             RebindSnapshot(snapshot);
+            PollSeal();
 
             if (_button != null && onClick != null)
             {
@@ -179,11 +203,71 @@ namespace Lair.UI
                 _maxLevelRing.gameObject.SetActive(lv >= EnhanceLevelVisual.MaxLevel);
                 _maxLevelRing.color = new Color(0.969f, 0.776f, 0.290f, 1f);
             }
+
+            //# 봉인 표현은 Apply 가 되돌린 틴트·발광 위에 다시 덧씌운다(sealed-nest-lock §2.1, SL11).
+            if (_sealApplied)
+            {
+                ApplySealVisual();
+            }
+        }
+
+        //# 봉인 중 시각 — 자물쇠 on, 아이콘 어둡게, 발광 off. 해제 연출 중이 아닐 때만 호출.
+        private void ApplySealVisual()
+        {
+            if (_sealLockIcon != null)
+            {
+                _sealLockIcon.gameObject.SetActive(true);
+                _sealLockIcon.rectTransform.localScale = Vector3.one;
+                _sealLockIcon.color = Color.white;
+            }
+            if (_icon != null) _icon.color = SealTintColor;
+            if (_glowOverlay != null) _glowOverlay.gameObject.SetActive(false);
+        }
+
+        //# IsLocked 에지 감지 — false→true 즉시 표현, true→false 해제 연출 시작. 버튼은 봉인 중에만 눌림.
+        private void PollSeal()
+        {
+            bool locked = _lockSource != null && _lockSource.IsLocked;
+            if (_button != null) _button.Interactable = locked;
+            if (locked == _sealApplied) return;
+
+            _sealApplied = locked;
+            if (locked)
+            {
+                _unlockElapsed = -1f;
+                ApplySealVisual();
+            }
+            else
+            {
+                _unlockElapsed = 0f;
+            }
+        }
+
+        //# 해제 연출 0.45초 — unscaled 라 컷인·팝업 정지 중에도 끝까지 재생. 끝나면 정상 강화 표현 복원.
+        private void TickUnlockAnim()
+        {
+            if (_unlockElapsed < 0f) return;
+
+            _unlockElapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(_unlockElapsed / UnlockAnimSeconds);
+            if (_sealLockIcon != null)
+            {
+                _sealLockIcon.rectTransform.localScale = Vector3.one * Mathf.Lerp(1f, UnlockLockScale, t);
+                _sealLockIcon.color = new Color(1f, 1f, 1f, 1f - t);
+            }
+            if (_icon != null) _icon.color = Color.Lerp(SealTintColor, Color.white, t);
+
+            if (t < 1f) return;
+            _unlockElapsed = -1f;
+            if (_sealLockIcon != null) _sealLockIcon.gameObject.SetActive(false);
+            RebindSnapshot(_snapshot);
         }
 
         //# 매 프레임 Progress 폴링 — VM 이벤트 우회 (기획서 §4.3·§4.6).
         private void Update()
         {
+            PollSeal();
+            TickUnlockAnim();
             if (_progressSource == null || _progressFill == null) return;
             float p = _progressSource.Progress;
             _progressFill.fillAmount = p;
@@ -194,16 +278,27 @@ namespace Lair.UI
             if (_periodText != null)
             {
                 _periodText.SetText(PeriodLabel());
+                bool sealLabel = IsSealLabel();
+                if (sealLabel != _periodSealColor)
+                {
+                    _periodSealColor = sealLabel;
+                    _periodText.SetColor(sealLabel ? SealTextColor : NormalPeriodColor);
+                }
             }
         }
 
-        //# 남은 초 — 봉인 중이고 해제 HP% 가 있으면 "봉인 - 영웅 HP {x}% 이하 해제" 로 대체(스테이지 규칙 SealedNest, chapter-system §3.4).
-        private string PeriodLabel()
+        //# 봉인 중이고 봉인 규칙(해제 HP%)이 있는 판이면 하단 문구가 "탭하여 확인"(스테이지 규칙 SealedNest, chapter-system §3.4).
+        private bool IsSealLabel()
         {
             bool sealedNow = _lockSource != null && _lockSource.IsLocked;
-            if (sealedNow && _snapshot != null && _snapshot.SealUnlockHpPercent > 0 && CHText.StringProvider != null)
+            return sealedNow && _snapshot != null && _snapshot.SealUnlockHpPercent > 0 && CHText.StringProvider != null;
+        }
+
+        private string PeriodLabel()
+        {
+            if (IsSealLabel())
             {
-                return string.Format(CHText.StringProvider.GetString(SealTextStringId), _snapshot.SealUnlockHpPercent);
+                return CHText.StringProvider.GetString(SealTextStringId);
             }
             return RemainingText(_progressSource.RemainingSeconds);
         }

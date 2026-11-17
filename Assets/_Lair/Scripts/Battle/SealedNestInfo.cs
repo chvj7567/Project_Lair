@@ -14,6 +14,15 @@ namespace Lair.Battle
             return (int)Math.Round(data.Params["unlockHpFraction"] * 100f);
         }
 
+        //# 봉인 안내 팝업 본문 — {0}=종족 이름, {1}=해제 HP%, {2}=현재 영웅 HP%(올림), {3}=남은 %p(최소 1).
+        public static string FormatNestPopupBody(string template, string speciesName, int unlockPercent, float heroHpRatio)
+        {
+            //# 부동소수 오차(0.56f*100 = 56.0000002)로 올림이 1 튀지 않게 작은 보정을 뺀다.
+            int current = (int)Math.Ceiling((double)heroHpRatio * 100.0 - 1e-6);
+            int remain = Math.Max(1, current - unlockPercent);
+            return string.Format(template, speciesName, unlockPercent, current, remain);
+        }
+
         //# 이 규칙이 봉인된 둥지이고 species 를 봉인하면 해제 HP%(정수), 아니면 0.
         public static int UnlockHpPercent(StageRuleData data, EMonster species)
         {

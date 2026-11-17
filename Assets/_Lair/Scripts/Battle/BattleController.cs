@@ -283,6 +283,7 @@ namespace Lair.Battle
             _pause = new PauseService();
             _queue = new TriggerQueue();
             _vm.OnExitRequested += HandleExitRequested;
+            _vm.OnSealInfoRequested += HandleSealInfoRequested;
             //# 2배속 — 저장된 토글 상태를 목표 속도로 반영하고 이후 변경을 구독(relics §5).
             _vm.OnBattleSpeedChanged += HandleBattleSpeedChanged;
             ApplyBattleSpeed(_vm.BattleSpeedOn);
@@ -459,6 +460,56 @@ namespace Lair.Battle
             {
                 ResumeFromExit();
             }
+        }
+
+        //# 봉인 셀 탭 — 정지 + 안내 팝업(1버튼). 닫힘은 전투 종료 확인과 같은 ResumeFromExit 로 수렴(E-1).
+        private async void HandleSealInfoRequested(int index)
+        {
+            //# 카드 선택·컷인·종료 확인·다른 안내 팝업 중이면 무시(E-3·E-4), 이미 해제된 셀도 무시(E-5).
+            if (_vm.IsExitAvailable == false || _pause.IsPaused)
+                return;
+            if (_spawners == null || index < 0 || index >= _spawners.Length || CHText.StringProvider == null)
+                return;
+            Spawner nest = _spawners[index];
+            if (nest == null || nest.IsLocked == false)
+                return;
+
+            float heroRatio = _heroHealth != null ? _heroHealth.Ratio : 1f;
+            string body = SealedNestInfo.FormatNestPopupBody(
+                CHText.StringProvider.GetString(1689),
+                SpeciesVisual.SpeciesName(nest.CurrentType),
+                SealUnlockHpPercentOf(nest.CurrentType),
+                heroRatio);
+
+            _pause.Pause();
+            _vm.SetExitAvailable(false);
+            UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.ConfirmPopup, new ConfirmPopupArg
+            {
+                Title = CHText.StringProvider.GetString(1688),
+                Message = body,
+                ConfirmLabel = CHText.StringProvider.GetString(1690),
+                CancelLabel = null,
+                OnConfirm = ResumeFromExit,
+                OnCancel = ResumeFromExit,
+            });
+            if (popup == null)
+            {
+                ResumeFromExit();
+            }
+        }
+
+        //# 종 둥지의 해제 HP% — 그 종을 봉인한 규칙 우선, 없으면 스냅샷과 같은 아무 봉인 규칙 값.
+        private int SealUnlockHpPercentOf(EMonster species)
+        {
+            if (_chapters == null || _spec == null)
+                return 0;
+            foreach (StageRuleData data in _spec.ResolveRules(_chapters))
+            {
+                int percent = SealedNestInfo.UnlockHpPercent(data, species);
+                if (percent > 0)
+                    return percent;
+            }
+            return GetSpawnerSealUnlockHpPercent();
         }
 
         private void ResumeFromExit()

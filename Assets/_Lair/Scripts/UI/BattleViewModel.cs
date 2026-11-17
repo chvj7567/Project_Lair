@@ -268,6 +268,11 @@ namespace Lair.UI
             OnExitAvailableChanged?.Invoke(IsExitAvailable);
         }
 
+        //# 봉인 셀 탭 — View 가 올리고 컨트롤러가 정지 + 안내 팝업(sealed-nest-lock).
+        public event Action<int> OnSealInfoRequested;
+
+        public void RequestSealInfo(int index) => OnSealInfoRequested?.Invoke(index);
+
         public void RequestExit()
         {
             if (IsExitAvailable == false)

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Lair.UI
 {
     //# 6셀 컨테이너 — BattleHud 자식. VM.Spawners 구독 + OnSpawnerSnapshotChanged.
-    //# Tooltip 제거 (v0.6.4) — 셀 클릭 동작 없음, 진행 바·종명·×N 만 표시.
+    //# Tooltip 제거 (v0.6.4) — 봉인 셀 탭만 예외(sealed-nest-lock), 그 외 셀은 표시 전용.
     public class SpawnerStatusPanel : MonoBehaviour
     {
         [SerializeField] private Transform _container;
@@ -61,8 +61,8 @@ namespace Lair.UI
                 ISpawnerProgress progress = null;
                 if (_spawners != null && i < _spawners.Count) progress = _spawners[i];
 
-                //# onClick null — Tooltip 폐기로 셀 클릭 동작 없음.
-                cell.Bind(snap, progress, null);
+                //# 셀 클릭은 봉인 중인 셀만 눌린다(셀 버튼 interactable = IsLocked) — VM 으로 올려 컨트롤러가 팝업 처리.
+                cell.Bind(snap, progress, _vm.RequestSealInfo);
                 _cells.Add(cell);
             }
         }
