@@ -26,6 +26,7 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
    - BLOCKER 가 있으면 gameplay-programmer 에 수정 위임(`SendMessage`, 수정본도 자동 커밋) 후 code-reviewer 재검토. **최대 3회** 반복. 3회 후에도 남으면 멈추고 사용자에게 보고한다 (전자동이라도 풀리지 않는 결함은 강행하지 않는다).
 3-1. **(UI 변경 시) ui-visual-reviewer** 위임 → `project.md` "UI 시각 검토 단계" 절차로 Play 캡처를 찍어 넘겨 시각 결함 검토. BLOCKER 는 ui-layout-engineer 에 `SendMessage` 로 수정 위임(코드 슬롯이 필요하면 gameplay-programmer, 수정본도 자동 커밋) 후 재캡처·재검토, **최대 3회**. 3회 후에도 남으면 멈추고 사용자에게 보고한다. 프리팹·스프라이트 변경이 없으면 건너뛴다.
 4. **test-engineer** 위임 → 본격 테스트 스위트 작성. 완료 즉시 자동 커밋.
+4-1. **(UI·씬 흐름·버튼 동작 변경 시) UI 스위프 점검 — `project.md` 7b** → 메인이 Rule 05 절차로 직접 스위프를 실행하고(`play_driver` 도구, 서브에이전트는 UnityMCP 불가) `Temp/PlayDriverReport.txt` 를 **qa-simulator** 에 넘겨 FAIL·SKIP·시각 확인 필요 화면을 분석시킨다. FAIL 원인이 코드면 gameplay-programmer, 레이아웃이면 ui-layout-engineer 에 `SendMessage` 로 수정 위임 후 재실행, **최대 3회**. 3회 후에도 남으면 멈추고 사용자에게 보고한다. 시각 확인 필요 화면은 메인이 캡처해 ui-visual-reviewer 에 넘긴다. 분석은 `docs/qa-reports/YYYY-MM-DD.md` 의 `## UI 스위프` 섹션에 남고 완료 즉시 자동 커밋. UI·씬 흐름 변경이 없으면 건너뛴다.
 5. **마무리** — 전체 변경 요약 보고. 각 단계는 이미 Rule 01 에 따라 자동 커밋되어 있다 (별도 커밋 불필요).
 
 ## 규칙
@@ -33,7 +34,8 @@ description: Use ONLY when the user explicitly invokes this skill by name. Runs 
 - "전자동"은 **단계 간 사용자 승인을 묻지 않는다**는 뜻이다. 그래도 다음 경우엔 멈춘다:
   - 호출 시 기능 설명이 없을 때 — 무엇을 만들지 묻는다.
   - code-reviewer 의 BLOCKER 가 3회 내에 안 풀릴 때 — 사용자에게 에스컬레이션.
-- qa-simulator(밸런스 시뮬)는 포함하지 않는다. 밸런스 검증이 필요하면 마무리 후 별도 호출을 제안한다.
+  - UI 스위프(4-1)의 FAIL 이 3회 내에 안 풀릴 때 — 사용자에게 에스컬레이션.
+- qa-simulator 의 **밸런스 시뮬**(7단계)은 포함하지 않는다. (UI 스위프 분석 7b 는 4-1 로 포함.) 밸런스 검증이 필요하면 마무리 후 별도 호출을 제안한다.
 - 룰은 `.claude/rules/01~04`, 위임·게이트 기준은 Rule 00 "메인 오케스트레이터 행동 규칙", 단계 순서는 `project.md` "협업 흐름 (Workflow)" 를 따른다.
 
 ## 에이전트 세션 관리
