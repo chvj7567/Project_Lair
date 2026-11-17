@@ -116,6 +116,10 @@ namespace Lair.Battle
 
         //# B1 신규
         private PauseService _pause;
+        //# 봉인 안내 팝업 문구 id (Strings_Ko).
+        private const int SealPopupTitleStringId = 1688;
+        private const int SealPopupBodyStringId = 1689;
+        private const int SealPopupConfirmStringId = 1690;
         //# 뒤로가기 확인 팝업이 ESC 로 닫힌 프레임 — 같은 프레임 LateUpdate ESC 로 재오픈 방지.
         private int _exitCancelFrame = -1;
         private PassiveTriggerService _passiveTriggers;
@@ -474,20 +478,25 @@ namespace Lair.Battle
             if (nest == null || nest.IsLocked == false)
                 return;
 
+            //# 해제 % 를 모르는 봉인(규칙 없음)은 셀 버튼도 꺼져 있다 — 같은 조건으로 무시.
+            int unlockPercent = SealUnlockHpPercentOf(nest.CurrentType);
+            if (unlockPercent <= 0)
+                return;
+
             float heroRatio = _heroHealth != null ? _heroHealth.Ratio : 1f;
             string body = SealedNestInfo.FormatNestPopupBody(
-                CHText.StringProvider.GetString(1689),
+                CHText.StringProvider.GetString(SealPopupBodyStringId),
                 SpeciesVisual.SpeciesName(nest.CurrentType),
-                SealUnlockHpPercentOf(nest.CurrentType),
+                unlockPercent,
                 heroRatio);
 
             _pause.Pause();
             _vm.SetExitAvailable(false);
             UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.ConfirmPopup, new ConfirmPopupArg
             {
-                Title = CHText.StringProvider.GetString(1688),
+                Title = CHText.StringProvider.GetString(SealPopupTitleStringId),
                 Message = body,
-                ConfirmLabel = CHText.StringProvider.GetString(1690),
+                ConfirmLabel = CHText.StringProvider.GetString(SealPopupConfirmStringId),
                 CancelLabel = null,
                 OnConfirm = ResumeFromExit,
                 OnCancel = ResumeFromExit,
@@ -597,6 +606,10 @@ namespace Lair.Battle
             //# 세트 참조는 Pop(OnEnable) 에서 비우므로 풀 정리 순서와 무관하게 안전하다.
             _tierSheets?.Release();
             _tierSheets = null;
+            if (_vm != null)
+            {
+                _vm.OnSealInfoRequested -= HandleSealInfoRequested;
+            }
             Lair.Character.GradeFxBudget.Reset();
             DespawnOnDeath.MonsterDied -= HandleMonsterDied;
             _traits?.Dispose();

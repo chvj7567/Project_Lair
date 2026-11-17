@@ -122,9 +122,18 @@ namespace Lair.UI
             _periodSealColor = false;
             _unlockElapsed = -1f;
             _lockSource = null;
-            if (_sealLockIcon != null) _sealLockIcon.gameObject.SetActive(false);
-            if (_button != null) _button.Interactable = false;
-            if (_periodText != null) _periodText.SetColor(NormalPeriodColor);
+            if (_sealLockIcon != null)
+            {
+                _sealLockIcon.gameObject.SetActive(false);
+            }
+            if (_button != null)
+            {
+                _button.Interactable = false;
+            }
+            if (_periodText != null)
+            {
+                _periodText.SetColor(NormalPeriodColor);
+            }
         }
 
         //# Panel 이 셀 생성·바인딩 시 호출 — snapshot + progress + onClick 3 인자 (기획서 §4.6).
@@ -220,16 +229,26 @@ namespace Lair.UI
                 _sealLockIcon.rectTransform.localScale = Vector3.one;
                 _sealLockIcon.color = Color.white;
             }
-            if (_icon != null) _icon.color = SealTintColor;
-            if (_glowOverlay != null) _glowOverlay.gameObject.SetActive(false);
+            if (_icon != null)
+            {
+                _icon.color = SealTintColor;
+            }
+            if (_glowOverlay != null)
+            {
+                _glowOverlay.gameObject.SetActive(false);
+            }
         }
 
         //# IsLocked 에지 감지 — false→true 즉시 표현, true→false 해제 연출 시작. 버튼은 봉인 중에만 눌림.
         private void PollSeal()
         {
             bool locked = _lockSource != null && _lockSource.IsLocked;
-            if (_button != null) _button.Interactable = locked;
-            if (locked == _sealApplied) return;
+            if (_button != null)
+            {
+                _button.Interactable = IsSealLabel();
+            }
+            if (locked == _sealApplied)
+                return;
 
             _sealApplied = locked;
             if (locked)
@@ -246,7 +265,8 @@ namespace Lair.UI
         //# 해제 연출 0.45초 — unscaled 라 컷인·팝업 정지 중에도 끝까지 재생. 끝나면 정상 강화 표현 복원.
         private void TickUnlockAnim()
         {
-            if (_unlockElapsed < 0f) return;
+            if (_unlockElapsed < 0f)
+                return;
 
             _unlockElapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(_unlockElapsed / UnlockAnimSeconds);
@@ -255,11 +275,18 @@ namespace Lair.UI
                 _sealLockIcon.rectTransform.localScale = Vector3.one * Mathf.Lerp(1f, UnlockLockScale, t);
                 _sealLockIcon.color = new Color(1f, 1f, 1f, 1f - t);
             }
-            if (_icon != null) _icon.color = Color.Lerp(SealTintColor, Color.white, t);
+            if (_icon != null)
+            {
+                _icon.color = Color.Lerp(SealTintColor, Color.white, t);
+            }
 
-            if (t < 1f) return;
+            if (t < 1f)
+                return;
             _unlockElapsed = -1f;
-            if (_sealLockIcon != null) _sealLockIcon.gameObject.SetActive(false);
+            if (_sealLockIcon != null)
+            {
+                _sealLockIcon.gameObject.SetActive(false);
+            }
             RebindSnapshot(_snapshot);
         }
 
