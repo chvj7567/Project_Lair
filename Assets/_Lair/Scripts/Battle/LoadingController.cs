@@ -128,6 +128,7 @@ namespace Lair.Battle
             //# 6. 로드 완료 — 안내 문구 표시 후 사용자의 배경 클릭 대기.
             _loadComplete = true;
             _hud.SetDescText(ReadyText);
+            _monsterShowcase?.RevealActual();
         }
 
         //# 로드 완료 후 배경 클릭 시 1회만 Battle 씬으로 전환.

@@ -61,6 +61,7 @@ namespace Lair.Showcase
         private bool _dirty;
         private bool _released;
         private bool _begun;
+        private bool _revealActual;
         //# 강화 Lv 계산용 메타 수치 — PrepareAsync 가 로더 결과를 1회 받아 둔다(직렬화하지 않는다). null 이면 강화 Lv 0 으로 본다.
         private MetaConfig _metaConfig;
 
@@ -72,6 +73,13 @@ namespace Lair.Showcase
             _begun = true;
             _metaConfig = MetaConfig.Current;
             await RefreshAsync();
+        }
+
+        //# 로딩 완료 시 호출 — 풋내기 고정을 풀고 실제 보유 등급·티어 외형으로 갱신(마을 씬은 항상 실제 외형).
+        public void RevealActual()
+        {
+            _revealActual = true;
+            _dirty = true;
         }
 
         //# 프로필 변경(구매·승급·클라우드 복원) 통지 — 프레임당 1회로 합쳐 처리(LateUpdate).
@@ -139,6 +147,14 @@ namespace Lair.Showcase
                 MetaProfile profile = MetaSession.GetOrLoad();
                 Dictionary<EMonster, int> levels = MonsterLooks.SpeciesLevels(profile, _metaConfig);
                 MonsterLook[] looks = MonsterLooks.Compute(MonsterLooks.ResolveFormation(profile), levels);
+                if (_scene == EScene.Loading && _revealActual == false)
+                {
+                    //# 로딩 중에는 풋내기·기본 시트로 고정 — 완료 시 RevealActual 이 실제 외형으로 갱신한다.
+                    for (int i = 0; i < looks.Length; i++)
+                    {
+                        looks[i] = new MonsterLook { Slot = looks[i].Slot, Monster = looks[i].Base, Base = looks[i].Base, Grade = MonsterGrades.MinGrade };
+                    }
+                }
                 if (_loader == null)
                 {
                     _loader = new MonsterTierSheetLoader(
