@@ -257,8 +257,8 @@ namespace Lair.Showcase
             bool sameInstance = state.Instance != null && state.Key == key;
             if (sameInstance == false)
             {
-                //# 외형이 자리표시자(풋내기·티어 0)와 같으면 교체 생략 — 로딩 초반 계산.
-                bool samePlaceholder = state.Instance == null && state.Slot.Placeholder != null && look.Tier == 0 && MonsterGrades.GradeOf(key) == MonsterGrades.MinGrade;
+                //# 로딩은 자리표시자 대신 프리팹 인스턴스를 항상 띄운다(마법진 선·그림자가 자리표시자에선 어긋남). 그 외 씬은 같은 외형이면 교체 생략.
+                bool samePlaceholder = _scene != EScene.Loading && state.Instance == null && state.Slot.Placeholder != null && look.Tier == 0 && MonsterGrades.GradeOf(key) == MonsterGrades.MinGrade;
                 if (samePlaceholder)
                     return;
                 ReturnInstance(state);
