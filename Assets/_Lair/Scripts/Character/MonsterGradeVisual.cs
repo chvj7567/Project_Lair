@@ -26,6 +26,7 @@ namespace Lair.Character
         private static readonly int BrightnessId = Shader.PropertyToID("_Brightness");
         private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
 
+        private float _rootBaseScale = 1f;
         private Vector3 _visualBaseScale = Vector3.one;
         private Vector3 _sigilBaseScale = Vector3.one;
         private Material _material;
@@ -52,6 +53,8 @@ namespace Lair.Character
             if (_baseCaptured)
                 return;
             _baseCaptured = true;
+            //# 이펙트는 이 루트의 자식이라 루트 스케일 r 이 한 번 더 곱해진다 — 프리팹 원본 r 을 캡처해 ApplyFx 에서 나눈다.
+            _rootBaseScale = Mathf.Max(0.0001f, transform.localScale.x);
             if (_visualRoot != null)
             {
                 _visualBaseScale = _visualRoot.localScale;
@@ -134,10 +137,12 @@ namespace Lair.Character
 
         private void ApplyFx(GradeFxSpec spec)
         {
+            //# 루트 스케일 r 과 무관하게 몸 프레임 대비 RefRatio 로 그려지도록 r 보정(종족 공통 시안 비율). 도감 칸도 같은 RefRatio 를 쓴다.
+            float cellWorld = _cellWorld * GradeFxSheet.RefRatio / _rootBaseScale;
             if (spec.HasAura && _aura != null && GradeFxBudget.TryAcquireAura())
             {
                 _auraOn = true;
-                _aura.Place(new Vector3(0f, spec.AuraOffsetY * _cellWorld, 0f), spec.AuraScale, _cellWorld);
+                _aura.Place(new Vector3(0f, spec.AuraOffsetY * cellWorld, 0f), spec.AuraScale, cellWorld);
                 _aura.Play(spec.AuraOpacity, 0);
             }
             int tornadoSlot = 0;
@@ -152,14 +157,18 @@ namespace Lair.Character
                     if (GradeFxBudget.TryAcquireTornado() == false)
                         continue;
                     _tornadoOn++;
-                    sheet.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), row.scale, _cellWorld);
+                    sheet.Place(new Vector3(row.offsetX * cellWorld, row.offsetY * cellWorld, 0f), row.scale, cellWorld);
                     sheet.Play(row.opacity, row.frameOffset);
                 }
                 else if (_sunburst != null && GradeFxBudget.TryAcquireSunburst())
                 {
                     _sunburstOn = true;
-                    _sunburst.Place(new Vector3(row.offsetX * _cellWorld, row.offsetY * _cellWorld, 0f), row.scale, _cellWorld);
+                    _sunburst.Place(new Vector3(row.offsetX * cellWorld, row.offsetY * cellWorld, 0f), row.scale, cellWorld);
                     _sunburst.Play(row.opacity, row.frameOffset);
+                }
+                else
+                {
+                    Debug.LogWarning($"[MonsterGradeVisual] {name} 후광 생략 - sunburst 연결 없음 또는 슬롯 상한");
                 }
             }
         }

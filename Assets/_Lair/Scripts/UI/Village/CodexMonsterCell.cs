@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ChvjUnityInfra;
+using Lair.Character;
 using Lair.Data;
 using Lair.Village;
 using UnityEngine;
@@ -147,8 +148,7 @@ namespace Lair.UI
         private const float BodyBasePx = 40f;
         //# 미해금 칸 이펙트 실루엣 불투명도(codex-locked-grade-fx-silhouette L4) — 약하면 1.0 으로 올린다.
         private const float LockedFxAlpha = 0.7f;
-        //# 이펙트 크기 = 프레임 px x scale ÷ 160 x cellWorld(GradeFxSheet.Place), 이펙트는 프리팹 루트(스케일 r) 자식이라 몸 프레임(=BodyRoot) 대비 비율 = 프레임 px x scale ÷ 160 x r.
-        //# r = cellWorld ÷ 몸 프레임 로컬 가로 = 종족 프리팹 루트 스케일. 지면 = 몸 프레임 하단(시안 기준).
+        //# 이펙트 크기 = 프레임 px x scale ÷ 160 x RefRatio(몸 프레임 대비, 종족 공통 — MonsterGradeVisual 이 루트 스케일 r 을 보정해 같은 비율로 그린다). 지면 = 몸 프레임 하단(시안 기준).
         private const float FxDesignCell = 160f;
 
         private static readonly Vector3[] Corners = new Vector3[4];
@@ -456,7 +456,7 @@ namespace Lair.UI
         //# 칸 이펙트를 전투/쇼케이스와 같은 몸 대비 크기·위치로 배치(Grade_Aura·Grade_Fx 값 사용) — 프리팹 고정 앵커는 등급 scale 을 무시했다.
         private void PlaceFx(GradeFxSpec spec, CodexRaceArt art)
         {
-            float ratio = FxRatioOf(art.Race);
+            float ratio = GradeFxSheet.RefRatio;
             PlaceFxImage(_aura, art.Aura, ratio, spec.AuraScale, 0f, spec.AuraOffsetY);
             int pillar = 0;
             foreach (Grade_FxRow row in spec.Fx)
@@ -477,27 +477,6 @@ namespace Lair.UI
         }
 
         //# 앵커 비율로 (너비, 높이, 중심)을 지정 — 부모 BodyRoot 가 몸 프레임 크기 B 이므로 비율 = B 단위.
-        private static float FxRatioOf(EMonster race)
-        {
-            switch (MonsterGrades.BaseOf(race))
-            {
-                case EMonster.Wisp:
-                    return 0.6f;
-                case EMonster.Wraith:
-                    return 1.3f;
-                case EMonster.Reaper:
-                    return 0.9f;
-                case EMonster.Hex:
-                    return 0.8f;
-                case EMonster.Plague:
-                    return 0.5f;
-                case EMonster.Phantom:
-                    return 0.4f;
-                default:
-                    return 1f;
-            }
-        }
-
         private static void PlaceFxImage(Image image, Sprite[] frames, float ratio, float scale, float offsetX, float offsetY)
         {
             if (image == null || frames == null || frames.Length == 0 || frames[0] == null)

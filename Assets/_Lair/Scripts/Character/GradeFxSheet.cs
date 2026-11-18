@@ -12,6 +12,8 @@ namespace Lair.Character
 
         private const float FadeInSeconds = 0.3f;
         private const float DesignCell = 160f;
+        //# 이펙트 월드 크기 ÷ 몸 프레임 기준 비율(종족 공통) — 이펙트가 프리팹 루트(스케일 r) 자식이라 r 만큼 이중 축소/확대되던 것을 MonsterGradeVisual 이 r 로 나눠 보정한다.
+        public const float RefRatio = 0.8f;
         private const float DefaultPpu = 100f;
 
         private float _elapsed;
