@@ -8,6 +8,9 @@ namespace Lair.Character
         public const int TornadoCap = 24;
         public const int SunburstCap = 8;
 
+        //# 도감 상세 미리보기가 켜는 동안 true — 상한과 무관하게 항상 획득(상세 우선, 칸·쇼케이스가 슬롯을 먼저 써도 상세 이펙트는 전부 나온다).
+        public static bool BypassCap;
+
         private static int _aura;
         private static int _tornado;
         private static int _sunburst;
@@ -29,7 +32,7 @@ namespace Lair.Character
 
         private static bool TryAcquire(ref int counter, int cap)
         {
-            if (counter >= cap)
+            if (BypassCap == false && counter >= cap)
                 return false;
             counter++;
             return true;

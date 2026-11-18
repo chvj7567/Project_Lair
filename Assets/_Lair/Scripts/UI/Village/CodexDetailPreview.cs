@@ -205,7 +205,16 @@ namespace Lair.UI
                 //# 풀 인스턴스는 직전 사용(전투·쇼케이스 보행)의 Animator Speed 가 남아 있을 수 있다 - 제자리 Idle 로 고정.
                 _showcase.SetMoving(false);
                 _showcase.SetVisualOffset(Vector3.zero);
-                MonsterLookApplier.Apply(poolable.gameObject, key, baseMonster, tier == 0 ? 0 : CodexRules.MinLevelOfTier(tier), true, tiers);
+                //# 상세는 이펙트 슬롯 상한을 넘어서도 전부 켠다(칸·쇼케이스가 먼저 소진해도 풋내기 불씨만 남지 않게).
+                GradeFxBudget.BypassCap = true;
+                try
+                {
+                    MonsterLookApplier.Apply(poolable.gameObject, key, baseMonster, tier == 0 ? 0 : CodexRules.MinLevelOfTier(tier), true, tiers);
+                }
+                finally
+                {
+                    GradeFxBudget.BypassCap = false;
+                }
 
                 if (_image != null)
                 {

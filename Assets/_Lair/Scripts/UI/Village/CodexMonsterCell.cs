@@ -147,11 +147,9 @@ namespace Lair.UI
         private const float BodyBasePx = 40f;
         //# 미해금 칸 이펙트 실루엣 불투명도(codex-locked-grade-fx-silhouette L4) — 약하면 1.0 으로 올린다.
         private const float LockedFxAlpha = 0.7f;
-        //# 이펙트 월드 크기 = 프레임 px x scale ÷ 160 x cellWorld(GradeFxSheet.Place) — 칸은 몸 프레임(=BodyRoot) 대비 비율로 같은 식을 쓴다.
-        //# CellWorld = 등급 프리팹 _cellWorld, BodyFrameWorld = 몸 프레임 월드 가로(192px ÷ PPU 124.6 x Visual2D 0.769). 지면 = 몸 프레임 하단(시안 기준).
+        //# 이펙트 크기 = 프레임 px x scale ÷ 160 x cellWorld(GradeFxSheet.Place), 이펙트는 프리팹 루트(스케일 r) 자식이라 몸 프레임(=BodyRoot) 대비 비율 = 프레임 px x scale ÷ 160 x r.
+        //# r = cellWorld ÷ 몸 프레임 로컬 가로 = 종족 프리팹 루트 스케일. 지면 = 몸 프레임 하단(시안 기준).
         private const float FxDesignCell = 160f;
-        private const float FxCellWorld = 0.9325f;
-        private const float BodyFrameWorld = 1.185f;
 
         private static readonly Vector3[] Corners = new Vector3[4];
         private static readonly Color LockedBorder = new Color32(0x23, 0x28, 0x34, 0xFF);
@@ -458,7 +456,8 @@ namespace Lair.UI
         //# 칸 이펙트를 전투/쇼케이스와 같은 몸 대비 크기·위치로 배치(Grade_Aura·Grade_Fx 값 사용) — 프리팹 고정 앵커는 등급 scale 을 무시했다.
         private void PlaceFx(GradeFxSpec spec, CodexRaceArt art)
         {
-            PlaceFxImage(_aura, art.Aura, spec.AuraScale, 0f, spec.AuraOffsetY);
+            float ratio = FxRatioOf(art.Race);
+            PlaceFxImage(_aura, art.Aura, ratio, spec.AuraScale, 0f, spec.AuraOffsetY);
             int pillar = 0;
             foreach (Grade_FxRow row in spec.Fx)
             {
@@ -466,29 +465,50 @@ namespace Lair.UI
                 {
                     if (_pillars != null && pillar < _pillars.Length)
                     {
-                        PlaceFxImage(_pillars[pillar], art.Pillar, row.scale, row.offsetX, row.offsetY);
+                        PlaceFxImage(_pillars[pillar], art.Pillar, ratio, row.scale, row.offsetX, row.offsetY);
                     }
                     pillar++;
                 }
                 else
                 {
-                    PlaceFxImage(_halo, art.Halo, row.scale, row.offsetX, row.offsetY);
+                    PlaceFxImage(_halo, art.Halo, ratio, row.scale, row.offsetX, row.offsetY);
                 }
             }
         }
 
         //# 앵커 비율로 (너비, 높이, 중심)을 지정 — 부모 BodyRoot 가 몸 프레임 크기 B 이므로 비율 = B 단위.
-        private static void PlaceFxImage(Image image, Sprite[] frames, float scale, float offsetX, float offsetY)
+        private static float FxRatioOf(EMonster race)
+        {
+            switch (MonsterGrades.BaseOf(race))
+            {
+                case EMonster.Wisp:
+                    return 0.6f;
+                case EMonster.Wraith:
+                    return 1.3f;
+                case EMonster.Reaper:
+                    return 0.9f;
+                case EMonster.Hex:
+                    return 0.8f;
+                case EMonster.Plague:
+                    return 0.5f;
+                case EMonster.Phantom:
+                    return 0.4f;
+                default:
+                    return 1f;
+            }
+        }
+
+        private static void PlaceFxImage(Image image, Sprite[] frames, float ratio, float scale, float offsetX, float offsetY)
         {
             if (image == null || frames == null || frames.Length == 0 || frames[0] == null)
                 return;
             Sprite frame = frames[0];
-            float k = scale * FxCellWorld / (FxDesignCell * BodyFrameWorld);
+            float k = scale * ratio / FxDesignCell;
             float w = frame.rect.width * k;
             float h = frame.rect.height * k;
             float pivotY = frame.rect.height > 0f ? frame.pivot.y / frame.rect.height : 0.5f;
-            float cx = 0.5f + offsetX * FxCellWorld / BodyFrameWorld;
-            float cy = offsetY * FxCellWorld / BodyFrameWorld + (0.5f - pivotY) * h;
+            float cx = 0.5f + offsetX * ratio;
+            float cy = offsetY * ratio + (0.5f - pivotY) * h;
             RectTransform rt = image.rectTransform;
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchorMin = new Vector2(cx - w * 0.5f, cy - h * 0.5f);
