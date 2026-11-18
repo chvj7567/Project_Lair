@@ -153,7 +153,7 @@ namespace Lair.UI
             }
         }
 
-        //# monster = 이 칸 등급의 몬스터, baseMonster = 종족 기준. silhouette 면 1등급 프리팹 + 검은 틴트. tier 는 티어 시트(종족 공통)로 치환된다.
+        //# monster = 이 칸 등급의 몬스터, baseMonster = 종족 기준. silhouette 면 검은 틴트(이펙트 포함). tier 는 티어 시트(종족 공통)로 치환된다.
         public async Task ShowAsync(EMonster monster, EMonster baseMonster, int tier, bool silhouette, IMonsterTierSheetProvider tiers)
         {
             if (_rt == null)
@@ -161,7 +161,8 @@ namespace Lair.UI
             int version = ++_version;
             try
             {
-                EMonster key = silhouette ? baseMonster : monster;
+                //# 미해금도 그 칸 등급 프리팹을 로드해 등급 이펙트·크기를 그린다(검은 틴트가 이펙트까지 검게). 1등급은 monster == baseMonster.
+                EMonster key = monster;
                 GameObject prefab = await LoadWithTimeout(key);
                 if (prefab == null && key != baseMonster && version == _version)
                 {

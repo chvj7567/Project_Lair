@@ -145,6 +145,8 @@ namespace Lair.UI
         private const float FxFps = 30f;
         private const float GlowAlpha = 0.55f;
         private const float BodyBasePx = 40f;
+        //# 미해금 칸 이펙트 실루엣 불투명도(codex-locked-grade-fx-silhouette L4) — 약하면 1.0 으로 올린다.
+        private const float LockedFxAlpha = 0.7f;
 
         private static readonly Vector3[] Corners = new Vector3[4];
         private static readonly Color LockedBorder = new Color32(0x23, 0x28, 0x34, 0xFF);
@@ -160,6 +162,10 @@ namespace Lair.UI
         private bool _unlockActive;
         private float _unlockTime;
         private float _unlockDelay;
+        //# 이펙트 Image 의 프리팹 원본(가산) 머티리얼 — Awake 1회 캐싱. 미해금 실루엣은 기본 UI 머티리얼(null)로 바꿔 알파 합성한다.
+        private Material _fxMaterial;
+        private bool _fxMaterialCached;
+        private bool _unlockFxRestored;
 
         public CodexMonsterCellData Data => _data;
         public bool IsRowHeader => _data != null && _data.IsRowHeader;
@@ -168,6 +174,11 @@ namespace Lair.UI
         public int Grade => _data != null && _data.Model != null ? _data.Model.Grade : 0;
         public int Tier => _data != null && _data.Model != null ? _data.Model.Tier : 0;
         public bool IsFxCandidate => _data != null && _data.Model != null && _data.Model.Open && _data.Model.Grade > MonsterGrades.MinGrade;
+
+        private void Awake()
+        {
+            CacheFxMaterial();
+        }
 
         //# 풀 Pop/재사용 — 연출·이펙트 상태를 전부 초기화(Rule 03 §4).
         private void OnEnable()
@@ -392,10 +403,10 @@ namespace Lair.UI
             _bodyGlow.rectTransform.localScale = new Vector3(scale, scale, 1f);
         }
 
-        //# 해금 칸의 등급 이펙트 첫 프레임 — 1등급·잠금은 효과 없음. 오라/기둥/후광 유무는 GradeFxDatabase(몬스터 프리팹과 같은 값)에서 읽는다.
+        //# 2등급 이상 칸의 등급 이펙트 첫 프레임 — 1등급은 효과 없음, 미해금은 같은 구성을 검은 실루엣으로(정지 프레임·슬롯 0). 오라/기둥/후광 유무는 GradeFxDatabase(몬스터 프리팹과 같은 값)에서 읽는다.
         private void ApplyStaticFx(CodexMonsterCellData data, bool open)
         {
-            GradeFxSpec spec = open && data.Model.Grade > MonsterGrades.MinGrade && GradeFxDatabase.Current != null
+            GradeFxSpec spec = data.Model.Grade > MonsterGrades.MinGrade && GradeFxDatabase.Current != null
                 ? GradeFxDatabase.Current.SpecOf(data.Model.Race, data.Model.Grade)
                 : null;
             bool fx = spec != null && data.Art != null;
@@ -430,10 +441,54 @@ namespace Lair.UI
                     SetActive(_pillars[i], i < pillars);
                 }
             }
+            ApplyFxLook(open == false);
             if (fx)
             {
                 ShowFxFrame(0);
             }
+        }
+
+        private void CacheFxMaterial()
+        {
+            if (_fxMaterialCached)
+                return;
+            _fxMaterialCached = true;
+            if (_aura != null)
+            {
+                _fxMaterial = _aura.material;
+            }
+            else if (_halo != null)
+            {
+                _fxMaterial = _halo.material;
+            }
+            else if (_pillars != null && _pillars.Length > 0 && _pillars[0] != null)
+            {
+                _fxMaterial = _pillars[0].material;
+            }
+        }
+
+        //# 실루엣 = 기본 UI 머티리얼 + (0,0,0,LockedFxAlpha), 컬러 = 원본 가산 머티리얼 + 흰색. 재바인딩마다 둘 다 명시 설정(상태 누수 방지).
+        private void ApplyFxLook(bool silhouette)
+        {
+            CacheFxMaterial();
+            Material material = silhouette ? null : _fxMaterial;
+            Color color = silhouette ? new Color(0f, 0f, 0f, LockedFxAlpha) : Color.white;
+            SetFxLook(_aura, material, color);
+            SetFxLook(_halo, material, color);
+            if (_pillars == null)
+                return;
+            foreach (Image pillar in _pillars)
+            {
+                SetFxLook(pillar, material, color);
+            }
+        }
+
+        private static void SetFxLook(Image image, Material material, Color color)
+        {
+            if (image == null)
+                return;
+            image.material = material;
+            image.color = color;
         }
 
         private static bool HasFrames(Sprite[] frames) => frames != null && frames.Length > 0;
@@ -476,7 +531,9 @@ namespace Lair.UI
             {
                 _body.color = Color.black;
             }
-            SetFxAlpha(0f);
+            //# 이펙트는 실루엣으로 시작 — TickUnlock 이 알파를 줄인 뒤 머티리얼을 원본으로 되돌린다.
+            _unlockFxRestored = false;
+            ApplyFxLook(true);
             if (_unlockFx != null)
             {
                 CodexConfigRow cfg = data.Config;
@@ -508,6 +565,18 @@ namespace Lair.UI
             if (_body != null)
             {
                 _body.color = Color.Lerp(Color.black, Color.white, fade);
+            }
+            if (_unlockFxRestored == false)
+            {
+                if (t < cfg.cellFxFadeDelaySec)
+                {
+                    SetFxAlpha(LockedFxAlpha * (1f - t / cfg.cellFxFadeDelaySec));
+                    return;
+                }
+                //# 실루엣 알파가 0 인 이 순간 가산 머티리얼·흰색으로 교체(1회) — 깜빡임 없음.
+                _unlockFxRestored = true;
+                ApplyFxLook(false);
+                SetFxAlpha(0f);
             }
             float fxT = t - cfg.cellFxFadeDelaySec;
             float fxAlpha = cfg.cellFxFadeSec > 0f ? Mathf.Clamp01(fxT / cfg.cellFxFadeSec) : (fxT >= 0f ? 1f : 0f);
@@ -545,7 +614,15 @@ namespace Lair.UI
             _fxTime = 0f;
             _unlockActive = false;
             _unlockTime = 0f;
-            SetFxAlpha(1f);
+            _unlockFxRestored = false;
+            if (_data != null && _data.Model != null)
+            {
+                ApplyFxLook(_data.Model.Open == false);
+            }
+            else
+            {
+                SetFxAlpha(1f);
+            }
             if (_unlockFx != null)
             {
                 _unlockFx.Stop();
