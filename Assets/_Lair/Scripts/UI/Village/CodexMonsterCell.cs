@@ -403,7 +403,8 @@ namespace Lair.UI
             _bodyGlow.rectTransform.localScale = new Vector3(scale, scale, 1f);
         }
 
-        //# 2등급 이상 칸의 등급 이펙트 첫 프레임 — 1등급은 효과 없음, 미해금은 같은 구성을 검은 실루엣으로(정지 프레임·슬롯 0). 오라/기둥/후광 유무는 GradeFxDatabase(몬스터 프리팹과 같은 값)에서 읽는다.
+        //# 2등급 이상 칸의 등급 이펙트 첫 프레임 — 1등급은 효과 없음.
+        //# 미해금은 같은 구성을 검은 실루엣으로(정지 프레임·슬롯 0).
         private void ApplyStaticFx(CodexMonsterCellData data, bool open)
         {
             GradeFxSpec spec = data.Model.Grade > MonsterGrades.MinGrade && GradeFxDatabase.Current != null
@@ -487,7 +488,10 @@ namespace Lair.UI
         {
             if (image == null)
                 return;
-            image.material = material;
+            if (image.material != material)
+            {
+                image.material = material;
+            }
             image.color = color;
         }
 
