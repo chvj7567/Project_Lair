@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>몬스터 등급 이펙트 - 종족마다 다른 모양</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0e16;color:#e8e4d8;font:15px/1.55 "Noto Sans KR","Malgun Gothic",sans-serif;padding:20px 14px 60px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px;color:#fbbf24}
+h2{font-size:17px;margin:30px 0 10px;color:#fde68a;border-bottom:1px solid #2a3148;padding-bottom:6px}
+.sub{color:#9aa3bd;margin:0 0 14px}
+.box{background:#141a2a;border:1px solid #2a3148;border-radius:10px;padding:12px 14px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card{background:#141a2a;border:1px solid #2a3148;border-radius:10px;padding:10px 12px}
+.card h3{margin:0 0 6px;font-size:15px}
+.card h3 small{color:#9aa3bd;font-weight:400;font-size:12px}
+.card ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:#cfd4e8}
+.stage{display:flex;justify-content:space-around;align-items:flex-end;height:96px;background:#0d111c;border-radius:8px;margin-bottom:8px;position:relative;overflow:hidden}
+.u{position:relative;width:64px;height:96px}
+.body{position:absolute;left:20px;bottom:12px;width:24px;height:30px;border-radius:12px 12px 6px 6px;background:var(--c);box-shadow:0 0 0 2px #0a0d14}
+.ring{position:absolute;left:4px;bottom:6px;width:56px;height:18px;border-radius:50%;border:2px solid var(--c);box-shadow:0 0 8px var(--c);opacity:.8}
+.pil{position:absolute;bottom:10px;width:7px;height:48px;border-radius:4px;background:linear-gradient(0deg,var(--c),transparent);box-shadow:0 0 8px var(--c);opacity:.85}
+.pil.l{left:2px}.pil.r{right:2px}
+.halo{position:absolute;left:2px;bottom:14px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,transparent 44%,var(--c) 52%,transparent 70%);opacity:.7}
+.cap{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:10px;color:#9aa3bd}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:#222b44;color:#cfd4e8;margin-right:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #2a3148;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#1a2238;color:#fde68a}
+.ask{border:2px solid #fbbf24;background:#1b1a10;border-radius:10px;padding:12px 14px}
+.ask li{margin:8px 0}
+.rec{color:#86efac;font-weight:700}
+.no{color:#fca5a5}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>등급 이펙트, 종족마다 다른 모양으로</h1>
+<p class="sub">지금은 6종 모두 같은 불꽃 기둥과 룬 원에 색만 다릅니다. 앞으로는 종족의 설화에 맞는 모양이 됩니다.</p>
+
+<div class="box">
+<b>한 줄 요약</b><br>
+몬스터가 2등급 이상으로 승급하면 발밑·옆·뒤에 빛 이펙트가 붙습니다. 이 이펙트를 도깨비는 도깨비불로, 원귀는 안개와 혼불로, 저승차사는 붉은 깃발로… 종족마다 다르게 그립니다.
+</div>
+
+<h2>그대로인 것 / 바뀌는 것</h2>
+<div class="grid">
+<div class="card"><h3>그대로</h3>
+<ul>
+<li>2~3등급은 발밑 고리만, 4등급은 몸 양옆에 요소 2개 추가</li>
+<li>5등급은 뒤 후광 + 양옆 요소 4개 + 몸이 반짝 맥동</li>
+<li>이펙트의 개수·크기·위치, 전투 중 부담</li>
+<li>승급 방법, 능력치, 몬스터 몸 그림</li>
+</ul></div>
+<div class="card"><h3>바뀜</h3>
+<ul>
+<li>발밑 고리, 양옆 요소, 뒤 후광의 <b>모양</b>이 종족 설화 모티프로</li>
+<li>새 몬스터 그림체에 맞춘 고해상도 그림</li>
+<li>색은 몬스터 몸 색과 같은 계열</li>
+</ul></div>
+</div>
+
+<h2>종족별 이펙트 (시안 느낌)</h2>
+<p class="sub">아래 그림은 개념만 보여 주는 간이 그림이고, 실제는 GPT 로 그린 빛 그림이 움직입니다.</p>
+<div class="grid">
+
+<div class="card" style="--c:#3FCF86"><h3>도깨비불 <small>꼬마 도깨비</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 도깨비불 8개가 줄지어 도는 고리</li>
+<li>옆: 불덩이가 3단으로 쌓인 불기둥</li>
+<li>뒤: 도깨비불 화환 후광</li>
+</ul></div>
+
+<div class="card" style="--c:#CFD4E8"><h3>망령 <small>원귀</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 은빛 안개 고리와 도는 혼불 5개</li>
+<li>옆: 소복 천과 머리카락처럼 흐르는 안개 기둥</li>
+<li>뒤: 보름달 달무리와 흩날리는 천 리본</li>
+</ul></div>
+
+<div class="card" style="--c:#FF5A4A"><h3>사신 <small>저승차사</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 붉은 저승 명부 원진과 오랏줄 고리</li>
+<li>옆: 펄럭이는 붉은 적패지 깃발 빛</li>
+<li>뒤: 붉은 해무리와 칼빛 광선</li>
+</ul></div>
+
+<div class="card" style="--c:#FFC531"><h3>저주술사 <small>애기무당</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 5방위 부적진과 방울 고리</li>
+<li>옆: 오방 술이 달린 세로 부적 띠</li>
+<li>뒤: 오방기 5장이 부채꼴로 펼쳐진 후광</li>
+</ul></div>
+
+<div class="card" style="--c:#C765FF"><h3>역병귀 <small>역신</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 독 웅덩이 파문과 터지는 기포 고리</li>
+<li>옆: 조롱박 모양으로 피어오르는 독 안개</li>
+<li>뒤: 독 구름과 신라 금관 모양 후광</li>
+</ul></div>
+
+<div class="card" style="--c:#4FB0FF"><h3>환령 <small>그슨대</small></h3>
+<div class="stage"><div class="u"><div class="halo"></div><div class="ring"></div><div class="body"></div><div class="pil l"></div><div class="pil r"></div></div><span class="cap">5등급 느낌</span></div>
+<ul>
+<li>발밑: 청색 빛으로 그린 박쥐 무늬 고리</li>
+<li>옆: 불어나는 그림자의 푸른 윤곽과 눈</li>
+<li>뒤: 박쥐 날개 한 쌍의 푸른 빛 후광</li>
+</ul></div>
+
+</div>
+
+<h2>알아둘 점</h2>
+<div class="box">
+<span class="tag">빛으로만 그림</span> 이펙트는 화면에 빛을 더하는 방식이라 어두운 부분은 투명하게 보입니다. 그래서 환령·망령처럼 어두운 종족은 "어둠의 푸른 테두리 빛" 으로 표현합니다.<br>
+<span class="tag">부담 동일</span> 이펙트 개수와 크기가 그대로라 전투 중 부담은 늘지 않습니다.<br>
+<span class="tag">먼저 한 종족</span> 도깨비불로 먼저 만들어 보고 괜찮으면 나머지 5종을 만듭니다.<br>
+<span class="tag">보고 승인</span> 게임에 넣기 전에 옛 이펙트와 새 이펙트를 나란히 보여 드리고 승인받습니다.
+</div>
+
+<h2>어떻게 만드나</h2>
+<table>
+<tr><th>단계</th><th>내용</th></tr>
+<tr><td>1</td><td>종족마다 그림 3장(발밑 / 옆 / 뒤)을 AI 로 그립니다.</td></tr>
+<tr><td>2</td><td>그 그림을 돌리고 흔들고 겹쳐서 부드럽게 반복되는 움직임으로 만듭니다.</td></tr>
+<tr><td>3</td><td>도깨비불 먼저 -> 승인 -> 나머지 5종.</td></tr>
+<tr><td>4</td><td>옛 것과 새 것 비교 화면에서 승인 -> 게임에 교체.</td></tr>
+</table>
+
+<h2>결정해 주세요</h2>
+<div class="ask">
+<ol>
+<li><b>모양만 다르게 vs 구성까지 다르게</b><br>종족마다 이펙트 개수·위치까지 바꿀지, 지금 구성(고리 / 양옆 / 뒤 후광)은 두고 모양만 바꿀지.<br><span class="rec">추천: 모양만 다르게</span> (구성까지 바꾸면 데이터·화면·코드를 크게 손봐야 합니다)</li>
+<li><b>빛으로만 그릴까요</b><br>지금처럼 빛이 더해지는 방식을 유지할지, 몬스터처럼 어두운 외곽선이 있는 불투명 그림으로 바꿀지.<br><span class="rec">추천: 빛으로만</span> (불투명으로 바꾸면 이펙트가 몸을 가리고 전체 교체 작업이 커집니다)</li>
+<li><b>AI 그림 배경색</b><br>몬스터 때는 분홍 배경을 썼지만 빛 그림은 검정 배경이 번짐 없이 깨끗합니다. 검정으로 해도 될까요.<br><span class="rec">추천: 검정으로</span> (안 깨끗하면 분홍으로 되돌립니다)</li>
+<li><b>그림 선명도</b><br>화면 크기가 큰 망령(5등급)과 사신은 이펙트가 살짝 부드러워 보일 수 있습니다. 지금 크기 그대로 괜찮을까요.<br><span class="rec">추천: 그대로</span> (너무 흐리면 나중에 크기를 키우는 별도 작업으로)</li>
+<li><b>시험 종족</b><br>어느 종족으로 먼저 만들어 볼까요.<br><span class="rec">추천: 도깨비불</span> (이펙트가 작아 실패 부담이 적고 모티프가 쉽습니다)</li>
+<li><b>오방색 포인트</b><br>저주술사·사신에 오방색(청·적·황·백·흑)을 아주 조금(15% 이하) 섞어도 될까요.<br><span class="rec">추천: 허용</span> (몬스터 그림에도 쓰고 있습니다)</li>
+</ol>
+</div>
+
+</div>
+</body>
+</html>
