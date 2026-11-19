@@ -7,30 +7,30 @@ namespace Lair.Character
     public class MonsterEnhanceSigil : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer _renderer;
-        //# index0=링1, 1=링2, 2=링2+파편(회전)
+        //# index0=링1, 1=링2, 2=링2+파편(알파 맥동)
         [SerializeField] private Sprite[] _stageSprites;
-        [SerializeField] private float _rotationSpeedDegPerSec = 45f;
 
         private const float SigilAlpha = 0.85f;
-        private const int RotatingStage = 3;
+        private const float PulseMinAlpha = 0.55f;
+        private const float PulsePeriodSec = 2.5f;
+        private const int PulsingStage = 3;
 
         private IHealth _health;
-        private Quaternion _restLocalRotation;
         private int _stage;
+        private float _pulsePhase;
 
         private void Awake()
         {
             if (_renderer == null) _renderer = GetComponent<SpriteRenderer>();
-            _restLocalRotation = transform.localRotation;
             LairCharacter character = GetComponentInParent<LairCharacter>();
             _health = character != null ? character.Get<IHealth>() : null;
         }
 
-        //# 풀 재사용 — 숨김 + 회전 원위치 복귀 + 사망 구독(Rule 03 §4).
+        //# 풀 재사용 — 숨김 + 맥동 위상 랜덤 재설정 + 사망 구독(Rule 03 §4).
         private void OnEnable()
         {
             SetStage(0, Color.white);
-            transform.localRotation = _restLocalRotation;
+            _pulsePhase = Random.value * Mathf.PI * 2f;
             if (_health != null) _health.OnDied += HandleDied;
         }
 
@@ -71,9 +71,13 @@ namespace Lair.Character
 
         private void Update()
         {
-            if (_stage < RotatingStage)
+            if (_stage < PulsingStage || _renderer == null || _renderer.enabled == false)
                 return;
-            transform.Rotate(Vector3.up, _rotationSpeedDegPerSec * Time.deltaTime, Space.Self);
+            //# α = PulseMin~SigilAlpha 사인 왕복, 주기 PulsePeriodSec.
+            float t = Mathf.Sin(Time.time * Mathf.PI * 2f / PulsePeriodSec + _pulsePhase) * 0.5f + 0.5f;
+            Color c = _renderer.color;
+            c.a = Mathf.Lerp(PulseMinAlpha, SigilAlpha, t);
+            _renderer.color = c;
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_TESTS
