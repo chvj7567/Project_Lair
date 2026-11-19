@@ -24,6 +24,7 @@ namespace Lair.Tests.EditMode
         private Material _fxMaterial;
         private CodexRaceArt _art;
         private GradeFxDatabase _prevDb;
+        private int _grade = 5;
         private readonly List<Object> _garbage = new List<Object>();
 
         [SetUp]
@@ -254,6 +255,20 @@ namespace Lair.Tests.EditMode
 
         //# ---------- helpers ----------
 
+        //# Grade_Aura.json·Grade_Fx.json 실값과 같은 등급별 opacity - 컬러 이펙트 알파는 이 값이다.
+        private const float TornadoOpacity = 0.95f;
+        private const float HaloOpacity = 0.85f;
+
+        private static float AuraOpacity(int grade)
+        {
+            return grade == 2 ? 0.45f : grade == 3 ? 0.65f : grade == 4 ? 0.85f : 1f;
+        }
+
+        private float ExpectedOpacity(Image image)
+        {
+            return image == _aura ? AuraOpacity(_grade) : image == _halo ? HaloOpacity : TornadoOpacity;
+        }
+
         private static GradeFxDatabase BuildDb()
         {
             GradeRow[] grades = new GradeRow[5];
@@ -265,18 +280,18 @@ namespace Lair.Tests.EditMode
             Grade_AuraRow[] auras = new Grade_AuraRow[4];
             for (int g = 2; g <= 5; ++g)
             {
-                auras[g - 2] = new Grade_AuraRow { grade = g, opacity = 1f, scale = 2f };
+                auras[g - 2] = new Grade_AuraRow { grade = g, opacity = AuraOpacity(g), scale = 2f };
             }
             List<Grade_FxRow> fx = new List<Grade_FxRow>();
             for (int i = 0; i < 2; ++i)
             {
-                fx.Add(new Grade_FxRow { grade = 4, index = i, kind = "Tornado", scale = 1f });
+                fx.Add(new Grade_FxRow { grade = 4, index = i, kind = "Tornado", scale = 1f, opacity = TornadoOpacity });
             }
             for (int i = 0; i < 4; ++i)
             {
-                fx.Add(new Grade_FxRow { grade = 5, index = i, kind = "Tornado", scale = 1f });
+                fx.Add(new Grade_FxRow { grade = 5, index = i, kind = "Tornado", scale = 1f, opacity = TornadoOpacity });
             }
-            fx.Add(new Grade_FxRow { grade = 5, index = 4, kind = "Sunburst", scale = 2f });
+            fx.Add(new Grade_FxRow { grade = 5, index = 4, kind = "Sunburst", scale = 2f, opacity = HaloOpacity });
             Monster_GradeFxColorRow[] colors = new Monster_GradeFxColorRow[6];
             for (int i = 0; i < 6; ++i)
             {
@@ -287,6 +302,7 @@ namespace Lair.Tests.EditMode
 
         private CodexMonsterCellData Data(int grade, bool open)
         {
+            _grade = grade;
             return new CodexMonsterCellData
             {
                 Model = new CodexCellModel { Race = EMonster.Wisp, Monster = EMonster.Wisp, Index = grade, Grade = grade, Tier = 0, Open = open, Name = "t" },
@@ -377,7 +393,7 @@ namespace Lair.Tests.EditMode
                     Assert.AreEqual(1f, image.color.r, Eps, $"{image.name} R");
                     Assert.AreEqual(1f, image.color.g, Eps, $"{image.name} G");
                     Assert.AreEqual(1f, image.color.b, Eps, $"{image.name} B");
-                    Assert.AreEqual(1f, image.color.a, Eps, $"{image.name} A");
+                    Assert.AreEqual(ExpectedOpacity(image), image.color.a, Eps, $"{image.name} A(등급별 opacity)");
                 }
             }
             Assert.Greater(checkedCount, 0, "검증 대상 이펙트가 하나 이상 켜져 있어야 함");

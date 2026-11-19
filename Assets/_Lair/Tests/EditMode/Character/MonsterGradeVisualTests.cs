@@ -16,6 +16,8 @@ namespace Lair.Tests.Character
     public class MonsterGradeVisualTests
     {
         private const float CellWorld = 0.7205f;
+        //# ApplyFx 는 cellWorld x GradeFxSheet.RefRatio(0.8) / 루트 스케일(1)로 배치한다.
+        private const float RefCellWorld = CellWorld * 0.8f;
         private static readonly Vector3 BaseVisualScale = new Vector3(2f, 2f, 1f);
         private static readonly Vector3 BaseSigilScale = new Vector3(1.5f, 1.5f, 1f);
 
@@ -246,14 +248,14 @@ namespace Lair.Tests.Character
         }
 
         [Test]
-        public void 이펙트_위치는_셀_비율_x_cellWorld_이고_sizeMul_을_곱하지_않는다()
+        public void 이펙트_위치는_셀_비율_x_cellWorld_x_RefRatio_이고_sizeMul_을_곱하지_않는다()
         {
             Configure(Spec4());
 
-            Assert.AreEqual(-0.325f * CellWorld, _tornados[0].transform.localPosition.x, 0.0001f, "x = offsetX x cellWorld (x1.225 아님)");
-            Assert.AreEqual(0.0875f * CellWorld, _tornados[0].transform.localPosition.y, 0.0001f);
-            Assert.AreEqual(0.325f * CellWorld, _tornados[1].transform.localPosition.x, 0.0001f);
-            Assert.AreEqual(0.075f * CellWorld, _aura.transform.localPosition.y, 0.0001f, "오라 y = offsetY x cellWorld");
+            Assert.AreEqual(-0.325f * RefCellWorld, _tornados[0].transform.localPosition.x, 0.0001f, "x = offsetX x cellWorld (x1.225 아님, 루트 스케일 1)");
+            Assert.AreEqual(0.0875f * RefCellWorld, _tornados[0].transform.localPosition.y, 0.0001f);
+            Assert.AreEqual(0.325f * RefCellWorld, _tornados[1].transform.localPosition.x, 0.0001f);
+            Assert.AreEqual(0.075f * RefCellWorld, _aura.transform.localPosition.y, 0.0001f, "오라 y = offsetY x cellWorld");
         }
 
         [Test]
