@@ -57,11 +57,11 @@ namespace Lair.UI
             if (_subtitleText != null)
             {
                 _subtitleText.SetText(BuildSubtitle(sa.IsPassive, sa.TriggerHpPercent, sa.ActivePeriodSeconds));
-                _subtitleText.SetColor(UiDotPalette.CardKind(sa.IsPassive));
+                _subtitleText.SetColor(UiDotPalette.CardSelectKind(sa.IsPassive));
             }
 
             //# 앞 3개(제목 글로우·부제 글로우·부제 알약)는 이미 컬러 아트라 틴트 제외 — 프리팹 순서 고정(테스트가 보장).
-            CardView.TintRgb(_kindTintImages, UiDotPalette.CardKind(sa.IsPassive), UntintedLeadingCount);
+            CardView.TintRgb(_kindTintImages, UiDotPalette.CardSelectKind(sa.IsPassive), UntintedLeadingCount);
             BindSynergyChips(sa);
 
             for (int i = 0; i < _slots.Length; ++i)

@@ -26,6 +26,14 @@ namespace Lair.UI
             return isPassive ? Soul : Gold;
         }
 
+        public static readonly Color CardSelectPassive = new Color32(0x44, 0xC1, 0x50, 0xFF); //# 카드 선택 팝업 패시브 초록(시안)
+
+        //# 카드 선택 팝업 전용 종류 색 — 패시브=시안 초록, 액티브=금. 공유 CardKind 는 그대로.
+        public static Color CardSelectKind(bool isPassive)
+        {
+            return isPassive ? CardSelectPassive : Gold;
+        }
+
         //# 토스트 점 색 — 정보=소울, 경고=금, 오류=피.
         public static Color ToastDot(EToastKind kind)
         {

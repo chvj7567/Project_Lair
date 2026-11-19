@@ -908,7 +908,7 @@ namespace Lair.Tests.EditMode
                 original[i] = tint[i].color;
                 if (i < PopupUntintedLeading)
                     continue;
-                AssertRgb(UiDotPalette.CardKind(true), tint[i].color, tint[i].name + " 패시브");
+                AssertRgb(UiDotPalette.CardSelectKind(true), tint[i].color, tint[i].name + " 패시브");
             }
 
             popup.InitUI(new CardSelectionArg { Choices = new List<CardData> { MakeCard(EBuildAxis.Tank) }, IsPassive = false });
@@ -918,7 +918,7 @@ namespace Lair.Tests.EditMode
                 if (i < PopupUntintedLeading)
                     AssertRgb(original[i], tint[i].color, tint[i].name + " 컬러 아트는 틴트 제외");
                 else
-                    AssertRgb(UiDotPalette.CardKind(false), tint[i].color, tint[i].name + " 액티브");
+                    AssertRgb(UiDotPalette.CardSelectKind(false), tint[i].color, tint[i].name + " 액티브");
                 Assert.AreEqual(alphas[i], tint[i].color.a, 0.001f, tint[i].name + " 알파 보존");
             }
         }
@@ -937,13 +937,13 @@ namespace Lair.Tests.EditMode
             view.SetKind(true);
             for (int i = 0; i < tint.Length; ++i)
             {
-                AssertRgb(UiDotPalette.CardKind(true), tint[i].color, tint[i].name);
+                AssertRgb(UiDotPalette.CardSelectKind(true), tint[i].color, tint[i].name);
                 Assert.AreEqual(alphas[i], tint[i].color.a, 0.001f, tint[i].name + " 알파");
             }
             view.SetKind(false);
             for (int i = 0; i < tint.Length; ++i)
             {
-                AssertRgb(UiDotPalette.CardKind(false), tint[i].color, tint[i].name);
+                AssertRgb(UiDotPalette.CardSelectKind(false), tint[i].color, tint[i].name);
                 Assert.AreEqual(alphas[i], tint[i].color.a, 0.001f, tint[i].name + " 알파");
             }
         }

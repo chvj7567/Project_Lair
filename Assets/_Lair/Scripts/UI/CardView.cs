@@ -21,6 +21,8 @@ namespace Lair.UI
         //# 종류 표시 — 패시브=소울 / 액티브=금. 프레임 링 tint + 종류 라벨 + 선택 버튼 스프라이트(soul/gold).
         [SerializeField] private Image _kindRing;
         [SerializeField] private CHText _kindLabel;
+        //# 패시브 선택 버튼 tint(청록 스프라이트 x 이 값 = 초록) — 렌더 보며 조정.
+        private static readonly Color PassivePickButtonTint = new Color(0.55f, 1.0f, 0.5f, 1f);
         [SerializeField] private Image _pickButtonImage;
         [SerializeField] private Sprite _passiveButtonSprite;
         [SerializeField] private Sprite _activeButtonSprite;
@@ -315,20 +317,25 @@ namespace Lair.UI
         //# 카드 종류 표시 — 팝업이 Bind 전에 호출. 미할당 위젯은 건너뛴다.
         public void SetKind(bool isPassive)
         {
-            TintRgb(_kindTintImages, UiDotPalette.CardKind(isPassive));
+            TintRgb(_kindTintImages, UiDotPalette.CardSelectKind(isPassive));
             if (_kindRing != null)
             {
-                _kindRing.color = UiDotPalette.CardKind(isPassive);
+                _kindRing.color = UiDotPalette.CardSelectKind(isPassive);
             }
             if (_kindLabel != null)
             {
                 _kindLabel.SetText(isPassive ? "패시브" : "액티브");
-                _kindLabel.SetColor(UiDotPalette.CardKind(isPassive));
+                _kindLabel.SetColor(UiDotPalette.CardSelectKind(isPassive));
             }
             Sprite buttonSprite = isPassive ? _passiveButtonSprite : _activeButtonSprite;
-            if (_pickButtonImage != null && buttonSprite != null)
+            if (_pickButtonImage != null)
             {
-                _pickButtonImage.sprite = buttonSprite;
+                if (buttonSprite != null)
+                {
+                    _pickButtonImage.sprite = buttonSprite;
+                }
+                //# 풀 재사용 대비 매 호출 세팅 — 패시브 청록 스프라이트를 초록으로 보정.
+                _pickButtonImage.color = isPassive ? PassivePickButtonTint : Color.white;
             }
         }
 
