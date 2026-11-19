@@ -13,7 +13,6 @@ namespace Lair.Character
 
         //# 신설(§6.3.8) — 레벨 0 이면 없음, 스폰 시 없을 수도 있는 하위(2D 전환 전 프리팹 호환 위해 null 허용).
         [SerializeField] private MonsterTierOverlay _tierOverlay;
-        [SerializeField] private MonsterEnhanceSigil _sigil;
         [SerializeField] private MonsterHpBar _hpBar;
         //# 티어 전신 시트 치환 대상(monster-tier-sheets §6) — null 허용(2D 전환 전 프리팹·테스트).
         [SerializeField] private MonsterVisual2D _visual2D;
@@ -35,8 +34,6 @@ namespace Lair.Character
 
         //# 레벨(0~5)→외형 티어(0~3) — Lv1·Lv3·Lv5 에서 한 단계씩 성장(§6.3.1).
         private static readonly int[] TierByLevel = { 0, 1, 1, 2, 2, 3 };
-        //# 레벨(0~5)→바닥 문장 단계(0=숨김·1=링1·2=링2·3=링2+파편) — Lv2·Lv4·Lv5 에서 갱신(§6.3.1).
-        private static readonly int[] SigilStageByLevel = { 0, 0, 1, 1, 2, 3 };
 
         public void SetTierSheetProvider(IMonsterTierSheetProvider provider) => _tierProvider = provider;
 
@@ -60,9 +57,6 @@ namespace Lair.Character
             int clampedLevel = Mathf.Clamp(level, 0, MaxLevel);
             int tier = TierByLevel[clampedLevel];
             _tierOverlay?.SetTier(tier);
-
-            int sigilStage = SigilStageByLevel[clampedLevel];
-            _sigil?.SetStage(sigilStage, SpeciesVisual.SpeciesGlowColor(species));
 
             //# 티어 시트가 로드돼 있으면 치환·시트 HP바 높이, 주입자는 있는데 세트가 없으면(로드 실패) 풋내기 값으로 폴백(§7.3).
             MonsterTierSheetSet sheet = tier > 0 && _tierProvider != null ? _tierProvider.Find(MonsterGrades.BaseOf(species), tier) : null;
@@ -136,7 +130,6 @@ namespace Lair.Character
             ApplyEmission(false, Color.black);
             _tierOverlay?.SetTier(0);
             _visual2D?.SetTierSheet(null);
-            _sigil?.SetStage(0, Color.white);
             ApplyHpBarHeight(0);
         }
 
@@ -144,7 +137,6 @@ namespace Lair.Character
         public void SetRenderersForTest(Renderer[] r) => _renderers = r;
         public void SetEmissionByLevelForTest(float[] byLevel) => _emissionByLevel = byLevel;
         public void SetTierOverlayForTest(MonsterTierOverlay overlay) => _tierOverlay = overlay;
-        public void SetSigilForTest(MonsterEnhanceSigil sigil) => _sigil = sigil;
         public void SetHpBarForTest(MonsterHpBar hpBar) => _hpBar = hpBar;
         public void SetHpBarHeightByTierForTest(float[] heights) => _hpBarHeightByTier = heights;
 #endif

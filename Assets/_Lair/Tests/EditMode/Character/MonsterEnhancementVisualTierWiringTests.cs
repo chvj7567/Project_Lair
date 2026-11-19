@@ -50,10 +50,23 @@ namespace Lair.Tests.Character
             MonsterEnhancementVisual visual = _root.AddComponent<MonsterEnhancementVisual>();
             visual.SetEmissionByLevelForTest(new[] { 1.5f, 1.9f, 2.3f, 2.7f, 3.2f });
             visual.SetTierOverlayForTest(overlay);
-            visual.SetSigilForTest(sigil);
             visual.SetHpBarForTest(hpBar);
             visual.SetHpBarHeightByTierForTest(new[] { 0.747f, 0.809f, 0.872f, 0.934f });
             return visual;
+        }
+
+        //# 2026-11-19 — 바닥 문장은 전 레벨 비표시(OnEnable 에서 렌더러를 끈다).
+        [Test]
+        public void 바닥문장은_활성화되면_렌더러가_꺼진다()
+        {
+            GameObject go = new GameObject("AuraSigil");
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.enabled = true;
+            go.AddComponent<MonsterEnhanceSigil>();
+
+            Assert.IsFalse(sr.enabled);
+
+            Object.DestroyImmediate(go);
         }
 
         [Test]
@@ -64,7 +77,6 @@ namespace Lair.Tests.Character
             visual.ApplyLevel(3, EMonster.Wisp);
 
             Assert.AreEqual(2, overlay.CurrentTierForTest, "Lv3 → 티어[0,1,1,2,2,3][3]=2");
-            Assert.AreEqual(1, sigil.StageForTest, "Lv3 → 문장[0,0,1,1,2,3][3]=1");
             Assert.AreEqual(0.872f, hpBar.transform.localPosition.y, 0.0001f, "티어2 HP바 높이(루트 스케일 1)");
         }
 
@@ -79,7 +91,6 @@ namespace Lair.Tests.Character
             InvokeOnEnable(visual);   //# 풀 재사용 OnEnable → 레벨0 리셋
 
             Assert.AreEqual(0, overlay.CurrentTierForTest, "리셋 후 티어 0");
-            Assert.AreEqual(0, sigil.StageForTest, "리셋 후 문장 숨김");
             Assert.AreEqual(0.747f, hpBar.transform.localPosition.y, 0.0001f, "리셋 후 티어0 HP바 높이");
         }
 
@@ -114,7 +125,6 @@ namespace Lair.Tests.Character
             Assert.IsTrue(rd.sharedMaterial.IsKeywordEnabled("_EMISSION"), "Lv5 발광 on");
             Assert.Greater(rd.sharedMaterial.GetColor("_EmissionColor").maxColorComponent, 0f, "Lv5 발광 세기 > 0");
             Assert.AreEqual(3, overlay.CurrentTierForTest, "Lv5 → 티어[0,1,1,2,2,3][5]=3");
-            Assert.AreEqual(3, sigil.StageForTest, "Lv5 → 문장[0,0,1,1,2,3][5]=3(링2+파편)");
             Assert.AreEqual(0.934f, hpBar.transform.localPosition.y, 0.0001f, "Lv5 → 티어3 HP바 높이");
 
             Object.DestroyImmediate(mat);
@@ -133,7 +143,6 @@ namespace Lair.Tests.Character
 
             Assert.IsFalse(rd.sharedMaterial.IsKeywordEnabled("_EMISSION"), "리셋 후 발광 off");
             Assert.AreEqual(0, overlay.CurrentTierForTest, "리셋 후 티어 0");
-            Assert.AreEqual(0, sigil.StageForTest, "리셋 후 문장 숨김");
             Assert.AreEqual(0.747f, hpBar.transform.localPosition.y, 0.0001f, "리셋 후 티어0 HP바 높이");
 
             Object.DestroyImmediate(mat);
@@ -153,7 +162,6 @@ namespace Lair.Tests.Character
             visual.ApplyLevel(level, EMonster.Wraith);
 
             Assert.AreEqual(expectedTier, overlay.CurrentTierForTest, $"Lv{level} → 티어");
-            Assert.AreEqual(expectedSigilStage, sigil.StageForTest, $"Lv{level} → 문장단계");
         }
 
         //# 엣지 — 유효 범위(0~5)를 넘는 레벨이 들어와도 티어/문장은 Lv5 값으로 클램프되어 안전하다(방어적 가드).
@@ -165,7 +173,6 @@ namespace Lair.Tests.Character
             visual.ApplyLevel(99, EMonster.Wisp);
 
             Assert.AreEqual(3, overlay.CurrentTierForTest, "레벨 상한 클램프 → 티어3(Lv5 취급)");
-            Assert.AreEqual(3, sigil.StageForTest, "레벨 상한 클램프 → 문장3(Lv5 취급)");
         }
 
         //# 엣지 — 음수 레벨은 티어/문장이 0으로 클램프된다.
@@ -177,7 +184,6 @@ namespace Lair.Tests.Character
             visual.ApplyLevel(-5, EMonster.Wisp);
 
             Assert.AreEqual(0, overlay.CurrentTierForTest, "음수 레벨 → 티어0 으로 클램프");
-            Assert.AreEqual(0, sigil.StageForTest, "음수 레벨 → 문장0 으로 클램프");
         }
 
         //# 엣지 — 하위 컴포넌트(티어 오버레이·문장·HP바)가 전부 미배선(2D 전환 전 구형 프리팹 호환)이어도 예외 없이 동작.
