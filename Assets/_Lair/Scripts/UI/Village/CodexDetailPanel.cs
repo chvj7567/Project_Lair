@@ -14,6 +14,7 @@ namespace Lair.UI
     {
         [SerializeField] private CodexDetailPreview _preview;
         [SerializeField] private Image _previewBorder;           //# 등급색 3px 테두리(잠금 #232834)
+        [SerializeField] private Sprite[] _gradeFrames;          //# CodexCellFrameG1..G5 - 선택 등급의 프레임(비면 현행 고정 프레임)
         [SerializeField] private CHText _nameText;
         [SerializeField] private CHText _gradeChipText;
         [SerializeField] private CHText _tierChipText;
@@ -86,7 +87,12 @@ namespace Lair.UI
             if (_previewBorder != null)
             {
                 //# 금 프레임(CodexCellFrameG4) 고정 - 등급색 틴트를 곱하면 색이 죽는다. 잠금만 어둡게.
-                _previewBorder.color = locked ? LockedBorder : Color.white;
+                Sprite frame = CodexSlotSkin.FrameOf(_gradeFrames, model.Cell.Grade);
+                if (frame != null)
+                {
+                    _previewBorder.sprite = frame;
+                }
+                _previewBorder.color = locked ? (frame != null ? CodexSlotSkin.LockedFrameTint : LockedBorder) : Color.white;
             }
             SetText(_nameText, model.Name, text);
             if (_gradeChipBg != null)

@@ -146,8 +146,8 @@ namespace Lair.UI
         private const float FxFps = 30f;
         private const float GlowAlpha = 0.55f;
         private const float BodyBasePx = 40f;
-        //# 미해금 칸 이펙트 실루엣 불투명도(codex-locked-grade-fx-silhouette L4) — 약하면 1.0 으로 올린다.
-        private const float LockedFxAlpha = 0.7f;
+        //# 미해금 칸 이펙트 실루엣 불투명도(codex-locked-grade-fx-silhouette L4) — 시트 알파 윤곽이 형태를 만들므로 1.0.
+        private const float LockedFxAlpha = 1f;
         //# 이펙트 크기 = 프레임 px x scale ÷ 160 x RefRatio(몸 프레임 대비, 종족 공통 — MonsterGradeVisual 이 루트 스케일 r 을 보정해 같은 비율로 그린다). 지면 = 몸 프레임 하단(시안 기준).
         private const float FxDesignCell = 160f;
 

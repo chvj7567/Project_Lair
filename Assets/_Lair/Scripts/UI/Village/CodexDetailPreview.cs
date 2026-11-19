@@ -46,6 +46,9 @@ namespace Lair.UI
             public Transform[] Transforms;
             public SpriteRenderer[] Renderers;
         }
+        private const string FxShaderName = "Lair/GradeFxAdditive";
+        //# 실루엣(미해금) 동안 가산 이펙트 렌더러의 원래 머티리얼 — ReturnInstance 가 풀 반환 전에 복원한다.
+        private readonly List<(SpriteRenderer, Material)> _swappedFx = new List<(SpriteRenderer, Material)>();
         private int _version;
         private Transform _stageRoot;
         private SpriteRenderer[] _renderers = System.Array.Empty<SpriteRenderer>();
@@ -222,6 +225,10 @@ namespace Lair.UI
                     GradeFxBudget.BypassCap = false;
                 }
 
+                if (silhouette)
+                {
+                    SilhouetteFx(cached.Renderers);
+                }
                 if (_image != null)
                 {
                     _image.color = silhouette ? Silhouette : Color.white;
@@ -372,11 +379,48 @@ namespace Lair.UI
             }
         }
 
+        //# 미해금 — 가산 이펙트는 검은 틴트 + 알파 0 이라 RT 에서 사라지므로, 이펙트 렌더러를 몸과 같은 알파 합성 머티리얼로 바꿔 검은 모양(알파 유지)으로 남긴다.
+        private void SilhouetteFx(SpriteRenderer[] renderers)
+        {
+            Material alphaMaterial = null;
+            foreach (SpriteRenderer sr in renderers)
+            {
+                if (sr != null && sr.sharedMaterial != null && sr.sharedMaterial.shader != null && sr.sharedMaterial.shader.name != FxShaderName)
+                {
+                    alphaMaterial = sr.sharedMaterial;
+                    break;
+                }
+            }
+            if (alphaMaterial == null)
+                return;
+            foreach (SpriteRenderer sr in renderers)
+            {
+                if (sr != null && sr.sharedMaterial != null && sr.sharedMaterial.shader != null && sr.sharedMaterial.shader.name == FxShaderName)
+                {
+                    _swappedFx.Add((sr, sr.sharedMaterial));
+                    sr.sharedMaterial = alphaMaterial;
+                }
+            }
+        }
+
+        private void RestoreFx()
+        {
+            foreach ((SpriteRenderer sr, Material original) in _swappedFx)
+            {
+                if (sr != null)
+                {
+                    sr.sharedMaterial = original;
+                }
+            }
+            _swappedFx.Clear();
+        }
+
         //# Push 전에 쇼케이스 모드·레이어 원복 — 풀은 쇼케이스·전투와 공유.
         private void ReturnInstance()
         {
             if (_instance == null)
                 return;
+            RestoreFx();
             if (_showcase != null)
             {
                 _showcase.SetShowcaseMode(false);
