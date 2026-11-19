@@ -15,6 +15,8 @@ namespace Lair.Tests.EditMode
     public class CodexMonsterCellLockedFxTests
     {
         private const float Eps = 1e-3f;
+        //# CodexMonsterCell.LockedFxAlpha(private)와 같은 값 - 실루엣 농도 변경 시 여기만 고친다.
+        private const float SilhouetteAlpha = 1f;
 
         private GameObject _root;
         private CodexMonsterCell _cell;
@@ -385,7 +387,7 @@ namespace Lair.Tests.EditMode
                     Assert.AreEqual(0f, image.color.r, Eps, $"{image.name} R");
                     Assert.AreEqual(0f, image.color.g, Eps, $"{image.name} G");
                     Assert.AreEqual(0f, image.color.b, Eps, $"{image.name} B");
-                    Assert.AreEqual(0.7f, image.color.a, Eps, $"{image.name} A");
+                    Assert.AreEqual(SilhouetteAlpha, image.color.a, Eps, $"{image.name} A");
                 }
                 else
                 {
