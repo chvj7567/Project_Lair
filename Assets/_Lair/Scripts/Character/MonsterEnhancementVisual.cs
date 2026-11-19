@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Lair.Character
 {
-    //# 종족 강화 레벨 → 4채널 표현의 유일한 진입점(Rule 02 §10 루트 파사드) — 발광(보조)·티어 오버레이·바닥 문장·HP바 높이.
+    //# 종족 강화 레벨 → 4채널 표현의 유일한 진입점(Rule 02 §10 루트 파사드) — 발광(보조)·티어 오버레이·HP바 높이.
     //# 렌더러/하위 컴포넌트는 [SerializeField] 와이어링(Rule 02 §5). 세부는 monster-2d-conversion.md §6.3 참조.
     public class MonsterEnhancementVisual : MonoBehaviour
     {
@@ -44,7 +44,7 @@ namespace Lair.Character
         public static int TierOfLevel(int level) => TierByLevel[Mathf.Clamp(level, 0, MaxLevel)];
 
         //# level: 0 = 미강화, 1~N = _emissionByLevel[level-1] 세기. 세기 = max(등급 하한, 강화 곡선)(monster-grades §3.2), 0 이면 발광 off.
-        //# 색 = 등급 발광색(등급 3~5) 또는 SpeciesGlowColor(species). 티어/문장/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
+        //# 색 = 등급 발광색(등급 3~5) 또는 SpeciesGlowColor(species). 티어/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
         public void ApplyLevel(int level, EMonster species)
         {
             bool curveOn = level >= 1 && _emissionByLevel != null && level <= _emissionByLevel.Length;
