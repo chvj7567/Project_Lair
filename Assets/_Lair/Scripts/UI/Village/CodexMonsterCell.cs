@@ -169,6 +169,9 @@ namespace Lair.UI
         private Material _fxMaterial;
         private bool _fxMaterialCached;
         private bool _unlockFxRestored;
+        private float _auraOpacity = 1f;
+        private float _haloOpacity = 1f;
+        private readonly float[] _pillarOpacity = { 1f, 1f, 1f, 1f };
 
         public CodexMonsterCellData Data => _data;
         public bool IsRowHeader => _data != null && _data.IsRowHeader;
@@ -445,10 +448,13 @@ namespace Lair.UI
                     SetActive(_pillars[i], i < pillars);
                 }
             }
-            ApplyFxLook(open == false);
             if (fx)
             {
                 PlaceFx(spec, data.Art);
+            }
+            ApplyFxLook(open == false);
+            if (fx)
+            {
                 ShowFxFrame(0);
             }
         }
@@ -457,6 +463,8 @@ namespace Lair.UI
         private void PlaceFx(GradeFxSpec spec, CodexRaceArt art)
         {
             float ratio = GradeFxSheet.RefRatio;
+            _auraOpacity = spec.AuraOpacity;
+            _haloOpacity = 1f;
             PlaceFxImage(_aura, art.Aura, ratio, spec.AuraScale, 0f, spec.AuraOffsetY);
             int pillar = 0;
             foreach (Grade_FxRow row in spec.Fx)
@@ -465,12 +473,14 @@ namespace Lair.UI
                 {
                     if (_pillars != null && pillar < _pillars.Length)
                     {
+                        _pillarOpacity[pillar < _pillarOpacity.Length ? pillar : 0] = row.opacity;
                         PlaceFxImage(_pillars[pillar], art.Pillar, ratio, row.scale, row.offsetX, row.offsetY);
                     }
                     pillar++;
                 }
                 else
                 {
+                    _haloOpacity = row.opacity;
                     PlaceFxImage(_halo, art.Halo, ratio, row.scale, row.offsetX, row.offsetY);
                 }
             }
@@ -520,15 +530,20 @@ namespace Lair.UI
         {
             CacheFxMaterial();
             Material material = silhouette ? null : _fxMaterial;
-            Color color = silhouette ? new Color(0f, 0f, 0f, LockedFxAlpha) : Color.white;
-            SetFxLook(_aura, material, color);
-            SetFxLook(_halo, material, color);
+            SetFxLook(_aura, material, FxColor(silhouette, _auraOpacity));
+            SetFxLook(_halo, material, FxColor(silhouette, _haloOpacity));
             if (_pillars == null)
                 return;
-            foreach (Image pillar in _pillars)
+            for (int i = 0; i < _pillars.Length; ++i)
             {
-                SetFxLook(pillar, material, color);
+                SetFxLook(_pillars[i], material, FxColor(silhouette, i < _pillarOpacity.Length ? _pillarOpacity[i] : 1f));
             }
+        }
+
+        //# 컬러 이펙트 알파 = 실제 프리팹과 같은 Grade_Aura·Grade_Fx opacity(1 로 그리면 낮은 등급 오라가 과하게 진하다).
+        private static Color FxColor(bool silhouette, float opacity)
+        {
+            return silhouette ? new Color(0f, 0f, 0f, LockedFxAlpha) : new Color(1f, 1f, 1f, opacity);
         }
 
         private static void SetFxLook(Image image, Material material, Color color)
@@ -621,32 +636,33 @@ namespace Lair.UI
             {
                 if (t < cfg.cellFxFadeDelaySec)
                 {
-                    SetFxAlpha(LockedFxAlpha * (1f - t / cfg.cellFxFadeDelaySec));
+                    SetFxAlpha(LockedFxAlpha * (1f - t / cfg.cellFxFadeDelaySec), false);
                     return;
                 }
                 //# 실루엣 알파가 0 인 이 순간 가산 머티리얼·흰색으로 교체(1회) — 깜빡임 없음.
                 _unlockFxRestored = true;
                 ApplyFxLook(false);
-                SetFxAlpha(0f);
+                SetFxAlpha(0f, true);
             }
             float fxT = t - cfg.cellFxFadeDelaySec;
             float fxAlpha = cfg.cellFxFadeSec > 0f ? Mathf.Clamp01(fxT / cfg.cellFxFadeSec) : (fxT >= 0f ? 1f : 0f);
-            SetFxAlpha(fxAlpha);
+            SetFxAlpha(fxAlpha, true);
             if (fade >= 1f && fxAlpha >= 1f)
             {
                 _unlockActive = false;
             }
         }
 
-        private void SetFxAlpha(float alpha)
+        //# scaleByOpacity: 컬러 단계는 알파에 이펙트별 opacity 를 곱하고, 실루엣 페이드는 그대로 쓴다.
+        private void SetFxAlpha(float alpha, bool scaleByOpacity)
         {
-            SetImageAlpha(_aura, alpha);
-            SetImageAlpha(_halo, alpha);
+            SetImageAlpha(_aura, alpha * (scaleByOpacity ? _auraOpacity : 1f));
+            SetImageAlpha(_halo, alpha * (scaleByOpacity ? _haloOpacity : 1f));
             if (_pillars == null)
                 return;
-            foreach (Image pillar in _pillars)
+            for (int i = 0; i < _pillars.Length; ++i)
             {
-                SetImageAlpha(pillar, alpha);
+                SetImageAlpha(_pillars[i], alpha * (scaleByOpacity && i < _pillarOpacity.Length ? _pillarOpacity[i] : 1f));
             }
         }
 
@@ -672,7 +688,7 @@ namespace Lair.UI
             }
             else
             {
-                SetFxAlpha(1f);
+                SetFxAlpha(1f, true);
             }
             if (_unlockFx != null)
             {
