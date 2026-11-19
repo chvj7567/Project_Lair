@@ -16,6 +16,8 @@ namespace Lair.Character
         [SerializeField] private float _hitReactionCooldown = 0.4f;
         [SerializeField] private float _attackSuppressWindow = 0.5f;
 
+        private static readonly int SpawnStateId = Animator.StringToHash("Spawn");
+
         private IHealth _health;
         private IMover _mover;
         private IAttacker _attacker;
@@ -64,6 +66,14 @@ namespace Lair.Character
             }
 
             _controller.OnSpawn();
+        }
+
+        //# 등장 모션 재생 — Spawn 은 컨트롤러 기본 상태(재활성 시 자동 진입)라 비활성화 없이 처음부터 다시 Play. 연타 시 매번 재시작.
+        public void ReplaySpawn()
+        {
+            if (_animator == null)
+                return;
+            _animator.Play(SpawnStateId, 0, 0f);
         }
 
         private void OnDisable()

@@ -25,6 +25,8 @@ namespace Lair.Village
         [SerializeField] private Transform _heroAnchor;    //# 중앙 해골 배치 지점 (씬 정적 배치)
         //# hero-stage-variant v2 캐러셀 — 쇼케이스 영웅 재스킨 정본 SO (씬 인스펙터 할당). null 이면 재스킨 skip.
         [SerializeField] private HeroStageVariantConfig _stageVariantConfig;
+        //# 마을 쇼케이스 전용 영웅 배율 — 최종 크기 = Stage.heroScale × 배율. heroScale 은 전투와 공유라 건드리지 않는다.
+        [SerializeField] private float _showcaseScaleMultiplier = 2.7f;
 
         //# resolution-adaptation §3.4 — HUD 는 HudRoot, 이후 팝업·토스트는 PopupRoot(둘 다 Safe Area). 둘 다 null 이면 기존 동작.
         [SerializeField] private RectTransform _hudRoot;
@@ -37,6 +39,7 @@ namespace Lair.Village
         private ChapterDatabase _chapters;
         //# 캐러셀 — 중앙 쇼케이스 영웅의 외형 적용기(Pop 직후 1회 캐싱). 스테이지 이동 시 재적용.
         private HeroStageVariantApplier _showcaseApplier;
+        private CharacterAnimationDriver _showcaseAnim;   //# 등장 모션 재생용 — Pop 직후 1회 캐싱
         //# 쇼케이스 영웅 인스턴스/종류 — 챕터가 바뀌면(기사↔궁수) 풀에 반환하고 새로 배치한다.
         private CHPoolable _showcase;
         private EHero _showcaseHero;
@@ -175,6 +178,7 @@ namespace Lair.Village
 
             //# 캐러셀 — 쇼케이스 applier 캐싱 후 현재 SelectedStage 외형 즉시 반영(기획서 §4.1). 전투 컴포넌트 off 여도 재스킨은 성립(§6).
             _showcaseApplier = poolable.gameObject.GetComponent<HeroStageVariantApplier>();
+            _showcaseAnim = poolable.gameObject.GetComponent<CharacterAnimationDriver>();
             ApplyShowcaseVariant();
 
             //# 투영진 위 푸른 홀로그램(scene-2d-conversion §5.5) — 조명 안 받는 반투명 머티리얼, 영웅 조명·그림자 숨김
@@ -193,7 +197,8 @@ namespace Lair.Village
             StageRow stage = _chapters.GetStageClamped(_vm.SelectedStage);
             if (stage == null)
                 return;
-            _showcaseApplier.Apply(stage.heroScale, stage.heroTier);
+            //# Apply 는 prefab base × scale 절대값 설정(루트 localScale) → 배율을 인자에 곱하면 누적 없음. 발밑은 루트 피벗 고정.
+            _showcaseApplier.Apply(stage.heroScale * _showcaseScaleMultiplier, stage.heroTier);
         }
 
         //# 캐러셀 스테이지 이동 — SelectedStage/SelectedHero 로컬 저장(클라우드 백업 제외, 기획서 §4.5) + 쇼케이스 재스킨.
@@ -212,6 +217,11 @@ namespace Lair.Village
             if (needSwap == false)
             {
                 ApplyShowcaseVariant();
+                //# 같은 영웅 재스킨에도 교체 때와 같은 등장 모션(Spawn)을 다시 재생.
+                if (_showcaseAnim != null)
+                {
+                    _showcaseAnim.ReplaySpawn();
+                }
                 return;
             }
 
@@ -262,6 +272,7 @@ namespace Lair.Village
             CHMPool.Instance.Push(_showcase);
             _showcase = null;
             _showcaseApplier = null;
+            _showcaseAnim = null;
         }
 
         private async void StartMonsterShowcase()
