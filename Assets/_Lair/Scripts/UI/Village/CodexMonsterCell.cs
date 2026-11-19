@@ -32,6 +32,13 @@ namespace Lair.UI
         }
     }
 
+    //# 미해금 이펙트 실루엣의 알파 문턱 — 칸(Mat_UISilhouette 기본값)과 상세 미리보기(Monster2DSprite 속성)가 같은 값을 쓴다. 셰이더 기본값과 일치시킬 것.
+    public static class CodexSilhouette
+    {
+        public const float AlphaCut = 0.35f;
+        public const float AlphaSoft = 0.35f;
+    }
+
     //# 몸 스프라이트 콘텐츠(불투명 영역) 중심 보정 - Image.preserveAspect 는 스프라이트 사각형 중심만 맞춰서 시트 프레임마다 몸이 좌우로 치우친다.
     //# 텍스처를 읽을 수 없어 임포트가 만든 물리 모양(Generate Physics Shape) 윤곽의 bbox 중심을 콘텐츠 중심으로 쓴다. 윤곽이 없으면 보정 0(+경고 1회).
     public static class CodexBodyCenter
@@ -142,6 +149,7 @@ namespace Lair.UI
         [SerializeField] private GameObject _newBadge;
         [SerializeField] private CHText _newText;
         [SerializeField] private CodexUnlockFx _unlockFx;  //# 펄스·링·스파클 위젯 묶음
+        [SerializeField] private Material _silhouetteMaterial;   //# Mat_UISilhouette — 미해금 이펙트 알파 문턱 실루엣(null 이면 기본 UI 머티리얼)
 
         private const float FxFps = 30f;
         private const float GlowAlpha = 0.55f;
@@ -529,7 +537,7 @@ namespace Lair.UI
         private void ApplyFxLook(bool silhouette)
         {
             CacheFxMaterial();
-            Material material = silhouette ? null : _fxMaterial;
+            Material material = silhouette ? _silhouetteMaterial : _fxMaterial;
             SetFxLook(_aura, material, FxColor(silhouette, _auraOpacity));
             SetFxLook(_halo, material, FxColor(silhouette, _haloOpacity));
             if (_pillars == null)

@@ -21,6 +21,8 @@ namespace Lair.Character
         private float _opacity;
         private bool _playing;
         private Transform _cam;
+        //# 몸 기준 오프셋(루트 yaw 0 가정의 좌우·위·깊이). 루트가 yaw 로 돌아가도 화면 좌우로 가도록 AlignOffset 이 부모 회전을 상쇄한다.
+        private Vector3 _baseOffset;
 
         //# 풀 Pop/Push — 꺼진 채로 시작(재생은 Play 가 켠다).
         private void OnEnable()
@@ -52,8 +54,16 @@ namespace Lair.Character
         {
             float ppu = _frames != null && _frames.Length > 0 && _frames[0] != null ? _frames[0].pixelsPerUnit : DefaultPpu;
             float uniform = sheetScale * cellWorld * ppu / DesignCell;
-            transform.localPosition = localPosition;
+            _baseOffset = localPosition;
             transform.localScale = new Vector3(uniform, uniform, 1f);
+            AlignOffset();
+        }
+
+        //# 부모(몬스터 루트)가 yaw ±90° 로 돌아 있으면 로컬 ±X 가 카메라 깊이축이 되어 측면 기둥이 몸 앞뒤에 겹친다 — 부모 회전을 상쇄해 좌우로 보낸다. 부모가 없으면 기존 동작.
+        public void AlignOffset()
+        {
+            Transform parent = transform.parent;
+            transform.localPosition = parent != null ? Quaternion.Inverse(parent.rotation) * _baseOffset : _baseOffset;
         }
 
         private void Update()
@@ -66,7 +76,10 @@ namespace Lair.Character
 
         private void LateUpdate()
         {
-            if (_playing && _cam != null)
+            if (_playing == false)
+                return;
+            AlignOffset();
+            if (_cam != null)
             {
                 transform.rotation = _cam.rotation;
             }

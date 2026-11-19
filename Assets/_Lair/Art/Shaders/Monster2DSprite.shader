@@ -16,6 +16,9 @@ Shader "Lair/Monster2DSprite"
         _GlowInner ("Grade Glow Inner Ratio", Range(0,1)) = 0.5
         _Brightness ("Body Brightness", Float) = 1
         _Saturation ("Body Saturation", Float) = 1
+        //# 실루엣(도감 미해금 이펙트) — 컷 0 이면 꺼짐. 알파를 smoothstep(컷, 컷+소프트)로 문턱화해 옅은 알파(안개)를 지운다. 렌더러별 MaterialPropertyBlock 으로만 켠다.
+        _SilhouetteCut ("Silhouette Alpha Cut", Range(0,1)) = 0
+        _SilhouetteSoft ("Silhouette Alpha Soft", Range(0,1)) = 0.35
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
     }
 
@@ -63,6 +66,8 @@ Shader "Lair/Monster2DSprite"
         half _GlowInner;
         half _Brightness;
         half _Saturation;
+        half _SilhouetteCut;
+        half _SilhouetteSoft;
 
         Varyings Vert(Attributes IN)
         {
@@ -73,6 +78,11 @@ Shader "Lair/Monster2DSprite"
             OUT.uv = TRANSFORM_TEX(IN.uv, _MainTex);
             OUT.color = IN.color;
             return OUT;
+        }
+
+        half SilhouetteAlpha(half texAlpha)
+        {
+            return _SilhouetteCut > 0.001 ? smoothstep(_SilhouetteCut, _SilhouetteCut + max(_SilhouetteSoft, 0.001), texAlpha) : texAlpha;
         }
 
         half3 FlashRgb(half4 tex, float4 color)
@@ -140,7 +150,7 @@ Shader "Lair/Monster2DSprite"
             half4 FragLit(Varyings IN) : SV_Target
             {
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
-                half alpha = tex.a * IN.color.a;
+                half alpha = SilhouetteAlpha(tex.a) * IN.color.a;
                 half3 rgb = FlashRgb(tex, IN.color) * DotLight(IN.positionVS) + EmissionRgb(IN.uv, alpha);
                 return GradeLook(IN.uv, rgb, alpha, IN.color.a);
             }
@@ -160,7 +170,7 @@ Shader "Lair/Monster2DSprite"
             half4 FragUnlit(Varyings IN) : SV_Target
             {
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
-                half alpha = tex.a * IN.color.a;
+                half alpha = SilhouetteAlpha(tex.a) * IN.color.a;
                 return GradeLook(IN.uv, FlashRgb(tex, IN.color) + EmissionRgb(IN.uv, alpha), alpha, IN.color.a);
             }
             ENDHLSL

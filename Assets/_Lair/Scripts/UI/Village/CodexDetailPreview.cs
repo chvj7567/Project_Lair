@@ -45,10 +45,36 @@ namespace Lair.UI
             public IMonsterShowcase Showcase;
             public Transform[] Transforms;
             public SpriteRenderer[] Renderers;
+            public GradeFxSheet[] FxSheets;          //# 등급 이펙트 시트 컴포넌트(실루엣 시 재생 정지용)
+            public SpriteRenderer[] FxSheetRenderers;   //# FxSheets 와 같은 인덱스 — 각 시트의 SpriteRenderer
         }
         private const string FxShaderName = "Lair/GradeFxAdditive";
+        private const string BodyShaderName = "Lair/Monster2DSprite";
+        private static readonly int SilhouetteCutId = Shader.PropertyToID("_SilhouetteCut");
+        private static readonly int SilhouetteSoftId = Shader.PropertyToID("_SilhouetteSoft");
+        private static readonly int GlowWidthId = Shader.PropertyToID("_GlowWidth");
+        private static readonly int BrightnessId = Shader.PropertyToID("_Brightness");
+        private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
+        //# MonoBehaviour 필드 초기화에서 new 하면 직렬화 중 생성 예외 — 사용 시점에 지연 생성.
+        private MaterialPropertyBlock _silhouetteBlock;
         //# 실루엣(미해금) 동안 가산 이펙트 렌더러의 원래 머티리얼 — ReturnInstance 가 풀 반환 전에 복원한다.
-        private readonly List<(SpriteRenderer, Material)> _swappedFx = new List<(SpriteRenderer, Material)>();
+        private readonly List<SwappedFx> _swappedFx = new List<SwappedFx>();
+
+        private readonly struct SwappedFx
+        {
+            public readonly SpriteRenderer Renderer;
+            public readonly GradeFxSheet Sheet;
+            public readonly Material Material;
+            public readonly Color Color;
+
+            public SwappedFx(SpriteRenderer renderer, GradeFxSheet sheet, Material material, Color color)
+            {
+                Renderer = renderer;
+                Sheet = sheet;
+                Material = material;
+                Color = color;
+            }
+        }
         private int _version;
         private Transform _stageRoot;
         private SpriteRenderer[] _renderers = System.Array.Empty<SpriteRenderer>();
@@ -227,7 +253,7 @@ namespace Lair.UI
 
                 if (silhouette)
                 {
-                    SilhouetteFx(cached.Renderers);
+                    SilhouetteFx(cached);
                 }
                 if (_image != null)
                 {
@@ -362,7 +388,13 @@ namespace Lair.UI
                 Showcase = lair != null ? lair.Get<IMonsterShowcase>() : null,
                 Transforms = poolable.GetComponentsInChildren<Transform>(true),
                 Renderers = poolable.GetComponentsInChildren<SpriteRenderer>(true),
+                FxSheets = poolable.GetComponentsInChildren<GradeFxSheet>(true),
             };
+            cached.FxSheetRenderers = new SpriteRenderer[cached.FxSheets.Length];
+            for (int i = 0; i < cached.FxSheets.Length; ++i)
+            {
+                cached.FxSheetRenderers[i] = cached.FxSheets[i].GetComponent<SpriteRenderer>();
+            }
             _cache[poolable] = cached;
             return cached;
         }
@@ -380,12 +412,13 @@ namespace Lair.UI
         }
 
         //# 미해금 — 가산 이펙트는 검은 틴트 + 알파 0 이라 RT 에서 사라지므로, 이펙트 렌더러를 몸과 같은 알파 합성 머티리얼로 바꿔 검은 모양(알파 유지)으로 남긴다.
-        private void SilhouetteFx(SpriteRenderer[] renderers)
+        //# 가산 이펙트의 color 알파는 페이드인(GradeFxSheet.Apply 가 매 프레임 덮어씀)이라 시트를 멈추고 알파를 1 로 고정한다(칸 LockedFxAlpha 와 같은 농도).
+        private void SilhouetteFx(Cached cached)
         {
             Material alphaMaterial = null;
-            foreach (SpriteRenderer sr in renderers)
+            foreach (SpriteRenderer sr in cached.Renderers)
             {
-                if (sr != null && sr.sharedMaterial != null && sr.sharedMaterial.shader != null && sr.sharedMaterial.shader.name != FxShaderName)
+                if (sr != null && sr.sharedMaterial != null && sr.sharedMaterial.shader != null && sr.sharedMaterial.shader.name == BodyShaderName)
                 {
                     alphaMaterial = sr.sharedMaterial;
                     break;
@@ -393,23 +426,50 @@ namespace Lair.UI
             }
             if (alphaMaterial == null)
                 return;
-            foreach (SpriteRenderer sr in renderers)
+            if (_silhouetteBlock == null)
             {
-                if (sr != null && sr.sharedMaterial != null && sr.sharedMaterial.shader != null && sr.sharedMaterial.shader.name == FxShaderName)
+                _silhouetteBlock = new MaterialPropertyBlock();
+            }
+            Camera main = Camera.main;
+            for (int i = 0; i < cached.FxSheets.Length; ++i)
+            {
+                SpriteRenderer sr = cached.FxSheetRenderers[i];
+                if (sr == null || sr.sharedMaterial == null || sr.sharedMaterial.shader == null || sr.sharedMaterial.shader.name != FxShaderName)
+                    continue;
+                _swappedFx.Add(new SwappedFx(sr, cached.FxSheets[i], sr.sharedMaterial, sr.color));
+                cached.FxSheets[i].enabled = false;
+                cached.FxSheets[i].AlignOffset();
+                //# 시트가 멈추면 빌보드(LateUpdate)도 멈추므로 메인 카메라 방향으로 한 번 맞춘다.
+                if (main != null)
                 {
-                    _swappedFx.Add((sr, sr.sharedMaterial));
-                    sr.sharedMaterial = alphaMaterial;
+                    sr.transform.rotation = main.transform.rotation;
                 }
+                sr.sharedMaterial = alphaMaterial;
+                sr.color = new Color(1f, 1f, 1f, 1f);
+                //# SpriteRenderer 가 자동 세팅한 _MainTex 를 보존하려면 기존 블록을 읽은 뒤 값을 더한다. 몸 머티리얼의 등급 발광·맥동은 끈다(렌더러별 블록이라 몸은 불변).
+                sr.GetPropertyBlock(_silhouetteBlock);
+                _silhouetteBlock.SetFloat(SilhouetteCutId, CodexSilhouette.AlphaCut);
+                _silhouetteBlock.SetFloat(SilhouetteSoftId, CodexSilhouette.AlphaSoft);
+                _silhouetteBlock.SetFloat(GlowWidthId, 0f);
+                _silhouetteBlock.SetFloat(BrightnessId, 1f);
+                _silhouetteBlock.SetFloat(SaturationId, 1f);
+                sr.SetPropertyBlock(_silhouetteBlock);
             }
         }
 
         private void RestoreFx()
         {
-            foreach ((SpriteRenderer sr, Material original) in _swappedFx)
+            foreach (SwappedFx fx in _swappedFx)
             {
-                if (sr != null)
+                if (fx.Renderer != null)
                 {
-                    sr.sharedMaterial = original;
+                    fx.Renderer.sharedMaterial = fx.Material;
+                    fx.Renderer.color = fx.Color;
+                    fx.Renderer.SetPropertyBlock(null);
+                }
+                if (fx.Sheet != null)
+                {
+                    fx.Sheet.enabled = true;
                 }
             }
             _swappedFx.Clear();
