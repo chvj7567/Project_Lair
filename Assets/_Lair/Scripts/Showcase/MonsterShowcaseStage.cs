@@ -61,7 +61,6 @@ namespace Lair.Showcase
         private bool _dirty;
         private bool _released;
         private bool _begun;
-        private bool _revealActual;
         //# 강화 Lv 계산용 메타 수치 — PrepareAsync 가 로더 결과를 1회 받아 둔다(직렬화하지 않는다). null 이면 강화 Lv 0 으로 본다.
         private MetaConfig _metaConfig;
 
@@ -75,10 +74,9 @@ namespace Lair.Showcase
             await RefreshAsync();
         }
 
-        //# 로딩 완료 시 호출 — 풋내기 고정을 풀고 실제 보유 등급·티어 외형으로 갱신(마을 씬은 항상 실제 외형).
+        //# 로딩 완료 통지 — 로딩 쇼케이스는 처음부터 군주 5등급 Lv5 고정이라 외형은 불변, 재갱신만 요청한다.
         public void RevealActual()
         {
-            _revealActual = true;
             _dirty = true;
         }
 
@@ -144,11 +142,11 @@ namespace Lair.Showcase
                     GradeFxBudget.Reset();
                     BuildStates(db);
                 }
-                //# 로딩 화면은 저장 데이터와 무관하게 항상 군주 5등급(공개 전 Lv0 → 공개 후 최대 강화 티어)으로 고정.
+                //# 로딩 화면은 저장 데이터·공개 여부와 무관하게 처음부터 군주 5등급 + 최대 강화 티어로 고정.
                 MonsterLook[] looks;
                 if (_scene == EScene.Loading)
                 {
-                    looks = MonsterLooks.LoadingShowcase(_metaConfig, _revealActual);
+                    looks = MonsterLooks.LoadingShowcase(_metaConfig);
                 }
                 else
                 {
