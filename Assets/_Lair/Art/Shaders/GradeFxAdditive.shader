@@ -18,7 +18,8 @@ Shader "Lair/GradeFxAdditive"
 
         Cull Off
         ZWrite Off
-        Blend SrcAlpha One
+        //# RGB 만 가산, 알파는 대상 값을 유지 — RenderTexture(도감 미리보기)에 그려도 알파가 쌓이지 않아 선처리 합성(UIPremultiplied)에서 칸의 가산 모습과 같다. 메인 카메라엔 영향 없음.
+        Blend SrcAlpha One, Zero One
 
         Pass
         {

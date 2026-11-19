@@ -21,6 +21,8 @@ namespace Lair.UI
         [SerializeField] private Transform _holder;      //# 화면 밖 무대 앵커
         [SerializeField] private int _previewLayer;      //# 도감 전용 레이어(TagManager 등록 필요) — 카메라 cullingMask 와 일치
         [SerializeField] private int _textureSize = 256;
+        //# 선곱 알파 합성 머티리얼 — RT 에 가산 이펙트를 그린 뒤 일반 UI 알파 합성하면 이펙트가 옅어지므로(알파 누적 안 됨) RawImage 를 선곱으로 합성한다. null 이면 기본 UI.
+        [SerializeField] private Material _compositeMaterial;
 
         private const float FitPad = 1.25f;
         private const float CameraDistance = 10f;
@@ -81,6 +83,10 @@ namespace Lair.UI
             if (_image != null)
             {
                 _image.texture = _rt;
+                if (_compositeMaterial != null)
+                {
+                    _image.material = _compositeMaterial;
+                }
             }
             //# 첫 렌더 전에는 텍스처 내용이 정의되지 않아 흰 사각형으로 보일 수 있다 - 그림이 준비될 때까지 숨긴다.
             SetImageVisible(false);
