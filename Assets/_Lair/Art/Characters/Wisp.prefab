@@ -295,7 +295,6 @@ MonoBehaviour:
   - 0.6
   - 0.7
   _tierOverlay: {fileID: 0}
-  _sigil: {fileID: 6114521740050868763}
   _hpBar: {fileID: 811663116482661974}
   _visual2D: {fileID: 5843057305332070426}
   _hpBarHeightByTier:
@@ -537,7 +536,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6933863876732440535}
   - component: {fileID: 3408618972735795303}
-  - component: {fileID: 6114521740050868763}
   m_Layer: 0
   m_Name: AuraSigil
   m_TagString: Untagged
@@ -567,7 +565,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4345913829685606722}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -615,24 +613,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6114521740050868763
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4345913829685606722}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0dfa22112c05cb04194d66e5e09c487f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _renderer: {fileID: 3408618972735795303}
-  _stageSprites:
-  - {fileID: 5164644914620949404, guid: 8630167f28bea9c4a931084918b64937, type: 3}
-  - {fileID: 8068455922240491421, guid: 8630167f28bea9c4a931084918b64937, type: 3}
-  - {fileID: -4427817764414466429, guid: 8630167f28bea9c4a931084918b64937, type: 3}
-  _rotationSpeedDegPerSec: 45
 --- !u!1 &8775342501359860608
 GameObject:
   m_ObjectHideFlags: 0
