@@ -30,7 +30,7 @@ namespace Lair.Character
 
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
-        private const int MaxLevel = 5;
+        public const int MaxLevel = 5;
 
         //# 레벨(0~5)→외형 티어(0~3) — Lv1·Lv3·Lv5 에서 한 단계씩 성장(§6.3.1).
         private static readonly int[] TierByLevel = { 0, 1, 1, 2, 2, 3 };

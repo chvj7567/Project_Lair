@@ -34,5 +34,30 @@ namespace Lair.Tests.Character
             Assert.AreEqual(1, needs.Count);
             Assert.AreEqual((EMonster.Reaper, 2), needs[0]);
         }
+
+        [Test]
+        public void 로딩_쇼케이스는_공개_후_6종_모두_군주_Lv5_T3다()
+        {
+            MonsterLook[] looks = MonsterLooks.LoadingShowcase(null, true);
+
+            Assert.AreEqual(6, looks.Length);
+            foreach (MonsterLook look in looks)
+            {
+                Assert.AreEqual(MonsterGrades.MaxGrade, look.Grade);
+                Assert.AreEqual(MonsterGrades.Of(look.Base, MonsterGrades.MaxGrade), look.Monster);
+                Assert.AreEqual(5, look.Level);
+                Assert.AreEqual(3, look.Tier);
+            }
+        }
+
+        [Test]
+        public void 로딩_쇼케이스는_공개_전_군주_등급이되_Lv0_티어0이라_시트_로드가_없다()
+        {
+            MonsterLook[] looks = MonsterLooks.LoadingShowcase(null, false);
+
+            Assert.AreEqual(EMonster.WispG5, looks[0].Monster);
+            Assert.AreEqual(0, looks[0].Level);
+            Assert.AreEqual(0, MonsterLooks.TierNeeds(looks).Count);
+        }
     }
 }

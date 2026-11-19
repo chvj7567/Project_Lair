@@ -144,16 +144,17 @@ namespace Lair.Showcase
                     GradeFxBudget.Reset();
                     BuildStates(db);
                 }
-                MetaProfile profile = MetaSession.GetOrLoad();
-                Dictionary<EMonster, int> levels = MonsterLooks.SpeciesLevels(profile, _metaConfig);
-                MonsterLook[] looks = MonsterLooks.Compute(MonsterLooks.ResolveFormation(profile), levels);
-                if (_scene == EScene.Loading && _revealActual == false)
+                //# 로딩 화면은 저장 데이터와 무관하게 항상 군주 5등급(공개 전 Lv0 → 공개 후 최대 강화 티어)으로 고정.
+                MonsterLook[] looks;
+                if (_scene == EScene.Loading)
                 {
-                    //# 로딩 중에는 풋내기·기본 시트로 고정 — 완료 시 RevealActual 이 실제 외형으로 갱신한다.
-                    for (int i = 0; i < looks.Length; i++)
-                    {
-                        looks[i] = new MonsterLook { Slot = looks[i].Slot, Monster = looks[i].Base, Base = looks[i].Base, Grade = MonsterGrades.MinGrade };
-                    }
+                    looks = MonsterLooks.LoadingShowcase(_metaConfig, _revealActual);
+                }
+                else
+                {
+                    MetaProfile profile = MetaSession.GetOrLoad();
+                    Dictionary<EMonster, int> levels = MonsterLooks.SpeciesLevels(profile, _metaConfig);
+                    looks = MonsterLooks.Compute(MonsterLooks.ResolveFormation(profile), levels);
                 }
                 if (_loader == null)
                 {

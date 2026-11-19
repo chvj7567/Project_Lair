@@ -63,6 +63,35 @@ namespace Lair.Character
             return looks;
         }
 
+        //# 로딩 화면 고정 외형 — 기준 6종 전부 군주(5등급). revealActual 이면 강화 Lv 최대(상점 MaxLevel 이내), 아니면 Lv0(시트 로드 지연 회피).
+        public static MonsterLook[] LoadingShowcase(MetaConfig config, bool revealActual)
+        {
+            Dictionary<EMonster, int> levels = new Dictionary<EMonster, int>();
+            if (revealActual)
+            {
+                foreach (EMonster species in MonsterGrades.BaseMonsters)
+                {
+                    levels[species] = MonsterEnhancementVisual.MaxLevel;
+                }
+                if (config != null)
+                {
+                    foreach (ShopItemDef item in config.ShopItems)
+                    {
+                        if (item != null && item.EffectKind == EShopEffectKind.MonsterSpecies)
+                        {
+                            levels[item.Species] = Mathf.Min(MonsterEnhancementVisual.MaxLevel, item.MaxLevel);
+                        }
+                    }
+                }
+            }
+            EMonster[] formation = new EMonster[MonsterGrades.BaseMonsters.Count];
+            for (int i = 0; i < formation.Length; i++)
+            {
+                formation[i] = MonsterGrades.Of(MonsterGrades.BaseMonsters[i], MonsterGrades.MaxGrade);
+            }
+            return Compute(formation, levels);
+        }
+
         //# 로드해야 할 (기준 몬스터, 티어) — 티어 > 0 인 종족만, 같은 종족은 한 번.
         public static List<(EMonster, int)> TierNeeds(IReadOnlyList<MonsterLook> looks)
         {
