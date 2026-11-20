@@ -98,6 +98,29 @@ namespace Lair.Showcase
             _loader = null;
         }
 
+        //# 로딩은 군주 인스턴스가 적용되기 전에 자리표시자·그림자가 어색하게 보이지 않도록 시작부터 숨긴다(마을은 기존 동작).
+        private void Awake()
+        {
+            if (_scene != EScene.Loading || _slots == null)
+                return;
+            foreach (ShowcaseSlot slot in _slots)
+            {
+                SetPlaceholderVisible(slot, false);
+            }
+        }
+
+        private static void SetPlaceholderVisible(ShowcaseSlot slot, bool visible)
+        {
+            if (slot.Placeholder != null)
+            {
+                slot.Placeholder.SetActive(visible);
+            }
+            if (slot.Shadow != null)
+            {
+                slot.Shadow.enabled = visible;
+            }
+        }
+
         private void Start()
         {
             Camera mainCam = Camera.main;
@@ -248,6 +271,7 @@ namespace Lair.Showcase
             if (prefab == null)
             {
                 Debug.LogWarning($"[MonsterShowcase] {key} 프리팹 로드 실패 — 자리표시자 유지");
+                ShowLoadingFallback(state);
                 return;
             }
             if (_released)
@@ -262,11 +286,23 @@ namespace Lair.Showcase
                     return;
                 ReturnInstance(state);
                 if (SpawnInstance(state, prefab, key, db) == false)
+                {
+                    ShowLoadingFallback(state);
                     return;
+                }
             }
             MonsterLookApplier.Apply(state.Instance.gameObject, key, look.Base, look.Level, sameInstance == false, _loader);
             state.AppliedLevel = look.Level;
             FitToHeight(state, key, db);
+        }
+
+        //# 로딩에서 군주 인스턴스를 못 띄웠을 때만 자리표시자+그림자를 되살려 빈 화면을 막는다.
+        private void ShowLoadingFallback(SlotState state)
+        {
+            if (_scene == EScene.Loading && state.Instance == null)
+            {
+                SetPlaceholderVisible(state.Slot, true);
+            }
         }
 
         private bool SpawnInstance(SlotState state, GameObject prefab, EMonster key, ShowcaseDatabase db)
@@ -301,6 +337,10 @@ namespace Lair.Showcase
             if (state.Slot.Placeholder != null)
             {
                 state.Slot.Placeholder.SetActive(false);
+            }
+            if (_scene == EScene.Loading && state.Slot.Shadow != null)
+            {
+                state.Slot.Shadow.enabled = true;
             }
             ApplyFacing(state);
             return true;
@@ -338,7 +378,7 @@ namespace Lair.Showcase
             {
                 state.Slot.Shadow.transform.localScale = state.ShadowBaseScale;
             }
-            if (state.Slot.Placeholder != null && _released)
+            if (state.Slot.Placeholder != null && _released && _scene != EScene.Loading)
             {
                 state.Slot.Placeholder.SetActive(true);
             }
