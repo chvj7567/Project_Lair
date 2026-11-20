@@ -29,7 +29,6 @@ namespace Lair.Tests.EditMode
         private static readonly Color AxisRed = new Color(0.9f, 0.3f, 0.25f, 1f);
         private static readonly Color GemOff = new Color32(0x3A, 0x47, 0x64, 0xFF);
         private static readonly Color NextNormal = new Color32(0x8E, 0x98, 0xAD, 0xFF);
-        private static readonly Color HandleGold = new Color32(0xE0, 0xA2, 0x1C, 0xFF);
 
         private readonly List<UnityEngine.Object> _spawned = new List<UnityEngine.Object>();
 
@@ -164,7 +163,7 @@ namespace Lair.Tests.EditMode
         //# --- ① 셀 프리팹 신규 SerializeField 연결 ---
 
         [Test]
-        public void 셀_프리팹_배지_면_필드가_연결되고_스프라이트가_SynergyModalBadge다()
+        public void 셀_프리팹_배지_면_필드가_연결되고_스프라이트가_Sliced로_연결돼_있다()
         {
             SynergyModalCell cell = LoadPrefabAsset(CellPath).GetComponent<SynergyModalCell>();
             Image badgeBg = (Image)Field(cell, "_tierBadgeBg");
@@ -172,12 +171,12 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(badgeBg != null, "_tierBadgeBg 비어 있음");
             Assert.AreEqual("TierBadgeBg", badgeBg.name);
             Assert.IsTrue(badgeBg.sprite != null, "TierBadgeBg 스프라이트");
-            Assert.AreEqual("SynergyModalBadge", badgeBg.sprite.name);
+            //# 배지 면은 공용 CommonUIPanelSunk 로 교체됨 — 이름 고정 대신 연결 여부만 확인.
             Assert.AreEqual(Image.Type.Sliced, badgeBg.type);
         }
 
         [Test]
-        public void 셀_프리팹_tierGems는_길이3이고_순서대로_VillageHudGem_스프라이트다()
+        public void 셀_프리팹_tierGems는_길이3이고_순서대로_SynergyModalGem_스프라이트다()
         {
             SynergyModalCell cell = LoadPrefabAsset(CellPath).GetComponent<SynergyModalCell>();
             Image[] gems = Images(cell, "_tierGems");
@@ -188,7 +187,7 @@ namespace Lair.Tests.EditMode
                 Assert.IsTrue(gems[i] != null, $"_tierGems[{i}] 비어 있음");
                 Assert.AreEqual("TierGem" + (i + 1), gems[i].name, $"_tierGems[{i}] 이름");
                 Assert.IsTrue(gems[i].sprite != null, $"_tierGems[{i}] 스프라이트");
-                Assert.AreEqual("VillageHudGem", gems[i].sprite.name, $"_tierGems[{i}] 스프라이트 이름");
+                Assert.AreEqual("SynergyModalGem", gems[i].sprite.name, $"_tierGems[{i}] 스프라이트 이름");
             }
         }
 
@@ -205,7 +204,8 @@ namespace Lair.Tests.EditMode
                 Assert.IsTrue(tints[i] != null, $"_axisTintImages[{i}] 비어 있음");
                 Assert.AreEqual(expected[i], tints[i].name, $"_axisTintImages[{i}] 이름");
             }
-            Assert.AreEqual("SynergyModalHalo", tints[2].sprite.name, "IconSlot 스프라이트");
+            Assert.IsTrue(tints[2].sprite != null, "IconSlot 스프라이트 연결");
+            Assert.AreEqual("RelicIconFrame", tints[2].sprite.name, "IconSlot 스프라이트");
         }
 
         [Test]
@@ -253,16 +253,16 @@ namespace Lair.Tests.EditMode
         //# --- ① 기존 위젯 좌표 회귀 (§1.1) ---
 
         //# 이름, anchorMin, anchorMax, anchoredPosition, sizeDelta
-        [TestCase("SynergyModalCell", 0.5f, 0.5f, 0.5f, 0.5f, 0f, 0f, 392f, 136f)]
-        [TestCase("AxisStrip", 0f, 0f, 0f, 1f, 4f, 0f, 8f, -8f)]
-        [TestCase("IconSlot", 0f, 0.5f, 0f, 0.5f, 20f, 0f, 52f, 52f)]
-        [TestCase("Icon", 0f, 0.5f, 0f, 0.5f, 46f, 0f, 36f, 36f)]
-        [TestCase("Label", 0f, 1f, 0f, 1f, 84f, -8f, 200f, 30f)]
-        [TestCase("TierBadgeBg", 1f, 1f, 1f, 1f, -14f, -8f, 64f, 28f)]
-        [TestCase("TierBadge", 1f, 1f, 1f, 1f, -14f, -8f, 64f, 28f)]
-        [TestCase("DescText", 0f, 1f, 1f, 1f, 84f, -42f, -98f, 44f)]
-        [TestCase("NextText", 0f, 1f, 1f, 1f, 84f, -92f, -98f, 36f)]
-        public void 셀_기존_위젯의_앵커_위치_크기가_변하지_않는다(string name, float minX, float minY, float maxX, float maxY, float posX, float posY, float sizeX, float sizeY)
+        [TestCase("SynergyModalCell", 0.5f, 0.5f, 0.5f, 0.5f, 0f, 0f, 380f, 150f)]
+        [TestCase("AxisStrip", 0f, 0.5f, 0f, 0.5f, 23f, -2f, 8f, 64f)]
+        [TestCase("IconSlot", 0f, 0.5f, 0f, 0.5f, 36f, 6f, 52f, 52f)]
+        [TestCase("Icon", 0f, 0.5f, 0f, 0.5f, 62f, 6f, 36f, 36f)]
+        [TestCase("Label", 0f, 1f, 0f, 1f, 104f, -31f, 180f, 29f)]
+        [TestCase("TierBadgeBg", 1f, 1f, 1f, 1f, -26f, -34f, 64f, 24f)]
+        [TestCase("TierBadge", 1f, 1f, 1f, 1f, -26f, -34f, 64f, 24f)]
+        [TestCase("DescText", 0f, 1f, 1f, 1f, 104f, -72f, -152f, 26f)]
+        [TestCase("NextText", 0f, 1f, 1f, 1f, 104f, -100f, -152f, 18f)]
+        public void 셀_위젯의_앵커_위치_크기가_새_레이아웃과_같다(string name, float minX, float minY, float maxX, float maxY, float posX, float posY, float sizeX, float sizeY)
         {
             RectTransform rect = RectOf(LoadPrefabAsset(CellPath), name);
 
@@ -673,15 +673,16 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 팝업_CloseButton은_VillageHudCta_스프라이트고_X_글자가_활성이다()
+        public void 팝업_CloseButton은_RelicCloseBtn_스프라이트고_X_글자는_비활성이다()
         {
             GameObject root = LoadPrefabAsset(PopupPath);
             Image close = FindChild(root, "CloseButton").GetComponent<Image>();
             Transform x = FindChild(root, "X");
 
-            Assert.AreEqual("VillageHudCta", close.sprite.name);
+            Assert.AreEqual("RelicCloseBtn", close.sprite.name);
             Assert.AreSame(close.transform, x.parent, "X 는 CloseButton 자식");
-            Assert.IsTrue(x.gameObject.activeSelf, "X 글자 활성");
+            //# 새 닫기 아트에 X 모양이 구워져 있어 글자 오브젝트는 숨겨 둔다.
+            Assert.IsFalse(x.gameObject.activeSelf, "X 글자 비활성");
         }
 
         [Test]
@@ -695,11 +696,13 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 팝업_스크롤_Handle_색은_금색_E0A21C다()
+        public void 팝업_스크롤_Handle은_RelicScrollThumb_스프라이트고_틴트가_흰색이다()
         {
             Image handle = FindChild(LoadPrefabAsset(PopupPath), "Handle").GetComponent<Image>();
 
-            AssertRgb(HandleGold, handle.color, "Handle");
+            Assert.IsTrue(handle.sprite != null, "Handle 스프라이트 연결");
+            Assert.AreEqual("RelicScrollThumb", handle.sprite.name);
+            AssertColor(Color.white, handle.color, "Handle 틴트(스프라이트 원색 유지)");
         }
 
         [Test]
@@ -713,11 +716,11 @@ namespace Lair.Tests.EditMode
 
         //# 이름, anchorMin, anchorMax, anchoredPosition, sizeDelta
         [TestCase("ModalBody", 0.5f, 0.5f, 0.5f, 0.5f, 0f, 0f, 460f, 480f)]
-        [TestCase("TitlePlaque", 0.5f, 1f, 0.5f, 1f, 0f, 0f, 320f, 52f)]
-        [TestCase("CloseButton", 1f, 1f, 1f, 1f, 13f, 13f, 44f, 44f)]
-        [TestCase("ScrollView", 0f, 0f, 1f, 1f, 0f, -22f, -56f, -100f)]
-        [TestCase("EmptyText", 0f, 0f, 1f, 1f, 0f, -22f, -56f, -100f)]
-        public void 팝업_기존_위젯의_앵커_위치_크기가_변하지_않는다(string name, float minX, float minY, float maxX, float maxY, float posX, float posY, float sizeX, float sizeY)
+        [TestCase("TitlePlaque", 0.5f, 1f, 0.5f, 1f, 0f, 0f, 264f, 52f)]
+        [TestCase("CloseButton", 1f, 1f, 1f, 1f, -36f, 14f, 44f, 44f)]
+        [TestCase("ScrollView", 0f, 0f, 1f, 1f, 0f, -1f, -64f, -66f)]
+        [TestCase("EmptyText", 0f, 0f, 1f, 1f, 0f, -1f, -64f, -66f)]
+        public void 팝업_위젯의_앵커_위치_크기가_새_레이아웃과_같다(string name, float minX, float minY, float maxX, float maxY, float posX, float posY, float sizeX, float sizeY)
         {
             RectTransform rect = RectOf(LoadPrefabAsset(PopupPath), name);
 
