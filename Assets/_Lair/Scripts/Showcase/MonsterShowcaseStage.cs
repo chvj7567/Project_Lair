@@ -202,6 +202,8 @@ namespace Lair.Showcase
                     MonsterLook look = LookOf(looks, state.Slot.Species);
                     await ApplyLookAsync(state, look, db);
                 }
+                //# 모든 슬롯 적용이 끝난 시점 — 건너뛴 슬롯(SlotState 없음)·실패 슬롯이 숨은 채 남지 않게 복구.
+                ShowLoadingFallbackForEmptySlots();
             }
             catch (Exception e)
             {
