@@ -155,7 +155,10 @@ namespace Lair.Showcase
             }
             ShowcaseDatabase db = ShowcaseDatabase.Current;
             if (db == null || _slots == null)
+            {
+                ShowLoadingFallbackForEmptySlots();
                 return;
+            }
             _busy = true;
             try
             {
@@ -203,6 +206,7 @@ namespace Lair.Showcase
             catch (Exception e)
             {
                 Debug.LogException(e);
+                ShowLoadingFallbackForEmptySlots();
             }
             finally
             {
@@ -344,6 +348,21 @@ namespace Lair.Showcase
             }
             ApplyFacing(state);
             return true;
+        }
+
+        //# 로딩에서 인스턴스가 없는 슬롯(데이터 누락·건너뜀·예외 포함)만 자리표시자+그림자를 되살린다 — 이미 뜬 슬롯은 건드리지 않는다.
+        private void ShowLoadingFallbackForEmptySlots()
+        {
+            if (_scene != EScene.Loading || _slots == null)
+                return;
+            foreach (ShowcaseSlot slot in _slots)
+            {
+                SlotState state = _states.Find(x => x.Slot == slot);
+                if (state == null || state.Instance == null)
+                {
+                    SetPlaceholderVisible(slot, true);
+                }
+            }
         }
 
         //# 표시 높이 상한 — H = (HP바 높이 − 0.08) x 48(도트), 상한 초과 시 루트 스케일·그림자에 fit 배율(village-monster-showcase §4.2).
