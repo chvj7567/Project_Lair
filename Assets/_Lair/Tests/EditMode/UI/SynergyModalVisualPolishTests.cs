@@ -717,7 +717,7 @@ namespace Lair.Tests.EditMode
         //# 이름, anchorMin, anchorMax, anchoredPosition, sizeDelta
         [TestCase("ModalBody", 0.5f, 0.5f, 0.5f, 0.5f, 0f, 0f, 460f, 480f)]
         [TestCase("TitlePlaque", 0.5f, 1f, 0.5f, 1f, 0f, 0f, 264f, 52f)]
-        [TestCase("CloseButton", 1f, 1f, 1f, 1f, -36f, 14f, 44f, 44f)]
+        [TestCase("CloseButton", 1f, 1f, 1f, 1f, -32f, -32f, 44f, 44f)]
         [TestCase("ScrollView", 0f, 0f, 1f, 1f, 0f, -1f, -64f, -66f)]
         [TestCase("EmptyText", 0f, 0f, 1f, 1f, 0f, -1f, -64f, -66f)]
         public void 팝업_위젯의_앵커_위치_크기가_새_레이아웃과_같다(string name, float minX, float minY, float maxX, float maxY, float posX, float posY, float sizeX, float sizeY)
