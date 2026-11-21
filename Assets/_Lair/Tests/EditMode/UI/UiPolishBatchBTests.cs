@@ -516,25 +516,25 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(1, closes, "CloseButton Graphic 수");
         }
 
-        //# --- ⑥ 기록 셀 폭 424 ---
+        //# --- ⑥ 기록 셀 폭 396 ---
 
         [Test]
-        public void RecordsStageCell_프리팹_루트_크기는_424x84다()
+        public void RecordsStageCell_프리팹_루트_크기는_396x84다()
         {
             RectTransform root = (RectTransform)LoadPrefabAsset(RecordsCellPath).transform;
 
-            Assert.AreEqual(424f, root.sizeDelta.x, 0.01f, "셀 루트 폭");
+            Assert.AreEqual(396f, root.sizeDelta.x, 0.01f, "셀 루트 폭");
             Assert.AreEqual(84f, root.sizeDelta.y, 0.01f, "셀 루트 높이");
         }
 
         [Test]
-        public void RecordsPopup_origin_오버라이드_폭도_424다()
+        public void RecordsPopup_origin_오버라이드_폭도_396이다()
         {
             RecordsPopup popup = Comp<RecordsPopup>(LoadPrefabAsset(RecordsPopupPath));
             GameObject origin = OriginOf(popup, "_scrollView");
 
             RectTransform rect = origin.GetComponent<RectTransform>();
-            Assert.AreEqual(424f, rect.sizeDelta.x, 0.01f, "origin 폭");
+            Assert.AreEqual(396f, rect.sizeDelta.x, 0.01f, "origin 폭");
             Assert.AreEqual(84f, rect.sizeDelta.y, 0.01f, "origin 높이");
         }
 

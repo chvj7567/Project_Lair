@@ -102,7 +102,8 @@ namespace Lair.Tests.EditMode
 
         [TestCase(ShopPopupPath, "ShopCloseBtn")]   //# 상점 전용 아트 세트(ui-art-refresh)로 교체
         [TestCase(CodexPopupPath, "CodexCloseBtn")]   //# 도감 전용 GPT 아트 세트(monster-codex-ui-art §8.1)로 교체
-        [TestCase(RecordsPopupPath, "VillageHudCta")]
+        [TestCase(RecordsPopupPath, "RelicCloseBtn")]   //# 유물 도감 아트 세트 닫기 버튼 공유
+        [TestCase(UiDir + "RankingPopup.prefab", "RelicCloseBtn")]
         public void 닫기_버튼_Image_스프라이트는_팝업별_기대값이다(string path, string expected)
         {
             int closes = 0;
@@ -235,12 +236,12 @@ namespace Lair.Tests.EditMode
         //# --- 기록 셀 상태별 배경 ---
 
         [Test]
-        public void 기록_셀_스킨_슬롯은_SynergyModalCellBg와_VillageHudBtnOff다()
+        public void 기록_셀_스킨_슬롯은_TowerFloorBg와_CommonUIPanelSunk다()
         {
             RecordsStageCell cell = Comp<RecordsStageCell>(LoadPrefabAsset(RecordsCellPath));
 
-            Assert.AreEqual("SynergyModalCellBg", SpriteName(Required<Sprite>(cell, "_normalSprite"), "_normalSprite"));
-            Assert.AreEqual("VillageHudBtnOff", SpriteName(Required<Sprite>(cell, "_lockedSprite"), "_lockedSprite"));
+            Assert.AreEqual("TowerFloorBg", SpriteName(Required<Sprite>(cell, "_normalSprite"), "_normalSprite"));
+            Assert.AreEqual("CommonUIPanelSunk", SpriteName(Required<Sprite>(cell, "_lockedSprite"), "_lockedSprite"));
         }
 
         [Test]
@@ -252,17 +253,17 @@ namespace Lair.Tests.EditMode
             GameObject badge = Required<GameObject>(cell, "_selectedBadge");
 
             cell.Bind(new RecordsStageCellData { IsLocked = true, PortraitTint = Color.white });
-            Assert.AreEqual("VillageHudBtnOff", SpriteName(background, "잠금"));
+            Assert.AreEqual("CommonUIPanelSunk", SpriteName(background, "잠금"));
             Assert.IsFalse(ring.gameObject.activeSelf, "잠금 링");
             Assert.IsFalse(badge.activeSelf, "잠금 배지");
 
             cell.Bind(new RecordsStageCellData { IsLocked = false, IsSelected = true, PortraitTint = Color.white });
-            Assert.AreEqual("SynergyModalCellBg", SpriteName(background, "해금 선택"));
+            Assert.AreEqual("TowerFloorBg", SpriteName(background, "해금 선택"));
             Assert.IsTrue(ring.gameObject.activeSelf, "선택 링");
             Assert.IsTrue(badge.activeSelf, "선택 배지");
 
             cell.Bind(new RecordsStageCellData { IsLocked = false, IsSelected = false, PortraitTint = Color.white });
-            Assert.AreEqual("SynergyModalCellBg", SpriteName(background, "해금 비선택"));
+            Assert.AreEqual("TowerFloorBg", SpriteName(background, "해금 비선택"));
             Assert.IsFalse(ring.gameObject.activeSelf, "비선택 링");
             Assert.IsFalse(badge.activeSelf, "비선택 배지");
         }

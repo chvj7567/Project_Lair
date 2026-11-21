@@ -661,6 +661,97 @@ namespace Lair.Tests.EditMode
             Assert.DoesNotThrow(() => cell.Bind(RankEntry(2)), "빈 배열");
         }
 
+        //# --- 순위별 메달 스프라이트(_rankMedalSprites) ---
+
+        private static Sprite NewTestSprite(string name)
+        {
+            Texture2D tex = new Texture2D(2, 2);
+            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), Vector2.zero);
+            sprite.name = name;
+            return sprite;
+        }
+
+        private Image SetupMedalImage(RankingCell cell, Sprite[] sprites)
+        {
+            GameObject go = new GameObject("TestMedalImage");
+            _spawned.Add(go);
+            Image image = go.AddComponent<Image>();
+            SetField(cell, "_rankMedalImage", image);
+            SetField(cell, "_rankMedalSprites", sprites);
+            return image;
+        }
+
+        [TestCase(1L)]
+        [TestCase(2L)]
+        [TestCase(3L)]
+        public void RankingCell_메달_스프라이트_슬롯이_있으면_1_3위에서_스프라이트를_교체하고_색은_흰색이다(long rank)
+        {
+            RankingCell cell = NewRankingCell();
+            Sprite[] sprites = { NewTestSprite("G"), NewTestSprite("S"), NewTestSprite("B") };
+            Image image = SetupMedalImage(cell, sprites);
+            image.color = Color.red;
+
+            cell.Bind(RankEntry(rank));
+
+            Assert.AreSame(sprites[rank - 1], image.sprite, "rank " + rank + " 스프라이트");
+            Assert.AreEqual(Color.white, image.color, "원색(틴트 없음)");
+        }
+
+        [Test]
+        public void RankingCell_메달_스프라이트_슬롯이_비면_기존_틴트를_유지한다()
+        {
+            RankingCell cell = NewRankingCell();
+            Image[] tinted = Required<Image[]>(cell, "_rankMedalTinted");
+            Image image = SetupMedalImage(cell, null);
+            Sprite before = image.sprite;
+            SetField(cell, "_rankMedalTinted", new Image[] { image, tinted[1] });
+            float alpha = image.color.a;
+
+            cell.Bind(RankEntry(1));
+
+            Assert.AreSame(before, image.sprite, "스프라이트 불변");
+            AssertRgb(PodiumGold, image.color, "틴트 경로");
+            Assert.AreEqual(alpha, image.color.a, 0.001f, "알파 보존");
+        }
+
+        [TestCase(2L, 3L)]
+        [TestCase(1L, 0L)]
+        public void RankingCell_메달_스프라이트_배열이_rank보다_짧으면_틴트_경로다(long length, long rank)
+        {
+            RankingCell cell = NewRankingCell();
+            Sprite[] sprites = new Sprite[length];
+            for (int i = 0; i < length; ++i)
+            {
+                sprites[i] = NewTestSprite("S" + i);
+            }
+            Image image = SetupMedalImage(cell, sprites);
+            Sprite before = image.sprite;
+            SetField(cell, "_rankMedalTinted", new Image[] { image });
+
+            if (rank == 0)
+            {
+                rank = length + 1;
+            }
+            cell.Bind(RankEntry(rank));
+
+            Assert.AreSame(before, image.sprite, "스프라이트 불변");
+            AssertRgb(rank == 3 ? PodiumBronze : PodiumSilver, image.color, "틴트 경로");
+        }
+
+        [Test]
+        public void RankingCell_메달_스프라이트_원소가_null이면_틴트_경로다()
+        {
+            RankingCell cell = NewRankingCell();
+            Image image = SetupMedalImage(cell, new Sprite[] { null, NewTestSprite("S"), NewTestSprite("B") });
+            Sprite before = image.sprite;
+            SetField(cell, "_rankMedalTinted", new Image[] { image });
+
+            cell.Bind(RankEntry(1));
+
+            Assert.AreSame(before, image.sprite, "스프라이트 불변");
+            AssertRgb(PodiumGold, image.color, "틴트 경로");
+        }
+
         [Test]
         public void RankingCell_위젯_필드가_전부_비어_있어도_Bind가_예외없다()
         {
@@ -938,7 +1029,6 @@ namespace Lair.Tests.EditMode
 
         [TestCase(QuestPopupPath)]
         [TestCase(LordPopupPath)]
-        [TestCase(RankingPopupPath)]
         public void 팝업_프리팹의_셀_인스턴스에_스프라이트_색_필드_오버라이드와_추가_컴포넌트가_없다(string path)
         {
             string yaml = File.ReadAllText(FullPath(path));
@@ -946,6 +1036,24 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0, Regex.Matches(yaml, @"propertyPath:\s*(m_Sprite|m_Color|m_Material|m_Type|m_FillAmount|_)").Count, path + " 셀 시각 값 오버라이드(셀 변경은 셀 프리팹에만)");
             Assert.AreEqual(0, Regex.Matches(yaml, @"m_AddedComponents:\s*\r?\n\s*-").Count, path + " 추가 컴포넌트 오버라이드");
             Assert.AreEqual(0, Regex.Matches(yaml, @"m_AddedGameObjects:\s*\r?\n\s*-").Count, path + " 추가 GameObject 오버라이드");
+        }
+
+        //# RankingPopup 은 UI 아트 교체로 RankingCell 인스턴스에 스프라이트·색·메달 배열 오버라이드를 의도적으로 가진다 — 허용 목록 밖 값만 실패.
+        [Test]
+        public void RankingPopup_셀_인스턴스_오버라이드는_스프라이트_색_메달_배열로만_한정되고_추가_컴포넌트가_없다()
+        {
+            string yaml = File.ReadAllText(FullPath(RankingPopupPath));
+            Regex allowed = new Regex(@"^(m_Sprite|m_Color|_normalSprite|_mineSprite|_rankMedalSprites\.Array\.(size|data\[\d+\]))$");
+
+            foreach (Match match in Regex.Matches(yaml, @"propertyPath:\s*(m_Sprite|m_Color|m_Material|m_Type|m_FillAmount|_\S*)"))
+            {
+                string property = match.Groups[1].Value;
+                Assert.IsTrue(allowed.IsMatch(property), RankingPopupPath + " 허용 밖 오버라이드: " + property);
+            }
+            Assert.AreEqual(0, Regex.Matches(yaml, @"m_AddedComponents:\s*?
+\s*-").Count, "추가 컴포넌트 오버라이드");
+            Assert.AreEqual(0, Regex.Matches(yaml, @"m_AddedGameObjects:\s*?
+\s*-").Count, "추가 GameObject 오버라이드");
         }
 
         //# --- ⑧ Deco raycastTarget ---
