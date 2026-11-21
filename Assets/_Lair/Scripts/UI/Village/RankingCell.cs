@@ -37,6 +37,9 @@ namespace Lair.UI
         //# 비주얼 폴리시 — 1~3위 메달 묶음(순위 1~3 에서만 활성) + 순위색 rgb 로 틴트할 Image(글로우·원판). 미할당이면 건너뜀.
         [SerializeField] private GameObject _rankMedalRoot;
         [SerializeField] private Image[] _rankMedalTinted;
+        //# 1~3위 메달 전용 스프라이트 슬롯(인덱스 0=금,1=은,2=동). 미할당이면 위 틴트 방식 유지.
+        [SerializeField] private Image _rankMedalImage;
+        [SerializeField] private Sprite[] _rankMedalSprites;
 
         //# 순위 색 강조(기획서 §4) — 1/2/3위 금/은/동, 그 외 기본.
         private static readonly Color Gold = new Color(1f, 0.823f, 0.290f);       //# #FFD24A
@@ -74,7 +77,22 @@ namespace Lair.UI
             {
                 _rankMedalRoot.SetActive(podium);
             }
-            if (podium == false || _rankMedalTinted == null)
+            if (podium == false)
+                return;
+
+            //# 순위별 스프라이트(0=금,1=은,2=동)가 있으면 교체하고 틴트 없이 원색 — 슬롯 비면 기존 동작.
+            bool spriteApplied = false;
+            if (_rankMedalImage != null && _rankMedalSprites != null && _rankMedalSprites.Length >= rank)
+            {
+                Sprite medal = _rankMedalSprites[rank - 1];
+                if (medal != null)
+                {
+                    _rankMedalImage.sprite = medal;
+                    _rankMedalImage.color = Color.white;
+                    spriteApplied = true;
+                }
+            }
+            if (_rankMedalTinted == null)
                 return;
 
             Color rankColor = RankColor(rank);
@@ -82,6 +100,8 @@ namespace Lair.UI
             {
                 Image tinted = _rankMedalTinted[i];
                 if (tinted == null)
+                    continue;
+                if (spriteApplied && tinted == _rankMedalImage)
                     continue;
                 tinted.color = new Color(rankColor.r, rankColor.g, rankColor.b, tinted.color.a);
             }
