@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>씬 배경 리뉴얼 - 플레이어 가이드</title>
+<style>
+:root{--bg:#0b0d12;--fg:#e5e7eb;--muted:#9ca3af;--line:#262b36;--card:#141821;--s1:#171d2a;--s2:#222a3b;--s4:#48546e;--gold:#f7c64a;--gold2:#b9832a;--soul:#5ef0b4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:880px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0;color:var(--gold)}
+h2{font-size:17px;margin:0 0 8px;color:var(--soul)}
+p{margin:6px 0;font-size:14px}
+.sub{color:var(--muted);font-size:13.5px}
+section{margin:22px 0;padding-top:14px;border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.card{background:var(--card);border:2px solid var(--gold2);border-radius:6px;padding:10px 12px}
+.card b{color:var(--gold)}
+.card.rec{border-color:var(--soul)}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid var(--s4);color:var(--muted);margin-left:6px}
+.tag.ok{border-color:var(--soul);color:var(--soul)}
+.scene{position:relative;width:100%;border:2px solid var(--gold2);border-radius:4px;overflow:hidden;background:#05070c}
+.scene.battle{aspect-ratio:16/9}
+.scene.wide{aspect-ratio:16/9}
+.scene .lbl{position:absolute;left:6px;top:4px;font-size:11px;color:var(--muted)}
+.zone{position:absolute;border:1.5px dashed rgba(255,255,255,.55);background:rgba(8,11,18,.55);font-size:10.5px;color:#cbd5e1;padding:1px 4px}
+.free{position:absolute;border:1.5px solid var(--soul);background:rgba(94,240,180,.07);font-size:10.5px;color:var(--soul);padding:1px 4px}
+.arena{position:absolute;left:14%;right:14%;top:20%;bottom:20%;border-radius:50%;border:3px solid var(--s4);background:radial-gradient(ellipse,#1d3a3d,#171d2a 70%);box-shadow:0 0 0 2px var(--gold2) inset}
+.floor{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(#0d121b,#151b28)}
+.lane{position:absolute;border:1.5px solid var(--soul);background:rgba(94,240,180,.1);font-size:10.5px;color:var(--soul);padding:1px 4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--s1);color:var(--gold)}
+ul{margin:6px 0;padding-left:18px;font-size:14px}
+li{margin:3px 0}
+.ask{background:var(--s1);border:2px solid var(--gold);border-radius:6px;padding:12px 14px}
+.ask li{margin:8px 0}
+.ask em{color:var(--soul);font-style:normal}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.step{flex:1 1 150px;background:var(--card);border:1px solid var(--s4);border-radius:6px;padding:8px 10px;font-size:13px}
+.step i{display:block;font-style:normal;color:var(--gold);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>씬 배경 리뉴얼</h1>
+<p class="sub">전투(챕터 1~5) · 마을 · 로딩 화면의 배경 그림 7장을, 길과 자리는 그대로 두고 더 정교하게 다시 그립니다. 게임 규칙·화면 구성은 바뀌지 않습니다.</p>
+
+<section>
+<h2>지금 어떤 상태인가요</h2>
+<div class="grid">
+<div class="card"><b>전투</b><span class="tag">그림 5장</span>
+<p>둥근 투기장 + 위쪽 석벽. 챕터마다 분위기(숲·성채·용광로·서리 성당)가 다릅니다. 영웅과 몬스터가 싸우는 5분 내내 보이는 배경입니다.</p></div>
+<div class="card"><b>마을</b><span class="tag">그림 1장</span>
+<p>옥좌의 방. 상점·도감·게시판·묘비·왕관 받침대 같은 메뉴 소품이 그려져 있고 내 몬스터 6마리가 그 앞을 돌아다닙니다.</p></div>
+<div class="card"><b>로딩</b><span class="tag">그림 1장</span>
+<p>신전과 마법진. 몬스터 6마리가 마법진 위에 서서 전투를 기다립니다.</p></div>
+</div>
+<p>세 화면 모두 이미 금테·소울 초록 톤으로 한 번 다듬어져 있습니다. 하지만 몬스터와 UI 는 새 그림으로 바뀐 반면 배경만 거친 도트 질감이라, 화면 안에서 질감 차이가 납니다.</p>
+</section>
+
+<section>
+<h2>무엇이 달라지나요</h2>
+<ul>
+<li>돌바닥·벽·금속 장식의 질감과 디테일이 풍부해집니다.</li>
+<li>횃불·촛불·마법진 빛이 그림 속 같은 자리에서 그대로 빛납니다.</li>
+<li>몬스터가 서 있는 바닥은 지금처럼 차분하게 유지되어 유닛이 또렷하게 보입니다.</li>
+<li>분위기 빛(조명)은 지금처럼 게임이 실시간으로 얹습니다 — 그림 자체에는 빛을 굽지 않습니다.</li>
+</ul>
+<p>달라지지 않는 것: 영웅이 오는 길, 스포너 위치, 메뉴 위치, 몬스터가 돌아다니는 자리, 버튼, 저장 데이터.</p>
+</section>
+
+<section>
+<h2>자리를 지켜야 하는 곳</h2>
+<p class="sub">초록 칸은 몬스터·영웅이 보이는 곳이라 바닥이 차분해야 합니다. 점선 칸은 화면 UI 가 덮는 곳입니다.</p>
+<div class="grid">
+<div>
+<p><b>전투</b></p>
+<div class="scene battle"><span class="lbl">전투 화면</span>
+<div class="arena"></div>
+<div class="zone" style="left:0;right:0;top:0;height:14%">위쪽 UI(보스 바·배너)</div>
+<div class="zone" style="right:0;top:16%;width:14%;height:62%">오른쪽 시너지·빌드</div>
+<div class="zone" style="left:0;right:0;bottom:0;height:13%">아래 스포너 행</div>
+<div class="free" style="left:2%;top:18%;width:80%;height:66%;pointer-events:none;background:none">싸우는 영역</div>
+</div></div>
+<div>
+<p><b>마을</b></p>
+<div class="scene wide"><span class="lbl">마을 화면</span>
+<div class="floor"></div>
+<div class="zone" style="left:0;top:26%;width:20%;height:50%">왼쪽 메뉴</div>
+<div class="zone" style="right:0;top:26%;width:26%;height:50%">오른쪽 패널</div>
+<div class="zone" style="left:37%;top:16%;width:26%;height:56%">영웅 홀로그램</div>
+<div class="lane" style="left:21%;top:62%;width:15%;height:26%">몬스터 길</div>
+<div class="lane" style="left:64%;top:62%;width:10%;height:26%">길</div>
+</div></div>
+<div>
+<p><b>로딩</b></p>
+<div class="scene wide"><span class="lbl">로딩 화면</span>
+<div class="floor" style="height:36%"></div>
+<div class="zone" style="left:35%;top:12%;width:30%;height:42%">신전</div>
+<div class="lane" style="left:14%;top:68%;width:72%;height:14%">마법진 · 몬스터 대기</div>
+<div class="zone" style="left:34%;bottom:3%;width:32%;height:9%">진행 바</div>
+</div></div>
+</div>
+</section>
+
+<section>
+<h2>어떻게 그릴까요 — 세 가지 방법</h2>
+<div class="grid">
+<div class="card"><b>A. 도트 그대로 정교하게</b>
+<p>지금의 거친 격자를 유지한 채 디테일만 보강. 가장 안전하지만 질감 차이가 완전히 사라지지는 않습니다.</p></div>
+<div class="card rec"><b>C. 새로 그린 뒤 도트로 맞추기</b><span class="tag ok">추천</span>
+<p>AI 로 풍부하게 그린 그림을 지금의 격자·색에 맞춰 줄여 넣습니다. 조명·위치가 그대로라 안전하고, 질감은 좋아집니다. 잘 안 되는 장은 A 로 되돌립니다.</p></div>
+<div class="card"><b>B. 고해상도 회화풍</b>
+<p>몬스터처럼 선명한 큰 그림. 가장 닮아 보이지만 지금의 빛 표현(계단식 조명)과 맞지 않아 화면 렌더링 방식을 바꿔야 하므로 이번에는 하지 않습니다.</p></div>
+</div>
+</section>
+
+<section>
+<h2>진행 순서</h2>
+<div class="steps">
+<div class="step"><i>1. 준비</i>자리 지도(가이드) 만들기, 현재 상태 점검</div>
+<div class="step"><i>2. 마을 시범</i>한 장만 먼저 그려 보고 방식을 확정</div>
+<div class="step"><i>3. 로딩</i>같은 방식으로</div>
+<div class="step"><i>4. 전투 1장</i>투기장 기준틀 확정</div>
+<div class="step"><i>5. 전투 2~5장</i>챕터별 분위기만 바꿔서</div>
+</div>
+<p class="sub">장마다 화면을 직접 보여 드리고 승인받은 뒤 다음으로 넘어갑니다.</p>
+</section>
+
+<section>
+<h2>확인할 것들</h2>
+<table>
+<tr><th>검사</th><th>통과 조건</th></tr>
+<tr><td>자리 일치</td><td>투기장 테두리·소품이 원래 자리에서 거의 안 움직임(몇 칸 이내)</td></tr>
+<tr><td>빛 일치</td><td>횃불·촛불·마법진 빛이 그림 속 해당 물체 위에 있음</td></tr>
+<tr><td>UI 가림</td><td>중요한 그림이 UI 뒤로 숨지 않음</td></tr>
+<tr><td>몬스터 가독성</td><td>바닥이 지금과 비슷한 밝기라 유닛이 또렷함</td></tr>
+<tr><td>7장 전부 보기</td><td>전투 5 + 마을 + 로딩을 직접 확인</td></tr>
+</table>
+</section>
+
+<section>
+<h2>결정해 주세요</h2>
+<div class="ask"><ol>
+<li><b>그리는 방식은?</b> 도트 유지(A) / 새로 그려 도트로 맞춤(C) / 고해상도(B) — <em>추천: C (안 되는 장은 A)</em></li>
+<li><b>분위기는?</b> 지금의 석조 홀·금·초록 톤 유지 / 몬스터처럼 한국 설화 느낌 추가 — <em>추천: 지금 톤 유지</em></li>
+<li><b>첫 장은?</b> 마을 / 로딩 / 전투 — <em>추천: 마을</em></li>
+<li><b>마을·로딩이 진행도에 따라 달라지게 할까요?</b> — <em>추천: 아니요(이번엔 한 장씩만)</em></li>
+<li><b>도트 거칠기는?</b> 지금 그대로 / 더 곱게 — <em>추천: 지금 그대로</em></li>
+<li><b>스포너 자리 금빛 링을 챕터 전체에서 통일할까요?</b> (지금은 5장에만 그려져 있고 1장엔 없음) — <em>추천: 모두 빼기(게임이 따로 그림)</em></li>
+<li><b>화면 가장자리(일반 16:9 에서 안 보이는 부분)의 디테일은 포기해도 될까요?</b> — <em>추천: 포기</em></li>
+</ol></div>
+</section>
+
+</div>
+</body>
+</html>
