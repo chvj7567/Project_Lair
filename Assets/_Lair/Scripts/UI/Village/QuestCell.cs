@@ -21,8 +21,6 @@ namespace Lair.UI
         //# 비주얼 폴리시 — 달성 장식 묶음(소울 띠·배지 발광). 달성일 때만 활성, 미할당이면 건너뜀.
         [SerializeField] private GameObject _achievedDecor;
 
-        private static readonly Color AchievedTint = new Color(0.72f, 1f, 0.84f, 1f);
-
         //# 달성 강조 (#FBBF24 톤 배경) / 미달성 기본 (#1F2937).
         private static readonly Color AchievedBg = new Color(0.30f, 0.25f, 0.10f, 0.95f);
         private static readonly Color NormalBg = new Color(0.122f, 0.161f, 0.216f, 0.95f);
@@ -38,7 +36,7 @@ namespace Lair.UI
                 if (_normalSprite != null)
                 {
                     _background.sprite = _normalSprite;
-                    _background.color = data.Achieved ? AchievedTint : Color.white;
+                    _background.color = Color.white;
                 }
                 else
                 {

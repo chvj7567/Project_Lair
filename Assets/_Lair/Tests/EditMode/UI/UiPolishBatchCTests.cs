@@ -399,7 +399,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void QuestCell_달성_Bind는_달성_장식과_배지를_켜고_진행바를_끄며_루트를_틴트한다()
+        public void QuestCell_달성_Bind는_달성_장식과_배지를_켜고_진행바를_끄며_배경은_흰색이다()
         {
             QuestCell cell = NewQuestCell();
             GameObject decor = Required<GameObject>(cell, "_achievedDecor");
@@ -412,7 +412,32 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(decor.activeSelf, "달성 장식");
             Assert.IsTrue(badge.activeSelf, "배지");
             Assert.IsFalse(progress.activeSelf, "진행 바");
-            AssertRgb(new Color(0.72f, 1f, 0.84f), background.color, "달성 틴트");
+            Assert.AreEqual(Color.white, background.color, "달성 배경 원색(틴트 없음)");
+        }
+
+        [Test]
+        public void QuestCell_스프라이트_배정_배경은_달성_여부와_무관하게_흰색이다()
+        {
+            QuestCell cell = NewQuestCell();
+            Image background = Required<Image>(cell, "_background");
+
+            cell.Bind(QuestData(false, true));
+            Assert.AreEqual(Color.white, background.color, "진행중");
+            cell.Bind(QuestData(true, false));
+            Assert.AreEqual(Color.white, background.color, "달성");
+        }
+
+        [Test]
+        public void QuestCell_배경_스프라이트_슬롯이_비면_기존_색_방식을_유지한다()
+        {
+            QuestCell cell = NewQuestCell();
+            Image background = Required<Image>(cell, "_background");
+            SetField(cell, "_normalSprite", null);
+
+            cell.Bind(QuestData(true, false));
+            AssertRgb(new Color(0.30f, 0.25f, 0.10f), background.color, "달성 배경색");
+            cell.Bind(QuestData(false, true));
+            AssertRgb(new Color(0.122f, 0.161f, 0.216f), background.color, "미달성 배경색");
         }
 
         [Test]
@@ -768,7 +793,7 @@ namespace Lair.Tests.EditMode
         //# --- ⑤ LordRewardCell 배지 색 ---
 
         [Test]
-        public void LordRewardCell_현재_레벨_배지는_Gold다()
+        public void LordRewardCell_현재_레벨_배지는_Gold_스프라이트이고_색은_흰색이다()
         {
             LordRewardCell cell = NewLordCell();
             Image badge = Required<Image>(cell, "_badgeBg");
@@ -776,12 +801,12 @@ namespace Lair.Tests.EditMode
             cell.Bind(LordData(true, true));
 
             Assert.IsTrue(badge.gameObject.activeSelf, "배지 켜짐");
-            AssertRgb(UiDotPalette.Gold, badge.color, "배지");
-            Assert.AreEqual(1f, badge.color.a, 0.001f, "배지 알파");
+            Assert.AreSame(Required<Sprite>(cell, "_badgeGoldSprite"), badge.sprite, "Gold 스프라이트");
+            Assert.AreEqual(Color.white, badge.color, "틴트 없음");
         }
 
         [Test]
-        public void LordRewardCell_수령_완료_배지는_Soul이다()
+        public void LordRewardCell_수령_완료_배지는_Soul_스프라이트이고_색은_흰색이다()
         {
             LordRewardCell cell = NewLordCell();
             Image badge = Required<Image>(cell, "_badgeBg");
@@ -789,31 +814,71 @@ namespace Lair.Tests.EditMode
             cell.Bind(LordData(true, false));
 
             Assert.IsTrue(badge.gameObject.activeSelf, "배지 켜짐");
-            AssertRgb(UiDotPalette.Soul, badge.color, "배지");
-            Assert.AreEqual(1f, badge.color.a, 0.001f, "배지 알파");
+            Assert.AreSame(Required<Sprite>(cell, "_badgeSoulSprite"), badge.sprite, "Soul 스프라이트");
+            Assert.AreEqual(Color.white, badge.color, "틴트 없음");
         }
 
         [Test]
-        public void LordRewardCell_현재_레벨에서_수령_완료로_재_Bind하면_배지가_Soul로_복귀하고_링이_꺼진다()
+        public void LordRewardCell_현재_레벨에서_수령_완료로_재_Bind하면_배지_스프라이트가_Soul로_복귀하고_링이_꺼진다()
         {
             LordRewardCell cell = NewLordCell();
             Image badge = Required<Image>(cell, "_badgeBg");
             Image ring = Required<Image>(cell, "_stateRing");
 
             cell.Bind(LordData(true, true));
-            AssertRgb(UiDotPalette.Gold, badge.color, "사전: 현재");
+            Assert.AreSame(Required<Sprite>(cell, "_badgeGoldSprite"), badge.sprite, "사전: 현재");
             Assert.IsTrue(ring.gameObject.activeSelf, "사전: 링");
             cell.Bind(LordData(true, false));
 
-            AssertRgb(UiDotPalette.Soul, badge.color, "복귀");
+            Assert.AreSame(Required<Sprite>(cell, "_badgeSoulSprite"), badge.sprite, "복귀");
+            Assert.AreEqual(Color.white, badge.color, "복귀 색");
             Assert.IsFalse(ring.gameObject.activeSelf, "링 꺼짐");
         }
 
         [Test]
-        public void LordRewardCell_미도달과_잠금_더미는_배지가_꺼진다()
+        public void LordRewardCell_스프라이트_슬롯이_비면_현재는_Gold_완료는_Soul_틴트를_쓴다()
         {
             LordRewardCell cell = NewLordCell();
             Image badge = Required<Image>(cell, "_badgeBg");
+            SetField(cell, "_badgeSoulSprite", null);
+            SetField(cell, "_badgeGoldSprite", null);
+
+            cell.Bind(LordData(true, false));
+            AssertRgb(UiDotPalette.Soul, badge.color, "Soul 틴트");
+            cell.Bind(LordData(true, true));
+            AssertRgb(UiDotPalette.Gold, badge.color, "Gold 틴트");
+        }
+
+        [Test]
+        public void LordRewardCell_미도달과_잠금_더미는_잠금_스프라이트가_있으면_배지를_켜고_흰색으로_표시한다()
+        {
+            LordRewardCell cell = NewLordCell();
+            Image badge = Required<Image>(cell, "_badgeBg");
+            Sprite locked = Required<Sprite>(cell, "_lockedBadgeSprite");
+
+            cell.Bind(LordData(true, true));
+            cell.Bind(LordData(false, false));
+            Assert.IsTrue(badge.gameObject.activeSelf, "미도달 켜짐");
+            Assert.AreSame(locked, badge.sprite, "미도달 스프라이트");
+            Assert.AreEqual(Color.white, badge.color, "미도달 색");
+
+            cell.Bind(LordData(true, true));
+            cell.Bind(LordData(false, false, true));
+            Assert.IsTrue(badge.gameObject.activeSelf, "잠금 더미 켜짐");
+            Assert.AreSame(locked, badge.sprite, "잠금 더미 스프라이트");
+            Assert.AreEqual(Color.white, badge.color, "잠금 더미 색");
+
+            cell.Bind(LordData(true, false, true));
+            Assert.IsTrue(badge.gameObject.activeSelf, "Reached 더미 켜짐");
+            Assert.AreSame(locked, badge.sprite, "Reached 더미 스프라이트");
+        }
+
+        [Test]
+        public void LordRewardCell_잠금_스프라이트가_비면_미도달과_잠금_더미는_배지가_꺼진다()
+        {
+            LordRewardCell cell = NewLordCell();
+            Image badge = Required<Image>(cell, "_badgeBg");
+            SetField(cell, "_lockedBadgeSprite", null);
 
             cell.Bind(LordData(true, true));
             cell.Bind(LordData(false, false));

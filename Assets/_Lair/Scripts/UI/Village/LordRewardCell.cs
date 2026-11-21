@@ -20,6 +20,7 @@ namespace Lair.UI
         [SerializeField] private Image _badgeBg;
         [SerializeField] private Sprite _badgeSoulSprite;
         [SerializeField] private Sprite _badgeGoldSprite;
+        [SerializeField] private Sprite _lockedBadgeSprite;   //# 미도달·잠금 더미 배지(자물쇠 등). null 이면 배지를 끈다.
 
         private static readonly Color ReachedBg = new Color(0.30f, 0.25f, 0.10f, 0.95f);
         private static readonly Color NormalBg = new Color(0.122f, 0.161f, 0.216f, 0.95f);
@@ -94,16 +95,23 @@ namespace Lair.UI
             }
             if (_badgeBg != null)
             {
-                bool showBadge = data.Reached && data.IsLockedDummy == false;
+                bool reachedBadge = data.Reached && data.IsLockedDummy == false;
+                //# 미도달·잠금 더미는 잠금 배지 스프라이트가 있을 때만 켠다(없으면 기존처럼 끔).
+                bool showBadge = reachedBadge || _lockedBadgeSprite != null;
                 _badgeBg.gameObject.SetActive(showBadge);
                 if (showBadge)
                 {
-                    _badgeBg.color = data.IsCurrent ? UiDotPalette.Gold : UiDotPalette.Soul;
-                }
-                Sprite badgeSprite = data.IsCurrent ? _badgeGoldSprite : _badgeSoulSprite;
-                if (showBadge && badgeSprite != null)
-                {
-                    _badgeBg.sprite = badgeSprite;
+                    Sprite badgeSprite = reachedBadge ? (data.IsCurrent ? _badgeGoldSprite : _badgeSoulSprite) : _lockedBadgeSprite;
+                    if (badgeSprite != null)
+                    {
+                        //# 컬러 완성 그림 — 틴트를 곱하지 않는다.
+                        _badgeBg.sprite = badgeSprite;
+                        _badgeBg.color = Color.white;
+                    }
+                    else
+                    {
+                        _badgeBg.color = data.IsCurrent ? UiDotPalette.Gold : UiDotPalette.Soul;
+                    }
                 }
             }
         }

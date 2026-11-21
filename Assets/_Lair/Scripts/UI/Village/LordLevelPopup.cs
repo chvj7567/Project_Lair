@@ -84,7 +84,7 @@ namespace Lair.UI
             int currentLevel = LordLevelService.LevelFromXp(_arg.Profile.LordXp, _arg.Config);
             if (_lordLevelText != null)
             {
-                _lordLevelText.SetText($"영주 Lv {currentLevel}");
+                _lordLevelText.SetText($"Lv {currentLevel}");
             }
 
             if (_xpFill != null)
