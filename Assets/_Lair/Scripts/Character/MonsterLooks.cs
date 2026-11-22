@@ -61,7 +61,9 @@ namespace Lair.Character
             for (int i = 0; i < formation.Count; ++i)
             {
                 if (formation[i].HasValue)
+                {
                     looks.Add(CreateLook(i, formation[i].Value, speciesLevels));
+                }
             }
             return looks.ToArray();
         }

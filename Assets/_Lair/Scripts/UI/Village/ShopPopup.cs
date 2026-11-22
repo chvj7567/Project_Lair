@@ -86,7 +86,7 @@ namespace Lair.UI
         public static void Bind(ShopAxisSlotData slot, ShopService.TierOffer offer, Func<int, string> text)
         {
             string current = Name(offer.CurrentTier, text);
-            slot.AxisName = Label(text, StrAxisName, "티어 강화");
+            slot.AxisName = Label(text, StrAxisName);
             slot.IsTierUpgrade = true;
             slot.Level = offer.CurrentTier;
             slot.MaxLevel = EnhanceTierTable.MaxTier;
@@ -95,30 +95,29 @@ namespace Lair.UI
             slot.CanBuy = offer.CanBuy;
             slot.Price = offer.SoulCost;
             slot.EffectText = offer.HasNext
-                ? string.Format(Label(text, StrPreviewStats, "{0} HP·공격력\n×{1:0.00} → ×{2:0.00}"),
+                ? string.Format(Label(text, StrPreviewStats),
                     current + "→" + Name(offer.NextTier, text), offer.CurrentMultiplier, offer.NextMultiplier)
-                : string.Format(Label(text, StrCurrentStats, "{0} HP·공격력\n×{1:0.00}"), current, offer.CurrentMultiplier);
+                : string.Format(Label(text, StrCurrentStats), current, offer.CurrentMultiplier);
             slot.PriceText = PriceText(offer, text);
         }
 
         public static string Name(int tier, Func<int, string> text)
-            => tier == 0 ? Label(text, StrBaseTier, "기본") : $"T{tier}";
+            => tier == 0 ? Label(text, StrBaseTier) : $"T{tier}";
 
         private static string PriceText(ShopService.TierOffer offer, Func<int, string> text)
         {
             if (offer.IsMax)
-                return Label(text, StrMaxTier, "최대 티어");
+                return Label(text, StrMaxTier);
             if (offer.HasNext == false)
-                return Label(text, StrUnavailable, "강화 준비 중");
+                return Label(text, StrUnavailable);
             if (offer.MissingSouls > 0)
-                return string.Format(Label(text, StrMissingSouls, "{0:N0} 소울 · {1:N0} 부족"), offer.SoulCost, offer.MissingSouls);
+                return string.Format(Label(text, StrMissingSouls), offer.SoulCost, offer.MissingSouls);
             return string.Empty;
         }
 
-        private static string Label(Func<int, string> text, int id, string fallback)
+        private static string Label(Func<int, string> text, int id)
         {
-            string localized = text?.Invoke(id);
-            return string.IsNullOrEmpty(localized) ? fallback : localized;
+            return text?.Invoke(id) ?? string.Empty;
         }
     }
 

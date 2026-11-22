@@ -151,7 +151,9 @@ namespace Lair.UI
             _focusBeforeOpen = null;
             base.Close(reuse);
             if (_departing == false && restore != null && restore.activeInHierarchy)
+            {
                 EventSystem.current?.SetSelectedGameObject(restore);
+            }
         }
 
         private void Update()
@@ -170,7 +172,9 @@ namespace Lair.UI
             foreach (FormationNestTile nest in _nestTiles)
             {
                 if (nest != null && nest.FocusTarget != null)
+                {
                     beforeRows.Add(nest.FocusTarget);
+                }
             }
             AddFocusTarget(beforeRows, _clearButton);
             foreach (CHButton filter in _speciesFilters)
@@ -182,7 +186,9 @@ namespace Lair.UI
                 foreach (FormationSpeciesRow row in _speciesRows)
                 {
                     if (row != null && row.FocusTarget != null && row.gameObject.activeInHierarchy)
+                    {
                         beforeRows.Add(row.FocusTarget);
+                    }
                 }
             }
             AddFocusTarget(afterRows, _resetButton);
@@ -199,30 +205,44 @@ namespace Lair.UI
                 int rowIndex = _speciesScrollView != null ? _speciesScrollView.FocusedRowIndex(current) : -1;
                 int afterIndex = afterRows.IndexOf(current);
                 if (rowIndex >= 0)
+                {
                     index = beforeRows.Count + rowIndex;
+                }
                 else if (afterIndex >= 0)
+                {
                     index = beforeRows.Count + rows + afterIndex;
+                }
             }
             int next = index < 0 ? (direction < 0 ? total - 1 : 0) : (index + direction + total) % total;
             if (next < beforeRows.Count)
+            {
                 EventSystem.current.SetSelectedGameObject(beforeRows[next]);
+            }
             else if (next < beforeRows.Count + rows)
+            {
                 _speciesScrollView.FocusRow(next - beforeRows.Count);
+            }
             else
+            {
                 EventSystem.current.SetSelectedGameObject(afterRows[next - beforeRows.Count - rows]);
+            }
         }
 
         private static void AddFocusTarget(List<GameObject> targets, CHButton button)
         {
             if (button != null && button.Interactable && button.gameObject.activeInHierarchy)
+            {
                 targets.Add(button.gameObject);
+            }
         }
 
         private void FocusSelectedNest()
         {
             int index = _vm.SelectedIndex;
             if (index < _nestTiles.Length)
+            {
                 _nestTiles[index]?.Focus();
+            }
         }
 
         private void ClearSelectedNest()
@@ -351,7 +371,9 @@ namespace Lair.UI
                 _raceBorder.color = BoneColor;
             }
             if (_clearButton != null)
+            {
                 _clearButton.Interactable = _vm.CanClear;
+            }
             _statusText?.SetText(_vm.FeedbackText);
             _filledText?.SetText(_vm.FilledText);
             if (_emptyWarningText != null)

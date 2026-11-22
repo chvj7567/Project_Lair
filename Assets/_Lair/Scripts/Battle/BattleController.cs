@@ -2294,6 +2294,7 @@ namespace Lair.Battle
                     continue;
                 if (species.HasValue == false)
                     return true;
+                //# Registry Entry 에 종 키가 없어 카드 선택창을 열 때만 1회 조회한다(프레임 경로 아님).
                 MonsterTag tag = entry.Transform.GetComponent<MonsterTag>();
                 if (tag != null && MonsterGrades.SameSpecies(tag.Key, species.Value))
                     return true;
@@ -2472,7 +2473,9 @@ namespace Lair.Battle
                 };
                 UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.CardSelectionPopup, arg);
                 if (popup != null)
+                {
                     await tcs.Task;
+                }
                 _pause.Resume();
                 _vm.SetExitAvailable(true);
             }

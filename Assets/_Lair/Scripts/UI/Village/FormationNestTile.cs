@@ -52,7 +52,9 @@ namespace Lair.UI
         public void Focus()
         {
             if (_button != null)
+            {
                 EventSystem.current?.SetSelectedGameObject(_button.gameObject);
+            }
         }
 
         //# 매 갱신마다 전체 상태를 덮어쓴다(이전 상태 잔존 방지).
@@ -86,7 +88,9 @@ namespace Lair.UI
             {
                 _iconBorder.enabled = data.IsEmpty == false;
                 if (data.IsEmpty == false)
+                {
                     _iconBorder.color = MonsterGradeFrame.BorderColor(data.Grade, data.SpeciesColor);
+                }
             }
             if (_icon != null)
             {

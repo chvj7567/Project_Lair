@@ -66,8 +66,6 @@ namespace Lair.Village
         public const int StrRepaired = 1847;
         public const int StrAll = 1848;
         public const int StrClearButton = 1849;
-        public const int StrTowerFormation = 1850;
-        public const int StrDailyFormation = 1851;
         public const int StrNoEffectNest = 1852;
         public const int StrNoEffectMonster = 1853;
         public const int StrNoEffectMonsterSpecies = 1854;
@@ -125,7 +123,9 @@ namespace Lair.Village
                 foreach (StageRuleData data in chapters.GetRules(chapterId, StageProgress.IndexOf(stage)))
                 {
                     if (rules.Length > 0)
+                    {
                         rules.Append("\n");
+                    }
                     rules.Append(StageRuleText.Entry(data, _text));
                     if (data.RuleId == EStageRule.SealedNest)
                     {
@@ -163,7 +163,9 @@ namespace Lair.Village
                 foreach (EMonster? monster in _formation)
                 {
                     if (monster.HasValue)
+                    {
                         ++count;
+                    }
                 }
                 return count;
             }
@@ -295,9 +297,13 @@ namespace Lair.Village
                     int grade = MonsterGrades.GradeOf(monster);
                     string placement = _text(StrAvailable);
                     if (slot == _selected)
+                    {
                         placement = _text(StrPlaced);
+                    }
                     else if (slot >= 0)
+                    {
                         placement = Format(CanClear ? StrSwap : StrMove, slot + 1);
+                    }
 
                     list.Add(new FormationSpeciesData
                     {

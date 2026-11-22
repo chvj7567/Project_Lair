@@ -116,7 +116,9 @@ namespace Lair.Meta
         public static void NormalizeFormation(MetaProfile profile)
         {
             if (profile.Version < 14)
+            {
                 profile.HasCustomFormation = FormationSave.FromSaved(profile.Formation) != null;
+            }
             if (profile.HasCustomFormation == false || profile.Formation == null)
             {
                 profile.Formation = new List<FormationSlotEntry>();

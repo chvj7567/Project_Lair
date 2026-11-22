@@ -16,7 +16,9 @@ namespace Lair.Meta
 
             EMonster?[] slots = ReadCustom(db, profile.Formation, profile.GetRaceGrade, out bool repaired);
             if (repaired)
+            {
                 warn?.Invoke("[Formation] 저장 편성의 사용할 수 없는 둥지를 비웠습니다");
+            }
             return slots;
         }
 
@@ -71,7 +73,9 @@ namespace Lair.Meta
             for (int i = 0; i < formation.Count; ++i)
             {
                 if (formation[i].HasValue)
+                {
                     rows.Add(new FormationSlotEntry { Slot = i + 1, Monster = formation[i].Value.ToString() });
+                }
             }
             return rows;
         }

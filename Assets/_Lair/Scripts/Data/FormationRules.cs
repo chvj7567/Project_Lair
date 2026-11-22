@@ -13,19 +13,7 @@ namespace Lair.Data
             return clearedStage >= config.unlockClearedStage;
         }
 
-        //# 고를 수 있는 몬스터가 2개 이상인 종족이 하나라도 있는가 (§0.3 노출 규칙 두 번째 조건).
-        public static bool HasChoice(FormationDatabase db, Func<ERace, int> ownedGradeOf)
-        {
-            for (int i = 0; i < FormationDatabase.SlotCount; ++i)
-            {
-                ERace race = db.SlotRace(i);
-                if (db.OwnedMonstersOf(race, OwnedGrade(race, ownedGradeOf)).Count >= 2)
-                    return true;
-            }
-            return false;
-        }
-
-        //# "방어하기" 가 편성 팝업을 여는가 — 해금 진행 + 선택지 있는 종족 존재 (U-D A).
+        //# "방어하기" 가 편성 팝업을 여는가 — 1-1 클리어 해금만 본다(0칸·위치 변경도 허용).
         public static bool ShouldShowPopup(FormationDatabase db, int clearedStage, Func<ERace, int> ownedGradeOf)
         {
             return db != null && IsUnlocked(db.Config, clearedStage);
@@ -98,9 +86,13 @@ namespace Lair.Data
                 if (MonsterGrades.SameSpecies(outputs[i].Value, species))
                     return i;
                 if (firstFilled < 0)
+                {
                     firstFilled = i;
+                }
                 if (i == originalSlot)
+                {
                     originalAvailable = true;
+                }
             }
             return originalAvailable ? originalSlot : firstFilled;
         }

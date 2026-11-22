@@ -90,7 +90,9 @@ namespace Lair.Battle
             SetVisible(_crystalCore, _hasOutput);
             SetVisible(_sparkle, _hasOutput);
             if (_light != null)
+            {
                 _light.enabled = _hasOutput;
+            }
             if (_hasOutput == false)
             {
                 _glow = new Color32(0x68, 0x69, 0x74, 0xff);
@@ -111,7 +113,9 @@ namespace Lair.Battle
         private static void SetVisible(SpriteRenderer renderer, bool visible)
         {
             if (renderer != null)
+            {
                 renderer.enabled = visible;
+            }
         }
 
         private void Tint(SpriteRenderer r)

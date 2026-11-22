@@ -161,7 +161,9 @@ namespace Lair.UI
 
             //# 테두리 — 종 대표색 프레임 (v1.1). 색칩 대신 셀 외곽이 종색을 담당.
             if (_border != null)
+            {
                 _border.color = snapshot.IsEmpty ? NormalPeriodColor : SpeciesColor(snapshot.CurrentType);
+            }
 
             //# 색칩 — 왼쪽 종색 띠(리디자인). 종 대표색으로 칠해 표시한다.
             if (_colorChip != null)

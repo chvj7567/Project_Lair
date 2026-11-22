@@ -87,7 +87,9 @@ namespace Lair.Battle
             for (int i = 0; i < outputs.Length; ++i)
             {
                 if (_spawners[i] != null && _spawners[i].HasOutput)
+                {
                     outputs[i] = _spawners[i].CurrentType;
+                }
             }
             int index = FormationRules.PickSealedSlot(outputs, species, FormationDatabase.Current, i => _spawners[i].IsLocked == false);
             if (index >= 0)

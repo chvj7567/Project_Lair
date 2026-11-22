@@ -13,6 +13,8 @@ namespace Lair.UI
     {
         private Func<EMonster, Sprite> _iconOf;
         private Action<EMonster> _onPlace;
+        //# 베이스 Awake 가 private 라 후크가 없어 첫 사용 때 1회 캐싱한다.
+        private ScrollRect _scrollRect;
 
         public int RowCount => liData.Count;
 
@@ -38,7 +40,9 @@ namespace Lair.UI
             foreach (PoolingScrollViewItem<FormationSpeciesRow> visible in liPoolItem)
             {
                 if (visible.item != null && visible.item.gameObject.activeSelf && visible.index >= 0 && visible.index < liData.Count)
+                {
                     InitItem(visible.item, liData[visible.index], visible.index);
+                }
             }
         }
 
@@ -67,7 +71,11 @@ namespace Lair.UI
         public void FocusRow(int index)
         {
             FormationSpeciesRow row = VisibleRow(index);
-            RectTransform viewport = GetComponent<ScrollRect>().viewport;
+            if (_scrollRect == null)
+            {
+                _scrollRect = GetComponent<ScrollRect>();
+            }
+            RectTransform viewport = _scrollRect.viewport;
             if (row != null && viewport != null)
             {
                 Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewport, row.transform);
@@ -81,7 +89,9 @@ namespace Lair.UI
             {
                 FormationSpeciesRow focused = VisibleRow(index);
                 if (focused != null)
+                {
                     EventSystem.current?.SetSelectedGameObject(focused.FocusTarget);
+                }
             });
         }
 
