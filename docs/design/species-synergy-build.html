@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Lair · 종족 시너지 빌드 가이드</title>
+<style>
+:root{color-scheme:dark;--ink:#f0f2f7;--muted:#bdc8d9;--gold:#f6cf74;--line:#465776;--deep:#0f1420;--panel:#1a2233;--soul:#5ef0b4}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0,#28344c,#0d131e 65%);color:var(--ink);font:16px/1.55 'Galmuri11','Noto Sans KR','Malgun Gothic',sans-serif}
+main{width:min(920px,calc(100% - 24px));margin:28px auto;padding:clamp(14px,4vw,34px);background:var(--panel);border:2px solid #a7803c;box-shadow:inset 0 0 0 3px #10121b,0 18px 36px #0007}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(25px,5vw,36px);color:#ffdf98}
+h2{font-size:18px;color:var(--gold);margin-bottom:8px}
+.tag{color:var(--muted);font-size:13px}
+.lead{margin:6px 0 18px;color:#dadee8}
+section{margin-top:22px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sp{background:var(--deep);border:1px solid var(--line);border-top:3px solid var(--c);padding:10px;min-width:0}
+.sp h3{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink)}
+.sp .slogan{font-size:12.5px;color:var(--muted);margin:4px 0 6px}
+.sp ul{margin:0;padding-left:16px;font-size:12.5px;color:#d5dbe6}
+.sp .t3{margin-top:7px;font-size:12.5px;padding:5px 7px;background:#202a3f;border-left:3px solid var(--c);color:#fff}
+.emb{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff4,transparent 60%),var(--c);color:#0b0d12;font-size:13px;font-weight:700;flex:none}
+.tl{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;font-size:11px;text-align:center}
+.tl div{padding:6px 2px;background:#202c45;border:1px solid #4e607e;min-height:58px;overflow-wrap:anywhere}
+.tl .hero{border-color:#c79a45;background:#2f2a20;color:#ffdd92}
+.tl .me{border-color:var(--soul);background:#173329;color:#b8ffe0}
+.tl b{display:block;font-size:12px;color:var(--ink)}
+.cards3{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:14px;background:#0c1018;border:1px solid var(--line)}
+.cv{width:170px;background:#171d2a;padding:6px;box-shadow:inset 0 0 0 3px #5ef0b4,inset 0 0 0 6px #07090e;position:relative;text-align:center}
+.cv.act{box-shadow:inset 0 0 0 3px #f7c64a,inset 0 0 0 6px #07090e}
+.cv .art{height:110px;margin:6px 6px 0;display:grid;place-items:center;background:radial-gradient(circle,color-mix(in srgb,var(--c) 35%,transparent),transparent 65%),#0f131c}
+.cv .art .emb{width:64px;height:64px;font-size:26px}
+.cv .k{position:absolute;left:10px;top:10px;font-size:10px;padding:1px 5px;background:#07090e;color:var(--c)}
+.cv .b{position:absolute;right:10px;top:10px;font-size:10px;padding:1px 5px;background:#07090e;color:#f7c64a;box-shadow:0 0 0 2px #b9832a}
+.cv .n{font-size:14px;color:#e8e1cf;margin-top:6px}
+.cv .d{font-size:11.5px;color:#cfd5e2;padding:4px 6px 8px;min-height:40px}
+.cv .fl{font-size:10.5px;color:var(--soul);padding-bottom:4px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border-bottom:1px solid var(--line);padding:6px;text-align:left;color:var(--muted);vertical-align:top}
+th{color:var(--gold)}
+td b{color:var(--ink)}
+.bubble{margin-top:8px;padding:10px 12px;background:#241f34;border-left:3px solid #a978e0;color:#eadff9;font-size:14px}
+.tip{margin-top:8px;padding:10px 12px;background:#14271f;border-left:3px solid var(--soul);color:#d6ffee;font-size:14px}
+.decision{padding:12px;border:1px solid #b88d4d;background:#292638}
+.decision ul{margin:6px 0 0;padding-left:20px}
+.decision li{font-size:14px;color:var(--muted)}
+.decision li+li{margin-top:6px}
+.decision strong{color:#f7e0b4}
+@media(max-width:720px){.grid{grid-template-columns:1fr 1fr}.tl{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:460px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<header>
+  <p class="tag">Project Lair · 전투 카드 가이드</p>
+  <h1>종족 시너지 빌드</h1>
+  <p class="lead">이제 시너지는 <b>몬스터 종족</b>이에요. 한 종족의 카드를 모을수록 그 몬스터가 강해지고, 7장을 모으면 영웅의 마지막 각성 직후 결정타가 터져요.</p>
+</header>
+
+<section>
+  <h2>한눈에</h2>
+  <table>
+    <tr><th>무엇이</th><th>이렇게</th></tr>
+    <tr><td><b>시너지</b></td><td>도깨비불 · 망령 · 사신 · 저주술사 · 역병귀 · 환령, 종족마다 하나</td></tr>
+    <tr><td><b>패시브 카드</b></td><td>종족마다 8장, 모두 48장. 같은 종족 <b>3 · 5 · 7장</b>이면 시너지 1 · 2 · 3단계</td></tr>
+    <tr><td><b>액티브 카드</b></td><td>"임시 스킬" 10장. 잠깐 강한 효과, 시너지에는 들어가지 않아요</td></tr>
+    <tr><td><b>같은 카드</b></td><td>한 판에 한 번만. 고른 카드는 다시 안 나와요</td></tr>
+    <tr><td><b>카드 등장</b></td><td>편성과 상관없이 나와요. 대신 <b>왼쪽 카드는 늘 내가 가장 많이 고른 종족</b></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>판의 흐름 — 영웅이 강해지면, 바로 맞받아친다</h2>
+  <div class="tl">
+    <div>HP 90%<b>카드 1</b></div>
+    <div>HP 80%<b>카드 2</b></div>
+    <div class="hero">HP 75%<b>영웅 각성 1</b></div>
+    <div class="me">HP 70%<b>카드 3 → 시너지 1단계</b></div>
+    <div class="hero">HP 55%<b>영웅 각성 2</b></div>
+    <div class="me">HP 50%<b>카드 5 → 2단계</b></div>
+    <div class="hero">HP 35%<b>영웅 각성 3</b></div>
+    <div class="me">HP 30%<b>카드 7 → 3단계 결정타</b></div>
+    <div>HP 20%<b>카드 8</b></div>
+    <div>HP 10%<b>카드 9</b></div>
+  </div>
+  <p class="tip">처음부터 한 종족만 고르면 이 시간표 그대로예요. 다른 종족을 한 장 섞을 때마다 다음 단계가 10%씩 늦어져요. 다른 종족은 <b>8 · 9번째에 고르면</b> 결정타 타이밍을 지킬 수 있어요.</p>
+  <p class="bubble">두 종족을 동시에 3단계로 만들 수는 없어요(카드가 9장뿐). 2단계 + 1단계, 1단계 세 개 같은 섞어 쓰기는 가능해요.</p>
+</section>
+
+<section>
+  <h2>카드 고르는 화면</h2>
+  <div class="cards3">
+    <div class="cv" style="--c:#28E66E"><span class="k">도깨비불</span><span class="b">T1 발동</span><div class="art"><span class="emb" style="--c:#28E66E">불</span></div><p class="n">불씨 폭발</p><p class="d">도깨비불이 쓰러질 때 가까운 영웅에게 공격력 3배 피해</p><p class="fl">← 늘 내 주력 종족</p></div>
+    <div class="cv" style="--c:#E64141"><span class="k">사신</span><div class="art"><span class="emb" style="--c:#E64141">사</span></div><p class="n">신속한 사신</p><p class="d">모든 사신 공격 간격 -30%</p></div>
+    <div class="cv" style="--c:#82ABE6"><span class="k">환령</span><div class="art"><span class="emb" style="--c:#82ABE6">환</span></div><p class="n">던전의 박동</p><p class="d">모든 둥지 소환 주기 -20%</p></div>
+  </div>
+  <p class="tip">카드 그림 자리에 그 종족 몬스터 아이콘이 크게 나와요. 이 카드를 고르면 시너지가 열릴 때는 오른쪽 위에 <b>"T1 발동"</b>이 붙어요. 아래쪽에는 6종족 진행 칸이 늘 보여요. 첫 카드 3장은 언제나 서로 다른 세 종족이라, 첫 선택이 곧 종족 선택이에요.</p>
+</section>
+
+<section>
+  <h2>여섯 종족 — 무엇을 모으면 어떻게 이기나</h2>
+  <div class="grid">
+    <div class="sp" style="--c:#28E66E"><h3><span class="emb" style="--c:#28E66E">불</span>도깨비불</h3><p class="slogan">값싼 몸으로 영웅을 감싸 태운다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>받는 피해 감소, 이동속도</li><li>불씨 폭발 · 도깨비 홀림(영웅 공격 둔화)</li></ul><p class="t3">결정타 「불바다」 7마리 즉시 소환 + 공격 속도 상승</p></div>
+    <div class="sp" style="--c:#C0CCE6"><h3><span class="emb" style="--c:#C0CCE6">망</span>망령</h3><p class="slogan">버티며 영웅의 발을 묶는다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>밀려나지 않기, 받는 피해 감소</li><li>원혼의 사슬(1초 속박) · 곁의 몬스터 보호</li></ul><p class="t3">결정타 「원혼 강림」 3마리 즉시 소환 + 받는 피해 -40%</p></div>
+    <div class="sp" style="--c:#E64141"><h3><span class="emb" style="--c:#E64141">사</span>사신</h3><p class="slogan">빠르게 붙어 몰아친다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>공격 속도, 이동속도</li><li>연속 베기 · 피 냄새(모일수록 강함)</li></ul><p class="t3">결정타 「사신의 밤」 3마리 즉시 소환 + 이동속도 +40%</p></div>
+    <div class="sp" style="--c:#E6AF08"><h3><span class="emb" style="--c:#E6AF08">저</span>저주술사</h3><p class="slogan">멀리서 정확히 꿰뚫는다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>사거리, 공격 속도</li><li>저주탄 분열 · 멀리서 맞히면 더 아픔</li></ul><p class="t3">결정타 「저주 폭풍」 영웅 최대 HP 5% 즉시, 6초마다 반복</p></div>
+    <div class="sp" style="--c:#9C4FE6"><h3><span class="emb" style="--c:#9C4FE6">역</span>역병귀</h3><p class="slogan">독과 저주로 갉아낸다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>독 피해, 이동속도</li><li>끈질긴 저주 · 약화의 저주(영웅에게 직접)</li></ul><p class="t3">결정타 「역병의 끝」 움직이는 영웅 영구 출혈 + 독 +50%</p></div>
+    <div class="sp" style="--c:#82ABE6"><h3><span class="emb" style="--c:#82ABE6">환</span>환령</h3><p class="slogan">수로 밀어붙이고 끝없이 다시 나온다</p><ul><li>HP · 공격력 · 머릿수 · 소환 속도</li><li>이동속도, 공격 속도</li><li>던전의 박동(모든 둥지) · 쓰러져도 다시 나타남</li></ul><p class="t3">결정타 「환령 폭주」 14마리 즉시 소환 + 모든 둥지 빨라짐</p></div>
+  </div>
+  <p class="bubble">편성과 함께 쓰면 더 강해요. 모으는 종족을 둥지 여러 곳에 넣으면 그 종족 카드가 전부 크게 일해요. 편성에 없는 종족 카드를 고르면 카드에 "이 효과를 받을 몬스터가 없어요"가 표시돼요(결정타 소환은 편성과 상관없이 나와요).</p>
+</section>
+
+<section>
+  <h2>임시 스킬 (액티브 10장)</h2>
+  <p class="tag" style="font-size:14px">공포 · 출혈 · 무력화 · 던전의 점성 · 광폭화 · 피의 갈증 · 강철 의지 · 시간 정지 · 수호자의 분노 · 죽음의 표식</p>
+  <p class="tip">30초 · 1분 30초 · 2분 30초 … 에 나와요. 잠깐 강한 효과로 위기를 넘기는 카드이고, 어느 종족에도 세지 않아요. <b>수호자의 분노</b>는 이제 모든 몬스터가 6초 동안 받는 피해 -50%예요.</p>
+</section>
+
+<section>
+  <h2>이전과 달라진 점</h2>
+  <table>
+    <tr><th>이전</th><th>이제</th></tr>
+    <tr><td>탱커 · 딜러 · 디버프 · 스웜 4가지</td><td>몬스터 6종족</td></tr>
+    <tr><td>같은 카드를 3번까지 고르며 누적</td><td>같은 카드는 한 번만</td></tr>
+    <tr><td>액티브도 시너지에 들어감</td><td>시너지는 패시브만</td></tr>
+    <tr><td>카드 28장</td><td>패시브 48장 + 임시 스킬 10장</td></tr>
+    <tr><td>영웅 각성 HP 85 · 65 · 45%</td><td>75 · 55 · 35% (내 시너지 직전)</td></tr>
+  </table>
+</section>
+
+<section class="decision">
+  <h2>결정해 주세요</h2>
+  <ul>
+    <li><strong>"1단계 HP 70% · 2단계 50% · 3단계 30%" 는 한 종족만 연속으로 골랐을 때의 가장 빠른 시점이에요. 앞에서 다른 종족을 섞으면 그만큼 늦어져요. 이렇게 이해해도 될까요?</strong> 추천: 그렇다. 다른 종족은 8 · 9번째에 고르면 결정타 타이밍이 그대로예요.</li>
+    <li><strong>한 종족만 고르면 결정타가 거의 항상 열려요. 괜찮나요?</strong> 추천: 괜찮다. 고민은 "왼쪽 1장 vs 다른 종족 2장" 과 "섞으면 늦어진다" 에서 생겨요.</li>
+    <li><strong>주력 종족 카드는 늘 왼쪽에 둘까요?</strong> 추천: 왼쪽 고정 — 한 번에 알아봐요.</li>
+    <li><strong>예전 카드 그림 18장도 종족 아이콘으로 바꿔 통일할까요?</strong> 추천: 통일.</li>
+    <li><strong>보스 스테이지의 전장 변화(HP 75 · 55 · 35%)가 영웅 각성과 같은 순간이 돼요.</strong> 추천: 그대로 — 각성과 전장 변화가 한 장면으로 묶여요.</li>
+    <li><strong>개편 후 최단 기록·랭킹을 초기화할까요?</strong> 추천: 초기화하지 않음.</li>
+    <li><strong>예전 4가지 시너지 아이콘은 지울까요?</strong> 추천: 쓰는 곳이 없어지면 마지막에 지움.</li>
+    <li><strong>임시 스킬을 고르는 화면에서는 종족 진행 칸을 숨길까요?</strong> 추천: 숨김 — 시너지와 무관하니까요.</li>
+    <li><strong>편성 화면의 "Tank" 같은 예전 표시는 숨길까요?</strong> 추천: 숨김 — 종족이 곧 시너지예요.</li>
+  </ul>
+</section>
+</main></body>
+</html>
