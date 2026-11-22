@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Lair · 던전 자유 편성</title>
+<style>
+:root{color-scheme:dark;--bg:#10131b;--panel:#191f2d;--well:#0e1524;--gold:#f7c64a;--bronze:#8b6128;--ink:#eef1f6;--muted:#aeb9ce;--line:#35435c;--seal:#d7bafc}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 20%,#252e42,#0b0d14 72%);color:var(--ink);font:15px/1.45 'Galmuri11','Noto Sans KR','Malgun Gothic',sans-serif}
+button,select{font:inherit;color:inherit}
+button{border:1px solid #607293;background:#26334e;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid #fbe5a1;outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+h1,h2,h3,p{margin:0}
+h2{font-size:17px;color:var(--gold)}
+.muted{color:var(--muted)}
+.sim{width:min(1136px,calc(100% - 24px));min-height:40px;margin:auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px}
+.previewtabs{display:flex;gap:4px}.previewtabs button{padding:4px 8px;background:#182236}.previewtabs button[aria-pressed=true]{color:var(--gold);border-color:var(--gold)}.sim select{padding:3px 8px;background:#172033;border:1px solid var(--line);margin-left:5px}
+.panel{position:relative;width:min(1136px,calc(100% - 24px));height:640px;margin:0 auto 28px;padding:40px 44px;border-radius:4px;background:var(--panel) url('../Assets/_Lair/Art/Sprites/FormationUI/FormationPanel.png') center/100% 100% no-repeat;box-shadow:0 14px 45px #0008,inset 0 0 0 4px var(--bronze),inset 0 0 0 7px #171313,inset 0 0 0 10px var(--gold);display:grid;grid-template-rows:52px 424px 60px;gap:12px}
+.panel[hidden],.lobby[hidden]{display:none}
+.shop{background-image:url('../Assets/_Lair/Art/Sprites/ShopUI/ShopPanel.png')}
+.shop .titlebar{background-image:url('../Assets/_Lair/Art/Sprites/ShopUI/ShopHeaderBand.png')}
+.shopsoul{font-size:14px;color:#ffe39c;white-space:nowrap}
+.shopbody{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;min-height:0}
+.shop-races{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:9px}
+.shop-race{min-width:0;min-height:64px;display:flex;align-items:center;gap:6px;text-align:left;padding:5px 8px}
+.shop-race .icon{width:38px;height:38px;object-fit:contain}
+.shop-race[aria-pressed=true]{border-color:var(--gold);background:#382f26}
+.shop-race strong{display:block;font-size:13px;overflow-wrap:anywhere}
+.shop-tier-detail{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.shop-tier-detail p{color:var(--muted)}
+.shop-steps{display:flex;min-height:44px;align-items:center;gap:10px;font-size:22px;color:#ffe8ad;font-weight:bold;flex-wrap:wrap}
+.shop-steps .tier{font-size:20px;padding:1px 8px}
+.shop-effect{padding:7px 9px;background:#202a3d;border-left:3px solid #c2954f}
+.shop .footer{padding:8px 14px}
+.shop .footer p{flex:1}
+@media(max-width:760px){.shopbody{grid-template-columns:1fr}.shop .footer{flex-direction:row;align-items:center}.shop .footer .action{flex:none}}
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-inline:12px;border-bottom:1px solid #86612c;background:#21283a url('../Assets/_Lair/Art/Sprites/FormationUI/FormationHeaderBand.png') center/100% 100% no-repeat}
+.titlebar h1{font-size:24px;color:#ffe29a;letter-spacing:.04em}
+.close{width:44px;height:44px;flex:none;color:var(--gold);font-size:24px;background:#26334e;border-color:var(--bronze)}
+.close{padding:0;text-shadow:0 2px #121721}.close img{display:block;width:100%;height:100%}
+.bodygrid{min-height:0;display:grid;grid-template-columns:minmax(174px,232fr) minmax(300px,392fr) minmax(300px,400fr);gap:12px}
+.well{min-width:0;min-height:0;border:1px solid var(--line);box-shadow:inset 0 1px 0 #ffffff12;background:linear-gradient(180deg,#171f31,#111725);padding:14px}
+.sectionlead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.sectionlead small{font-size:12px;color:var(--muted)}
+.summary{display:flex;flex-direction:column;gap:12px;background:radial-gradient(ellipse at center 10%,#1f2b44,#111724 64%)}
+.portrait{height:134px;width:100%;object-fit:contain;background:linear-gradient(135deg,#1a253b,#0f1521);border:1px solid #4a5269}
+.herotitle{font-size:19px}
+.diff{display:inline-block;color:#b7ddff;border:1px solid #416087;padding:1px 7px;margin-left:5px;font-size:11px;vertical-align:2px}
+.rule{margin-top:2px;padding:10px;background:#161425;border-left:3px solid #9973d3;color:#e6d4fa;font-size:13px;overflow-wrap:anywhere}
+.rule strong{display:block;margin-bottom:4px}
+.support{font-size:12px;color:var(--muted)}
+.nestwell{display:flex;flex-direction:column}
+.board{flex:1;min-height:270px;margin:3px 0 8px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:6px;position:relative;background:radial-gradient(ellipse at center,transparent 34%,#59709225 35%,transparent 37%),radial-gradient(ellipse at center,#31425b,#121927 67%)}
+.nest{z-index:1;min-width:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;border:1px solid #5a6273;box-shadow:inset 0 0 0 3px #181e2d;background:linear-gradient(180deg,#27354f,#171e32);padding:3px;position:relative}
+.nest[data-slot="1"]{grid-area:2/5/3/7}.nest[data-slot="2"]{grid-area:1/4/2/6}.nest[data-slot="3"]{grid-area:1/2/2/4}.nest[data-slot="4"]{grid-area:2/1/3/3}.nest[data-slot="5"]{grid-area:3/2/4/4}.nest[data-slot="6"]{grid-area:3/4/4/6}
+.nest[aria-pressed=true]{border:2px solid var(--gold);box-shadow:inset 0 0 0 2px #aa7b24,0 0 10px #f7c64a46}
+.nest.empty{border-style:dashed;background:#172033;color:var(--muted)}.nest.empty[aria-pressed=true]{border:2px solid var(--gold);box-shadow:inset 0 0 0 2px #aa7b24}.empty-ring{width:24px;height:24px;border:1px dashed #8290ae;border-radius:50%;margin:5px}.nest.sealed{background:repeating-linear-gradient(135deg,#a471ff12 0 6px,transparent 6px 12px),#211b33;border-bottom:2px solid #c39ff4}
+.nest .slotno{font-size:11px;color:var(--muted);position:absolute;top:4px;left:6px}
+.nest .icon{width:42px;height:42px;object-fit:contain}
+.nest strong{font-size:13px;line-height:1.12;overflow-wrap:anywhere}
+.nest .grade{font-size:11px}.rankmeta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:1px 4px}.tier{display:inline-block;border:1px solid #966f35;border-radius:3px;padding:0 4px;background:#352a1c;color:#ffdc94;font-size:11px;font-weight:700;line-height:1.2;white-space:nowrap}.tier.base{border-color:#607291;background:#24314a;color:#d0dcf0}
+.nest .sealedText{font-size:10px;color:var(--seal);line-height:1.2}
+.center{grid-area:2/3/3/5;align-self:center;justify-self:center;border:1px dashed #707f9b;color:#cbd4e4;background:#151c2a99;text-align:center;padding:7px;font-size:11px;min-width:60px}
+.roster{display:flex;flex-direction:column;min-height:0}.current-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:0 0 8px;border-bottom:1px solid var(--line)}.clear{min-height:37px;padding:4px 11px;font-size:12px;color:#f0d9cd;background:#382431;border:1px solid #926579}.no-spawn{color:#ffdb91!important;font-weight:bold}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:8px}
+.filters button{padding:4px 1px;min-height:31px;font-size:12px}
+.filters button[aria-pressed=true]{color:#ffe39c;border-color:var(--gold);background:#4a371e}
+.list{display:flex;flex-direction:column;overflow:auto;overscroll-behavior:contain;gap:4px;min-height:0;padding:2px 5px 3px 2px;scrollbar-color:#777c8f #182033}
+.monster{width:100%;min-height:48px;flex:none;display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:7px;text-align:left;padding:3px 7px;background:#202b42;border:1px solid #425372}
+.monster:hover,.monster:focus-visible{background:#2b3955}
+.monster.current{border-color:#d5aa50;background:#332a21}
+.monster .icon{width:37px;height:37px;object-fit:contain;background:#151d2d;padding:2px}
+.monster strong{font-size:13px;display:block;line-height:1.25;overflow-wrap:anywhere}
+.monster small{font-size:11px;line-height:1.25;color:var(--muted)}
+.use{color:#c6daf8;font-size:11px;max-width:70px;overflow-wrap:anywhere;text-align:right}
+.current .use{color:#ffda89}
+.footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 14px;background:#1a2234;border:1px solid #3b4863}
+.footer b{color:#ffe298;font-size:14px}
+.footer p{font-size:12px;color:var(--muted);margin-top:1px}
+.actions{flex:none;display:flex;gap:8px}
+.action{min-width:112px;min-height:44px;padding:7px 13px;border:1px solid #7a87a0;background:#293650 url('../Assets/_Lair/Art/Sprites/CommonUI/CommonUIBtn.png') center/100% 100% no-repeat;font-weight:700}
+.red{min-width:136px;background:#972d3b url('../Assets/_Lair/Art/Sprites/CommonUI/CommonUIBtnBlood.png') center/100% 100% no-repeat;border-color:#eb7783;color:#fff8ea}
+.lobby{width:min(600px,calc(100% - 24px));margin:80px auto;padding:32px;text-align:center;border:2px solid var(--bronze);background:#182235}
+.lobby p{margin:10px 0 16px}
+@media(max-width:1040px){.panel{padding-inline:24px}.bodygrid{grid-template-columns:minmax(145px,200fr) minmax(260px,380fr) minmax(245px,360fr)}.well{padding:10px}}
+@media(max-width:760px){.panel{height:auto;padding:16px;background-image:none;grid-template-rows:auto auto auto}.bodygrid{grid-template-columns:1fr}.titlebar{min-height:48px}.summary{display:grid;grid-template-columns:68px 1fr}.summary>h2,.summary>.rule,.summary>.support{grid-column:1/-1}.portrait{height:68px}.board{min-height:290px}.list{max-height:340px}.footer{min-height:60px;padding:8px;align-items:flex-start;flex-direction:column}.actions{width:100%}.action{flex:1;min-width:0}.sim{padding:8px 0}}
+@media(prefers-reduced-motion:no-preference){button{transition:background-color .12s,border-color .12s}}
+</style>
+</head>
+<body>
+<div class="sim"><div class="previewtabs" role="group" aria-label="시안 선택"><button type="button" id="formationTab" aria-pressed="true">던전 편성</button><button type="button" id="shopTab" aria-pressed="false">상점 강화</button></div><label for="sample">편성 예시<select id="sample"><option value="mixed">정예·군주 도깨비불 T3</option><option value="default">승급한 몬스터 기본 편성</option><option value="starter">풋내기 6종 보유</option><option value="empty">6곳을 모두 비운 편성</option></select></label></div>
+<main id="panel" class="panel" aria-labelledby="title">
+  <header class="titlebar"><h1 id="title">던전 편성</h1><button type="button" id="close" class="close" aria-label="닫기"><img src="../Assets/_Lair/Art/Sprites/FormationUI/FormationCloseBtn.png" alt="" onerror="this.replaceWith(document.createTextNode('×'))"></button></header>
+  <div class="bodygrid">
+    <section class="well summary" aria-labelledby="enemy">
+      <h2 id="enemy">침입 영웅</h2>
+      <img class="portrait" src="../Assets/_Lair/Art/Sprites/HeroIcons/Knight_S3.png" alt="" onerror="this.style.visibility='hidden'">
+      <div><h3 class="herotitle">기사</h3><p>1-4 <span class="diff">쉬움</span></p></div>
+      <div class="rule"><strong>봉인된 둥지</strong><p id="forecast"></p></div>
+      <p class="support">편성과 관계없이 카드가 무작위로 나와요.</p>
+    </section>
+    <section class="well nestwell" aria-labelledby="nests">
+      <div class="sectionlead"><h2 id="nests">던전 둥지</h2><small>선택한 둥지에 배치</small></div>
+      <div class="board" id="board">
+        <span class="center" aria-hidden="true">영웅</span>
+      </div>
+      <p class="support">같은 몬스터의 같은 등급은 한 곳에만 배치할 수 있어요.</p>
+    </section>
+    <section class="well roster" aria-labelledby="roster">
+      <div class="sectionlead"><h2 id="roster">보유 몬스터</h2></div><div class="current-tools"><small class="muted" id="target"></small><button type="button" id="clear" class="clear">이 둥지 비우기</button></div>
+      <div class="filters" id="filters" role="group" aria-label="몬스터 필터"></div>
+      <div class="list" id="list" aria-label="보유 몬스터 목록"></div>
+    </section>
+  </div>
+  <footer class="footer">
+    <div><b id="filled">6 / 6 배치</b><p id="status" role="status" aria-live="polite">둥지를 고르고 배치할 몬스터를 선택하세요.</p><p id="emptyWarning" class="no-spawn" role="status" hidden>둥지에서 몬스터가 자동으로 소환되지 않아요.</p></div>
+    <div class="actions"><button type="button" id="reset" class="action">기본 편성</button><button type="button" id="sortie" class="action red">출격</button></div>
+  </footer>
+</main>
+<section id="shop" class="panel shop" aria-labelledby="shopTitle" hidden>
+  <header class="titlebar"><h1 id="shopTitle">상점 · 몬스터 강화</h1><strong id="shopSouls" class="shopsoul" aria-live="polite"></strong></header>
+  <div class="shopbody">
+    <section class="well" aria-labelledby="shopChoose"><h2 id="shopChoose">몬스터</h2><div id="shopRaces" class="shop-races" role="group" aria-label="강화할 몬스터"></div></section>
+    <section class="well shop-tier-detail" aria-labelledby="shopUpgrade"><h2 id="shopUpgrade">티어 강화</h2><h3 id="shopRaceName"></h3><div id="shopSteps" class="shop-steps"></div><p id="shopEffect" class="shop-effect"></p><p>이 몬스터의 모든 등급에 함께 적용돼요.</p><button type="button" id="buyTier" class="action red"></button></section>
+  </div>
+  <footer class="footer"><p id="shopMessage" role="status" aria-live="polite">다음 티어의 소울 비용과 효과를 확인하고 구매하세요.</p><button type="button" id="backToFormation" class="action">편성으로 돌아가기</button></footer>
+</section>
+<section id="lobby" class="lobby" hidden>
+  <h1>마을</h1><p id="lobbyStatus" role="status" aria-live="polite"></p><button type="button" id="defend" class="action red">방어하기</button>
+</section>
+<script>
+const races = [
+  { key:'Wisp', name:'도깨비불', role:'탱커', color:'#32d982', owned:5, tier:3, fallback:'●' },
+  { key:'Reaper', name:'사신', role:'공격', color:'#f46969', owned:3, tier:2, fallback:'†' },
+  { key:'Hex', name:'저주술사', role:'공격', color:'#f3c857', owned:2, tier:1, fallback:'✦' },
+  { key:'Wraith', name:'망령', role:'탱커', color:'#c4d7f7', owned:3, tier:0, fallback:'■' },
+  { key:'Plague', name:'역병귀', role:'약화', color:'#c28afa', owned:2, tier:1, fallback:'☣' },
+  { key:'Phantom', name:'환령', role:'물량', color:'#9cc9fb', owned:1, tier:0, fallback:'◌' }
+];
+const grades = ['', '풋내기', '견습', '숙련', '정예', '군주'];
+const get = id => document.getElementById(id);
+const raceInfo = key => races.find(race => race.key === key);
+const makeId = (key,grade) => key + ':' + grade;
+const split = id => id.split(':');
+const label = id => { const [key,grade] = split(id); return grades[grade] + ' ' + raceInfo(key).name; };
+const icon = (race) => '<img class="icon" src="../Assets/_Lair/Art/Sprites/MonsterIcons/'+race.key+'.png" alt="" onerror="this.replaceWith(document.createTextNode(\''+race.fallback+'\'))">';
+const allOwned = () => races.flatMap(race => Array.from({length:ownedGrade(race)},(_,i)=>makeId(race.key,ownedGrade(race)-i)));
+const ownedGrade = race => get('sample').value === 'starter' ? 1 : race.owned;
+const tierCosts = [0,390,998,983];
+const tierBoost = [1,1.3924,1.93877776,2.2877577568];
+const priceFormat = new Intl.NumberFormat('ko-KR');
+const tiersForSample = () => Object.fromEntries(races.map(race=>[race.key,get('sample').value==='starter'?0:race.tier]));
+let tiers = tiersForSample();
+let souls = 2400;
+let shopSelection = 'Wraith';
+let returnToSavedFormation = false;
+let shopNotice = '다음 티어의 소울 비용과 효과를 확인하고 구매하세요.';
+const tierOf = race => tiers[race.key];
+const tierDescription = race => tierOf(race) === 0 ? '기본 시트' : '강화 T' + tierOf(race);
+function tierChip(race) {
+  const tier = tierOf(race);
+  return '<span class="tier'+(tier===0?' base':'')+'" title="'+tierDescription(race)+'">'+(tier===0?'기본':'T'+tier)+'</span>';
+}
+function renderShop() {
+  const race = raceInfo(shopSelection);
+  const current = tierOf(race);
+  const target = Math.min(current+1,3);
+  const atMax = current === 3;
+  const price = tierCosts[target];
+  get('shopSouls').textContent = '보유 소울 ' + priceFormat.format(souls);
+  get('shopRaceName').textContent = race.name;
+  get('shopSteps').innerHTML = tierChip(race) + (atMax ? '' : '<span aria-hidden="true">→</span><span class="tier">T'+target+'</span>');
+  get('shopEffect').textContent = 'HP·공격력 ×' + tierBoost[current].toFixed(2) + (atMax ? '' : ' → ×' + tierBoost[target].toFixed(2));
+  get('buyTier').textContent = atMax ? '최대 티어' : 'T'+target+' 구매 · '+priceFormat.format(price)+' 소울';
+  get('buyTier').disabled = atMax || souls<price;
+  get('shopMessage').textContent = !atMax && souls<price ? '소울이 '+priceFormat.format(price-souls)+' 부족해요.' : shopNotice;
+  for (const button of get('shopRaces').children) {
+    const listed = raceInfo(button.dataset.race);
+    button.setAttribute('aria-pressed',listed.key===shopSelection);
+    button.setAttribute('aria-label',listed.name+', '+tierDescription(listed));
+    button.innerHTML = icon(listed)+'<span><strong>'+listed.name+'</strong>'+tierChip(listed)+'</span>';
+  }
+}
+for (const race of races) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'shop-race';
+  button.dataset.race = race.key;
+  button.onclick = () => {
+    shopSelection = race.key;
+    shopNotice = '다음 티어의 소울 비용과 효과를 확인하고 구매하세요.';
+    renderShop();
+  };
+  get('shopRaces').append(button);
+}
+function showView(view) {
+  for (const id of ['panel','shop','lobby']) get(id).hidden = id!==view;
+  get('formationTab').setAttribute('aria-pressed', view!=='shop');
+  get('shopTab').setAttribute('aria-pressed', view==='shop');
+}
+function showShop() {
+  if (!get('lobby').hidden) returnToSavedFormation = true;
+  showView('shop');
+  renderShop();
+}
+function returnToFormation() {
+  if (returnToSavedFormation || !get('lobby').hidden) {
+    open();
+    return;
+  }
+  showView('panel');
+  render();
+}
+get('formationTab').onclick = returnToFormation;
+get('shopTab').onclick = showShop;
+get('backToFormation').onclick = () => { returnToFormation(); get('formationTab').focus(); };
+get('buyTier').onclick = () => {
+  const current = tiers[shopSelection];
+  const next = current+1;
+  if (next>3 || souls<tierCosts[next]) return;
+  souls -= tierCosts[next];
+  tiers[shopSelection] = next;
+  shopNotice = raceInfo(shopSelection).name+'의 T'+next+'를 구매했어요.';
+  renderShop();
+  if (get('buyTier').disabled) get('shopRaces').querySelector('[aria-pressed="true"]').focus();
+};
+const defaults = () => races.map(race=>makeId(race.key,ownedGrade(race)));
+function sampleFormation() {
+  const sample = get('sample').value;
+  if (sample === 'empty') return Array(6).fill(null);
+  if (sample !== 'mixed') return null;
+  const example = defaults();
+  example[0] = makeId('Wisp',4);
+  example[4] = makeId('Wisp',5);
+  example[5] = null;
+  return example;
+}
+const same = (first,second) => first.every((value,index)=>value===second[index]);
+let saved = sampleFormation();
+let draft = defaults();
+let selected = 0;
+let filter = 'all';
+let status = '둥지를 고르고 배치할 몬스터를 선택하세요.';
+const board = get('board');
+const list = get('list');
+
+for (let i = 0; i < 6; i++) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'nest';
+  button.dataset.slot = i+1;
+  button.onclick = () => { selected = i; status = (i+1) + '번 둥지에 배치할 몬스터를 고르세요.'; render(); };
+  board.append(button);
+}
+
+function sealPreview() {
+  const candidate = draft.findIndex(id=>id!==null && split(id)[0]==='Wraith');
+  if (candidate >= 0) return {index:candidate, reason:''};
+  if (draft[3] !== null) return {index:3, reason:'망령이 없어 기본 위치인 '};
+  return {index:draft.findIndex(id=>id!==null), reason:'망령의 기본 위치가 비어 '};
+}
+
+function choose(id) {
+  const from = draft.indexOf(id);
+  if (from === selected) return;
+  if (from >= 0) {
+    const movingToEmpty = draft[selected] === null;
+    [draft[from],draft[selected]] = [draft[selected],draft[from]];
+    status = movingToEmpty
+      ? (from+1) + '번 둥지의 몬스터를 ' + (selected+1) + '번으로 옮겼어요.'
+      : (from+1) + '번과 ' + (selected+1) + '번 둥지를 교환했어요.';
+  } else {
+    draft[selected] = id;
+    status = (selected+1) + '번 둥지에 ' + label(id) + '을(를) 배치했어요.';
+  }
+  render();
+  Array.from(list.children).find(button=>button.dataset.monster===id)?.focus({preventScroll:true});
+}
+
+function render() {
+  const scrollTop = list.scrollTop;
+  const seal = sealPreview();
+  get('forecast').textContent = seal.index < 0
+    ? '봉인할 둥지가 없어요.'
+    : seal.reason + (seal.index+1) + '번 둥지 · ' + label(draft[seal.index]) + ' 봉인. 기사 체력이 60%에 닿으면 풀려요.';
+  for (const button of board.querySelectorAll('.nest')) {
+    const i = Number(button.dataset.slot)-1;
+    const id = draft[i];
+    const empty = id === null;
+    button.classList.toggle('empty', empty);
+    button.classList.toggle('sealed', i===seal.index);
+    button.setAttribute('aria-pressed', i===selected);
+    button.setAttribute('aria-label', (i+1)+'번 둥지, '+(empty?'비어 있음':label(id)+', '+tierDescription(raceInfo(split(id)[0])))+(i===seal.index?', 봉인 예정':''));
+    const slotNumber = '<span class="slotno">'+(i+1)+'번</span>';
+    if (empty) {
+      button.innerHTML = slotNumber+'<span class="empty-ring" aria-hidden="true"></span><strong>빈 둥지</strong>';
+    } else {
+      const [key,grade] = split(id);
+      const race = raceInfo(key);
+      button.innerHTML = slotNumber+icon(race)+'<strong>'+race.name+'</strong><span class="rankmeta"><span class="grade" style="color:'+race.color+'">'+grades[grade]+'</span>'+tierChip(race)+'</span>'+(i===seal.index?'<span class="sealedText">봉인 예정</span>':'');
+    }
+  }
+  get('target').textContent = (selected+1) + '번 둥지 선택 중';
+  get('clear').disabled = draft[selected] === null;
+  for (const button of get('filters').children) button.setAttribute('aria-pressed',button.dataset.key===filter);
+  list.replaceChildren();
+  for (const id of allOwned()) {
+    const [key] = split(id);
+    if (filter !== 'all' && filter !== key) continue;
+    const race = raceInfo(key);
+    const from = draft.indexOf(id);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'monster'+(from===selected?' current':'');
+    button.dataset.monster = id;
+    const state = from===selected ? '현재 배치' : from>=0
+      ? (from+1)+'번 사용 중 · '+(draft[selected]===null?'이동':'교환')
+      : '배치';
+    button.setAttribute('aria-label',label(id)+', '+tierDescription(race)+', '+state);
+    if (from===selected) button.setAttribute('aria-disabled','true');
+    button.innerHTML = icon(race)+'<span><strong>'+label(id)+'</strong><small>'+race.role+' </small>'+tierChip(race)+'</span><span class="use">'+state+'</span>';
+    button.onclick = () => choose(id);
+    list.append(button);
+  }
+  list.scrollTop = scrollTop;
+  const assigned = draft.filter(id=>id!==null);
+  get('filled').textContent = assigned.length + ' / 6 배치';
+  get('status').textContent = status;
+  get('emptyWarning').hidden = assigned.length!==0;
+  get('sortie').disabled = draft.length!==6 || new Set(assigned).size!==assigned.length || assigned.some(id=>!allOwned().includes(id));
+}
+
+for (const race of [{key:'all',name:'전체'},...races]) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = race.name;
+  button.dataset.key = race.key;
+  button.onclick = () => { filter = race.key; list.scrollTop = 0; render(); };
+  get('filters').append(button);
+}
+
+function open() {
+  draft = (saved || defaults()).slice();
+  selected = 0;
+  filter = 'all';
+  list.scrollTop = 0;
+  status = '둥지를 고르고 배치할 몬스터를 선택하세요.';
+  returnToSavedFormation = false;
+  showView('panel');
+  render();
+}
+function exit(confirmed) {
+  if (confirmed) saved = same(draft,defaults()) ? null : draft.slice();
+  get('lobbyStatus').textContent = confirmed
+    ? '출격 확인: '+draft.filter(id=>id!==null).length+' / 6 배치를 저장했어요. 다시 방어하기를 눌러 확인할 수 있어요.'
+    : '편집 중인 변경은 저장하지 않았어요.';
+  showView('lobby');
+  get('defend').focus();
+}
+get('close').onclick = () => exit(false);
+get('sortie').onclick = () => exit(true);
+get('defend').onclick = () => { open(); board.querySelector('[data-slot="1"]').focus(); };
+get('reset').onclick = () => {
+  draft = defaults(); selected = 0; filter = 'all'; list.scrollTop = 0;
+  status = '각 몬스터의 보유 최고 등급을 기본 자리에 배치했어요.';
+  render();
+};
+get('clear').onclick = () => {
+  if (draft[selected] === null) return;
+  draft[selected] = null;
+  status = (selected+1) + '번 둥지를 비웠어요.';
+  render();
+  board.querySelector('[data-slot="'+(selected+1)+'"]').focus({preventScroll:true});
+};
+get('sample').onchange = () => {
+  saved = sampleFormation();
+  tiers = tiersForSample();
+  souls = 2400;
+  shopSelection = 'Wraith';
+  shopNotice = '다음 티어의 소울 비용과 효과를 확인하고 구매하세요.';
+  const inShop = !get('shop').hidden;
+  open();
+  if (inShop) showShop();
+};
+document.addEventListener('keydown',event=>{
+  if (event.key!=='Escape') return;
+  if (!get('shop').hidden) { returnToFormation(); get('formationTab').focus(); }
+  else if (!get('panel').hidden) exit(false);
+});
+open();
+</script>
+</body>
+</html>

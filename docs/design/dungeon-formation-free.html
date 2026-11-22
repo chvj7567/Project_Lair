@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Lair · 던전 자유 편성 가이드</title>
+<style>
+:root{color-scheme:dark;--ink:#f0f2f7;--muted:#bdc8d9;--gold:#f6cf74;--rule:#ceaff4;--line:#465776;--deep:#0f1420;--panel:#1a2233}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0,#28344c,#0d131e 65%);color:var(--ink);font:16px/1.55 'Galmuri11','Noto Sans KR','Malgun Gothic',sans-serif}
+main{width:min(920px,calc(100% - 24px));margin:28px auto;padding:clamp(14px,4vw,34px);background:var(--panel);border:2px solid #a7803c;box-shadow:inset 0 0 0 3px #10121b,0 18px 36px #0007}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(25px,5vw,36px);color:#ffdf98}
+h2{font-size:18px;color:var(--gold)}
+.tag{color:var(--muted);font-size:13px}
+.lead{margin:6px 0 18px;color:#dadee8}
+section{margin-top:18px}
+.preview{display:grid;grid-template-columns:minmax(136px,1fr) minmax(220px,1.55fr) minmax(174px,1.05fr);gap:8px;padding:10px;border:1px solid #a77d36;background:#222c42}
+.well,.card{min-width:0;background:var(--deep);padding:11px;border:1px solid var(--line)}
+.preview h3{font-size:14px;color:var(--gold);margin-bottom:8px}
+.preview p{font-size:12px;color:var(--muted)}
+.rule{border-left:2px solid var(--rule);color:var(--rule)!important;padding-left:6px;margin-top:9px}
+.map{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;text-align:center}
+.map span{display:grid;place-content:center;min-height:42px;padding:3px;background:#202c45;border:1px solid #4e607e;font-size:11px;overflow-wrap:anywhere}
+.map span:nth-child(1){grid-area:1/2/2/4}.map span:nth-child(2){grid-area:1/4/2/6}.map span:nth-child(3){grid-area:2/1/3/3}.map span:nth-child(4){grid-area:2/3/3/5}.map span:nth-child(5){grid-area:2/5/3/7}.map span:nth-child(6){grid-area:3/2/4/4}.map span:nth-child(7){grid-area:3/4/4/6}
+.map .sel{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.tier{display:inline-block;max-width:100%;width:max-content;margin:0 auto;padding:0 4px;border:1px solid #88724b;border-radius:3px;color:#ffdd92;background:#302921;font-size:11px;font-weight:700;white-space:nowrap}.tier.base{color:#c1cada;border-color:#657189;background:#232e42}.rows .tier{margin-inline:3px}.map .empty{border-style:dashed;color:var(--muted);background:#151e30}.map .locked{border-color:#a47dd8;color:var(--rule)}
+.rows{display:grid;gap:4px}
+.rows p{padding:5px;background:#202c45}
+.rows b{color:var(--ink)}
+.mini-buttons{display:flex;justify-content:flex-end;gap:5px;margin-top:7px}
+.mini-buttons span{padding:4px 7px;background:#2a3957;color:#f0f4ff;font-size:11px;border:1px solid #46577a}
+.mini-buttons .go{background:#9a2e40;border-color:#ea7b8a}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.card h3{color:var(--ink);font-size:14px;margin-bottom:3px}
+.card p,.decision li{font-size:14px;color:var(--muted)}
+.shop-guide{margin-top:8px;padding:10px;background:#101827;border:1px solid var(--line)}.shop-guide table{border-collapse:collapse;width:100%;margin-top:6px;font-size:13px;text-align:left}.shop-guide th,.shop-guide td{border-bottom:1px solid var(--line);padding:5px;color:var(--muted)}.shop-guide th{color:var(--gold)}.shop-guide p{margin-top:7px;color:var(--muted);font-size:14px}.notice{margin-top:8px;padding:10px 12px;background:#241f34;border-left:3px solid #a978e0;color:#eadff9;font-size:14px}
+.decision{padding:12px;border:1px solid #b88d4d;background:#292638}
+.decision ul{margin:6px 0 0;padding-left:20px}
+.decision li+li{margin-top:5px}
+.decision strong{color:#f7e0b4}
+@media(max-width:690px){.preview,.cards{grid-template-columns:1fr}.preview .well:first-child{display:flex;flex-wrap:wrap;gap:5px 10px;align-items:baseline}.preview .well:first-child h3{margin:0}.rule{margin-top:0}}
+</style>
+</head>
+<body><main>
+  <header>
+    <p class="tag">Project Lair · 출격 준비 가이드</p>
+    <h1>던전 자유 편성</h1>
+    <p class="lead">침입하는 영웅 한 명을 보고, 어떤 몬스터를 어디서 내보낼지와 비워 둘 둥지를 골라요.</p>
+  </header>
+  <section aria-labelledby="view">
+    <h2 id="view">방어하기 → 던전 편성 → 출격</h2>
+    <div class="preview">
+      <div class="well">
+        <h3>침입 영웅</h3><p>1-4 · 쉬움 · 기사</p>
+        <p class="rule">4번 망령 둥지 봉인 예정</p>
+      </div>
+      <div class="well">
+        <h3>던전 둥지 · 5 / 6 배치</h3>
+        <div class="map">
+          <span>3번<br>견습 저주술사<small class="tier">T1</small></span><span>2번<br>숙련 사신<small class="tier">T2</small></span>
+          <span class="locked">4번<br>숙련 망령 · 봉인<small class="tier base">기본</small></span><span>영웅</span><span>1번<br>정예 도깨비불<small class="tier">T3</small></span><span class="sel">5번<br>군주 도깨비불<small class="tier">T3</small></span><span class="empty">6번<br>빈 둥지</span>
+        </div>
+      </div>
+      <div class="well">
+        <h3>보유 몬스터</h3>
+        <div class="rows"><p><b>군주 도깨비불</b> <span class="tier">T3</span><br>현재 배치</p><p><b>정예 도깨비불</b> <span class="tier">T3</span><br>1번 사용 중 · 교환</p><p><b>견습 역병귀</b> <span class="tier">T1</span><br>배치</p></div>
+        <p>5번 선택 중 · 이 둥지 비우기</p><div class="mini-buttons"><span>기본 편성</span><span class="go">출격</span></div>
+      </div>
+    </div>
+    <div class="cards">
+      <article class="card"><h3>둥지를 먼저 선택</h3><p>1-1을 깨면 둥지를 골라 보유 몬스터를 놓거나 비울 수 있어요.</p></article>
+      <article class="card"><h3>같은 몬스터는 등급마다 한 곳</h3><p>군주 도깨비불과 정예 도깨비불은 함께 배치할 수 있어요. 이미 쓰는 몬스터를 고르면 빈 둥지로 이동하고, 두 둥지가 차 있으면 서로 자리를 바꿔요.</p></article>
+      <article class="card"><h3>출격하면 편성 저장</h3><p>출격하면 빈 둥지까지 저장해요. 기본 편성은 기존 6종을 각자의 원래 둥지에 보유 최고 등급으로 하나씩 놓아요. 해당 몬스터가 상점에서 얻은 티어도 반영돼요.</p></article>
+    </div>
+    <p class="notice"><strong>등급과 강화 티어</strong> · 정예와 군주는 서로 다른 등급이에요. 같은 도깨비불은 상점에서 구매한 강화 티어를 공유해서 둘 다 T3로 표시돼요. 티어를 구매하지 않은 몬스터는 ‘기본’, 비운 둥지는 티어 없이 보여요.</p>
+    <p class="notice">몬스터를 어떻게 배치해도 카드는 무작위로 나와요. 역병귀를 안 넣어도 역병귀 카드를 볼 수 있어요. 그 카드의 효과를 받을 둥지나 몬스터가 없으면 카드에서 알려줘요.</p>
+  </section>
+  <section class="shop-guide" aria-labelledby="guide-shop">
+    <h2 id="guide-shop">상점에서 티어를 바로 강화</h2>
+    <table><thead><tr><th>다음 티어</th><th>소울</th><th>HP·공격력</th></tr></thead><tbody><tr><td>기본 → T1</td><td>390</td><td>×1.39</td></tr><tr><td>T1 → T2</td><td>998</td><td>×1.94</td></tr><tr><td>T2 → T3</td><td>983</td><td>×2.29</td></tr></tbody></table>
+    <p>상점은 현재 티어, 다음 티어의 효과와 비용을 보여줘요. 몬스터 하나를 강화하면 그 몬스터의 모든 등급에 적용돼요.</p>
+    <p>기존 강화에서 보유한 티어는 유지되고, 같은 티어 안에서 더 낮은 단계였다면 적용 효과가 올라가요. 이때 소울은 차감되지 않아요.</p>
+  </section>
+  <section class="decision" aria-labelledby="decision">
+    <h2 id="decision">확정한 편성 규칙</h2>
+    <ul>
+      <li><strong>모두 비워도 출격할 수 있어요.</strong> 둥지에서 몬스터가 자동으로 나오지 않는다고 안내해요.</li>
+      <li><strong>봉인 대상 몬스터가 없으면</strong> 기본 위치가 차 있을 때 그 둥지를 봉인해요. 기본 위치가 비면 가장 낮은 번호의 찬 둥지를 봉인해요.</li>
+      <li><strong>챕터·무한의 탑</strong>은 저장 편성, <strong>데일리</strong>는 종족별 기본 편성을 사용해요.</li>
+      <li><strong>티어 강화 가격</strong>은 기존 구간의 소울을 합쳤어요. 구매하면 그 티어의 기존 최고 성능을 얻어요.</li>
+      <li><strong>승급하면 기본 편성만</strong> 새 등급을 바로 적용해요. 직접 정한 몬스터와 빈 둥지는 그대로예요.</li>
+    </ul>
+  </section>
+</main></body>
+</html>
