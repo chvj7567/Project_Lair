@@ -244,6 +244,7 @@
         HeroArchetype_Skill,
         Card,
         Card_Param,
+        EnhanceTier,
     }
 
     //# 재화 (monster-growth-currencies §1) — 값명 = Currency.currencyId = 아이콘 파일명. Soul=0 이라 기존 ShopItemDef 직렬화 기본값과 호환. append-only.

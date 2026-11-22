@@ -6,14 +6,14 @@ using UnityEngine.UI;
 namespace Lair.UI
 {
     //# 도감 셀 — 해금(컬러+이름) / 미조우(실루엣) / 잠금 더미 (기획서 §6).
-    //# 몬스터 셀은 강화 레벨을 4채널(발광 오버레이·아이콘 틴트·스케일·레벨 배지)로 표현 (기획서 §1~5).
+    //# 몬스터 셀은 강화 티어를 발광 오버레이·아이콘 틴트·스케일·티어 배지로 보여준다.
     public class CodexCell : MonoBehaviour
     {
         [SerializeField] private Image _background;
         [SerializeField] private Image _icon;        //# 카드 일러스트 또는 몬스터 색칩
         [SerializeField] private CHText _nameText;
         //# 강화 표현 위젯 (프리팹 배선 Task 4). 미배선이어도 null 가드로 안전.
-        [SerializeField] private CHText _levelBadge;        //# 우상단 "Lv N" 배지 (§5)
+        [SerializeField] private CHText _levelBadge;        //# 우상단 티어 배지
         [SerializeField] private Image _glowOverlay;        //# 아이콘 뒤 종족색 발광 아우라 (§3)
         [SerializeField] private RectTransform _iconRect;   //# 스케일 대상 = _icon 의 RectTransform (§4)
 

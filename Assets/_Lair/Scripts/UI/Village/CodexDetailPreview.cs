@@ -244,7 +244,7 @@ namespace Lair.UI
                 GradeFxBudget.BypassCap = true;
                 try
                 {
-                    MonsterLookApplier.Apply(poolable.gameObject, key, baseMonster, tier == 0 ? 0 : CodexRules.MinLevelOfTier(tier), true, tiers);
+                    MonsterLookApplier.Apply(poolable.gameObject, key, baseMonster, EnhanceTierTable.LevelEquivalent(tier), true, tiers);
                 }
                 finally
                 {

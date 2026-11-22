@@ -18,6 +18,7 @@ namespace Lair.UI
         [FormerlySerializedAs("_costText")]
         [SerializeField] private CHText _gradeText;      //# "2등급 · HP·공격력 x1.10 · 보유 최고"
         [SerializeField] private CHText _awakenText;     //# "체급 Lv 2" (금색) — Lv 0 이면 숨김
+        [SerializeField] private CHText _placementText;
         [SerializeField] private CHText _axisText;       //# 빌드 축 칩 글자
         [SerializeField] private Image _axisBorder;      //# 빌드 축 칩 테두리
         [SerializeField] private GameObject _selectedOutline;   //# 지금 출전 중 — 금색 외곽선 (_selectionRing 연결 시 꺼짐)
@@ -30,6 +31,20 @@ namespace Lair.UI
 
         private const float DimAlpha = 0.5f;                    //# 비선택 행 어둡기 — 튜닝 지점
         private static readonly Color AxisTextColor = new Color32(0x14, 0x10, 0x0a, 0xff);   //# 속이 찬 축 칩 위 글자색
+        private Action _pooledClick;
+
+        public GameObject FocusTarget => _button != null ? _button.gameObject : null;
+
+        public void InitPooledClick()
+        {
+            _button?.OnClick(() => _pooledClick?.Invoke());
+        }
+
+        public void BindPooled(FormationSpeciesData data, Sprite icon, Action onClick)
+        {
+            _pooledClick = onClick;
+            Show(data, icon);
+        }
 
         //# 클릭 핸들러 1회 등록 — 팝업 InitUI 에서 호출. disposable.Clear() 시 해제된다.
         public void SetClickHandler(Action onClick, CompositeDisposable disposable)
@@ -51,14 +66,12 @@ namespace Lair.UI
                 _nameText.SetText(data.NameText);
                 _nameText.SetColor(data.SpeciesColor);
             }
-            if (_gradeText != null)
-            {
-                _gradeText.SetText(data.GradeText);
-            }
+            _gradeText?.SetText(_placementText == null ? data.PlacementText : data.GradeText);
+            _placementText?.SetText(data.PlacementText);
             if (_awakenText != null)
             {
-                _awakenText.gameObject.SetActive(data.ShowAwaken);
-                _awakenText.SetText(data.AwakenText);
+                _awakenText.gameObject.SetActive(true);
+                _awakenText.SetText(data.TierText);
             }
             if (_iconBorder != null)
             {
@@ -103,7 +116,7 @@ namespace Lair.UI
             if (_dimOverlay != null)
             {
                 _dimOverlay.color = new Color(0f, 0f, 0f, DimAlpha);
-                _dimOverlay.enabled = data.IsSelected == false;
+                _dimOverlay.enabled = false;
             }
             if (_gradeBadge != null)
             {

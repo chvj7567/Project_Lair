@@ -43,6 +43,7 @@ namespace Lair.Meta
                     //# 최신 버전 파일도 유물·편성·탑 행 정리는 수행(멱등, 챕터 데이터 비의존) — 손상된 행이 로드 시 남지 않게.
                     MetaProfileMigration.NormalizeRelics(profile);
                     MetaProfileMigration.NormalizeFormation(profile);
+                    MonsterEnhanceTierRules.NormalizeProfile(profile);
                     MetaProfileMigration.NormalizeTower(profile);
                     MetaProfileMigration.NormalizeDaily(profile);
                     MetaProfileMigration.NormalizeCurrencies(profile);

@@ -178,9 +178,10 @@ namespace Lair.Battle
                 Debug.LogError("[ChapterDatabaseLoader] 메타 JSON 로드 실패 — Addressables 등록(라벨 Resource)을 확인하세요.");
                 return false;
             }
+            MetaConfig config;
             try
             {
-                MetaConfig.Current = MetaConfig.Build(
+                config = MetaConfig.Build(
                     new MetaDataSet
                     {
                         Config = JsonUtility.FromJson<MetaConfigRow>(configJson),
@@ -200,9 +201,30 @@ namespace Lair.Battle
                 Debug.LogError($"[ChapterDatabaseLoader] {e.Message}");
                 return false;
             }
+            await LoadEnhanceTiersAsync(config);
+            MetaConfig.Current = config;
             //# try 밖 — 무결성 검사의 문제가 필수 묶음 실패(전투 진입 차단)로 번지지 않게 한다.
             ValidateGrowthShop(MetaConfig.Current);
             return true;
+        }
+
+        //# 체급 티어 가격은 선택 데이터라 누락·오류 시 상점의 해당 구매만 닫는다.
+        private static async Task LoadEnhanceTiersAsync(MetaConfig config)
+        {
+            try
+            {
+                string json = await LoadTextAsync(EData.EnhanceTier);
+                if (json == null)
+                {
+                    Debug.LogWarning("[ChapterDatabaseLoader] EnhanceTier 로드 실패 — 티어 구매 비활성");
+                    return;
+                }
+                config.EnhanceTiers = EnhanceTierTable.Build(JsonArrayUtility.FromJsonArray<EnhanceTierRow>(json), Debug.LogWarning);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[ChapterDatabaseLoader] EnhanceTier 파싱 실패 — {e.Message}");
+            }
         }
 
         //# 영웅 스킬 JSON 3종 로드·파싱 — 하나라도 없거나 파싱에 실패하면 null (필수 묶음, 조용한 폴백 금지).

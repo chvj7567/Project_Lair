@@ -178,7 +178,7 @@ namespace Lair.Showcase
                 {
                     MetaProfile profile = MetaSession.GetOrLoad();
                     Dictionary<EMonster, int> levels = MonsterLooks.SpeciesLevels(profile, _metaConfig);
-                    looks = MonsterLooks.Compute(MonsterLooks.ResolveFormation(profile), levels);
+                    looks = MonsterLooks.ComputeSlots(MonsterLooks.ResolveFormation(profile), levels);
                 }
                 if (_loader == null)
                 {
@@ -199,8 +199,19 @@ namespace Lair.Showcase
                 {
                     if (_released)
                         return;
-                    MonsterLook look = LookOf(looks, state.Slot.Species);
-                    await ApplyLookAsync(state, look, db);
+                    int slot = FormationDatabase.Current != null && FormationDatabase.Current.TryGetRace(state.Slot.Species, out ERace race)
+                        ? FormationDatabase.Current.SlotOf(race)
+                        : state.Index;
+                    MonsterLook? look = LookOf(looks, state.Slot.Species, slot);
+                    if (look.HasValue)
+                    {
+                        await ApplyLookAsync(state, look.Value, db);
+                    }
+                    else
+                    {
+                        ReturnInstance(state);
+                        SetPlaceholderVisible(state.Slot, false);
+                    }
                 }
                 //# 모든 슬롯 적용이 끝난 시점 — 건너뛴 슬롯(SlotState 없음)·실패 슬롯이 숨은 채 남지 않게 복구.
                 ShowLoadingFallbackForEmptySlots();
@@ -251,14 +262,14 @@ namespace Lair.Showcase
             state.Wait = row != null ? UnityEngine.Random.value * row.startWaitMaxSec : 0f;
         }
 
-        private static MonsterLook LookOf(MonsterLook[] looks, EMonster species)
+        private MonsterLook? LookOf(MonsterLook[] looks, EMonster species, int slot)
         {
             foreach (MonsterLook look in looks)
             {
-                if (look.Base == species)
+                if (_scene == EScene.Loading ? look.Base == species : look.Slot == slot)
                     return look;
             }
-            return new MonsterLook { Monster = species, Base = species, Grade = 1 };
+            return null;
         }
 
         private async Task ApplyLookAsync(SlotState state, MonsterLook look, ShowcaseDatabase db)
@@ -287,9 +298,13 @@ namespace Lair.Showcase
             if (sameInstance == false)
             {
                 //# 로딩은 자리표시자 대신 프리팹 인스턴스를 항상 띄운다(마법진 선·그림자가 자리표시자에선 어긋남). 그 외 씬은 같은 외형이면 교체 생략.
-                bool samePlaceholder = _scene != EScene.Loading && state.Instance == null && state.Slot.Placeholder != null && look.Tier == 0 && MonsterGrades.GradeOf(key) == MonsterGrades.MinGrade;
+                bool samePlaceholder = _scene != EScene.Loading && state.Instance == null && state.Slot.Placeholder != null &&
+                    look.Base == state.Slot.Species && look.Tier == 0 && MonsterGrades.GradeOf(key) == MonsterGrades.MinGrade;
                 if (samePlaceholder)
+                {
+                    SetPlaceholderVisible(state.Slot, true);
                     return;
+                }
                 ReturnInstance(state);
                 if (SpawnInstance(state, prefab, key, db) == false)
                 {

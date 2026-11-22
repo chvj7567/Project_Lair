@@ -24,6 +24,7 @@ namespace Lair.Battle
         //# === 런타임 내부 상태 (직렬화 안 함) ===
         //# 현재 출력 종 — 융합 카드(ReplaceSpawnerOutput)로 변경.
         private EMonster _currentType;
+        private bool _hasOutput = true;
         //# 동시 출력 수 — 기본 1, 추가소환 카드(IncrementSpawnerOutput)로 +1. Spawner 슬롯에 영구 귀속.
         private int _outputCount = 1;
         //# 경과 누적 타이머. 첫 발사 후엔 Period 마다 리셋.
@@ -43,9 +44,10 @@ namespace Lair.Battle
 
         //# 현재 출력 종 — IBattleContext 카드 API 가 매칭/변경에 사용.
         public EMonster CurrentType => _currentType;
+        public bool HasOutput => _hasOutput;
 
         //# ISpawnerOutputProvider — 동시 출력 수. VM 이 AttachSpawners 시점에 직접 폴링.
-        public int OutputCount => _outputCount;
+        public int OutputCount => _hasOutput ? _outputCount : 0;
 
         //# ISpawnerProgress 구현 — SpawnerStatusCell 이 매 프레임 폴링.
         //# 초기 지연 국면(firstSpawnDone==false): 지연 0 이면 0f, 지연이 있으면 timer ÷ delay.
@@ -53,6 +55,8 @@ namespace Lair.Battle
         {
             get
             {
+                if (_hasOutput == false)
+                    return 0f;
                 if (_firstSpawnDone == false)
                     return _firstSpawnDelay > 0f ? Mathf.Clamp01(_timer / _firstSpawnDelay) : 0f;
                 if (_spawnPeriod <= 0f) return 1f;
@@ -65,6 +69,8 @@ namespace Lair.Battle
         {
             get
             {
+                if (_hasOutput == false)
+                    return 0f;
                 if (_firstSpawnDone == false)
                     return _firstSpawnDelay > 0f ? Mathf.Max(0f, _firstSpawnDelay - _timer) : _spawnPeriod;
                 if (_spawnPeriod <= 0f) return 0f;
@@ -83,6 +89,7 @@ namespace Lair.Battle
         private void OnEnable()
         {
             _currentType = _outputType;
+            _hasOutput = true;
             _outputCount = 1;
             //# 타이머 0 시작 — 첫 Tick 에서 _firstSpawnDone==false 이므로 즉시 첫 발사.
             _timer = 0f;
@@ -105,7 +112,7 @@ namespace Lair.Battle
         //# Pause 중엔 호스트가 dt=0 또는 미호출로 자연 정지.
         public void Tick(float dt)
         {
-            if (_host == null) return;
+            if (_host == null || _hasOutput == false) return;
             if (_locked) return;
             _timer += dt;
 
@@ -139,6 +146,8 @@ namespace Lair.Battle
         //# 주기 스폰 봉인 — 타이머 정지(진행 중이던 값은 보존).
         public void Lock()
         {
+            if (_hasOutput == false)
+                return;
             _locked = true;
         }
 
@@ -161,7 +170,7 @@ namespace Lair.Battle
         //# 첫 스폰 지연을 seconds 만큼 앞당김(0 하한) — 서두르는 둥지 유물(relics §6). 이미 첫 발사했거나 지연이 0 이면 무동작.
         public void AdvanceFirstSpawnDelay(float seconds)
         {
-            if (seconds <= 0f || _firstSpawnDone)
+            if (seconds <= 0f || _firstSpawnDone || _hasOutput == false)
                 return;
             _firstSpawnDelay = Mathf.Max(0f, _firstSpawnDelay - seconds);
         }
@@ -170,6 +179,8 @@ namespace Lair.Battle
         //# 호출 시 OnOutputCountChanged 발행 — VM 셀이 ×N 갱신.
         public void IncrementOutput()
         {
+            if (_hasOutput == false)
+                return;
             _outputCount++;
             OnOutputCountChanged?.Invoke(_outputCount);
         }
@@ -178,7 +189,7 @@ namespace Lair.Battle
         //# delta < 1 일 때도 음수 누적 방지 위해 Max(1) 클램프.
         public void IncrementOutput(int delta)
         {
-            if (delta <= 0) return;
+            if (delta <= 0 || _hasOutput == false) return;
             _outputCount += delta;
             OnOutputCountChanged?.Invoke(_outputCount);
         }
@@ -187,7 +198,7 @@ namespace Lair.Battle
         //# mul <= 0 입력은 무시 (안전 가드). 최소 주기 0.05s 클램프 — 폭주 스폰 방지.
         public void ScalePeriod(float mul)
         {
-            if (mul <= 0f) return;
+            if (mul <= 0f || _hasOutput == false) return;
             _spawnPeriod = Mathf.Max(0.05f, _spawnPeriod * mul);
         }
 
@@ -207,8 +218,19 @@ namespace Lair.Battle
         //# 변경 후 OnOutputTypeChanged 발행 — SpawnerAltar2D 가 틴트 즉시 갱신.
         public void ReplaceOutput(EMonster to)
         {
+            _hasOutput = true;
             _currentType = to;
             OnOutputTypeChanged?.Invoke(_currentType);
+        }
+
+        public void ClearOutput()
+        {
+            if (_hasOutput == false)
+                return;
+            _hasOutput = false;
+            _locked = false;
+            OnOutputTypeChanged?.Invoke(_currentType);
+            OnOutputCountChanged?.Invoke(0);
         }
     }
 }

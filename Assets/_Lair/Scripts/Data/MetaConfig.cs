@@ -20,6 +20,7 @@ namespace Lair.Data
 
         //# 상점 / 영주 보상 / 도전과제 (기획서 §3.2 / §4.3 / §5.2)
         public List<ShopItemDef> ShopItems = new List<ShopItemDef>();
+        public EnhanceTierTable EnhanceTiers;
         public List<LordRewardDef> LordRewards = new List<LordRewardDef>();
         public List<AchievementDef> Achievements = new List<AchievementDef>();
 

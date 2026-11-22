@@ -37,7 +37,7 @@ namespace Lair.Meta
             return next > 0 && db.PromotionCostOf(next).Count > 0 && CanAfford(profile, db.PromotionCostOf(next), out ECurrency _);
         }
 
-        //# 승급 — 전부 확인한 뒤에만 차감해 일부만 결제되는 일이 없다. 성공 시 보유 등급 +1 + 그 종족 둥지에 새 등급 자동 배치(§5.3).
+        //# 승급은 보유 등급만 올린다. 기본 편성은 조회 시 보유 최고 등급을 사용한다.
         public static bool TryPromote(MetaProfile profile, FormationDatabase db, ERace race)
         {
             if (CanPromote(profile, db, race) == false)
@@ -48,23 +48,7 @@ namespace Lair.Meta
                 profile.TrySpendCurrency(cost.Currency, cost.Amount);
             }
             profile.SetRaceGrade(race, next);
-            AutoPlace(profile, db, race, db.HighestOwned(race, next));
             return true;
-        }
-
-        //# 저장 편성이 6행이면 그 종족 슬롯 행만 새 몬스터로 교체. 0행(기본 편성)은 보유 최고 등급을 따라가므로 그대로 둔다.
-        private static void AutoPlace(MetaProfile profile, FormationDatabase db, ERace race, EMonster monster)
-        {
-            if (profile.Formation == null || profile.Formation.Count != FormationDatabase.SlotCount)
-                return;
-            int slot = db.SlotOf(race) + 1;
-            foreach (FormationSlotEntry entry in profile.Formation)
-            {
-                if (entry != null && entry.Slot == slot)
-                {
-                    entry.Monster = monster.ToString();
-                }
-            }
         }
     }
 }

@@ -30,10 +30,7 @@ namespace Lair.Character
 
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
         private const string EmissionKeyword = "_EMISSION";
-        public const int MaxLevel = 5;
-
-        //# 레벨(0~5)→외형 티어(0~3) — Lv1·Lv3·Lv5 에서 한 단계씩 성장(§6.3.1).
-        private static readonly int[] TierByLevel = { 0, 1, 1, 2, 2, 3 };
+        public const int MaxLevel = EnhanceTierTable.MaxStoredLevel;
 
         public void SetTierSheetProvider(IMonsterTierSheetProvider provider) => _tierProvider = provider;
 
@@ -41,7 +38,7 @@ namespace Lair.Character
         public void SetGradeVisual(IMonsterGradeVisual gradeVisual) => _gradeVisual = gradeVisual;
 
         //# 레벨(0~5)→외형 티어(0~3). 로더가 필요 목록을 만들 때도 같은 표를 쓴다.
-        public static int TierOfLevel(int level) => TierByLevel[Mathf.Clamp(level, 0, MaxLevel)];
+        public static int TierOfLevel(int level) => EnhanceTierTable.TierOfLevel(level);
 
         //# level: 0 = 미강화, 1~N = _emissionByLevel[level-1] 세기. 세기 = max(등급 하한, 강화 곡선)(monster-grades §3.2), 0 이면 발광 off.
         //# 색 = 등급 발광색(등급 3~5) 또는 SpeciesGlowColor(species). 티어/HP바는 별도로 clamp 된 레벨로 파생(§6.3.8).
@@ -54,8 +51,7 @@ namespace Lair.Character
             Color emission = on ? glow * intensity : Color.black;
             ApplyEmission(on, emission);
 
-            int clampedLevel = Mathf.Clamp(level, 0, MaxLevel);
-            int tier = TierByLevel[clampedLevel];
+            int tier = TierOfLevel(level);
             _tierOverlay?.SetTier(tier);
 
             //# 티어 시트가 로드돼 있으면 치환·시트 HP바 높이, 주입자는 있는데 세트가 없으면(로드 실패) 풋내기 값으로 폴백(§7.3).

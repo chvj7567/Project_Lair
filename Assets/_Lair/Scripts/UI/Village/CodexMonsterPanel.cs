@@ -19,7 +19,7 @@ namespace Lair.UI
         [SerializeField] private ScrollRect _scrollRect;                 //# _scrollView 와 같은 오브젝트의 ScrollRect — viewport 가시 판정·스크롤 통지
         [SerializeField] private CodexRaceChip[] _chips;
         [SerializeField] private CHText[] _tierHeaderTexts;              //# 티어 열 머리글(티어 0부터) — 스크롤 밖 고정, 열 1~4 위에 정렬
-        [SerializeField] private CHText[] _tierLevelTexts;               //# 티어 열 Lv 범위
+        [SerializeField] private CHText[] _tierLevelTexts;               //# 티어 열 획득처
         [SerializeField] private CHText _progressText;                   //# 진척 패널 "수집 n / 120"
         [SerializeField] private Image _progressFill;                    //# fillAmount = 열린 칸 / 전체
         [SerializeField] private CodexDetailPanel _detail;
@@ -218,7 +218,7 @@ namespace Lair.UI
         private void RefreshHeaders()
         {
             SetHeaders(_tierHeaderTexts, _vm.TierCount, i => _vm.TierHeader(i));
-            SetHeaders(_tierLevelTexts, _vm.TierCount, i => _vm.TierLevelRange(i));
+            SetHeaders(_tierLevelTexts, _vm.TierCount, i => _vm.TierSource(i));
         }
 
         private static void SetHeaders(CHText[] texts, int count, Func<int, string> label)
@@ -357,7 +357,7 @@ namespace Lair.UI
                     return;
                 CodexRaceArt art = ArtOf(model.Cell.Race);
                 _detail.Bind(model, _codex != null ? _codex.ColorOf(model.Cell.Grade) : Color.white,
-                    cell => BodyOf(cell, art), _vm.TierHeader, _vm.TierLevelRange, OnTierSelected);
+                    cell => BodyOf(cell, art), _vm.TierHeader, _vm.TierSource, OnTierSelected);
                 _pendingPreview = model;
                 if (_previewBusy == false)
                 {

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Lair.UI
 {
-    //# 강화 레벨(0~5) → 4채널 시각(발광 오버레이·아이콘 틴트·스케일·"Lv N" 배지) 공유 SoT.
+    //# 강화 저장값 → 4채널 시각(발광 오버레이·아이콘 틴트·스케일·티어 배지) 공유 SoT.
     //# 도감(CodexCell)·인게임 상태 셀(SpawnerStatusCell)이 같은 코드를 호출 — 표현 drift 방지 (기획서 §2·§6).
     public static class EnhanceLevelVisual
     {
@@ -15,7 +15,7 @@ namespace Lair.UI
         public static readonly float[] GlowOverlayAlphaByLevel = { 0.00f, 0.25f, 0.42f, 0.58f, 0.74f, 0.90f };
         public static readonly float[] ScaleByLevel           = { 1.00f, 1.015f, 1.03f, 1.05f, 1.07f, 1.10f };
 
-        public const int MaxLevel = 5;
+        public const int MaxLevel = EnhanceTierTable.MaxStoredLevel;
 
         //# 4채널 적용. level 은 내부에서 Clamp(0..MaxLevel) — 변조 세이브(99/음수)도 인덱싱 안전.
         //# lv≤0 이면 전부 항등(오버레이/배지 off·스케일 1·icon.color = baseIconColor). 각 위젯 null 가드.
@@ -31,7 +31,7 @@ namespace Lair.UI
                 levelBadge.gameObject.SetActive(lit);
                 if (lit)
                 {
-                    levelBadge.SetText($"Lv {lv}");
+                    levelBadge.SetText($"T{EnhanceTierTable.TierOfLevel(lv)}");
                 }
             }
 

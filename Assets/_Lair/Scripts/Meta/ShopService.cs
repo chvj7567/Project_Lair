@@ -8,6 +8,33 @@ namespace Lair.Meta
     //# 결제 재화는 ShopItemDef.Currency — 소울 = Souls, 그 외 = Currencies (monster-growth-currencies §3.6).
     public class ShopService
     {
+        public readonly struct TierOffer
+        {
+            public readonly int CurrentTier;
+            public readonly float CurrentMultiplier;
+            public readonly int NextLevel;
+            public readonly float NextMultiplier;
+            public readonly int SoulCost;
+            public readonly int MissingSouls;
+            public readonly bool IsLocked;
+            public bool IsMax => CurrentTier >= EnhanceTierTable.MaxTier;
+            public bool HasNext => NextLevel > 0;
+            public bool CanBuy => HasNext && IsLocked == false && MissingSouls == 0;
+            public int NextTier => HasNext ? CurrentTier + 1 : CurrentTier;
+
+            public TierOffer(int tier, float currentMultiplier, int nextLevel, float nextMultiplier,
+                int soulCost, int missingSouls, bool isLocked)
+            {
+                CurrentTier = tier;
+                CurrentMultiplier = currentMultiplier;
+                NextLevel = nextLevel;
+                NextMultiplier = nextMultiplier;
+                SoulCost = soulCost;
+                MissingSouls = missingSouls;
+                IsLocked = isLocked;
+            }
+        }
+
         private readonly MetaProfile _profile;
         private readonly MetaConfig _config;
         private readonly Func<ECurrency, bool> _isCurrencyUnlocked;
@@ -27,18 +54,47 @@ namespace Lair.Meta
             return GrowthDatabase.Current != null && CurrencyRules.IsUnlocked(currency, _profile);
         }
 
-        //# 현재 레벨 기준 다음 구매 가격 — floor(BasePrice × PriceGrowth^현재레벨). 미발견 항목은 -1.
+        //# 구매 가능한 단계의 표시 가격. 티어 단계가 없거나 항목 미발견이면 -1.
         public int PriceOf(string itemId)
         {
             ShopItemDef def = _config != null ? _config.FindShopItem(itemId) : null;
             if (def == null)
                 return -1;
+            if (MonsterEnhanceTierRules.IsTierItem(def))
+            {
+                TierOffer offer = BuildTierOffer(def);
+                return offer.HasNext ? offer.SoulCost : -1;
+            }
             return PriceOf(def, _profile.GetShopLevel(itemId));
         }
 
-        //# 가격 공식 단일 진실 — ShopPopup.BuildCellData 와 공유.
+        //# 레벨형 항목의 가격 공식. 체급 티어는 단계 가격표를 사용한다.
         public static int PriceOf(ShopItemDef def, int currentLevel)
             => Mathf.FloorToInt(def.BasePrice * Mathf.Pow(def.PriceGrowth, currentLevel));
+
+        public bool TryGetTierOffer(string itemId, out TierOffer offer)
+        {
+            ShopItemDef def = _config?.FindShopItem(itemId);
+            offer = default;
+            if (MonsterEnhanceTierRules.IsTierItem(def) == false || _profile == null)
+                return false;
+            offer = BuildTierOffer(def);
+            return true;
+        }
+
+        private TierOffer BuildTierOffer(ShopItemDef def)
+        {
+            int tier = EnhanceTierTable.TierOfLevel(_profile.GetShopLevel(def.Id));
+            float currentMultiplier = Mathf.Pow(def.PerLevelMul, EnhanceTierTable.LevelEquivalent(tier));
+            bool locked = IsCurrencyLocked(def.Currency);
+            if (_config.EnhanceTiers == null
+                || _config.EnhanceTiers.TryGetStep(tier + 1, out int nextLevel, out int cost) == false
+                || def.Currency != ECurrency.Soul || nextLevel > def.MaxLevel)
+                return new TierOffer(tier, currentMultiplier, 0, currentMultiplier, 0, 0, locked);
+
+            int missingSouls = Mathf.Max(0, cost - Mathf.Max(0, _profile.GetCurrency(def.Currency)));
+            return new TierOffer(tier, currentMultiplier, nextLevel, Mathf.Pow(def.PerLevelMul, nextLevel), cost, missingSouls, locked);
+        }
 
         //# 결제 재화가 잠겼는가 (재화 미해금 또는 육성 데이터 로드 실패) — 잠긴 항목은 구매 거부.
         public bool IsLocked(string itemId)
@@ -55,8 +111,14 @@ namespace Lair.Meta
             ShopItemDef def = _config != null ? _config.FindShopItem(itemId) : null;
             if (def == null)
                 return false;
+            if (MonsterEnhanceTierRules.IsTierItem(def))
+                return BuildTierOffer(def).CanBuy;
+            return CanBuyLevel(def);
+        }
 
-            int level = _profile.GetShopLevel(itemId);
+        private bool CanBuyLevel(ShopItemDef def)
+        {
+            int level = _profile.GetShopLevel(def.Id);
             if (level >= def.MaxLevel)
                 return false;
             if (IsCurrencyLocked(def.Currency))
@@ -64,13 +126,23 @@ namespace Lair.Meta
             return _profile.GetCurrency(def.Currency) >= PriceOf(def, level);
         }
 
-        //# CanBuy 통과 시 결제 재화 차감 + 레벨업. 성공 여부 반환.
+        //# 표시와 같은 단계 계약으로 구매 성공 때만 재화와 저장값을 함께 갱신한다.
         public bool Buy(string itemId)
         {
-            if (CanBuy(itemId) == false)
+            ShopItemDef def = _config?.FindShopItem(itemId);
+            if (def == null)
                 return false;
+            if (MonsterEnhanceTierRules.IsTierItem(def))
+            {
+                TierOffer offer = BuildTierOffer(def);
+                if (offer.CanBuy == false || _profile.TrySpendCurrency(def.Currency, offer.SoulCost) == false)
+                    return false;
+                _profile.SetShopLevel(itemId, offer.NextLevel);
+                return true;
+            }
 
-            ShopItemDef def = _config.FindShopItem(itemId);
+            if (CanBuyLevel(def) == false)
+                return false;
             int level = _profile.GetShopLevel(itemId);
             if (_profile.TrySpendCurrency(def.Currency, PriceOf(def, level)) == false)
                 return false;

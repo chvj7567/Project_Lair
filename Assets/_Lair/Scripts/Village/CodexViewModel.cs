@@ -85,10 +85,10 @@ namespace Lair.Village
         public const int StrAppearance = 1534;
         public const int StrBaseSheet = 1535;
         public const int StrTier = 1536;
-        public const int StrLevel = 1537;
-        public const int StrLevelRange = 1538;
         public const int StrNew = 1539;
         public const int StrBattleFx = 1540;
+        private const int StrTierBaseSource = 1876;
+        private const int StrTierShopSource = 1877;
 
         private readonly FormationDatabase _formation;
         private readonly Func<int, string> _text;
@@ -253,7 +253,7 @@ namespace Lair.Village
                 StarCount = cell.Grade,
                 RaceProgress = Fmt(StrRaceProgress, OpenCountOf(cell.Race), CellsPerRace),
                 Locked = cell.Open == false,
-                AppearanceText = Fmt(StrAppearance, TierName(cell.Tier), LevelRangeText(cell.Tier))
+                AppearanceText = Fmt(StrAppearance, TierName(cell.Tier))
                     + (cell.Grade > MonsterGrades.MinGrade ? "\n" + Text(StrBattleFx) : string.Empty),
             };
             if (detail.Locked)
@@ -277,10 +277,10 @@ namespace Lair.Village
             return detail;
         }
 
-        //# 티어 열 머리글 문구 — 기본 / T1.. + Lv 범위.
+        //# 티어 열 머리글은 상점의 직접 티어 구매를 안내한다.
         public string TierHeader(int tier) => TierName(tier);
 
-        public string TierLevelRange(int tier) => LevelRangeText(tier);
+        public string TierSource(int tier) => Text(tier == 0 ? StrTierBaseSource : StrTierShopSource);
 
         public string GradeName(int grade) => SpeciesVisual.GradePrefix(grade, _formation, _text) ?? string.Empty;
 
@@ -299,7 +299,7 @@ namespace Lair.Village
             {
                 detail.Conditions.Add(new CodexConditionLine
                 {
-                    Text = Fmt(StrNeedTier, CodexRules.MinLevelOfTier(cell.Tier), TierName(cell.Tier), CodexRules.ClampLevel(state.Level)),
+                    Text = Fmt(StrNeedTier, TierName(cell.Tier), TierName(CodexRules.TierOf(state.Level))),
                     Met = CodexRules.TierOf(state.Level) >= cell.Tier,
                 });
             }
@@ -311,7 +311,7 @@ namespace Lair.Village
             if (profile != null)
             {
                 state.Seen = profile.SeenMonsters != null && profile.SeenMonsters.Contains(baseMonster.ToString());
-                state.Level = profile.GetShopLevel("Enhance_" + baseMonster);
+                state.Level = profile.GetShopLevel(MonsterEnhanceTierRules.ItemId(baseMonster));
             }
             if (_formation != null && _formation.TryGetRace(baseMonster, out ERace race))
             {
@@ -410,13 +410,6 @@ namespace Lair.Village
         }
 
         private string TierName(int tier) => tier == 0 ? Text(StrBaseSheet) : "T" + tier;
-
-        private string LevelRangeText(int tier)
-        {
-            int lo = tier == 0 ? 0 : CodexRules.MinLevelOfTier(tier);
-            int hi = CodexRules.MaxLevelOfTier(tier);
-            return lo == hi ? Fmt(StrLevel, lo) : Fmt(StrLevelRange, lo, hi);
-        }
 
         private string Text(int id)
         {

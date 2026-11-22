@@ -10,7 +10,7 @@ namespace Lair.Meta
     [Serializable]
     public class MetaProfile
     {
-        public int Version = 13;
+        public int Version = MetaProfileMigration.CurrentVersion;
         public int Souls;
         //# 스테이지 진행(chapter-system §2.1) — 선형 스테이지 번호 = (챕터-1) x 5 + 인덱스.
         //# SelectedStage=마지막 선택(1~MaxStage, 기본 1), ClearedStage=클리어한 최고 스테이지(0~MaxStage, 0=미클리어). 구버전 세이브는 필드 부재 → C# 초기값 자동 적용.
@@ -42,6 +42,7 @@ namespace Lair.Meta
         //# 승리 굴림 연속 미획득 수(소프트 pity). 0 = 연패 0 이라는 실제 값.
         public int RelicMissStreak;
         //# 던전 편성(v9, dungeon-formation §3.2) — 0행 = 기본 편성(바꾼 적 없음), 6행 = 사용자 편성. 구버전 세이브엔 키가 없어 빈 리스트로 로드.
+        public bool HasCustomFormation;
         public List<FormationSlotEntry> Formation = new List<FormationSlotEntry>();
         //# 무한의 탑(v10, infinite-tower §4.2) — TowerFloorClears 가 기록된 시즌. 리스트가 비어 있으면 값의 의미가 없다(진행 없음 = 빈 리스트로 판정).
         public int TowerSeason;
@@ -611,6 +612,7 @@ namespace Lair.Meta
             Relics = other.Relics ?? new List<RelicEntry>();
             RelicMissStreak = other.RelicMissStreak;
             //# 편성은 플레이어의 계획 — 빠뜨리면 복원 시 편성만 유실된다.
+            HasCustomFormation = other.HasCustomFormation;
             Formation = CopyFormation(other.Formation);
             //# 탑 진행은 시즌 기록 — 빠뜨리면 복원 시 탑 진행만 유실된다. 행은 새 인스턴스로(원본 공유 방지).
             TowerSeason = other.TowerSeason;
@@ -830,7 +832,7 @@ namespace Lair.Meta
         public int Stack;        //# 현재 중첩 (>= 1)
     }
 
-    //# 편성 한 둥지의 종 — Formation 은 0행 또는 정확히 6행(Slot 1~6 한 번씩). JsonUtility 직렬화 대상.
+    //# 수동 편성에서 채운 한 둥지. 슬롯 행이 없으면 빈 둥지다.
     [Serializable]
     public class FormationSlotEntry
     {

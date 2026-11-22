@@ -774,6 +774,7 @@ namespace Lair.Village
             {
                 ViewModel = formationVm,
                 OnSortie = SortieWithFormation,
+                HeroPortrait = _stageVariantConfig != null ? _stageVariantConfig.GetStage(_vm.SelectedStage).Portrait : null,
             });
             _sortieBusy = false;
             if (popup == null)
@@ -785,9 +786,10 @@ namespace Lair.Village
         }
 
         //# 편성 팝업 확정 — 편성(0행=기본, 6행=사용자) 저장 후 입장. Battle 이 매 전투 프로필에서 다시 읽는다(다시 도전도 같은 편성).
-        private void SortieWithFormation(List<FormationSlotEntry> rows)
+        private void SortieWithFormation(bool isCustom, List<FormationSlotEntry> rows)
         {
             MetaProfile profile = MetaSession.GetOrLoad();
+            profile.HasCustomFormation = isCustom;
             profile.Formation = rows ?? new List<FormationSlotEntry>();
             MetaSession.Store?.Save(profile);
             EnterBattle();

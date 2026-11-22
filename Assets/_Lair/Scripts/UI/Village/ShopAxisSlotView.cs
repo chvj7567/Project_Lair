@@ -33,6 +33,10 @@ namespace Lair.UI
             if (data == null)
                 return;
             WireOnce();
+            if (_button != null)
+            {
+                _button.Interactable = data.IsTierUpgrade == false || data.CanBuy;
+            }
 
             Color currencyColor = ParseColor(data.ColorHex);
             SetText(_axisText, data.AxisName);

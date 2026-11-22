@@ -7,6 +7,7 @@ using Lair.Data;
 using Lair.Meta;
 using Lair.Net;
 using Lair.UI;
+using Lair.Village;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -83,7 +84,7 @@ namespace Lair.Battle
         //# 이번 전투 사양 단일 해석 지점 (infinite-tower §8.1) — 시작 시 1회 확정. 배경·제목·규칙·외형·영웅 스탯·유물·기록이 SelectedStage 가 아니라 이것만 읽는다.
         private BattleSpec _spec;
         //# 이번 판 EffectiveFormation (dungeon-formation §6.3) — 시작 시 1회 계산. null 이면 편성 기능 비활성(씬 인스펙터 배치 그대로).
-        private EMonster[] _formation;
+        private EMonster?[] _formation;
         //# 유물(relics §6.1) — 전투 시작에 보유 유물을 1회 집계한 스냅샷. 판 도중 보유는 변하지 않는다. 유물 DB 미로드면 빈 스냅샷.
         private RelicBattleBonus _relicBonus = RelicBattleBonus.None;
         //# 유물 전투 효과(오라·소환·광폭화)는 BattleClock 시작(영웅 입장 완료) 시점에 1회만 개시한다.
@@ -209,7 +210,7 @@ namespace Lair.Battle
             await ApplyChapterBackdrop();
             if (this == null)
                 return;
-            _formation = ResolveFormation();
+            _formation = Lair.Character.MonsterLooks.ResolveFormation(MetaSession.GetOrLoad(), _spec.IsDaily);
             await LoadMonsterTierSheets();
             if (this == null)
                 return;
@@ -1209,15 +1210,9 @@ namespace Lair.Battle
                 return;
 
             CacheSpeciesLevels(MetaSession.GetOrLoad());
-            Lair.Character.MonsterLook[] looks = Lair.Character.MonsterLooks.Compute(_formation, _speciesLevels);
+            Lair.Character.MonsterLook[] looks = Lair.Character.MonsterLooks.ComputeSlots(_formation, _speciesLevels);
             List<(EMonster, int)> needs = Lair.Character.MonsterLooks.TierNeeds(looks);
             await _tierSheets.LoadAsync(needs);
-        }
-
-        //# EffectiveFormation 계산 (§6.3) — 편성 데이터 미로드면 null. 프로필은 수정하지 않는다.
-        private static EMonster[] ResolveFormation()
-        {
-            return Lair.Character.MonsterLooks.ResolveFormation(MetaSession.GetOrLoad());
         }
 
         //# 슬롯 i 의 스포너 출력 종 = 편성[i] (§6.4). 기존 Spawner.ReplaceOutput 재사용 — 제단 틴트는 OnOutputTypeChanged 로 갱신.
@@ -1246,9 +1241,14 @@ namespace Lair.Battle
             }
             for (int i = 0; i < _spawners.Length; ++i)
             {
-                if (_spawners[i].CurrentType != _formation[i])
+                EMonster? output = _formation[i];
+                if (output.HasValue == false)
                 {
-                    _spawners[i].ReplaceOutput(_formation[i]);
+                    _spawners[i].ClearOutput();
+                }
+                else if (_spawners[i].HasOutput == false || _spawners[i].CurrentType != output.Value)
+                {
+                    _spawners[i].ReplaceOutput(output.Value);
                 }
             }
         }
@@ -1265,7 +1265,7 @@ namespace Lair.Battle
                     continue;
                 sp.Bind(this, _zone);
                 //# BalanceConfig 종별 base 주기 주입 — 카드 ScalePeriod(곱연산) 보다 시간상 먼저 (기획서 §3.3).
-                if (_balance != null)
+                if (_balance != null && sp.HasOutput)
                 {
                     sp.SetBasePeriod(_balance.GetSpawnPeriod(MonsterGrades.BaseOf(sp.CurrentType)));
                 }
@@ -1285,7 +1285,7 @@ namespace Lair.Battle
             Vector3 center = _zone.transform.position;
             foreach (Spawner sp in _spawners)
             {
-                if (sp == null)
+                if (sp == null || sp.HasOutput == false)
                     continue;
                 EMonster species = MonsterGrades.BaseOf(sp.CurrentType);
                 BalanceConfig.CharacterStat raw = _balance.GetMonster(species);
@@ -1813,7 +1813,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, type))
+                if (sp != null && sp.HasOutput && MonsterGrades.SameSpecies(sp.CurrentType, type))
                 {
                     sp.IncrementOutput();
                 }
@@ -1836,7 +1836,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, from))
+                if (sp != null && sp.HasOutput && MonsterGrades.SameSpecies(sp.CurrentType, from))
                 {
                     sp.ReplaceOutput(to);
                 }
@@ -1879,7 +1879,7 @@ namespace Lair.Battle
                 return;
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, type))
+                if (sp != null && sp.HasOutput && MonsterGrades.SameSpecies(sp.CurrentType, type))
                 {
                     sp.ScalePeriod(mul);
                 }
@@ -2266,29 +2266,103 @@ namespace Lair.Battle
             return summary;
         }
 
-        //# 3택1 후보 제외 — 3픽 캡 OR 지금 출력 중인 종이 하나도 없는 종 의존 카드(dungeon-formation §5.2-C). 난수를 소비하지 않는 순수 판정.
+        //# 카드 추첨은 배치 상태와 독립이며 기존 픽 상한만 적용한다.
         private bool IsCardExcluded(ECardId id)
         {
-            return _pickCounter.IsCapped(id) || IsCardSpeciesAbsent(id);
+            return _pickCounter.IsCapped(id);
         }
 
-        private bool IsCardSpeciesAbsent(ECardId id)
+        private bool HasOccupiedNest(EMonster? species)
         {
-            FormationCardSpecies table = FormationCardSpecies.Current;
-            if (table == null || _spawners == null)
+            if (_spawners == null)
                 return false;
-            return table.IsAvailable(id, IsSpeciesOutputting) == false;
-        }
-
-        private bool IsSpeciesOutputting(EMonster species)
-        {
             foreach (Spawner sp in _spawners)
             {
-                if (sp != null && MonsterGrades.SameSpecies(sp.CurrentType, species))
+                if (sp != null && sp.HasOutput && (species.HasValue == false || MonsterGrades.SameSpecies(sp.CurrentType, species.Value)))
                     return true;
             }
             return false;
         }
+
+        private bool HasMonsterEffectTarget(EMonster? species)
+        {
+            if (HasOccupiedNest(species))
+                return true;
+            foreach (CharacterRegistry.Entry entry in CharacterRegistry.Monsters)
+            {
+                if (entry.Transform == null || entry.Health == null || entry.Health.IsAlive == false)
+                    continue;
+                if (species.HasValue == false)
+                    return true;
+                MonsterTag tag = entry.Transform.GetComponent<MonsterTag>();
+                if (tag != null && MonsterGrades.SameSpecies(tag.Key, species.Value))
+                    return true;
+            }
+            return false;
+        }
+
+        //# 대상 안내는 카드 선택창에만 제공하며 덱 후보나 실제 효과를 바꾸지 않는다.
+        private string CardTargetNotice(CardData card)
+        {
+            CardEntry entry = CardDatabase.Current?.GetCard(card.Id);
+            if (entry == null)
+                return string.Empty;
+            switch (entry.Effect)
+            {
+                case ECardEffect.SpawnWisps: return NestTargetNotice(EMonster.Wisp);
+                case ECardEffect.SpawnWraith: return NestTargetNotice(EMonster.Wraith);
+                case ECardEffect.SpawnReapers: return NestTargetNotice(EMonster.Reaper);
+                case ECardEffect.SpawnPlagues: return NestTargetNotice(EMonster.Plague);
+                case ECardEffect.SpawnPhantoms:
+                case ECardEffect.FastBreeding: return NestTargetNotice(EMonster.Phantom);
+                case ECardEffect.SpawnerHaste: return NestTargetNotice(null);
+                case ECardEffect.WispHpBoost: return MonsterTargetNotice(EMonster.Wisp);
+                case ECardEffect.WraithDamageBoost: return MonsterTargetNotice(EMonster.Wraith);
+                case ECardEffect.ReaperAtkSpeed: return MonsterTargetNotice(EMonster.Reaper);
+                case ECardEffect.HexRangeBoost: return MonsterTargetNotice(EMonster.Hex);
+                case ECardEffect.PlagueToxinBoost: return MonsterTargetNotice(EMonster.Plague);
+                case ECardEffect.PhantomMoveSpeedBoost: return MonsterTargetNotice(EMonster.Phantom);
+                case ECardEffect.WispWraithPowerBoost:
+                case ECardEffect.GuardianRage:
+                case ECardEffect.ToughHide: return MonsterTargetNotice(EMonster.Wisp, EMonster.Wraith);
+                case ECardEffect.ReaperHexPowerBoost: return MonsterTargetNotice(EMonster.Reaper, EMonster.Hex);
+                case ECardEffect.Slow:
+                case ECardEffect.Frenzy:
+                case ECardEffect.IronWill:
+                case ECardEffect.BloodThirst: return MonsterTargetNotice(null);
+                default: return string.Empty;
+            }
+        }
+
+        private string NestTargetNotice(EMonster? species)
+        {
+            if (HasOccupiedNest(species))
+                return string.Empty;
+            return species.HasValue
+                ? string.Format(LookupFormationText(FormationViewModel.StrNoEffectNestSpecies), SpeciesVisual.SpeciesName(species.Value))
+                : LookupFormationText(FormationViewModel.StrNoEffectNest);
+        }
+
+        private string MonsterTargetNotice(EMonster? species)
+        {
+            if (HasMonsterEffectTarget(species))
+                return string.Empty;
+            return species.HasValue
+                ? string.Format(LookupFormationText(FormationViewModel.StrNoEffectMonsterSpecies), SpeciesVisual.SpeciesName(species.Value))
+                : LookupFormationText(FormationViewModel.StrNoEffectMonster);
+        }
+
+        private string MonsterTargetNotice(EMonster first, EMonster second)
+        {
+            if (HasMonsterEffectTarget(first))
+                return MonsterTargetNotice(second);
+            if (HasMonsterEffectTarget(second))
+                return MonsterTargetNotice(first);
+            return string.Format(LookupFormationText(FormationViewModel.StrNoEffectMonsterSpecies),
+                SpeciesVisual.SpeciesName(first) + "·" + SpeciesVisual.SpeciesName(second));
+        }
+
+        private static string LookupFormationText(int id) => CHText.StringProvider?.GetString(id) ?? string.Empty;
 
         //# 시너지 임계 3/5/7장 = Tier 1/2/3 (card-renewal §4) — 4축 최고값.
         private int GetMaxSynergyTier()
@@ -2351,8 +2425,6 @@ namespace Lair.Battle
                 }
 #endif
 
-                _pause.Pause();
-                _vm.SetExitAvailable(false);
                 IReadOnlyList<CardData> choices = deck.Draw(3, IsCardExcluded);
 #if UNITY_EDITOR
                 //# 디버그 — 지정 카드 강제 등장. 팝업 경로 한정 (시뮬 DebugAutoPicker 경로 비간섭) — 토글 OFF 면 내부 no-op.
@@ -2362,12 +2434,17 @@ namespace Lair.Battle
                         _allCards, id => _pickCounter.IsCapped(id));
                 }
 #endif
+                if (choices.Count == 0)
+                    continue;
+                _pause.Pause();
+                _vm.SetExitAvailable(false);
                 System.Threading.Tasks.TaskCompletionSource<bool> tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
 
                 SynergyVisualConfig synergyVisual = await LoadSynergyVisual();
                 CardSelectionArg arg = new CardSelectionArg
                 {
                     Choices = choices,
+                    TargetNoticeOf = CardTargetNotice,
                     SynergyVisual = synergyVisual,
                     BuildCountOf = axis => _vm.GetBuildCount(axis),
                     IsPassive = entry.SourceType == TriggerQueue.Source.Passive,
@@ -2393,8 +2470,9 @@ namespace Lair.Battle
                         tcs.TrySetResult(true);
                     }
                 };
-                await CHMUI.Instance.ShowUIAsync(EUI.CardSelectionPopup, arg);
-                await tcs.Task;
+                UIBase popup = await CHMUI.Instance.ShowUIAsync(EUI.CardSelectionPopup, arg);
+                if (popup != null)
+                    await tcs.Task;
                 _pause.Resume();
                 _vm.SetExitAvailable(true);
             }
@@ -2582,10 +2660,10 @@ namespace Lair.Battle
                 return;
 
             //# 지속 스폰 — 동시 캡 제거 + 동시 출력 증가(SpawnX 카드) 대비 → 편성된 6몬스터 각 10마리 비축(편성 비활성이면 기준 6종). 종족당 둥지 1곳이라 배수 없음(§0.7).
-            IReadOnlyList<EMonster> warmMonsters = _formation != null ? _formation : MonsterGrades.BaseMonsters;
-            foreach (EMonster key in warmMonsters)
+            Lair.Character.MonsterLook[] warmMonsters = Lair.Character.MonsterLooks.ComputeSlots(_formation, _speciesLevels);
+            foreach (Lair.Character.MonsterLook look in warmMonsters)
             {
-                GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(key);
+                GameObject prefab = await CHMResource.Instance.LoadAsync<GameObject>(look.Monster);
                 if (prefab != null)
                 {
                     CHMPool.Instance.CreatePool(prefab, count: 10);
@@ -2685,10 +2763,10 @@ namespace Lair.Battle
         {
             if (_formation == null)
                 return monster;
-            foreach (EMonster deployed in _formation)
+            foreach (EMonster? deployed in _formation)
             {
-                if (MonsterGrades.SameSpecies(deployed, monster))
-                    return deployed;
+                if (deployed.HasValue && MonsterGrades.SameSpecies(deployed.Value, monster))
+                    return deployed.Value;
             }
             return monster;
         }

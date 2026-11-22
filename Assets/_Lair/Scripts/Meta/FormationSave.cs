@@ -7,6 +7,75 @@ namespace Lair.Meta
     //# 편성 세이브 행(MetaProfile.Formation) 변환 + 전투 EffectiveFormation 결정 (dungeon-formation §3.1, §6.3, §0.6). 데이터 규칙은 Lair.Data.FormationRules 소유 - 의존은 Meta -> Data 한 방향.
     public static class FormationSave
     {
+        public static EMonster?[] Resolve(FormationDatabase db, MetaProfile profile, bool useDefault = false, Action<string> warn = null)
+        {
+            if (db == null)
+                return null;
+            if (useDefault || profile.HasCustomFormation == false || FormationRules.IsUnlocked(db.Config, profile.ClearedStage) == false)
+                return DefaultSlots(db, profile.GetRaceGrade);
+
+            EMonster?[] slots = ReadCustom(db, profile.Formation, profile.GetRaceGrade, out bool repaired);
+            if (repaired)
+                warn?.Invoke("[Formation] 저장 편성의 사용할 수 없는 둥지를 비웠습니다");
+            return slots;
+        }
+
+        public static EMonster?[] DefaultSlots(FormationDatabase db, Func<ERace, int> ownedGradeOf)
+        {
+            EMonster[] defaults = db.DefaultFormation(ownedGradeOf);
+            return Array.ConvertAll(defaults, monster => (EMonster?)monster);
+        }
+
+        public static EMonster?[] ReadCustom(FormationDatabase db, IReadOnlyList<FormationSlotEntry> rows,
+            Func<ERace, int> ownedGradeOf, out bool repaired)
+        {
+            EMonster?[] slots = new EMonster?[FormationDatabase.SlotCount];
+            repaired = false;
+            if (rows == null)
+                return slots;
+
+            HashSet<EMonster> used = new HashSet<EMonster>();
+            for (int i = 0; i < slots.Length; ++i)
+            {
+                foreach (FormationSlotEntry entry in rows)
+                {
+                    if (entry == null || entry.Slot != i + 1)
+                        continue;
+                    if (FormationDatabase.TryParseMonster(entry.Monster, out EMonster monster) == false ||
+                        FormationRules.IsAllowed(db, i, monster, ownedGradeOf) == false || used.Add(monster) == false)
+                        continue;
+                    slots[i] = monster;
+                    break;
+                }
+            }
+
+            repaired = used.Count != rows.Count;
+            return slots;
+        }
+
+        public static bool IsCustom(IReadOnlyList<EMonster?> formation, IReadOnlyList<EMonster?> defaults)
+        {
+            for (int i = 0; i < formation.Count; ++i)
+            {
+                if (formation[i] != defaults[i])
+                    return true;
+            }
+            return false;
+        }
+
+        public static List<FormationSlotEntry> ToSaved(IReadOnlyList<EMonster?> formation, IReadOnlyList<EMonster?> defaults)
+        {
+            List<FormationSlotEntry> rows = new List<FormationSlotEntry>();
+            if (IsCustom(formation, defaults) == false)
+                return rows;
+            for (int i = 0; i < formation.Count; ++i)
+            {
+                if (formation[i].HasValue)
+                    rows.Add(new FormationSlotEntry { Slot = i + 1, Monster = formation[i].Value.ToString() });
+            }
+            return rows;
+        }
+
         //# 저장 행 → 편성. 정확히 6행이고 슬롯 1~6 을 한 번씩 덮고 종이 EMonster 값명일 때만, 아니면 null(= 기본 편성/무효).
         public static EMonster[] FromSaved(IReadOnlyList<FormationSlotEntry> saved)
         {

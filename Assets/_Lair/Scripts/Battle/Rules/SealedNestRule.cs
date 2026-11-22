@@ -38,10 +38,7 @@ namespace Lair.Battle
             IsActive = true;
             Vector3[] positions = _ctx.LockSpawners(_species);
             if (positions.Length == 0)
-            {
-                Debug.LogError($"[SealedNestRule] 봉인 후보 둥지 없음 — 규칙 무효");
                 return;
-            }
             _locked = true;
             foreach (Vector3 position in positions)
             {

@@ -22,6 +22,7 @@ namespace Lair.Battle
 
         private ISpawnerOutputProvider _provider;
         private Color _glow = Color.white;
+        private bool _hasOutput = true;
 
         public Color GlowColor => _glow;
 
@@ -60,6 +61,8 @@ namespace Lair.Battle
 
         private void Update()
         {
+            if (_hasOutput == false)
+                return;
             float t = Time.time;
             float phase = _phaseIndex * PhaseStep;
             int bob = CrystalBobDots(t, phase);
@@ -81,6 +84,19 @@ namespace Lair.Battle
 
         private void HandleTypeChanged(EMonster type)
         {
+            _hasOutput = _provider == null || _provider.OutputCount > 0;
+            SetVisible(_ring, _hasOutput);
+            SetVisible(_crystal, _hasOutput);
+            SetVisible(_crystalCore, _hasOutput);
+            SetVisible(_sparkle, _hasOutput);
+            if (_light != null)
+                _light.enabled = _hasOutput;
+            if (_hasOutput == false)
+            {
+                _glow = new Color32(0x68, 0x69, 0x74, 0xff);
+                Tint(_ringDim);
+                return;
+            }
             _glow = SpeciesVisual.SpeciesGlowColor(type);
             Tint(_ringDim);
             Tint(_ring);
@@ -90,6 +106,12 @@ namespace Lair.Battle
             {
                 _light.color = _glow;
             }
+        }
+
+        private static void SetVisible(SpriteRenderer renderer, bool visible)
+        {
+            if (renderer != null)
+                renderer.enabled = visible;
         }
 
         private void Tint(SpriteRenderer r)

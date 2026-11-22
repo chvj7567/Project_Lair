@@ -62,7 +62,7 @@ namespace Lair.Village
                 return open;
             bool seen = profile.SeenMonsters != null && profile.SeenMonsters.Contains(baseMonster.ToString());
             int owned = profile.GetRaceGrade(race);
-            int level = profile.GetShopLevel("Enhance_" + baseMonster);
+            int level = profile.GetShopLevel(MonsterEnhanceTierRules.ItemId(baseMonster));
             for (int grade = MonsterGrades.MinGrade; grade <= MonsterGrades.MaxGrade; ++grade)
             {
                 for (int tier = 0; tier < TierCount; ++tier)

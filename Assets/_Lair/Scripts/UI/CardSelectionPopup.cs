@@ -15,6 +15,7 @@ namespace Lair.UI
         public Action<CardData> OnPicked;
         //# 3픽 캡 배지 — 카드별 현재 픽 누적수 공급 (null 이면 0 처리).
         public Func<CardData, int> PickCountOf;
+        public Func<CardData, string> TargetNoticeOf;
         //# 종류·트리거 근거 — 부제("패시브 · 영웅 HP 60% 도달" / "액티브 · N초 주기")와 카드 종류 색의 입력.
         public bool IsPassive = true;
         public int TriggerHpPercent;        //# 패시브: 도달한 HP 구간 %(예: 60)
@@ -84,7 +85,7 @@ namespace Lair.UI
                         sa.OnPicked?.Invoke(card);
                         //# reuse=false — 매번 새 인스턴스로 띄워 CHButton listener 누적 방지
                         Close(reuse: false);
-                    }, pickCount);
+                    }, pickCount, sa.TargetNoticeOf?.Invoke(card));
                 }
                 else
                 {

@@ -21,9 +21,9 @@ namespace Lair.Character
     public static class MonsterLooks
     {
         //# 유효 편성(둥지별 몬스터). 편성 데이터가 없으면 null — 전투는 "씬 기본 배치", 외형 계산은 기준 6종으로 간주.
-        public static EMonster[] ResolveFormation(MetaProfile profile)
+        public static EMonster?[] ResolveFormation(MetaProfile profile, bool useDefault = false)
         {
-            return FormationSave.Resolve(FormationDatabase.Current, profile.Formation, profile.ClearedStage, profile.GetRaceGrade, warn: Debug.LogWarning);
+            return FormationSave.Resolve(FormationDatabase.Current, profile, useDefault, Debug.LogWarning);
         }
 
         //# 종족(기준 몬스터) → 상점 강화 Lv. Id 문자열 파싱 없이 config 항목 순회. config 가 없으면 빈 표(전부 Lv0).
@@ -48,19 +48,37 @@ namespace Lair.Character
             MonsterLook[] looks = new MonsterLook[placed.Count];
             for (int i = 0; i < placed.Count; i++)
             {
-                EMonster root = MonsterGrades.BaseOf(placed[i]);
-                int level = speciesLevels != null && speciesLevels.TryGetValue(root, out int lv) ? lv : 0;
-                looks[i] = new MonsterLook
-                {
-                    Slot = i,
-                    Monster = placed[i],
-                    Base = root,
-                    Grade = MonsterGrades.GradeOf(placed[i]),
-                    Level = level,
-                    Tier = MonsterEnhancementVisual.TierOfLevel(level),
-                };
+                looks[i] = CreateLook(i, placed[i], speciesLevels);
             }
             return looks;
+        }
+
+        public static MonsterLook[] ComputeSlots(IReadOnlyList<EMonster?> formation, IReadOnlyDictionary<EMonster, int> speciesLevels)
+        {
+            if (formation == null)
+                return Compute(null, speciesLevels);
+            List<MonsterLook> looks = new List<MonsterLook>();
+            for (int i = 0; i < formation.Count; ++i)
+            {
+                if (formation[i].HasValue)
+                    looks.Add(CreateLook(i, formation[i].Value, speciesLevels));
+            }
+            return looks.ToArray();
+        }
+
+        private static MonsterLook CreateLook(int slot, EMonster monster, IReadOnlyDictionary<EMonster, int> speciesLevels)
+        {
+            EMonster root = MonsterGrades.BaseOf(monster);
+            int level = speciesLevels != null && speciesLevels.TryGetValue(root, out int lv) ? lv : 0;
+            return new MonsterLook
+            {
+                Slot = slot,
+                Monster = monster,
+                Base = root,
+                Grade = MonsterGrades.GradeOf(monster),
+                Level = level,
+                Tier = MonsterEnhancementVisual.TierOfLevel(level),
+            };
         }
 
         //# 로딩 화면 고정 외형 — 로딩 시작부터 끝까지 기준 6종 전부 군주(5등급) + 강화 Lv 최대(상점 MaxLevel 이내).

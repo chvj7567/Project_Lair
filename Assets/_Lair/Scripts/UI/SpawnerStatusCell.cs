@@ -5,6 +5,7 @@ using ChvjUnityInfra;
 using Lair.Battle;
 using Lair.Data;
 using Lair.Meta;
+using Lair.Village;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -159,17 +160,18 @@ namespace Lair.UI
             if (snapshot == null) return;
 
             //# 테두리 — 종 대표색 프레임 (v1.1). 색칩 대신 셀 외곽이 종색을 담당.
-            if (_border != null) _border.color = SpeciesColor(snapshot.CurrentType);
+            if (_border != null)
+                _border.color = snapshot.IsEmpty ? NormalPeriodColor : SpeciesColor(snapshot.CurrentType);
 
             //# 색칩 — 왼쪽 종색 띠(리디자인). 종 대표색으로 칠해 표시한다.
             if (_colorChip != null)
             {
                 _colorChip.color = ChipColor(snapshot.CurrentType);
-                _colorChip.gameObject.SetActive(true);
+                _colorChip.gameObject.SetActive(snapshot.IsEmpty == false);
             }
 
             //# 중앙 아이콘 — 종 스프라이트. 누락 시 숨김 (테두리 색만으로 종 식별 fallback).
-            Sprite iconSprite = SpeciesSprite(snapshot.CurrentType);
+            Sprite iconSprite = snapshot.IsEmpty ? null : SpeciesSprite(snapshot.CurrentType);
             if (_icon != null)
             {
                 _icon.sprite = iconSprite;
@@ -179,7 +181,8 @@ namespace Lair.UI
             //# 종명 한글 — SpeciesVisual 단일 SoT (인게임 표기 통일).
             if (_speciesText != null)
             {
-                _speciesText.SetText(SpeciesVisual.MonsterNameTwoLine(snapshot.CurrentType, FormationDatabase.Current, LookupText));
+                _speciesText.SetText(snapshot.IsEmpty ? LookupText(FormationViewModel.StrEmpty) :
+                    SpeciesVisual.MonsterNameTwoLine(snapshot.CurrentType, FormationDatabase.Current, LookupText));
             }
 
             //# ×N — N≥2 일 때만 노출.
@@ -300,7 +303,7 @@ namespace Lair.UI
             _progressFill.fillAmount = p;
             if (_snapshot != null)
             {
-                _progressFill.color = GaugeColor(_snapshot.CurrentType);
+                _progressFill.color = _snapshot.IsEmpty ? Color.clear : GaugeColor(_snapshot.CurrentType);
             }
             if (_periodText != null)
             {
@@ -327,6 +330,8 @@ namespace Lair.UI
             {
                 return CHText.StringProvider.GetString(SealTextStringId);
             }
+            if (_snapshot != null && _snapshot.IsEmpty)
+                return string.Empty;
             return RemainingText(_progressSource.RemainingSeconds);
         }
 

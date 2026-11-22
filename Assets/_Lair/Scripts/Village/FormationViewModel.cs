@@ -3,86 +3,116 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using Lair.Battle;
+using Lair.Character;
 using Lair.Data;
 using Lair.Meta;
 using UnityEngine;
 
 namespace Lair.Village
 {
-    //# 둥지 칸 한 개의 확정 표시값 — View(FormationNestTile)는 그대로 표시만 한다 (Rule 02 §6).
     public class FormationNestData
     {
-        public int Index;               //# 0~5
-        public string TitleText;        //# "둥지 3"
+        public int Index;
+        public string TitleText;
         public EMonster Monster;
-        public int Grade;               //# 1~5 — 아이콘 테두리·크기 등급 표현
-        public string NameText;         //# "견습 도깨비불" (접두어 포함)
-        public string RaceText;         //# "이그니스"
-        public string GradeText;        //# "2등급 · 보유 2등급"
+        public int Grade;
+        public string NameText;
+        public string RaceText;
+        public string GradeText;
+        public string TierText;
         public Color SpeciesColor;
+        public bool IsEmpty;
         public bool IsSelected;
-        public bool IsDefault;          //# 기본 편성(보유 최고 등급)과 같은 몬스터 — 회색 원 표식
-        public bool IsSealed;           //# 봉인 예정 칸 — 사슬 표식
+        public bool IsDefault;
+        public bool IsSealed;
     }
 
-    //# 선택 둥지 종족의 보유 몬스터 행 한 개의 확정 표시값 (등급순, 최대 5).
     public class FormationSpeciesData
     {
         public EMonster Monster;
         public int Grade;
-        public string NameText;         //# "견습 도깨비불"
-        public string GradeText;        //# "2등급 · HP·공격력 x1.10 · 보유 최고"
+        public string NameText;
+        public string GradeText;
         public Color SpeciesColor;
-        public string AwakenText;       //# "체급 Lv 2"
-        public bool ShowAwaken;         //# 상점 체급 Lv 0 이면 숨김
-        public EBuildAxis Axis;         //# 축 칩 (이름은 axis.ToString())
-        public bool IsSelected;         //# 지금 이 둥지에 출전 중
+        public string TierText;
+        public string PlacementText;
+        public EBuildAxis Axis;
+        public bool IsSelected;
     }
 
-    //# 던전 편성 팝업 ViewModel (dungeon-formation §0.3·§0.10) — 둥지 6곳(종족 고정)마다 보유한 등급의 몬스터 하나를 고른다.
-    //# View 를 모르고 프로필은 읽기만 한다(저장은 출격 콜백 소유자). Unity 오브젝트 비의존(Color 값만).
+    //# 편성 초안만 편집한다. 호출자가 출격을 확정하면 프로필을 저장한다.
     public class FormationViewModel
     {
-        //# Strings_Ko id.
-        public const int StrAwaken = 1400;         //# 체급 Lv {0}
-        public const int StrNest = 1401;           //# 둥지 {0}
-        public const int StrSealForecast = 1404;   //# 봉인 예정: 둥지 {0} ({1}) · 영웅 HP {2}% 에서 해제
-        public const int StrNestGrade = 1522;      //# {0}등급 · 보유 {1}등급
-        public const int StrRowGrade = 1523;       //# {0}등급 · HP·공격력 x{1}
-        public const int StrOwnedTop = 1524;       //# 보유 최고
+        public const int StrNest = 1401;
+        public const int StrSealForecast = 1404;
+        public const int StrRowGrade = 1523;
+        public const int StrEmpty = 1830;
+        public const int StrFilled = 1831;
+        public const int StrEmptyWarning = 1832;
+        public const int StrNoSeal = 1833;
+        public const int StrBaseTier = 1834;
+        public const int StrTier = 1835;
+        public const int StrPlaced = 1836;
+        public const int StrMove = 1837;
+        public const int StrSwap = 1838;
+        public const int StrAvailable = 1839;
+        public const int StrCleared = 1840;
+        public const int StrPlacedFeedback = 1841;
+        public const int StrMovedFeedback = 1842;
+        public const int StrSwappedFeedback = 1843;
+        public const int StrReset = 1844;
+        public const int StrInitial = 1845;
+        public const int StrCardsRandom = 1846;
+        public const int StrRepaired = 1847;
+        public const int StrAll = 1848;
+        public const int StrClearButton = 1849;
+        public const int StrTowerFormation = 1850;
+        public const int StrDailyFormation = 1851;
+        public const int StrNoEffectNest = 1852;
+        public const int StrNoEffectMonster = 1853;
+        public const int StrNoEffectMonsterSpecies = 1854;
+        public const int StrNoEffectNestSpecies = 1855;
+        public const int StrSelectedNest = 1856;
 
         private readonly FormationDatabase _db;
         private readonly Func<int, string> _text;
-        private readonly Func<EMonster, int> _awakenLevelOf;
+        private readonly Func<EMonster, int> _levelOf;
         private readonly Func<ERace, int> _ownedGradeOf;
-        private readonly EMonster[] _formation;
-        private readonly EMonster[] _defaults;
+        private readonly EMonster?[] _formation;
+        private readonly EMonster?[] _defaults;
         private readonly StageRuleData _sealRule;
         private readonly EMonster _sealSpecies;
         private int _selected;
+        private int _filter;
 
         public event Action OnChanged;
 
-        //# stage: 선형 스테이지 번호. awakenLevelOf: 기준 몬스터 → 상점 체급 레벨(Enhance_<기준 몬스터>).
         public FormationViewModel(
             FormationDatabase db, ChapterDatabase chapters, MetaProfile profile, int stage,
             Func<int, string> text, Func<EMonster, int> awakenLevelOf)
         {
             _db = db;
             _text = text ?? (id => string.Empty);
-            _awakenLevelOf = awakenLevelOf ?? (monster => 0);
+            _levelOf = awakenLevelOf ?? (monster => 0);
             _ownedGradeOf = profile.GetRaceGrade;
-            _defaults = db.DefaultFormation(_ownedGradeOf);
-            EMonster[] saved = FormationSave.FromSaved(profile.Formation);
-            //# 무효 슬롯(타 종족·미보유 등급)은 보유 최고 등급으로 바꿔 보여 주고, 출격 때 그대로 저장된다(§0.6 · U-C A 안내 없음).
-            _formation = saved != null ? FormationRules.Repair(saved, db, _ownedGradeOf, out int _) : db.DefaultFormation(_ownedGradeOf);
-            Stage = stage;
+            _defaults = FormationSave.DefaultSlots(db, _ownedGradeOf);
+            if (profile.HasCustomFormation)
+            {
+                _formation = FormationSave.ReadCustom(db, profile.Formation, _ownedGradeOf, out bool repaired);
+                FeedbackText = _text(repaired ? StrRepaired : StrInitial);
+            }
+            else
+            {
+                _formation = (EMonster?[])_defaults.Clone();
+                FeedbackText = _text(StrInitial);
+            }
 
+            Stage = stage;
             StageNumberText = StageLabels.Number(stage);
             StageRow stageRow = chapters != null ? chapters.GetStageByLinear(stage) : null;
             StageNameText = stageRow != null ? _text(stageRow.nameKey) : string.Empty;
             HeroArchetypeRow heroRow = chapters != null ? chapters.GetHeroOfLinear(stage) : null;
-            HeroText = heroRow != null ? string.Format(_text(WorldMapViewModel.StrHeroName), _text(heroRow.nameKey)) : string.Empty;
+            HeroText = heroRow != null ? Format(WorldMapViewModel.StrHeroName, _text(heroRow.nameKey)) : string.Empty;
             int chapterId = StageProgress.ChapterOf(stage);
             int hintKey = db.HintKeyOf(chapterId);
             HintText = hintKey > 0 ? _text(hintKey) : string.Empty;
@@ -95,9 +125,7 @@ namespace Lair.Village
                 foreach (StageRuleData data in chapters.GetRules(chapterId, StageProgress.IndexOf(stage)))
                 {
                     if (rules.Length > 0)
-                    {
                         rules.Append("\n");
-                    }
                     rules.Append(StageRuleText.Entry(data, _text));
                     if (data.RuleId == EStageRule.SealedNest)
                     {
@@ -116,68 +144,110 @@ namespace Lair.Village
         public string HintText { get; }
         public string RulesText { get; }
         public int Difficulty { get; }
-        public string DifficultyText { get; }      //# Easy 면 빈 문자열(칩 숨김)
-
+        public string DifficultyText { get; }
         public int SelectedIndex => _selected;
+        public int FilterIndex => _filter;
+        public bool CanClear => _formation[_selected].HasValue;
+        public bool IsCustom => FormationSave.IsCustom(_formation, _defaults);
+        public string FeedbackText { get; private set; }
+        public string CardsRandomText => _text(StrCardsRandom);
+        public string ClearText => _text(StrClearButton);
+        public string SelectedNestText => Format(StrSelectedNest, _selected + 1);
+        public bool HasSealForecast => _sealRule != null;
 
-        //# 봉인된 둥지 스테이지에서 봉인될 둥지 인덱스 — 아니면 -1. 전투와 같은 FormationRules.PickSealedSlot(종족 둥지 1곳).
-        public int SealedIndex => _sealRule != null ? FormationRules.PickSealedSlot(_formation, _sealSpecies) : -1;
+        public int AssignedCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (EMonster? monster in _formation)
+                {
+                    if (monster.HasValue)
+                        ++count;
+                }
+                return count;
+            }
+        }
 
-        public bool HasSealForecast => SealedIndex >= 0;
+        public string FilledText => Format(StrFilled, AssignedCount, FormationDatabase.SlotCount);
+        public string EmptyWarningText => AssignedCount == 0 ? _text(StrEmptyWarning) : string.Empty;
+        public int SealedIndex => _sealRule != null ? FormationRules.PickSealedSlot(_formation, _sealSpecies, _db) : -1;
 
         public string SealForecastText
         {
             get
             {
-                int index = SealedIndex;
-                if (index < 0)
+                if (_sealRule == null)
                     return string.Empty;
-                int percent = SealedNestInfo.AnyUnlockHpPercent(_sealRule);
-                return string.Format(_text(StrSealForecast), index + 1, RaceName(_db.SlotRace(index)), percent);
+                int index = SealedIndex;
+                return index >= 0
+                    ? Format(StrSealForecast, index + 1, MonsterName(_formation[index].Value), SealedNestInfo.AnyUnlockHpPercent(_sealRule))
+                    : _text(StrNoSeal);
             }
         }
 
-        //# 선택 둥지 종족 정보 행 (우측 패널 상단).
-        public string SelectedRaceName => RaceName(_db.SlotRace(_selected));
-
-        public string SelectedRaceDesc
+        public string FilterName(int index)
         {
-            get
-            {
-                RaceRow row = _db.RaceRowOf(_db.SlotRace(_selected));
-                return row != null ? _text(row.descKey) : string.Empty;
-            }
+            if (index == 0)
+                return _text(StrAll);
+            ERace race = _db.SlotRace(index - 1);
+            return SpeciesVisual.SpeciesName(_db.MonstersOf(race)[0]);
         }
-
-        public Color SelectedRaceColor => SpeciesVisual.SpeciesGlowColor(_db.MonstersOf(_db.SlotRace(_selected))[0]);
 
         public void SelectNest(int index)
         {
             if (index < 0 || index >= _formation.Length || index == _selected)
                 return;
             _selected = index;
+            FeedbackText = _text(StrInitial);
             OnChanged?.Invoke();
         }
 
-        //# 선택 둥지에 monster 지정 — 그 종족 보유 몬스터만. 같은 몬스터·무효면 무동작. 성공 시 다음 둥지로 선택 이동(6 다음은 1).
+        public void SelectFilter(int index)
+        {
+            if (index < 0 || index > FormationDatabase.SlotCount || index == _filter)
+                return;
+            _filter = index;
+            OnChanged?.Invoke();
+        }
+
         public void Place(EMonster monster)
         {
             if (_formation[_selected] == monster || FormationRules.IsAllowed(_db, _selected, monster, _ownedGradeOf) == false)
                 return;
+            int previous = Array.IndexOf<EMonster?>(_formation, monster);
+            EMonster? displaced = _formation[_selected];
             _formation[_selected] = monster;
-            _selected = (_selected + 1) % _formation.Length;
+            if (previous >= 0)
+            {
+                _formation[previous] = displaced;
+                FeedbackText = Format(displaced.HasValue ? StrSwappedFeedback : StrMovedFeedback, previous + 1, _selected + 1);
+            }
+            else
+            {
+                FeedbackText = Format(StrPlacedFeedback, _selected + 1, MonsterName(monster));
+            }
             OnChanged?.Invoke();
         }
 
-        //# 표시 편성을 기본 편성(보유 최고 등급)으로 되돌림(저장은 출격 때) — 선택은 둥지 1.
+        public void ClearNest()
+        {
+            if (CanClear == false)
+                return;
+            _formation[_selected] = null;
+            FeedbackText = Format(StrCleared, _selected + 1);
+            OnChanged?.Invoke();
+        }
+
         public void ResetToDefault()
         {
             Array.Copy(_defaults, _formation, _formation.Length);
             _selected = 0;
+            _filter = 0;
+            FeedbackText = _text(StrReset);
             OnChanged?.Invoke();
         }
 
-        //# 저장 행 — 기본 편성과 같으면 0행, 다르면 6행.
         public List<FormationSlotEntry> BuildSaveRows()
         {
             return FormationSave.ToSaved(_formation, _defaults);
@@ -185,59 +255,75 @@ namespace Lair.Village
 
         public FormationNestData GetNest(int index)
         {
-            EMonster monster = _formation[index];
-            ERace race = _db.SlotRace(index);
-            int grade = MonsterGrades.GradeOf(monster);
-            return new FormationNestData
+            EMonster? monster = _formation[index];
+            FormationNestData data = new FormationNestData
             {
                 Index = index,
-                TitleText = string.Format(_text(StrNest), index + 1),
-                Monster = monster,
-                Grade = grade,
-                NameText = SpeciesVisual.MonsterName(monster, _db, _text),
-                RaceText = RaceName(race),
-                GradeText = string.Format(_text(StrNestGrade), grade, _ownedGradeOf(race)),
-                SpeciesColor = SpeciesVisual.SpeciesGlowColor(monster),
+                TitleText = Format(StrNest, index + 1),
+                NameText = _text(StrEmpty),
+                SpeciesColor = new Color32(0xae, 0xb2, 0xc5, 0xff),
+                IsEmpty = monster.HasValue == false,
                 IsSelected = index == _selected,
                 IsDefault = monster == _defaults[index],
                 IsSealed = index == SealedIndex,
             };
+            if (monster.HasValue == false)
+                return data;
+
+            EMonster value = monster.Value;
+            data.Monster = value;
+            data.Grade = MonsterGrades.GradeOf(value);
+            data.NameText = MonsterName(value);
+            data.TierText = TierText(value);
+            data.SpeciesColor = SpeciesVisual.SpeciesGlowColor(value);
+            return data;
         }
 
-        //# 선택 둥지 종족의 보유 몬스터 행(등급순).
         public IReadOnlyList<FormationSpeciesData> BuildSpecies()
         {
             List<FormationSpeciesData> list = new List<FormationSpeciesData>();
-            ERace race = _db.SlotRace(_selected);
-            foreach (EMonster monster in _db.OwnedMonstersOf(race, _ownedGradeOf(race)))
+            for (int i = 0; i < FormationDatabase.SlotCount; ++i)
             {
-                int grade = MonsterGrades.GradeOf(monster);
-                int awaken = _awakenLevelOf(MonsterGrades.BaseOf(monster));
-                string gradeText = string.Format(_text(StrRowGrade), grade, _db.HpMulOf(monster).ToString("0.00", CultureInfo.InvariantCulture));
-                if (monster == _defaults[_selected])
+                if (_filter != 0 && _filter != i + 1)
+                    continue;
+                ERace race = _db.SlotRace(i);
+                List<EMonster> owned = _db.OwnedMonstersOf(race, _ownedGradeOf(race));
+                for (int gradeIndex = owned.Count - 1; gradeIndex >= 0; --gradeIndex)
                 {
-                    gradeText += " · " + _text(StrOwnedTop);
+                    EMonster monster = owned[gradeIndex];
+                    int slot = Array.IndexOf<EMonster?>(_formation, monster);
+                    int grade = MonsterGrades.GradeOf(monster);
+                    string placement = _text(StrAvailable);
+                    if (slot == _selected)
+                        placement = _text(StrPlaced);
+                    else if (slot >= 0)
+                        placement = Format(CanClear ? StrSwap : StrMove, slot + 1);
+
+                    list.Add(new FormationSpeciesData
+                    {
+                        Monster = monster,
+                        Grade = grade,
+                        NameText = MonsterName(monster),
+                        GradeText = Format(StrRowGrade, grade, _db.HpMulOf(monster).ToString("0.00", CultureInfo.InvariantCulture)),
+                        SpeciesColor = SpeciesVisual.SpeciesGlowColor(monster),
+                        TierText = TierText(monster),
+                        PlacementText = placement,
+                        Axis = SpeciesVisual.SpeciesAxis(monster),
+                        IsSelected = slot == _selected,
+                    });
                 }
-                list.Add(new FormationSpeciesData
-                {
-                    Monster = monster,
-                    Grade = grade,
-                    NameText = SpeciesVisual.MonsterName(monster, _db, _text),
-                    GradeText = gradeText,
-                    SpeciesColor = SpeciesVisual.SpeciesGlowColor(monster),
-                    AwakenText = string.Format(_text(StrAwaken), awaken),
-                    ShowAwaken = awaken > 0,
-                    Axis = SpeciesVisual.SpeciesAxis(monster),
-                    IsSelected = monster == _formation[_selected],
-                });
             }
             return list;
         }
 
-        private string RaceName(ERace race)
+        private string MonsterName(EMonster monster) => SpeciesVisual.MonsterName(monster, _db, _text);
+
+        private string TierText(EMonster monster)
         {
-            RaceRow row = _db.RaceRowOf(race);
-            return row != null ? _text(row.nameKey) : race.ToString();
+            int tier = MonsterEnhancementVisual.TierOfLevel(_levelOf(MonsterGrades.BaseOf(monster)));
+            return tier == 0 ? _text(StrBaseTier) : Format(StrTier, tier);
         }
+
+        private string Format(int id, params object[] args) => string.Format(_text(id) ?? string.Empty, args);
     }
 }

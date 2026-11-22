@@ -5,6 +5,7 @@ using Lair.Data;
 using Lair.Meta;
 using Lair.Village;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Lair.UI
@@ -13,8 +14,8 @@ namespace Lair.UI
     public class FormationPopupArg : UIArg
     {
         public FormationViewModel ViewModel;
-        //# 출격 확정 — 저장할 편성 행(0행 = 기본 편성, 6행 = 사용자 편성). 저장·입장은 호출자(VillageController) 소유.
-        public Action<List<FormationSlotEntry>> OnSortie;
+        public Action<bool, List<FormationSlotEntry>> OnSortie;
+        public Sprite HeroPortrait;
     }
 
     //# 던전 편성 팝업 (dungeon-formation §0.10) — 침입 요약 + 둥지 칸 6(종족 고정) + 우측 종족 정보·보유 몬스터 행 최대 5 + 하단 바. 칸·행은 프리팹 정적 배치(스크롤 없음).
@@ -27,11 +28,18 @@ namespace Lair.UI
         [SerializeField] private CHButton _closeButton;
         [SerializeField] private CHButton _resetButton;
         [SerializeField] private CHButton _sortieButton;
+        [SerializeField] private CHButton _clearButton;
+        [SerializeField] private CHButton[] _speciesFilters = new CHButton[0];
+        [SerializeField] private FormationSpeciesPoolingScrollView _speciesScrollView;
+        [SerializeField] private CHText _statusText;
+        [SerializeField] private CHText _filledText;
+        [SerializeField] private CHText _emptyWarningText;
 
         //# 침입 요약
         [SerializeField] private CHText _stageNumberText;    //# "2-2"
         [SerializeField] private CHText _stageNameText;
         [SerializeField] private CHText _heroText;           //# "영웅: 궁수"
+        [SerializeField] private Image _heroPortrait;
         [SerializeField] private GameObject _difficultyChipRoot;   //# Normal/Hard 만 표시
         [SerializeField] private Image _difficultyChipBackground;
         [SerializeField] private CHText _difficultyChipText;
@@ -53,7 +61,10 @@ namespace Lair.UI
         [SerializeField] private Sprite[] _monsterIcons = new Sprite[0];
 
         private FormationViewModel _vm;
-        private Action<List<FormationSlotEntry>> _onSortie;
+        private Action<bool, List<FormationSlotEntry>> _onSortie;
+        private int _lastFilter = -1;
+        private GameObject _focusBeforeOpen;
+        private bool _departing;
 
         public override void InitUI(UIArg arg)
         {
@@ -63,6 +74,14 @@ namespace Lair.UI
 
             _vm = popupArg.ViewModel;
             _onSortie = popupArg.OnSortie;
+            _focusBeforeOpen = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+            _departing = false;
+            if (_heroPortrait != null)
+            {
+                _heroPortrait.sprite = popupArg.HeroPortrait;
+                _heroPortrait.enabled = popupArg.HeroPortrait != null;
+            }
+            _lastFilter = -1;
             _vm.OnChanged += Refresh;
             closeDisposable.Add(() =>
             {
@@ -84,12 +103,26 @@ namespace Lair.UI
             }
             if (_resetButton != null)
             {
-                _resetButton.OnClick(() => _vm?.ResetToDefault(), closeDisposable);
+                _resetButton.OnClick(ResetFormation, closeDisposable);
             }
             if (_sortieButton != null)
             {
                 _sortieButton.OnClick(HandleSortie, closeDisposable);
             }
+            if (_clearButton != null)
+            {
+                _clearButton.SetText(_vm.ClearText);
+                _clearButton.OnClick(ClearSelectedNest, closeDisposable);
+            }
+            for (int i = 0; i < _speciesFilters.Length && i <= FormationDatabase.SlotCount; ++i)
+            {
+                CHButton filter = _speciesFilters[i];
+                if (filter == null)
+                    continue;
+                int index = i;
+                filter.OnClick(() => _vm?.SelectFilter(index), closeDisposable);
+            }
+            _speciesScrollView?.Configure(IconOf, monster => _vm?.Place(monster));
 
             for (int i = 0; i < _nestTiles.Length; ++i)
             {
@@ -99,7 +132,7 @@ namespace Lair.UI
                 _nestTiles[i].SetClickHandler(() => _vm?.SelectNest(index), closeDisposable);
             }
             //# 행 목록은 선택 둥지마다 바뀌므로 클릭은 행 인덱스로 받아 그 순간의 목록에서 몬스터를 찾는다.
-            for (int i = 0; i < _speciesRows.Length; ++i)
+            for (int i = 0; _speciesScrollView == null && i < _speciesRows.Length; ++i)
             {
                 if (_speciesRows[i] == null)
                     continue;
@@ -109,6 +142,104 @@ namespace Lair.UI
 
             ShowSummary();
             Refresh();
+            FocusSelectedNest();
+        }
+
+        public override void Close(bool reuse = true)
+        {
+            GameObject restore = _focusBeforeOpen;
+            _focusBeforeOpen = null;
+            base.Close(reuse);
+            if (_departing == false && restore != null && restore.activeInHierarchy)
+                EventSystem.current?.SetSelectedGameObject(restore);
+        }
+
+        private void Update()
+        {
+            if (_vm == null || Input.GetKeyDown(KeyCode.Tab) == false || EventSystem.current == null)
+                return;
+            bool reverse = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            MoveTabFocus(reverse ? -1 : 1);
+        }
+
+        private void MoveTabFocus(int direction)
+        {
+            List<GameObject> beforeRows = new List<GameObject>();
+            List<GameObject> afterRows = new List<GameObject>();
+            AddFocusTarget(beforeRows, _closeButton);
+            foreach (FormationNestTile nest in _nestTiles)
+            {
+                if (nest != null && nest.FocusTarget != null)
+                    beforeRows.Add(nest.FocusTarget);
+            }
+            AddFocusTarget(beforeRows, _clearButton);
+            foreach (CHButton filter in _speciesFilters)
+            {
+                AddFocusTarget(beforeRows, filter);
+            }
+            if (_speciesScrollView == null)
+            {
+                foreach (FormationSpeciesRow row in _speciesRows)
+                {
+                    if (row != null && row.FocusTarget != null && row.gameObject.activeInHierarchy)
+                        beforeRows.Add(row.FocusTarget);
+                }
+            }
+            AddFocusTarget(afterRows, _resetButton);
+            AddFocusTarget(afterRows, _sortieButton);
+
+            int rows = _speciesScrollView != null ? _speciesScrollView.RowCount : 0;
+            int total = beforeRows.Count + rows + afterRows.Count;
+            if (total == 0)
+                return;
+            GameObject current = EventSystem.current.currentSelectedGameObject;
+            int index = beforeRows.IndexOf(current);
+            if (index < 0 && current != null)
+            {
+                int rowIndex = _speciesScrollView != null ? _speciesScrollView.FocusedRowIndex(current) : -1;
+                int afterIndex = afterRows.IndexOf(current);
+                if (rowIndex >= 0)
+                    index = beforeRows.Count + rowIndex;
+                else if (afterIndex >= 0)
+                    index = beforeRows.Count + rows + afterIndex;
+            }
+            int next = index < 0 ? (direction < 0 ? total - 1 : 0) : (index + direction + total) % total;
+            if (next < beforeRows.Count)
+                EventSystem.current.SetSelectedGameObject(beforeRows[next]);
+            else if (next < beforeRows.Count + rows)
+                _speciesScrollView.FocusRow(next - beforeRows.Count);
+            else
+                EventSystem.current.SetSelectedGameObject(afterRows[next - beforeRows.Count - rows]);
+        }
+
+        private static void AddFocusTarget(List<GameObject> targets, CHButton button)
+        {
+            if (button != null && button.Interactable && button.gameObject.activeInHierarchy)
+                targets.Add(button.gameObject);
+        }
+
+        private void FocusSelectedNest()
+        {
+            int index = _vm.SelectedIndex;
+            if (index < _nestTiles.Length)
+                _nestTiles[index]?.Focus();
+        }
+
+        private void ClearSelectedNest()
+        {
+            if (_vm == null)
+                return;
+            _vm.ClearNest();
+            FocusSelectedNest();
+        }
+
+        private void ResetFormation()
+        {
+            if (_vm == null)
+                return;
+            _lastFilter = -1;
+            _vm.ResetToDefault();
+            FocusSelectedNest();
         }
 
         //# 몬스터 행 클릭 — 선택 둥지에 그 몬스터 지정(VM 이 소속·보유를 판정).
@@ -126,10 +257,12 @@ namespace Lair.UI
         {
             if (_vm == null)
                 return;
-            Action<List<FormationSlotEntry>> onSortie = _onSortie;
+            Action<bool, List<FormationSlotEntry>> onSortie = _onSortie;
+            bool isCustom = _vm.IsCustom;
             List<FormationSlotEntry> rows = _vm.BuildSaveRows();
+            _departing = true;
             Close(reuse: true);
-            onSortie?.Invoke(rows);
+            onSortie?.Invoke(isCustom, rows);
         }
 
         //# 침입 요약은 열 때 한 번만 채운다(편성 변경과 무관). 봉인 예고만 Refresh 가 갱신한다.
@@ -180,30 +313,51 @@ namespace Lair.UI
                 if (_nestTiles[i] != null)
                 {
                     FormationNestData data = _vm.GetNest(i);
-                    _nestTiles[i].Show(data, IconOf(data.Monster));
+                    _nestTiles[i].Show(data, data.IsEmpty ? null : IconOf(data.Monster));
                 }
             }
             IReadOnlyList<FormationSpeciesData> species = _vm.BuildSpecies();
-            for (int i = 0; i < _speciesRows.Length; ++i)
+            if (_speciesScrollView != null)
             {
-                if (_speciesRows[i] != null)
+                _speciesScrollView.ShowRows(species, _lastFilter != _vm.FilterIndex);
+            }
+            else
+            {
+                for (int i = 0; i < _speciesRows.Length; ++i)
                 {
+                    if (_speciesRows[i] == null)
+                        continue;
                     FormationSpeciesData row = i < species.Count ? species[i] : null;
                     _speciesRows[i].Show(row, row != null ? IconOf(row.Monster) : null);
                 }
             }
+            _lastFilter = _vm.FilterIndex;
+            for (int i = 0; i < _speciesFilters.Length && i <= FormationDatabase.SlotCount; ++i)
+            {
+                string name = _vm.FilterName(i);
+                _speciesFilters[i]?.SetText(i == _lastFilter ? "<color=#F5C542>" + name + "</color>" : name);
+            }
             if (_raceNameText != null)
             {
-                _raceNameText.SetText(_vm.SelectedRaceName);
-                _raceNameText.SetColor(_vm.SelectedRaceColor);
+                _raceNameText.SetText(_vm.SelectedNestText);
+                _raceNameText.SetColor(BoneColor);
             }
             if (_raceDescText != null)
             {
-                _raceDescText.SetText(_vm.SelectedRaceDesc);
+                _raceDescText.SetText(_vm.CardsRandomText);
             }
             if (_raceBorder != null)
             {
-                _raceBorder.color = _vm.SelectedRaceColor;
+                _raceBorder.color = BoneColor;
+            }
+            if (_clearButton != null)
+                _clearButton.Interactable = _vm.CanClear;
+            _statusText?.SetText(_vm.FeedbackText);
+            _filledText?.SetText(_vm.FilledText);
+            if (_emptyWarningText != null)
+            {
+                _emptyWarningText.SetText(_vm.EmptyWarningText);
+                _emptyWarningText.gameObject.SetActive(_vm.AssignedCount == 0);
             }
             if (_sealForecastRoot != null)
             {

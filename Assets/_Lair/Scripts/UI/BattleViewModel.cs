@@ -42,6 +42,7 @@ namespace Lair.UI
         {
             public int Index;                                  //# 0~5 ring 인덱스
             public EMonster CurrentType;
+            public bool IsEmpty;
             public int OutputCount;
             public IReadOnlyList<AppliedBuff> AppliedBuffs;    //# 현 출력 종에 적용된 강화 카드 픽 누적
             //# 스테이지 규칙(봉인된 둥지) 해제 HP% — 이 종이 봉인 대상이면 해제 임계(정수), 아니면 0. 표기만(봉인 여부는 셀이 폴링).
@@ -416,7 +417,7 @@ namespace Lair.UI
             {
                 Spawner sp = _attachedSpawners[i];
                 if (sp == null) continue;
-                if (MonsterGrades.SameSpecies(sp.CurrentType, type)) RecomputeAt(i);
+                if (sp.HasOutput && MonsterGrades.SameSpecies(sp.CurrentType, type)) RecomputeAt(i);
             }
         }
 
@@ -438,9 +439,10 @@ namespace Lair.UI
             {
                 Index = index,
                 CurrentType = sp.CurrentType,
+                IsEmpty = sp.HasOutput == false,
                 OutputCount = sp.OutputCount,
-                AppliedBuffs = controller.GetAppliedBuffs(sp.CurrentType),
-                SealUnlockHpPercent = controller.GetSpawnerSealUnlockHpPercent(),
+                AppliedBuffs = sp.HasOutput ? controller.GetAppliedBuffs(sp.CurrentType) : Array.Empty<AppliedBuff>(),
+                SealUnlockHpPercent = sp.HasOutput ? controller.GetSpawnerSealUnlockHpPercent() : 0,
             };
         }
     }

@@ -364,10 +364,12 @@ namespace Lair.UI
             }
         }
 
-        public void Bind(CardData card, Action onClick, int pickCount)
+        public void Bind(CardData card, Action onClick, int pickCount) => Bind(card, onClick, pickCount, null);
+
+        public void Bind(CardData card, Action onClick, int pickCount, string targetNotice)
         {
             _nameText.SetText(card.DisplayName);
-            _descText.SetText(card.Description);
+            _descText.SetText(string.IsNullOrEmpty(targetNotice) ? card.Description : card.Description + "\n" + targetNotice);
             //# 테두리 색 — 카드 ID 기준 단일 출처 (CardBorderColors).
             _border.color = CardBorderColors.BorderColorOf(card.Id);
             ResetVisual();

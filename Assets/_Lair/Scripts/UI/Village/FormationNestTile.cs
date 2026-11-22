@@ -2,6 +2,7 @@ using System;
 using ChvjUnityInfra;
 using Lair.Village;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -19,6 +20,7 @@ namespace Lair.UI
         [FormerlySerializedAs("_costText")]
         [SerializeField] private CHText _raceText;            //# 종족 이름
         [SerializeField] private CHText _gradeText;           //# "2등급 · 보유 2등급"
+        [SerializeField] private CHText _tierText;
         [SerializeField] private GameObject _defaultBadge;    //# 기본 편성(보유 최고 등급)과 같은 몬스터 — 글자 없는 회색 원
         [SerializeField] private GameObject _sealBadge;       //# 봉인 예정 칸 — 사슬 표식(보라)
         [SerializeField] private GameObject _sealedGlow;      //# 봉인 예정 칸 테두리 발광
@@ -36,6 +38,8 @@ namespace Lair.UI
         private static readonly Color RingViolet = new Color32(0x9b, 0x4d, 0xff, 0xff);
         private static readonly Color SealedIconTint = new Color(0.35f, 0.35f, 0.35f, 1f);
 
+        public GameObject FocusTarget => _button != null ? _button.gameObject : null;
+
         //# 클릭 핸들러 1회 등록 — 팝업 InitUI 에서 호출. disposable.Clear() 시 해제된다.
         public void SetClickHandler(Action onClick, CompositeDisposable disposable)
         {
@@ -43,6 +47,12 @@ namespace Lair.UI
             {
                 _button.OnClick(onClick, disposable);
             }
+        }
+
+        public void Focus()
+        {
+            if (_button != null)
+                EventSystem.current?.SetSelectedGameObject(_button.gameObject);
         }
 
         //# 매 갱신마다 전체 상태를 덮어쓴다(이전 상태 잔존 방지).
@@ -61,16 +71,22 @@ namespace Lair.UI
             }
             if (_raceText != null)
             {
-                _raceText.SetText(data.RaceText);
-                _raceText.SetColor(data.SpeciesColor);
+                _raceText.SetText(_tierText == null ? data.TierText ?? string.Empty : string.Empty);
             }
             if (_gradeText != null)
             {
-                _gradeText.SetText(data.GradeText);
+                _gradeText.SetText(string.Empty);
+            }
+            if (_tierText != null)
+            {
+                _tierText.gameObject.SetActive(data.IsEmpty == false);
+                _tierText.SetText(data.TierText ?? string.Empty);
             }
             if (_iconBorder != null)
             {
-                _iconBorder.color = MonsterGradeFrame.BorderColor(data.Grade, data.SpeciesColor);
+                _iconBorder.enabled = data.IsEmpty == false;
+                if (data.IsEmpty == false)
+                    _iconBorder.color = MonsterGradeFrame.BorderColor(data.Grade, data.SpeciesColor);
             }
             if (_icon != null)
             {
@@ -102,9 +118,7 @@ namespace Lair.UI
             }
             if (_dimOverlay != null)
             {
-                bool dim = data.IsSelected == false && data.IsSealed == false;
-                _dimOverlay.color = new Color(0f, 0f, 0f, dim ? DimAlpha : 0f);
-                _dimOverlay.enabled = dim;
+                _dimOverlay.enabled = false;
             }
         }
 

@@ -63,12 +63,63 @@ namespace Lair.UI
         public string LockText;           //# "1-1 클리어 시 해금" — 데이터가 없으면 빈 문자열
         public Sprite CurrencyIcon;
         public bool TintIcon;             //# 전용 아이콘이 없어 소울 코인을 재화 색으로 물들인 임시 표시
+        public bool IsTierUpgrade;
 
         //# 승급 칸 (monster-grades §5.1) — 상점 항목이 아니라 GradePromotion 으로 구매. 가격은 재화 2종이라 PriceText 로 표시(아이콘 없음).
         public bool IsPromotion;
         public ERace Race;
         public string PriceText;          //# 비어 있지 않으면 가격 띠에 숫자 대신 이 문구 ("소울 1,500 · 각성석 30" / "최고 등급")
         public ECurrency LackingCurrency; //# 재화 부족 토스트용 — 처음 모자라는 재화
+    }
+
+    //# 체급 칸의 표시 모델 — 구매 데이터와 재화 상태는 ShopService 가 결정한다.
+    internal static class ShopTierPresentation
+    {
+        private const int StrAxisName = 1870;
+        private const int StrBaseTier = 1871;
+        private const int StrPreviewStats = 1872;
+        private const int StrMaxTier = 1873;
+        private const int StrMissingSouls = 1874;
+        private const int StrUnavailable = 1875;
+        private const int StrCurrentStats = 1878;
+
+        public static void Bind(ShopAxisSlotData slot, ShopService.TierOffer offer, Func<int, string> text)
+        {
+            string current = Name(offer.CurrentTier, text);
+            slot.AxisName = Label(text, StrAxisName, "티어 강화");
+            slot.IsTierUpgrade = true;
+            slot.Level = offer.CurrentTier;
+            slot.MaxLevel = EnhanceTierTable.MaxTier;
+            slot.IsMax = offer.IsMax;
+            slot.IsLocked = offer.IsLocked;
+            slot.CanBuy = offer.CanBuy;
+            slot.Price = offer.SoulCost;
+            slot.EffectText = offer.HasNext
+                ? string.Format(Label(text, StrPreviewStats, "{0} HP·공격력\n×{1:0.00} → ×{2:0.00}"),
+                    current + "→" + Name(offer.NextTier, text), offer.CurrentMultiplier, offer.NextMultiplier)
+                : string.Format(Label(text, StrCurrentStats, "{0} HP·공격력\n×{1:0.00}"), current, offer.CurrentMultiplier);
+            slot.PriceText = PriceText(offer, text);
+        }
+
+        public static string Name(int tier, Func<int, string> text)
+            => tier == 0 ? Label(text, StrBaseTier, "기본") : $"T{tier}";
+
+        private static string PriceText(ShopService.TierOffer offer, Func<int, string> text)
+        {
+            if (offer.IsMax)
+                return Label(text, StrMaxTier, "최대 티어");
+            if (offer.HasNext == false)
+                return Label(text, StrUnavailable, "강화 준비 중");
+            if (offer.MissingSouls > 0)
+                return string.Format(Label(text, StrMissingSouls, "{0:N0} 소울 · {1:N0} 부족"), offer.SoulCost, offer.MissingSouls);
+            return string.Empty;
+        }
+
+        private static string Label(Func<int, string> text, int id, string fallback)
+        {
+            string localized = text?.Invoke(id);
+            return string.IsNullOrEmpty(localized) ? fallback : localized;
+        }
     }
 
     //# 소울 상점 — 레벨제 영구 업그레이드 단일 스크롤 + 섹션 헤더 (기획서 §1). 탭 제거.
@@ -368,7 +419,7 @@ namespace Lair.UI
                 }
                 if (def.EffectKind != EShopEffectKind.MonsterSpecies)
                     continue;
-                ShopItemCellData cell = MakeCell(def, profile);
+                ShopItemCellData cell = MakeCell(def, profile, shop, text);
                 ShopAxisSlotData[] axes =
                 {
                     MakeSlot(def, GrowthStrings.AxisBody, "체급", profile, shop, growth, text),
@@ -420,21 +471,27 @@ namespace Lair.UI
                 slot.LockText = string.Empty;
                 return slot;
             }
-            int level = profile.GetShopLevel(def.Id);
-            bool isMax = level >= def.MaxLevel;
-            int price = isMax ? 0 : ShopService.PriceOf(def, level);
             bool locked = shop.IsCurrencyLocked(def.Currency);
             slot.IsAvailable = true;
             slot.ItemId = def.Id;
             slot.Currency = def.Currency;
             slot.CurrencyName = GrowthText.CurrencyName(def.Currency, growth, text);
             slot.ColorHex = growth == null && def.Currency == ECurrency.Soul ? "#5ef0b4" : GrowthText.CurrencyColorHex(def.Currency, growth);
+            slot.LockText = locked ? GrowthText.UnlockText(def.Currency, text) : string.Empty;
+            if (shop.TryGetTierOffer(def.Id, out ShopService.TierOffer offer))
+            {
+                ShopTierPresentation.Bind(slot, offer, text);
+                return slot;
+            }
+
+            int level = profile.GetShopLevel(def.Id);
+            bool isMax = level >= def.MaxLevel;
+            int price = isMax ? 0 : ShopService.PriceOf(def, level);
             slot.Level = Mathf.Min(level, def.MaxLevel);
             slot.MaxLevel = def.MaxLevel;
             slot.Price = price;
             slot.IsMax = isMax;
             slot.IsLocked = locked;
-            slot.LockText = locked ? GrowthText.UnlockText(def.Currency, text) : string.Empty;
             slot.CanBuy = isMax == false && locked == false && profile.GetCurrency(def.Currency) >= price;
             switch (def.EffectKind)
             {
@@ -495,12 +552,12 @@ namespace Lair.UI
         }
 
         //# 셀 표시 데이터 조립 단일 진실. Species/Level/MaxLevel 은 채우되 Icon 은 Rebuild 가 주입(§5.3).
-        private static ShopItemCellData MakeCell(ShopItemDef def, MetaProfile profile)
+        private static ShopItemCellData MakeCell(ShopItemDef def, MetaProfile profile, ShopService shop = null, Func<int, string> text = null)
         {
             int level = profile.GetShopLevel(def.Id);
             bool isMax = level >= def.MaxLevel;
             int price = isMax ? 0 : ShopService.PriceOf(def, level);
-            return new ShopItemCellData
+            ShopItemCellData cell = new ShopItemCellData
             {
                 RowKind = ShopRowKind.Item,
                 Id = def.Id,
@@ -514,6 +571,15 @@ namespace Lair.UI
                 Level = level,
                 MaxLevel = def.MaxLevel,
             };
+            if (shop != null && shop.TryGetTierOffer(def.Id, out ShopService.TierOffer offer))
+            {
+                cell.Price = offer.SoulCost;
+                cell.IsMax = offer.IsMax;
+                cell.CanBuy = offer.CanBuy;
+                cell.Level = EnhanceTierTable.LevelEquivalent(offer.CurrentTier);
+                cell.LevelText = ShopTierPresentation.Name(offer.CurrentTier, text);
+            }
+            return cell;
         }
     }
 }

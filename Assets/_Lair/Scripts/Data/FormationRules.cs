@@ -28,13 +28,13 @@ namespace Lair.Data
         //# "방어하기" 가 편성 팝업을 여는가 — 해금 진행 + 선택지 있는 종족 존재 (U-D A).
         public static bool ShouldShowPopup(FormationDatabase db, int clearedStage, Func<ERace, int> ownedGradeOf)
         {
-            return db != null && IsUnlocked(db.Config, clearedStage) && HasChoice(db, ownedGradeOf);
+            return db != null && IsUnlocked(db.Config, clearedStage);
         }
 
-        //# 슬롯 index 에 monster 를 둘 수 있는가 — 슬롯 종족 소속 + 보유 등급.
+        //# 슬롯 index 에 monster 를 둘 수 있는가 — 보유 등급.
         public static bool IsAllowed(FormationDatabase db, int slotIndex, EMonster monster, Func<ERace, int> ownedGradeOf)
         {
-            if (db.TryGetRace(monster, out ERace race) == false || race != db.SlotRace(slotIndex))
+            if (slotIndex < 0 || slotIndex >= FormationDatabase.SlotCount || db.TryGetRace(monster, out ERace race) == false)
                 return false;
             return MonsterGrades.GradeOf(monster) <= OwnedGrade(race, ownedGradeOf);
         }
@@ -83,6 +83,26 @@ namespace Lair.Data
                     return i;
             }
             return -1;
+        }
+
+        //# 우선 대상 종, 해당 종의 원래 둥지, 그 외 채운 둥지 순으로 한 곳을 고른다.
+        public static int PickSealedSlot(IReadOnlyList<EMonster?> outputs, EMonster species, FormationDatabase db, Func<int, bool> isCandidate = null)
+        {
+            int firstFilled = -1;
+            int originalSlot = db != null && db.TryGetRace(species, out ERace race) ? db.SlotOf(race) : -1;
+            bool originalAvailable = false;
+            for (int i = 0; i < outputs.Count; ++i)
+            {
+                if (outputs[i].HasValue == false || (isCandidate != null && isCandidate(i) == false))
+                    continue;
+                if (MonsterGrades.SameSpecies(outputs[i].Value, species))
+                    return i;
+                if (firstFilled < 0)
+                    firstFilled = i;
+                if (i == originalSlot)
+                    originalAvailable = true;
+            }
+            return originalAvailable ? originalSlot : firstFilled;
         }
 
         private static int OwnedGrade(ERace race, Func<ERace, int> ownedGradeOf)
