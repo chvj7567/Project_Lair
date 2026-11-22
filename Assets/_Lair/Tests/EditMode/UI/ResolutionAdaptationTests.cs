@@ -660,10 +660,10 @@ namespace Lair.Tests.UI
         }
 
         [Test]
-        public void T7_결과창_패널_y는_보정값_마이너스10_카드선택_y는_마이너스40이다()
+        public void T7_결과창_패널_y는_보정값_마이너스10_카드선택_y는_6이다()
         {
             Assert.AreEqual(-10f, LargestPanel(_popups["ResultPopup"]).anchoredPosition.y, Eps, "ResultPopup 패널 y");
-            Assert.AreEqual(-40f, LargestPanel(_popups["CardSelectionPopup"]).anchoredPosition.y, Eps, "CardSelectionPopup 패널 y");
+            Assert.AreEqual(6f, LargestPanel(_popups["CardSelectionPopup"]).anchoredPosition.y, Eps, "CardSelectionPopup 패널 y");
         }
 
         [Test]

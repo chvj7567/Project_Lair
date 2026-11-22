@@ -123,7 +123,7 @@ namespace Lair.Tests.UI
                 Vector2 size = EffectiveSize(rt);
                 Assert.AreEqual(168f, size.x, 0.01f, $"칩{i} 폭");
                 Assert.AreEqual(46f, size.y, 0.01f, $"칩{i} 높이");
-                Assert.AreEqual(-327f, rt.anchoredPosition.y, 0.01f, $"칩{i} y");
+                Assert.AreEqual(-209f, rt.anchoredPosition.y, 0.01f, $"칩{i} y");
                 xs[i] = rt.anchoredPosition.x;
             }
             System.Array.Sort(xs);
