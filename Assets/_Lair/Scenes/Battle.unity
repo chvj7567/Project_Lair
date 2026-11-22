@@ -541,7 +541,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &502159417
 Transform:
   m_ObjectHideFlags: 0
@@ -6030,7 +6030,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 59172dd3b023fe1479c74387dd0a15b1, type: 2}
+  - {fileID: 2100000, guid: 3e8d1f4a7b6c49d2a05f8c1e92b7d6a4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6080,7 +6080,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1058931775
 Transform:
   m_ObjectHideFlags: 0
@@ -6415,9 +6415,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.0005313158
+    y: 0.00037765503
     width: 1
-    height: 0.99893737
+    height: 0.9992447
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -6915,7 +6915,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1492906286
 Transform:
   m_ObjectHideFlags: 0
@@ -7063,7 +7063,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1524673262
 Transform:
   m_ObjectHideFlags: 0
@@ -7739,7 +7739,6 @@ MonoBehaviour:
   - {fileID: 1535298793}
   - {fileID: 1060007895}
   - {fileID: 236489738}
-  _stageVariantConfig: {fileID: 11400000, guid: a76e8d6b7f21717448c4e292af23658a, type: 2}
   _backdropRenderer: {fileID: 946595947}
   _hudRoot: {fileID: 504342624}
   _popupRoot: {fileID: 1118221662}

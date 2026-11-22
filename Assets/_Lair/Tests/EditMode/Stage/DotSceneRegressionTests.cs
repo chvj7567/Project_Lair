@@ -257,7 +257,7 @@ namespace Lair.Tests.EditMode
             //# 16:9 화면 1194.67×672 도트 + 카메라 흔들림 최대 0.3u = 14.4도트 × 양쪽
             Assert.GreaterOrEqual(backdrop.sprite.rect.width, 1194.67f + 28.8f);
             Assert.GreaterOrEqual(backdrop.sprite.rect.height, 672f + 28.8f);
-            Assert.AreEqual(48f, backdrop.sprite.pixelsPerUnit, 1e-4f);
+            Assert.AreEqual(64f, backdrop.sprite.pixelsPerUnit, 1e-4f);
         }
 
         [Test]
@@ -372,7 +372,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 배경은_640x270_이상이고_Backdrop_레이어다()
+        public void HD_배경은_2218x936이고_Backdrop_레이어다()
         {
             SpriteRenderer backdrop = null;
             foreach (SpriteRenderer sr in DotSceneTestUtil.FindAll<SpriteRenderer>(_scene))
@@ -384,8 +384,8 @@ namespace Lair.Tests.EditMode
             }
             Assert.IsNotNull(backdrop);
             Assert.AreEqual("Backdrop", backdrop.sortingLayerName);
-            Assert.AreEqual(640f, backdrop.sprite.rect.width);
-            Assert.AreEqual(270f, backdrop.sprite.rect.height);
+            Assert.AreEqual(2218f, backdrop.sprite.rect.width);
+            Assert.AreEqual(936f, backdrop.sprite.rect.height);
         }
 
         [Test]
@@ -514,7 +514,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 배경은_640x270이고_화면_가로를_덮는다()
+        public void HD_배경은_2218x936이고_화면_가로를_덮는다()
         {
             SpriteRenderer backdrop = null;
             foreach (SpriteRenderer sr in DotSceneTestUtil.FindAll<SpriteRenderer>(_scene))
@@ -526,8 +526,8 @@ namespace Lair.Tests.EditMode
             }
             Assert.IsNotNull(backdrop);
             Assert.AreEqual("Backdrop", backdrop.sortingLayerName);
-            Assert.AreEqual(640f, backdrop.sprite.rect.width);
-            Assert.AreEqual(270f, backdrop.sprite.rect.height);
+            Assert.AreEqual(2218f, backdrop.sprite.rect.width);
+            Assert.AreEqual(936f, backdrop.sprite.rect.height);
         }
 
         [Test]

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -27,6 +27,8 @@ namespace Lair.Tests.EditMode
                     yield return kv;
             }
         }
+
+        private static readonly string[] HdBackdrops = { "Village_Backdrop.png", "Loading_Backdrop.png", "Battle_Backdrop.png" };
 
         private static TextureImporter ImporterOf(string folder, string file)
         {
@@ -75,7 +77,7 @@ namespace Lair.Tests.EditMode
         {
             foreach (KeyValuePair<string, JToken> kv in Backdrop2DEntries())
             {
-                if (kv.Key == "Light2D_Falloff.png")
+                if (kv.Key == "Light2D_Falloff.png" || System.Array.IndexOf(HdBackdrops, kv.Key) >= 0)
                     continue;
                 TextureImporter imp = ImporterOf(Folder, kv.Key);
                 Assert.AreEqual(TextureImporterType.Sprite, imp.textureType, kv.Key);
@@ -84,6 +86,33 @@ namespace Lair.Tests.EditMode
                 Assert.IsFalse(imp.mipmapEnabled, kv.Key);
                 Assert.AreEqual(48f, imp.spritePixelsPerUnit, 1e-4f, kv.Key);
                 Assert.AreEqual(TextureWrapMode.Clamp, imp.wrapMode, kv.Key);
+            }
+        }
+
+        [Test]
+        public void HD_배경은_Bilinear_무압축_밉맵_없음_기준_크기_PPU다()
+        {
+            //# 이름 → (폭, 높이, PPU, 월드 폭, 월드 폭 허용, 월드 높이, 월드 높이 허용)
+            (string name, int w, int h, float ppu, float worldW, float tolW, float worldH, float tolH)[] cases =
+            {
+                ("Village_Backdrop.png", 2218, 936, 166.4f, 13.33f, 0.01f, 5.625f, 0.001f),
+                ("Loading_Backdrop.png", 2218, 936, 166.4f, 13.33f, 0.01f, 5.625f, 0.001f),
+                ("Battle_Backdrop.png", 2128, 941, 64f, 33.25f, 0.05f, 14.70f, 0.05f),
+            };
+            foreach ((string name, int w, int h, float ppu, float worldW, float tolW, float worldH, float tolH) c in cases)
+            {
+                TextureImporter imp = ImporterOf(Folder, c.name);
+                Assert.AreEqual(TextureImporterType.Sprite, imp.textureType, c.name);
+                Assert.AreEqual(FilterMode.Bilinear, imp.filterMode, c.name);
+                Assert.AreEqual(TextureImporterCompression.Uncompressed, imp.textureCompression, c.name);
+                Assert.IsFalse(imp.mipmapEnabled, c.name);
+                Assert.AreEqual(c.ppu, imp.spritePixelsPerUnit, 1e-4f, c.name);
+                Assert.AreEqual(TextureWrapMode.Clamp, imp.wrapMode, c.name);
+                imp.GetSourceTextureWidthAndHeight(out int w, out int h);
+                Assert.AreEqual(c.w, w, c.name + " width");
+                Assert.AreEqual(c.h, h, c.name + " height");
+                Assert.AreEqual(c.worldW, w / imp.spritePixelsPerUnit, c.tolW, c.name + " 월드 폭");
+                Assert.AreEqual(c.worldH, h / imp.spritePixelsPerUnit, c.tolH, c.name + " 월드 높이");
             }
         }
 
@@ -111,12 +140,12 @@ namespace Lair.Tests.EditMode
         public void 와이드_배경_크기는_기획서_편차_기록과_같다()
         {
             JObject files = LoadFiles();
-            Assert.AreEqual(1600, (int)files["Battle_Backdrop.png"]["size"][0]);
-            Assert.AreEqual(704, (int)files["Battle_Backdrop.png"]["size"][1]);
-            Assert.AreEqual(640, (int)files["Village_Backdrop.png"]["size"][0]);
-            Assert.AreEqual(270, (int)files["Village_Backdrop.png"]["size"][1]);
-            Assert.AreEqual(640, (int)files["Loading_Backdrop.png"]["size"][0]);
-            Assert.AreEqual(270, (int)files["Loading_Backdrop.png"]["size"][1]);
+            Assert.AreEqual(2128, (int)files["Battle_Backdrop.png"]["size"][0]);
+            Assert.AreEqual(941, (int)files["Battle_Backdrop.png"]["size"][1]);
+            Assert.AreEqual(2218, (int)files["Village_Backdrop.png"]["size"][0]);
+            Assert.AreEqual(936, (int)files["Village_Backdrop.png"]["size"][1]);
+            Assert.AreEqual(2218, (int)files["Loading_Backdrop.png"]["size"][0]);
+            Assert.AreEqual(936, (int)files["Loading_Backdrop.png"]["size"][1]);
         }
 
         [Test]
