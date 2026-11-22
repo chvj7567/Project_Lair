@@ -28,7 +28,11 @@ namespace Lair.Tests.EditMode
             }
         }
 
-        private static readonly string[] HdBackdrops = { "Village_Backdrop.png", "Loading_Backdrop.png", "Battle_Backdrop.png" };
+        private static readonly string[] HdBackdrops = {
+            "Village_Backdrop.png", "Loading_Backdrop.png", "Battle_Backdrop.png",
+            "Battle_Backdrop_DarkForest.png", "Battle_Backdrop_ShadowCitadel.png",
+            "Battle_Backdrop_EmberForge.png", "Battle_Backdrop_FrostCathedral.png",
+        };
 
         private static TextureImporter ImporterOf(string folder, string file)
         {
@@ -98,6 +102,10 @@ namespace Lair.Tests.EditMode
                 ("Village_Backdrop.png", 2218, 936, 166.4f, 13.33f, 0.01f, 5.625f, 0.001f),
                 ("Loading_Backdrop.png", 2218, 936, 166.4f, 13.33f, 0.01f, 5.625f, 0.001f),
                 ("Battle_Backdrop.png", 2128, 941, 64f, 33.25f, 0.05f, 14.70f, 0.05f),
+                ("Battle_Backdrop_DarkForest.png", 2036, 900, 61.24f, 33.25f, 0.05f, 14.70f, 0.05f),
+                ("Battle_Backdrop_ShadowCitadel.png", 2036, 900, 61.24f, 33.25f, 0.05f, 14.70f, 0.05f),
+                ("Battle_Backdrop_EmberForge.png", 2118, 936, 63.69f, 33.25f, 0.05f, 14.70f, 0.05f),
+                ("Battle_Backdrop_FrostCathedral.png", 2118, 936, 63.69f, 33.25f, 0.05f, 14.70f, 0.05f),
             };
             foreach ((string name, int w, int h, float ppu, float worldW, float tolW, float worldH, float tolH) c in cases)
             {
@@ -106,6 +114,7 @@ namespace Lair.Tests.EditMode
                 Assert.AreEqual(FilterMode.Bilinear, imp.filterMode, c.name);
                 Assert.AreEqual(TextureImporterCompression.Uncompressed, imp.textureCompression, c.name);
                 Assert.IsFalse(imp.mipmapEnabled, c.name);
+                Assert.GreaterOrEqual(imp.maxTextureSize, 4096, c.name + " maxTextureSize");
                 Assert.AreEqual(c.ppu, imp.spritePixelsPerUnit, 1e-4f, c.name);
                 Assert.AreEqual(TextureWrapMode.Clamp, imp.wrapMode, c.name);
                 imp.GetSourceTextureWidthAndHeight(out int w, out int h);
@@ -127,12 +136,12 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 배경_텍스처_최대_크기는_2048_이상이다()
+        public void HD_배경_텍스처_최대_크기는_4096_이상이다()
         {
-            foreach (string name in new[] { "Battle_Backdrop.png", "Village_Backdrop.png", "Loading_Backdrop.png" })
+            foreach (string name in HdBackdrops)
             {
                 TextureImporter imp = ImporterOf(Folder, name);
-                Assert.GreaterOrEqual(imp.maxTextureSize, 2048, name);
+                Assert.GreaterOrEqual(imp.maxTextureSize, 4096, name);
             }
         }
 
