@@ -123,7 +123,7 @@ namespace Lair.Tests.EditMode
         {
             DashStrikeSkillData so = WorldMapTestSupport.ShippedSkill<DashStrikeSkillData>();
             Assert.AreEqual(180f, so.ConeHalfAngle, 1e-4f, "돌진 반각이 바뀜 — FX 시트·크기 재검토 필요");
-            Assert.AreEqual(3f, so.DashLength, 1e-4f, "돌진 반경이 바뀜 — FX 크기(루트 스케일 3, PPU 52) 재검토 필요");
+            Assert.AreEqual(3f, so.DashLength, 1e-4f, "돌진 반경이 바뀜 — FX 크기(루트 스케일 3, PPU 104) 재검토 필요");
         }
 
         [Test]
@@ -139,7 +139,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 대시_프리팹_AuraFx는_노바와_같이_바닥에_눕고_스케일y2_PPU52이다()
+        public void 대시_프리팹_AuraFx는_노바와_같이_바닥에_눕고_스케일y2_PPU104이다()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{FxFolder}/HeroDashConeFx.prefab");
             Assert.IsNotNull(prefab, "HeroDashConeFx 프리팹 누락");
@@ -157,7 +157,7 @@ namespace Lair.Tests.EditMode
 
             TextureImporter imp = AssetImporter.GetAtPath("Assets/_Lair/Art/Sprites/FX2D/HeroDashConeFx_Sheet.png") as TextureImporter;
             Assert.IsNotNull(imp, "돌진 시트 임포터 없음");
-            Assert.AreEqual(52f, imp.spritePixelsPerUnit, 1e-4f, "돌진 시트 PPU");
+            Assert.AreEqual(104f, imp.spritePixelsPerUnit, 1e-4f, "돌진 시트 PPU");
         }
 
         [Test]
