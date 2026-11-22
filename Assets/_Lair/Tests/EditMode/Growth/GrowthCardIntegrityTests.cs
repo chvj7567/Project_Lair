@@ -84,7 +84,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 끈질긴_저주_카드는_자기_일러스트를_가지고_약화의_저주_일러스트를_빌리지_않는다()
+        public void 끈질긴_저주_카드는_자기_아이콘을_가지고_약화의_저주_아이콘을_빌리지_않는다()
         {
             CardData lingering = AssetDatabase.LoadAssetAtPath<CardData>("Assets/_Lair/Art/Cards/Items/LingeringCurse.asset");
             CardData attackDown = AssetDatabase.LoadAssetAtPath<CardData>("Assets/_Lair/Art/Cards/Items/HeroAttackDown.asset");
@@ -92,9 +92,8 @@ namespace Lair.Tests.EditMode
             Assert.IsNotNull(attackDown);
 
             Assert.AreEqual(ECardId.LingeringCurse, lingering.Id);
-            Assert.IsNotNull(lingering.CardImage);
             Assert.IsNotNull(lingering.Icon);
-            Assert.AreNotEqual(attackDown.CardImage, lingering.CardImage, "도감에서 두 카드가 같아 보이면 안 됨 (§15.3)");
+            Assert.AreNotEqual(attackDown.Icon, lingering.Icon, "도감에서 두 카드가 같아 보이면 안 됨 (§15.3)");
         }
 
         [Test]

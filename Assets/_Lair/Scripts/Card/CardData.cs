@@ -12,8 +12,6 @@ namespace Lair.Card
         [SerializeField] private ECardId _id;
         //# 빌드 패널 아이콘 — LairCardPrefabBuilder 가 ECardId 이름 PNG 로 배정. 없으면 null.
         [SerializeField] private Sprite _icon;
-        //# 3택1 팝업 카드 일러스트(3:4) — LairCardPrefabBuilder 가 CardArt/{ECardId}.png 로 배정. 없으면 null.
-        [SerializeField] private Sprite _cardImage;
 
         //# 비직렬화 캐시 — DB 가 바뀌면(재로드·리셋) 다시 푼다. _injected 는 테스트 헬퍼(FakeCardData)가 값을 고정할 때만 켠다.
         private CardDatabase _db;
@@ -24,7 +22,6 @@ namespace Lair.Card
 
         public ECardId Id => _id;
         public Sprite Icon => _icon;
-        public Sprite CardImage => _cardImage;
 
         //# Card.json 에 이 카드의 행이 있어 조회 값이 유효한가.
         public bool HasData => Entry() != null;

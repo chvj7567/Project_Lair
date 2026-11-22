@@ -86,21 +86,21 @@ namespace Lair.Tests.UI
         public void 호버_눌림_해제_표시값이_휴지로_복귀한다()
         {
             Parts p = Make(true);
-            float baseY = ((RectTransform)p.View.transform).anchoredPosition.y;
+            float baseX = ((RectTransform)p.View.transform).anchoredPosition.x;
 
             p.Relay.OnPointerEnter(null);
             Assert.AreEqual(0.8f, p.Glow.color.a, 0.001f);
-            Assert.AreEqual(baseY + 6f, ((RectTransform)p.View.transform).anchoredPosition.y, 0.001f);
+            Assert.AreEqual(baseX + 6f, ((RectTransform)p.View.transform).anchoredPosition.x, 0.001f);
             Assert.IsTrue(p.Guard.activeSelf);
 
             p.Relay.OnPointerDown(null);
             Assert.IsTrue(p.View.IsPressed);
-            Assert.AreEqual(1.03f, p.View.transform.localScale.x, 0.001f);
+            Assert.AreEqual(1.02f, p.View.transform.localScale.x, 0.001f);
 
             p.Relay.OnPointerExit(null);
             Assert.IsFalse(p.View.IsPressed);
             Assert.AreEqual(0f, p.Glow.color.a, 0.001f);
-            Assert.AreEqual(baseY, ((RectTransform)p.View.transform).anchoredPosition.y, 0.001f);
+            Assert.AreEqual(baseX, ((RectTransform)p.View.transform).anchoredPosition.x, 0.001f);
             Assert.IsFalse(p.Guard.activeSelf);
         }
 

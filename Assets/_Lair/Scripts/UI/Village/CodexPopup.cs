@@ -276,7 +276,7 @@ namespace Lair.UI
                 {
                     DisplayName = card.DisplayName,   //# 미획득도 실제 이름 표시(그림만 실루엣) - 몬스터 탭과 같은 규칙
                     Unlocked = picked,
-                    Icon = card.CardImage != null ? card.CardImage : card.Icon,
+                    Icon = card.Icon,
                 });
             }
             return list;

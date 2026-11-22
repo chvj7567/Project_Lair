@@ -13,8 +13,6 @@ namespace Lair.UI
         [SerializeField] private CHText _nameText;
         [SerializeField] private CHText _descText;
         [SerializeField] private Image _border;
-        //# 3택1 팝업 상단 일러스트. CardData.CardImage 가 null 이면 영역을 숨긴다.
-        [SerializeField] private Image _artImage;
         [SerializeField] private CHButton _pickButton;
         //# 3픽 캡 — 이미 픽한 횟수 N (0 이면 숨김, 1~2 면 "N/3"). 3 도달 카드는 후보에 안 나옴.
         [SerializeField] private CHText _countBadge;
@@ -45,7 +43,7 @@ namespace Lair.UI
         [SerializeField] private float _tweenSeconds = 0.16f;
 
         private const float LiftPixels = 6f;
-        private const float PressScale = 1.03f;
+        private const float PressScale = 1.02f;
         private const float GlowHoverAlpha = 0.8f;
         private const float GlowPressAlpha = 1f;
         private const float BrightHoverAlpha = 0.15f;
@@ -66,7 +64,7 @@ namespace Lair.UI
         private float _pressT;
         private float _dimT;
         private bool _liftActive;
-        private float _baseY;
+        private float _baseX;
         private bool _hasAxis;
         private Color _axisColor;
         private Color? _restFrame;
@@ -106,7 +104,7 @@ namespace Lair.UI
         {
             if (IsAtTarget())
             {
-                //# 레이아웃 재빌드가 y 를 되돌려도 리프트 유지 중에는 매 프레임 복구.
+                //# 레이아웃 재빌드가 x 를 되돌려도 리프트 유지 중에는 매 프레임 복구.
                 if (_liftActive)
                 {
                     ApplyLift(LiftPixels * _hoverT);
@@ -230,7 +228,7 @@ namespace Lair.UI
             ApplyLift(LiftPixels * _hoverT);
         }
 
-        //# 레이아웃이 위치를 소유 — y 만, 리프트 중에는 기준 y 에 매번 덧쓰고 0 이 되면 복원.
+        //# 레이아웃이 위치를 소유 — 가로 줄 배치라 x(오른쪽)만, 리프트 중에는 기준 x 에 매번 덧쓰고 0 이 되면 복원.
         private void ApplyLift(float lift)
         {
             RectTransform rt = transform as RectTransform;
@@ -241,17 +239,17 @@ namespace Lair.UI
             {
                 if (_liftActive == false)
                 {
-                    _baseY = rt.anchoredPosition.y;
+                    _baseX = rt.anchoredPosition.x;
                     _liftActive = true;
                 }
-                if (Mathf.Approximately(rt.anchoredPosition.y, _baseY + lift) == false)
+                if (Mathf.Approximately(rt.anchoredPosition.x, _baseX + lift) == false)
                 {
-                    rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, _baseY + lift);
+                    rt.anchoredPosition = new Vector2(_baseX + lift, rt.anchoredPosition.y);
                 }
             }
             else if (_liftActive)
             {
-                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, _baseY);
+                rt.anchoredPosition = new Vector2(_baseX, rt.anchoredPosition.y);
                 _liftActive = false;
             }
         }
@@ -373,26 +371,8 @@ namespace Lair.UI
             //# 테두리 색 — 카드 ID 기준 단일 출처 (CardBorderColors).
             _border.color = CardBorderColors.BorderColorOf(card.Id);
             ResetVisual();
-            ApplyArt(card);
             _pickButton.OnClick(onClick);
             UpdateBadge(pickCount);
-        }
-
-        //# 일러스트 적용 — null 이면 아트 영역 비활성(폴백). Bind 에서 호출.
-        public void ApplyArt(CardData card)
-        {
-            if (_artImage == null)
-                return;
-
-            Sprite art = card != null ? card.CardImage : null;
-            if (art == null)
-            {
-                _artImage.gameObject.SetActive(false);
-                return;
-            }
-
-            _artImage.gameObject.SetActive(true);
-            _artImage.sprite = art;
         }
 
         private void UpdateBadge(int pickCount)

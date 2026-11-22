@@ -53,7 +53,7 @@ namespace Lair.Tests.EditMode
 
         private static readonly string[] LegacyCardFields =
         {
-            "_nameText", "_descText", "_border", "_artImage", "_pickButton", "_countBadge", "_kindRing", "_kindLabel",
+            "_nameText", "_descText", "_border", "_pickButton", "_countBadge", "_kindRing", "_kindLabel",
             "_pickButtonImage", "_passiveButtonSprite", "_activeButtonSprite", "_countBadgeBg", "_axisIconRoot", "_axisIconBorder", "_axisIconImage",
         };
 
@@ -280,6 +280,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(0f, Alpha(p.Bright), 0.001f, label + " 밝기");
             Assert.AreEqual(0f, Alpha(p.Dim), 0.001f, label + " 어둠");
             Assert.AreEqual(1f, p.View.transform.localScale.x, 0.001f, label + " 스케일");
+            Assert.AreEqual(12f, p.Rt.anchoredPosition.x, 0.001f, label + " x");
             Assert.AreEqual(baseY, p.Rt.anchoredPosition.y, 0.001f, label + " y");
             Assert.IsFalse(p.Guard.activeSelf, label + " 보호 영역");
         }
@@ -529,8 +530,8 @@ namespace Lair.Tests.EditMode
             Parts p = MakeSynthetic();
 
             p.Relay.OnPointerEnter(null);
-            Assert.AreEqual(106f, p.Rt.anchoredPosition.y, 0.001f, "호버 리프트");
-            Assert.AreEqual(12f, p.Rt.anchoredPosition.x, 0.001f, "x 불변");
+            Assert.AreEqual(18f, p.Rt.anchoredPosition.x, 0.001f, "호버 리프트(오른쪽)");
+            Assert.AreEqual(100f, p.Rt.anchoredPosition.y, 0.001f, "y 불변");
             Assert.AreEqual(0.8f, Alpha(p.Glow), 0.001f);
             Assert.AreEqual(0.15f, Alpha(p.Bright), 0.001f);
             AssertRgb(HoverFrame, p.Frame.color, "호버 프레임");
@@ -539,11 +540,11 @@ namespace Lair.Tests.EditMode
 
             p.Relay.OnPointerDown(null);
             Assert.IsTrue(p.View.IsPressed);
-            Assert.AreEqual(1.03f, p.View.transform.localScale.x, 0.001f);
+            Assert.AreEqual(1.02f, p.View.transform.localScale.x, 0.001f);
             Assert.AreEqual(1f, Alpha(p.Glow), 0.001f);
             Assert.AreEqual(0.3f, Alpha(p.Bright), 0.001f);
             AssertRgb(PressFrame, p.Frame.color, "눌림 프레임");
-            Assert.AreEqual(106f, p.Rt.anchoredPosition.y, 0.001f);
+            Assert.AreEqual(18f, p.Rt.anchoredPosition.x, 0.001f);
 
             p.Relay.OnPointerUp(null);
             Assert.IsFalse(p.View.IsPressed);
@@ -589,7 +590,7 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 호버_중_레이아웃이_y를_되돌려도_Update가_리프트를_복구한다()
+        public void 호버_중_레이아웃이_x를_되돌려도_Update가_리프트를_복구한다()
         {
             Parts p = MakeSynthetic();
             p.Relay.OnPointerEnter(null);
@@ -597,7 +598,7 @@ namespace Lair.Tests.EditMode
 
             Call(p.View, "Update");
 
-            Assert.AreEqual(106f, p.Rt.anchoredPosition.y, 0.001f);
+            Assert.AreEqual(18f, p.Rt.anchoredPosition.x, 0.001f);
         }
 
         [Test]
@@ -639,7 +640,7 @@ namespace Lair.Tests.EditMode
             p.Relay.OnPointerEnter(null);
 
             Assert.AreEqual(0.8f, Alpha(p.Glow), 0.001f);
-            Assert.AreEqual(106f, p.Rt.anchoredPosition.y, 0.001f);
+            Assert.AreEqual(18f, p.Rt.anchoredPosition.x, 0.001f);
         }
 
         [Test]

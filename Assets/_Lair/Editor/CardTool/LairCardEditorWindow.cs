@@ -251,7 +251,7 @@ namespace Lair.EditorTools
                 EditorGUILayout.LabelField("Id", _selected.ToString());
                 //# 축·이름·설명·효과·수치는 Card.json / Card_Param.json 소관 — 이 창은 그림과 풀 소속만 다룬다.
                 EditorGUILayout.HelpBox("이 카드가 게임에 나오려면 Card.json / Card_Param.json 에 같은 cardId 행이 필요합니다.", MessageType.Info);
-                foreach (string prop in new string[] { "_icon", "_cardImage" })
+                foreach (string prop in new string[] { "_icon" })
                 {
                     SerializedProperty sp = _editSo.FindProperty(prop);
                     if (sp != null)
