@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카드 선택 팝업 — 가로 3줄 방식 시안 (일러스트 없음, 1280x720)</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--s4:#44506c;
+--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--gold2:#b9832a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Galmuri11","Galmuri9","Noto Sans KR","Malgun Gothic",sans-serif}
+#sum{padding:12px 16px;background:#0e121a;border-bottom:1px solid #262b36;font-size:13px;line-height:1.7;max-width:1296px}
+#sum h1{margin:0 0 4px;font-size:17px;color:var(--bone)}
+#sum ol{margin:4px 0 6px;padding-left:22px}
+#sum b{color:var(--gold)}
+#sum code{color:var(--soul)}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#121722;border-bottom:1px solid #262b36;flex-wrap:wrap;font-size:13px}
+#bar button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+#bar button.on{background:#3a2f12;border-color:var(--gold2);color:var(--gold)}
+#bar .sep{width:1px;height:22px;background:#262b36}
+#bar label{color:var(--sub)}
+#wrap{width:1280px;height:720px;position:relative;margin:8px}
+#stage{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 75%)}
+#dim{position:absolute;inset:0;background:rgba(4,6,10,.9)}
+.abs{position:absolute}
+/* 제목 명패 (기존과 동일 위치) */
+#plaque{position:absolute;left:480px;top:56px;width:320px;height:46px;z-index:5;background:linear-gradient(180deg,#2c3858,#10151f);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink),0 6px 0 #0007,0 0 22px color-mix(in srgb,var(--kc) 35%,transparent)}
+#plaque::before,#plaque::after{content:"";position:absolute;top:50%;width:10px;height:10px;margin-top:-5px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+#plaque::before{left:-14px}#plaque::after{right:-14px}
+#title{left:340px;top:60px;width:600px;height:44px;z-index:6;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--bone);text-shadow:0 0 14px #f7c64a66,2px 2px 0 #000;position:absolute}
+.rune{position:absolute;height:3px;top:81px;width:150px;z-index:4;background:linear-gradient(90deg,var(--gold),transparent)}
+.rune.r{background:linear-gradient(270deg,var(--gold),transparent)}
+#sub{position:absolute;left:340px;top:108px;width:600px;height:30px;z-index:6;display:flex;align-items:center;justify-content:center}
+#subpill{display:flex;align-items:center;gap:10px;height:30px;padding:0 20px;font-size:17px;color:var(--kc);text-shadow:0 0 8px color-mix(in srgb,var(--kc) 70%,transparent),1px 1px 0 #000;
+ background:linear-gradient(180deg,#0d121c,#090c14);border:2px solid color-mix(in srgb,var(--kc) 60%,#000);box-shadow:inset 0 2px 0 #000a,0 0 12px color-mix(in srgb,var(--kc) 35%,transparent)}
+#subpill i{width:8px;height:8px;background:var(--kc);transform:rotate(45deg);box-shadow:0 0 8px var(--kc)}
+/* 가로 줄 카드: 폭 880 x 높이 124, 줄 간격 16 → y 160 / 300 / 440 */
+.row{position:absolute;left:200px;width:880px;height:124px;z-index:10;transition:transform .16s,filter .16s;cursor:pointer}
+.row .fr{position:absolute;inset:0;background:linear-gradient(180deg,#1f283e,#10151f);border:3px solid var(--ink);
+ box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink),inset 0 0 0 6px color-mix(in srgb,var(--kc) 55%,#1b2438),0 8px 0 #0007,0 0 24px #000b;transition:box-shadow .16s}
+.row .fr::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:28px;background:linear-gradient(180deg,#ffffff12,transparent);pointer-events:none}
+.row .band{position:absolute;left:12px;top:12px;bottom:12px;width:5px;z-index:4;background:linear-gradient(180deg,transparent,var(--kc),transparent);box-shadow:0 0 12px var(--kc)}
+.row:hover,.row.hv{transform:translateX(6px)}
+.row:hover .fr,.row.hv .fr{box-shadow:inset 0 0 0 2px #ffd666,inset 0 0 0 4px var(--ink),inset 0 0 0 6px var(--kc),0 10px 0 #0006,0 0 30px #f7c64acc,0 0 60px color-mix(in srgb,var(--kc) 40%,transparent)}
+.row.sel{transform:translateX(6px) scale(1.02);z-index:12}
+.row.sel .fr{box-shadow:inset 0 0 0 2px #fff0a8,inset 0 0 0 4px var(--ink),inset 0 0 0 6px #ffd666,0 10px 0 #0006,0 0 40px #f7c64aff,0 0 80px #f7c64a88}
+.row.dm{filter:brightness(.5) saturate(.6)}
+.cc{position:absolute;width:14px;height:14px;border:3px solid var(--gold);z-index:5;filter:drop-shadow(0 0 4px #f7c64a88)}
+.cc.tl{left:5px;top:5px;border-right:0;border-bottom:0}.cc.tr{right:5px;top:5px;border-left:0;border-bottom:0}.cc.bl{left:5px;bottom:5px;border-right:0;border-top:0}.cc.br{right:5px;bottom:5px;border-left:0;border-top:0}
+/* 왼쪽: 축 아이콘 후광(큼 64) + Tier 보석 3 */
+.halo{position:absolute;left:34px;top:22px;width:64px;height:64px;border-radius:50%;z-index:4;
+ background:radial-gradient(circle,color-mix(in srgb,var(--ac) 40%,#0a0d14) 0%,#0a0d14 70%);border:3px solid color-mix(in srgb,var(--ac) 75%,#000);
+ box-shadow:0 0 18px color-mix(in srgb,var(--ac) 70%,transparent),inset 0 0 10px #000a}
+.halo svg{position:absolute;left:11px;top:11px;width:42px;height:42px;filter:drop-shadow(0 0 4px var(--ac))}
+.gems{position:absolute;left:34px;top:94px;width:64px;height:14px;z-index:4}
+.gem{position:absolute;top:1px;width:10px;height:10px;transform:rotate(45deg);background:#0a0d14;border:2px solid #3a4764;box-shadow:inset 0 0 0 1px #000}
+.gem.on{background:linear-gradient(135deg,#fff,var(--ac) 55%,color-mix(in srgb,var(--ac) 60%,#000));border-color:#06080c;box-shadow:0 0 9px var(--ac)}
+/* 가운데: 종류 칩 + 이름 + 설명 */
+.kl{position:absolute;left:124px;top:14px;width:84px;height:26px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--kc);z-index:4;
+ background:linear-gradient(180deg,#0d121cf0,#090c14f0);border:2px solid color-mix(in srgb,var(--kc) 65%,#000);box-shadow:inset 0 2px 0 #000a,0 0 10px color-mix(in srgb,var(--kc) 45%,transparent);text-shadow:0 0 8px var(--kc),1px 1px 0 #000}
+.cb{position:absolute;left:216px;top:14px;width:72px;height:26px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--gold);z-index:4;
+ background:linear-gradient(180deg,#3a2f12,#1c1608);border:2px solid var(--gold2);box-shadow:inset 0 2px 0 #000a,0 0 10px #f7c64a55;text-shadow:0 0 8px var(--gold),1px 1px 0 #000}
+.name{position:absolute;left:124px;top:44px;width:480px;height:30px;display:flex;align-items:center;font-size:24px;color:var(--bone);text-shadow:2px 2px 0 #000,0 0 10px #000;white-space:nowrap;overflow:hidden;z-index:3}
+.line{position:absolute;left:124px;top:76px;width:480px;height:2px;background:linear-gradient(90deg,var(--kc),transparent);box-shadow:0 0 8px var(--kc);z-index:3}
+.desc{position:absolute;left:124px;top:82px;width:500px;height:30px;display:flex;align-items:center;font-size:18px;line-height:24px;color:#cfd5e2;text-shadow:1px 1px 0 #000;overflow:hidden;white-space:nowrap}
+/* 오른쪽: 선택 버튼 */
+.pick{position:absolute;right:28px;top:34px;width:200px;height:56px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;text-shadow:2px 2px 0 #000a;border:3px solid var(--ink);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--kc) 85%,#fff) 0%,var(--kc) 48%,color-mix(in srgb,var(--kc) 55%,#000) 52%,color-mix(in srgb,var(--kc) 45%,#000) 100%);
+ box-shadow:inset 0 2px 0 #fff8,inset 0 -4px 0 #0006,0 4px 0 #0007,0 0 14px color-mix(in srgb,var(--kc) 45%,transparent);transition:filter .16s}
+.pick::before{content:"";position:absolute;left:5px;right:5px;top:4px;height:10px;background:linear-gradient(180deg,#ffffff50,transparent)}
+.row:hover .pick,.row.hv .pick{filter:brightness(1.15)}
+.row.sel .pick{filter:brightness(1.3);transform:translateY(2px);box-shadow:inset 0 2px 0 #fff,0 0 24px #f7c64a}
+/* 하단 내 시너지: 기존과 동일(캡션 + 칩 4) */
+#cap{position:absolute;left:440px;top:612px;width:400px;height:20px;z-index:6;display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;color:var(--sub);text-shadow:1px 1px 0 #000}
+#cap::before,#cap::after{content:"";width:8px;height:8px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+.sc{position:absolute;top:640px;width:168px;height:46px;z-index:6;background:linear-gradient(180deg,#1a2132,#0e1320);border:2px solid var(--ink);
+ box-shadow:inset 0 0 0 1px #8a6a2ccc,0 3px 0 #0006,0 0 12px color-mix(in srgb,var(--ac) 28%,transparent)}
+.sc.z{opacity:.5}
+.sc .ic{position:absolute;left:8px;top:8px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 35%,#0a0d14),#0a0d14 75%);border:1px solid color-mix(in srgb,var(--ac) 70%,#000)}
+.sc .ic svg{position:absolute;left:4px;top:4px;width:16px;height:16px}
+.sc .lb{position:absolute;left:42px;top:6px;font-size:12px;color:var(--ac);white-space:nowrap}
+.sc .ct{position:absolute;right:20px;top:6px;font-size:12px;color:var(--ac);white-space:nowrap}
+.sc .trk{position:absolute;left:42px;top:28px;width:110px;height:6px}
+.sc .tc{position:absolute;top:0;width:12px;height:6px;background:#3a4256;border:1px solid #1b202d}
+.sc .tc.f{background:linear-gradient(180deg,#fff8,var(--ac) 40%,color-mix(in srgb,var(--ac) 60%,#000));border-color:#06080c}
+#chk{padding:8px 16px;font-size:12px;color:var(--sub);background:#0e121a;border-top:1px solid #262b36;line-height:1.7;max-width:1296px}
+#chk code{color:var(--soul)}
+</style>
+</head>
+<body>
+<div id="sum">
+<h1>카드 선택 팝업 — 가로 3줄 방식 (카드 일러스트 제거)</h1>
+<ol>
+<li><b>카드 일러스트 없음</b> — 화면 폭 880 x 높이 124 의 가로 줄 3개(위→아래)로 후보 3장을 보여 줍니다. 일러스트 로드·표시가 사라지고, 한 줄에 <b>축 아이콘(크게) + 종류 칩 + 카드 이름 + 효과 설명 + 선택 버튼</b>만 들어갑니다.</li>
+<li><b>줄 간격 16</b>, 줄이 화면 가운데에 쌓이고 하단 "내 시너지" 칩 줄·상단 제목·종류 부제는 기존 그대로입니다.</li>
+<li>패시브=초록 / 액티브=금 종류색은 기존과 같고(줄 왼쪽 색띠·버튼·칩), 호버는 오른쪽으로 6px 밀리며 금빛 테두리, 선택은 약간 확대되고 나머지 줄은 어두워집니다.</li>
+<li>아래 버튼으로 <b>패시브/액티브</b>, <b>호버/선택 상태</b>를 바꿔 볼 수 있습니다.</li>
+</ol>
+</div>
+<div id="bar">
+<label>종류</label>
+<button id="bP" class="on">패시브</button><button id="bA">액티브</button>
+<span class="sep"></span>
+<label>상태</label>
+<button id="sN" class="on">기본</button><button id="sH">호버(1번)</button><button id="sS">선택(2번)</button>
+</div>
+<div id="wrap"><div id="stage">
+<div id="dim"></div>
+<div class="rune" style="left:180px"></div><div class="rune r" style="left:950px"></div>
+<div id="plaque"></div><div id="title">카드 선택</div>
+<div id="sub"><div id="subpill"><i></i><span id="subtxt">패시브 — 영웅 HP 90% 도달</span><i></i></div></div>
+<div id="rows"></div>
+<div id="cap">내 시너지</div>
+<div id="chips"></div>
+</div></div>
+<div id="chk">
+<b>적용 계획(승인 후)</b>: <code>CardView</code> 의 아트 슬롯(<code>ArtSlot</code>·<code>CardArt</code>·<code>Scrim</code>·비네트)과 일러스트 로드를 제거하고, <code>CardsLayout</code> 을 가로 → 세로 3줄로 바꿉니다(카드 프리팹 280x460 → 880x124). 이름·설명·종류 칩·축 아이콘·Tier 보석·선택 버튼은 기존 위젯을 재배치합니다. 기존 신규 아트(<code>CardSelectFrame</code>·<code>KindChip</code>·<code>AxisRing</code>·<code>DescInset</code> 등)는 줄 크기에 맞게 재사용하고 이름판 잎사귀·아트 프레임은 줄 구조에서 빠집니다.
+</div>
+<script>
+var AX={tank:{c:'#5aa9ff',svg:'<svg viewBox="0 0 24 24"><path d="M12 2 4 5v7c0 5 3.5 8.5 8 10 4.5-1.500 8-5 8-10V5z" fill="#5aa9ff" stroke="#07090e" stroke-width="1.500"/></svg>'},
+ dps:{c:'#e5484d',svg:'<svg viewBox="0 0 24 24"><path d="M19 3l2 2-9 9-3-3zM7 13l4 4-3 3-2-1-1-2z" fill="#e5484d" stroke="#07090e" stroke-width="1.500"/></svg>'},
+ debuff:{c:'#b074ff',svg:'<svg viewBox="0 0 24 24"><path d="M12 2c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z" fill="#b074ff" stroke="#07090e" stroke-width="1.500"/></svg>'},
+ swarm:{c:'#5ef0b4',svg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4.500" fill="#5ef0b4" stroke="#07090e" stroke-width="1.500"/><circle cx="7" cy="16" r="4.500" fill="#5ef0b4" stroke="#07090e" stroke-width="1.500"/><circle cx="17" cy="16" r="4.500" fill="#5ef0b4" stroke="#07090e" stroke-width="1.500"/></svg>'}};
+var P=[{ax:'debuff',tier:1,n:'역병 증식',d:'역병귀 스포너 출력 +1'},{ax:'tank',tier:2,n:'끈질긴 도깨비불',d:'모든 도깨비불 HP +50%'},{ax:'dps',tier:0,n:'처형 명령',d:'시신·저주술사 데미지 +30% (영구)'}];
+var A=[{ax:'swarm',tier:1,n:'폭풍 소환',d:'즉시 모든 스포너 소환 1회'},{ax:'tank',tier:0,n:'수호의 장막',d:'10초간 몬스터 받는 피해 -30%'},{ax:'dps',tier:2,n:'광폭의 외침',d:'8초간 몬스터 공격력 +40%'}];
+var kind='P',state='N';
+function gems(t){var s='';for(var i=0;i<3;i++)s+='<i class="gem'+(i<t?' on':'')+'" style="left:'+(6+i*20)+'px"></i>';return s}
+function render(){
+ var d=kind=='P'?P:A,kc=kind=='P'?'#44c150':'#f7c64a';
+ document.getElementById('stage').style.setProperty('--kc',kc);
+ document.getElementById('subtxt').textContent=kind=='P'?'패시브 — 영웅 HP 90% 도달':'액티브 — 30초 카드';
+ var h='';
+ d.forEach(function(c,i){
+  var a=AX[c.ax],cls='row'+(state=='H'&&i==0?' hv':'')+(state=='S'?(i==1?' sel':' dm'):'');
+  h+='<div class="'+cls+'" style="top:'+(160+i*140)+'px;--kc:'+kc+';--ac:'+a.c+'">'+
+  '<div class="fr"></div><div class="band"></div><i class="cc tl"></i><i class="cc tr"></i><i class="cc bl"></i><i class="cc br"></i>'+
+  '<div class="halo">'+a.svg+'</div><div class="gems">'+gems(c.tier)+'</div>'+
+  '<div class="kl">'+(kind=='P'?'패시브':'액티브')+'</div>'+(kind=='A'?'<div class="cb">30s</div>':'')+
+  '<div class="name">'+c.n+'</div><div class="line"></div><div class="desc">'+c.d+'</div>'+
+  '<div class="pick">선택</div></div>';
+ });
+ document.getElementById('rows').innerHTML=h;
+}
+(function(){var L=[['tank','TANK',0],['swarm','SWARM',1],['dps','DPS',2],['debuff','DEBUFF',3]],h='';
+ L.forEach(function(x,i){var a=AX[x[0]],n=[0,1,2,3][i],tr='';for(var k=0;k<7;k++)tr+='<i class="tc'+(k<n?' f':'')+'" style="left:'+(k*15)+'px"></i>';
+ h+='<div class="sc'+(n==0?' z':'')+'" style="left:'+(280+i*180)+'px;--ac:'+a.c+'"><div class="ic">'+a.svg+'</div><div class="lb">'+x[1]+'</div><div class="ct">'+n+'/3</div><div class="trk">'+tr+'</div></div>';});
+ document.getElementById('chips').innerHTML=h;})();
+function sw(ids,on){ids.forEach(function(x){document.getElementById(x).classList.remove('on')});document.getElementById(on).classList.add('on')}
+document.getElementById('bP').onclick=function(){kind='P';sw(['bP','bA'],'bP');render()};
+document.getElementById('bA').onclick=function(){kind='A';sw(['bP','bA'],'bA');render()};
+document.getElementById('sN').onclick=function(){state='N';sw(['sN','sH','sS'],'sN');render()};
+document.getElementById('sH').onclick=function(){state='H';sw(['sN','sH','sS'],'sH');render()};
+document.getElementById('sS').onclick=function(){state='S';sw(['sN','sH','sS'],'sS');render()};
+render();
+</script>
+</body>
+</html>
