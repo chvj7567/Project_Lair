@@ -16,8 +16,8 @@ namespace Lair.Tests.UI
     //# 시너지 진행도 표시 위젯 단위 테스트(기획서 card-synergy-indicator §2.1·§3·§6, 수용 기준 A-2~A-7). View 는 리플렉션 주입으로 조립.
     public class SynergyIndicatorWidgetTests
     {
-        private static readonly Color EmptyFill = new Color32(0x0B, 0x0E, 0x14, 0xFF);
-        private static readonly Color FrameNormal = new Color32(0x07, 0x09, 0x0E, 0xFF);
+        private static readonly Color EmptyFill = new Color32(0x3A, 0x42, 0x56, 0xFF);
+        private static readonly Color FrameNormal = new Color32(0x1B, 0x20, 0x2D, 0xFF);
         private static readonly Color FrameTierEmpty = new Color32(0xB9, 0xB0, 0x9A, 0xFF);
         private static readonly Color FrameTierFilled = new Color32(0xE8, 0xE1, 0xCF, 0xFF);
         private static readonly Color Axis = new Color32(0x5A, 0xA9, 0xFF, 0xFF);

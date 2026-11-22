@@ -11,8 +11,8 @@ namespace Lair.UI
         [SerializeField] private Image[] _frames;
         [SerializeField] private Image[] _fills;
 
-        private static readonly Color EmptyFill = new Color32(0x0B, 0x0E, 0x14, 0xFF);
-        private static readonly Color FrameNormal = new Color32(0x07, 0x09, 0x0E, 0xFF);
+        private static readonly Color EmptyFill = new Color32(0x3A, 0x42, 0x56, 0xFF);
+        private static readonly Color FrameNormal = new Color32(0x1B, 0x20, 0x2D, 0xFF);
         private static readonly Color FrameTierEmpty = new Color32(0xB9, 0xB0, 0x9A, 0xFF);
         private static readonly Color FrameTierFilled = new Color32(0xE8, 0xE1, 0xCF, 0xFF);
         private const float FlashSeconds = 0.3f;

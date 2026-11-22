@@ -110,7 +110,7 @@ namespace Lair.Tests.UI
         }
 
         [Test]
-        public void CardSelectionPopup_프리팹_칩_크기_165x45_가로_중앙_배치_겹침_없음()
+        public void CardSelectionPopup_프리팹_칩_크기_168x46_가로_중앙_배치_겹침_없음()
         {
             GameObject prefab = LoadPrefab(PopupPath);
             CardSelectionPopup popup = prefab.GetComponent<CardSelectionPopup>();
@@ -121,14 +121,87 @@ namespace Lair.Tests.UI
             {
                 RectTransform rt = (RectTransform)((BuildSynergyCell)chips.GetArrayElementAtIndex(i).objectReferenceValue).transform;
                 Vector2 size = EffectiveSize(rt);
-                Assert.AreEqual(165f, size.x, 0.01f, $"칩{i} 폭");
-                Assert.AreEqual(45f, size.y, 0.01f, $"칩{i} 높이");
+                Assert.AreEqual(168f, size.x, 0.01f, $"칩{i} 폭");
+                Assert.AreEqual(46f, size.y, 0.01f, $"칩{i} 높이");
+                Assert.AreEqual(-327f, rt.anchoredPosition.y, 0.01f, $"칩{i} y");
                 xs[i] = rt.anchoredPosition.x;
             }
             System.Array.Sort(xs);
+            float[] expected = { -270f, -90f, 90f, 270f };
+            for (int i = 0; i < 4; ++i)
+            {
+                Assert.AreEqual(expected[i], xs[i], 0.01f, $"칩 x[{i}]");
+            }
             for (int i = 1; i < 4; ++i)
             {
-                Assert.GreaterOrEqual(xs[i] - xs[i - 1], 165f, $"칩 {i - 1}-{i} 가로 겹침");
+                Assert.AreEqual(180f, xs[i] - xs[i - 1], 0.01f, $"칩 {i - 1}-{i} 간격(폭 168 + 여백 12)");
+            }
+            Assert.AreEqual(0f, xs[0] + xs[3], 0.01f, "줄 가로 중앙");
+            Assert.LessOrEqual(xs[3] + 84f, 456f, "줄 총폭이 카드 줄(±456) 안");
+        }
+
+        [Test]
+        public void CardSelectionPopup_프리팹_CardView마다_잎사귀_장식이_L_R_30x38로_있다()
+        {
+            GameObject prefab = LoadPrefab(PopupPath);
+            CardView[] views = prefab.GetComponentsInChildren<CardView>(true);
+            Assert.AreEqual(3, views.Length, "CardView 슬롯 3개");
+
+            foreach (CardView view in views)
+            {
+                foreach (string side in new[] { "L", "R" })
+                {
+                    string deco = "DecoLaurel" + side;
+                    Image found = null;
+                    int count = 0;
+                    foreach (Image image in view.GetComponentsInChildren<Image>(true))
+                    {
+                        if (image.name == deco)
+                        {
+                            found = image;
+                            ++count;
+                        }
+                    }
+                    Assert.AreEqual(1, count, $"{view.name} {deco} 개수");
+                    Vector2 size = EffectiveSize(found.rectTransform);
+                    Assert.AreEqual(30f, size.x, 0.01f, $"{view.name} {deco} 폭");
+                    Assert.AreEqual(38f, size.y, 0.01f, $"{view.name} {deco} 높이");
+                    Assert.IsFalse(found.raycastTarget, $"{view.name} {deco} raycastTarget");
+                    Assert.IsNotNull(found.sprite, $"{view.name} {deco} sprite");
+                    Assert.AreEqual("CardSelectLaurel" + side, found.sprite.name, $"{view.name} {deco} sprite");
+                }
+            }
+        }
+
+        [Test]
+        public void CardSelectionPopup_프리팹_칩_배경과_게이지_칸_스프라이트가_신규_아트다()
+        {
+            GameObject prefab = LoadPrefab(PopupPath);
+            CardSelectionPopup popup = prefab.GetComponent<CardSelectionPopup>();
+            SerializedProperty chips = new SerializedObject(popup).FindProperty("_synergyChips");
+
+            for (int i = 0; i < 4; ++i)
+            {
+                BuildSynergyCell chip = (BuildSynergyCell)chips.GetArrayElementAtIndex(i).objectReferenceValue;
+                SerializedObject so = new SerializedObject(chip);
+                Image bg = (Image)so.FindProperty("_background").objectReferenceValue;
+                Assert.IsNotNull(bg, $"칩{i} _background 배선 끊김");
+                Assert.IsNotNull(bg.sprite, $"칩{i} 배경 sprite");
+                Assert.AreEqual("CardSelectSynergyChip", bg.sprite.name, $"칩{i} 배경 sprite");
+
+                SynergyTrack track = (SynergyTrack)so.FindProperty("_track").objectReferenceValue;
+                SerializedObject tso = new SerializedObject(track);
+                foreach (string arr in new[] { "_frames", "_fills" })
+                {
+                    SerializedProperty ap = tso.FindProperty(arr);
+                    for (int c = 0; c < ap.arraySize; ++c)
+                    {
+                        Image cell = (Image)ap.GetArrayElementAtIndex(c).objectReferenceValue;
+                        Assert.IsNotNull(cell, $"칩{i} {arr}[{c}] 배선 끊김");
+                        Assert.IsNotNull(cell.sprite, $"칩{i} {arr}[{c}] sprite");
+                        Assert.AreEqual("CardSelectGaugeCell", cell.sprite.name, $"칩{i} {arr}[{c}] sprite");
+                    }
+                }
             }
         }
 
