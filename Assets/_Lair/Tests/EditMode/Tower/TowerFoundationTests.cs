@@ -240,7 +240,7 @@ namespace Lair.Tests.EditMode
         {
             MetaProfile p = new MetaProfile();
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(0, p.TowerSeason);
             Assert.AreEqual(0, p.TowerFloorClears.Count);
             Assert.AreEqual(0, p.GetTowerHighestFloor());
@@ -306,7 +306,7 @@ namespace Lair.Tests.EditMode
             string once = JsonUtility.ToJson(p);
             MetaProfileMigration.Apply(p, (Func<int, string>)null);
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(0, p.TowerSeason);
             Assert.AreEqual(1, p.TowerFloorClears.Count);
             Assert.AreEqual(70f, p.GetTowerFloorClearTime(2));

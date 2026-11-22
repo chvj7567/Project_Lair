@@ -119,7 +119,7 @@ namespace Lair.Tests.EditMode
         public void 신규_프로필의_버전은_8이고_마이그레이션_현재_버전과_같다()
         {
             Assert.AreEqual(12, new MetaProfile().Version);
-            Assert.AreEqual(13, MetaProfileMigration.CurrentVersion);
+            Assert.AreEqual(14, MetaProfileMigration.CurrentVersion);
         }
 
         //# 챕터 3 시점 스냅샷 — 전체 데이터에 진행 범위만 3챕터(15)로 맞춘다(챕터 4 개방 후에도 15 경계 검증 유지).
@@ -141,7 +141,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, WorldMapTestSupport.ShippedDb());
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(cleared, p.ClearedStage);
             Assert.AreEqual(expectedSelected, p.SelectedStage);
         }
@@ -239,7 +239,7 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(5, live.Version, "전제: CopyFrom 은 Version 을 그대로 복사");
             MetaProfileMigration.Apply(live, WorldMapTestSupport.ShippedDb());
 
-            Assert.AreEqual(13, live.Version);
+            Assert.AreEqual(14, live.Version);
             Assert.AreEqual(12, live.ClearedStage);
             Assert.AreEqual(13, live.SelectedStage, "Selected 99 는 MaxPlayable(13) 로 보정");
             Assert.AreEqual("Assassin", live.SelectedHero);
@@ -253,7 +253,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(15, p.SelectedStage);
             Assert.AreEqual("Knight", p.SelectedHero);
         }
@@ -272,7 +272,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(13, loaded.Version);
+            Assert.AreEqual(14, loaded.Version);
             Assert.AreEqual(12, loaded.ClearedStage);
             Assert.AreEqual("Assassin", loaded.SelectedHero);
         }
@@ -285,7 +285,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfile loaded = new MetaProfileStore(_tempDir).Load();
 
-            Assert.AreEqual(13, loaded.Version);
+            Assert.AreEqual(14, loaded.Version);
             Assert.AreEqual(12, loaded.SelectedStage);
             Assert.AreEqual("Knight", loaded.SelectedHero);
         }

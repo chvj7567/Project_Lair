@@ -48,7 +48,7 @@ namespace Lair.Tests.EditMode
             MetaProfile r = JsonUtility.FromJson<MetaProfile>(JsonUtility.ToJson(p));
 
             //# 현 스키마 버전 6 이 왕복 직렬화로 보존되는지.
-            Assert.AreEqual(13, r.Version);
+            Assert.AreEqual(14, r.Version);
             Assert.AreEqual(5, r.LordRewardGrantedLevel);
         }
 

@@ -86,7 +86,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (Func<int, string>)null);
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(321, p.Souls, "소울은 Souls 그대로 - 재화 리스트로 옮기지 않는다");
             Assert.IsNotNull(p.Currencies);
             Assert.AreEqual(0, p.Currencies.Count);

@@ -543,7 +543,7 @@ namespace Lair.Tests.EditMode
 
             MetaProfileMigration.Apply(p, (ChapterDatabase)null);
 
-            Assert.AreEqual(13, p.Version);
+            Assert.AreEqual(14, p.Version);
             Assert.AreEqual(10, p.ClearedStage);
             Assert.AreEqual(10, p.SelectedStage);
             Assert.AreEqual(1, p.StageRecords.Count);
