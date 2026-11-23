@@ -201,6 +201,7 @@ spec `docs/superpowers/specs/2026-06-10-village-meta-hub-design.md` + 기획서 
 | 서버 연동 | ❌ | v0.3+ (세이브는 로컬 JSON) |
 | 챕터 구조 (Ch1 기사 + Ch2 궁수 + Ch3 암살자) | ✅ (v0.3 승격, Ch1·Ch2 2026-10-03 · Ch3 2026-10-08) | 챕터 3 은 `docs/design/chapter-3-hero.md` |
 | 몬스터 육성 재화 분리(특수 재화 4종 · 각성/둥지/특성 3축) | ✅ (v0.3 승격 2026-10-29) | 역병귀 독 전환·독장판 → 끈질긴 저주 카드 교체 포함 — `docs/design/monster-growth-currencies.md` |
+| 유물 개편(장착 4칸 · 조각 분해/제작) | ✅ (v0.3 승격 2026-11-23) | 중복 유물 → 유물 조각 분해, 조각으로 미보유 유물 제작 — `docs/design/relic-rework.md` |
 | 톤/비주얼 | ❌ | 프리미티브로 대체 |
 | 사운드 | ❌ | 검증 후 |
 | 메인 메뉴/세팅 | ❌ | 마을 허브가 시작 화면 겸임 (v0.2, §7.1) |
