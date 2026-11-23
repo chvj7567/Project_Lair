@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>유물 개편 - 플레이어 가이드</title>
+<style>
+:root{--bg:#0b0d12;--ink:#07090e;--s0:#0d1119;--s1:#151b28;--s2:#1e2638;--s3:#2c3750;--bone:#e8e1cf;--txt:#eef1f6;--sub:#8e98ad;--gold:#f7c64a;--blood:#e5484d;--sky:#5aa9ff;--soul:#5ef0b4;--shard:#c8a27a;--c0:#9aa5bd;--c1:#5aa9ff;--c2:#b07cff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 "Galmuri11","Noto Sans KR","Malgun Gothic",sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:20px 14px 60px}
+h1{font-size:26px;margin:6px 0 4px;color:var(--bone)}
+h2{font-size:19px;margin:34px 0 10px;color:var(--gold);border-bottom:2px solid #262b36;padding-bottom:6px}
+p{margin:6px 0}
+.lead{color:var(--sub)}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #3a4764;padding:12px 14px}
+.card h3{margin:0 0 4px;font-size:16px;color:var(--bone)}
+.card .n{display:inline-block;background:var(--gold);color:#10141d;font-weight:700;padding:0 8px;margin-right:6px}
+.card small{color:var(--sub)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.flow .card{flex:1 1 150px}
+.arrow{align-self:center;color:var(--gold);font-size:22px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:2px solid #232c42;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--s1);color:var(--bone)}
+td.r0{color:var(--c0)} td.r1{color:var(--c1)} td.r2{color:var(--c2)}
+.tag{display:inline-block;font-size:12px;padding:0 6px;border:2px solid currentColor}
+.old{color:var(--sub);text-decoration:line-through}
+.hl{color:var(--gold)}
+.good{color:var(--soul)} .bad{color:var(--blood)}
+.note{background:#10151f;border-left:4px solid var(--gold);padding:8px 12px;margin:10px 0;color:var(--bone)}
+/* 도감 목업 */
+.mock{position:relative;background:radial-gradient(ellipse at 50% 0%,#232b40,#0a0c12 75%);padding:14px;border:3px solid var(--ink);overflow-x:auto}
+.pop{min-width:760px;background:linear-gradient(180deg,#1a2132,#121827);border:3px solid var(--ink);box-shadow:inset 0 0 0 2px #8a6a2c,inset 0 0 0 4px var(--ink);padding:12px 14px 12px}
+.pop .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--bone)}
+.pop .hd b{font-size:18px}
+.body{display:grid;grid-template-columns:130px 1fr 230px;gap:10px}
+.chips{display:flex;flex-direction:column;gap:5px}
+.chip{background:linear-gradient(180deg,#3a4664,#2a3350);border:3px solid var(--ink);padding:3px 6px;font-size:13px;text-align:center;color:var(--bone)}
+.chip.on{outline:3px solid var(--gold);outline-offset:-3px;color:var(--gold)}
+.cells{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;align-content:start}
+.cell{position:relative;background:linear-gradient(180deg,#1c2436,#131a29);border:3px solid var(--rc);padding:6px 4px;height:92px;text-align:center;cursor:pointer;font-size:12px;color:var(--bone)}
+.cell .ic{display:block;font-size:26px;line-height:34px}
+.cell.lk .ic{filter:brightness(.3)}
+.cell.lk{color:#7a849c}
+.cell.sel{outline:3px solid var(--gold);outline-offset:2px}
+.cell .eq{position:absolute;top:2px;right:2px;font-size:10px;background:var(--gold);color:#10141d;padding:0 4px}
+.cell .cost{position:absolute;bottom:2px;right:5px;font-size:11px;color:#6c7385}
+.cell .cost.ok{color:var(--gold)}
+.det{background:var(--s0);border:2px solid #232c42;padding:10px;font-size:13px;min-height:300px;display:flex;flex-direction:column;gap:6px}
+.det .big{font-size:40px;text-align:center}
+.det .nm{font-size:17px;color:var(--bone);text-align:center}
+.det .rt{text-align:center;font-size:12px}
+.det .ef{background:#0b0f18;padding:6px 8px;border:1px solid #232c42}
+.det .mut{color:var(--sub);font-size:12px}
+.btn{margin-top:auto;display:block;text-align:center;padding:8px;border:3px solid var(--ink);background:linear-gradient(180deg,#5a4a1c,#3a2f10);color:var(--gold);cursor:pointer;font:inherit;width:100%}
+.btn.off{background:#1a2030;color:#6c7385;cursor:default}
+.bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.slot{width:54px;height:54px;border:3px solid var(--rc,#232834);background:#0b0f18;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;position:relative}
+.slot.empty{border-style:dashed;border-color:#3a4764;color:#3a4764;font-size:13px}
+.slot.tgt{outline:3px solid var(--gold);outline-offset:2px}
+.shardchip{margin-left:auto;background:var(--s0);border:2px solid #232c42;padding:6px 12px;color:var(--shard);min-width:150px;text-align:center}
+.hint{flex:1 1 200px;color:var(--sub);font-size:12px}
+.toast{position:absolute;left:50%;top:6px;transform:translateX(-50%);background:var(--s0);border:3px solid var(--ink);color:var(--gold);padding:5px 14px;display:none;z-index:5;font-size:13px}
+.band{background:var(--s0);border:2px solid var(--rc);display:flex;align-items:center;gap:12px;padding:8px 12px;margin:6px 0}
+.band .ic{width:48px;height:48px;border:3px solid var(--rc);display:flex;align-items:center;justify-content:center;font-size:26px;background:#0b0f18}
+.band .rt{margin-left:auto;color:var(--gold);text-align:right}
+.band small{display:block;color:var(--sub)}
+.qbox{background:linear-gradient(180deg,#33300f,#14120a);border:3px solid var(--gold);padding:14px 16px;margin-top:30px}
+.qbox h2{margin-top:0;border:none}
+.qbox .q{border-top:1px solid #5a4a1c;padding:9px 0}
+.qbox b{color:var(--gold)}
+.tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tabs button{background:var(--s3);color:var(--txt);border:2px solid var(--ink);padding:5px 10px;font:inherit;cursor:pointer}
+.tabs button.on{outline:2px solid var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>유물 개편 안내</h1>
+<p class="lead">유물은 이제 "많이 쌓을수록 세지는 수집품"이 아니라, <b class="hl">16종 중 4개를 골라 끼우는 빌드</b>입니다. 같은 유물이 또 나오면 아깝지 않게 <b class="hl">조각</b>이 되고, 조각으로 갖고 싶은 유물을 직접 만들 수 있어요.</p>
+
+<h2>한눈에 보기</h2>
+<div class="grid g4">
+  <div class="card"><h3><span class="n">1</span>중첩이 없어요</h3><p>같은 유물을 또 얻어도 효과는 하나만, 수치도 늘 같아요.</p></div>
+  <div class="card"><h3><span class="n">2</span>중복은 조각으로</h3><p>이미 가진 유물이 나오면 바로 조각이 돼요.<br>일반 <b>1</b> · 희귀 <b>3</b> · 전설 <b>8</b></p></div>
+  <div class="card"><h3><span class="n">3</span>조각으로 제작</h3><p>없는 유물을 골라 만들어요.<br>일반 <b>10</b> · 희귀 <b>18</b> · 전설 <b>32</b></p></div>
+  <div class="card"><h3><span class="n">4</span>장착은 4칸</h3><p>마을 유물 도감에서 4개를 끼우면, 전투에는 그 4개만 적용돼요.</p></div>
+</div>
+
+<h2>유물이 나오고 쓰이는 흐름</h2>
+<div class="flow">
+  <div class="card"><h3>전투 승리</h3><small>확률로 유물 드랍 (진 판은 확률 1/4)</small></div><div class="arrow">▶</div>
+  <div class="card"><h3>처음 보는 유물?</h3><small>→ 내 것이 되고, 빈 칸이 있으면 자동으로 장착돼요</small></div><div class="arrow">▶</div>
+  <div class="card"><h3>이미 가진 유물?</h3><small>→ 그 자리에서 조각으로 분해돼요</small></div><div class="arrow">▶</div>
+  <div class="card"><h3>마을 도감</h3><small>조각으로 제작 · 장착 바꾸기</small></div>
+</div>
+<div class="note">조각이 얼마나 필요한지 감이 오도록: 일반 유물은 같은 유물 <b>10개분</b>, 희귀는 <b>6개분</b>, 전설은 <b>4개분</b>을 모으면 하나를 만들 수 있어요.</div>
+
+<h2>유물 16종 (효과는 모두 고정값)</h2>
+<table>
+<tr><th>유물</th><th>등급</th><th>효과</th></tr>
+<tr><td>단단한 심장석</td><td class="r0">일반</td><td>몬스터 체력 +6%</td></tr>
+<tr><td>녹슨 칼날</td><td class="r0">일반</td><td>몬스터 공격력 +5%</td></tr>
+<tr><td>질풍의 장화</td><td class="r0">일반</td><td>몬스터 이동속도 +5%</td></tr>
+<tr><td>잿불 낙인</td><td class="r0">일반</td><td>영웅이 매초 최대 체력의 0.05% 화상</td></tr>
+<tr><td>개전의 뿔피리 <span class="tag hl">새 효과</span></td><td class="r0">일반</td><td>전투 시작 후 15초 동안 모든 몬스터 공격력 +15%</td></tr>
+<tr><td>소울 주머니</td><td class="r0">일반</td><td>전투 소울 보상 +10%</td></tr>
+<tr><td>영주의 서</td><td class="r0">일반</td><td>영주 경험치 보상 +10%</td></tr>
+<tr><td>위로의 깃털</td><td class="r0">일반</td><td>졌을 때 소울 보상 +50%</td></tr>
+<tr><td>깨진 모래시계</td><td class="r1">희귀</td><td>몬스터 공격 대기시간 -5%</td></tr>
+<tr><td>번식의 부적</td><td class="r1">희귀</td><td>둥지 소환 주기 -7%</td></tr>
+<tr><td>뇌운 조각</td><td class="r1">희귀</td><td>10초마다 번개, 영웅 최대 체력의 0.6%</td></tr>
+<tr><td>저주의 깃발</td><td class="r1">희귀</td><td>영웅 공격력 -8%</td></tr>
+<tr><td>가속 모래시계</td><td class="r1">희귀</td><td>전투 중 2배속 켜고 끄기 <small>(이제 장착해야 보여요)</small></td></tr>
+<tr><td>서두르는 둥지</td><td class="r1">희귀</td><td>첫 소환이 4초 빨라짐</td></tr>
+<tr><td>왕관 조각</td><td class="r2">전설</td><td>몬스터 체력·공격력 각 +10%</td></tr>
+<tr><td>분노의 영혼 <span class="tag hl">새 효과</span></td><td class="r2">전설</td><td>영웅이 잃은 체력 10%마다 모든 몬스터 공격력·이동속도 +4% <small>(체력 0%에서 최대 +40%, 전투 내내)</small></td></tr>
+</table>
+<p class="lead">※ 수치는 처음 값이에요. 시뮬레이션으로 일괄 조정할 예정입니다.</p>
+
+<h2>새로 생긴 두 가지 효과</h2>
+<div class="grid g2">
+  <div class="card"><h3>개전의 뿔피리</h3><p>전투가 시작되면 <b>15초 동안</b> 몬스터가 더 세게 때려요. 초반 돌진이 중요한 빌드에 어울려요. 2배속으로 보면 실제 시간은 반으로 줄어요.</p></div>
+  <div class="card"><h3>분노의 영혼</h3><p>영웅을 몰아붙일수록 몬스터가 강해져요. 영웅 체력이 10% 깎일 때마다 <b>공격력·이동속도 +4%</b>. 영웅이 회복하면 도로 약해져요.</p></div>
+</div>
+
+<h2>빌드 예시 (4칸 고르기)</h2>
+<div class="grid g3">
+  <div class="card"><h3>공격 올인</h3><p>왕관 조각 · 분노의 영혼 · 녹슨 칼날 · 깨진 모래시계</p><small>가장 강하지만 전설 2개가 필요해요.</small></div>
+  <div class="card"><h3>안정형</h3><p>왕관 조각 · 단단한 심장석 · 번식의 부적 · 질풍의 장화</p><small>꾸준히 버티며 몬스터를 계속 보내요.</small></div>
+  <div class="card"><h3>보상 파밍</h3><p>왕관 조각 · 소울 주머니 · 영주의 서 · 가속 모래시계</p><small>조금 약해도 소울·경험치를 더 벌고 빨리 돌려요.</small></div>
+</div>
+
+<h2>유물 도감 - 장착과 제작 (화면 미리보기)</h2>
+<p class="lead">마을의 "유물" 버튼을 누르면 열리는 도감입니다. 아래는 눌러볼 수 있는 미리보기예요. 유물을 눌러 보고, 아래 칸을 눌러 보세요.</p>
+
+<div class="mock">
+ <div class="toast" id="toast"></div>
+ <div class="pop">
+  <div class="hd"><b>유물</b><span id="hCol" style="font-size:13px"></span><span id="hEq" style="font-size:13px;color:var(--gold)"></span></div>
+  <div class="body">
+    <div class="chips">
+      <div class="chip on">전체</div><div class="chip">능력치</div><div class="chip">전투 효과</div><div class="chip">편의</div>
+      <div style="height:6px"></div>
+      <div class="chip on">전체</div><div class="chip">일반</div><div class="chip">희귀</div><div class="chip">전설</div>
+    </div>
+    <div class="cells" id="cells"></div>
+    <div class="det" id="det"></div>
+  </div>
+  <div class="bar">
+    <span style="font-size:13px;color:var(--bone)">장착</span>
+    <div style="display:flex;gap:8px" id="slots"></div>
+    <div class="hint">같은 유물을 또 얻으면 조각이 돼요. 조각으로 원하는 유물을 만들 수 있어요.</div>
+    <div class="shardchip" id="shard"></div>
+  </div>
+ </div>
+</div>
+<div class="note">
+  <b>사용법</b><br>
+  • 유물을 누르면 오른쪽에 효과가 보여요. 아직 없는 유물도 이름과 효과를 볼 수 있어서 어떤 걸 만들지 고를 수 있어요.<br>
+  • 없는 유물은 <b>제작</b> 버튼으로 만들어요(확인 창이 한 번 떠요). 만들면 빈 칸에 바로 끼워져요.<br>
+  • 가진 유물은 <b>장착</b> / <b>장착 해제</b>. 4칸이 다 찼을 땐 바꿀 칸을 눌러 교체해요.<br>
+  • 장착은 마을 도감에서만 바꿀 수 있고, 전투가 시작되면 장착된 유물만 적용돼요.
+</div>
+<div class="tabs"><button id="rBtn1" class="on">조각 많음</button><button id="rBtn2">조각 적음</button><button id="rBtn3">처음 상태</button></div>
+
+<h2>전투 후 결과창의 유물 줄</h2>
+<div class="grid g2">
+  <div>
+    <b>처음 얻은 유물</b>
+    <div class="band" style="--rc:#5aa9ff"><div class="ic">ϟ</div><div><b>뇌운 조각</b> <span class="tag" style="color:#5aa9ff">희귀</span><small>자동 장착됨</small></div><div class="rt"><span class="tag">NEW</span></div></div>
+    <b>이미 가진 유물이 또 나왔을 때</b>
+    <div class="band" style="--rc:#b07cff"><div class="ic">♛</div><div><b>왕관 조각</b> <span class="tag" style="color:#b07cff">전설</span><small>이미 가진 유물이라 조각으로 분해되었다</small></div><div class="rt">조각 +8</div></div>
+  </div>
+  <div>
+    <b>장착 칸이 가득 찼을 때</b>
+    <div class="band" style="--rc:#9aa5bd"><div class="ic">$</div><div><b>소울 주머니</b> <span class="tag" style="color:#9aa5bd">일반</span><small>장착 칸이 가득 차 있어 도감에서 장착할 수 있습니다</small></div><div class="rt"><span class="tag">NEW</span></div></div>
+    <b>아무것도 안 나왔을 때 (그대로)</b>
+    <div class="band" style="--rc:#232834"><div class="ic" style="opacity:.3">?</div><div><span style="color:var(--sub)">유물 없음 · 다음 승리 시 획득 확률 40%</span></div></div>
+  </div>
+</div>
+
+<h2>예전에 모은 유물은 어떻게 되나요?</h2>
+<div class="grid g2">
+  <div class="card"><h3>자동 정리</h3><p>업데이트 후 처음 접속하면 갖고 있던 유물 중 <b>등급이 높은 순서</b>로 최대 4개가 자동 장착돼요. 등급이 같으면 많이 쌓아 둔 것부터예요.</p></div>
+  <div class="card"><h3>겹친 만큼 조각으로</h3><p>중첩해 두었던 분량은 <b>조각으로 바뀌어요</b>. 예: 모든 유물을 최대로 모은 분은 조각 <b>52개</b>를 받아요. 예전 "유물 잔해"는 그대로 같은 개수의 조각이 돼요.</p></div>
+  <div class="card"><h3>알려 드려요</h3><p>처음 마을에 들어가면 바뀐 내용과 받은 조각 수를 한 번 알려 드려요.</p></div>
+  <div class="card"><h3>조심할 점</h3><p>많이 모아 둔 분은 한 번에 적용되던 유물이 4개로 줄어서 전투가 달라질 수 있어요. 2배속을 쓰시던 분은 가속 모래시계가 장착됐는지 확인해 주세요.</p></div>
+</div>
+
+<h2>그 밖에 달라지는 점</h2>
+<table>
+<tr><th>화면</th><th>바뀌는 점</th></tr>
+<tr><td>일일 도전</td><td>오늘의 유물에 붙던 "x3" 표시가 사라지고, 효과는 고정값으로 보여요. 날짜마다 나오는 유물 조합은 그대로예요.</td></tr>
+<tr><td>전투 화면</td><td>2배속 버튼은 가속 모래시계를 <b>장착했을 때</b>만 보여요.</td></tr>
+<tr><td>유물 도감</td><td>"중첩 n/m", "최대 중첩" 표시는 없어지고 장착 칸과 조각이 생겨요. 아직 없는 유물도 이름이 보여요.</td></tr>
+<tr><td>잔해 교환</td><td>"유물 잔해를 각성석 등으로 바꾸기"는 없어져요 <small>(아래 결정 3번)</small>. 조각은 유물 제작에만 쓰여요.</td></tr>
+</table>
+
+<div class="qbox">
+<h2>결정해 주세요</h2>
+<p class="lead">이미 정한 것(중첩 없음 · 자동 분해 · 제작 비용 · 장착 4칸 · 16종 효과값)은 빼고, 남은 세 가지만 물어봅니다.</p>
+<div class="q"><b>1. 새로 얻거나 만든 유물을 빈 칸에 자동으로 끼울까요?</b><br>추천: <b>예, 자동 장착</b>. 처음 얻은 유물이 아무 효과 없이 시작하지 않고, 칸이 가득 차면 도감에서 직접 바꿔요. (아니라면 모든 장착을 도감에서만 해야 해요.)</div>
+<div class="q"><b>2. 아직 없는 유물도 도감에서 이름과 효과를 보여줄까요?</b><br>추천: <b>보여주기</b>. 무엇을 만들지 고르려면 효과를 알아야 해요. (숨기면 "???"로만 보여서 제작 선택이 어려워요.)</div>
+<div class="q"><b>3. 조각을 각성석·달빛 인장·심연 결정으로 바꾸는 기능을 어떻게 할까요?</b><br>추천: <b>없애기</b>. 중복마다 조각이 생겨서 계속 두면 다른 재화 경제가 크게 흔들려요. 기존 잔해는 그대로 조각으로 옮겨져요. (유지하려면 교환 비율을 다시 정해야 하고 도감 하단이 복잡해져요.)</div>
+</div>
+
+</div>
+
+<script>
+'use strict';
+var R=[
+ ['심장석','♥',0,'몬스터 체력 +6%','기사·성기사'],
+ ['칼날','†',0,'몬스터 공격력 +5%','암살자·광전사'],
+ ['장화','»',0,'몬스터 이동속도 +5%','궁수·암살자'],
+ ['모래시계','⧖',1,'몬스터 공격 대기시간 -5%','궁수·암살자·광전사'],
+ ['번식 부적','✿',1,'둥지 소환 주기 -7%','기사·성기사'],
+ ['왕관 조각','♛',2,'몬스터 체력·공격력 각 +10%','기사·광전사·성기사'],
+ ['잿불 낙인','♨',0,'영웅이 매초 최대 체력의 0.05% 화상','광전사'],
+ ['개전 뿔피리','♪',0,'전투 시작 후 15초 동안 몬스터 공격력 +15%','기사·암살자'],
+ ['뇌운 조각','ϟ',1,'10초마다 번개, 영웅 최대 체력의 0.6%','궁수'],
+ ['저주 깃발','⚑',1,'영웅 공격력 -8%','암살자·광전사'],
+ ['분노의 영혼','☠',2,'영웅이 잃은 체력 10%마다 몬스터 공격력·이동속도 +4% (최대 +40%)','궁수·암살자·광전사'],
+ ['가속 모래시계','⏩',1,'전투 중 2배속 켜고 끄기','전 영웅'],
+ ['소울 주머니','$',0,'전투 소울 보상 +10%','전 영웅'],
+ ['영주의 서','☰',0,'영주 경험치 보상 +10%','전 영웅'],
+ ['위로의 깃털','✎',0,'졌을 때 소울 보상 +50%','전 영웅'],
+ ['서두르는 둥지','⚐',1,'첫 소환 4초 단축','전 영웅']
+];
+var RC=['#9aa5bd','#5aa9ff','#b07cff'],RN=['일반','희귀','전설'],COST=[10,18,32],DIS=[1,3,8];
+var st={own:[],eq:[null,null,null,null],shards:0,sel:5};
+function preset(k){
+ if(k===3){st.own=[];st.eq=[null,null,null,null];st.shards=0;st.sel=0;}
+ else{st.own=[0,1,5,8,12];st.eq=[5,0,8,12];st.shards=(k===1?40:12);st.sel=3;}
+ draw();
+}
+function say(s){var t=document.getElementById('toast');t.textContent=s;t.style.display='block';clearTimeout(say.h);say.h=setTimeout(function(){t.style.display='none';},2200);}
+function has(i){return st.own.indexOf(i)>=0;}
+function eqSlot(i){return st.eq.indexOf(i);}
+function firstEmpty(){return st.eq.indexOf(null);}
+function equipAt(i,s){var o=eqSlot(i);if(o>=0)st.eq[o]=null;st.eq[s]=i;}
+function main(){
+ var i=st.sel,r=R[i];
+ if(!has(i)){
+  if(st.shards<COST[r[2]])return null;
+  if(!confirm('"'+r[0]+'"을(를) 제작할까요? 조각 '+COST[r[2]]+'개를 사용합니다')){return 0;}
+  st.shards-=COST[r[2]];st.own.push(i);var e=firstEmpty();if(e>=0)st.eq[e]=i;say(r[0]+' 제작 완료');return 0;
+ }
+ if(eqSlot(i)>=0){st.eq[eqSlot(i)]=null;return 0;}
+ var e2=firstEmpty();if(e2>=0){st.eq[e2]=i;}
+ return 0;
+}
+function draw(){
+ var cells='';
+ for(var i=0;i<R.length;i++){
+  var r=R[i],o=has(i),e=eqSlot(i)>=0,c=COST[r[2]];
+  cells+='<div class="cell'+(o?'':' lk')+(i===st.sel?' sel':'')+'" style="--rc:'+(o?RC[r[2]]:'#232834')+'" data-i="'+i+'"><span class="ic">'+r[1]+'</span>'+r[0]+(e?'<span class="eq">장착</span>':'')+(o?'':'<span class="cost'+(st.shards>=c?' ok':'')+'">조각 '+c+'</span>')+'</div>';
+ }
+ document.getElementById('cells').innerHTML=cells;
+ var s='';
+ for(var k=0;k<4;k++){
+  var v=st.eq[k];
+  s+=v===null?'<div class="slot empty" data-s="'+k+'">비어 있음</div>':'<div class="slot" style="--rc:'+RC[R[v][2]]+'" data-s="'+k+'">'+R[v][1]+'</div>';
+ }
+ document.getElementById('slots').innerHTML=s;
+ var n=0;for(var q=0;q<4;q++)if(st.eq[q]!==null)n++;
+ document.getElementById('hCol').textContent='수집 '+st.own.length+' / 16';
+ document.getElementById('hEq').textContent='장착 '+n+' / 4';
+ document.getElementById('shard').textContent='유물 조각  '+st.shards;
+ var i2=st.sel,r2=R[i2],o2=has(i2),e2=eqSlot(i2)>=0,c2=COST[r2[2]],btn='';
+ if(!o2){
+  var ok=st.shards>=c2;
+  btn='<button class="btn'+(ok?'':' off')+'" id="mainBtn">제작 · 조각 '+c2+'</button>'+(ok?'':'<div class="mut" style="text-align:center">조각이 부족합니다 (필요 '+c2+' · 보유 '+st.shards+')</div>');
+ }else if(e2){btn='<button class="btn" id="mainBtn">장착 해제</button>';}
+ else if(n<4){btn='<button class="btn" id="mainBtn">장착</button>';}
+ else{btn='<button class="btn off" id="mainBtn">장착</button><div class="mut" style="text-align:center">장착 칸이 가득 찼습니다. 바꿀 칸을 누르세요</div>';}
+ document.getElementById('det').innerHTML='<div class="big">'+r2[1]+'</div><div class="nm">'+r2[0]+'</div><div class="rt" style="color:'+RC[r2[2]]+'">'+RN[r2[2]]+(e2?' · 장착 중':'')+(o2?'':' · 미보유')+'</div><div class="ef">'+r2[3]+'</div><div class="mut">드랍 영웅: '+r2[4]+'</div><div class="mut">중복 시 조각 +'+DIS[r2[2]]+(o2?'':' · 제작 비용 조각 '+c2)+'</div>'+btn;
+}
+document.addEventListener('click',function(ev){
+ var t=ev.target;
+ var cell=t.closest&&t.closest('.cell');
+ if(cell){st.sel=+cell.getAttribute('data-i');draw();return;}
+ var slot=t.closest&&t.closest('.slot');
+ if(slot){
+  var s=+slot.getAttribute('data-s'),v=st.eq[s],sel=st.sel;
+  if(has(sel)&&eqSlot(sel)<0){equipAt(sel,s);draw();return;}
+  if(v!==null){st.sel=v;}
+  draw();return;
+ }
+ if(t.id==='mainBtn'&&t.className.indexOf('off')<0){main();draw();}
+ if(t.id==='rBtn1')preset(1);
+ if(t.id==='rBtn2')preset(2);
+ if(t.id==='rBtn3')preset(3);
+ if(t.id&&t.id.indexOf('rBtn')===0){var b=document.querySelectorAll('.tabs button');for(var x=0;x<b.length;x++)b[x].className=(b[x].id===t.id?'on':'');}
+});
+preset(1);
+</script>
+</body>
+</html>
