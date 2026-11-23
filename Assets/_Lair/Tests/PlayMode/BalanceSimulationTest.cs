@@ -79,6 +79,7 @@ namespace Lair.Tests.PlayMode
             if (MetaSession.Profile != null)
             {
                 CleanSpeciesLevels();
+                SeedFormation(null);
             }
         }
 
@@ -215,10 +216,13 @@ namespace Lair.Tests.PlayMode
         }
 
         //# 한 게이트 시나리오 — 레벨 시드 → N판 Random @15x → 자기 슬라이스 median 집계 + 머신 파서블 태그 로그.
-        private IEnumerator RunSpeciesGateCampaign(string scenarioTag, (EMonster species, int level)[] seed, int gameCount)
+        //# formation 생략(null) = 기본 편성. 예: 한 종 집중 = new[] { (1, EMonster.Wisp), (2, EMonster.WispG3) }, 빈 둥지 혼합 = 일부 슬롯만.
+        private IEnumerator RunSpeciesGateCampaign(string scenarioTag, (EMonster species, int level)[] seed, int gameCount,
+            (int slot, EMonster monster)[] formation = null)
         {
             //# 시드는 반드시 런 루프(첫 LoadSceneAsync) 前 — ApplyMetaBonuses 는 BattleController.Start 에서 MetaSession.Profile 을 읽는다.
             SeedSpeciesLevels(seed);
+            SeedFormation(formation);
 
             int baseline = SimMetrics.CountExistingLines();
 
@@ -260,6 +264,22 @@ namespace Lair.Tests.PlayMode
             foreach (EMonster s in AllSpecies)
             {
                 p.SetShopLevel(SpeciesShopId(s), 0);
+            }
+        }
+
+        //# 시나리오 편성 주입 — null 이면 기본 편성(HasCustomFormation=false), 아니면 (둥지 1~6, 몬스터)만 채우고 나머지는 빈 둥지.
+        //# 규칙 위반(같은 몬스터 중복 등) 검증은 런타임 몫 — 시드는 그대로 주입한다.
+        private static void SeedFormation((int slot, EMonster monster)[] slots)
+        {
+            MetaProfile p = MetaSession.GetOrLoad();
+            p.HasCustomFormation = slots != null;
+            p.Formation = new List<FormationSlotEntry>();
+            if (slots == null)
+                return;
+
+            foreach ((int slot, EMonster monster) in slots)
+            {
+                p.Formation.Add(new FormationSlotEntry { Slot = slot, Monster = monster.ToString() });
             }
         }
 
