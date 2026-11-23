@@ -50,12 +50,10 @@ namespace Lair.UI
 
         //# 둥지 칸 6 + 선택 둥지 종족의 몬스터 행 최대 5(등급 1~5) (프리팹 인스턴스 정적 배치)
         [SerializeField] private FormationNestTile[] _nestTiles = new FormationNestTile[0];
-        [SerializeField] private FormationSpeciesRow[] _speciesRows = new FormationSpeciesRow[0];
 
         //# 우측 상단 종족 정보 행 (종족 이름 + 성격 문구)
         [SerializeField] private CHText _raceNameText;
         [SerializeField] private CHText _raceDescText;
-        [SerializeField] private Image _raceBorder;
 
         //# 몬스터 아이콘 — 인덱스 = (int)기준 몬스터 (도감 몬스터 아이콘 재사용, 등급 몬스터도 기준 아이콘 — monster-grades V7)
         [SerializeField] private Sprite[] _monsterIcons = new Sprite[0];
@@ -131,14 +129,6 @@ namespace Lair.UI
                 int index = i;
                 _nestTiles[i].SetClickHandler(() => _vm?.SelectNest(index), closeDisposable);
             }
-            //# 행 목록은 선택 둥지마다 바뀌므로 클릭은 행 인덱스로 받아 그 순간의 목록에서 몬스터를 찾는다.
-            for (int i = 0; _speciesScrollView == null && i < _speciesRows.Length; ++i)
-            {
-                if (_speciesRows[i] == null)
-                    continue;
-                int index = i;
-                _speciesRows[i].SetClickHandler(() => HandlePlace(index), closeDisposable);
-            }
 
             ShowSummary();
             Refresh();
@@ -180,16 +170,6 @@ namespace Lair.UI
             foreach (CHButton filter in _speciesFilters)
             {
                 AddFocusTarget(beforeRows, filter);
-            }
-            if (_speciesScrollView == null)
-            {
-                foreach (FormationSpeciesRow row in _speciesRows)
-                {
-                    if (row != null && row.FocusTarget != null && row.gameObject.activeInHierarchy)
-                    {
-                        beforeRows.Add(row.FocusTarget);
-                    }
-                }
             }
             AddFocusTarget(afterRows, _resetButton);
             AddFocusTarget(afterRows, _sortieButton);
@@ -262,17 +242,6 @@ namespace Lair.UI
             FocusSelectedNest();
         }
 
-        //# 몬스터 행 클릭 — 선택 둥지에 그 몬스터 지정(VM 이 소속·보유를 판정).
-        private void HandlePlace(int rowIndex)
-        {
-            if (_vm == null)
-                return;
-            IReadOnlyList<FormationSpeciesData> rows = _vm.BuildSpecies();
-            if (rowIndex < 0 || rowIndex >= rows.Count)
-                return;
-            _vm.Place(rows[rowIndex].Monster);
-        }
-
         private void HandleSortie()
         {
             if (_vm == null)
@@ -341,16 +310,6 @@ namespace Lair.UI
             {
                 _speciesScrollView.ShowRows(species, _lastFilter != _vm.FilterIndex);
             }
-            else
-            {
-                for (int i = 0; i < _speciesRows.Length; ++i)
-                {
-                    if (_speciesRows[i] == null)
-                        continue;
-                    FormationSpeciesData row = i < species.Count ? species[i] : null;
-                    _speciesRows[i].Show(row, row != null ? IconOf(row.Monster) : null);
-                }
-            }
             _lastFilter = _vm.FilterIndex;
             for (int i = 0; i < _speciesFilters.Length && i <= FormationDatabase.SlotCount; ++i)
             {
@@ -365,10 +324,6 @@ namespace Lair.UI
             if (_raceDescText != null)
             {
                 _raceDescText.SetText(_vm.CardsRandomText);
-            }
-            if (_raceBorder != null)
-            {
-                _raceBorder.color = BoneColor;
             }
             if (_clearButton != null)
             {

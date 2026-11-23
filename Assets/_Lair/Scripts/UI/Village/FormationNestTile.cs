@@ -3,7 +3,6 @@ using ChvjUnityInfra;
 using Lair.Village;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Lair.UI
@@ -17,23 +16,12 @@ namespace Lair.UI
         [SerializeField] private Image _iconBorder;           //# 등급 테두리 3px (MonsterGradeFrame 색)
         [SerializeField] private Image _icon;
         [SerializeField] private CHText _nameText;            //# 몬스터 표시 이름(종 색, 접두어 포함)
-        [FormerlySerializedAs("_costText")]
-        [SerializeField] private CHText _raceText;            //# 종족 이름
-        [SerializeField] private CHText _gradeText;           //# "2등급 · 보유 2등급"
         [SerializeField] private CHText _tierText;
-        [SerializeField] private GameObject _defaultBadge;    //# 기본 편성(보유 최고 등급)과 같은 몬스터 — 글자 없는 회색 원
-        [SerializeField] private GameObject _sealBadge;       //# 봉인 예정 칸 — 사슬 표식(보라)
-        [SerializeField] private GameObject _sealedGlow;      //# 봉인 예정 칸 테두리 발광
-        [SerializeField] private GameObject _selectedOutline; //# 선택 금색 외곽선 3px
-        //# 선택·잠금 강화 위젯 — _selectionRing 이 연결되면 위 기존 3종(_sealBadge·_sealedGlow·_selectedOutline)은 켜지지 않는다.
         [SerializeField] private Image _selectionRing;        //# 굵은 흰색 링 — 선택 금색·봉인 보라(둘 다면 금색)
         [SerializeField] private GameObject _selectedRibbon;  //# "출전 중" 띠
         [SerializeField] private GameObject _sealRibbon;      //# "봉인 예정" 띠
         [SerializeField] private Image _sealIconBig;          //# 큰 자물쇠
-        [SerializeField] private GameObject _sealHatch;       //# 사선 오버레이
-        [SerializeField] private Image _dimOverlay;           //# 비선택·비봉인 칸 어둡게(검정 단색)
 
-        private const float DimAlpha = 0.55f;                 //# 비선택 칸 어둡기 — 튜닝 지점
         private static readonly Color RingGold = new Color32(0xf5, 0xc5, 0x42, 0xff);
         private static readonly Color RingViolet = new Color32(0x9b, 0x4d, 0xff, 0xff);
         private static readonly Color SealedIconTint = new Color(0.35f, 0.35f, 0.35f, 1f);
@@ -71,14 +59,6 @@ namespace Lair.UI
                 _nameText.SetText(data.NameText);
                 _nameText.SetColor(data.SpeciesColor);
             }
-            if (_raceText != null)
-            {
-                _raceText.SetText(_tierText == null ? data.TierText ?? string.Empty : string.Empty);
-            }
-            if (_gradeText != null)
-            {
-                _gradeText.SetText(string.Empty);
-            }
             if (_tierText != null)
             {
                 _tierText.gameObject.SetActive(data.IsEmpty == false);
@@ -98,11 +78,6 @@ namespace Lair.UI
                 _icon.enabled = icon != null;
                 _icon.color = data.IsSealed ? SealedIconTint : Color.white;
             }
-            SetActive(_defaultBadge, data.IsDefault);
-            bool legacy = _selectionRing == null;
-            SetActive(_sealBadge, legacy && data.IsSealed);
-            SetActive(_sealedGlow, legacy && data.IsSealed);
-            SetActive(_selectedOutline, legacy && data.IsSelected);
             ShowEnhanced(data);
         }
 
@@ -115,14 +90,9 @@ namespace Lair.UI
             }
             SetActive(_selectedRibbon, data.IsSelected);
             SetActive(_sealRibbon, data.IsSealed);
-            SetActive(_sealHatch, data.IsSealed);
             if (_sealIconBig != null)
             {
                 _sealIconBig.gameObject.SetActive(data.IsSealed);
-            }
-            if (_dimOverlay != null)
-            {
-                _dimOverlay.enabled = false;
             }
         }
 

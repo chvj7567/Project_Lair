@@ -2267,9 +2267,9 @@ namespace Lair.Battle
         }
 
         //# 카드 추첨은 배치 상태와 독립이며 기존 픽 상한만 적용한다.
-        private bool IsCardExcluded(ECardId id)
+        public static bool IsCardExcluded(CardPickCounter counter, ECardId id)
         {
-            return _pickCounter.IsCapped(id);
+            return counter.IsCapped(id);
         }
 
         private bool HasOccupiedNest(EMonster? species)
@@ -2411,7 +2411,7 @@ namespace Lair.Battle
                 //# 시뮬레이션 전용 — 팝업/일시정지를 건너뛰고 즉시 픽. tcs 무한 대기 회피.
                 if (DebugAutoPicker != null)
                 {
-                    IReadOnlyList<CardData> simChoices = deck.Draw(3, IsCardExcluded);
+                    IReadOnlyList<CardData> simChoices = deck.Draw(3, id => IsCardExcluded(_pickCounter, id));
                     CardData picked = DebugAutoPicker(simChoices, entry.SourceType);
                     if (picked != null)
                     {
@@ -2426,7 +2426,7 @@ namespace Lair.Battle
                 }
 #endif
 
-                IReadOnlyList<CardData> choices = deck.Draw(3, IsCardExcluded);
+                IReadOnlyList<CardData> choices = deck.Draw(3, id => IsCardExcluded(_pickCounter, id));
 #if UNITY_EDITOR
                 //# 디버그 — 지정 카드 강제 등장. 팝업 경로 한정 (시뮬 DebugAutoPicker 경로 비간섭) — 토글 OFF 면 내부 no-op.
                 if (_forcedCardDraw != null)

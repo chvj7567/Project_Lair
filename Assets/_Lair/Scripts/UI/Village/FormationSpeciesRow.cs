@@ -3,7 +3,6 @@ using ChvjUnityInfra;
 using Lair.Data;
 using Lair.Village;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Lair.UI
@@ -15,21 +14,15 @@ namespace Lair.UI
         [SerializeField] private Image _iconBorder;      //# 등급 테두리 (MonsterGradeFrame)
         [SerializeField] private Image _icon;
         [SerializeField] private CHText _nameText;       //# "견습 도깨비불"
-        [FormerlySerializedAs("_costText")]
-        [SerializeField] private CHText _gradeText;      //# "2등급 · HP·공격력 x1.10 · 보유 최고"
         [SerializeField] private CHText _awakenText;     //# "체급 Lv 2" (금색) — Lv 0 이면 숨김
         [SerializeField] private CHText _placementText;
         [SerializeField] private CHText _axisText;       //# 빌드 축 칩 글자
         [SerializeField] private Image _axisBorder;      //# 빌드 축 칩 테두리
-        [SerializeField] private GameObject _selectedOutline;   //# 지금 출전 중 — 금색 외곽선 (_selectionRing 연결 시 꺼짐)
-        [SerializeField] private GameObject _selectedStripe;    //# 왼쪽 금색 띠
         [SerializeField] private Image _selectionRing;          //# 굵은 금 링
         [SerializeField] private GameObject _selectedTag;       //# "출전 중" 표식
-        [SerializeField] private Image _dimOverlay;             //# 비선택 행 어둡게(검정 단색)
         [SerializeField] private Image _gradeBadge;             //# 등급 동그라미 (BadgeColor 틴트)
         [SerializeField] private CHText _gradeBadgeText;        //# 등급 숫자
 
-        private const float DimAlpha = 0.5f;                    //# 비선택 행 어둡기 — 튜닝 지점
         private static readonly Color AxisTextColor = new Color32(0x14, 0x10, 0x0a, 0xff);   //# 속이 찬 축 칩 위 글자색
         private Action _pooledClick;
 
@@ -46,15 +39,6 @@ namespace Lair.UI
             Show(data, icon);
         }
 
-        //# 클릭 핸들러 1회 등록 — 팝업 InitUI 에서 호출. disposable.Clear() 시 해제된다.
-        public void SetClickHandler(Action onClick, CompositeDisposable disposable)
-        {
-            if (_button != null)
-            {
-                _button.OnClick(onClick, disposable);
-            }
-        }
-
         //# data 가 null 이면 행을 숨긴다(보유하지 않은 등급은 표시하지 않음).
         public void Show(FormationSpeciesData data, Sprite icon)
         {
@@ -66,7 +50,6 @@ namespace Lair.UI
                 _nameText.SetText(data.NameText);
                 _nameText.SetColor(data.SpeciesColor);
             }
-            _gradeText?.SetText(_placementText == null ? data.PlacementText : data.GradeText);
             _placementText?.SetText(data.PlacementText);
             if (_awakenText != null)
             {
@@ -92,19 +75,11 @@ namespace Lair.UI
             {
                 _axisBorder.color = axisColor;
             }
-            if (_selectedOutline != null)
-            {
-                _selectedOutline.SetActive(_selectionRing == null && data.IsSelected);
-            }
             ShowEnhanced(data);
         }
 
         private void ShowEnhanced(FormationSpeciesData data)
         {
-            if (_selectedStripe != null)
-            {
-                _selectedStripe.SetActive(data.IsSelected);
-            }
             if (_selectionRing != null)
             {
                 _selectionRing.enabled = data.IsSelected;
@@ -112,11 +87,6 @@ namespace Lair.UI
             if (_selectedTag != null)
             {
                 _selectedTag.SetActive(data.IsSelected);
-            }
-            if (_dimOverlay != null)
-            {
-                _dimOverlay.color = new Color(0f, 0f, 0f, DimAlpha);
-                _dimOverlay.enabled = false;
             }
             if (_gradeBadge != null)
             {
