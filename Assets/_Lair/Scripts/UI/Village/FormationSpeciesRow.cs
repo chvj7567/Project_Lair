@@ -3,6 +3,7 @@ using ChvjUnityInfra;
 using Lair.Data;
 using Lair.Village;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Lair.UI
@@ -14,6 +15,8 @@ namespace Lair.UI
         [SerializeField] private Image _iconBorder;      //# 등급 테두리 (MonsterGradeFrame)
         [SerializeField] private Image _icon;
         [SerializeField] private CHText _nameText;       //# "견습 도깨비불"
+        [FormerlySerializedAs("_costText")]
+        [SerializeField] private CHText _gradeText;      //# "2등급 · HP·공격력 x1.10 · 보유 최고"
         [SerializeField] private CHText _awakenText;     //# "체급 Lv 2" (금색) — Lv 0 이면 숨김
         [SerializeField] private CHText _placementText;
         [SerializeField] private CHText _axisText;       //# 빌드 축 칩 글자
@@ -50,6 +53,7 @@ namespace Lair.UI
                 _nameText.SetText(data.NameText);
                 _nameText.SetColor(data.SpeciesColor);
             }
+            _gradeText?.SetText(_placementText == null ? data.PlacementText : data.GradeText);
             _placementText?.SetText(data.PlacementText);
             if (_awakenText != null)
             {
