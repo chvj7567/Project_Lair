@@ -18,7 +18,6 @@ namespace Lair.UI
         [SerializeField] private CHText _nameText;            //# 몬스터 표시 이름(종 색, 접두어 포함)
         [SerializeField] private CHText _tierText;
         [SerializeField] private Image _selectionRing;        //# 굵은 흰색 링 — 선택 금색·봉인 보라(둘 다면 금색)
-        [SerializeField] private GameObject _selectedRibbon;  //# "출전 중" 띠
         [SerializeField] private GameObject _sealRibbon;      //# "봉인 예정" 띠
         [SerializeField] private Image _sealIconBig;          //# 큰 자물쇠
 
@@ -88,7 +87,6 @@ namespace Lair.UI
                 _selectionRing.enabled = data.IsSelected || data.IsSealed;
                 _selectionRing.color = data.IsSelected ? RingGold : RingViolet;
             }
-            SetActive(_selectedRibbon, data.IsSelected);
             SetActive(_sealRibbon, data.IsSealed);
             if (_sealIconBig != null)
             {
