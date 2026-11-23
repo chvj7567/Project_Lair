@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Lair.Battle;
+using Lair.Card;
 using Lair.Data;
 using Lair.Meta;
 using Lair.UI;
@@ -95,13 +97,16 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 카드_종족_제외는_등급_몬스터가_나가도_그_종족_카드를_남긴다()
+        public void 카드_제외는_등급_몬스터_편성과_무관하게_종족_카드를_남긴다()
         {
-            FormationCardSpecies cards = FormationTestKit.ShippedCards(_db);
-            HashSet<EMonster> outputs = new HashSet<EMonster> { EMonster.WispG4 };
+            MetaProfile p = new MetaProfile { ClearedStage = 3, HasCustomFormation = true };
+            p.SetRaceGrade(ERace.Ignis, 4);
+            p.Formation = new List<FormationSlotEntry> { new FormationSlotEntry { Slot = 1, Monster = EMonster.WispG4.ToString() } };
+            CardPickCounter counter = new CardPickCounter();
 
-            Assert.IsTrue(cards.IsAvailable(ECardId.WispHpBoost, m => MonsterGradesOutputting(outputs, m)));
-            Assert.IsFalse(cards.IsAvailable(ECardId.SpawnReapers, m => MonsterGradesOutputting(outputs, m)));
+            Assert.AreEqual(EMonster.WispG4, FormationSave.Resolve(_db, p)[0].Value, "편성은 등급 도깨비불 1칸");
+            Assert.IsFalse(BattleController.IsCardExcluded(counter, ECardId.WispHpBoost));
+            Assert.IsFalse(BattleController.IsCardExcluded(counter, ECardId.SpawnReapers), "편성에 없는 사신 카드도 후보 (§4)");
         }
 
         [Test]
@@ -123,14 +128,5 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(ECurrency.Soul, reaper.Slots[4].LackingCurrency);
         }
 
-        private static bool MonsterGradesOutputting(HashSet<EMonster> outputs, EMonster species)
-        {
-            foreach (EMonster m in outputs)
-            {
-                if (MonsterGrades.SameSpecies(m, species))
-                    return true;
-            }
-            return false;
-        }
     }
 }

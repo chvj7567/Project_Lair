@@ -18,14 +18,12 @@ namespace Lair.Tests.EditMode
     public class FormationCardAndSealTests
     {
         private FormationDatabase _db;
-        private FormationCardSpecies _cards;
         private readonly List<Object> _spawned = new List<Object>();
 
         [SetUp]
         public void 준비()
         {
             _db = FormationTestKit.ShippedDb();
-            _cards = FormationTestKit.ShippedCards(_db);
         }
 
         [TearDown]
@@ -41,119 +39,11 @@ namespace Lair.Tests.EditMode
             _spawned.Clear();
         }
 
-        private static IEnumerable<ECardId> AllCards()
-        {
-            return ((ECardId[])Enum.GetValues(typeof(ECardId))).AsEnumerable();
-        }
-
-        private List<ECardId> Excluded(HashSet<EMonster> outputs)
-        {
-            return AllCards().Where(id => _cards.IsAvailable(id, outputs.Contains) == false).ToList();
-        }
-
-        //# --- 카드 후보 제외 ---
+        //# --- 카드 후보 제외 (편성 독립 — 픽 상한만 본다, dungeon-formation-free §4) ---
 
         [Test]
-        public void 종_6종_모두_출력_중이면_제외_0장이다()
+        public void 패시브_9픽을_진행해도_매_드로우가_3장을_채우고_캡_도달_카드는_나오지_않는다()
         {
-            Assert.AreEqual(0, Excluded(FormationTestKit.Outputs(
-                EMonster.Wisp, EMonster.Wraith, EMonster.Reaper, EMonster.Hex, EMonster.Plague, EMonster.Phantom)).Count);
-        }
-
-        [Test]
-        public void 기본_편성은_제외_0장이고_종_하나가_빠지면_그_종에만_의존하는_카드만_제외된다()
-        {
-            List<Card_SpeciesRow> rows = FormationDataSet.Shipped().CardSpecies;
-            foreach (EMonster missing in _db.DefaultFormation(null))
-            {
-                HashSet<EMonster> outputs = new HashSet<EMonster>(_db.DefaultFormation(null));
-                outputs.Remove(missing);
-
-                List<ECardId> expected = rows
-                    .GroupBy(r => r.cardId)
-                    .Where(g => g.All(r => r.monster == missing.ToString()))
-                    .Select(g => FormationTestKit.Card(g.Key))
-                    .OrderBy(id => id)
-                    .ToList();
-
-                CollectionAssert.AreEqual(expected, Excluded(outputs).OrderBy(id => id).ToList(), "빠진 종 " + missing);
-                Assert.Greater(expected.Count, 0, missing + " 전용 카드가 하나는 있어야 제외가 의미 있다");
-            }
-        }
-
-        [Test]
-        public void 종_의존_행이_없는_카드는_출력_종이_하나도_없어도_항상_후보다()
-        {
-            HashSet<ECardId> bound = new HashSet<ECardId>(FormationDataSet.Shipped().CardSpecies.Select(r => FormationTestKit.Card(r.cardId)));
-            HashSet<EMonster> none = new HashSet<EMonster>();
-            int unboundCount = 0;
-            foreach (ECardId id in AllCards())
-            {
-                if (bound.Contains(id) == false)
-                {
-                    ++unboundCount;
-                    Assert.IsTrue(_cards.IsAvailable(id, none.Contains), "무의존 카드 " + id);
-                }
-                else
-                {
-                    Assert.IsFalse(_cards.IsAvailable(id, none.Contains), "의존 카드 " + id + " 는 출력 종이 없으면 제외");
-                }
-            }
-            Assert.Greater(unboundCount, 0);
-        }
-
-        [Test]
-        public void 수호자의_분노는_도깨비불이나_망령_중_하나만_있어도_후보다()
-        {
-            Assert.IsTrue(_cards.IsAvailable(ECardId.Berserk, FormationTestKit.Outputs(EMonster.Wisp).Contains));
-            Assert.IsTrue(_cards.IsAvailable(ECardId.Berserk, FormationTestKit.Outputs(EMonster.Wraith).Contains));
-            Assert.IsTrue(_cards.IsAvailable(ECardId.Berserk, FormationTestKit.Outputs(EMonster.Wisp, EMonster.Wraith).Contains));
-            Assert.IsFalse(_cards.IsAvailable(ECardId.Berserk, FormationTestKit.Outputs(EMonster.Reaper, EMonster.Hex, EMonster.Plague, EMonster.Phantom).Contains));
-        }
-
-        [Test]
-        public void 도깨비불을_사신으로_바꾸면_도깨비불_전용_카드_2장만_제외된다()
-        {
-            EMonster[] swapped = { EMonster.Reaper, EMonster.Reaper, EMonster.Hex, EMonster.Wraith, EMonster.Plague, EMonster.Phantom };
-            List<ECardId> excluded = Excluded(new HashSet<EMonster>(swapped)).OrderBy(id => id).ToList();
-            CollectionAssert.AreEquivalent(
-                new[] { ECardId.WispHpBoost, ECardId.SpawnWisps }, excluded);
-            Assert.IsTrue(_cards.IsAvailable(ECardId.Berserk, new HashSet<EMonster>(swapped).Contains), "분노는 망령이 남아 후보");
-            Assert.IsTrue(_cards.IsAvailable(ECardId.ReplaceWispsToWraith, new HashSet<EMonster>(swapped).Contains), "도깨비불·망령 데미지 카드는 망령이 남아 후보");
-        }
-
-        [Test]
-        public void 같은_종_여러_곳은_하나로_센다_출력_종_집합만_본다()
-        {
-            HashSet<EMonster> one = FormationTestKit.Outputs(EMonster.Phantom);
-            HashSet<EMonster> many = new HashSet<EMonster>(new[] { EMonster.Phantom, EMonster.Phantom, EMonster.Phantom });
-            CollectionAssert.AreEqual(Excluded(one), Excluded(many));
-        }
-
-        [Test]
-        public void 저주술사_3_역병귀_3_종_의존_데이터_기준_패시브_후보는_정확히_7장이다()
-        {
-            HashSet<EMonster> worst = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
-            List<string> available = FormationTestKit.Passives()
-                .Where(name => _cards.IsAvailable(FormationTestKit.Card(name), worst.Contains)).ToList();
-            CollectionAssert.AreEquivalent(
-                new[] { "HexRangeBoost", "ReplaceReapersToHex", "PlagueSlowBoost", "SpawnPlagues", "LingeringCurse", "HeroAttackDown", "SpawnerHaste" },
-                available);
-            Assert.GreaterOrEqual(available.Count, 3);
-        }
-
-        [Test]
-        public void 최악_편성의_액티브_후보도_3장_이상이다()
-        {
-            HashSet<EMonster> worst = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
-            int count = FormationTestKit.Actives().Count(name => _cards.IsAvailable(FormationTestKit.Card(name), worst.Contains));
-            Assert.GreaterOrEqual(count, 3);
-        }
-
-        [Test]
-        public void 최악_편성에서_9픽을_진행해도_매_드로우가_3장을_채우고_캡과_종_제외를_지킨다()
-        {
-            HashSet<EMonster> worst = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
             for (int seed = 1; seed <= 60; ++seed)
             {
                 List<CardData> cards = new List<CardData>();
@@ -166,7 +56,7 @@ namespace Lair.Tests.EditMode
                 CardDeck deck = new CardDeck(cards, seed);
                 CardPickCounter counter = new CardPickCounter();
                 System.Random chooser = new System.Random(seed * 7919);
-                Func<ECardId, bool> excluded = id => counter.IsCapped(id) || _cards.IsAvailable(id, worst.Contains) == false;
+                Func<ECardId, bool> excluded = id => BattleController.IsCardExcluded(counter, id);
 
                 for (int pick = 0; pick < 9; ++pick)
                 {
@@ -175,7 +65,6 @@ namespace Lair.Tests.EditMode
                     foreach (CardData card in drawn)
                     {
                         Assert.IsFalse(counter.IsCapped(card.Id), $"캡 도달 카드 {card.Id} 가 후보로 나옴");
-                        Assert.IsTrue(_cards.IsAvailable(card.Id, worst.Contains), $"편성에 없는 종의 카드 {card.Id} 가 후보로 나옴");
                     }
                     counter.RecordPick(drawn[chooser.Next(drawn.Count)].Id);
                 }
@@ -183,33 +72,17 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 캡_제외와_종_제외는_OR로_결합된다()
+        public void 캡_제외는_캡_도달_카드만_제외하고_종_의존_카드도_미캡이면_후보다()
         {
             CardPickCounter counter = new CardPickCounter();
             for (int i = 0; i < CardPickCounter.Cap; ++i)
             {
                 counter.RecordPick(ECardId.HexRangeBoost);
             }
-            HashSet<EMonster> outputs = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
-            Func<ECardId, bool> excluded = id => counter.IsCapped(id) || _cards.IsAvailable(id, outputs.Contains) == false;
 
-            Assert.IsTrue(excluded(ECardId.HexRangeBoost), "종은 있어도 캡이면 제외");
-            Assert.IsTrue(excluded(ECardId.WispHpBoost), "캡이 아니어도 종이 없으면 제외");
-            Assert.IsFalse(excluded(ECardId.PlagueSlowBoost), "둘 다 아니면 후보");
-            Assert.IsFalse(excluded(ECardId.IronWill), "무의존 + 미캡은 후보");
-        }
-
-        [Test]
-        public void 카드_제외_판정은_출력_종_조회만_호출하고_난수를_쓰지_않는다()
-        {
-            int calls = 0;
-            bool a = _cards.IsAvailable(ECardId.Berserk, m => { ++calls; return false; });
-            bool b = _cards.IsAvailable(ECardId.Berserk, m => { ++calls; return false; });
-            Assert.AreEqual(a, b);
-            Assert.AreEqual(4, calls, "Berserk 는 두 종 모두 조회하고 둘 다 false 면 제외");
-            int unbound = 0;
-            _cards.IsAvailable(ECardId.IronWill, m => { ++unbound; return false; });
-            Assert.AreEqual(0, unbound, "무의존 카드는 조회하지 않는다");
+            Assert.IsTrue(BattleController.IsCardExcluded(counter, ECardId.HexRangeBoost), "캡이면 제외");
+            Assert.IsFalse(BattleController.IsCardExcluded(counter, ECardId.WispHpBoost), "종 전용 카드도 편성과 무관하게 후보");
+            Assert.IsFalse(BattleController.IsCardExcluded(counter, ECardId.IronWill), "무의존 + 미캡은 후보");
         }
 
         //# --- StageRuleContext.LockSpawners (봉인 1곳) ---
