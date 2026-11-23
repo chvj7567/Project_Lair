@@ -118,7 +118,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 신규_프로필의_버전은_8이고_마이그레이션_현재_버전과_같다()
         {
-            Assert.AreEqual(12, new MetaProfile().Version);
+            Assert.AreEqual(MetaProfileMigration.CurrentVersion, new MetaProfile().Version);
             Assert.AreEqual(14, MetaProfileMigration.CurrentVersion);
         }
 

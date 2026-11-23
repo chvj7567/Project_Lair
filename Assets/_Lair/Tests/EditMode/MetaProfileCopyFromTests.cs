@@ -37,7 +37,7 @@ namespace Lair.Tests.EditMode
 
             dst.CopyFrom(src);
 
-            Assert.AreEqual(14, dst.Version);
+            Assert.AreEqual(12, dst.Version);
             Assert.AreEqual(1234, dst.Souls);
             Assert.AreEqual(555, dst.LordXp);
             Assert.AreEqual(4, dst.LordRewardGrantedLevel);

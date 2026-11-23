@@ -119,9 +119,9 @@ namespace Lair.Tests.EditMode
             Assert.AreEqual(14, p.Version);
         }
 
-        [TestCase(12)]
+        [TestCase(14)]
         [TestCase(99)]
-        public void 이미_12_이상이면_Version을_낮추지_않는다(int version)
+        public void 이미_14_이상이면_Version을_낮추지_않는다(int version)
         {
             MetaProfile p = new MetaProfile { Version = version };
 

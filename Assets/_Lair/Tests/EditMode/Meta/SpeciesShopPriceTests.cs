@@ -1,115 +1,127 @@
 using Lair.Data;
 using Lair.Meta;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Lair.Tests.EditMode
 {
-    //# 종족 강화 항목 가격 곡선 회귀 (monster-species-enhancement §3.1) — BasePrice 150 / PriceGrowth 1.6.
-    //# 기존 ShopServiceTests/EdgeTests(BasePrice 80 글로벌)와 비중복 — 종족 전용 150·만렙 2371 누계·차단 경로.
+    //# 체급 티어 강화 회귀 (dungeon-formation-free §3 '상점에서 강화 티어 구매') — 기본→T1→T2→T3 = 390 / 998 / 983 소울, 저장 대표값 0/2/4/5.
     public class SpeciesShopPriceTests
     {
+        private const string ItemId = "Enhance_Wisp";
+
         private MetaConfig _cfg;
         private MetaProfile _profile;
         private ShopService _shop;
 
-        private static ShopItemDef SpeciesDef()
+        private static ShopItemDef SpeciesDef(EMonster species)
             => new ShopItemDef
             {
-                Id = "Enhance_Wisp",
+                Id = "Enhance_" + species,
                 EffectKind = EShopEffectKind.MonsterSpecies,
-                Species = EMonster.Wisp,
+                Species = species,
                 PerLevelMul = 1.18f,
                 MaxLevel = 5,
                 BasePrice = 150,
                 PriceGrowth = 1.6f,
             };
 
+        private static EnhanceTierTable Tiers()
+            => EnhanceTierTable.Build(new[]
+            {
+                new EnhanceTierRow { tier = 1, levelEquivalent = 2, soulCost = 390 },
+                new EnhanceTierRow { tier = 2, levelEquivalent = 4, soulCost = 998 },
+                new EnhanceTierRow { tier = 3, levelEquivalent = 5, soulCost = 983 },
+            });
+
         [SetUp]
         public void 준비()
         {
-            _cfg = new MetaConfig();
-            _cfg.ShopItems.Add(SpeciesDef());
+            _cfg = new MetaConfig { EnhanceTiers = Tiers() };
+            _cfg.ShopItems.Add(SpeciesDef(EMonster.Wisp));
             _profile = new MetaProfile { Souls = 100000 };
             _shop = new ShopService(_profile, _cfg);
         }
 
-        //# §3.1 표 — Lv0~4 구매가 150 / 240 / 384 / 614 / 983.
-        [TestCase(0, 150)]
-        [TestCase(1, 240)]
-        [TestCase(2, 384)]
-        [TestCase(3, 614)]
+        //# 현재 저장값 → 다음 티어 구매가. 구버전 Lv1/Lv3 도 같은 티어(T1/T2)의 다음 단계 가격으로 읽는다.
+        [TestCase(0, 390)]
+        [TestCase(1, 998)]
+        [TestCase(2, 998)]
+        [TestCase(3, 983)]
         [TestCase(4, 983)]
-        public void 종족강화_레벨별_가격이_기획서_곡선과_일치한다(int level, int expectedPrice)
+        public void 티어강화_현재_저장값별_다음_티어_가격이_기획서와_일치한다(int level, int expectedPrice)
         {
-            _profile.SetShopLevel("Enhance_Wisp", level);
-            Assert.AreEqual(expectedPrice, _shop.PriceOf("Enhance_Wisp"));
-        }
-
-        //# static PriceOf 도 동일 곡선 — ShopPopup.MakeCell 과 공유하는 단일 진실.
-        [Test]
-        public void static_PriceOf_도_동일_곡선을_낸다()
-        {
-            ShopItemDef def = SpeciesDef();
-            Assert.AreEqual(150, ShopService.PriceOf(def, 0));
-            Assert.AreEqual(983, ShopService.PriceOf(def, 4));
+            _profile.SetShopLevel(ItemId, level);
+            Assert.AreEqual(expectedPrice, _shop.PriceOf(ItemId));
         }
 
         [Test]
-        public void 한종_만렙까지_누계는_2371소울이다()
+        public void T3_최대_티어면_가격이_없고_구매가_차단된다()
         {
-            int total = 0;
-            ShopItemDef def = SpeciesDef();
-            for (int lv = 0; lv < 5; lv++)
+            _profile.SetShopLevel(ItemId, 5);
+            Assert.AreEqual(-1, _shop.PriceOf(ItemId));
+            Assert.IsFalse(_shop.CanBuy(ItemId));
+            Assert.IsFalse(_shop.Buy(ItemId));
+            Assert.AreEqual(100000, _profile.Souls);
+        }
+
+        [Test]
+        public void 기본에서_순차_구매하면_대표값_2_4_5와_누계_2371소울이_든다()
+        {
+            int[] expectedLevels = { 2, 4, 5 };
+            for (int i = 0; i < 3; i++)
             {
-                total += ShopService.PriceOf(def, lv);
+                Assert.IsTrue(_shop.Buy(ItemId), $"{i + 1}번째 구매");
+                Assert.AreEqual(expectedLevels[i], _profile.GetShopLevel(ItemId));
             }
-            Assert.AreEqual(2371, total);
+            Assert.AreEqual(100000 - 2371, _profile.Souls);
+            Assert.IsFalse(_shop.Buy(ItemId));
         }
 
         [Test]
-        public void Lv5_만렙이면_구매가_차단된다()
+        public void 소울이_389면_T1_구매불가이고_부족분이_1이다()
         {
-            _profile.SetShopLevel("Enhance_Wisp", 5);
-            Assert.IsFalse(_shop.CanBuy("Enhance_Wisp"));
-            Assert.IsFalse(_shop.Buy("Enhance_Wisp"));
+            _profile.Souls = 389;
+            Assert.IsFalse(_shop.CanBuy(ItemId));
+            Assert.IsFalse(_shop.Buy(ItemId));
+            Assert.AreEqual(389, _profile.Souls);
+            Assert.AreEqual(0, _profile.GetShopLevel(ItemId));
+            Assert.IsTrue(_shop.TryGetTierOffer(ItemId, out ShopService.TierOffer offer));
+            Assert.AreEqual(1, offer.MissingSouls);
+            Assert.IsFalse(offer.CanBuy);
         }
 
         [Test]
-        public void 소울이_150_모자라_1이면_첫레벨_구매불가다()
+        public void 소울이_정확히_390이면_T1_구매되고_대표값_2가_된다()
         {
-            _profile.Souls = 149;
-            Assert.IsFalse(_shop.CanBuy("Enhance_Wisp"));
-            Assert.IsFalse(_shop.Buy("Enhance_Wisp"));
-            Assert.AreEqual(149, _profile.Souls);
-        }
-
-        [Test]
-        public void 소울이_정확히_150이면_첫레벨_구매되고_레벨1이_된다()
-        {
-            _profile.Souls = 150;
-            Assert.IsTrue(_shop.Buy("Enhance_Wisp"));
+            _profile.Souls = 390;
+            Assert.IsTrue(_shop.Buy(ItemId));
             Assert.AreEqual(0, _profile.Souls);
-            Assert.AreEqual(1, _profile.GetShopLevel("Enhance_Wisp"));
+            Assert.AreEqual(2, _profile.GetShopLevel(ItemId));
         }
 
-        //# 여섯 종족 통일 곡선 — 어느 종족 항목이든 같은 150·1.6 곡선(효율 정답 종족 없음, §2.2/§3.1).
         [Test]
-        public void 여섯종족_모두_동일_가격곡선을_공유한다()
+        public void 티어_단계_데이터가_없으면_구매가_비활성이고_소울을_쓰지_않는다()
+        {
+            _cfg.EnhanceTiers = null;
+            Assert.IsFalse(_shop.CanBuy(ItemId));
+            Assert.IsFalse(_shop.Buy(ItemId));
+            Assert.AreEqual(100000, _profile.Souls);
+        }
+
+        //# 여섯 종족 통일 — 어느 종족 항목이든 같은 390 첫 가격과 1.18^2 배율 예고(효율 정답 종족 없음).
+        [Test]
+        public void 여섯종족_모두_동일_티어_단계를_공유한다()
         {
             foreach (EMonster species in MonsterGrades.BaseMonsters)
             {
-                ShopItemDef def = new ShopItemDef
-                {
-                    Id = "Enhance_" + species,
-                    EffectKind = EShopEffectKind.MonsterSpecies,
-                    Species = species,
-                    BasePrice = 150,
-                    PriceGrowth = 1.6f,
-                    MaxLevel = 5,
-                };
-                Assert.AreEqual(150, ShopService.PriceOf(def, 0), $"{species} Lv0");
-                Assert.AreEqual(983, ShopService.PriceOf(def, 4), $"{species} Lv4");
+                MetaConfig cfg = new MetaConfig { EnhanceTiers = Tiers() };
+                cfg.ShopItems.Add(SpeciesDef(species));
+                ShopService shop = new ShopService(new MetaProfile { Souls = 100000 }, cfg);
+                string id = "Enhance_" + species;
+                Assert.IsTrue(shop.TryGetTierOffer(id, out ShopService.TierOffer offer), $"{species}");
+                Assert.AreEqual(390, offer.SoulCost, $"{species} 기본→T1");
+                Assert.AreEqual(2, offer.NextLevel, $"{species} 대표값");
+                Assert.AreEqual(1.18f * 1.18f, offer.NextMultiplier, 0.0001f, $"{species} 배율");
             }
         }
     }

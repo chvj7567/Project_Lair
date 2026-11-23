@@ -123,7 +123,7 @@ namespace Lair.Tests.EditMode
         }
 
         [TestCase(-1f)]
-        [TestCase(6f)]
+        [TestCase(30f)]
         [TestCase(99f)]
         public void 봉인_규칙은_EMonster에_없는_종족값이면_생성_시_ArgumentException이다(float species)
         {

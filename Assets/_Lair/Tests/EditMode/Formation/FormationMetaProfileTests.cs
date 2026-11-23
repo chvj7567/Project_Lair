@@ -183,18 +183,29 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void NormalizeFormation은_0행을_그대로_두고_새_리스트로_바꾸지_않는다()
+        public void NormalizeFormation은_수동_0칸_편성을_그대로_두고_플래그도_유지한다()
         {
-            MetaProfile p = new MetaProfile();
+            MetaProfile p = new MetaProfile { HasCustomFormation = true };
             List<FormationSlotEntry> before = p.Formation;
             MetaProfileMigration.NormalizeFormation(p);
             Assert.AreSame(before, p.Formation);
+            Assert.AreEqual(0, p.Formation.Count);
+            Assert.IsTrue(p.HasCustomFormation, "0행+수동 = 전부 비운 편성(dungeon-formation-free §5)");
+        }
+
+        [Test]
+        public void NormalizeFormation은_기본_편성_플래그면_남은_행을_비운다()
+        {
+            MetaProfile p = new MetaProfile { HasCustomFormation = false, Formation = Valid() };
+            MetaProfileMigration.NormalizeFormation(p);
+            Assert.AreEqual(0, p.Formation.Count);
+            Assert.IsFalse(p.HasCustomFormation);
         }
 
         [Test]
         public void NormalizeFormation은_유효한_6행의_객체를_바꾸지_않는다()
         {
-            MetaProfile p = new MetaProfile { Formation = Valid() };
+            MetaProfile p = new MetaProfile { HasCustomFormation = true, Formation = Valid() };
             List<FormationSlotEntry> before = p.Formation;
             MetaProfileMigration.NormalizeFormation(p);
             Assert.AreSame(before, p.Formation);
@@ -327,14 +338,44 @@ namespace Lair.Tests.EditMode
         public void Store_Save_Load_라운드트립은_편성을_보존한다()
         {
             MetaProfileStore store = new MetaProfileStore(_dir);
-            MetaProfile p = new MetaProfile { ClearedStage = 3, SelectedStage = 3, Formation = Valid() };
+            MetaProfile p = new MetaProfile { ClearedStage = 3, SelectedStage = 3, HasCustomFormation = true, Formation = Valid() };
             store.Save(p);
 
             MetaProfile loaded = new MetaProfileStore(_dir).Load();
 
+            Assert.IsTrue(loaded.HasCustomFormation);
             Assert.AreEqual(6, loaded.Formation.Count);
             Assert.AreEqual("Reaper", loaded.Formation[1].Monster);
             Assert.AreEqual("Phantom", loaded.Formation[5].Monster);
+        }
+
+        [Test]
+        public void Store_Save_Load_라운드트립은_수동_0칸_편성을_기본_편성과_구별해_보존한다()
+        {
+            MetaProfileStore store = new MetaProfileStore(_dir);
+            store.Save(new MetaProfile { ClearedStage = 3, SelectedStage = 3, HasCustomFormation = true });
+
+            MetaProfile loaded = new MetaProfileStore(_dir).Load();
+
+            Assert.IsTrue(loaded.HasCustomFormation);
+            Assert.AreEqual(0, loaded.Formation.Count);
+        }
+
+        [Test]
+        public void Store_Save_Load_라운드트립은_수동_부분_편성의_빈칸을_채우지_않는다()
+        {
+            MetaProfileStore store = new MetaProfileStore(_dir);
+            MetaProfile p = new MetaProfile { ClearedStage = 3, SelectedStage = 3, HasCustomFormation = true };
+            p.Formation.Add(new FormationSlotEntry { Slot = 2, Monster = "Wisp" });
+            p.Formation.Add(new FormationSlotEntry { Slot = 6, Monster = "Reaper" });
+            store.Save(p);
+
+            MetaProfile loaded = new MetaProfileStore(_dir).Load();
+
+            Assert.IsTrue(loaded.HasCustomFormation);
+            Assert.AreEqual(2, loaded.Formation.Count);
+            Assert.AreEqual(2, loaded.Formation[0].Slot);
+            Assert.AreEqual(6, loaded.Formation[1].Slot);
         }
     }
 }

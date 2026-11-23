@@ -330,10 +330,9 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 봉인할_스포너가_없으면_오류를_남기고_규칙은_무효로_동작하지_않는다()
+        public void 봉인할_스포너가_없으면_봉인_없이_조용히_넘어가고_해제_호출도_없다()
         {
             _ctx.SpawnerPositions = new Vector3[0];
-            LogAssert.Expect(LogType.Error, new Regex("봉인 후보"));
             SealedNestRule rule = new SealedNestRule(StageRuleDataFactory.SealedNest(1f, 0.6f));
 
             rule.Activate(_ctx);

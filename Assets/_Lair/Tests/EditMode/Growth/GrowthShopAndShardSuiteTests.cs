@@ -155,6 +155,13 @@ namespace Lair.Tests.EditMode
                 new ShopItemDef { Id = "Nest_Wisp", EffectKind = EShopEffectKind.NestMastery, Species = EMonster.Wisp, Currency = ECurrency.MoonSeal, MaxLevel = 3, BasePrice = 20, PriceGrowth = 1.5f, PerLevelMul = 1f },
                 new ShopItemDef { Id = "Trait_Wisp", EffectKind = EShopEffectKind.MonsterTrait, Species = EMonster.Wisp, Currency = ECurrency.AbyssCrystal, MaxLevel = 3, BasePrice = 3, PriceGrowth = 2f, PerLevelMul = 1f },
             };
+            //# 체급은 티어 단계표(390/998/983)로 구매한다 (dungeon-formation-free §3).
+            cfg.EnhanceTiers = EnhanceTierTable.Build(new[]
+            {
+                new EnhanceTierRow { tier = 1, levelEquivalent = 2, soulCost = 390 },
+                new EnhanceTierRow { tier = 2, levelEquivalent = 4, soulCost = 998 },
+                new EnhanceTierRow { tier = 3, levelEquivalent = 5, soulCost = 983 },
+            });
             return cfg;
         }
 
@@ -162,7 +169,7 @@ namespace Lair.Tests.EditMode
         public void 소울_항목은_소울만_특수_항목은_그_재화만_차감한다()
         {
             MetaConfig cfg = MixedConfig();
-            MetaProfile p = new MetaProfile { Souls = 200 };
+            MetaProfile p = new MetaProfile { Souls = 500 };
             p.AddCurrency(ECurrency.MoonSeal, 25);
             p.AddCurrency(ECurrency.AbyssCrystal, 3);
             ShopService shop = new ShopService(p, cfg, c => true);
@@ -171,7 +178,7 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(shop.Buy("Nest_Wisp"));
             Assert.IsTrue(shop.Buy("Trait_Wisp"));
 
-            Assert.AreEqual(50, p.Souls);
+            Assert.AreEqual(110, p.Souls);
             Assert.AreEqual(5, p.GetCurrency(ECurrency.MoonSeal));
             Assert.AreEqual(0, p.GetCurrency(ECurrency.AbyssCrystal));
         }

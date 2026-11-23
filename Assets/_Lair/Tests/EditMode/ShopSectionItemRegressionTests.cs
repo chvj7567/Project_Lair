@@ -32,6 +32,12 @@ namespace Lair.Tests.EditMode
         {
             MetaConfig cfg = new MetaConfig();
             cfg.ShopItems = new List<ShopItemDef>(items);
+            cfg.EnhanceTiers = EnhanceTierTable.Build(new[]
+            {
+                new EnhanceTierRow { tier = 1, levelEquivalent = 2, soulCost = 390 },
+                new EnhanceTierRow { tier = 2, levelEquivalent = 4, soulCost = 998 },
+                new EnhanceTierRow { tier = 3, levelEquivalent = 5, soulCost = 983 },
+            });
             return cfg;
         }
 
@@ -56,20 +62,20 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(hp.CanBuy);   //# 99999 >= 400
         }
 
-        //# 종족 항목도 헤더 뒤에서 정확한 가격/레벨을 담는다.
+        //# 종족 항목(체급)은 티어 단계표 — 저장 대표값 4(T2)면 다음 T3 가격 983 과 "T2" 표기.
         [Test]
         public void 헤더가_섞인_리스트에서_종족항목이_정확한_가격과_레벨을_담는다()
         {
             MetaProfile profile = new MetaProfile { Souls = 99999 };
-            profile.SetShopLevel("Enhance_Wisp", 3);   //# floor(50·2^3)=400
+            profile.SetShopLevel("Enhance_Wisp", 4);   //# T2 → 다음 T3 = 983
 
             List<ShopItemCellData> list = ShopPopup.BuildCellData(
                 profile, Make(Stat("MonsterHpUp", 100), Species("Enhance_Wisp", EMonster.Wisp, 50)));
 
             ShopItemCellData wisp = FindItem(list, "Enhance_Wisp");
             Assert.IsNotNull(wisp);
-            Assert.AreEqual(400, wisp.Price);
-            Assert.AreEqual("Lv 3/5", wisp.LevelText);
+            Assert.AreEqual(983, wisp.Price);
+            Assert.AreEqual("T2", wisp.LevelText);
             Assert.AreEqual(EMonster.Wisp, wisp.Species);
         }
 
@@ -124,7 +130,7 @@ namespace Lair.Tests.EditMode
             Assert.IsTrue(wisp.IsMax);
             Assert.AreEqual(0, wisp.Price);
             Assert.IsFalse(wisp.CanBuy);
-            Assert.AreEqual("Lv 5/5", wisp.LevelText);
+            Assert.AreEqual("T3", wisp.LevelText);
         }
 
         //# 항목 필드가 def+profile 로부터 독립 재계산한 기대값과 일치하는지 검증(가격 공식은 ShopService SoT 공유).
@@ -134,8 +140,22 @@ namespace Lair.Tests.EditMode
             int level = profile.GetShopLevel(def.Id);
             bool isMax = level >= def.MaxLevel;
             int expectedPrice = isMax ? 0 : ShopService.PriceOf(def, level);
-
-            Assert.AreEqual($"Lv {level}/{def.MaxLevel}", cell.LevelText, $"{def.Id} LevelText");
+            if (def.EffectKind == EShopEffectKind.MonsterSpecies)
+            {
+                //# 체급 항목은 티어 단계표 — 가격은 다음 티어(390/998/983), 표기는 T1~T3(기본은 문구 데이터가 필요해 생략).
+                int tier = EnhanceTierTable.TierOfLevel(level);
+                int[] stepCosts = { 390, 998, 983, 0 };
+                isMax = tier >= EnhanceTierTable.MaxTier;
+                expectedPrice = stepCosts[tier];
+                if (tier > 0)
+                {
+                    Assert.AreEqual($"T{tier}", cell.LevelText, $"{def.Id} LevelText");
+                }
+            }
+            else
+            {
+                Assert.AreEqual($"Lv {level}/{def.MaxLevel}", cell.LevelText, $"{def.Id} LevelText");
+            }
             Assert.AreEqual(expectedPrice, cell.Price, $"{def.Id} Price");
             Assert.AreEqual(isMax, cell.IsMax, $"{def.Id} IsMax");
             Assert.AreEqual(isMax == false && profile.Souls >= expectedPrice, cell.CanBuy, $"{def.Id} CanBuy");

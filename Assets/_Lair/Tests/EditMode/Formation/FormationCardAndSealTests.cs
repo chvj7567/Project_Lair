@@ -131,13 +131,13 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 저주술사_3_역병귀_3_최악_편성도_패시브_후보가_정확히_6장이다()
+        public void 저주술사_3_역병귀_3_종_의존_데이터_기준_패시브_후보는_정확히_7장이다()
         {
             HashSet<EMonster> worst = FormationTestKit.Outputs(EMonster.Hex, EMonster.Plague);
             List<string> available = FormationTestKit.Passives()
                 .Where(name => _cards.IsAvailable(FormationTestKit.Card(name), worst.Contains)).ToList();
             CollectionAssert.AreEquivalent(
-                new[] { "HexRangeBoost", "PlagueSlowBoost", "SpawnPlagues", "LingeringCurse", "HeroAttackDown", "SpawnerHaste" },
+                new[] { "HexRangeBoost", "ReplaceReapersToHex", "PlagueSlowBoost", "SpawnPlagues", "LingeringCurse", "HeroAttackDown", "SpawnerHaste" },
                 available);
             Assert.GreaterOrEqual(available.Count, 3);
         }
@@ -398,12 +398,11 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 봉인_후보_둥지가_없으면_오류를_남기고_규칙은_해제를_시도하지_않는다()
+        public void 봉인_후보_둥지가_없으면_봉인_없이_조용히_넘어가고_해제를_시도하지_않는다()
         {
             RecordingStageRuleContext ctx = new RecordingStageRuleContext { SpawnerPositions = new Vector3[0], HeroHpRatio = 1f };
             SealedNestRule rule = new SealedNestRule(StageRuleDataFactory.SealedNest(1f, 0.6f));
 
-            LogAssert.Expect(LogType.Error, new Regex("봉인 후보"));
             rule.Activate(ctx);
 
             ctx.HeroHpRatio = 0.1f;
@@ -450,7 +449,7 @@ namespace Lair.Tests.EditMode
         [Test]
         public void 알_수_없는_봉인_종_번호는_규칙_생성_오류다()
         {
-            Assert.Throws<ArgumentException>(() => new SealedNestRule(StageRuleDataFactory.SealedNest(9f, 0.6f)));
+            Assert.Throws<ArgumentException>(() => new SealedNestRule(StageRuleDataFactory.SealedNest(30f, 0.6f)));
         }
 
         [Test]

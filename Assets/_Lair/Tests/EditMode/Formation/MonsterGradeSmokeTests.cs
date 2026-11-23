@@ -38,16 +38,24 @@ namespace Lair.Tests.EditMode
         }
 
         [Test]
-        public void 견습_승급은_소울을_내고_보유_등급이_오르며_6행_편성의_그_종족_둥지에_자동_배치되고_편성_창이_열린다()
+        public void 견습_승급은_소울을_내고_보유_등급이_오르며_수동_편성은_유지하고_기본_편성만_최고_등급을_따라간다()
         {
-            MetaProfile p = new MetaProfile { Souls = 1000, ClearedStage = 3, Formation = FormationTestKit.Rows(FormationTestKit.Default()) };
+            MetaProfile p = new MetaProfile
+            {
+                Souls = 1000, ClearedStage = 3, HasCustomFormation = true, Formation = FormationTestKit.Rows(FormationTestKit.Default()),
+            };
 
             Assert.IsTrue(GradePromotion.TryPromote(p, _db, ERace.Ignis));
 
             Assert.AreEqual(200, p.Souls);
             Assert.AreEqual(2, p.GetRaceGrade(ERace.Ignis));
-            Assert.AreEqual("WispG2", p.Formation[0].Monster, "둥지 1 = 이그니스");
+            Assert.AreEqual("Wisp", p.Formation[0].Monster, "수동 편성은 승급해도 그대로 (dungeon-formation-free §5)");
+            EMonster?[] manual = FormationSave.Resolve(_db, p);
+            Assert.AreEqual(EMonster.Wisp, manual[0]);
+
+            p.HasCustomFormation = false;
             Assert.AreEqual(EMonster.WispG2, _db.DefaultFormation(p.GetRaceGrade)[0]);
+            Assert.AreEqual(EMonster.WispG2, FormationSave.Resolve(_db, p)[0], "기본 편성 추적은 보유 최고 등급");
             Assert.IsTrue(FormationRules.ShouldShowPopup(_db, p.ClearedStage, p.GetRaceGrade));
         }
 
