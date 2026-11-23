@@ -523,7 +523,8 @@ namespace Lair.Tests.EditMode
         {
             RectTransform root = (RectTransform)LoadPrefabAsset(RecordsCellPath).transform;
 
-            Assert.AreEqual(396f, root.sizeDelta.x, 0.01f, "셀 루트 폭");
+            //# 4a65fa49 큰 금테 창 통일로 기록 셀 폭 396 -> 1020
+            Assert.AreEqual(1020f, root.sizeDelta.x, 0.01f, "셀 루트 폭");
             Assert.AreEqual(84f, root.sizeDelta.y, 0.01f, "셀 루트 높이");
         }
 
@@ -534,7 +535,8 @@ namespace Lair.Tests.EditMode
             GameObject origin = OriginOf(popup, "_scrollView");
 
             RectTransform rect = origin.GetComponent<RectTransform>();
-            Assert.AreEqual(396f, rect.sizeDelta.x, 0.01f, "origin 폭");
+            //# 4a65fa49 큰 금테 창 통일로 origin 폭 396 -> 1020
+            Assert.AreEqual(1020f, rect.sizeDelta.x, 0.01f, "origin 폭");
             Assert.AreEqual(84f, rect.sizeDelta.y, 0.01f, "origin 높이");
         }
 

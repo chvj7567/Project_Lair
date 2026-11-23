@@ -856,7 +856,7 @@ namespace Lair.Tests.EditMode
         public void 데일리_팝업과_마을_타일의_직렬화_참조가_전부_연결되어_있다()
         {
             AssertNoNullReferences("Assets/_Lair/Art/UI/DailyPopup.prefab", typeof(DailyPopup));
-            AssertSerializedRefs("Assets/_Lair/Art/UI/VillageHud.prefab", typeof(VillageHud), "_dailyButton", "_dailyLockOverlay", "_dailyNewFrame");
+            AssertSerializedRefs("Assets/_Lair/Art/UI/VillageHud.prefab", typeof(VillageHud), "_dailyButton", "_dailyLockOverlay");   //# 4a65fa49 데일리 타일 이중 테두리 제거로 _dailyNewFrame 은 의도적 미연결(VillageHud null 가드)
         }
 
         private static void AssertSerializedRefs(string path, Type componentType, params string[] fields)

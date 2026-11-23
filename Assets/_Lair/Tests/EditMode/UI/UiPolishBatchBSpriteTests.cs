@@ -100,10 +100,10 @@ namespace Lair.Tests.EditMode
 
         //# --- 닫기 버튼 몸체 = VillageHudCta (3곳) ---
 
-        [TestCase(ShopPopupPath, "ShopCloseBtn")]   //# 상점 전용 아트 세트(ui-art-refresh)로 교체
+        [TestCase(ShopPopupPath, "CodexCloseBtn")]   //# 4a65fa49 마을 팝업이 도감 금테 창 세트로 통일
         [TestCase(CodexPopupPath, "CodexCloseBtn")]   //# 도감 전용 GPT 아트 세트(monster-codex-ui-art §8.1)로 교체
-        [TestCase(RecordsPopupPath, "RelicCloseBtn")]   //# 유물 도감 아트 세트 닫기 버튼 공유
-        [TestCase(UiDir + "RankingPopup.prefab", "RelicCloseBtn")]
+        [TestCase(RecordsPopupPath, "CodexCloseBtn")]   //# 4a65fa49 마을 팝업 도감 세트 통일
+        [TestCase(UiDir + "RankingPopup.prefab", "CodexCloseBtn")]
         public void 닫기_버튼_Image_스프라이트는_팝업별_기대값이다(string path, string expected)
         {
             int closes = 0;

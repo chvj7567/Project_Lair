@@ -36,7 +36,8 @@ namespace Lair.Tests.EditMode
 
         private static readonly string[] PopupSprites =
         {
-            "ShopPanel", "ShopTitlePlate", "ShopCloseBtn", "ShopPill", "ShopDivider", "ShopScrollTrack", "ShopScrollThumb",
+            //# 4a65fa49 상점 팝업 틀·제목·닫기·구분선·스크롤은 도감 세트로 통일되어 ShopPill 만 남음
+            "ShopPill",
         };
 
         private static readonly string[] CellSprites =
