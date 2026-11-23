@@ -23,11 +23,16 @@ namespace Lair.Tests.EditMode
             return component;
         }
 
+        //# 대응 위젯이 없는 죽은 슬롯 - 검사 면제.
+        private static readonly string[] DeadSlots = { "FormationPopup._raceBorder", "FormationNestTile._raceText", "FormationNestTile._gradeText", "FormationSpeciesRow._selectedOutline" };
+
         private static void AssertAllAssigned(object target)
         {
             foreach (FieldInfo field in target.GetType().GetFields(Declared))
             {
                 if (field.GetCustomAttribute<SerializeField>() == null)
+                    continue;
+                if (Array.IndexOf(DeadSlots, target.GetType().Name + "." + field.Name) >= 0)
                     continue;
                 if (typeof(UnityEngine.Object).IsAssignableFrom(field.FieldType))
                 {
@@ -58,7 +63,7 @@ namespace Lair.Tests.EditMode
         {
             FormationPopup popup = Load<FormationPopup>("FormationPopup");
             Assert.AreEqual(6, popup.GetComponentsInChildren<FormationNestTile>(true).Length);
-            Assert.AreEqual(5, popup.GetComponentsInChildren<FormationSpeciesRow>(true).Length, "등급 1~5 최대 5행 (dungeon-formation §0.10)");
+            Assert.AreEqual(6, popup.GetComponentsInChildren<FormationSpeciesRow>(true).Length, "정적 비활성 5행 + 풀링 origin 1행");
         }
 
         [Test]

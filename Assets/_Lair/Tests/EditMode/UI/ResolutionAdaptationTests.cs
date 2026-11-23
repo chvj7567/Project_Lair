@@ -118,7 +118,7 @@ namespace Lair.Tests.UI
 
         private const string ConfirmPopup = "ConfirmPopup";
 
-        //# §2 인벤토리 44개 — EUI 22 + 보조 3 + 셀 19(CodexMonsterCell = 도감 몬스터 탭 풀 셀, monster-codex).
+        //# §2 인벤토리 45개 — EUI 22 + 보조 3 + 셀 20(CodexMonsterCell = 도감 몬스터 탭 풀 셀, FormationFilterButton = 편성 종족 필터 칩).
         private static readonly string[] Inventory =
         {
             "VillageHud", "ShopPopup", "QuestPopup", "CodexPopup", "RecordsPopup", "HeroSelectPopup", "LordLevelPopup", "RankingPopup",
@@ -128,6 +128,7 @@ namespace Lair.Tests.UI
             "BuildIconCell", "BuildModalCardCell", "BuildSynergyCell", "SpawnerStatusCell", "SynergyModalCell", "CodexCell",
             "HeroSelectCell", "LordRewardCell", "QuestCell", "RankingCell", "RecordsStageCell", "RelicCell", "ShopItemCell",
             "WorldMapChapterTab", "WorldMapNode", "FormationSpeciesRow", "FormationNestTile", "TowerFloorCell", "CodexMonsterCell",
+            "FormationFilterButton",
         };
 
         private Scene _village;
@@ -591,7 +592,7 @@ namespace Lair.Tests.UI
         public void T6_인벤토리_순회_UI_프리팹이_분류_목록과_정확히_일치한다()
         {
             HashSet<string> expected = new HashSet<string>(Inventory);
-            Assert.AreEqual(44, expected.Count, "분류 목록은 44개(EUI 22 + 보조 3 + 셀 19)");
+            Assert.AreEqual(45, expected.Count, "분류 목록은 45개(EUI 22 + 보조 3 + 셀 20)");
 
             HashSet<string> actual = new HashSet<string>();
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { UiDir }))

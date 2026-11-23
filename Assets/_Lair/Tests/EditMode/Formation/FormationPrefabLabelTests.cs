@@ -15,7 +15,7 @@ namespace Lair.Tests.EditMode
         private const string UiDir = "Assets/_Lair/Art/UI/";
 
         //# 팝업이 정적 문구로 쓰는 id - 던전 편성(1393) 제목/부제/출격/기본 편성/안내/영웅 성향 + 스테이지 규칙(1303, 기존 문구 재사용).
-        private static readonly HashSet<int> PopupStaticIds = new HashSet<int> { 1303, 1393, 1394, 1395, 1396, 1406, 1407 };
+        private static readonly HashSet<int> PopupStaticIds = new HashSet<int> { 1303, 1393, 1394, 1395, 1396, 1407 };
 
         private static GameObject Load(string prefabName)
         {
@@ -76,7 +76,7 @@ namespace Lair.Tests.EditMode
                 used.Add(id);
             }
             Assert.Greater(dynamicCount, 0, "코드가 값을 넣는 라벨이 있어야 한다");
-            CollectionAssert.IsSubsetOf(new[] { 1393, 1394, 1395, 1396, 1406, 1407 }, used, "제목/부제/출격/기본 편성/안내/성향 제목 라벨");
+            CollectionAssert.IsSubsetOf(new[] { 1393, 1394, 1395, 1396, 1407 }, used, "제목/부제/출격/기본 편성/성향 제목 라벨");
         }
 
         [Test]

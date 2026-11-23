@@ -247,6 +247,7 @@
 | 41 | `FormationSpeciesRow` | `FormationPopup` | Village |
 | 42 | `FormationNestTile` | `FormationPopup` | Village |
 | 43 | `TowerFloorCell` | `TowerPopup` | Village |
+| 43a | `FormationFilterButton` | `FormationPopup` | Village |
 
 ### 2.5 로딩 씬 직접 배치 UI (1행, 요소 6개)
 
@@ -591,7 +592,7 @@ C2 후 위치 (M2~M5, 하단 인셋 63): `Panel` 아래가 63 올라가므로 `P
 | T3 | `HudRoot` 영역 | 인셋 적용(`SafeAreaFitter.ComputeAnchors`) 후 논리 크기 | 마을 M2~M7 폭 ≥ 1160 / 높이 ≥ 660 |
 | T4 | 마을 HUD 겹침 | `VillageHud.prefab` 을 `HudRoot` 논리 크기 부모 아래 인스턴스화, §5.1 존 사각형 월드 코너 계산, `Deco*` 제외 | M1~M7 + 하한(1160x660) 에서 모든 쌍 교차 면적 0 |
 | T5 | 하단 버튼 순서 | `TowerButton` x < `HeroButton` x < `SortieButton` x | V2 반영 |
-| T6 | **인벤토리 순회** | `AssetDatabase.FindAssets("t:Prefab", "Assets/_Lair/Art/UI")` 로 모든 프리팹을 열거해 §2 의 분류 목록(EUI 22 + 보조 3 + 셀 18 = 43)과 대조 | 목록에 없는 프리팹 0, 목록에만 있는 프리팹 0 (신규 UI 추가 시 실패) |
+| T6 | **인벤토리 순회** | `AssetDatabase.FindAssets("t:Prefab", "Assets/_Lair/Art/UI")` 로 모든 프리팹을 열거해 §2 의 분류 목록(EUI 22 + 보조 3 + 셀 20 = 45)과 대조 | 목록에 없는 프리팹 0, 목록에만 있는 프리팹 0 (신규 UI 추가 시 실패) |
 | T7 | **팝업 앵커 순회** | EUI 팝업 프리팹(마을 13: Shop·Quest·Codex·Records·HeroSelect·LordLevel·Ranking·Cloud·WorldMap·Relic·Formation·Tower·Daily, 배틀 4: Result·CardSelection·BuildModal·SynergyModal, 공용 Confirm)의 루트 직계 자식 중 스트레치가 아닌 것 | 전부 `anchorMin == anchorMax == pivot == (0.5,0.5)` (단, `ResultPopup` y −10(P1 후)·`CardSelectionPopup` y −40 오프셋 허용) |
 | T8 | **팝업 패널 크기 순회** | 위 프리팹의 non-stretch 자식 `sizeDelta` | 마을 팝업 본체 ≤ 1136x640 (`DecoModalGlow` 등 `Deco*` 장식 제외), 배틀·공용 ≤ 1280x720 |
 | T9 | **Dim 순회** | 위 프리팹의 `Dim`(`_dimButton` 또는 `_backgroundButton` 연결 오브젝트) rect | 마을 12 + 배틀 4: anchor (0,0)~(1,1), `sizeDelta == (800,400)` (P1). `ConfirmPopup`: sizeDelta ≥ (4800,2800). `HeroSelectPopup` 제외(도달 불가) |
